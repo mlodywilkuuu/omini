@@ -5,12 +5,22 @@
     <title>OMNI</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
+        
         body {
             font-family: 'Inter', sans-serif;
             color: white;
             min-height: 100vh;
-            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            /* Przywrócona animacja gradientu */
+            background: linear-gradient(-45deg, #0f2027, #203a43, #2c5364, #1a1a2e);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
             display: flex; flex-direction: column; align-items: center;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
         }
 
         .glass-nav {
@@ -20,14 +30,14 @@
             border: 1px solid rgba(255,255,255,0.1);
             border-radius: 50px;
             display: flex; align-items: center; gap: 30px;
+            z-index: 1000;
         }
 
         .nav-links { display: flex; list-style: none; gap: 20px; }
         .nav-links a { color: white; text-decoration: none; font-size: 0.9rem; opacity: 0.8; }
         .nav-links a:hover { opacity: 1; }
 
-        /* Naprawione Menu Języków */
-        .lang-menu { position: relative; cursor: pointer; padding: 10px; z-index: 1000; }
+        .lang-menu { position: relative; cursor: pointer; padding: 10px; }
         .lang-dropdown {
             position: absolute; top: 100%; right: 0;
             background: #1a1a1a; border: 1px solid #444;
@@ -36,20 +46,29 @@
             width: 150px; margin-top: 5px;
         }
         .lang-menu:hover .lang-dropdown { opacity: 1; visibility: visible; }
-        
-        .lang-dropdown li { 
-            padding: 8px; display: flex; align-items: center; gap: 10px; 
-            font-size: 1.2rem; /* Powiększenie dla lepszej widoczności flag */
-        }
-        .lang-dropdown li span { font-size: 0.9rem; font-family: sans-serif; }
+        .lang-dropdown li { padding: 8px; display: flex; align-items: center; gap: 10px; }
         .lang-dropdown li:hover { background: rgba(255,255,255,0.1); border-radius: 5px; }
 
         main { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
         h1 { font-size: 3.5rem; margin-bottom: 20px; }
         
-        .hero-btns { display: flex; gap: 15px; margin-top: 20px; }
-        .btn { padding: 12px 25px; border-radius: 30px; text-decoration: none; font-weight: bold; color: white; }
-        .btn-main { background: #00d2ff; color: #000; }
+        /* Zmieniony styl przycisku Download */
+        .btn-download {
+            margin-top: 30px;
+            padding: 18px 45px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 800;
+            font-size: 1.2rem;
+            color: white;
+            background: linear-gradient(90deg, #00d2ff, #3a7bd5);
+            transition: transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 4px 15px rgba(0, 210, 255, 0.4);
+        }
+        .btn-download:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(0, 210, 255, 0.6);
+        }
     </style>
 </head>
 <body>
@@ -64,44 +83,34 @@
         </ul>
         
         <div class="lang-menu">
-            🌐 <span>Język</span>
+            🌐 <span>Language</span>
             <ul class="lang-dropdown">
-                <li onclick="changeLang('en')">🇬🇧 <span>English</span></li>
-                <li onclick="changeLang('pl')">🇵🇱 <span>Polski</span></li>
-                <li onclick="changeLang('ru')">🇷🇺 <span>Русский</span></li>
-                <li onclick="changeLang('de')">🇩🇪 <span>Deutsch</span></li>
-                <li onclick="changeLang('es')">🇪🇸 <span>Español</span></li>
+                <li onclick="changeLang('en')">🇬🇧 English</li>
+                <li onclick="changeLang('pl')">🇵🇱 Polski</li>
+                <li onclick="changeLang('ru')">🇷🇺 Русский</li>
+                <li onclick="changeLang('de')">🇩🇪 Deutsch</li>
+                <li onclick="changeLang('es')">🇪🇸 Español</li>
             </ul>
         </div>
     </nav>
 
     <main>
         <h1>Zapanuj nad Discordem</h1>
-        <div class="hero-btns">
-            <a href="#" class="btn btn-main">Download</a>
-        </div>
+        <a href="#" class="btn-download">Download OMNI</a>
     </main>
 
     <div id="google_translate_element" style="display:none;"></div>
     <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
     <script type="text/javascript">
         function googleTranslateElementInit() {
-            new google.translate.TranslateElement({
-                pageLanguage: 'pl',
-                autoDisplay: false
-            }, 'google_translate_element');
+            new google.translate.TranslateElement({pageLanguage: 'pl'}, 'google_translate_element');
         }
-
         function changeLang(lang) {
             var frame = document.querySelector('.goog-te-menu-frame');
             if (!frame) return;
-            
             var doc = frame.contentDocument || frame.contentWindow.document;
             var items = doc.querySelectorAll('.goog-te-menu2-item span.text');
-            
-            // Mapowanie nazw języków Google
             var langMap = { 'en': 'English', 'pl': 'Polish', 'ru': 'Russian', 'de': 'German', 'es': 'Spanish' };
-            
             for (var i = 0; i < items.length; i++) {
                 if (items[i].innerText.includes(langMap[lang])) {
                     items[i].click();
