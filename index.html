@@ -85,7 +85,7 @@
         </ul>
         
         <div class="lang-menu">
-            🌐 Language
+             Language
             <ul class="lang-dropdown">
                 <li onclick="changeLang('en')">English</li>
                 <li onclick="changeLang('pl')">Polski</li>
@@ -107,18 +107,32 @@
         function googleTranslateElementInit() {
             new google.translate.TranslateElement({pageLanguage: 'pl', autoDisplay: false}, 'google_translate_element');
         }
+        
         function changeLang(lang) {
-            var frame = document.querySelector('.goog-te-menu-frame');
-            if (!frame) return;
-            var doc = frame.contentDocument || frame.contentWindow.document;
-            var items = doc.querySelectorAll('.goog-te-menu2-item span.text');
-            var langMap = { 'en': 'English', 'pl': 'Polish', 'ru': 'Russian', 'de': 'German', 'es': 'Spanish' };
-            for (var i = 0; i < items.length; i++) {
-                if (items[i].innerText.includes(langMap[lang])) {
-                    items[i].click();
-                    break;
+            function triggerGoogleTranslate() {
+                var frame = document.querySelector('.goog-te-menu-frame');
+                if (!frame) return false;
+                
+                var doc = frame.contentDocument || frame.contentWindow.document;
+                var items = doc.querySelectorAll('.goog-te-menu2-item span.text');
+                var langMap = { 'en': 'English', 'pl': 'Polish', 'ru': 'Russian', 'de': 'German', 'es': 'Spanish' };
+                
+                for (var i = 0; i < items.length; i++) {
+                    if (items[i].innerText.includes(langMap[lang])) {
+                        items[i].click();
+                        return true;
+                    }
                 }
+                return false;
             }
+
+            var attempts = 0;
+            var interval = setInterval(function() {
+                if (triggerGoogleTranslate() || attempts > 5) {
+                    clearInterval(interval);
+                }
+                attempts++;
+            }, 1000);
         }
     </script>
 </body>
