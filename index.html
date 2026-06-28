@@ -3,11 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>OMNI</title>
+    <script src="https://translate.gtranslate.net/latest/float.js" defer></script>
     <style>
-        /* Ukrycie paska Google Translate */
-        .goog-te-banner-frame { display: none !important; }
-        body { top: 0 !important; }
-
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
         body {
@@ -40,6 +37,7 @@
         .nav-links a { color: white; text-decoration: none; font-size: 0.9rem; opacity: 0.8; }
         .nav-links a:hover { opacity: 1; }
 
+        /* Stylizacja menu języków */
         .lang-menu { position: relative; cursor: pointer; padding: 10px; }
         .lang-dropdown {
             position: absolute; top: 100%; right: 0;
@@ -87,11 +85,11 @@
         <div class="lang-menu">
              Language
             <ul class="lang-dropdown">
-                <li onclick="changeLang('en')">English</li>
-                <li onclick="changeLang('pl')">Polski</li>
-                <li onclick="changeLang('ru')">Русский</li>
-                <li onclick="changeLang('de')">Deutsch</li>
-                <li onclick="changeLang('es')">Español</li>
+                <li onclick="doGTranslate('pl|en')">English</li>
+                <li onclick="doGTranslate('pl|pl')">Polski</li>
+                <li onclick="doGTranslate('pl|ru')">Русский</li>
+                <li onclick="doGTranslate('pl|de')">Deutsch</li>
+                <li onclick="doGTranslate('pl|es')">Español</li>
             </ul>
         </div>
     </nav>
@@ -101,38 +99,15 @@
         <a href="#" class="btn-download">Download OMNI</a>
     </main>
 
-    <div id="google_translate_element" style="display:none;"></div>
-    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
-    <script type="text/javascript">
-        function googleTranslateElementInit() {
-            new google.translate.TranslateElement({pageLanguage: 'pl', autoDisplay: false}, 'google_translate_element');
-        }
-        
-        function changeLang(lang) {
-            function triggerGoogleTranslate() {
-                var frame = document.querySelector('.goog-te-menu-frame');
-                if (!frame) return false;
-                
-                var doc = frame.contentDocument || frame.contentWindow.document;
-                var items = doc.querySelectorAll('.goog-te-menu2-item span.text');
-                var langMap = { 'en': 'English', 'pl': 'Polish', 'ru': 'Russian', 'de': 'German', 'es': 'Spanish' };
-                
-                for (var i = 0; i < items.length; i++) {
-                    if (items[i].innerText.includes(langMap[lang])) {
-                        items[i].click();
-                        return true;
-                    }
-                }
-                return false;
-            }
-
-            var attempts = 0;
-            var interval = setInterval(function() {
-                if (triggerGoogleTranslate() || attempts > 5) {
-                    clearInterval(interval);
-                }
-                attempts++;
-            }, 1000);
+    <script>
+        function doGTranslate(lang_pair) {
+            if(lang_pair.value) lang_pair = lang_pair.value;
+            if(lang_pair == '') return;
+            var lang = lang_pair.split('|')[1];
+            var plang = location.hostname ? location.hostname : 'localhost';
+            
+            // Wywołanie zewnętrznego skryptu tłumaczącego
+            window.doGTranslate(lang_pair);
         }
     </script>
 </body>
