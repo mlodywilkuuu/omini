@@ -1,42 +1,41 @@
 const fs = require('fs');
 const path = require('path');
 const https = require('https');
+const { execSync } = require('child_process');
 
 const MOD_ROOT = path.join(process.env.APPDATA, 'HybridMod');
-const VERSION_URL = "https://raw.githubusercontent.com/TWOJ_USER/TWOJ_REPO/main/version.json";
+const VERSION_FILE = path.join(MOD_ROOT, 'version.json');
+const ZIP_URL = "https://github.com/mlodywilkuuu/omini/raw/main/build.zip";
+const VERSION_URL = "https://raw.githubusercontent.com/mlodywilkuuu/omini/main/version.json";
 
-// Automatyczne sprawdzanie wersji: v1.0 (major) / v1.5 (minor)
-async function updateManager() {
+async function boot() {
+    if (!fs.existsSync(MOD_ROOT)) fs.mkdirSync(MOD_ROOT, { recursive: true });
+
+    // Sprawdź update
     https.get(VERSION_URL, (res) => {
-        let data = '';
-        res.on('data', (c) => data += c);
+        let body = '';
+        res.on('data', d => body += d);
         res.on('end', () => {
-            const remote = JSON.parse(data);
-            const local = fs.existsSync(path.join(MOD_ROOT, 'version.json')) ? JSON.parse(fs.readFileSync(path.join(MOD_ROOT, 'version.json'))) : { major: 0, minor: 0 };
-
-            if (remote.major > local.major) {
-                console.log("[Hybrid] Krytyczna aktualizacja - pobieram wszystko...");
-                // Logika pobierania pełnej paczki
-            } else if (remote.minor > local.minor) {
-                console.log("[Hybrid] Aktualizacja wtyczek...");
-                // Logika tylko dla pluginów
+            const remote = JSON.parse(body);
+            const local = fs.existsSync(VERSION_FILE) ? JSON.parse(fs.readFileSync(VERSION_FILE)) : { version: "0.0" };
+            if (remote.version !== local.version) {
+                console.log("[Hybrid] Pobieranie aktualizacji...");
+                const file = fs.createWriteStream(path.join(MOD_ROOT, 'update.zip'));
+                https.get(ZIP_URL, (r) => {
+                    r.pipe(file);
+                    file.on('finish', () => {
+                        execSync(`powershell -Command "Expand-Archive -Path '${path.join(MOD_ROOT, 'update.zip')}' -DestinationPath '${MOD_ROOT}' -Force"`);
+                        fs.writeFileSync(VERSION_FILE, JSON.stringify(remote));
+                        console.log("[Hybrid] Gotowe!");
+                    });
+                });
             }
         });
     });
+
+    // Ładuj mody
+    const v = path.join(MOD_ROOT, 'vencord/dist/index.js');
+    if (fs.existsSync(v)) require(v);
 }
-
-// Ładowanie modów
-const vencord = path.join(MOD_ROOT, 'vencord/dist/index.js');
-if (fs.existsSync(vencord)) require(vencord);
-
-// Czekaj na Discorda i załaduj BD
-const interval = setInterval(() => {
-    if (window && window.webpackChunkdiscord_app) {
-        clearInterval(interval);
-        const bd = path.join(MOD_ROOT, 'betterdiscord/index.js');
-        if (fs.existsSync(bd)) require(bd);
-    }
-}, 500);
-
-updateManager();
+boot();
 module.exports = require('./index.original.js');
