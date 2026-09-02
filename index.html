@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Glitch Defense - Pro Edition</title>
+    <title>Dev Tycoon Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @keyframes gradientShift {
@@ -36,112 +36,153 @@
 </head>
 <body class="animated-bg text-slate-100 h-screen flex flex-col overflow-hidden font-sans">
 
-    <!-- Górny pasek statystyk -->
+    <!-- Górny pasek statystyk (Firma) -->
     <header class="glass-panel border-b border-slate-800 px-6 py-4 flex justify-between items-center shadow-xl z-30">
         <div class="flex items-center gap-3">
-            <div class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse shadow-lg shadow-emerald-500/50"></div>
-            <h1 class="text-xl font-bold tracking-wide bg-gradient-to-r from-indigo-400 to-emerald-400 bg-clip-text text-transparent">Glitch Defense <span class="text-xs bg-indigo-500/20 border border-indigo-500/40 text-indigo-300 px-2.5 py-0.5 rounded-full ml-2">PRO v2.0</span></h1>
+            <div class="w-3 h-3 rounded-full bg-indigo-500 animate-pulse shadow-lg shadow-indigo-500/50"></div>
+            <h1 class="text-xl font-bold tracking-wide bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">Dev Tycoon <span class="text-xs bg-indigo-500/20 border border-indigo-500/40 text-indigo-300 px-2.5 py-0.5 rounded-full ml-2">Studio v1.0</span></h1>
         </div>
         <div class="flex gap-4 text-sm items-center">
             <div class="glass-card px-4 py-1.5 rounded-xl border border-slate-700/60 flex items-center gap-2">
-                <span>⚡ Punkty kodu:</span>
-                <span id="score" class="font-bold text-emerald-400 text-base">0</span>
+                <span>💰 Gotówka:</span>
+                <span id="company-money" class="font-bold text-emerald-400 text-base">10,000 zł</span>
             </div>
             <div class="glass-card px-4 py-1.5 rounded-xl border border-slate-700/60 flex items-center gap-2">
-                <span>🚀 CPS:</span>
-                <span id="cps" class="font-bold text-indigo-400 text-base">0</span>
+                <span>👥 Pracownicy:</span>
+                <span id="company-staff" class="font-bold text-indigo-400 text-base">1 (Ty)</span>
+                <span id="staff-power" class="text-xs text-slate-400">(+10/s)</span>
             </div>
             <div class="glass-card px-4 py-1.5 rounded-xl border border-slate-700/60 flex items-center gap-2">
-                <span>⭐ Mnożnik:</span>
-                <span id="mult" class="font-bold text-amber-400 text-base">1.0x</span>
+                <span>🏆 Fani:</span>
+                <span id="company-fans" class="font-bold text-amber-400 text-base">0</span>
             </div>
-            <button onclick="openModal('ach-modal')" class="bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-xl border border-slate-700 text-xs transition">🏆 Osiągnięcia</button>
-            <button onclick="openModal('reboot-modal')" class="bg-rose-950/60 hover:bg-rose-900/60 border border-rose-500/40 text-rose-300 px-3 py-1.5 rounded-xl text-xs transition">🔄 Reboot</button>
         </div>
     </header>
 
-    <!-- Główna zawartość gry -->
+    <!-- Główna zawartość -->
     <main class="flex-1 flex overflow-hidden p-6 gap-6">
 
-        <!-- Środek: Walka z glitchami i Rdzeń -->
-        <div class="flex-1 glass-panel rounded-3xl flex flex-col items-center justify-between relative overflow-hidden shadow-2xl p-8">
+        <!-- Lewa strona / Środek: Biuro i Tworzenie Gry -->
+        <div class="flex-1 flex flex-col gap-6">
             
-            <!-- Górna część: Aktywny Błąd (Wróg do klikania) -->
-            <div class="w-full max-w-md glass-card p-4 rounded-2xl border border-rose-500/30 flex flex-col items-center relative shadow-lg">
-                <div class="flex justify-between w-full text-xs text-slate-400 mb-1">
-                    <span id="enemy-name" class="font-bold text-rose-400">NullPointerException</span>
-                    <span>Fala: <span id="wave-num" class="text-indigo-300 font-bold">1</span></span>
+            <!-- Panel tworzenia gry (Aktywny Projekt) -->
+            <div class="glass-panel rounded-3xl p-6 shadow-2xl flex flex-col justify-between relative overflow-hidden">
+                <div class="absolute top-0 right-0 p-8 opacity-10 text-8xl font-bold select-none">💻</div>
+                <h3 class="text-lg font-bold text-indigo-300 mb-4 flex items-center gap-2">
+                    <span>🎮</span> Panel Projektu
+                </h3>
+
+                <div id="no-project-view" class="py-8 text-center">
+                    <p class="text-sm text-slate-400 mb-4">Nie twórzysz obecnie żadnej gry. Rozpocznij nowy projekt, aby zarabiać pieniądze i zdobywać fanów!</p>
+                    <button onclick="openNewGameModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-3 rounded-2xl font-bold transition shadow-lg shadow-indigo-600/30">
+                        + Stwórz nową grę
+                    </button>
                 </div>
-                <!-- Pasek życia wroga -->
-                <div class="w-full bg-slate-900 h-3 rounded-full overflow-hidden border border-slate-700/80 mb-2">
-                    <div id="enemy-hp-bar" class="bg-gradient-to-r from-rose-600 to-amber-500 h-full transition-all duration-150" style="width: 100%;"></div>
+
+                <div id="active-project-view" class="hidden space-y-4">
+                    <div class="flex justify-between items-center text-sm">
+                        <div>
+                            <span id="proj-title" class="font-bold text-lg text-slate-100">Tytuł Gry</span>
+                            <span id="proj-genre" class="text-xs bg-slate-800 text-indigo-300 px-2.5 py-1 rounded-lg ml-2 border border-slate-700">RPG</span>
+                        </div>
+                        <span id="proj-progress-text" class="font-bold text-emerald-400">0%</span>
+                    </div>
+
+                    <!-- Pasek postępu produkcji -->
+                    <div class="w-full bg-slate-900 h-4 rounded-full overflow-hidden border border-slate-700/80 p-0.5">
+                        <div id="proj-progress-bar" class="bg-gradient-to-r from-indigo-500 to-emerald-400 h-full rounded-full transition-all duration-100" style="width: 0%;"></div>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-4 pt-2 text-center text-xs">
+                        <div class="glass-card p-2 rounded-xl">
+                            <span class="text-slate-400 block mb-1">Kod / Silnik</span>
+                            <span id="stat-code" class="font-bold text-indigo-300 text-sm">0</span>
+                        </div>
+                        <div class="glass-card p-2 rounded-xl">
+                            <span class="text-slate-400 block mb-1">Grafika / UI</span>
+                            <span id="stat-art" class="font-bold text-purple-300 text-sm">0</span>
+                        </div>
+                        <div class="glass-card p-2 rounded-xl">
+                            <span class="text-slate-400 block mb-1">Dźwięk / Audio</span>
+                            <span id="stat-sound" class="font-bold text-amber-300 text-sm">0</span>
+                        </div>
+                    </div>
                 </div>
-                <div class="text-[11px] text-slate-400">Klikaj w rdzeń poniżej, aby zadawać obrażenia i eliminować błędy!</div>
             </div>
 
-            <!-- Główny przycisk Rdzenia -->
-            <div class="relative group cursor-pointer select-none my-auto" onclick="clickCore(event)">
-                <div id="core-glow" class="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-emerald-500 rounded-full blur-xl opacity-40 group-hover:opacity-75 transition duration-500 animate-pulse"></div>
-                <div id="core-btn" class="relative w-48 h-48 rounded-full bg-slate-900 border-2 border-indigo-500/50 flex flex-col items-center justify-center shadow-2xl transition transform active:scale-95">
-                    <span class="text-3xl mb-1">🛡️</span>
-                    <span class="font-bold text-sm text-slate-200">KOMPILUJ</span>
-                    <span class="text-[10px] text-indigo-400 mt-1">+<span id="click-power">1</span> pkt</span>
+            <!-- Ostatnio wydane gry (Historia) -->
+            <div class="flex-1 glass-panel rounded-3xl p-6 shadow-2xl flex flex-col overflow-hidden">
+                <h3 class="text-base font-bold text-slate-200 mb-3 flex items-center gap-2">
+                    <span>📚</span> Wydane Produkcje
+                </h3>
+                <div class="flex-1 overflow-y-auto space-y-2.5 pr-1" id="games-history">
+                    <div class="text-center py-12 text-slate-500 text-sm">Brak wydanych gier. Czas stworzyć swój pierwszy hit!</div>
                 </div>
             </div>
 
-            <!-- Dolna część: Umiejętność specjalna (Overclock) -->
-            <div class="w-full max-w-xs flex flex-col items-center gap-2">
-                <button id="overclock-btn" onclick="activateOverclock()" class="w-full py-2.5 bg-gradient-to-r from-amber-600 to-indigo-600 hover:from-amber-500 hover:to-indigo-500 text-white rounded-xl text-xs font-bold transition shadow-lg shadow-amber-900/30 flex items-center justify-center gap-2">
-                    <span>⚡ OVERCLOCK (Przeciążenie)</span>
-                </button>
-                <div id="overclock-timer" class="text-[11px] text-slate-500">Gotowy do użycia</div>
-            </div>
-
-            <!-- Efekty wizualne kliknięcia -->
-            <div id="click-effects" class="absolute inset-0 pointer-events-none overflow-hidden"></div>
         </div>
 
-        <!-- Panel Ulepszeń (Sklep) -->
+        <!-- Prawa strona: Sklep / Pracownicy / Ulepszenia biura -->
         <div class="w-96 glass-panel rounded-3xl flex flex-col shadow-2xl overflow-hidden">
             <div class="p-4 border-b border-slate-800 font-bold text-base text-slate-200 bg-slate-900/40 flex justify-between items-center">
-                <span>Sklep Ulepszeń</span>
-                <span class="text-xs text-slate-400">Automatyzacja</span>
+                <span>Zarządzanie Studio</span>
+                <span class="text-xs text-slate-400">Rozwój</span>
             </div>
             
-            <div class="flex-1 p-4 overflow-y-auto space-y-3" id="shop-container">
-                <!-- Dynamiczne ulepszenia -->
+            <div class="flex-1 p-4 overflow-y-auto space-y-3" id="upgrades-container">
+                <!-- Dynamiczne ulepszenia / pracownicy -->
             </div>
         </div>
 
     </main>
 
-    <!-- MODAL OSIĄGNIĘĆ -->
-    <div id="ach-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4 z-50">
+    <!-- MODAL TWORZENIA NOWEJ GRY -->
+    <div id="new-game-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4 z-50">
         <div class="glass-panel text-slate-100 w-full max-w-md rounded-2xl shadow-2xl overflow-hidden p-6 border border-slate-700/60 space-y-4">
-            <h3 class="text-xl font-bold text-indigo-300">Zdobyte Osiągnięcia</h3>
-            <div id="achievements-list" class="space-y-2.5 max-h-64 overflow-y-auto pr-1">
-                <!-- Lista osiągnięć -->
-            </div>
-            <div class="flex justify-end pt-2 border-t border-slate-800">
-                <button onclick="closeModal('ach-modal')" class="px-5 py-2 bg-slate-800 hover:bg-slate-700 rounded-xl text-sm font-medium transition">Zamknij</button>
-            </div>
+            <h3 class="text-xl font-bold text-indigo-300">Nowa Gra</h3>
+            <form onsubmit="startNewGame(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1">Tytuł gry</label>
+                    <input type="text" id="game-title" required placeholder="np. Cyber Hero 2077" class="w-full px-4 py-2.5 bg-slate-950/60 border border-slate-700/60 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-slate-100 text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1">Gatunek</label>
+                    <select id="game-genre" class="w-full px-3 py-2.5 bg-slate-950/60 border border-slate-700/60 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-slate-100 text-sm">
+                        <option value="RPG">RPG (Nastawione na fabułę i silnik)</option>
+                        <option value="FPS">FPS / Akcja (Grafika i akcja)</option>
+                        <option value="Strategia">Strategia (Kod i balans)</option>
+                        <option value="Symulator">Symulator (Kod i dźwięk)</option>
+                        <option value="Indie">Indie (Zbalansowane)</option>
+                    </select>
+                </div>
+                <div class="flex justify-end gap-3 pt-2">
+                    <button type="button" onclick="closeNewGameModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-xl text-sm font-medium transition">Anuluj</button>
+                    <button type="submit" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-sm font-medium transition shadow-lg">Rozpocznij produkcję</button>
+                </div>
+            </form>
         </div>
     </div>
 
-    <!-- MODAL REBOOT (PRESTIŻ) -->
-    <div id="reboot-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4 z-50">
-        <div class="glass-panel text-slate-100 w-full max-w-md rounded-2xl shadow-2xl overflow-hidden p-6 border border-rose-500/40 space-y-4 text-center">
-            <div class="w-12 h-12 bg-rose-500/20 text-rose-400 rounded-2xl flex items-center justify-center mx-auto text-2xl font-bold">🔄</div>
-            <h3 class="text-xl font-bold text-rose-300">Reboot Systemu (Prestiż)</h3>
-            <p class="text-xs text-slate-300 leading-relaxed">
-                Zresetujesz swoje punkty kodu, ulepszenia oraz fale, ale otrzymasz stały bonus do mnożnika punktów (+0.5x do mnożnika za każdy restart).
-            </p>
-            <div class="bg-slate-950/60 p-3 rounded-xl border border-rose-500/20 text-xs">
-                Twój obecny mnożnik po reboocie wzrośnie do: <span id="next-mult" class="font-bold text-amber-400">1.5x</span>
+    <!-- MODAL PODSUMOWANIA WYDANEJ GRY -->
+    <div id="review-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4 z-50">
+        <div class="glass-panel text-slate-100 w-full max-w-md rounded-2xl shadow-2xl overflow-hidden p-6 border border-slate-700/60 text-center space-y-4">
+            <div class="w-12 h-12 bg-emerald-500/20 text-emerald-400 rounded-2xl flex items-center justify-center mx-auto text-2xl font-bold">🚀</div>
+            <h3 class="text-xl font-bold text-indigo-300" id="rev-title">Premiera Gry!</h3>
+            <div class="flex justify-center gap-2 my-2" id="rev-stars">
+                ⭐⭐⭐⭐⭐
             </div>
-            <div class="flex justify-center gap-3 pt-2">
-                <button onclick="closeModal('reboot-modal')" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-xl text-sm font-medium transition">Anuluj</button>
-                <button onclick="executeReboot()" class="px-5 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-sm font-semibold transition shadow-lg shadow-rose-900/40">Wykonaj Reboot</button>
+            <div class="grid grid-cols-2 gap-3 text-xs">
+                <div class="glass-card p-3 rounded-xl">
+                    <span class="text-slate-400 block">Zarobek</span>
+                    <span id="rev-money" class="font-bold text-emerald-400 text-sm">0 zł</span>
+                </div>
+                <div class="glass-card p-3 rounded-xl">
+                    <span class="text-slate-400 block">Nowi Fani</span>
+                    <span id="rev-fans" class="font-bold text-amber-400 text-sm">0</span>
+                </div>
+            </div>
+            <div class="pt-2">
+                <button onclick="closeReviewModal()" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold transition shadow-lg">Super!</button>
             </div>
         </div>
     </div>
@@ -149,44 +190,33 @@
     <script>
         // Stan gry
         let game = {
-            score: 0,
-            clickPower: 1,
-            cps: 0,
-            multiplier: 1.0,
-            totalClicks: 0,
-            wave: 1,
-            enemyMaxHp: 50,
-            enemyHp: 50,
-            enemyName: 'NullPointerException',
-            overclockActive: false,
-            overclockCooldown: 0,
+            money: 15000,
+            fans: 0,
+            totalStaffPower: 10,
+            activeProject: null,
+            history: [],
             upgrades: [
-                { id: 'script', name: 'Prosty Skrypt', desc: '+1 pkt/s', cost: 15, cps: 1, count: 0, costMultiplier: 1.15 },
-                { id: 'bot', name: 'Bot Naprawczy', desc: '+8 pkt/s', cost: 100, cps: 8, count: 0, costMultiplier: 1.15 },
-                { id: 'ai', name: 'Moduł AI', desc: '+40 pkt/s', cost: 500, cps: 40, count: 0, costMultiplier: 1.15 },
-                { id: 'server', name: 'Serwer Centralny', desc: '+200 pkt/s', cost: 2500, cps: 200, count: 0, costMultiplier: 1.15 },
-                { id: 'upgrade_click', name: 'Lepszy Kompilator', desc: '+1 siła kliknięcia', cost: 50, power: 1, count: 0, costMultiplier: 2.0 }
-            ],
-            achievements: [
-                { id: 'click_10', name: 'Początkujący Haker', desc: 'Kliknij rdzeń 10 razy', unlocked: false, check: () => game.totalClicks >= 10 },
-                { id: 'score_1000', name: 'Magazyn Kodu', desc: 'Zdobądź 1,000 punktów', unlocked: false, check: () => game.score >= 1000 },
-                { id: 'wave_5', name: 'Pogromca Błędów', desc: 'Osiągnij 5 falę systemową', unlocked: false, check: () => game.wave >= 5 },
-                { id: 'cps_50', name: 'Pełna Automatyzacja', desc: 'Osiągnij 50 CPS', unlocked: false, check: () => game.cps >= 50 }
+                { id: 'dev_junior', name: 'Junior Dev', desc: '+15 mocy zespołu', cost: 1000, power: 15, count: 0, costMult: 1.3 },
+                { id: 'dev_senior', name: 'Senior Dev', desc: '+60 mocy zespołu', cost: 5000, power: 60, count: 0, costMult: 1.3 },
+                { id: 'office_bigger', name: 'Większe Biuro', desc: '+100 mocy zespołu', cost: 25000, power: 100, count: 0, costMult: 1.5 },
+                { id: 'marketing', name: 'Kampania Reklamowa', desc: '+2x więcej fanów z gier', cost: 10000, mult: 2.0, count: 0, costMult: 2.5 }
             ]
         };
 
-        const enemyNames = ['NullPointerException', 'MemoryLeak', 'InfiniteLoop', 'SyntaxError', 'SegFault', 'CorruptedDatabase', 'DDoS_Attack'];
+        function saveGame() {
+            localStorage.setItem('dev_tycoon_save', JSON.stringify(game));
+        }
 
         function loadGame() {
-            const saved = localStorage.getItem('glitch_defense_pro_save');
+            const saved = localStorage.getItem('dev_tycoon_save');
             if (saved) {
                 try {
                     const parsed = JSON.parse(saved);
-                    game.score = parsed.score || 0;
-                    game.clickPower = parsed.clickPower || 1;
-                    game.multiplier = parsed.multiplier || 1.0;
-                    game.totalClicks = parsed.totalClicks || 0;
-                    game.wave = parsed.wave || 1;
+                    game.money = parsed.money ?? 15000;
+                    game.fans = parsed.fans ?? 0;
+                    game.totalStaffPower = parsed.totalStaffPower ?? 10;
+                    game.activeProject = parsed.activeProject || null;
+                    game.history = parsed.history || [];
                     if (parsed.upgrades) {
                         parsed.upgrades.forEach((u, i) => {
                             if (game.upgrades[i]) {
@@ -195,239 +225,205 @@
                             }
                         });
                     }
-                    if (parsed.achievements) {
-                        parsed.achievements.forEach((a, i) => {
-                            if (game.achievements[i]) game.achievements[i].unlocked = a.unlocked;
-                        });
-                    }
-                } catch(e) { console.error('Błąd wczytywania gry'); }
+                } catch(e) { console.error('Błąd wczytywania'); }
             }
-            calculateCPS();
-            updateEnemyStats();
         }
 
-        function saveGame() {
-            localStorage.setItem('glitch_defense_pro_save', JSON.stringify(game));
-        }
-
-        function calculateCPS() {
-            let totalCPS = 0;
+        function updateUI() {
+            document.getElementById('company-money').textContent = `${game.money.toLocaleString()} zł`;
+            document.getElementById('company-fans').textContent = game.fans.toLocaleString();
+            
+            let staffCount = 1;
             game.upgrades.forEach(u => {
-                if (u.cps) totalCPS += u.cps * u.count;
+                if(u.id.startsWith('dev')) staffCount += u.count;
             });
-            game.cps = totalCPS;
-            document.getElementById('cps').textContent = Math.floor(game.cps * game.multiplier);
-        }
+            document.getElementById('company-staff').textContent = staffCount === 1 ? '1 (Ty)' : staffCount;
+            document.getElementById('staff-power').textContent = `(+${game.totalStaffPower}/s)`;
 
-        function updateEnemyStats() {
-            document.getElementById('enemy-name').textContent = game.enemyName;
-            document.getElementById('wave-num').textContent = game.wave;
-            const hpPercent = Math.max(0, (game.enemyHp / game.enemyMaxHp) * 100);
-            document.getElementById('enemy-hp-bar').style.width = `${hpPercent}%`;
-        }
+            // Widok projektu
+            if (game.activeProject) {
+                document.getElementById('no-project-view').classList.add('hidden');
+                document.getElementById('active-project-view').classList.remove('hidden');
+                
+                document.getElementById('proj-title').textContent = game.activeProject.title;
+                document.getElementById('proj-genre').textContent = game.activeProject.genre;
+                
+                let percent = Math.min(100, Math.floor((game.activeProject.currentProgress / game.activeProject.maxProgress) * 100));
+                document.getElementById('proj-progress-text').textContent = `${percent}%`;
+                document.getElementById('proj-progress-bar').style.width = `${percent}%`;
 
-        function damageEnemy(amount) {
-            game.enemyHp -= amount;
-            if (game.enemyHp <= 0) {
-                // Wróg pokonany! Nagroda
-                const reward = Math.floor(game.enemyMaxHp * 0.5);
-                game.score += reward;
-                game.wave++;
-                game.enemyMaxHp = Math.floor(50 * Math.pow(1.3, game.wave - 1));
-                game.enemyHp = game.enemyMaxHp;
-                game.enemyName = enemyNames[Math.floor(Math.random() * enemyNames.length)];
+                document.getElementById('stat-code').textContent = Math.floor(game.activeProject.code);
+                document.getElementById('stat-art').textContent = Math.floor(game.activeProject.art);
+                document.getElementById('stat-sound').textContent = Math.floor(game.activeProject.sound);
+            } else {
+                document.getElementById('no-project-view').classList.remove('hidden');
+                document.getElementById('active-project-view').classList.add('hidden');
             }
-            updateEnemyStats();
+
+            renderHistory();
+            renderUpgrades();
         }
 
-        function clickCore(e) {
-            game.totalClicks++;
-            let actualPower = game.clickPower * (game.overclockActive ? 2 : 1) * game.multiplier;
-            game.score += actualPower;
-            damageEnemy(actualPower);
+        function openNewGameModal() {
+            document.getElementById('new-game-modal').classList.remove('hidden');
+        }
+
+        function closeNewGameModal() {
+            document.getElementById('new-game-modal').classList.add('hidden');
+        }
+
+        function startNewGame(e) {
+            e.preventDefault();
+            const title = document.getElementById('game-title').value;
+            const genre = document.getElementById('game-genre').value;
+
+            game.activeProject = {
+                title,
+                genre,
+                code: 0,
+                art: 0,
+                sound: 0,
+                currentProgress: 0,
+                maxProgress: 500 // Wymagane punkty do ukończenia
+            };
+
+            closeNewGameModal();
+            document.getElementById('game-title').value = '';
             updateUI();
-            checkAchievements();
-
-            // Pływający efekt tekstu
-            const rect = e.currentTarget.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-            
-            const floatText = document.createElement('div');
-            floatText.textContent = `+${Math.floor(actualPower)}`;
-            floatText.className = 'absolute text-emerald-400 font-bold text-sm pointer-events-none animate-ping';
-            floatText.style.left = `${x + 60}px`;
-            floatText.style.top = `${y + 60}px`;
-            
-            document.getElementById('click-effects').appendChild(floatText);
-            setTimeout(() => floatText.remove(), 400);
+            saveGame();
         }
 
-        function activateOverclock() {
-            if (game.overclockCooldown > 0 || game.overclockActive) return;
-            game.overclockActive = true;
-            document.getElementById('overclock-btn').className = "w-full py-2.5 bg-indigo-500 text-white rounded-xl text-xs font-bold shadow-lg animate-pulse cursor-not-allowed";
-            
-            let timeLeft = 10;
-            const timerEl = document.getElementById('overclock-timer');
-            
-            const activeInterval = setInterval(() => {
-                timerEl.textContent = `Aktywny! Pozostało ${timeLeft}s`;
-                timeLeft--;
-                if (timeLeft < 0) {
-                    clearInterval(activeInterval);
-                    game.overclockActive = false;
-                    startCooldown(30);
-                }
-            }, 1000);
-        }
-
-        function startCooldown(seconds) {
-            game.overclockCooldown = seconds;
-            const btn = document.getElementById('overclock-btn');
-            const timerEl = document.getElementById('overclock-timer');
-            btn.className = "w-full py-2.5 bg-slate-800 text-slate-500 rounded-xl text-xs font-bold border border-slate-700 cursor-not-allowed";
-
-            const cdInterval = setInterval(() => {
-                timerEl.textContent = `Odnowienie za ${game.overclockCooldown}s`;
-                game.overclockCooldown--;
-                if (game.overclockCooldown < 0) {
-                    clearInterval(cdInterval);
-                    btn.className = "w-full py-2.5 bg-gradient-to-r from-amber-600 to-indigo-600 hover:from-amber-500 hover:to-indigo-500 text-white rounded-xl text-xs font-bold transition shadow-lg shadow-amber-900/30 flex items-center justify-center gap-2 cursor-pointer";
-                    timerEl.textContent = "Gotowy do użycia";
-                }
-            }, 1000);
-        }
-
-        function buyUpgrade(id) {
-            const upgrade = game.upgrades.find(u => u.id === id);
-            if (game.score >= upgrade.cost) {
-                game.score -= upgrade.cost;
-                upgrade.count++;
-                
-                if (upgrade.power) {
-                    game.clickPower += upgrade.power;
-                    document.getElementById('click-power').textContent = game.clickPower;
-                }
-                
-                upgrade.cost = Math.floor(upgrade.cost * upgrade.costMultiplier);
-                calculateCPS();
-                updateUI();
-                renderShop();
-                checkAchievements();
-                saveGame();
+        function renderHistory() {
+            const container = document.getElementById('games-history');
+            if (game.history.length === 0) {
+                container.innerHTML = `<div class="text-center py-12 text-slate-500 text-sm">Brak wydanych gier. Czas stworzyć swój pierwszy hit!</div>`;
+                return;
             }
+
+            container.innerHTML = '';
+            game.history.slice().reverse().forEach(g => {
+                container.innerHTML += `
+                    <div class="glass-card p-3 rounded-2xl flex justify-between items-center text-xs border border-slate-700/60">
+                        <div>
+                            <div class="font-bold text-slate-200 text-sm">${g.title} <span class="text-[10px] bg-slate-800 text-indigo-300 px-2 py-0.5 rounded ml-1">${g.genre}</span></div>
+                            <div class="text-slate-400 mt-1">Ocena: <span class="text-amber-400 font-bold">${g.rating} / 10</span> ⭐ | Zarobek: <span class="text-emerald-400 font-bold">+${g.money.toLocaleString()} zł</span></div>
+                        </div>
+                        <div class="text-right text-slate-500 text-[10px]">
+                            Fani: +${g.fans}
+                        </div>
+                    </div>
+                `;
+            });
         }
 
-        function renderShop() {
-            const container = document.getElementById('shop-container');
+        function renderUpgrades() {
+            const container = document.getElementById('upgrades-container');
             container.innerHTML = '';
 
             game.upgrades.forEach(u => {
-                const canAfford = game.score >= u.cost;
+                const canAfford = game.money >= u.cost;
                 container.innerHTML += `
-                    <div class="glass-card p-3 rounded-2xl flex justify-between items-center border border-slate-700/60">
+                    <div class="glass-card p-3.5 rounded-2xl flex justify-between items-center border border-slate-700/60">
                         <div>
                             <div class="font-bold text-slate-200 text-sm">${u.name} <span class="text-xs text-indigo-400 font-normal">(${u.count})</span></div>
                             <div class="text-[11px] text-slate-400">${u.desc}</div>
                         </div>
                         <button onclick="buyUpgrade('${u.id}')" ${!canAfford ? 'disabled' : ''} class="px-3.5 py-2 rounded-xl text-xs font-semibold transition ${canAfford ? 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/30 cursor-pointer' : 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700'}">
-                            ${u.cost} pkt
+                            ${u.cost.toLocaleString()} zł
                         </button>
                     </div>
                 `;
             });
         }
 
-        function updateUI() {
-            document.getElementById('score').textContent = Math.floor(game.score);
-            document.getElementById('mult').textContent = `${game.multiplier.toFixed(1)}x`;
-            
-            // Odświeżenie przycisków sklepu
-            const buttons = document.querySelectorAll('#shop-container button');
-            game.upgrades.forEach((u, i) => {
-                if (buttons[i]) {
-                    if (game.score >= u.cost) {
-                        buttons[i].className = "px-3.5 py-2 rounded-xl text-xs font-semibold transition bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/30 cursor-pointer";
-                        buttons[i].removeAttribute('disabled');
-                    } else {
-                        buttons[i].className = "px-3.5 py-2 rounded-xl text-xs font-semibold transition bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700";
-                        buttons[i].setAttribute('disabled', 'true');
-                    }
+        function buyUpgrade(id) {
+            const upgrade = game.upgrades.find(u => u.id === id);
+            if (game.money >= upgrade.cost) {
+                game.money -= upgrade.cost;
+                upgrade.count++;
+
+                if (upgrade.power) {
+                    game.totalStaffPower += upgrade.power;
                 }
-            });
-        }
-
-        function checkAchievements() {
-            game.achievements.forEach(a => {
-                if (!a.unlocked && a.check()) {
-                    a.unlocked = true;
-                    // Proste powiadomienie konsolowe / UI
+                if (upgrade.mult) {
+                    // Specjalny mnożnik marketingowy
                 }
-            });
-        }
 
-        function renderAchievements() {
-            const list = document.getElementById('achievements-list');
-            list.innerHTML = '';
-            game.achievements.forEach(a => {
-                list.innerHTML += `
-                    <div class="p-3 rounded-xl border ${a.unlocked ? 'bg-indigo-500/10 border-indigo-500/30 text-slate-100' : 'bg-slate-900/40 border-slate-800 text-slate-500'} flex justify-between items-center text-xs">
-                        <div>
-                            <div class="font-bold">${a.name}</div>
-                            <div class="text-[10px] opacity-80">${a.desc}</div>
-                        </div>
-                        <div>${a.unlocked ? '✅ Odblokowane' : '🔒 Zablokowane'}</div>
-                    </div>
-                `;
-            });
-        }
-
-        function openModal(id) {
-            if (id === 'ach-modal') renderAchievements();
-            if (id === 'reboot-modal') {
-                document.getElementById('next-mult').textContent = `${(game.multiplier + 0.5).toFixed(1)}x`;
-            }
-            document.getElementById(id).classList.remove('hidden');
-        }
-
-        function closeModal(id) {
-            document.getElementById(id).classList.add('hidden');
-        }
-
-        function executeReboot() {
-            game.multiplier += 0.5;
-            game.score = 0;
-            game.clickPower = 1;
-            game.cps = 0;
-            game.wave = 1;
-            game.enemyMaxHp = 50;
-            game.enemyHp = 50;
-            game.upgrades.forEach(u => { u.count = 0; u.cost = Math.floor(u.cost / Math.pow(u.costMultiplier, u.count)); });
-            saveGame();
-            closeModal('reboot-modal');
-            calculateCPS();
-            updateEnemyStats();
-            renderShop();
-            updateUI();
-        }
-
-        // Pętla gry (Idle tick + pasywne obrażenia od CPS co 1 sekundę)
-        setInterval(() => {
-            let actualCPS = game.cps * (game.overclockActive ? 2 : 1) * game.multiplier;
-            if (actualCPS > 0) {
-                game.score += actualCPS;
-                damageEnemy(actualCPS);
+                upgrade.cost = Math.floor(upgrade.cost * upgrade.costMult);
                 updateUI();
-                checkAchievements();
                 saveGame();
+            }
+        }
+
+        function finishGame() {
+            const p = game.activeProject;
+            // Obliczanie punktów i oceny (od 1 do 10)
+            let totalPoints = p.code + p.art + p.sound;
+            let rating = Math.min(10, Math.max(3, (totalPoints / 150).toFixed(1)));
+            
+            // Obliczanie zarobków na podstawie jakości i fanów
+            let baseMoney = totalPoints * 15 * (rating / 5);
+            let marketingMult = 1;
+            const mkt = game.upgrades.find(u => u.id === 'marketing');
+            if (mkt) marketingMult = Math.pow(2, mkt.count);
+
+            let earnedMoney = Math.floor(baseMoney * marketingMult);
+            let gainedFans = Math.floor((rating * 25) * marketingMult);
+
+            game.money += earnedMoney;
+            game.fans += gainedFans;
+
+            // Zapis do historii
+            game.history.push({
+                title: p.title,
+                genre: p.genre,
+                rating: rating,
+                money: earnedMoney,
+                fans: gainedFans
+            });
+
+            // Wyświetlenie modalu podsumowania
+            document.getElementById('rev-title').textContent = `Premiera: ${p.title}!`;
+            let stars = '⭐'.repeat(Math.round(rating / 2));
+            document.getElementById('rev-stars').textContent = `${stars} (${rating}/10)`;
+            document.getElementById('rev-money').textContent = `+${earnedMoney.toLocaleString()} zł`;
+            document.getElementById('rev-fans').textContent = `+${gainedFans}`;
+            document.getElementById('review-modal').classList.remove('hidden');
+
+            game.activeProject = null;
+            updateUI();
+            saveGame();
+        }
+
+        function closeReviewModal() {
+            document.getElementById('review-modal').classList.add('hidden');
+        }
+
+        // Pętla rozwoju gry (co sekundę)
+        setInterval(() => {
+            if (game.activeProject) {
+                let p = game.activeProject;
+                let power = game.totalStaffPower;
+
+                // Podział mocy na statystyki w zależności od gatunku
+                if (p.genre === 'RPG') { p.code += power * 0.4; p.art += power * 0.3; p.sound += power * 0.3; }
+                else if (p.genre === 'FPS') { p.code += power * 0.3; p.art += power * 0.5; p.sound += power * 0.2; }
+                else if (p.genre === 'Strategia') { p.code += power * 0.6; p.art += power * 0.2; p.sound += power * 0.2; }
+                else if (p.genre === 'Symulator') { p.code += power * 0.5; p.art += power * 0.2; p.sound += power * 0.3; }
+                else { p.code += power * 0.33; p.art += power * 0.33; p.sound += power * 0.34; }
+
+                p.currentProgress += power;
+
+                if (p.currentProgress >= p.maxProgress) {
+                    finishGame();
+                } else {
+                    updateUI();
+                }
             }
         }, 1000);
 
         // Inicjalizacja
         loadGame();
-        document.getElementById('click-power').textContent = game.clickPower;
-        renderShop();
         updateUI();
     </script>
 </body>
