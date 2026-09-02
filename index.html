@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Glitch Tracker</title>
+    <title>Glitch Defense - Idle Game</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @keyframes gradientShift {
@@ -27,373 +27,213 @@
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.3);
             transition: all 0.2s ease;
         }
         .glass-card:hover {
-            transform: translateY(-2px);
             border-color: rgba(99, 102, 241, 0.4);
-            box-shadow: 0 8px 25px -4px rgba(99, 102, 241, 0.2);
-        }
-        .glass-column {
-            background: rgba(15, 23, 42, 0.5);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
         }
     </style>
 </head>
 <body class="animated-bg text-slate-100 h-screen flex flex-col overflow-hidden font-sans">
 
-    <!-- Górny pasek -->
+    <!-- Górny pasek statystyk -->
     <header class="glass-panel border-b border-slate-800 px-6 py-4 flex justify-between items-center shadow-xl z-30">
         <div class="flex items-center gap-3">
             <div class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse shadow-lg shadow-emerald-500/50"></div>
-            <h1 class="text-xl font-bold tracking-wide bg-gradient-to-r from-indigo-400 to-emerald-400 bg-clip-text text-transparent">Glitch Tracker <span class="text-xs bg-indigo-500/20 border border-indigo-500/40 text-indigo-300 px-2.5 py-0.5 rounded-full ml-2">Pro</span></h1>
+            <h1 class="text-xl font-bold tracking-wide bg-gradient-to-r from-indigo-400 to-emerald-400 bg-clip-text text-transparent">Glitch Defense <span class="text-xs bg-indigo-500/20 border border-indigo-500/40 text-indigo-300 px-2.5 py-0.5 rounded-full ml-2">Idle Clicker</span></h1>
         </div>
-        <div class="flex gap-3">
-            <button onclick="openCategoryModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-4 py-2.5 rounded-xl font-medium text-sm transition border border-slate-700 shadow">
-                Zarządzaj kategoriami
-            </button>
-            <button onclick="openModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2.5 rounded-xl font-medium text-sm transition shadow-lg shadow-indigo-600/30 flex items-center gap-2">
-                <span class="font-bold text-lg">+</span> Dodaj błąd
-            </button>
+        <div class="flex gap-6 text-sm">
+            <div class="glass-card px-4 py-1.5 rounded-xl border border-slate-700/60 flex items-center gap-2">
+                <span>⚡ Punkty kodu:</span>
+                <span id="score" class="font-bold text-emerald-400 text-base">0</span>
+            </div>
+            <div class="glass-card px-4 py-1.5 rounded-xl border border-slate-700/60 flex items-center gap-2">
+                <span>🚀 CPS (Na sekundę):</span>
+                <span id="cps" class="font-bold text-indigo-400 text-base">0</span>
+            </div>
         </div>
     </header>
 
-    <!-- Główna tablica Kanban -->
-    <main class="flex-1 flex overflow-x-auto p-6 gap-6">
+    <!-- Główna zawartość gry -->
+    <main class="flex-1 flex overflow-hidden p-6 gap-6">
 
-        <!-- Kolumna 1: Do zrobienia -->
-        <div class="glass-column w-80 rounded-2xl flex flex-col max-h-full shrink-0 shadow-2xl">
-            <div class="p-4 border-b border-slate-800 flex justify-between items-center font-semibold text-slate-300">
-                <span class="flex items-center gap-2">
-                    <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span> Do zrobienia
-                </span>
-                <span id="count-todo" class="text-xs bg-slate-800 px-2.5 py-1 rounded-full text-slate-400">0</span>
+        <!-- Główny obszar klikania / akcji -->
+        <div class="flex-1 glass-panel rounded-3xl flex flex-col items-center justify-center relative overflow-hidden shadow-2xl p-8">
+            <div class="absolute top-6 left-6 text-xs text-slate-400 uppercase tracking-widest font-semibold">Rdzeń Systemu</div>
+            
+            <!-- Główny przycisk do klikania -->
+            <div class="relative group cursor-pointer select-none" onclick="clickCore(event)">
+                <div class="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-emerald-500 rounded-full blur-xl opacity-40 group-hover:opacity-75 transition duration-500 animate-pulse"></div>
+                <div id="core-btn" class="relative w-48 h-48 rounded-full bg-slate-900 border-2 border-indigo-500/50 flex flex-col items-center justify-center shadow-2xl transition transform active:scale-95">
+                    <span class="text-3xl mb-1">🛡️</span>
+                    <span class="font-bold text-sm text-slate-200">KOMPILUJ</span>
+                    <span class="text-[10px] text-indigo-400 mt-1">+<span id="click-power">1</span> pkt</span>
+                </div>
             </div>
-            <div id="column-todo" class="flex-1 p-4 overflow-y-auto space-y-3.5"></div>
+
+            <!-- Aktywne efekty / powiadomienia na środku -->
+            <div id="click-effects" class="absolute inset-0 pointer-events-none overflow-hidden"></div>
+
+            <div class="absolute bottom-6 text-center text-xs text-slate-500">
+                Klikaj rdzeń, aby generować kod i odpierać napływające błędy. Kupuj ulepszenia po prawej stronie!
+            </div>
         </div>
 
-        <!-- Kolumna 2: W trakcie -->
-        <div class="glass-column w-80 rounded-2xl flex flex-col max-h-full shrink-0 shadow-2xl">
-            <div class="p-4 border-b border-slate-800 flex justify-between items-center font-semibold text-slate-300">
-                <span class="flex items-center gap-2">
-                    <span class="w-2.5 h-2.5 rounded-full bg-indigo-500"></span> W trakcie
-                </span>
-                <span id="count-progress" class="text-xs bg-slate-800 px-2.5 py-1 rounded-full text-slate-400">0</span>
+        <!-- Panel Ulepszeń (Sklep) -->
+        <div class="w-96 glass-panel rounded-3xl flex flex-col shadow-2xl overflow-hidden">
+            <div class="p-4 border-b border-slate-800 font-bold text-base text-slate-200 bg-slate-900/40 flex justify-between items-center">
+                <span>Sklep Ulepszeń</span>
+                <span class="text-xs text-slate-400">Automatyzacja</span>
             </div>
-            <div id="column-progress" class="flex-1 p-4 overflow-y-auto space-y-3.5"></div>
-        </div>
-
-        <!-- Kolumna 3: Zakończone -->
-        <div class="glass-column w-80 rounded-2xl flex flex-col max-h-full shrink-0 shadow-2xl">
-            <div class="p-4 border-b border-slate-800 flex justify-between items-center font-semibold text-slate-300">
-                <span class="flex items-center gap-2">
-                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Zakończone
-                </span>
-                <span id="count-done" class="text-xs bg-slate-800 px-2.5 py-1 rounded-full text-slate-400">0</span>
+            
+            <div class="flex-1 p-4 overflow-y-auto space-y-3" id="shop-container">
+                <!-- Dynamiczne ulepszenia generowane w JS -->
             </div>
-            <div id="column-done" class="flex-1 p-4 overflow-y-auto space-y-3.5"></div>
         </div>
 
     </main>
 
-    <!-- MODAL DODAWANIA BŁĘDU -->
-    <div id="bug-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4 z-50">
-        <div class="glass-panel text-slate-100 w-full max-w-md rounded-2xl shadow-2xl overflow-hidden p-6 border border-slate-700/60">
-            <h3 class="text-xl font-bold mb-4 text-indigo-300">Zgłoś nowy błąd</h3>
-            <form onsubmit="saveBug(event)" class="space-y-4">
-                <div>
-                    <label class="block text-xs font-medium text-slate-400 mb-1">Tytuł błędu</label>
-                    <input type="text" id="bug-title" required placeholder="np. Przycisk logowania nie działa" class="w-full px-4 py-2.5 bg-slate-950/60 border border-slate-700/60 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-slate-100 text-sm">
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-slate-400 mb-1">Opis</label>
-                    <textarea id="bug-desc" rows="3" required placeholder="Szczegółowy opis problemu..." class="w-full px-4 py-2.5 bg-slate-950/60 border border-slate-700/60 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-slate-100 text-sm resize-none"></textarea>
-                </div>
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-xs font-medium text-slate-400 mb-1">Kategoria</label>
-                        <select id="bug-category" required class="w-full px-3 py-2.5 bg-slate-950/60 border border-slate-700/60 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-slate-100 text-sm">
-                            <!-- Dynamiczne opcje kategorii -->
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-medium text-slate-400 mb-1">Priorytet</label>
-                        <select id="bug-priority" class="w-full px-3 py-2.5 bg-slate-950/60 border border-slate-700/60 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-slate-100 text-sm">
-                            <option value="Niski">Niski</option>
-                            <option value="Średni" selected>Średni</option>
-                            <option value="Wysoki">Wysoki</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-xs font-medium text-slate-400 mb-1">Data publikacji</label>
-                        <input type="date" id="bug-date" required class="w-full px-3 py-2.5 bg-slate-950/60 border border-slate-700/60 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-slate-100 text-sm">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-medium text-slate-400 mb-1">Tagi (oddzielone przecinkami)</label>
-                        <input type="text" id="bug-tags" placeholder="np. frontend, login" class="w-full px-3 py-2.5 bg-slate-950/60 border border-slate-700/60 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-slate-100 text-sm">
-                    </div>
-                </div>
-                <div class="flex justify-end gap-3 pt-2">
-                    <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-xl text-sm font-medium transition border border-slate-700">Anuluj</button>
-                    <button type="submit" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-sm font-medium transition shadow-lg shadow-indigo-600/30">Dodaj zgłoszenie</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- MODAL ZARZĄDZANIA KATEGORIAMI -->
-    <div id="category-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4 z-50">
-        <div class="glass-panel text-slate-100 w-full max-w-md rounded-2xl shadow-2xl overflow-hidden p-6 border border-slate-700/60 space-y-4">
-            <h3 class="text-xl font-bold text-indigo-300">Zarządzaj kategoriami</h3>
-            <form onsubmit="addCategory(event)" class="flex gap-2">
-                <input type="text" id="new-cat-input" required placeholder="Nowa kategoria..." class="flex-1 px-4 py-2 bg-slate-950/60 border border-slate-700/60 rounded-xl text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl text-sm font-medium transition">Dodaj</button>
-            </form>
-            <div id="categories-list" class="space-y-2 max-h-48 overflow-y-auto divide-y divide-slate-800 pr-1">
-                <!-- Lista kategorii -->
-            </div>
-            <div class="flex justify-end pt-2 border-t border-slate-800">
-                <button onclick="closeCategoryModal()" class="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 rounded-xl text-sm font-medium transition border border-slate-700">Zamknij</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL SZCZEGÓŁÓW KAFELKA -->
-    <div id="details-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4 z-50">
-        <div class="glass-panel text-slate-100 w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden p-6 border border-slate-700/60 space-y-4">
-            <div class="flex justify-between items-start">
-                <div>
-                    <span id="det-cat" class="text-xs font-semibold px-2.5 py-1 rounded-lg bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">Kategoria</span>
-                    <h3 id="det-title" class="text-xl font-bold text-slate-100 mt-2">Tytuł błędu</h3>
-                </div>
-                <span id="det-priority" class="text-xs px-2.5 py-1 rounded-lg">Priorytet</span>
-            </div>
-            <div class="text-xs text-slate-400 border-b border-slate-800 pb-3 flex justify-between">
-                <span>Data publikacji: <strong id="det-date" class="text-slate-300"></strong></span>
-            </div>
-            <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1">Opis zgłoszenia</label>
-                <p id="det-desc" class="text-sm text-slate-300 bg-slate-950/40 p-4 rounded-xl border border-slate-800/80 leading-relaxed whitespace-pre-wrap"></p>
-            </div>
-            <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1">Tagi</label>
-                <div id="det-tags" class="flex flex-wrap gap-1.5"></div>
-            </div>
-            <div class="flex justify-end gap-3 pt-3 border-t border-slate-800">
-                <button onclick="closeDetailsModal()" class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-sm font-medium transition shadow-lg shadow-indigo-600/30">Zamknij</button>
-            </div>
-        </div>
-    </div>
-
     <script>
-        let categories = JSON.parse(localStorage.getItem('glitch_categories')) || ['UI/UX', 'Optymalizacja', 'Bug', 'Funkcjonalność'];
-        let bugs = JSON.parse(localStorage.getItem('glitch_bugs')) || [
-            { id: 1, title: 'Błąd stylów CSS na mobile', desc: 'Nagłówek nachodzi na menu na małych ekranach w widoku mobilnym.', category: 'UI/UX', priority: 'Wysoki', tags: ['frontend', 'css', 'mobile'], status: 'todo', date: '2026-09-02' },
-            { id: 2, title: 'Optymalizacja localStorage', desc: 'Sprawdzić limit zapisywanych danych w pamięci przeglądarki przy dużej ilości kart.', category: 'Optymalizacja', priority: 'Średni', tags: ['backend', 'storage'], status: 'progress', date: '2026-09-02' }
-        ];
+        // Stan gry
+        let game = {
+            score: 0,
+            clickPower: 1,
+            cps: 0,
+            upgrades: [
+                { id: 'script', name: 'Prosty Skrypt', desc: '+1 punkt na sekundę', cost: 15, cps: 1, count: 0, costMultiplier: 1.15 },
+                { id: 'bot', name: 'Bot Naprawczy', desc: '+8 punktów na sekundę', cost: 100, cps: 8, count: 0, costMultiplier: 1.15 },
+                { id: 'ai', name: 'Moduł AI', desc: '+40 punktów na sekundę', cost: 500, cps: 40, count: 0, costMultiplier: 1.15 },
+                { id: 'server', name: 'Serwer Centralny', desc: '+200 punktów na sekundę', cost: 2500, cps: 200, count: 0, costMultiplier: 1.15 },
+                { id: 'upgrade_click', name: 'Lepszy Kompilator', desc: '+1 siła kliknięcia', cost: 50, power: 1, count: 0, costMultiplier: 2.0 }
+            ]
+        };
 
-        function saveStorage() {
-            localStorage.setItem('glitch_bugs', JSON.stringify(bugs));
-            localStorage.setItem('glitch_categories', JSON.stringify(categories));
+        // Ładowanie stanu z localStorage
+        function loadGame() {
+            const saved = localStorage.getItem('glitch_defense_save');
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    game.score = parsed.score || 0;
+                    game.clickPower = parsed.clickPower || 1;
+                    if (parsed.upgrades) {
+                        parsed.upgrades.forEach((u, i) => {
+                            if (game.upgrades[i]) {
+                                game.upgrades[i].count = u.count;
+                                game.upgrades[i].cost = u.cost;
+                            }
+                        });
+                    }
+                } catch(e) { console.error('Błąd wczytywania gry'); }
+            }
+            calculateCPS();
         }
 
-        function renderCategoryOptions() {
-            const select = document.getElementById('bug-category');
-            select.innerHTML = '';
-            categories.forEach(cat => {
-                select.innerHTML += `<option value="${cat}">${cat}</option>`;
+        function saveGame() {
+            localStorage.setItem('glitch_defense_save', JSON.stringify(game));
+        }
+
+        function calculateCPS() {
+            let totalCPS = 0;
+            game.upgrades.forEach(u => {
+                if (u.cps) totalCPS += u.cps * u.count;
             });
+            game.cps = totalCPS;
+            document.getElementById('cps').textContent = game.cps;
         }
 
-        function renderCategoriesList() {
-            const list = document.getElementById('categories-list');
-            list.innerHTML = '';
-            categories.forEach(cat => {
-                list.innerHTML += `
-                    <div class="py-2.5 flex justify-between items-center text-sm">
-                        <span class="text-slate-200 font-medium">${cat}</span>
-                        ${categories.length > 1 ? `<button onclick="deleteCategory('${cat}')" class="text-red-400 hover:text-red-300 text-xs px-2.5 py-1 rounded-lg bg-red-500/10 transition">Usuń</button>` : '<span class="text-xs text-slate-500">Domyślna</span>'}
+        function clickCore(e) {
+            game.score += game.clickPower;
+            updateUI();
+            
+            // Efekt pływającej cyferki po kliknięciu
+            const rect = e.currentTarget.getBoundingClientRect();
+            const x = e.clientX - rect.left - 20;
+            const y = e.clientY - rect.top - 20;
+            
+            const floatText = document.createElement('div');
+            floatText.textContent = `+${game.clickPower}`;
+            floatText.className = 'absolute text-emerald-400 font-bold text-lg pointer-events-none animate-ping';
+            floatText.style.left = `${x + 90}px`;
+            floatText.style.top = `${y + 90}px`;
+            
+            document.getElementById('click-effects').appendChild(floatText);
+            setTimeout(() => floatText.remove(), 400);
+        }
+
+        function buyUpgrade(id) {
+            const upgrade = game.upgrades.find(u => u.id === id);
+            if (game.score >= upgrade.cost) {
+                game.score -= upgrade.cost;
+                upgrade.count++;
+                
+                if (upgrade.power) {
+                    game.clickPower += upgrade.power;
+                    document.getElementById('click-power').textContent = game.clickPower;
+                }
+                
+                upgrade.cost = Math.floor(upgrade.cost * upgrade.costMultiplier);
+                calculateCPS();
+                updateUI();
+                renderShop();
+                saveGame();
+            }
+        }
+
+        function renderShop() {
+            const container = document.getElementById('shop-container');
+            container.innerHTML = '';
+
+            game.upgrades.forEach(u => {
+                const canAfford = game.score >= u.cost;
+                container.innerHTML += `
+                    <div class="glass-card p-3.5 rounded-2xl flex justify-between items-center border border-slate-700/60">
+                        <div>
+                            <div class="font-bold text-slate-200 text-sm">${u.name} <span class="text-xs text-indigo-400 font-normal">(osiadane: ${u.count})</span></div>
+                            <div class="text-[11px] text-slate-400">${u.desc}</div>
+                        </div>
+                        <button onclick="buyUpgrade('${u.id}')" ${!canAfford ? 'disabled' : ''} class="px-4 py-2 rounded-xl text-xs font-semibold transition ${canAfford ? 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/30 cursor-pointer' : 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700'}">
+                            ${u.cost} pkt
+                        </button>
                     </div>
                 `;
             });
         }
 
-        function addCategory(e) {
-            e.preventDefault();
-            const input = document.getElementById('new-cat-input');
-            const val = input.value.trim();
-            if(val && !categories.includes(val)) {
-                categories.push(val);
-                saveStorage();
-                renderCategoriesList();
-                renderCategoryOptions();
-                input.value = '';
-            }
-        }
-
-        function deleteCategory(cat) {
-            categories = categories.filter(c => c !== cat);
-            if(categories.length === 0) categories.push('Ogólne');
-            saveStorage();
-            renderCategoriesList();
-            renderCategoryOptions();
-        }
-
-        function renderBugs() {
-            const todoContainer = document.getElementById('column-todo');
-            const progressContainer = document.getElementById('column-progress');
-            const doneContainer = document.getElementById('column-done');
-
-            todoContainer.innerHTML = '';
-            progressContainer.innerHTML = '';
-            doneContainer.innerHTML = '';
-
-            let counts = { todo: 0, progress: 0, done: 0 };
-
-            bugs.forEach(bug => {
-                counts[bug.status]++;
-
-                let priorityColor = 'bg-slate-800 text-slate-300 border border-slate-700';
-                if(bug.priority === 'Wysoki') priorityColor = 'bg-rose-500/15 text-rose-300 border border-rose-500/30';
-                if(bug.priority === 'Średni') priorityColor = 'bg-amber-500/15 text-amber-300 border border-amber-500/30';
-                if(bug.priority === 'Niski') priorityColor = 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30';
-
-                let tagsHtml = bug.tags ? bug.tags.map(t => `<span class="text-[10px] bg-slate-800/80 text-slate-300 px-2 py-0.5 rounded-md border border-slate-700/60 font-medium">#${t}</span>`).join('') : '';
-
-                const cardHtml = `
-                    <div onclick="openDetailsModal(${bug.id})" class="glass-card p-4 rounded-xl flex flex-col gap-2.5 cursor-pointer">
-                        <div class="flex justify-between items-center gap-2">
-                            <span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-md bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">${bug.category}</span>
-                            <span class="text-[11px] font-medium px-2.5 py-0.5 rounded-md ${priorityColor}">${bug.priority}</span>
-                        </div>
-                        <h4 class="font-bold text-slate-100 text-sm tracking-tight mt-0.5">${bug.title}</h4>
-                        <p class="text-xs text-slate-400 leading-relaxed line-clamp-2">${bug.desc}</p>
-                        
-                        <div class="text-[11px] text-slate-500 mt-1">📅 ${bug.date || 'Brak daty'}</div>
-
-                        ${tagsHtml ? `<div class="flex flex-wrap gap-1.5 pt-1">${tagsHtml}</div>` : ''}
-
-                        <div class="flex justify-between items-center mt-2 pt-2.5 border-t border-slate-800/80 text-xs" onclick="event.stopPropagation()">
-                            <div class="flex gap-1.5">
-                                ${bug.status !== 'todo' ? `<button onclick="changeStatus(${bug.id}, 'todo')" class="text-slate-400 hover:text-white px-2 py-1 bg-slate-800/80 hover:bg-slate-700 rounded-lg transition border border-slate-700/50" title="Do zrobienia">←</button>` : ''}
-                                ${bug.status !== 'progress' ? `<button onclick="changeStatus(${bug.id}, 'progress')" class="text-slate-400 hover:text-white px-2.5 py-1 bg-slate-800/80 hover:bg-slate-700 rounded-lg transition border border-slate-700/50">W trakcie</button>` : ''}
-                                ${bug.status !== 'done' ? `<button onclick="changeStatus(${bug.id}, 'done')" class="text-slate-400 hover:text-white px-2.5 py-1 bg-slate-800/80 hover:bg-slate-700 rounded-lg transition border border-slate-700/50">→</button>` : ''}
-                            </div>
-                            <button onclick="deleteBug(${bug.id})" class="text-red-400 hover:text-red-300 font-medium px-2.5 py-1 bg-red-500/10 hover:bg-red-500/20 rounded-lg transition">Usuń</button>
-                        </div>
-                    </div>
-                `;
-
-                if(bug.status === 'todo') todoContainer.innerHTML += cardHtml;
-                if(bug.status === 'progress') progressContainer.innerHTML += cardHtml;
-                if(bug.status === 'done') doneContainer.innerHTML += cardHtml;
+        function updateUI() {
+            document.getElementById('score').textContent = Math.floor(game.score);
+            // Dynamiczne podświetlanie przycisków sklepu bez pełnego odświeżania domyślnie co klatkę dla płynności
+            const buttons = document.querySelectorAll('#shop-container button');
+            game.upgrades.forEach((u, i) => {
+                if (buttons[i]) {
+                    if (game.score >= u.cost) {
+                        buttons[i].className = "px-4 py-2 rounded-xl text-xs font-semibold transition bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/30 cursor-pointer";
+                        buttons[i].removeAttribute('disabled');
+                    } else {
+                        buttons[i].className = "px-4 py-2 rounded-xl text-xs font-semibold transition bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700";
+                        buttons[i].setAttribute('disabled', 'true');
+                    }
+                }
             });
-
-            document.getElementById('count-todo').textContent = counts.todo;
-            document.getElementById('count-progress').textContent = counts.progress;
-            document.getElementById('count-done').textContent = counts.done;
         }
 
-        function openModal() {
-            renderCategoryOptions();
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('bug-date').value = today;
-            document.getElementById('bug-modal').classList.remove('hidden');
-        }
-
-        function closeModal() {
-            document.getElementById('bug-modal').classList.add('hidden');
-            document.getElementById('bug-title').value = '';
-            document.getElementById('bug-desc').value = '';
-            document.getElementById('bug-tags').value = '';
-        }
-
-        function openCategoryModal() {
-            renderCategoriesList();
-            document.getElementById('category-modal').classList.remove('hidden');
-        }
-
-        function closeCategoryModal() {
-            document.getElementById('category-modal').classList.add('hidden');
-        }
-
-        function saveBug(e) {
-            e.preventDefault();
-            const title = document.getElementById('bug-title').value;
-            const desc = document.getElementById('bug-desc').value;
-            const category = document.getElementById('bug-category').value;
-            const priority = document.getElementById('bug-priority').value;
-            const date = document.getElementById('bug-date').value;
-            const rawTags = document.getElementById('bug-tags').value;
-            const tags = rawTags ? rawTags.split(',').map(t => t.trim()).filter(t => t.length > 0) : [];
-
-            bugs.push({
-                id: Date.now(),
-                title,
-                desc,
-                category,
-                priority,
-                tags,
-                status: 'todo',
-                date
-            });
-
-            saveStorage();
-            closeModal();
-            renderBugs();
-        }
-
-        function openDetailsModal(id) {
-            const bug = bugs.find(b => b.id === id);
-            if(!bug) return;
-
-            document.getElementById('det-cat').textContent = bug.category;
-            document.getElementById('det-title').textContent = bug.title;
-            document.getElementById('det-date').textContent = bug.date || 'Brak danych';
-            document.getElementById('det-desc').textContent = bug.desc;
-            
-            let priorityColor = 'bg-slate-800 text-slate-300 border border-slate-700';
-            if(bug.priority === 'Wysoki') priorityColor = 'bg-rose-500/15 text-rose-300 border border-rose-500/30';
-            if(bug.priority === 'Średni') priorityColor = 'bg-amber-500/15 text-amber-300 border border-amber-500/30';
-            if(bug.priority === 'Niski') priorityColor = 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30';
-            
-            const prioEl = document.getElementById('det-priority');
-            prioEl.className = `text-xs px-3 py-1 rounded-lg font-medium ${priorityColor}`;
-            prioEl.textContent = bug.priority;
-
-            const tagsContainer = document.getElementById('det-tags');
-            tagsContainer.innerHTML = bug.tags && bug.tags.length > 0 
-                ? bug.tags.map(t => `<span class="text-xs bg-slate-800 text-indigo-300 px-3 py-1 rounded-lg border border-slate-700 font-medium">#${t}</span>`).join('') 
-                : '<span class="text-xs text-slate-500">Brak tagów</span>';
-
-            document.getElementById('details-modal').classList.remove('hidden');
-        }
-
-        function closeDetailsModal() {
-            document.getElementById('details-modal').classList.add('hidden');
-        }
-
-        function changeStatus(id, newStatus) {
-            const b = bugs.find(item => item.id === id);
-            if(b) {
-                b.status = newStatus;
-                saveStorage();
-                renderBugs();
+        // Pętla gry (Idle tick co 1 sekundę)
+        setInterval(() => {
+            if (game.cps > 0) {
+                game.score += game.cps;
+                updateUI();
+                saveGame();
             }
-        }
+        }, 1000);
 
-        function deleteBug(id) {
-            bugs = bugs.filter(item => item.id !== id);
-            saveStorage();
-            renderBugs();
-        }
+        // Automatyczny zapis co 10 sekund
+        setInterval(saveGame, 10000);
 
-        renderBugs();
+        // Inicjalizacja
+        loadGame();
+        document.getElementById('click-power').textContent = game.clickPower;
+        renderShop();
+        updateUI();
     </script>
 </body>
 </html>
