@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Glitch Defense - Idle Game</title>
+    <title>Glitch Defense - Pro Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @keyframes gradientShift {
@@ -40,30 +40,48 @@
     <header class="glass-panel border-b border-slate-800 px-6 py-4 flex justify-between items-center shadow-xl z-30">
         <div class="flex items-center gap-3">
             <div class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse shadow-lg shadow-emerald-500/50"></div>
-            <h1 class="text-xl font-bold tracking-wide bg-gradient-to-r from-indigo-400 to-emerald-400 bg-clip-text text-transparent">Glitch Defense <span class="text-xs bg-indigo-500/20 border border-indigo-500/40 text-indigo-300 px-2.5 py-0.5 rounded-full ml-2">Idle Clicker</span></h1>
+            <h1 class="text-xl font-bold tracking-wide bg-gradient-to-r from-indigo-400 to-emerald-400 bg-clip-text text-transparent">Glitch Defense <span class="text-xs bg-indigo-500/20 border border-indigo-500/40 text-indigo-300 px-2.5 py-0.5 rounded-full ml-2">PRO v2.0</span></h1>
         </div>
-        <div class="flex gap-6 text-sm">
+        <div class="flex gap-4 text-sm items-center">
             <div class="glass-card px-4 py-1.5 rounded-xl border border-slate-700/60 flex items-center gap-2">
                 <span>⚡ Punkty kodu:</span>
                 <span id="score" class="font-bold text-emerald-400 text-base">0</span>
             </div>
             <div class="glass-card px-4 py-1.5 rounded-xl border border-slate-700/60 flex items-center gap-2">
-                <span>🚀 CPS (Na sekundę):</span>
+                <span>🚀 CPS:</span>
                 <span id="cps" class="font-bold text-indigo-400 text-base">0</span>
             </div>
+            <div class="glass-card px-4 py-1.5 rounded-xl border border-slate-700/60 flex items-center gap-2">
+                <span>⭐ Mnożnik:</span>
+                <span id="mult" class="font-bold text-amber-400 text-base">1.0x</span>
+            </div>
+            <button onclick="openModal('ach-modal')" class="bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-xl border border-slate-700 text-xs transition">🏆 Osiągnięcia</button>
+            <button onclick="openModal('reboot-modal')" class="bg-rose-950/60 hover:bg-rose-900/60 border border-rose-500/40 text-rose-300 px-3 py-1.5 rounded-xl text-xs transition">🔄 Reboot</button>
         </div>
     </header>
 
     <!-- Główna zawartość gry -->
     <main class="flex-1 flex overflow-hidden p-6 gap-6">
 
-        <!-- Główny obszar klikania / akcji -->
-        <div class="flex-1 glass-panel rounded-3xl flex flex-col items-center justify-center relative overflow-hidden shadow-2xl p-8">
-            <div class="absolute top-6 left-6 text-xs text-slate-400 uppercase tracking-widest font-semibold">Rdzeń Systemu</div>
+        <!-- Środek: Walka z glitchami i Rdzeń -->
+        <div class="flex-1 glass-panel rounded-3xl flex flex-col items-center justify-between relative overflow-hidden shadow-2xl p-8">
             
-            <!-- Główny przycisk do klikania -->
-            <div class="relative group cursor-pointer select-none" onclick="clickCore(event)">
-                <div class="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-emerald-500 rounded-full blur-xl opacity-40 group-hover:opacity-75 transition duration-500 animate-pulse"></div>
+            <!-- Górna część: Aktywny Błąd (Wróg do klikania) -->
+            <div class="w-full max-w-md glass-card p-4 rounded-2xl border border-rose-500/30 flex flex-col items-center relative shadow-lg">
+                <div class="flex justify-between w-full text-xs text-slate-400 mb-1">
+                    <span id="enemy-name" class="font-bold text-rose-400">NullPointerException</span>
+                    <span>Fala: <span id="wave-num" class="text-indigo-300 font-bold">1</span></span>
+                </div>
+                <!-- Pasek życia wroga -->
+                <div class="w-full bg-slate-900 h-3 rounded-full overflow-hidden border border-slate-700/80 mb-2">
+                    <div id="enemy-hp-bar" class="bg-gradient-to-r from-rose-600 to-amber-500 h-full transition-all duration-150" style="width: 100%;"></div>
+                </div>
+                <div class="text-[11px] text-slate-400">Klikaj w rdzeń poniżej, aby zadawać obrażenia i eliminować błędy!</div>
+            </div>
+
+            <!-- Główny przycisk Rdzenia -->
+            <div class="relative group cursor-pointer select-none my-auto" onclick="clickCore(event)">
+                <div id="core-glow" class="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-emerald-500 rounded-full blur-xl opacity-40 group-hover:opacity-75 transition duration-500 animate-pulse"></div>
                 <div id="core-btn" class="relative w-48 h-48 rounded-full bg-slate-900 border-2 border-indigo-500/50 flex flex-col items-center justify-center shadow-2xl transition transform active:scale-95">
                     <span class="text-3xl mb-1">🛡️</span>
                     <span class="font-bold text-sm text-slate-200">KOMPILUJ</span>
@@ -71,12 +89,16 @@
                 </div>
             </div>
 
-            <!-- Aktywne efekty / powiadomienia na środku -->
-            <div id="click-effects" class="absolute inset-0 pointer-events-none overflow-hidden"></div>
-
-            <div class="absolute bottom-6 text-center text-xs text-slate-500">
-                Klikaj rdzeń, aby generować kod i odpierać napływające błędy. Kupuj ulepszenia po prawej stronie!
+            <!-- Dolna część: Umiejętność specjalna (Overclock) -->
+            <div class="w-full max-w-xs flex flex-col items-center gap-2">
+                <button id="overclock-btn" onclick="activateOverclock()" class="w-full py-2.5 bg-gradient-to-r from-amber-600 to-indigo-600 hover:from-amber-500 hover:to-indigo-500 text-white rounded-xl text-xs font-bold transition shadow-lg shadow-amber-900/30 flex items-center justify-center gap-2">
+                    <span>⚡ OVERCLOCK (Przeciążenie)</span>
+                </button>
+                <div id="overclock-timer" class="text-[11px] text-slate-500">Gotowy do użycia</div>
             </div>
+
+            <!-- Efekty wizualne kliknięcia -->
+            <div id="click-effects" class="absolute inset-0 pointer-events-none overflow-hidden"></div>
         </div>
 
         <!-- Panel Ulepszeń (Sklep) -->
@@ -87,11 +109,42 @@
             </div>
             
             <div class="flex-1 p-4 overflow-y-auto space-y-3" id="shop-container">
-                <!-- Dynamiczne ulepszenia generowane w JS -->
+                <!-- Dynamiczne ulepszenia -->
             </div>
         </div>
 
     </main>
+
+    <!-- MODAL OSIĄGNIĘĆ -->
+    <div id="ach-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4 z-50">
+        <div class="glass-panel text-slate-100 w-full max-w-md rounded-2xl shadow-2xl overflow-hidden p-6 border border-slate-700/60 space-y-4">
+            <h3 class="text-xl font-bold text-indigo-300">Zdobyte Osiągnięcia</h3>
+            <div id="achievements-list" class="space-y-2.5 max-h-64 overflow-y-auto pr-1">
+                <!-- Lista osiągnięć -->
+            </div>
+            <div class="flex justify-end pt-2 border-t border-slate-800">
+                <button onclick="closeModal('ach-modal')" class="px-5 py-2 bg-slate-800 hover:bg-slate-700 rounded-xl text-sm font-medium transition">Zamknij</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL REBOOT (PRESTIŻ) -->
+    <div id="reboot-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4 z-50">
+        <div class="glass-panel text-slate-100 w-full max-w-md rounded-2xl shadow-2xl overflow-hidden p-6 border border-rose-500/40 space-y-4 text-center">
+            <div class="w-12 h-12 bg-rose-500/20 text-rose-400 rounded-2xl flex items-center justify-center mx-auto text-2xl font-bold">🔄</div>
+            <h3 class="text-xl font-bold text-rose-300">Reboot Systemu (Prestiż)</h3>
+            <p class="text-xs text-slate-300 leading-relaxed">
+                Zresetujesz swoje punkty kodu, ulepszenia oraz fale, ale otrzymasz stały bonus do mnożnika punktów (+0.5x do mnożnika za każdy restart).
+            </p>
+            <div class="bg-slate-950/60 p-3 rounded-xl border border-rose-500/20 text-xs">
+                Twój obecny mnożnik po reboocie wzrośnie do: <span id="next-mult" class="font-bold text-amber-400">1.5x</span>
+            </div>
+            <div class="flex justify-center gap-3 pt-2">
+                <button onclick="closeModal('reboot-modal')" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-xl text-sm font-medium transition">Anuluj</button>
+                <button onclick="executeReboot()" class="px-5 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-sm font-semibold transition shadow-lg shadow-rose-900/40">Wykonaj Reboot</button>
+            </div>
+        </div>
+    </div>
 
     <script>
         // Stan gry
@@ -99,23 +152,41 @@
             score: 0,
             clickPower: 1,
             cps: 0,
+            multiplier: 1.0,
+            totalClicks: 0,
+            wave: 1,
+            enemyMaxHp: 50,
+            enemyHp: 50,
+            enemyName: 'NullPointerException',
+            overclockActive: false,
+            overclockCooldown: 0,
             upgrades: [
-                { id: 'script', name: 'Prosty Skrypt', desc: '+1 punkt na sekundę', cost: 15, cps: 1, count: 0, costMultiplier: 1.15 },
-                { id: 'bot', name: 'Bot Naprawczy', desc: '+8 punktów na sekundę', cost: 100, cps: 8, count: 0, costMultiplier: 1.15 },
-                { id: 'ai', name: 'Moduł AI', desc: '+40 punktów na sekundę', cost: 500, cps: 40, count: 0, costMultiplier: 1.15 },
-                { id: 'server', name: 'Serwer Centralny', desc: '+200 punktów na sekundę', cost: 2500, cps: 200, count: 0, costMultiplier: 1.15 },
+                { id: 'script', name: 'Prosty Skrypt', desc: '+1 pkt/s', cost: 15, cps: 1, count: 0, costMultiplier: 1.15 },
+                { id: 'bot', name: 'Bot Naprawczy', desc: '+8 pkt/s', cost: 100, cps: 8, count: 0, costMultiplier: 1.15 },
+                { id: 'ai', name: 'Moduł AI', desc: '+40 pkt/s', cost: 500, cps: 40, count: 0, costMultiplier: 1.15 },
+                { id: 'server', name: 'Serwer Centralny', desc: '+200 pkt/s', cost: 2500, cps: 200, count: 0, costMultiplier: 1.15 },
                 { id: 'upgrade_click', name: 'Lepszy Kompilator', desc: '+1 siła kliknięcia', cost: 50, power: 1, count: 0, costMultiplier: 2.0 }
+            ],
+            achievements: [
+                { id: 'click_10', name: 'Początkujący Haker', desc: 'Kliknij rdzeń 10 razy', unlocked: false, check: () => game.totalClicks >= 10 },
+                { id: 'score_1000', name: 'Magazyn Kodu', desc: 'Zdobądź 1,000 punktów', unlocked: false, check: () => game.score >= 1000 },
+                { id: 'wave_5', name: 'Pogromca Błędów', desc: 'Osiągnij 5 falę systemową', unlocked: false, check: () => game.wave >= 5 },
+                { id: 'cps_50', name: 'Pełna Automatyzacja', desc: 'Osiągnij 50 CPS', unlocked: false, check: () => game.cps >= 50 }
             ]
         };
 
-        // Ładowanie stanu z localStorage
+        const enemyNames = ['NullPointerException', 'MemoryLeak', 'InfiniteLoop', 'SyntaxError', 'SegFault', 'CorruptedDatabase', 'DDoS_Attack'];
+
         function loadGame() {
-            const saved = localStorage.getItem('glitch_defense_save');
+            const saved = localStorage.getItem('glitch_defense_pro_save');
             if (saved) {
                 try {
                     const parsed = JSON.parse(saved);
                     game.score = parsed.score || 0;
                     game.clickPower = parsed.clickPower || 1;
+                    game.multiplier = parsed.multiplier || 1.0;
+                    game.totalClicks = parsed.totalClicks || 0;
+                    game.wave = parsed.wave || 1;
                     if (parsed.upgrades) {
                         parsed.upgrades.forEach((u, i) => {
                             if (game.upgrades[i]) {
@@ -124,13 +195,19 @@
                             }
                         });
                     }
+                    if (parsed.achievements) {
+                        parsed.achievements.forEach((a, i) => {
+                            if (game.achievements[i]) game.achievements[i].unlocked = a.unlocked;
+                        });
+                    }
                 } catch(e) { console.error('Błąd wczytywania gry'); }
             }
             calculateCPS();
+            updateEnemyStats();
         }
 
         function saveGame() {
-            localStorage.setItem('glitch_defense_save', JSON.stringify(game));
+            localStorage.setItem('glitch_defense_pro_save', JSON.stringify(game));
         }
 
         function calculateCPS() {
@@ -139,26 +216,87 @@
                 if (u.cps) totalCPS += u.cps * u.count;
             });
             game.cps = totalCPS;
-            document.getElementById('cps').textContent = game.cps;
+            document.getElementById('cps').textContent = Math.floor(game.cps * game.multiplier);
+        }
+
+        function updateEnemyStats() {
+            document.getElementById('enemy-name').textContent = game.enemyName;
+            document.getElementById('wave-num').textContent = game.wave;
+            const hpPercent = Math.max(0, (game.enemyHp / game.enemyMaxHp) * 100);
+            document.getElementById('enemy-hp-bar').style.width = `${hpPercent}%`;
+        }
+
+        function damageEnemy(amount) {
+            game.enemyHp -= amount;
+            if (game.enemyHp <= 0) {
+                // Wróg pokonany! Nagroda
+                const reward = Math.floor(game.enemyMaxHp * 0.5);
+                game.score += reward;
+                game.wave++;
+                game.enemyMaxHp = Math.floor(50 * Math.pow(1.3, game.wave - 1));
+                game.enemyHp = game.enemyMaxHp;
+                game.enemyName = enemyNames[Math.floor(Math.random() * enemyNames.length)];
+            }
+            updateEnemyStats();
         }
 
         function clickCore(e) {
-            game.score += game.clickPower;
+            game.totalClicks++;
+            let actualPower = game.clickPower * (game.overclockActive ? 2 : 1) * game.multiplier;
+            game.score += actualPower;
+            damageEnemy(actualPower);
             updateUI();
-            
-            // Efekt pływającej cyferki po kliknięciu
+            checkAchievements();
+
+            // Pływający efekt tekstu
             const rect = e.currentTarget.getBoundingClientRect();
-            const x = e.clientX - rect.left - 20;
-            const y = e.clientY - rect.top - 20;
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
             
             const floatText = document.createElement('div');
-            floatText.textContent = `+${game.clickPower}`;
-            floatText.className = 'absolute text-emerald-400 font-bold text-lg pointer-events-none animate-ping';
-            floatText.style.left = `${x + 90}px`;
-            floatText.style.top = `${y + 90}px`;
+            floatText.textContent = `+${Math.floor(actualPower)}`;
+            floatText.className = 'absolute text-emerald-400 font-bold text-sm pointer-events-none animate-ping';
+            floatText.style.left = `${x + 60}px`;
+            floatText.style.top = `${y + 60}px`;
             
             document.getElementById('click-effects').appendChild(floatText);
             setTimeout(() => floatText.remove(), 400);
+        }
+
+        function activateOverclock() {
+            if (game.overclockCooldown > 0 || game.overclockActive) return;
+            game.overclockActive = true;
+            document.getElementById('overclock-btn').className = "w-full py-2.5 bg-indigo-500 text-white rounded-xl text-xs font-bold shadow-lg animate-pulse cursor-not-allowed";
+            
+            let timeLeft = 10;
+            const timerEl = document.getElementById('overclock-timer');
+            
+            const activeInterval = setInterval(() => {
+                timerEl.textContent = `Aktywny! Pozostało ${timeLeft}s`;
+                timeLeft--;
+                if (timeLeft < 0) {
+                    clearInterval(activeInterval);
+                    game.overclockActive = false;
+                    startCooldown(30);
+                }
+            }, 1000);
+        }
+
+        function startCooldown(seconds) {
+            game.overclockCooldown = seconds;
+            const btn = document.getElementById('overclock-btn');
+            const timerEl = document.getElementById('overclock-timer');
+            btn.className = "w-full py-2.5 bg-slate-800 text-slate-500 rounded-xl text-xs font-bold border border-slate-700 cursor-not-allowed";
+
+            const cdInterval = setInterval(() => {
+                timerEl.textContent = `Odnowienie za ${game.overclockCooldown}s`;
+                game.overclockCooldown--;
+                if (game.overclockCooldown < 0) {
+                    clearInterval(cdInterval);
+                    btn.className = "w-full py-2.5 bg-gradient-to-r from-amber-600 to-indigo-600 hover:from-amber-500 hover:to-indigo-500 text-white rounded-xl text-xs font-bold transition shadow-lg shadow-amber-900/30 flex items-center justify-center gap-2 cursor-pointer";
+                    timerEl.textContent = "Gotowy do użycia";
+                }
+            }, 1000);
         }
 
         function buyUpgrade(id) {
@@ -176,6 +314,7 @@
                 calculateCPS();
                 updateUI();
                 renderShop();
+                checkAchievements();
                 saveGame();
             }
         }
@@ -187,12 +326,12 @@
             game.upgrades.forEach(u => {
                 const canAfford = game.score >= u.cost;
                 container.innerHTML += `
-                    <div class="glass-card p-3.5 rounded-2xl flex justify-between items-center border border-slate-700/60">
+                    <div class="glass-card p-3 rounded-2xl flex justify-between items-center border border-slate-700/60">
                         <div>
-                            <div class="font-bold text-slate-200 text-sm">${u.name} <span class="text-xs text-indigo-400 font-normal">(osiadane: ${u.count})</span></div>
+                            <div class="font-bold text-slate-200 text-sm">${u.name} <span class="text-xs text-indigo-400 font-normal">(${u.count})</span></div>
                             <div class="text-[11px] text-slate-400">${u.desc}</div>
                         </div>
-                        <button onclick="buyUpgrade('${u.id}')" ${!canAfford ? 'disabled' : ''} class="px-4 py-2 rounded-xl text-xs font-semibold transition ${canAfford ? 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/30 cursor-pointer' : 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700'}">
+                        <button onclick="buyUpgrade('${u.id}')" ${!canAfford ? 'disabled' : ''} class="px-3.5 py-2 rounded-xl text-xs font-semibold transition ${canAfford ? 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/30 cursor-pointer' : 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700'}">
                             ${u.cost} pkt
                         </button>
                     </div>
@@ -202,32 +341,88 @@
 
         function updateUI() {
             document.getElementById('score').textContent = Math.floor(game.score);
-            // Dynamiczne podświetlanie przycisków sklepu bez pełnego odświeżania domyślnie co klatkę dla płynności
+            document.getElementById('mult').textContent = `${game.multiplier.toFixed(1)}x`;
+            
+            // Odświeżenie przycisków sklepu
             const buttons = document.querySelectorAll('#shop-container button');
             game.upgrades.forEach((u, i) => {
                 if (buttons[i]) {
                     if (game.score >= u.cost) {
-                        buttons[i].className = "px-4 py-2 rounded-xl text-xs font-semibold transition bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/30 cursor-pointer";
+                        buttons[i].className = "px-3.5 py-2 rounded-xl text-xs font-semibold transition bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/30 cursor-pointer";
                         buttons[i].removeAttribute('disabled');
                     } else {
-                        buttons[i].className = "px-4 py-2 rounded-xl text-xs font-semibold transition bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700";
+                        buttons[i].className = "px-3.5 py-2 rounded-xl text-xs font-semibold transition bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700";
                         buttons[i].setAttribute('disabled', 'true');
                     }
                 }
             });
         }
 
-        // Pętla gry (Idle tick co 1 sekundę)
+        function checkAchievements() {
+            game.achievements.forEach(a => {
+                if (!a.unlocked && a.check()) {
+                    a.unlocked = true;
+                    // Proste powiadomienie konsolowe / UI
+                }
+            });
+        }
+
+        function renderAchievements() {
+            const list = document.getElementById('achievements-list');
+            list.innerHTML = '';
+            game.achievements.forEach(a => {
+                list.innerHTML += `
+                    <div class="p-3 rounded-xl border ${a.unlocked ? 'bg-indigo-500/10 border-indigo-500/30 text-slate-100' : 'bg-slate-900/40 border-slate-800 text-slate-500'} flex justify-between items-center text-xs">
+                        <div>
+                            <div class="font-bold">${a.name}</div>
+                            <div class="text-[10px] opacity-80">${a.desc}</div>
+                        </div>
+                        <div>${a.unlocked ? '✅ Odblokowane' : '🔒 Zablokowane'}</div>
+                    </div>
+                `;
+            });
+        }
+
+        function openModal(id) {
+            if (id === 'ach-modal') renderAchievements();
+            if (id === 'reboot-modal') {
+                document.getElementById('next-mult').textContent = `${(game.multiplier + 0.5).toFixed(1)}x`;
+            }
+            document.getElementById(id).classList.remove('hidden');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hidden');
+        }
+
+        function executeReboot() {
+            game.multiplier += 0.5;
+            game.score = 0;
+            game.clickPower = 1;
+            game.cps = 0;
+            game.wave = 1;
+            game.enemyMaxHp = 50;
+            game.enemyHp = 50;
+            game.upgrades.forEach(u => { u.count = 0; u.cost = Math.floor(u.cost / Math.pow(u.costMultiplier, u.count)); });
+            saveGame();
+            closeModal('reboot-modal');
+            calculateCPS();
+            updateEnemyStats();
+            renderShop();
+            updateUI();
+        }
+
+        // Pętla gry (Idle tick + pasywne obrażenia od CPS co 1 sekundę)
         setInterval(() => {
-            if (game.cps > 0) {
-                game.score += game.cps;
+            let actualCPS = game.cps * (game.overclockActive ? 2 : 1) * game.multiplier;
+            if (actualCPS > 0) {
+                game.score += actualCPS;
+                damageEnemy(actualCPS);
                 updateUI();
+                checkAchievements();
                 saveGame();
             }
         }, 1000);
-
-        // Automatyczny zapis co 10 sekund
-        setInterval(saveGame, 10000);
 
         // Inicjalizacja
         loadGame();
