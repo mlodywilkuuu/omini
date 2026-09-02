@@ -78,12 +78,13 @@
         </div>
     </header>
 
-    <!-- ZAKŁADKI GŁÓWNE -->
+    <!-- ZAKŁADKA GŁÓWNA -->
     <main class="flex-1 flex flex-col overflow-hidden">
         <div class="bg-slate-950/40 border-b border-slate-800/60 px-8 py-3 flex gap-3 overflow-x-auto">
             <button onclick="switchTab('devices')" id="tab-btn-devices" class="px-6 py-2.5 rounded-2xl font-semibold text-sm transition bg-blue-600 text-white shadow-lg shadow-blue-600/30 shrink-0">Projekty & Sprzęt</button>
             <button onclick="switchTab('rd')" id="tab-btn-rd" class="px-6 py-2.5 rounded-2xl font-semibold text-sm transition text-slate-400 hover:text-white hover:bg-slate-800/40 shrink-0">Drzewo Badań (R&D)</button>
             <button onclick="switchTab('factory')" id="tab-btn-factory" class="px-6 py-2.5 rounded-2xl font-semibold text-sm transition text-slate-400 hover:text-white hover:bg-slate-800/40 shrink-0">Fabryka & Produkcja</button>
+            <button onclick="switchTab('shops')" id="tab-btn-shops" class="px-6 py-2.5 rounded-2xl font-semibold text-sm transition text-slate-400 hover:text-white hover:bg-slate-800/40 shrink-0">🌍 Mapa & Sklepy Światowe</button>
             <button onclick="switchTab('staff')" id="tab-btn-staff" class="px-6 py-2.5 rounded-2xl font-semibold text-sm transition text-slate-400 hover:text-white hover:bg-slate-800/40 shrink-0">Kadry (HR)</button>
             <button onclick="switchTab('hq')" id="tab-btn-hq" class="px-6 py-2.5 rounded-2xl font-semibold text-sm transition text-slate-400 hover:text-white hover:bg-slate-800/40 shrink-0">Rozwój Siedziby</button>
         </div>
@@ -170,7 +171,18 @@
                 </div>
             </div>
 
-            <!-- ZAKŁADKA 4: KADRY (HR) -->
+            <!-- ZAKŁADKA 4: MAPA ŚWIATA & SKLEPY -->
+            <div id="tab-shops" class="flex-1 flex flex-col gap-6 overflow-y-auto hidden">
+                <div class="glass-panel rounded-3xl p-8 shadow-2xl space-y-6">
+                    <div>
+                        <h3 class="text-xl font-bold text-blue-300">Globalna Mapa Rynková & Sklepy Firmowe</h3>
+                        <p class="text-xs text-slate-400 mt-1">Kliknij kraj na liście, aby otworzyć w nim swój oficjalny salon i generować stały dochód pasywny!</p>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="world-map-countries"></div>
+                </div>
+            </div>
+
+            <!-- ZAKŁADKA 5: KADRY (HR) -->
             <div id="tab-staff" class="flex-1 flex flex-col gap-6 overflow-y-auto hidden">
                 <div class="glass-panel rounded-3xl p-8 shadow-2xl space-y-6">
                     <h3 class="text-xl font-bold text-blue-300">Giełda Pracy & Specjaliści (W tym Badacze R&D)</h3>
@@ -182,7 +194,7 @@
                 </div>
             </div>
 
-            <!-- ZAKŁADKA 5: SIEDZIBA -->
+            <!-- ZAKŁADKA 6: SIEDZIBA -->
             <div id="tab-hq" class="flex-1 flex flex-col gap-6 overflow-y-auto hidden">
                 <div class="glass-panel rounded-3xl p-8 shadow-2xl space-y-6">
                     <h3 class="text-xl font-bold text-blue-300">Rozbudowa Siedziby i Laboratoriów (40 Poziomów)</h3>
@@ -268,10 +280,20 @@
             factory: { active: false, unitsProduced: 0 },
             techCategory: 'phones',
             techTree: { phones: [], tablets: [], laptops: [], pcs: [] },
+            countries: [
+                { id: 'pl', name: 'Polska', flag: '🇵🇱', cost: 100000, income: 1200, shareBoost: 0.2, owned: false },
+                { id: 'de', name: 'Niemcy', flag: '🇩🇪', cost: 350000, income: 4500, shareBoost: 0.5, owned: false },
+                { id: 'us', name: 'Stany Zjednoczone', flag: '🇺🇸', cost: 1000000, income: 15000, shareBoost: 1.5, owned: false },
+                { id: 'jp', name: 'Japonia', flag: '🇯🇵', cost: 800000, income: 11000, shareBoost: 1.1, owned: false },
+                { id: 'gb', name: 'Wielka Brytania', flag: '🇬🇧', cost: 500000, income: 6800, shareBoost: 0.7, owned: false },
+                { id: 'fr', name: 'Francja', flag: '🇫🇷', cost: 450000, income: 5900, shareBoost: 0.6, owned: false },
+                { id: 'kr', name: 'Korea Południowa', flag: '🇰🇷', cost: 700000, income: 9500, shareBoost: 1.0, owned: false },
+                { id: 'cn', name: 'Chiny', flag: '🇨🇳', cost: 1500000, income: 24000, shareBoost: 2.5, owned: false },
+                { id: 'br', name: 'Brazylia', flag: '🇧🇷', cost: 300000, income: 3800, shareBoost: 0.4, owned: false }
+            ],
             hq: []
         };
 
-        // Generowanie ponad 100 technologii dla każdej z 4 kategorii
         const prefixes = ['Nano', 'Ultra', 'Quantum', 'Hyper', 'Cyber', 'Mega', 'Pro', 'Apex', 'Matrix', 'Nexus', 'Prime', 'Zenith', 'Omni', 'Stellar', 'Void', 'Aether', 'Vortex', 'Solar', 'Eclipse', 'Titan'];
         const suffixes = ['Chip', 'Moduł', 'Matryca', 'Silnik', 'Procesor', 'System', 'Protokol', 'Sensor', 'Interfejs', 'Rdzeń'];
 
@@ -279,11 +301,9 @@
             let list = [
                 { id: `${baseId}_base`, name: baseName, cost: 15000, time: 15, unlocked: true, parent: null, tier: 1, desc: `Podstawowa technologia dla ${baseName}.` }
             ];
-
             let counter = 1;
             for(let t = 2; t <= 10; t++) {
-                let itemsInTier = 10; // 10 technologii na tier = 90 + 1 bazowa = 91 na kategorię, dodamy z nadmiarem
-                for(let i = 0; i < itemsInTier; i++) {
+                for(let i = 0; i < 10; i++) {
                     counter++;
                     let pId = counter <= 11 ? `${baseId}_base` : `${baseId}_tech_${counter - 5}`;
                     list.push({
@@ -325,9 +345,9 @@
             });
         }
 
-        function saveGame() { localStorage.setItem('tech_giant_tycoon_save_v5', JSON.stringify(game)); }
+        function saveGame() { localStorage.setItem('tech_giant_tycoon_save_v6', JSON.stringify(game)); }
         function loadGame() {
-            const saved = localStorage.getItem('tech_giant_tycoon_save_v5');
+            const saved = localStorage.getItem('tech_giant_tycoon_save_v6');
             if(saved) {
                 try {
                     const parsed = JSON.parse(saved);
@@ -363,7 +383,7 @@
         function closeCheatModal() { document.getElementById('cheat-modal').classList.add('hidden'); }
         
         function executeCheat() {
-            const val = document.getElementById('cheat-input').value.trim().toLowerCase();
+            const val = document.getElementById('cheat-input'].value.trim().toLowerCase();
             const parts = val.split(' ');
             closeCheatModal();
 
@@ -375,20 +395,59 @@
                     game.techTree[cat].forEach(t => t.unlocked = true);
                 }
                 renderTechTree();
-                alert('Odblokowano wszystkie 400+ technologii w R&D!');
+                alert('Odblokowano wszystkie technologie w R&D!');
             }
             document.getElementById('cheat-input').value = '';
         }
 
         function switchTab(tab) {
-            ['devices', 'rd', 'factory', 'staff', 'hq'].forEach(t => {
+            ['devices', 'rd', 'factory', 'shops', 'staff', 'hq'].forEach(t => {
                 document.getElementById(`tab-${t}`).classList.toggle('hidden', t !== tab);
-                document.getElementById(`tab-btn-${t}`).className = `px-6 py-2.5 rounded-2xl font-semibold text-sm transition shrink-0 ${t === tab ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30' : 'text-slate-400 hover:text-white hover:bg-slate-800/40'}`;
+                const btn = document.getElementById(`tab-btn-${t}`);
+                if(btn) btn.className = `px-6 py-2.5 rounded-2xl font-semibold text-sm transition shrink-0 ${t === tab ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30' : 'text-slate-400 hover:text-white hover:bg-slate-800/40'}`;
             });
             if(tab === 'staff') renderJobMarket();
             if(tab === 'rd') renderTechTree();
             if(tab === 'factory') renderFactory();
+            if(tab === 'shops') renderWorldMap();
             if(tab === 'hq') renderHQ();
+        }
+
+        function renderWorldMap() {
+            const container = document.getElementById('world-map-countries');
+            container.innerHTML = '';
+            game.countries.forEach(c => {
+                let actionBtn = c.owned ? 
+                    `<span class="text-xs text-emerald-400 font-bold">Salon Otwarty ✓ (+${c.income.toLocaleString()} zł/s)</span>` : 
+                    `<button onclick="buyCountryStore('${c.id}')" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-xs">Otwórz Sklep (${c.cost.toLocaleString()} zł)</button>`;
+
+                container.innerHTML += `
+                    <div class="glass-card p-5 rounded-2xl flex flex-col justify-between gap-3 border ${c.owned ? 'border-emerald-500/40' : 'border-slate-700/60'}">
+                        <div>
+                            <h4 class="font-bold text-slate-100 text-sm flex items-center gap-2"><span class="text-lg">${c.flag}</span> ${c.name}</h4>
+                            <p class="text-xs text-slate-400 mt-1">Przychód pasywny: <strong class="text-emerald-400">+${c.income.toLocaleString()} zł/s</strong></p>
+                            <p class="text-[11px] text-blue-300 mt-1">Wzrost udziału w rynku: +${c.shareBoost}%</p>
+                        </div>
+                        <div class="pt-2 border-t border-slate-800/80 flex justify-between items-center">${actionBtn}</div>
+                    </div>
+                `;
+            });
+        }
+
+        function buyCountryStore(id) {
+            let country = game.countries.find(c => c.id === id);
+            if(country && !country.owned) {
+                if(game.money < country.cost) {
+                    alert('Za mało środków w budżecie na otwarcie salonu w tym kraju!');
+                    return;
+                }
+                modifyMoney(-country.cost);
+                country.owned = true;
+                game.marketShare = parseFloat((game.marketShare + country.shareBoost).toFixed(1));
+                renderWorldMap();
+                updateUI();
+                saveGame();
+            }
         }
 
         function generateCandidates() {
@@ -710,7 +769,7 @@
             game.hiredStaff.forEach(s => {
                 if(s.role === 'Inżynier Sprzętu') engPower += s.skill * 0.2;
                 if(s.role === 'Projektant UI/UX') designPower += s.skill * 0.2;
-                if(s.role === 'Badacz / Naukowiec R&D') researchPower += s.skill * 0.4; // Specjalny perk: silny bonus do prędkości badań
+                if(s.role === 'Badacz / Naukowiec R&D') researchPower += s.skill * 0.4;
             });
 
             if(game.activeResearch) {
@@ -735,6 +794,15 @@
             if(game.factory.active && game.history.length > 0) {
                 game.factory.unitsProduced += 5;
                 modifyMoney(500);
+            }
+
+            // Pasywny dochód ze sklepów w krajach
+            let totalStoreIncome = 0;
+            game.countries.forEach(c => {
+                if(c.owned) totalStoreIncome += c.income;
+            });
+            if(totalStoreIncome > 0) {
+                modifyMoney(totalStoreIncome);
             }
 
             saveGame();
