@@ -277,10 +277,35 @@
             engines: [{ name: 'Podstawowy 2D', mult: 1.0, owned: true }],
             consoles: [],
             departments: {
-                marketing: null, // ID pracownika
-                support: null    // ID pracownika
+                marketing: null,
+                support: null
             }
         };
+
+        // Zapis i odczyt z localStorage
+        function saveGame() {
+            localStorage.setItem('dev_tycoon_enterprise_save', JSON.stringify(game));
+        }
+
+        function loadGame() {
+            const saved = localStorage.getItem('dev_tycoon_enterprise_save');
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    game.money = parsed.money ?? 75000;
+                    game.fans = parsed.fans ?? 200;
+                    game.activeProject = parsed.activeProject || null;
+                    game.history = parsed.history || [];
+                    game.hiredStaff = parsed.hiredStaff || [];
+                    game.marketCandidates = parsed.marketCandidates || [];
+                    game.engines = parsed.engines || [{ name: 'Podstawowy 2D', mult: 1.0, owned: true }];
+                    game.consoles = parsed.consoles || [];
+                    game.departments = parsed.departments || { marketing: null, support: null };
+                } catch(e) {
+                    console.error('Błąd wczytywania zapisu gry');
+                }
+            }
+        }
 
         function showMoneyAnimation(amount, isAdd) {
             const container = document.getElementById('floating-money-container');
@@ -295,6 +320,7 @@
             game.money += amount;
             showMoneyAnimation(amount, amount >= 0);
             updateUI();
+            saveGame();
         }
 
         function switchTab(tab) {
@@ -316,11 +342,12 @@
                     name: `Pracownik ${Math.floor(Math.random()*900+100)}`,
                     role: roles[Math.floor(Math.random() * roles.length)],
                     skill: Math.floor(Math.random() * 25) + 10,
-                    efficiency: Math.floor(Math.random() * 30) + 70, // Statystyka pracownika %
-                    errorRate: Math.floor(Math.random() * 15) + 5,   // Współczynnik błędów %
+                    efficiency: Math.floor(Math.random() * 30) + 70,
+                    errorRate: Math.floor(Math.random() * 15) + 5,
                     salary: 1800
                 });
             }
+            saveGame();
         }
 
         function renderJobMarket() {
@@ -348,7 +375,13 @@
 
         function hireCandidate(id) {
             const cand = game.marketCandidates.find(c => c.id === id);
-            if(cand) { game.hiredStaff.push(cand); game.marketCandidates = game.marketCandidates.filter(c => c.id !== id); renderJobMarket(); updateUI(); }
+            if(cand) {
+                game.hiredStaff.push(cand);
+                game.marketCandidates = game.marketCandidates.filter(c => c.id !== id);
+                renderJobMarket();
+                updateUI();
+                saveGame();
+            }
         }
 
         function fireStaff(id) {
@@ -358,6 +391,7 @@
             renderJobMarket();
             renderDepartments();
             updateUI();
+            saveGame();
         }
 
         function renderHiredStaff() {
@@ -384,17 +418,14 @@
             });
         }
 
-        // Obsługa Działów
         function renderDepartments() {
-            // Marketing
             const mStaff = game.hiredStaff.find(s => s.id === game.departments.marketing);
             document.getElementById('marketing-assigned').textContent = mStaff ? `${mStaff.name} (${mStaff.role})` : 'Brak';
             document.getElementById('marketing-status').textContent = mStaff ? 'Aktywny' : 'Nieaktywny';
             document.getElementById('marketing-status').className = `text-xs px-2.5 py-1 rounded-lg ${mStaff ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-slate-800 text-slate-400'}`;
             let mPower = mStaff ? Math.floor(mStaff.skill * (mStaff.efficiency/100)) : 0;
-            document.getElementById('marketing-power',).textContent = `+${mPower} fanów / s`;
+            document.getElementById('marketing-power').textContent = `+${mPower} fanów / s`;
 
-            // Support
             const sStaff = game.hiredStaff.find(s => s.id === game.departments.support);
             document.getElementById('support-assigned').textContent = sStaff ? `${sStaff.name} (${sStaff.role})` : 'Brak';
             document.getElementById('support-status').textContent = sStaff ? 'Aktywny' : 'Nieaktywny';
@@ -402,7 +433,6 @@
             let sPower = sStaff ? Math.floor(sStaff.skill * 15) : 0;
             document.getElementById('support-power').textContent = `+${sPower} zł / s`;
 
-            // Lista bez przydziału
             const unassignedContainer = document.getElementById('unassigned-staff-list');
             const unassigned = game.hiredStaff.filter(s => s.id !== game.departments.marketing && s.id !== game.departments.support);
             unassignedContainer.innerHTML = unassigned.length === 0 ? `<div class="text-center py-4 text-slate-500 text-xs">Brak pracowników bez przydziału.</div>` : '';
@@ -424,6 +454,7 @@
             if(dept === 'support') game.departments.support = staffId;
             renderDepartments();
             updateUI();
+            saveGame();
         }
 
         function assignDepartmentStaff(dept) {
@@ -441,6 +472,7 @@
             game.engines.push({ name, mult: 1.5, owned: true });
             alert(`Stworzono własny silnik: ${name}!`);
             renderEnginesOffice();
+            saveGame();
         }
 
         function renderEnginesOffice() {
@@ -471,6 +503,7 @@
 
             alert(`Kampania promocyjna gry "${gameObj.title}" zakończona sukcesem! Sprzedano dodatkowo ${extraCopies.toLocaleString()} kopii.`);
             updateUI();
+            saveGame();
         }
 
         function openNewGameModal() {
@@ -490,6 +523,7 @@
             game.activeProject = { title, genre, engine, code: 0, art: 0, bugs: 0, currentProgress: 0, maxProgress: 150 };
             closeNewGameModal();
             updateUI();
+            saveGame();
         }
 
         function finishGame() {
@@ -524,6 +558,7 @@
 
             game.activeProject = null;
             updateUI();
+            saveGame();
         }
 
         function closeReviewModal() { document.getElementById('review-modal').classList.add('hidden'); }
@@ -540,6 +575,7 @@
                 document.getElementById('stats-modal').classList.remove('hidden');
 
                 updateUI();
+                saveGame();
             }
         }
 
@@ -551,6 +587,7 @@
             game.consoles.push({ name });
             alert(`Wydano konsolę: ${name}!`);
             updateUI();
+            saveGame();
         }
 
         function updateUI() {
@@ -611,7 +648,6 @@
         setInterval(() => {
             let codePower = 2, artPower = 2;
             game.hiredStaff.forEach(s => {
-                // Pracownicy przypisani do działów nie pracują bezpośrednio nad silnikiem/kodem gry
                 if(s.id === game.departments.marketing || s.id === game.departments.support) return;
 
                 let effMultiplier = s.efficiency / 100;
@@ -628,7 +664,6 @@
                 else updateUI();
             }
 
-            // Dział Promocji (Marketing) pasywnie dodaje fanów
             if(game.departments.marketing) {
                 const mStaff = game.hiredStaff.find(s => s.id === game.departments.marketing);
                 if(mStaff) {
@@ -637,7 +672,6 @@
                 }
             }
 
-            // Dział Obsługi Klienta (Support) generuje pasywny przychód
             if(game.departments.support) {
                 const sStaff = game.hiredStaff.find(s => s.id === game.departments.support);
                 if(sStaff) {
@@ -646,7 +680,6 @@
                 }
             }
 
-            // Pasywna sprzedaż gier z uwzględnieniem wsparcia Supportu
             if(game.history.length > 0) {
                 let supportBonus = game.departments.support ? 1.5 : 1.0;
                 game.history.forEach(g => {
@@ -659,6 +692,7 @@
             }
 
             if(game.consoles.length > 0) modifyMoney(game.consoles.length * 1000);
+            saveGame();
         }, 1000);
 
         // Pensje co 15 sekund
@@ -669,6 +703,8 @@
             }
         }, 15000);
 
+        // Inicjalizacja przy starcie
+        loadGame();
         updateUI();
     </script>
 </body>
