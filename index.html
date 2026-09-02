@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced Bug Tracker Trello Style</title>
+    <title>Glitch Tracker Trello Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @keyframes gradientShift {
@@ -17,17 +17,23 @@
             animation: gradientShift 15s ease infinite;
         }
         .glass-panel {
-            background: rgba(15, 23, 42, 0.8);
+            background: rgba(15, 23, 42, 0.85);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
             border: 1px solid rgba(255, 255, 255, 0.08);
         }
         .glass-card {
-            background: rgba(30, 41, 59, 0.85);
+            background: rgba(30, 41, 59, 0.75);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.3);
+            transition: all 0.2s ease;
+        }
+        .glass-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(99, 102, 241, 0.4);
+            box-shadow: 0 8px 25px -4px rgba(99, 102, 241, 0.2);
         }
         .glass-column {
             background: rgba(15, 23, 42, 0.5);
@@ -40,15 +46,12 @@
 <body class="animated-bg text-slate-100 h-screen flex flex-col overflow-hidden font-sans">
 
     <!-- Górny pasek -->
-    <header class="glass-panel border-b border-slate-750 px-6 py-4 flex justify-between items-center shadow-xl z-30">
+    <header class="glass-panel border-b border-slate-800 px-6 py-4 flex justify-between items-center shadow-xl z-30">
         <div class="flex items-center gap-3">
             <div class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse shadow-lg shadow-emerald-500/50"></div>
-            <h1 class="text-xl font-bold tracking-wide bg-gradient-to-r from-indigo-400 to-emerald-400 bg-clip-text text-transparent">Bug Tracker <span class="text-xs bg-indigo-500/20 border border-indigo-500/40 text-indigo-300 px-2.5 py-0.5 rounded-full ml-2">Trello Pro</span></h1>
+            <h1 class="text-xl font-bold tracking-wide bg-gradient-to-r from-indigo-400 to-emerald-400 bg-clip-text text-transparent">Glitch Tracker <span class="text-xs bg-indigo-500/20 border border-indigo-500/40 text-indigo-300 px-2.5 py-0.5 rounded-full ml-2">Trello Pro</span></h1>
         </div>
-        <div class="flex gap-3">
-            <button onclick="openCategoryModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-4 py-2.5 rounded-xl font-medium text-sm transition border border-slate-700 flex items-center gap-2">
-                Zarządzaj kategoriami
-            </button>
+        <div>
             <button onclick="openModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2.5 rounded-xl font-medium text-sm transition shadow-lg shadow-indigo-600/30 flex items-center gap-2">
                 <span class="font-bold text-lg">+</span> Dodaj błąd
             </button>
@@ -66,7 +69,7 @@
                 </span>
                 <span id="count-todo" class="text-xs bg-slate-800 px-2.5 py-1 rounded-full text-slate-400">0</span>
             </div>
-            <div id="column-todo" class="flex-1 p-4 overflow-y-auto space-y-3"></div>
+            <div id="column-todo" class="flex-1 p-4 overflow-y-auto space-y-3.5"></div>
         </div>
 
         <!-- Kolumna 2: W trakcie -->
@@ -77,7 +80,7 @@
                 </span>
                 <span id="count-progress" class="text-xs bg-slate-800 px-2.5 py-1 rounded-full text-slate-400">0</span>
             </div>
-            <div id="column-progress" class="flex-1 p-4 overflow-y-auto space-y-3"></div>
+            <div id="column-progress" class="flex-1 p-4 overflow-y-auto space-y-3.5"></div>
         </div>
 
         <!-- Kolumna 3: Zakończone -->
@@ -88,7 +91,7 @@
                 </span>
                 <span id="count-done" class="text-xs bg-slate-800 px-2.5 py-1 rounded-full text-slate-400">0</span>
             </div>
-            <div id="column-done" class="flex-1 p-4 overflow-y-auto space-y-3"></div>
+            <div id="column-done" class="flex-1 p-4 overflow-y-auto space-y-3.5"></div>
         </div>
 
     </main>
@@ -109,9 +112,7 @@
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-xs font-medium text-slate-400 mb-1">Kategoria</label>
-                        <select id="bug-category" class="w-full px-3 py-2.5 bg-slate-950/60 border border-slate-700/60 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-slate-100 text-sm">
-                            <!-- Dynamiczne kategorie -->
-                        </select>
+                        <input type="text" id="bug-category" required placeholder="np. UI/UX, Backend..." class="w-full px-4 py-2.5 bg-slate-950/60 border border-slate-700/60 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-slate-100 text-sm">
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-slate-400 mb-1">Priorytet</label>
@@ -122,9 +123,15 @@
                         </select>
                     </div>
                 </div>
-                <div>
-                    <label class="block text-xs font-medium text-slate-400 mb-1">Tagi (oddzielone przecinkami)</label>
-                    <input type="text" id="bug-tags" placeholder="np. frontend, login, critical" class="w-full px-4 py-2.5 bg-slate-950/60 border border-slate-700/60 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-slate-100 text-sm">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1">Data publikacji</label>
+                        <input type="date" id="bug-date" required class="w-full px-3 py-2.5 bg-slate-950/60 border border-slate-700/60 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-slate-100 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1">Tagi (oddzielone przecinkami)</label>
+                        <input type="text" id="bug-tags" placeholder="np. frontend, login" class="w-full px-3 py-2.5 bg-slate-950/60 border border-slate-700/60 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-slate-100 text-sm">
+                    </div>
                 </div>
                 <div class="flex justify-end gap-3 pt-2">
                     <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-xl text-sm font-medium transition border border-slate-700">Anuluj</button>
@@ -134,70 +141,41 @@
         </div>
     </div>
 
-    <!-- MODAL ZARZĄDZANIA KATEGORIAMI -->
-    <div id="category-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4 z-50">
-        <div class="glass-panel text-slate-100 w-full max-w-md rounded-2xl shadow-2xl overflow-hidden p-6 border border-slate-700/60">
-            <h3 class="text-xl font-bold mb-4 text-indigo-300">Zarządzaj kategoriami</h3>
-            <div class="space-y-4">
-                <form onsubmit="addCategory(event)" class="flex gap-2">
-                    <input type="text" id="new-cat-input" required placeholder="Nowa kategoria..." class="flex-1 px-4 py-2 bg-slate-950/60 border border-slate-700/60 rounded-xl text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl text-sm font-medium transition">Dodaj</button>
-                </form>
-                <div id="categories-list" class="space-y-2 max-h-48 overflow-y-auto divide-y divide-slate-800">
-                    <!-- Lista kategorii -->
-                </div>
-            </div>
-            <div class="flex justify-end mt-6">
-                <button onclick="closeCategoryModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-xl text-sm font-medium transition border border-slate-700">Zamknij</button>
-            </div>
-        </div>
-    </div>
-
     <!-- MODAL SZCZEGÓŁÓW KAFELKA -->
     <div id="details-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4 z-50">
         <div class="glass-panel text-slate-100 w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden p-6 border border-slate-700/60 space-y-4">
             <div class="flex justify-between items-start">
                 <div>
-                    <span id="det-cat" class="text-xs font-semibold px-2 py-0.5 rounded-md bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">Kategoria</span>
-                    <h3 id="det-title" class="text-xl font-bold text-slate-100 mt-1">Tytuł błędu</h3>
+                    <span id="det-cat" class="text-xs font-semibold px-2.5 py-1 rounded-lg bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">Kategoria</span>
+                    <h3 id="det-title" class="text-xl font-bold text-slate-100 mt-2">Tytuł błędu</h3>
                 </div>
-                <span id="det-priority" class="text-xs px-2.5 py-1 rounded-md">Priorytet</span>
+                <span id="det-priority" class="text-xs px-2.5 py-1 rounded-lg">Priorytet</span>
             </div>
             <div class="text-xs text-slate-400 border-b border-slate-800 pb-3 flex justify-between">
                 <span>Data publikacji: <strong id="det-date" class="text-slate-300"></strong></span>
             </div>
             <div>
                 <label class="block text-xs font-medium text-slate-400 mb-1">Opis zgłoszenia</label>
-                <p id="det-desc" class="text-sm text-slate-300 bg-slate-950/40 p-3 rounded-xl border border-slate-800/80 leading-relaxed whitespace-pre-wrap"></p>
+                <p id="det-desc" class="text-sm text-slate-300 bg-slate-950/40 p-4 rounded-xl border border-slate-800/80 leading-relaxed whitespace-pre-wrap"></p>
             </div>
             <div>
                 <label class="block text-xs font-medium text-slate-400 mb-1">Tagi</label>
                 <div id="det-tags" class="flex flex-wrap gap-1.5"></div>
             </div>
-            <div class="flex justify-end gap-3 pt-2 border-t border-slate-800">
-                <button onclick="closeDetailsModal()" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-sm font-medium transition shadow-lg shadow-indigo-600/30">Zamknij</button>
+            <div class="flex justify-end gap-3 pt-3 border-t border-slate-800">
+                <button onclick="closeDetailsModal()" class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-sm font-medium transition shadow-lg shadow-indigo-600/30">Zamknij</button>
             </div>
         </div>
     </div>
 
     <script>
-        let categories = JSON.parse(localStorage.getItem('trello_categories')) || ['Bug', 'UI/UX', 'Funkcjonalność', 'Optymalizacja'];
         let bugs = JSON.parse(localStorage.getItem('trello_bugs')) || [
-            { id: 1, title: 'Błąd stylów CSS na mobile', desc: 'Nagłówek nachodzi na menu na małych ekranach w widoku mobilnym.', category: 'UI/UX', priority: 'Wysoki', tags: ['frontend', 'css', 'mobile'], status: 'todo', date: '02.09.2026, 21:00:00' },
-            { id: 2, title: 'Optymalizacja localStorage', desc: 'Sprawdzić limit zapisywanych danych w pamięci przeglądarki przy dużej ilości kart.', category: 'Optymalizacja', priority: 'Średni', tags: ['backend', 'storage'], status: 'progress', date: '02.09.2026, 21:15:00' }
+            { id: 1, title: 'Błąd stylów CSS na mobile', desc: 'Nagłówek nachodzi na menu na małych ekranach w widoku mobilnym.', category: 'UI/UX', priority: 'Wysoki', tags: ['frontend', 'css', 'mobile'], status: 'todo', date: '2026-09-02' },
+            { id: 2, title: 'Optymalizacja localStorage', desc: 'Sprawdzić limit zapisywanych danych w pamięci przeglądarki przy dużej ilości kart.', category: 'Optymalizacja', priority: 'Średni', tags: ['backend', 'storage'], status: 'progress', date: '2026-09-02' }
         ];
 
         function saveStorage() {
             localStorage.setItem('trello_bugs', JSON.stringify(bugs));
-            localStorage.setItem('trello_categories', JSON.stringify(categories));
-        }
-
-        function renderCategoriesSelect() {
-            const select = document.getElementById('bug-category');
-            select.innerHTML = '';
-            categories.forEach(cat => {
-                select.innerHTML += `<option value="${cat}">${cat}</option>`;
-            });
         }
 
         function renderBugs() {
@@ -214,31 +192,33 @@
             bugs.forEach(bug => {
                 counts[bug.status]++;
 
-                let priorityColor = 'bg-slate-700 text-slate-300';
-                if(bug.priority === 'Wysoki') priorityColor = 'bg-rose-500/20 text-rose-300 border border-rose-500/30';
-                if(bug.priority === 'Średni') priorityColor = 'bg-amber-500/20 text-amber-300 border border-amber-500/30';
-                if(bug.priority === 'Niski') priorityColor = 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30';
+                let priorityColor = 'bg-slate-800 text-slate-300 border border-slate-700';
+                if(bug.priority === 'Wysoki') priorityColor = 'bg-rose-500/15 text-rose-300 border border-rose-500/30';
+                if(bug.priority === 'Średni') priorityColor = 'bg-amber-500/15 text-amber-300 border border-amber-500/30';
+                if(bug.priority === 'Niski') priorityColor = 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30';
 
-                let tagsHtml = bug.tags ? bug.tags.map(t => `<span class="text-[10px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded-full border border-slate-700">#${t}</span>`).join('') : '';
+                let tagsHtml = bug.tags ? bug.tags.map(t => `<span class="text-[10px] bg-slate-800/80 text-slate-300 px-2.5 py-0.5 rounded-md border border-slate-700/60 font-medium">#${t}</span>`).join('') : '';
 
                 const cardHtml = `
-                    <div onclick="openDetailsModal(${bug.id})" class="glass-card p-4 rounded-xl flex flex-col gap-2 transition hover:border-indigo-500/40 cursor-pointer group">
-                        <div class="flex justify-between items-start gap-2">
-                            <span class="text-xs font-semibold px-2 py-0.5 rounded-md bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">${bug.category}</span>
-                            <span class="text-xs px-2 py-0.5 rounded-md ${priorityColor}">${bug.priority}</span>
+                    <div onclick="openDetailsModal(${bug.id})" class="glass-card p-4 rounded-xl flex flex-col gap-2.5 cursor-pointer">
+                        <div class="flex justify-between items-center gap-2">
+                            <span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-md bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">${bug.category}</span>
+                            <span class="text-[11px] font-medium px-2.5 py-0.5 rounded-md ${priorityColor}">${bug.priority}</span>
                         </div>
-                        <h4 class="font-bold text-slate-200 text-sm mt-1 group-hover:text-indigo-300 transition">${bug.title}</h4>
+                        <h4 class="font-bold text-slate-100 text-sm tracking-tight mt-0.5">${bug.title}</h4>
                         <p class="text-xs text-slate-400 leading-relaxed line-clamp-2">${bug.desc}</p>
                         
-                        ${tagsHtml ? `<div class="flex flex-wrap gap-1 mt-1">${tagsHtml}</div>` : ''}
+                        <div class="text-[11px] text-slate-500 mt-1">📅 ${bug.date || 'Brak daty'}</div>
 
-                        <div class="flex justify-between items-center mt-3 pt-2 border-t border-slate-800 text-xs" onclick="event.stopPropagation()">
-                            <div class="flex gap-1">
-                                ${bug.status !== 'todo' ? `<button onclick="changeStatus(${bug.id}, 'todo')" class="text-slate-400 hover:text-white px-1.5 py-0.5 bg-slate-800 rounded">←</button>` : ''}
-                                ${bug.status !== 'progress' ? `<button onclick="changeStatus(${bug.id}, 'progress')" class="text-slate-400 hover:text-white px-1.5 py-0.5 bg-slate-800 rounded">W trakcie</button>` : ''}
-                                ${bug.status !== 'done' ? `<button onclick="changeStatus(${bug.id}, 'done')" class="text-slate-400 hover:text-white px-1.5 py-0.5 bg-slate-800 rounded">→</button>` : ''}
+                        ${tagsHtml ? `<div class="flex flex-wrap gap-1.5 pt-1">${tagsHtml}</div>` : ''}
+
+                        <div class="flex justify-between items-center mt-2 pt-2.5 border-t border-slate-800/80 text-xs" onclick="event.stopPropagation()">
+                            <div class="flex gap-1.5">
+                                ${bug.status !== 'todo' ? `<button onclick="changeStatus(${bug.id}, 'todo')" class="text-slate-400 hover:text-white px-2 py-1 bg-slate-800/80 hover:bg-slate-700 rounded-lg transition border border-slate-700/50" title="Do zrobienia">←</button>` : ''}
+                                ${bug.status !== 'progress' ? `<button onclick="changeStatus(${bug.id}, 'progress')" class="text-slate-400 hover:text-white px-2.5 py-1 bg-slate-800/80 hover:bg-slate-700 rounded-lg transition border border-slate-700/50">W trakcie</button>` : ''}
+                                ${bug.status !== 'done' ? `<button onclick="changeStatus(${bug.id}, 'done')" class="text-slate-400 hover:text-white px-2.5 py-1 bg-slate-800/80 hover:bg-slate-700 rounded-lg transition border border-slate-700/50">→</button>` : ''}
                             </div>
-                            <button onclick="deleteBug(${bug.id})" class="text-red-400 hover:text-red-300 font-medium">Usuń</button>
+                            <button onclick="deleteBug(${bug.id})" class="text-red-400/80 hover:text-red-300 font-medium px-2 py-1 hover:bg-red-500/10 rounded-lg transition">Usuń</button>
                         </div>
                     </div>
                 `;
@@ -254,7 +234,8 @@
         }
 
         function openModal() {
-            renderCategoriesSelect();
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('bug-date').value = today;
             document.getElementById('bug-modal').classList.remove('hidden');
         }
 
@@ -262,59 +243,19 @@
             document.getElementById('bug-modal').classList.add('hidden');
             document.getElementById('bug-title').value = '';
             document.getElementById('bug-desc').value = '';
+            document.getElementById('bug-category').value = '';
             document.getElementById('bug-tags').value = '';
-        }
-
-        function openCategoryModal() {
-            renderCategoriesList();
-            document.getElementById('category-modal').classList.remove('hidden');
-        }
-
-        function closeCategoryModal() {
-            document.getElementById('category-modal').classList.add('hidden');
-        }
-
-        function renderCategoriesList() {
-            const list = document.getElementById('categories-list');
-            list.innerHTML = '';
-            categories.forEach(cat => {
-                list.innerHTML += `
-                    <div class="py-2 flex justify-between items-center text-sm">
-                        <span class="text-slate-200">${cat}</span>
-                        ${categories.length > 1 ? `<button onclick="deleteCategory('${cat}')" class="text-red-400 hover:text-red-300 text-xs">Usuń</button>` : '<span class="text-xs text-slate-500">Domyślna</span>'}
-                    </div>
-                `;
-            });
-        }
-
-        function addCategory(e) {
-            e.preventDefault();
-            const val = document.getElementById('new-cat-input').value.trim();
-            if(val && !categories.includes(val)) {
-                categories.push(val);
-                saveStorage();
-                renderCategoriesList();
-                document.getElementById('new-cat-input').value = '';
-            }
-        }
-
-        function deleteCategory(cat) {
-            categories = categories.filter(c => c !== cat);
-            saveStorage();
-            renderCategoriesList();
         }
 
         function saveBug(e) {
             e.preventDefault();
             const title = document.getElementById('bug-title').value;
             const desc = document.getElementById('bug-desc').value;
-            const category = document.getElementById('bug-category').value;
+            const category = document.getElementById('bug-category').value.trim();
             const priority = document.getElementById('bug-priority').value;
+            const date = document.getElementById('bug-date').value;
             const rawTags = document.getElementById('bug-tags').value;
             const tags = rawTags ? rawTags.split(',').map(t => t.trim()).filter(t => t.length > 0) : [];
-
-            const now = new Date();
-            const dateStr = now.toLocaleDateString() + ', ' + now.toLocaleTimeString();
 
             bugs.push({
                 id: Date.now(),
@@ -324,7 +265,7 @@
                 priority,
                 tags,
                 status: 'todo',
-                date: dateStr
+                date
             });
 
             saveStorage();
@@ -341,18 +282,18 @@
             document.getElementById('det-date').textContent = bug.date || 'Brak danych';
             document.getElementById('det-desc').textContent = bug.desc;
             
-            let priorityColor = 'bg-slate-700 text-slate-300';
-            if(bug.priority === 'Wysoki') priorityColor = 'bg-rose-500/20 text-rose-300 border border-rose-500/30';
-            if(bug.priority === 'Średni') priorityColor = 'bg-amber-500/20 text-amber-300 border border-amber-500/30';
-            if(bug.priority === 'Niski') priorityColor = 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30';
+            let priorityColor = 'bg-slate-800 text-slate-300 border border-slate-700';
+            if(bug.priority === 'Wysoki') priorityColor = 'bg-rose-500/15 text-rose-300 border border-rose-500/30';
+            if(bug.priority === 'Średni') priorityColor = 'bg-amber-500/15 text-amber-300 border border-amber-500/30';
+            if(bug.priority === 'Niski') priorityColor = 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30';
             
             const prioEl = document.getElementById('det-priority');
-            prioEl.className = `text-xs px-2.5 py-1 rounded-md ${priorityColor}`;
+            prioEl.className = `text-xs px-3 py-1 rounded-lg font-medium ${priorityColor}`;
             prioEl.textContent = bug.priority;
 
             const tagsContainer = document.getElementById('det-tags');
             tagsContainer.innerHTML = bug.tags && bug.tags.length > 0 
-                ? bug.tags.map(t => `<span class="text-xs bg-slate-800 text-indigo-300 px-2.5 py-1 rounded-lg border border-slate-700">#${t}</span>`).join('') 
+                ? bug.tags.map(t => `<span class="text-xs bg-slate-800 text-indigo-300 px-3 py-1 rounded-lg border border-slate-700 font-medium">#${t}</span>`).join('') 
                 : '<span class="text-xs text-slate-500">Brak tagów</span>';
 
             document.getElementById('details-modal').classList.remove('hidden');
