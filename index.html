@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dev Tycoon Pro</title>
+    <title>Dev Tycoon Pro - Ultimate Tycoon</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @keyframes gradientShift {
@@ -29,401 +29,437 @@
             border: 1px solid rgba(255, 255, 255, 0.08);
             transition: all 0.2s ease;
         }
-        .glass-card:hover {
-            border-color: rgba(99, 102, 241, 0.4);
+        @keyframes floatUpRed {
+            0% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-30px); }
         }
+        @keyframes floatUpGreen {
+            0% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-30px); }
+        }
+        .float-red { animation: floatUpRed 1s ease-out forwards; }
+        .float-green { animation: floatUpGreen 1s ease-out forwards; }
     </style>
 </head>
 <body class="animated-bg text-slate-100 h-screen flex flex-col overflow-hidden font-sans">
 
-    <!-- Górny pasek statystyk (Firma) -->
-    <header class="glass-panel border-b border-slate-800 px-6 py-4 flex justify-between items-center shadow-xl z-30">
+    <!-- Górny pasek -->
+    <header class="glass-panel border-b border-slate-800 px-6 py-4 flex justify-between items-center shadow-xl z-30 relative">
         <div class="flex items-center gap-3">
-            <div class="w-3 h-3 rounded-full bg-indigo-500 animate-pulse shadow-lg shadow-indigo-500/50"></div>
-            <h1 class="text-xl font-bold tracking-wide bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">Dev Tycoon <span class="text-xs bg-indigo-500/20 border border-indigo-500/40 text-indigo-300 px-2.5 py-0.5 rounded-full ml-2">Studio v1.0</span></h1>
+            <div class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse shadow-lg shadow-emerald-500/50"></div>
+            <h1 class="text-xl font-bold tracking-wide bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">Dev Tycoon <span class="text-xs bg-indigo-500/20 border border-indigo-500/40 text-indigo-300 px-2.5 py-0.5 rounded-full ml-2">Master</span></h1>
         </div>
-        <div class="flex gap-4 text-sm items-center">
+        <div class="flex gap-4 text-sm items-center relative">
+            <div id="floating-money-container" class="absolute -bottom-10 left-0 pointer-events-none z-50"></div>
+
             <div class="glass-card px-4 py-1.5 rounded-xl border border-slate-700/60 flex items-center gap-2">
                 <span>💰 Gotówka:</span>
-                <span id="company-money" class="font-bold text-emerald-400 text-base">10,000 zł</span>
+                <span id="company-money" class="font-bold text-emerald-400 text-base">50,000 zł</span>
             </div>
             <div class="glass-card px-4 py-1.5 rounded-xl border border-slate-700/60 flex items-center gap-2">
-                <span>👥 Pracownicy:</span>
-                <span id="company-staff" class="font-bold text-indigo-400 text-base">1 (Ty)</span>
-                <span id="staff-power" class="text-xs text-slate-400">(+10/s)</span>
+                <span>👥 Zespół:</span>
+                <span id="company-staff-count" class="font-bold text-indigo-400 text-base">0</span>
             </div>
             <div class="glass-card px-4 py-1.5 rounded-xl border border-slate-700/60 flex items-center gap-2">
                 <span>🏆 Fani:</span>
-                <span id="company-fans" class="font-bold text-amber-400 text-base">0</span>
+                <span id="company-fans" class="font-bold text-amber-400 text-base">100</span>
             </div>
         </div>
     </header>
 
-    <!-- Główna zawartość -->
-    <main class="flex-1 flex overflow-hidden p-6 gap-6">
+    <!-- Nawigacja zakładek -->
+    <main class="flex-1 flex flex-col overflow-hidden">
+        <div class="bg-slate-900/60 border-b border-slate-800 px-6 py-2 flex gap-3">
+            <button onclick="switchTab('dev')" id="tab-btn-dev" class="px-5 py-2 rounded-xl font-medium text-sm transition bg-indigo-600 text-white shadow">Studio & Produkcja</button>
+            <button onclick="switchTab('staff')" id="tab-btn-staff" class="px-5 py-2 rounded-xl font-medium text-sm transition text-slate-400 hover:text-white">Giełda Pracy (HR)</button>
+            <button onclick="switchTab('consoles')" id="tab-btn-consoles" class="px-5 py-2 rounded-xl font-medium text-sm transition text-slate-400 hover:text-white">Inżynieria i Konsole</button>
+            <button onclick="switchTab('office')" id="tab-btn-office" class="px-5 py-2 rounded-xl font-medium text-sm transition text-slate-400 hover:text-white">Silniki & Rozwój</button>
+        </div>
 
-        <!-- Lewa strona / Środek: Biuro i Tworzenie Gry -->
-        <div class="flex-1 flex flex-col gap-6">
-            
-            <!-- Panel tworzenia gry (Aktywny Projekt) -->
-            <div class="glass-panel rounded-3xl p-6 shadow-2xl flex flex-col justify-between relative overflow-hidden">
-                <div class="absolute top-0 right-0 p-8 opacity-10 text-8xl font-bold select-none">💻</div>
-                <h3 class="text-lg font-bold text-indigo-300 mb-4 flex items-center gap-2">
-                    <span>🎮</span> Panel Projektu
-                </h3>
+        <div class="flex-1 flex overflow-hidden p-6 gap-6">
 
-                <div id="no-project-view" class="py-8 text-center">
-                    <p class="text-sm text-slate-400 mb-4">Nie twórzysz obecnie żadnej gry. Rozpocznij nowy projekt, aby zarabiać pieniądze i zdobywać fanów!</p>
-                    <button onclick="openNewGameModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-3 rounded-2xl font-bold transition shadow-lg shadow-indigo-600/30">
-                        + Stwórz nową grę
-                    </button>
+            <!-- ZAKŁADKA 1: STUDIO I PRODUKCJA -->
+            <div id="tab-dev" class="flex-1 flex flex-col gap-6 overflow-y-auto">
+                <div class="glass-panel rounded-3xl p-6 shadow-2xl flex flex-col justify-between relative overflow-hidden">
+                    <h3 class="text-lg font-bold text-indigo-300 mb-4 flex items-center gap-2"><span>🎮</span> Aktualny Projekt Gry</h3>
+
+                    <div id="no-project-view" class="py-6 text-center">
+                        <p class="text-sm text-slate-400 mb-4">Wybierz silnik, skonfiguruj projekt i rozpocznij tworzenie nowego hitu!</p>
+                        <button onclick="openNewGameModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-3 rounded-2xl font-bold transition shadow-lg shadow-indigo-600/30">
+                            + Stwórz nową grę
+                        </button>
+                    </div>
+
+                    <div id="active-project-view" class="hidden space-y-4">
+                        <div class="flex justify-between items-center text-sm">
+                            <div>
+                                <span id="proj-title" class="font-bold text-lg text-slate-100">Tytuł</span>
+                                <span id="proj-genre" class="text-xs bg-slate-800 text-indigo-300 px-2.5 py-1 rounded-lg ml-2 border border-slate-700">RPG</span>
+                                <span id="proj-engine" class="text-xs bg-purple-900/50 text-purple-300 px-2.5 py-1 rounded-lg ml-1 border border-purple-700/50">Silnik</span>
+                            </div>
+                            <span id="proj-progress-text" class="font-bold text-emerald-400">0%</span>
+                        </div>
+
+                        <div class="w-full bg-slate-900 h-4 rounded-full overflow-hidden border border-slate-700/80 p-0.5">
+                            <div id="proj-progress-bar" class="bg-gradient-to-r from-indigo-500 to-emerald-400 h-full rounded-full transition-all duration-100" style="width: 0%;"></div>
+                        </div>
+
+                        <div class="grid grid-cols-4 gap-3 pt-2 text-center text-xs">
+                            <div class="glass-card p-2.5 rounded-xl"><span class="text-slate-400 block mb-1">Kod</span><span id="stat-code" class="font-bold text-indigo-300 text-sm">0</span></div>
+                            <div class="glass-card p-2.5 rounded-xl"><span class="text-slate-400 block mb-1">Grafika</span><span id="stat-art" class="font-bold text-purple-300 text-sm">0</span></div>
+                            <div class="glass-card p-2.5 rounded-xl"><span class="text-slate-400 block mb-1">Błędy</span><span id="stat-bugs" class="font-bold text-rose-400 text-sm">0</span></div>
+                            <div class="glass-card p-2.5 rounded-xl"><span class="text-slate-400 block mb-1">Hype (Promo)</span><span id="stat-hype" class="font-bold text-amber-400 text-sm">0%</span></div>
+                        </div>
+
+                        <div class="flex gap-3 pt-2">
+                            <button onclick="launchPromo('social')" class="flex-1 py-2 bg-slate-800 hover:bg-slate-700 rounded-xl text-xs font-semibold border border-slate-700 transition">📱 Social Media (5k zł)</button>
+                            <button onclick="launchPromo('trailer')" class="flex-1 py-2 bg-slate-800 hover:bg-slate-700 rounded-xl text-xs font-semibold border border-slate-700 transition">🎬 Zwiastun YouTube (20k zł)</button>
+                            <button onclick="launchPromo('tv')" class="flex-1 py-2 bg-slate-800 hover:bg-slate-700 rounded-xl text-xs font-semibold border border-slate-700 transition">📺 Reklama TV (80k zł)</button>
+                        </div>
+                    </div>
                 </div>
 
-                <div id="active-project-view" class="hidden space-y-4">
-                    <div class="flex justify-between items-center text-sm">
-                        <div>
-                            <span id="proj-title" class="font-bold text-lg text-slate-100">Tytuł Gry</span>
-                            <span id="proj-genre" class="text-xs bg-slate-800 text-indigo-300 px-2.5 py-1 rounded-lg ml-2 border border-slate-700">RPG</span>
-                        </div>
-                        <span id="proj-progress-text" class="font-bold text-emerald-400">0%</span>
-                    </div>
-
-                    <!-- Pasek postępu produkcji -->
-                    <div class="w-full bg-slate-900 h-4 rounded-full overflow-hidden border border-slate-700/80 p-0.5">
-                        <div id="proj-progress-bar" class="bg-gradient-to-r from-indigo-500 to-emerald-400 h-full rounded-full transition-all duration-100" style="width: 0%;"></div>
-                    </div>
-
-                    <div class="grid grid-cols-3 gap-4 pt-2 text-center text-xs">
-                        <div class="glass-card p-2 rounded-xl">
-                            <span class="text-slate-400 block mb-1">Kod / Silnik</span>
-                            <span id="stat-code" class="font-bold text-indigo-300 text-sm">0</span>
-                        </div>
-                        <div class="glass-card p-2 rounded-xl">
-                            <span class="text-slate-400 block mb-1">Grafika / UI</span>
-                            <span id="stat-art" class="font-bold text-purple-300 text-sm">0</span>
-                        </div>
-                        <div class="glass-card p-2 rounded-xl">
-                            <span class="text-slate-400 block mb-1">Dźwięk / Audio</span>
-                            <span id="stat-sound" class="font-bold text-amber-300 text-sm">0</span>
-                        </div>
+                <div class="glass-panel rounded-3xl p-6 shadow-2xl flex flex-col flex-1 overflow-hidden">
+                    <h3 class="text-base font-bold text-slate-200 mb-3 flex items-center gap-2"><span>📚</span> Historia Wydanych Gier</h3>
+                    <div class="flex-1 overflow-y-auto space-y-2.5 pr-1" id="games-history">
+                        <div class="text-center py-8 text-slate-500 text-sm">Brak wydanych gier.</div>
                     </div>
                 </div>
             </div>
 
-            <!-- Ostatnio wydane gry (Historia) -->
-            <div class="flex-1 glass-panel rounded-3xl p-6 shadow-2xl flex flex-col overflow-hidden">
-                <h3 class="text-base font-bold text-slate-200 mb-3 flex items-center gap-2">
-                    <span>📚</span> Wydane Produkcje
-                </h3>
-                <div class="flex-1 overflow-y-auto space-y-2.5 pr-1" id="games-history">
-                    <div class="text-center py-12 text-slate-500 text-sm">Brak wydanych gier. Czas stworzyć swój pierwszy hit!</div>
+            <!-- ZAKŁADKA 2: GIEŁDA PRACY (HR) -->
+            <div id="tab-staff" class="flex-1 flex flex-col gap-6 overflow-y-auto hidden">
+                <div class="glass-panel rounded-3xl p-6 shadow-2xl">
+                    <h3 class="text-lg font-bold text-indigo-300 mb-4">Dostępni specjaliści</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="job-market"></div>
+                </div>
+                <div class="glass-panel rounded-3xl p-6 shadow-2xl">
+                    <h3 class="text-lg font-bold text-indigo-300 mb-4">Zatrudniony Zespół</h3>
+                    <div class="space-y-3" id="hired-staff-list"><div class="text-center py-6 text-slate-500 text-sm">Nikogo nie zatrudniłeś.</div></div>
+                </div>
+            </div>
+
+            <!-- ZAKŁADKA 3: KONSOLE -->
+            <div id="tab-consoles" class="flex-1 flex flex-col gap-6 overflow-y-auto hidden">
+                <div class="glass-panel rounded-3xl p-6 shadow-2xl space-y-4">
+                    <h3 class="text-lg font-bold text-indigo-300">Stwórz Własną Konsolę</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="glass-card p-4 rounded-2xl flex flex-col justify-between">
+                            <div><h4 class="font-bold text-slate-200">PolyBox 64</h4><p class="text-xs text-slate-400 mt-1">Prosta konsola domowa.</p></div>
+                            <button onclick="startConsoleDev('PolyBox 64', 50000, 50)" class="mt-4 bg-indigo-600 hover:bg-indigo-500 text-white py-2 rounded-xl text-xs font-bold transition">Opracuj (50k zł)</button>
+                        </div>
+                        <div class="glass-card p-4 rounded-2xl flex flex-col justify-between">
+                            <div><h4 class="font-bold text-slate-200">Nexus Station</h4><p class="text-xs text-slate-400 mt-1">Konsola nowej generacji.</p></div>
+                            <button onclick="startConsoleDev('Nexus Station', 250000, 150)" class="mt-4 bg-indigo-600 hover:bg-indigo-500 text-white py-2 rounded-xl text-xs font-bold transition">Opracuj (250k zł)</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="glass-panel rounded-3xl p-6 shadow-2xl">
+                    <h3 class="text-lg font-bold text-indigo-300 mb-4">Twoje Konsole na Rynku</h3>
+                    <div id="released-consoles-list" class="space-y-3"><div class="text-center py-6 text-slate-500 text-sm">Brak konsol.</div></div>
+                </div>
+            </div>
+
+            <!-- ZAKŁADKA 4: SILNIKI I ROZWÓJ -->
+            <div id="tab-office" class="flex-1 flex flex-col gap-6 overflow-y-auto hidden">
+                <div class="glass-panel rounded-3xl p-6 shadow-2xl space-y-4">
+                    <h3 class="text-lg font-bold text-indigo-300">Napisz Własny Silnik Gry</h3>
+                    <form onsubmit="startEngineDev(event)" class="space-y-3">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs text-slate-400 mb-1">Nazwa Silnika</label>
+                                <input type="text" id="eng-name" required placeholder="np. Titan Engine" class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-slate-400 mb-1">Koszt R&D</label>
+                                <input type="number" id="eng-cost" required value="15000" class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-sm">
+                            </div>
+                        </div>
+                        <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2.5 rounded-xl text-xs font-bold transition">Rozpocznij tworzenie silnika</button>
+                    </form>
+                </div>
+
+                <div class="glass-panel rounded-3xl p-6 shadow-2xl space-y-4">
+                    <h3 class="text-lg font-bold text-indigo-300">Dostępne Silniki</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="engines-list"></div>
                 </div>
             </div>
 
         </div>
-
-        <!-- Prawa strona: Sklep / Pracownicy / Ulepszenia biura -->
-        <div class="w-96 glass-panel rounded-3xl flex flex-col shadow-2xl overflow-hidden">
-            <div class="p-4 border-b border-slate-800 font-bold text-base text-slate-200 bg-slate-900/40 flex justify-between items-center">
-                <span>Zarządzanie Studio</span>
-                <span class="text-xs text-slate-400">Rozwój</span>
-            </div>
-            
-            <div class="flex-1 p-4 overflow-y-auto space-y-3" id="upgrades-container">
-                <!-- Dynamiczne ulepszenia / pracownicy -->
-            </div>
-        </div>
-
     </main>
 
-    <!-- MODAL TWORZENIA NOWEJ GRY -->
+    <!-- MODAL TWORZENIA GRY -->
     <div id="new-game-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4 z-50">
         <div class="glass-panel text-slate-100 w-full max-w-md rounded-2xl shadow-2xl overflow-hidden p-6 border border-slate-700/60 space-y-4">
             <h3 class="text-xl font-bold text-indigo-300">Nowa Gra</h3>
             <form onsubmit="startNewGame(event)" class="space-y-4">
-                <div>
-                    <label class="block text-xs font-medium text-slate-400 mb-1">Tytuł gry</label>
-                    <input type="text" id="game-title" required placeholder="np. Cyber Hero 2077" class="w-full px-4 py-2.5 bg-slate-950/60 border border-slate-700/60 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-slate-100 text-sm">
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-slate-400 mb-1">Gatunek</label>
-                    <select id="game-genre" class="w-full px-3 py-2.5 bg-slate-950/60 border border-slate-700/60 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-slate-100 text-sm">
-                        <option value="RPG">RPG (Nastawione na fabułę i silnik)</option>
-                        <option value="FPS">FPS / Akcja (Grafika i akcja)</option>
-                        <option value="Strategia">Strategia (Kod i balans)</option>
-                        <option value="Symulator">Symulator (Kod i dźwięk)</option>
-                        <option value="Indie">Indie (Zbalansowane)</option>
-                    </select>
+                <div><label class="block text-xs text-slate-400 mb-1">Tytuł</label><input type="text" id="game-title" required class="w-full px-4 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-sm"></div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div><label class="block text-xs text-slate-400 mb-1">Gatunek</label><select id="game-genre" class="w-full px-3 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-sm"><option value="RPG">RPG</option><option value="FPS">FPS</option><option value="Strategia">Strategia</option><option value="Symulator">Symulator</option></select></div>
+                    <div><label class="block text-xs text-slate-400 mb-1">Silnik</label><select id="game-engine" class="w-full px-3 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-sm"></select></div>
                 </div>
                 <div class="flex justify-end gap-3 pt-2">
-                    <button type="button" onclick="closeNewGameModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-xl text-sm font-medium transition">Anuluj</button>
-                    <button type="submit" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-sm font-medium transition shadow-lg">Rozpocznij produkcję</button>
+                    <button type="button" onclick="closeNewGameModal()" class="px-4 py-2 bg-slate-800 rounded-xl text-sm">Anuluj</button>
+                    <button type="submit" class="px-5 py-2 bg-indigo-600 text-white rounded-xl text-sm font-bold">Start</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- MODAL PODSUMOWANIA WYDANEJ GRY -->
+    <!-- MODAL PREMIERY -->
     <div id="review-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4 z-50">
-        <div class="glass-panel text-slate-100 w-full max-w-md rounded-2xl shadow-2xl overflow-hidden p-6 border border-slate-700/60 text-center space-y-4">
-            <div class="w-12 h-12 bg-emerald-500/20 text-emerald-400 rounded-2xl flex items-center justify-center mx-auto text-2xl font-bold">🚀</div>
-            <h3 class="text-xl font-bold text-indigo-300" id="rev-title">Premiera Gry!</h3>
-            <div class="flex justify-center gap-2 my-2" id="rev-stars">
-                ⭐⭐⭐⭐⭐
-            </div>
-            <div class="grid grid-cols-2 gap-3 text-xs">
-                <div class="glass-card p-3 rounded-xl">
-                    <span class="text-slate-400 block">Zarobek</span>
-                    <span id="rev-money" class="font-bold text-emerald-400 text-sm">0 zł</span>
-                </div>
-                <div class="glass-card p-3 rounded-xl">
-                    <span class="text-slate-400 block">Nowi Fani</span>
-                    <span id="rev-fans" class="font-bold text-amber-400 text-sm">0</span>
-                </div>
-            </div>
-            <div class="pt-2">
-                <button onclick="closeReviewModal()" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold transition shadow-lg">Super!</button>
-            </div>
+        <div class="glass-panel text-slate-100 w-full max-w-md rounded-2xl shadow-2xl overflow-hidden p-6 text-center space-y-4">
+            <h3 class="text-xl font-bold text-indigo-300" id="rev-title">Premiera!</h3>
+            <div id="rev-stars" class="text-amber-400">⭐⭐⭐⭐⭐</div>
+            <p class="text-xs text-slate-300" id="rev-desc"></p>
+            <div class="grid grid-cols-2 gap-3 text-xs"><div class="glass-card p-3 rounded-xl"><span>Zarobek</span><span id="rev-money" class="font-bold text-emerald-400 block text-sm">0 zł</span></div><div class="glass-card p-3 rounded-xl"><span>Fani</span><span id="rev-fans" class="font-bold text-amber-400 block text-sm">0</span></div></div>
+            <button onclick="closeReviewModal()" class="w-full py-2.5 bg-indigo-600 text-white rounded-xl font-bold">Super!</button>
         </div>
     </div>
 
     <script>
-        // Stan gry
         let game = {
-            money: 15000,
-            fans: 0,
-            totalStaffPower: 10,
+            money: 60000,
+            fans: 150,
             activeProject: null,
             history: [],
-            upgrades: [
-                { id: 'dev_junior', name: 'Junior Dev', desc: '+15 mocy zespołu', cost: 1000, power: 15, count: 0, costMult: 1.3 },
-                { id: 'dev_senior', name: 'Senior Dev', desc: '+60 mocy zespołu', cost: 5000, power: 60, count: 0, costMult: 1.3 },
-                { id: 'office_bigger', name: 'Większe Biuro', desc: '+100 mocy zespołu', cost: 25000, power: 100, count: 0, costMult: 1.5 },
-                { id: 'marketing', name: 'Kampania Reklamowa', desc: '+2x więcej fanów z gier', cost: 10000, mult: 2.0, count: 0, costMult: 2.5 }
-            ]
+            hiredStaff: [],
+            marketCandidates: [],
+            engines: [{ name: 'Podstawowy 2D', mult: 1.0, owned: true }],
+            consoles: [],
+            activeEngineDev: null
         };
 
-        function saveGame() {
-            localStorage.setItem('dev_tycoon_save', JSON.stringify(game));
+        function showMoneyAnimation(amount, isAdd) {
+            const container = document.getElementById('floating-money-container');
+            const el = document.createElement('div');
+            el.textContent = `${isAdd ? '+' : ''}${amount.toLocaleString()} zł`;
+            el.className = `absolute font-bold text-sm pointer-events-none ${isAdd ? 'text-emerald-400 float-green' : 'text-rose-400 float-red'}`;
+            container.appendChild(el);
+            setTimeout(() => el.remove(), 1000);
         }
 
-        function loadGame() {
-            const saved = localStorage.getItem('dev_tycoon_save');
-            if (saved) {
-                try {
-                    const parsed = JSON.parse(saved);
-                    game.money = parsed.money ?? 15000;
-                    game.fans = parsed.fans ?? 0;
-                    game.totalStaffPower = parsed.totalStaffPower ?? 10;
-                    game.activeProject = parsed.activeProject || null;
-                    game.history = parsed.history || [];
-                    if (parsed.upgrades) {
-                        parsed.upgrades.forEach((u, i) => {
-                            if (game.upgrades[i]) {
-                                game.upgrades[i].count = u.count;
-                                game.upgrades[i].cost = u.cost;
-                            }
-                        });
-                    }
-                } catch(e) { console.error('Błąd wczytywania'); }
-            }
+        function modifyMoney(amount) {
+            game.money += amount;
+            showMoneyAnimation(amount, amount >= 0);
+            updateUI();
         }
 
-        function updateUI() {
-            document.getElementById('company-money').textContent = `${game.money.toLocaleString()} zł`;
-            document.getElementById('company-fans').textContent = game.fans.toLocaleString();
-            
-            let staffCount = 1;
-            game.upgrades.forEach(u => {
-                if(u.id.startsWith('dev')) staffCount += u.count;
+        function switchTab(tab) {
+            ['dev', 'staff', 'consoles', 'office'].forEach(t => {
+                document.getElementById(`tab-${t}`).classList.toggle('hidden', t !== tab);
+                document.getElementById(`tab-btn-${t}`).className = `px-5 py-2 rounded-xl font-medium text-sm transition ${t === tab ? 'bg-indigo-600 text-white shadow' : 'text-slate-400 hover:text-white'}`;
             });
-            document.getElementById('company-staff').textContent = staffCount === 1 ? '1 (Ty)' : staffCount;
-            document.getElementById('staff-power').textContent = `(+${game.totalStaffPower}/s)`;
+            if(tab === 'staff') renderJobMarket();
+            if(tab === 'office') renderEnginesOffice();
+        }
 
-            // Widok projektu
-            if (game.activeProject) {
-                document.getElementById('no-project-view').classList.add('hidden');
-                document.getElementById('active-project-view').classList.remove('hidden');
-                
-                document.getElementById('proj-title').textContent = game.activeProject.title;
-                document.getElementById('proj-genre').textContent = game.activeProject.genre;
-                
-                let percent = Math.min(100, Math.floor((game.activeProject.currentProgress / game.activeProject.maxProgress) * 100));
-                document.getElementById('proj-progress-text').textContent = `${percent}%`;
-                document.getElementById('proj-progress-bar').style.width = `${percent}%`;
-
-                document.getElementById('stat-code').textContent = Math.floor(game.activeProject.code);
-                document.getElementById('stat-art').textContent = Math.floor(game.activeProject.art);
-                document.getElementById('stat-sound').textContent = Math.floor(game.activeProject.sound);
-            } else {
-                document.getElementById('no-project-view').classList.remove('hidden');
-                document.getElementById('active-project-view').classList.add('hidden');
+        function generateCandidates() {
+            game.marketCandidates = [];
+            const roles = ['Programista', 'Grafik', 'Tester', 'Inżynier'];
+            for(let i=0; i<4; i++) {
+                game.marketCandidates.push({
+                    id: Date.now() + i,
+                    name: `Pracownik ${Math.floor(Math.random()*900+100)}`,
+                    role: roles[Math.floor(Math.random() * roles.length)],
+                    skill: Math.floor(Math.random() * 25) + 10,
+                    salary: 1500
+                });
             }
+        }
 
-            renderHistory();
-            renderUpgrades();
+        function renderJobMarket() {
+            if(game.marketCandidates.length === 0) generateCandidates();
+            const container = document.getElementById('job-market');
+            container.innerHTML = '';
+            game.marketCandidates.forEach(c => {
+                container.innerHTML += `
+                    <div class="glass-card p-4 rounded-2xl flex flex-col justify-between gap-3 border border-slate-700/60 text-xs">
+                        <div><strong>${c.name}</strong> (${c.role}) - Skil: ${c.skill} | Pensja: ${c.salary} zł</div>
+                        <button onclick="hireCandidate(${c.id})" class="py-2 bg-indigo-600 text-white rounded-xl font-bold">Zatrudnij</button>
+                    </div>
+                `;
+            });
+            renderHiredStaff();
+        }
+
+        function hireCandidate(id) {
+            const cand = game.marketCandidates.find(c => c.id === id);
+            if(cand) { game.hiredStaff.push(cand); game.marketCandidates = game.marketCandidates.filter(c => c.id !== id); renderJobMarket(); updateUI(); }
+        }
+
+        function fireStaff(id) { game.hiredStaff = game.hiredStaff.filter(s => s.id !== id); renderJobMarket(); updateUI(); }
+
+        function renderHiredStaff() {
+            const container = document.getElementById('hired-staff-list');
+            container.innerHTML = game.hiredStaff.length === 0 ? `<div class="text-center py-6 text-slate-500 text-sm">Brak zatrudnionych.</div>` : '';
+            game.hiredStaff.forEach(s => {
+                container.innerHTML += `<div class="glass-card p-3 rounded-xl flex justify-between items-center text-xs"><span>${s.name} (${s.role})</span><button onclick="fireStaff(${s.id})" class="text-rose-400">Zwolnij</button></div>`;
+            });
+        }
+
+        // Silniki
+        function startEngineDev(e) {
+            e.preventDefault();
+            const name = document.getElementById('eng-name').value;
+            const cost = parseInt(document.getElementById('eng-cost').value);
+            if(game.money < cost) { alert('Za mało środków!'); return; }
+            modifyMoney(-cost);
+            game.engines.push({ name, mult: 1.5, owned: true });
+            alert(`Stworzono własny silnik: ${name}!`);
+            renderEnginesOffice();
+        }
+
+        function renderEnginesOffice() {
+            const container = document.getElementById('engines-list');
+            container.innerHTML = '';
+            game.engines.forEach(e => {
+                container.innerHTML += `<div class="glass-card p-4 rounded-2xl flex justify-between items-center text-xs"><div><strong>${e.name}</strong> (Mnożnik x${e.mult})</div><span class="text-emerald-400 font-bold">Posiadany</span></div>`;
+            });
+        }
+
+        // Promocja
+        function launchPromo(type) {
+            if(!game.activeProject) return;
+            const costs = { social: 5000, trailer: 20000, tv: 80000 };
+            const hypes = { social: 15, trailer: 40, tv: 90 };
+            if(game.money < costs[type]) { alert('Za mało środków na promocję!'); return; }
+            modifyMoney(-costs[type]);
+            game.activeProject.hype = Math.min(100, (game.activeProject.hype || 0) + hypes[type]);
+            updateUI();
         }
 
         function openNewGameModal() {
+            const select = document.getElementById('game-engine');
+            select.innerHTML = '';
+            game.engines.filter(e => e.owned).forEach(e => { select.innerHTML += `<option value="${e.name}">${e.name} (x${e.mult})</option>`; });
             document.getElementById('new-game-modal').classList.remove('hidden');
         }
 
-        function closeNewGameModal() {
-            document.getElementById('new-game-modal').classList.add('hidden');
-        }
+        function closeNewGameModal() { document.getElementById('new-game-modal').classList.add('hidden'); }
 
         function startNewGame(e) {
             e.preventDefault();
             const title = document.getElementById('game-title').value;
             const genre = document.getElementById('game-genre').value;
-
-            game.activeProject = {
-                title,
-                genre,
-                code: 0,
-                art: 0,
-                sound: 0,
-                currentProgress: 0,
-                maxProgress: 500 // Wymagane punkty do ukończenia
-            };
-
+            const engine = document.getElementById('game-engine').value;
+            game.activeProject = { title, genre, engine, code: 0, art: 0, bugs: 0, hype: 10, currentProgress: 0, maxProgress: 200 };
             closeNewGameModal();
-            document.getElementById('game-title').value = '';
             updateUI();
-            saveGame();
-        }
-
-        function renderHistory() {
-            const container = document.getElementById('games-history');
-            if (game.history.length === 0) {
-                container.innerHTML = `<div class="text-center py-12 text-slate-500 text-sm">Brak wydanych gier. Czas stworzyć swój pierwszy hit!</div>`;
-                return;
-            }
-
-            container.innerHTML = '';
-            game.history.slice().reverse().forEach(g => {
-                container.innerHTML += `
-                    <div class="glass-card p-3 rounded-2xl flex justify-between items-center text-xs border border-slate-700/60">
-                        <div>
-                            <div class="font-bold text-slate-200 text-sm">${g.title} <span class="text-[10px] bg-slate-800 text-indigo-300 px-2 py-0.5 rounded ml-1">${g.genre}</span></div>
-                            <div class="text-slate-400 mt-1">Ocena: <span class="text-amber-400 font-bold">${g.rating} / 10</span> ⭐ | Zarobek: <span class="text-emerald-400 font-bold">+${g.money.toLocaleString()} zł</span></div>
-                        </div>
-                        <div class="text-right text-slate-500 text-[10px]">
-                            Fani: +${g.fans}
-                        </div>
-                    </div>
-                `;
-            });
-        }
-
-        function renderUpgrades() {
-            const container = document.getElementById('upgrades-container');
-            container.innerHTML = '';
-
-            game.upgrades.forEach(u => {
-                const canAfford = game.money >= u.cost;
-                container.innerHTML += `
-                    <div class="glass-card p-3.5 rounded-2xl flex justify-between items-center border border-slate-700/60">
-                        <div>
-                            <div class="font-bold text-slate-200 text-sm">${u.name} <span class="text-xs text-indigo-400 font-normal">(${u.count})</span></div>
-                            <div class="text-[11px] text-slate-400">${u.desc}</div>
-                        </div>
-                        <button onclick="buyUpgrade('${u.id}')" ${!canAfford ? 'disabled' : ''} class="px-3.5 py-2 rounded-xl text-xs font-semibold transition ${canAfford ? 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/30 cursor-pointer' : 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700'}">
-                            ${u.cost.toLocaleString()} zł
-                        </button>
-                    </div>
-                `;
-            });
-        }
-
-        function buyUpgrade(id) {
-            const upgrade = game.upgrades.find(u => u.id === id);
-            if (game.money >= upgrade.cost) {
-                game.money -= upgrade.cost;
-                upgrade.count++;
-
-                if (upgrade.power) {
-                    game.totalStaffPower += upgrade.power;
-                }
-                if (upgrade.mult) {
-                    // Specjalny mnożnik marketingowy
-                }
-
-                upgrade.cost = Math.floor(upgrade.cost * upgrade.costMult);
-                updateUI();
-                saveGame();
-            }
         }
 
         function finishGame() {
             const p = game.activeProject;
-            // Obliczanie punktów i oceny (od 1 do 10)
-            let totalPoints = p.code + p.art + p.sound;
-            let rating = Math.min(10, Math.max(3, (totalPoints / 150).toFixed(1)));
-            
-            // Obliczanie zarobków na podstawie jakości i fanów
-            let baseMoney = totalPoints * 15 * (rating / 5);
-            let marketingMult = 1;
-            const mkt = game.upgrades.find(u => u.id === 'marketing');
-            if (mkt) marketingMult = Math.pow(2, mkt.count);
+            const engObj = game.engines.find(e => e.name === p.engine);
+            const quality = Math.min(10, Math.max(3, ((p.code + p.art - p.bugs * 2) / 30) * engObj.mult * (1 + p.hype/100)));
+            const earned = Math.floor(quality * 5000 * (1 + game.fans/500));
 
-            let earnedMoney = Math.floor(baseMoney * marketingMult);
-            let gainedFans = Math.floor((rating * 25) * marketingMult);
-
-            game.money += earnedMoney;
+            modifyMoney(earned);
+            const gainedFans = Math.floor(quality * 20 * (1 + p.hype/50));
             game.fans += gainedFans;
 
-            // Zapis do historii
-            game.history.push({
-                title: p.title,
-                genre: p.genre,
-                rating: rating,
-                money: earnedMoney,
-                fans: gainedFans
-            });
+            const gameRecord = { id: Date.now(), title: p.title, genre: p.genre, quality: quality.toFixed(1), money: earned, fans: gainedFans };
+            game.history.push(gameRecord);
 
-            // Wyświetlenie modalu podsumowania
             document.getElementById('rev-title').textContent = `Premiera: ${p.title}!`;
-            let stars = '⭐'.repeat(Math.round(rating / 2));
-            document.getElementById('rev-stars').textContent = `${stars} (${rating}/10)`;
-            document.getElementById('rev-money').textContent = `+${earnedMoney.toLocaleString()} zł`;
+            document.getElementById('rev-stars').textContent = '⭐'.repeat(Math.round(quality/2)) + ` (${quality.toFixed(1)}/10)`;
+            document.getElementById('rev-desc').textContent = `Fani oszaleli! Kampania hype wyniosła ${p.hype}%.`;
+            document.getElementById('rev-money').textContent = `+${earned.toLocaleString()} zł`;
             document.getElementById('rev-fans').textContent = `+${gainedFans}`;
             document.getElementById('review-modal').classList.remove('hidden');
 
             game.activeProject = null;
             updateUI();
-            saveGame();
         }
 
-        function closeReviewModal() {
-            document.getElementById('review-modal').classList.add('hidden');
+        function closeReviewModal() { document.getElementById('review-modal').classList.add('hidden'); }
+
+        function removeGameFromMarket(id) {
+            game.history = game.history.filter(g => g.id !== id);
+            updateUI();
         }
 
-        // Pętla rozwoju gry (co sekundę)
-        setInterval(() => {
-            if (game.activeProject) {
-                let p = game.activeProject;
-                let power = game.totalStaffPower;
+        function startConsoleDev(name, cost, reqSkill) {
+            if(game.money < cost) { alert('Za mało środków!'); return; }
+            modifyMoney(-cost);
+            game.consoles.push({ name });
+            alert(`Wydano konsolę: ${name}!`);
+            updateUI();
+        }
 
-                // Podział mocy na statystyki w zależności od gatunku
-                if (p.genre === 'RPG') { p.code += power * 0.4; p.art += power * 0.3; p.sound += power * 0.3; }
-                else if (p.genre === 'FPS') { p.code += power * 0.3; p.art += power * 0.5; p.sound += power * 0.2; }
-                else if (p.genre === 'Strategia') { p.code += power * 0.6; p.art += power * 0.2; p.sound += power * 0.2; }
-                else if (p.genre === 'Symulator') { p.code += power * 0.5; p.art += power * 0.2; p.sound += power * 0.3; }
-                else { p.code += power * 0.33; p.art += power * 0.33; p.sound += power * 0.34; }
+        function updateUI() {
+            document.getElementById('company-money').textContent = `${game.money.toLocaleString()} zł`;
+            document.getElementById('company-fans').textContent = game.fans;
+            document.getElementById('company-staff-count').textContent = game.hiredStaff.length;
 
-                p.currentProgress += power;
+            if(game.activeProject) {
+                document.getElementById('no-project-view').classList.add('hidden');
+                document.getElementById('active-project-view').classList.remove('hidden');
+                const p = game.activeProject;
+                document.getElementById('proj-title').textContent = p.title;
+                document.getElementById('proj-genre').textContent = p.genre;
+                document.getElementById('proj-engine').textContent = p.engine;
+                
+                let pct = Math.min(100, Math.floor((p.currentProgress / p.maxProgress) * 100));
+                document.getElementById('proj-progress-text').textContent = `${pct}%`;
+                document.getElementById('proj-progress-bar').style.width = `${pct}%`;
 
-                if (p.currentProgress >= p.maxProgress) {
-                    finishGame();
-                } else {
-                    updateUI();
-                }
+                document.getElementById('stat-code').textContent = Math.floor(p.code);
+                document.getElementById('stat-art').textContent = Math.floor(p.art);
+                document.getElementById('stat-bugs').textContent = Math.floor(p.bugs);
+                document.getElementById('stat-hype').textContent = `${p.hype}%`;
+            } else {
+                document.getElementById('no-project-view').classList.remove('hidden');
+                document.getElementById('active-project-view').classList.add('hidden');
             }
+
+            // Historia gier z opcją usunięcia z rynku
+            const hList = document.getElementById('games-history');
+            hList.innerHTML = game.history.length === 0 ? `<div class="text-center py-8 text-slate-500 text-sm">Brak gier.</div>` : '';
+            game.history.slice().reverse().forEach(g => {
+                hList.innerHTML += `
+                    <div class="glass-card p-3 rounded-xl flex justify-between items-center text-xs">
+                        <div><strong>${g.title}</strong> (${g.genre}) - Ocena: <span class="text-amber-400 font-bold">${g.quality}/10</span> | Zarobek: <span class="text-emerald-400">+${g.money.toLocaleString()} zł</span></div>
+                        <button onclick="removeGameFromMarket(${g.id})" class="text-rose-400 hover:text-rose-300">Zdejmij z rynku</button>
+                    </div>
+                `;
+            });
+
+            // Konsole
+            const cList = document.getElementById('released-consoles-list');
+            cList.innerHTML = game.consoles.length === 0 ? `<div class="text-center py-6 text-slate-500 text-sm">Brak konsol.</div>` : '';
+            game.consoles.forEach(c => {
+                cList.innerHTML += `<div class="glass-card p-3 rounded-xl flex justify-between items-center text-xs"><span>Konsola: <strong>${c.name}</strong></span><span class="text-emerald-400 font-bold">+1,000 zł / s</span></div>`;
+            });
+        }
+
+        // Pętla gry
+        setInterval(() => {
+            let codePower = 2, artPower = 2;
+            game.hiredStaff.forEach(s => {
+                if(s.role === 'Programista') codePower += s.skill;
+                if(s.role === 'Grafik') artPower += s.skill;
+            });
+
+            if(game.activeProject) {
+                let p = game.activeProject;
+                p.code += codePower * 0.2;
+                p.art += artPower * 0.2;
+                p.currentProgress += 2;
+                if(p.currentProgress >= p.maxProgress) finishGame();
+                else updateUI();
+            }
+
+            if(game.consoles.length > 0) modifyMoney(game.consoles.length * 1000);
         }, 1000);
 
-        // Inicjalizacja
-        loadGame();
+        setInterval(() => {
+            if(game.hiredStaff.length > 0) {
+                let salary = game.hiredStaff.reduce((acc, s) => acc + s.salary, 0);
+                modifyMoney(-salary);
+            }
+        }, 15000);
+
         updateUI();
     </script>
 </body>
