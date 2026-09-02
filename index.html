@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Modern POS System v2.4</title>
+    <title>Digital Mood Board & Planner</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @keyframes gradientShift {
@@ -23,572 +23,285 @@
             border: 1px solid rgba(255, 255, 255, 0.08);
         }
         .glass-card {
-            background: rgba(30, 41, 59, 0.6);
+            background: rgba(30, 41, 59, 0.7);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
         }
-        .glass-card:hover {
-            border-color: rgba(99, 102, 241, 0.4);
-            box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.15);
+        .draggable-note {
+            position: absolute;
+            cursor: grab;
+            user-select: none;
+        }
+        .draggable-note:active {
+            cursor: grabbing;
         }
     </style>
 </head>
 <body class="animated-bg text-slate-100 h-screen flex flex-col overflow-hidden font-sans">
 
     <!-- Górny pasek -->
-    <header class="glass-panel border-b border-slate-750 px-6 py-4 flex justify-between items-center shadow-xl z-20">
+    <header class="glass-panel border-b border-slate-750 px-6 py-4 flex justify-between items-center shadow-xl z-30">
         <div class="flex items-center gap-3">
-            <div class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse shadow-lg shadow-emerald-500/50"></div>
-            <h1 class="text-xl font-bold tracking-wide bg-gradient-to-r from-indigo-400 to-emerald-400 bg-clip-text text-transparent">System POS <span class="text-xs bg-indigo-500/20 border border-indigo-500/40 text-indigo-300 px-2.5 py-0.5 rounded-full ml-2">v2.4</span></h1>
+            <div class="w-3 h-3 rounded-full bg-indigo-500 animate-pulse shadow-lg shadow-indigo-500/50"></div>
+            <h1 class="text-xl font-bold tracking-wide bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">Mood Board <span class="text-xs bg-indigo-500/20 border border-indigo-500/40 text-indigo-300 px-2.5 py-0.5 rounded-full ml-2">v1.0</span></h1>
         </div>
         <div class="flex gap-2 bg-slate-950/40 p-1.5 rounded-2xl border border-slate-800">
-            <button onclick="switchTab('pos')" id="btn-pos" class="px-5 py-2 rounded-xl font-medium text-sm transition bg-indigo-600 text-white shadow-lg shadow-indigo-600/30">Kasjer</button>
-            <button onclick="switchTab('orders')" id="btn-orders" class="px-5 py-2 rounded-xl font-medium text-sm transition text-slate-400 hover:text-white">Zamówienia</button>
-            <button onclick="switchTab('admin')" id="btn-admin" class="px-5 py-2 rounded-xl font-medium text-sm transition text-slate-400 hover:text-white">Produkty</button>
+            <button onclick="switchTab('board')" id="btn-board" class="px-5 py-2 rounded-xl font-medium text-sm transition bg-indigo-600 text-white shadow-lg shadow-indigo-600/30">Tablica Karteczek</button>
+            <button onclick="switchTab("todos")" id="btn-todos" class="px-5 py-2 rounded-xl font-medium text-sm transition text-slate-400 hover:text-white">Lista Zadań</button>
         </div>
     </header>
 
     <!-- Główna zawartość -->
-    <main class="flex-1 flex overflow-hidden">
+    <main class="flex-1 flex overflow-hidden relative">
 
-        <!-- KASA / POS -->
-        <div id="tab-pos" class="flex-1 flex w-full">
-            <div class="flex-1 p-6 overflow-y-auto">
-                <div class="mb-4 flex justify-between items-center">
-                    <h2 class="text-lg font-semibold text-slate-200">Wybierz produkty</h2>
-                    <span class="text-xs text-slate-400">Kliknij kafelek, aby zobaczyć szczegóły</span>
-                </div>
-                <div id="products-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    <!-- Dynamiczne karty produktów -->
-                </div>
+        <!-- ZAKŁADKA 1: TABLICA KARTECZEK (DRAG & DROP) -->
+        <div id="tab-board" class="flex-1 relative overflow-hidden bg-slate-950/30">
+            <!-- Pasek akcji na tablicy -->
+            <div class="absolute top-6 left-6 z-20 flex gap-3">
+                <button onclick="openNoteModal()" class="glass-card hover:border-indigo-500/50 px-5 py-2.5 rounded-xl font-medium text-sm transition shadow-lg flex items-center gap-2">
+                    <span class="text-indigo-400 font-bold text-lg">+</span> Dodaj karteczkę
+                </button>
+                <button onclick="resetNotesPosition()" class="glass-card hover:bg-slate-800 px-4 py-2.5 rounded-xl font-medium text-sm transition text-slate-400 hover:text-white">
+                    Ułóż domyślnie
+                </button>
             </div>
 
-            <!-- Panel koszyka -->
-            <div class="w-96 glass-panel border-l border-slate-800 flex flex-col shadow-2xl z-10">
-                <div class="p-4 border-b border-slate-800 font-bold text-base bg-slate-900/40 flex justify-between items-center">
-                    <span>Bieżące zamówienie</span>
-                    <button onclick="clearCart()" class="text-xs text-red-400 hover:text-red-300 transition px-2 py-1 rounded-lg bg-red-500/10 hover:bg-red-500/20">Wyczyść</button>
-                </div>
-                
-                <div id="cart-items" class="flex-1 p-4 overflow-y-auto divide-y divide-slate-800/60">
-                    <div class="text-center py-16 text-slate-500">
-                        <svg class="w-12 h-12 mx-auto mb-3 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
-                        Koszyk jest pusty
-                    </div>
-                </div>
-
-                <div class="p-5 bg-slate-900/60 border-t border-slate-800">
-                    <div class="space-y-2 mb-4">
-                        <div class="flex justify-between text-sm text-slate-400">
-                            <span>Suma częściowa:</span>
-                            <span id="sub-total">0.00 zł</span>
-                        </div>
-                        <div class="flex justify-between text-xl font-bold pt-2 border-t border-slate-800">
-                            <span>Do zapłaty:</span>
-                            <span id="cart-total" class="text-emerald-400">0.00 zł</span>
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-2 gap-3">
-                        <button onclick="openPaymentModal('Gotówka')" class="bg-emerald-600 hover:bg-emerald-500 text-white py-3.5 rounded-xl font-semibold transition shadow-lg shadow-emerald-900/30 flex items-center justify-center gap-2 transform active:scale-95">
-                            <span>Gotówka</span>
-                        </button>
-                        <button onclick="openPaymentModal('Karta')" class="bg-indigo-600 hover:bg-indigo-500 text-white py-3.5 rounded-xl font-semibold transition shadow-lg shadow-indigo-900/30 flex items-center justify-center gap-2 transform active:scale-95">
-                            <span>Karta</span>
-                        </button>
-                    </div>
-                </div>
+            <!-- Obszar roboczy tablicy -->
+            <div id="notes-container" class="w-full h-full relative overflow-auto p-6 pt-24">
+                <!-- Tutaj lądują karteczki -->
             </div>
         </div>
 
-        <!-- ZAKŁADKA: WSZYSTKIE ZAMÓWIENIA -->
-        <div id="tab-orders" class="flex-1 p-8 overflow-y-auto hidden">
-            <div class="max-w-4xl mx-auto">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-2xl font-bold text-slate-100">Aktywne zamówienia</h2>
-                    <span class="text-xs text-slate-400">Kliknięcie „Wysłane / Zakończ” usuwa zamówienie z listy</span>
-                </div>
+        <!-- ZAKŁADKA 2: LISTA ZADAŃ (PLANNER) -->
+        <div id="tab-todos" class="flex-1 p-8 overflow-y-auto hidden">
+            <div class="max-w-2xl mx-auto">
+                <h2 class="text-2xl font-bold mb-6 text-slate-100">Moje Zadania & Cele</h2>
                 
-                <div class="glass-panel rounded-2xl overflow-hidden shadow-2xl">
-                    <table class="w-full text-left border-collapse">
-                        <thead class="bg-slate-900/60 border-b border-slate-800 text-xs uppercase tracking-wider text-slate-400">
-                            <tr>
-                                <th class="p-4">Nr</th>
-                                <th class="p-4">Data</th>
-                                <th class="p-4">Produkty</th>
-                                <th class="p-4">Płatność</th>
-                                <th class="p-4">Napiwek</th>
-                                <th class="p-4">Suma</th>
-                                <th class="p-4 text-right">Akcja</th>
-                            </tr>
-                        </thead>
-                        <tbody id="orders-history-table" class="divide-y divide-slate-800/60">
-                            <!-- Dynamiczna tabela zamówień -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- PANEL ZARZĄDZANIA PRODUKTAMI -->
-        <div id="tab-admin" class="flex-1 p-8 overflow-y-auto hidden">
-            <div class="max-w-3xl mx-auto">
-                <h2 class="text-2xl font-bold mb-6 text-slate-100">Zarządzanie produktami</h2>
-                
-                <form id="product-form" onsubmit="addProduct(event)" class="glass-panel p-6 rounded-2xl mb-8 shadow-2xl">
-                    <h3 class="font-semibold text-base mb-4 text-indigo-400">Dodaj nowy produkt do oferty</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                        <div>
-                            <label class="block text-xs font-medium text-slate-400 mb-1">Nazwa produktu</label>
-                            <input type="text" id="p-name" required placeholder="np. Kawa Mrożona" class="w-full px-4 py-2.5 bg-slate-950/60 border border-slate-700/60 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-slate-100">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-medium text-slate-400 mb-1">Cena (zł)</label>
-                            <input type="number" step="0.01" id="p-price" required placeholder="0.00" class="w-full px-4 py-2.5 bg-slate-950/60 border border-slate-700/60 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-slate-100">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-medium text-slate-400 mb-1">Ilość na stanie</label>
-                            <input type="number" id="p-stock" required placeholder="0" class="w-full px-4 py-2.5 bg-slate-950/60 border border-slate-700/60 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-slate-100">
-                        </div>
-                    </div>
-                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2.5 rounded-xl font-medium transition shadow-lg shadow-indigo-600/30">Dodaj produkt</button>
+                <form onsubmit="addTodo(event)" class="glass-panel p-4 rounded-2xl mb-6 shadow-xl flex gap-3">
+                    <input type="text" id="todo-input" required placeholder="Co dzisiaj zrobimy? np. Napisać scenariusz..." class="flex-1 px-4 py-3 bg-slate-950/60 border border-slate-700/60 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-slate-100 text-sm">
+                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-3 rounded-xl font-medium transition shadow-lg shadow-indigo-600/30 text-sm">Dodaj</button>
                 </form>
 
-                <h3 class="font-semibold text-base mb-4 text-slate-300">Aktualny asortyment</h3>
-                <div class="glass-panel rounded-2xl overflow-hidden shadow-2xl">
-                    <table class="w-full text-left border-collapse">
-                        <thead class="bg-slate-900/60 border-b border-slate-800 text-xs uppercase tracking-wider text-slate-400">
-                            <tr>
-                                <th class="p-4">Nazwa</th>
-                                <th class="p-4">Cena</th>
-                                <th class="p-4">Magazyn</th>
-                                <th class="p-4 text-right">Akcja</th>
-                            </tr>
-                        </thead>
-                        <tbody id="admin-products-table" class="divide-y divide-slate-800/60">
-                            <!-- Dynamiczna tabela -->
-                        </tbody>
-                    </table>
+                <div class="glass-panel rounded-2xl overflow-hidden shadow-2xl divide-y divide-slate-800/60" id="todos-list">
+                    <!-- Dynamiczne zadania -->
                 </div>
             </div>
         </div>
 
     </main>
 
-    <!-- MODAL SZCZEGÓŁÓW PRODUKTU -->
-    <div id="product-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4 z-50">
+    <!-- MODAL DODAWANIA KARTECZKI -->
+    <div id="note-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4 z-50">
         <div class="glass-panel text-slate-100 w-full max-w-md rounded-2xl shadow-2xl overflow-hidden p-6 border border-slate-700/60">
-            <h3 id="modal-p-name" class="text-xl font-bold mb-2">Nazwa produktu</h3>
-            <p id="modal-p-price" class="text-emerald-400 text-lg font-bold mb-4">0.00 zł</p>
-            <p class="text-sm text-slate-400 mb-6">Dostępna ilość na stanie: <span id="modal-p-stock" class="font-semibold text-slate-200">0</span> szt.</p>
-            
-            <div class="flex justify-end gap-3">
-                <button onclick="closeProductModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-xl text-sm font-medium transition border border-slate-700">Anuluj</button>
-                <button id="modal-add-btn" onclick="" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-sm font-medium transition shadow-lg shadow-indigo-600/30">Dodaj do koszyka</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL PŁATNOŚCI -->
-    <div id="payment-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4 z-50">
-        <div class="glass-panel text-slate-100 w-full max-w-md rounded-2xl shadow-2xl overflow-hidden p-6 border border-slate-700/60">
-            <h3 class="text-xl font-bold mb-4">Podsumowanie płatności (<span id="pay-method-label">Gotówka</span>)</h3>
-            <div class="space-y-4 mb-6">
-                <div class="flex justify-between text-sm text-slate-300">
-                    <span>Do zapłaty:</span>
-                    <span id="pay-total" class="font-bold text-emerald-400">0.00 zł</span>
+            <h3 class="text-xl font-bold mb-4 text-indigo-300">Nowa karteczka inspiracji</h3>
+            <form onsubmit="saveNewNote(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1">Tytuł / Nagłówek</label>
+                    <input type="text" id="note-title" required placeholder="np. Pomysł na ujęcie" class="w-full px-4 py-2.5 bg-slate-950/60 border border-slate-700/60 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-slate-100 text-sm">
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-slate-400 mb-1">Kwota otrzymana od klienta (zł)</label>
-                    <input type="number" step="0.01" id="pay-given" oninput="calculateChange()" placeholder="0.00" class="w-full px-4 py-2.5 bg-slate-950/60 border border-slate-700/60 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-slate-100">
+                    <label class="block text-xs font-medium text-slate-400 mb-1">Treść</label>
+                    <textarea id="note-content" rows="4" required placeholder="Opisz swój pomysł..." class="w-full px-4 py-2.5 bg-slate-950/60 border border-slate-700/60 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-slate-100 text-sm resize-none"></textarea>
                 </div>
-                <div>
-                    <label class="block text-xs font-medium text-slate-400 mb-1">Napiwek (zł)</label>
-                    <input type="number" step="0.01" id="pay-tip" value="0.00" oninput="calculateChange()" class="w-full px-4 py-2.5 bg-slate-950/60 border border-slate-700/60 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-slate-100">
+                <div class="flex justify-end gap-3 pt-2">
+                    <button type="button" onclick="closeNoteModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-xl text-sm font-medium transition border border-slate-700">Anuluj</button>
+                    <button type="submit" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-sm font-medium transition shadow-lg shadow-indigo-600/30">Przypnij</button>
                 </div>
-                <div class="flex justify-between text-lg font-bold pt-3 border-t border-slate-800">
-                    <span>Reszta do zwrotu:</span>
-                    <span id="pay-change" class="text-indigo-400">0.00 zł</span>
-                </div>
-            </div>
-            <div class="flex justify-end gap-3">
-                <button onclick="closePaymentModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-xl text-sm font-medium transition border border-slate-700">Anuluj</button>
-                <button onclick="confirmCheckout()" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 rounded-xl text-sm font-medium transition shadow-lg shadow-emerald-600/30">Zatwierdź i drukuj</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL PARAGONU -->
-    <div id="receipt-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4 z-50">
-        <div class="bg-white text-slate-800 w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden flex flex-col">
-            <div class="p-6 text-center border-b border-dashed border-slate-200">
-                <div class="w-10 h-10 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-2 text-xl font-bold">✓</div>
-                <h3 class="font-bold text-lg">SYSTEM POS SP. Z O.O.</h3>
-                <p class="text-xs text-slate-500">ul. Przykładowa 12, Białystok</p>
-                <div class="mt-3 text-xs font-semibold text-slate-600 bg-slate-100 py-1 rounded">PARAGON FISKALNY</div>
-            </div>
-            
-            <div class="p-6 max-h-64 overflow-y-auto space-y-3 text-sm">
-                <div class="flex justify-between text-xs text-slate-400 border-b pb-2">
-                    <span id="receipt-date">Data: 02.09.2026</span>
-                    <span id="receipt-id">Nr: #001</span>
-                </div>
-                <div id="receipt-items-list" class="space-y-2"></div>
-            </div>
-
-            <div class="p-6 bg-slate-50 border-t border-dashed border-slate-200 space-y-1.5">
-                <div class="flex justify-between font-bold text-base">
-                    <span>SUMA PLN:</span>
-                    <span id="receipt-total" class="text-indigo-600">0.00 zł</span>
-                </div>
-                <div class="flex justify-between text-xs text-slate-600">
-                    <span>Płatność:</span>
-                    <span id="receipt-method" class="font-medium">Gotówka</span>
-                </div>
-                <div class="flex justify-between text-xs text-slate-600">
-                    <span>Wpłacono:</span>
-                    <span id="receipt-given">0.00 zł</span>
-                </div>
-                <div class="flex justify-between text-xs text-slate-600">
-                    <span>Napiwek:</span>
-                    <span id="receipt-tip">0.00 zł</span>
-                </div>
-                <div class="flex justify-between text-xs font-bold text-emerald-600 pt-1 border-t">
-                    <span>Reszta:</span>
-                    <span id="receipt-change">0.00 zł</span>
-                </div>
-                
-                <div class="grid grid-cols-2 gap-2 mt-4">
-                    <button onclick="window.print()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 py-2.5 rounded-xl text-sm font-medium transition">Drukuj</button>
-                    <button onclick="closeReceipt()" class="bg-indigo-600 hover:bg-indigo-500 text-white py-2.5 rounded-xl text-sm font-medium transition">Nowe zamówienie</button>
-                </div>
-            </div>
+            </form>
         </div>
     </div>
 
     <script>
-        const defaultProducts = [
-            { id: 1, name: 'Kawa Espresso', price: 9.00, stock: 15 },
-            { id: 2, name: 'Kawa Latte', price: 14.00, stock: 10 },
-            { id: 3, name: 'Herbata Czarna', price: 8.00, stock: 20 },
-            { id: 4, name: 'Sok Pomarańczowy', price: 10.00, stock: 8 },
-            { id: 5, name: 'Ciastko Czekoladowe', price: 12.00, stock: 5 },
-            { id: 6, name: 'Kanapka z szynką', price: 16.50, stock: 4 }
+        // Dane początkowe
+        let notes = JSON.parse(localStorage.getItem('mood_notes')) || [
+            { id: 1, title: '🎬 Scena w deszczu', content: 'Główny bohater idzie ciemną aleją. Zwrócić uwagę na oświetlenie neonów.', x: 50, y: 100, color: 'border-indigo-500/30' },
+            { id: 2, title: '💡 Zadanie na dziś', content: 'Skończyć konfigurację skryptów i przetestować deploy.', x: 320, y: 120, color: 'border-purple-500/30' },
+            { id: 3, title: '🎨 Paleta barw', content: 'Ciemny granat, neonowy fiolet i akcenty szmaragdowej zieleni.', x: 590, y: 90, color: 'border-emerald-500/30' }
         ];
 
-        let products = JSON.parse(localStorage.getItem('pos_products')) || defaultProducts;
-        let ordersHistory = JSON.parse(localStorage.getItem('pos_orders')) || [];
-        let orderCounter = parseInt(localStorage.getItem('pos_counter')) || 1;
-        let cart = [];
-        let currentPaymentMethod = 'Gotówka';
-        let lastCreatedOrderId = 1;
+        let todos = JSON.parse(localStorage.getItem('mood_todos')) || [
+            { id: 1, text: 'Stworzyć strukturę projektu', done: true },
+            { id: 2, text: 'Wgrać plik index.html na GitHub Pages', done: false },
+            { id: 3, text: 'Dodać nowe pomysły do tablicy', done: false }
+        ];
 
-        function saveProducts() {
-            localStorage.setItem('pos_products', JSON.stringify(products));
+        function saveStorage() {
+            localStorage.setItem('mood_notes', JSON.stringify(notes));
+            localStorage.setItem('mood_todos', JSON.stringify(todos));
         }
 
-        function saveOrders() {
-            localStorage.setItem('pos_orders', JSON.stringify(ordersHistory));
-            localStorage.setItem('pos_counter', orderCounter);
-        }
-
+        // Przełączanie zakładek
         function switchTab(tab) {
-            document.getElementById('tab-pos').classList.toggle('hidden', tab !== 'pos');
-            document.getElementById('tab-orders').classList.toggle('hidden', tab !== 'orders');
-            document.getElementById('tab-admin').classList.toggle('hidden', tab !== 'admin');
+            document.getElementById('tab-board').classList.toggle('hidden', tab !== 'board');
+            document.getElementById('tab-todos').classList.toggle('hidden', tab !== 'todos');
             
-            const btnPos = document.getElementById('btn-pos');
-            const btnOrders = document.getElementById('btn-orders');
-            const btnAdmin = document.getElementById('btn-admin');
+            const btnBoard = document.getElementById('btn-board');
+            const btnTodos = document.getElementById('btn-todos');
 
-            btnPos.className = "px-5 py-2 rounded-xl font-medium text-sm transition " + (tab === 'pos' ? "bg-indigo-600 text-white shadow-lg shadow-indigo-600/30" : "text-slate-400 hover:text-white");
-            btnOrders.className = "px-5 py-2 rounded-xl font-medium text-sm transition " + (tab === 'orders' ? "bg-indigo-600 text-white shadow-lg shadow-indigo-600/30" : "text-slate-400 hover:text-white");
-            btnAdmin.className = "px-5 py-2 rounded-xl font-medium text-sm transition " + (tab === 'admin' ? "bg-indigo-600 text-white shadow-lg shadow-indigo-600/30" : "text-slate-400 hover:text-white");
+            btnBoard.className = "px-5 py-2 rounded-xl font-medium text-sm transition " + (tab === 'board' ? "bg-indigo-600 text-white shadow-lg shadow-indigo-600/30" : "text-slate-400 hover:text-white");
+            btnTodos.className = "px-5 py-2 rounded-xl font-medium text-sm transition " + (tab === 'todos' ? "bg-indigo-600 text-white shadow-lg shadow-indigo-600/30" : "text-slate-400 hover:text-white");
 
-            if(tab === 'pos') renderProducts();
-            if(tab === 'orders') renderOrdersHistoryTable();
-            if(tab === 'admin') renderAdminTable();
+            if(tab === 'board') renderNotes();
+            if(tab === 'todos') renderTodos();
         }
 
-        function renderProducts() {
-            const grid = document.getElementById('products-grid');
-            grid.innerHTML = '';
-            products.forEach(p => {
-                grid.innerHTML += `
-                    <div onclick="openProductModal(${p.id})" class="glass-card p-5 rounded-2xl cursor-pointer transition transform hover:-translate-y-1 flex flex-col justify-between h-32 group shadow-lg">
-                        <div>
-                            <span class="font-medium text-slate-200 group-hover:text-indigo-300 transition line-clamp-2">${p.name}</span>
-                            <span class="text-xs text-slate-400 block mt-1">Stan: ${p.stock} szt.</span>
-                        </div>
-                        <span class="text-xl font-bold text-emerald-400">${p.price.toFixed(2)} zł</span>
-                    </div>
-                `;
-            });
-        }
-
-        function openProductModal(id) {
-            const product = products.find(p => p.id === id);
-            if (!product) return;
-
-            document.getElementById('modal-p-name').textContent = product.name;
-            document.getElementById('modal-p-price').textContent = product.price.toFixed(2) + ' zł';
-            document.getElementById('modal-p-stock').textContent = product.stock;
-            
-            const addBtn = document.getElementById('modal-add-btn');
-            addBtn.setAttribute('onclick', `addToCartFromModal(${product.id})`);
-            
-            document.getElementById('product-modal').classList.remove('hidden');
-        }
-
-        function closeProductModal() {
-            document.getElementById('product-modal').classList.add('hidden');
-        }
-
-        function addToCartFromModal(id) {
-            const product = products.find(p => p.id === id);
-            const existing = cart.find(item => item.id === id);
-            const currentQtyInCart = existing ? existing.qty : 0;
-
-            if (product.stock <= currentQtyInCart) {
-                alert('Brak wystarczającej ilości produktu na stanie!');
-                return;
-            }
-            
-            if (existing) {
-                existing.qty++;
-            } else {
-                cart.push({ ...product, qty: 1 });
-            }
-            renderCart();
-            closeProductModal();
-        }
-
-        function removeFromCart(id) {
-            cart = cart.filter(item => item.id !== id);
-            renderCart();
-        }
-
-        function clearCart() {
-            cart = [];
-            renderCart();
-        }
-
-        function renderCart() {
-            const container = document.getElementById('cart-items');
-            const totalEl = document.getElementById('cart-total');
-            const subTotalEl = document.getElementById('sub-total');
-            
-            if (cart.length === 0) {
-                container.innerHTML = `
-                    <div class="text-center py-16 text-slate-500">
-                        <svg class="w-12 h-12 mx-auto mb-3 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
-                        Koszyk jest pusty
-                    </div>`;
-                totalEl.textContent = '0.00 zł';
-                subTotalEl.textContent = '0.00 zł';
-                return;
-            }
-
+        // --- OBSŁUGA KARTECZEK (DRAG & DROP) ---
+        function renderNotes() {
+            const container = document.getElementById('notes-container');
             container.innerHTML = '';
-            let total = 0;
 
-            cart.forEach(item => {
-                let itemTotal = item.price * item.qty;
-                total += itemTotal;
-                container.innerHTML += `
-                    <div class="py-3 flex justify-between items-center">
-                        <div>
-                            <div class="font-medium text-slate-200 text-sm">${item.name}</div>
-                            <div class="text-xs text-slate-400">${item.qty} × ${item.price.toFixed(2)} zł</div>
+            notes.forEach(note => {
+                const el = document.createElement('div');
+                el.className = `draggable-note glass-card p-5 rounded-2xl w-72 border ${note.color || 'border-slate-700/50'} shadow-xl flex flex-col justify-between`;
+                el.style.left = `${note.x}px`;
+                el.style.top = `${note.y}px`;
+                el.innerHTML = `
+                    <div>
+                        <div class="flex justify-between items-start mb-2">
+                            <h4 class="font-bold text-slate-200 text-sm">${note.title}</h4>
+                            <button onclick="deleteNote(${note.id})" class="text-slate-500 hover:text-red-400 text-xs font-bold transition">&times;</button>
                         </div>
-                        <div class="flex items-center gap-3">
-                            <span class="font-semibold text-sm text-emerald-300">${itemTotal.toFixed(2)} zł</span>
-                            <button onclick="removeFromCart(${item.id})" class="text-slate-500 hover:text-red-400 p-1 transition">&times;</button>
-                        </div>
+                        <p class="text-xs text-slate-400 leading-relaxed whitespace-pre-wrap">${note.content}</p>
                     </div>
+                    <div class="mt-4 text-[10px] text-slate-600 text-right cursor-grab">przeciągnij</div>
                 `;
-            });
 
-            totalEl.textContent = total.toFixed(2) + ' zł';
-            subTotalEl.textContent = total.toFixed(2) + ' zł';
-        }
+                // Logika przeciągania myszką
+                let isDragging = false;
+                let startX, startY;
 
-        function openPaymentModal(method) {
-            if (cart.length === 0) {
-                alert('Koszyk jest pusty!');
-                return;
-            }
-            currentPaymentMethod = method;
-            let total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
-            
-            document.getElementById('pay-method-label').textContent = method;
-            document.getElementById('pay-total').textContent = total.toFixed(2) + ' zł';
-            document.getElementById('pay-given').value = total.toFixed(2);
-            document.getElementById('pay-tip').value = '0.00';
-            document.getElementById('pay-change').textContent = '0.00 zł';
+                el.addEventListener('mousedown', (e) => {
+                    if(e.target.tagName === 'BUTTON') return;
+                    isDragging = true;
+                    startX = e.clientX - note.x;
+                    startY = e.clientY - note.y;
+                    el.style.zIndex = 1000;
+                });
 
-            document.getElementById('payment-modal').classList.remove('hidden');
-        }
+                document.addEventListener('mousemove', (e) => {
+                    if (!isDragging) return;
+                    note.x = e.clientX - startX;
+                    note.y = e.clientY - startY;
+                    el.style.left = `${note.x}px`;
+                    el.style.top = `${note.y}px`;
+                });
 
-        function closePaymentModal() {
-            document.getElementById('payment-modal').classList.add('hidden');
-        }
+                document.addEventListener('mouseup', () => {
+                    if (isDragging) {
+                        isDragging = false;
+                        el.style.zIndex = 1;
+                        saveStorage();
+                    }
+                });
 
-        function calculateChange() {
-            let total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
-            let given = parseFloat(document.getElementById('pay-given').value) || 0;
-            let tip = parseFloat(document.getElementById('pay-tip').value) || 0;
-            
-            let change = given - (total + tip);
-            document.getElementById('pay-change').textContent = change >= 0 ? change.toFixed(2) + ' zł' : '0.00 zł';
-        }
-
-        function confirmCheckout() {
-            let total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
-            let given = parseFloat(document.getElementById('pay-given').value) || 0;
-            let tip = parseFloat(document.getElementById('pay-tip').value) || 0;
-
-            if (given < (total + tip)) {
-                alert('Wpłacona kwota jest mniejsza niż suma zamówienia i napiwku!');
-                return;
-            }
-
-            cart.forEach(cartItem => {
-                let p = products.find(prod => prod.id === cartItem.id);
-                if (p) {
-                    p.stock -= cartItem.qty;
-                }
-            });
-            saveProducts();
-
-            const now = new Date();
-            const orderIdFormatted = String(orderCounter).padStart(3, '0');
-            lastCreatedOrderId = orderCounter;
-            orderCounter++; // zwiększamy licznik do następnego zamówienia
-
-            const dateStr = `${now.toLocaleDateString()} ${now.toLocaleTimeString()}`;
-            
-            const newOrder = {
-                id: orderIdFormatted,
-                numericId: lastCreatedOrderId,
-                date: dateStr,
-                items: [...cart],
-                method: currentPaymentMethod,
-                total: total,
-                tip: tip,
-                given: given,
-                change: given - (total + tip)
-            };
-
-            ordersHistory.push(newOrder);
-            saveOrders();
-
-            document.getElementById('receipt-date').textContent = `Data: ${dateStr}`;
-            document.getElementById('receipt-id').textContent = `Nr: #${orderIdFormatted}`;
-            document.getElementById('receipt-method').textContent = currentPaymentMethod;
-            document.getElementById('receipt-total').textContent = total.toFixed(2) + ' zł';
-            document.getElementById('receipt-given').textContent = given.toFixed(2) + ' zł';
-            document.getElementById('receipt-tip').textContent = tip.toFixed(2) + ' zł';
-            document.getElementById('receipt-change').textContent = (given - (total + tip)).toFixed(2) + ' zł';
-
-            const itemsList = document.getElementById('receipt-items-list');
-            itemsList.innerHTML = '';
-            cart.forEach(item => {
-                itemsList.innerHTML += `
-                    <div class="flex justify-between text-xs">
-                        <span>${item.qty}x ${item.name}</span>
-                        <span>${(item.price * item.qty).toFixed(2)} zł</span>
-                    </div>
-                `;
-            });
-
-            closePaymentModal();
-            document.getElementById('receipt-modal').classList.remove('hidden');
-        }
-
-        function closeReceipt() {
-            document.getElementById('receipt-modal').classList.add('hidden');
-            cart = [];
-            renderCart();
-            renderProducts();
-        }
-
-        function renderOrdersHistoryTable() {
-            const tbody = document.getElementById('orders-history-table');
-            tbody.innerHTML = '';
-
-            if (ordersHistory.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-slate-500">Brak aktywnych zamówień</td></tr>`;
-                return;
-            }
-
-            ordersHistory.forEach(o => {
-                let itemsSummary = o.items.map(i => `${i.qty}x ${i.name}`).join(', ');
-                tbody.innerHTML += `
-                    <tr class="border-b border-slate-800/60 hover:bg-slate-900/40 transition">
-                        <td class="p-4 text-indigo-400 font-bold">#${o.id}</td>
-                        <td class="p-4 text-slate-300 text-sm">${o.date}</td>
-                        <td class="p-4 text-slate-300 text-sm max-w-xs truncate" title="${itemsSummary}">${itemsSummary}</td>
-                        <td class="p-4 text-slate-300 text-sm"><span class="bg-slate-800 border border-slate-700 px-2.5 py-1 rounded-lg text-xs">${o.method}</span></td>
-                        <td class="p-4 text-slate-300 text-sm">${o.tip.toFixed(2)} zł</td>
-                        <td class="p-4 text-emerald-400 font-semibold">${o.total.toFixed(2)} zł</td>
-                        <td class="p-4 text-right">
-                            <button onclick="completeOrder(${o.numericId})" class="bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 px-3 py-1.5 rounded-xl text-xs font-medium transition shadow-sm">Wysłane / Zakończ</button>
-                        </td>
-                    </tr>
-                `;
+                container.appendChild(el);
             });
         }
 
-        function completeOrder(numericId) {
-            ordersHistory = ordersHistory.filter(o => o.numericId !== numericId);
-            saveOrders();
-            renderOrdersHistoryTable();
+        function openNoteModal() {
+            document.getElementById('note-modal').classList.remove('hidden');
         }
 
-        function renderAdminTable() {
-            const tbody = document.getElementById('admin-products-table');
-            tbody.innerHTML = '';
-            products.forEach(p => {
-                tbody.innerHTML += `
-                    <tr class="border-b border-slate-800/60 hover:bg-slate-900/40 transition">
-                        <td class="p-4 text-slate-200 font-medium">${p.name}</td>
-                        <td class="p-4 text-emerald-400 font-semibold">${p.price.toFixed(2)} zł</td>
-                        <td class="p-4 text-slate-300">${p.stock} szt.</td>
-                        <td class="p-4 text-right">
-                            <button onclick="deleteProduct(${p.id})" class="bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 px-3 py-1.5 rounded-xl text-xs font-medium transition">Usuń</button>
-                        </td>
-                    </tr>
-                `;
-            });
+        function closeNoteModal() {
+            document.getElementById('note-modal').classList.add('hidden');
+            document.getElementById('note-title').value = '';
+            document.getElementById('note-content').value = '';
         }
 
-        function addProduct(e) {
+        function saveNewNote(e) {
             e.preventDefault();
-            const name = document.getElementById('p-name').value;
-            const price = parseFloat(document.getElementById('p-price').value);
-            const stock = parseInt(document.getElementById('p-stock').value);
+            const title = document.getElementById('note-title').value;
+            const content = document.getElementById('note-content').value;
+            
+            const colors = ['border-indigo-500/30', 'border-purple-500/30', 'border-emerald-500/30', 'border-amber-500/30'];
+            const randomColor = colors[Math.floor(Math.random() * colors.length)];
 
-            const newProduct = {
+            notes.push({
                 id: Date.now(),
-                name,
-                price,
-                stock
-            };
+                title,
+                content,
+                x: 100 + Math.random() * 100,
+                y: 150 + Math.random() * 50,
+                color: randomColor
+            });
 
-            products.push(newProduct);
-            saveProducts();
-            renderAdminTable();
-            document.getElementById('product-form').reset();
+            saveStorage();
+            closeNoteModal();
+            renderNotes();
         }
 
-        function deleteProduct(id) {
-            products = products.filter(p => p.id !== id);
-            saveProducts();
-            renderAdminTable();
+        function deleteNote(id) {
+            notes = notes.filter(n => n.id !== id);
+            saveStorage();
+            renderNotes();
         }
 
-        renderProducts();
+        function resetNotesPosition() {
+            let startX = 50;
+            let startY = 100;
+            notes.forEach((n, index) => {
+                n.x = startX + (index % 3) * 290;
+                n.y = startY + Math.floor(index / 3) * 220;
+            });
+            saveStorage();
+            renderNotes();
+        }
+
+        // --- OBSŁUGA ZADAŃ ---
+        function renderTodos() {
+            const list = document.getElementById('todos-list');
+            list.innerHTML = '';
+
+            if (todos.length === 0) {
+                list.innerHTML = `<div class="p-8 text-center text-slate-500 text-sm">Brak zaplanowanych zadań</div>`;
+                return;
+            }
+
+            todos.forEach(todo => {
+                list.innerHTML += `
+                    <div class="p-4 flex items-center justify-between hover:bg-slate-900/30 transition">
+                        <div class="flex items-center gap-3">
+                            <input type="checkbox" ${todo.done ? 'checked' : ''} onclick="toggleTodo(${todo.id})" class="w-4 h-4 rounded border-slate-700 bg-slate-950 text-indigo-600 focus:ring-indigo-500 cursor-pointer">
+                            <span class="text-sm ${todo.done ? 'line-through text-slate-500' : 'text-slate-200'}">${todo.text}</span>
+                        </div>
+                        <button onclick="deleteTodo(${todo.id})" class="text-slate-500 hover:text-red-400 text-xs transition px-2 py-1">Usuń</button>
+                    </div>
+                `;
+            });
+        }
+
+        function addTodo(e) {
+            e.preventDefault();
+            const input = document.getElementById('todo-input');
+            todos.push({
+                id: Date.now(),
+                text: input.value,
+                done: false
+            });
+            input.value = '';
+            saveStorage();
+            renderTodos();
+        }
+
+        function toggleTodo(id) {
+            const t = todos.find(item => item.id === id);
+            if(t) {
+                t.done = !t.done;
+                saveStorage();
+                renderTodos();
+            }
+        }
+
+        function deleteTodo(id) {
+            todos = todos.filter(item => item.id !== id);
+            saveStorage();
+            renderTodos();
+        }
+
+        // Inicjalizacja startowa
+        renderNotes();
     </script>
 </body>
 </html>
