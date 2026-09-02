@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Modern POS System</title>
+    <title>Modern POS System v2.2</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-900 text-slate-100 h-screen flex flex-col overflow-hidden font-sans">
@@ -12,10 +12,11 @@
     <header class="bg-slate-800 border-b border-slate-700 px-6 py-4 flex justify-between items-center shadow-lg">
         <div class="flex items-center gap-3">
             <div class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></div>
-            <h1 class="text-xl font-bold tracking-wide">System POS <span class="text-xs bg-indigo-500 text-white px-2 py-0.5 rounded-full ml-2">v2.0</span></h1>
+            <h1 class="text-xl font-bold tracking-wide">System POS <span class="text-xs bg-indigo-500 text-white px-2 py-0.5 rounded-full ml-2">v2.2</span></h1>
         </div>
         <div class="flex gap-2 bg-slate-900 p-1 rounded-xl border border-slate-700">
             <button onclick="switchTab('pos')" id="btn-pos" class="px-5 py-2 rounded-lg font-medium text-sm transition bg-indigo-600 text-white shadow">Kasjer</button>
+            <button onclick="switchTab('orders')" id="btn-orders" class="px-5 py-2 rounded-lg font-medium text-sm transition text-slate-400 hover:text-white">Zamówienia</button>
             <button onclick="switchTab('admin')" id="btn-admin" class="px-5 py-2 rounded-lg font-medium text-sm transition text-slate-400 hover:text-white">Produkty</button>
         </div>
     </header>
@@ -25,11 +26,10 @@
 
         <!-- KASA / POS -->
         <div id="tab-pos" class="flex-1 flex w-full">
-            <!-- Siatka produktów -->
             <div class="flex-1 p-6 overflow-y-auto bg-slate-950">
                 <div class="mb-4 flex justify-between items-center">
                     <h2 class="text-lg font-semibold text-slate-300">Wybierz produkty</h2>
-                    <span class="text-xs text-slate-500">Kliknij kafelek, aby dodać do koszyka</span>
+                    <span class="text-xs text-slate-500">Kliknij kafelek, aby zobaczyć szczegóły</span>
                 </div>
                 <div id="products-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                     <!-- Dynamiczne karty produktów -->
@@ -44,7 +44,6 @@
                 </div>
                 
                 <div id="cart-items" class="flex-1 p-4 overflow-y-auto divide-y divide-slate-800/60">
-                    <!-- Dynamiczne elementy koszyka -->
                     <div class="text-center py-16 text-slate-500">
                         <svg class="w-12 h-12 mx-auto mb-3 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
                         Koszyk jest pusty
@@ -63,13 +62,41 @@
                         </div>
                     </div>
                     <div class="grid grid-cols-2 gap-3">
-                        <button onclick="checkout('Gotówka')" class="bg-emerald-600 hover:bg-emerald-500 text-white py-3.5 rounded-xl font-semibold transition shadow-lg shadow-emerald-900/20 flex items-center justify-center gap-2">
+                        <button onclick="openPaymentModal('Gotówka')" class="bg-emerald-600 hover:bg-emerald-500 text-white py-3.5 rounded-xl font-semibold transition shadow-lg shadow-emerald-900/20 flex items-center justify-center gap-2">
                             <span>Gotówka</span>
                         </button>
-                        <button onclick="checkout('Karta')" class="bg-indigo-600 hover:bg-indigo-500 text-white py-3.5 rounded-xl font-semibold transition shadow-lg shadow-indigo-900/20 flex items-center justify-center gap-2">
+                        <button onclick="openPaymentModal('Karta')" class="bg-indigo-600 hover:bg-indigo-500 text-white py-3.5 rounded-xl font-semibold transition shadow-lg shadow-indigo-900/20 flex items-center justify-center gap-2">
                             <span>Karta</span>
                         </button>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ZAKŁADKA: WSZYSTKIE ZAMÓWIENIA -->
+        <div id="tab-orders" class="flex-1 p-8 overflow-y-auto hidden bg-slate-900">
+            <div class="max-w-4xl mx-auto">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-slate-100">Historia zamówień</h2>
+                    <button onclick="clearOrdersHistory()" class="bg-red-500/10 hover:bg-red-500/20 text-red-400 px-4 py-2 rounded-xl text-xs font-medium transition">Wyczyść historię</button>
+                </div>
+                
+                <div class="bg-slate-800 border border-slate-700 rounded-2xl overflow-hidden shadow-lg">
+                    <table class="w-full text-left border-collapse">
+                        <thead class="bg-slate-850 border-b border-slate-700 text-xs uppercase tracking-wider text-slate-400">
+                            <tr>
+                                <th class="p-4">Nr</th>
+                                <th class="p-4">Data</th>
+                                <th class="p-4">Produkty</th>
+                                <th class="p-4">Płatność</th>
+                                <th class="p-4">Napiwek</th>
+                                <th class="p-4 text-right">Suma</th>
+                            </tr>
+                        </thead>
+                        <tbody id="orders-history-table" class="divide-y divide-slate-750">
+                            <!-- Dynamiczna tabela zamówień -->
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -81,7 +108,7 @@
                 
                 <form id="product-form" onsubmit="addProduct(event)" class="bg-slate-800 p-6 rounded-2xl border border-slate-700 mb-8 shadow-lg">
                     <h3 class="font-semibold text-base mb-4 text-indigo-400">Dodaj nowy produkt do oferty</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                         <div>
                             <label class="block text-xs font-medium text-slate-400 mb-1">Nazwa produktu</label>
                             <input type="text" id="p-name" required placeholder="np. Kawa Mrożona" class="w-full px-4 py-2.5 bg-slate-900 border border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-slate-100">
@@ -89,6 +116,10 @@
                         <div>
                             <label class="block text-xs font-medium text-slate-400 mb-1">Cena (zł)</label>
                             <input type="number" step="0.01" id="p-price" required placeholder="0.00" class="w-full px-4 py-2.5 bg-slate-900 border border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-slate-100">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-400 mb-1">Ilość na stanie</label>
+                            <input type="number" id="p-stock" required placeholder="0" class="w-full px-4 py-2.5 bg-slate-900 border border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-slate-100">
                         </div>
                     </div>
                     <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2.5 rounded-xl font-medium transition shadow">Dodaj produkt</button>
@@ -101,6 +132,7 @@
                             <tr>
                                 <th class="p-4">Nazwa</th>
                                 <th class="p-4">Cena</th>
+                                <th class="p-4">Magazyn</th>
                                 <th class="p-4 text-right">Akcja</th>
                             </tr>
                         </thead>
@@ -114,41 +146,90 @@
 
     </main>
 
+    <!-- MODAL SZCZEGÓŁÓW PRODUKTU -->
+    <div id="product-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-slate-800 text-slate-100 w-full max-w-md rounded-2xl shadow-2xl overflow-hidden p-6 border border-slate-700">
+            <h3 id="modal-p-name" class="text-xl font-bold mb-2">Nazwa produktu</h3>
+            <p id="modal-p-price" class="text-emerald-400 text-lg font-bold mb-4">0.00 zł</p>
+            <p class="text-sm text-slate-400 mb-6">Dostępna ilość na stanie: <span id="modal-p-stock" class="font-semibold text-slate-200">0</span> szt.</p>
+            
+            <div class="flex justify-end gap-3">
+                <button onclick="closeProductModal()" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-xl text-sm font-medium transition">Anuluj</button>
+                <button id="modal-add-btn" onclick="" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-sm font-medium transition">Dodaj do koszyka</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL PŁATNOŚCI -->
+    <div id="payment-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-slate-800 text-slate-100 w-full max-w-md rounded-2xl shadow-2xl overflow-hidden p-6 border border-slate-700">
+            <h3 class="text-xl font-bold mb-4">Podsumowanie płatności (<span id="pay-method-label">Gotówka</span>)</h3>
+            <div class="space-y-4 mb-6">
+                <div class="flex justify-between text-sm text-slate-300">
+                    <span>Do zapłaty:</span>
+                    <span id="pay-total" class="font-bold text-emerald-400">0.00 zł</span>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1">Kwota otrzymana od klienta (zł)</label>
+                    <input type="number" step="0.01" id="pay-given" oninput="calculateChange()" placeholder="0.00" class="w-full px-4 py-2.5 bg-slate-900 border border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-slate-100">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-1">Napiwek (zł)</label>
+                    <input type="number" step="0.01" id="pay-tip" value="0.00" oninput="calculateChange()" class="w-full px-4 py-2.5 bg-slate-900 border border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-slate-100">
+                </div>
+                <div class="flex justify-between text-lg font-bold pt-3 border-t border-slate-700">
+                    <span>Reszta do zwrotu:</span>
+                    <span id="pay-change" class="text-indigo-400">0.00 zł</span>
+                </div>
+            </div>
+            <div class="flex justify-end gap-3">
+                <button onclick="closePaymentModal()" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-xl text-sm font-medium transition">Anuluj</button>
+                <button onclick="confirmCheckout()" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 rounded-xl text-sm font-medium transition shadow-lg">Zatwierdź i drukuj</button>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL PARAGONU -->
     <div id="receipt-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
-        <div class="bg-white text-slate-800 w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden flex flex-col animate-in fade-in zoom-in duration-200">
-            <!-- Nagłówek paragonu -->
+        <div class="bg-white text-slate-800 w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden flex flex-col">
             <div class="p-6 text-center border-b border-dashed border-slate-200">
                 <div class="w-10 h-10 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-2 text-xl font-bold">✓</div>
                 <h3 class="font-bold text-lg">SYSTEM POS SP. Z O.O.</h3>
                 <p class="text-xs text-slate-500">ul. Przykładowa 12, Białystok</p>
-                <p class="text-xs text-slate-500">NIP: 5420000000</p>
                 <div class="mt-3 text-xs font-semibold text-slate-600 bg-slate-100 py-1 rounded">PARAGON FISKALNY</div>
             </div>
             
-            <!-- Szczegóły -->
             <div class="p-6 max-h-64 overflow-y-auto space-y-3 text-sm">
                 <div class="flex justify-between text-xs text-slate-400 border-b pb-2">
-                    <span id="receipt-date">Data: 02.09.2026 22:00</span>
+                    <span id="receipt-date">Data: 02.09.2026</span>
                     <span id="receipt-id">Nr: #001</span>
                 </div>
-                <div id="receipt-items-list" class="space-y-2">
-                    <!-- Lista pozycji na paragonie -->
-                </div>
+                <div id="receipt-items-list" class="space-y-2"></div>
             </div>
 
-            <!-- Podsumowanie paragonu -->
-            <div class="p-6 bg-slate-50 border-t border-dashed border-slate-200">
-                <div class="flex justify-between font-bold text-base mb-1">
+            <div class="p-6 bg-slate-50 border-t border-dashed border-slate-200 space-y-1.5">
+                <div class="flex justify-between font-bold text-base">
                     <span>SUMA PLN:</span>
                     <span id="receipt-total" class="text-indigo-600">0.00 zł</span>
                 </div>
-                <div class="flex justify-between text-xs text-slate-500 mb-6">
+                <div class="flex justify-between text-xs text-slate-600">
                     <span>Płatność:</span>
-                    <span id="receipt-method" class="font-medium text-slate-700">Gotówka</span>
+                    <span id="receipt-method" class="font-medium">Gotówka</span>
+                </div>
+                <div class="flex justify-between text-xs text-slate-600">
+                    <span>Wpłacono:</span>
+                    <span id="receipt-given">0.00 zł</span>
+                </div>
+                <div class="flex justify-between text-xs text-slate-600">
+                    <span>Napiwek:</span>
+                    <span id="receipt-tip">0.00 zł</span>
+                </div>
+                <div class="flex justify-between text-xs font-bold text-emerald-600 pt-1 border-t">
+                    <span>Reszta:</span>
+                    <span id="receipt-change">0.00 zł</span>
                 </div>
                 
-                <div class="grid grid-cols-2 gap-2">
+                <div class="grid grid-cols-2 gap-2 mt-4">
                     <button onclick="window.print()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 py-2.5 rounded-xl text-sm font-medium transition">Drukuj</button>
                     <button onclick="closeReceipt()" class="bg-indigo-600 hover:bg-indigo-500 text-white py-2.5 rounded-xl text-sm font-medium transition">Nowe zamówienie</button>
                 </div>
@@ -158,38 +239,43 @@
 
     <script>
         const defaultProducts = [
-            { id: 1, name: 'Kawa Espresso', price: 9.00 },
-            { id: 2, name: 'Kawa Latte', price: 14.00 },
-            { id: 3, name: 'Herbata Czarna', price: 8.00 },
-            { id: 4, name: 'Sok Pomarańczowy', price: 10.00 },
-            { id: 5, name: 'Ciastko Czekoladowe', price: 12.00 },
-            { id: 6, name: 'Kanapka z szynką', price: 16.50 }
+            { id: 1, name: 'Kawa Espresso', price: 9.00, stock: 15 },
+            { id: 2, name: 'Kawa Latte', price: 14.00, stock: 10 },
+            { id: 3, name: 'Herbata Czarna', price: 8.00, stock: 20 },
+            { id: 4, name: 'Sok Pomarańczowy', price: 10.00, stock: 8 },
+            { id: 5, name: 'Ciastko Czekoladowe', price: 12.00, stock: 5 },
+            { id: 6, name: 'Kanapka z szynką', price: 16.50, stock: 4 }
         ];
 
         let products = JSON.parse(localStorage.getItem('pos_products')) || defaultProducts;
+        let ordersHistory = JSON.parse(localStorage.getItem('pos_orders')) || [];
         let cart = [];
-        let lastOrder = null;
+        let currentPaymentMethod = 'Gotówka';
 
         function saveProducts() {
             localStorage.setItem('pos_products', JSON.stringify(products));
         }
 
+        function saveOrders() {
+            localStorage.setItem('pos_orders', JSON.stringify(ordersHistory));
+        }
+
         function switchTab(tab) {
             document.getElementById('tab-pos').classList.toggle('hidden', tab !== 'pos');
+            document.getElementById('tab-orders').classList.toggle('hidden', tab !== 'orders');
             document.getElementById('tab-admin').classList.toggle('hidden', tab !== 'admin');
             
             const btnPos = document.getElementById('btn-pos');
+            const btnOrders = document.getElementById('btn-orders');
             const btnAdmin = document.getElementById('btn-admin');
 
-            if(tab === 'pos') {
-                btnPos.className = "px-5 py-2 rounded-lg font-medium text-sm transition bg-indigo-600 text-white shadow";
-                btnAdmin.className = "px-5 py-2 rounded-lg font-medium text-sm transition text-slate-400 hover:text-white";
-                renderProducts();
-            } else {
-                btnAdmin.className = "px-5 py-2 rounded-lg font-medium text-sm transition bg-indigo-600 text-white shadow";
-                btnPos.className = "px-5 py-2 rounded-lg font-medium text-sm transition text-slate-400 hover:text-white";
-                renderAdminTable();
-            }
+            btnPos.className = "px-5 py-2 rounded-lg font-medium text-sm transition " + (tab === 'pos' ? "bg-indigo-600 text-white shadow" : "text-slate-400 hover:text-white");
+            btnOrders.className = "px-5 py-2 rounded-lg font-medium text-sm transition " + (tab === 'orders' ? "bg-indigo-600 text-white shadow" : "text-slate-400 hover:text-white");
+            btnAdmin.className = "px-5 py-2 rounded-lg font-medium text-sm transition " + (tab === 'admin' ? "bg-indigo-600 text-white shadow" : "text-slate-400 hover:text-white");
+
+            if(tab === 'pos') renderProducts();
+            if(tab === 'orders') renderOrdersHistoryTable();
+            if(tab === 'admin') renderAdminTable();
         }
 
         function renderProducts() {
@@ -197,17 +283,44 @@
             grid.innerHTML = '';
             products.forEach(p => {
                 grid.innerHTML += `
-                    <div onclick="addToCart(${p.id})" class="bg-slate-800 p-5 rounded-2xl border border-slate-700/80 hover:border-indigo-500 hover:bg-slate-750 cursor-pointer transition flex flex-col justify-between h-32 group shadow-md">
-                        <span class="font-medium text-slate-200 group-hover:text-indigo-300 transition line-clamp-2">${p.name}</span>
+                    <div onclick="openProductModal(${p.id})" class="bg-slate-800 p-5 rounded-2xl border border-slate-700/80 hover:border-indigo-500 hover:bg-slate-750 cursor-pointer transition flex flex-col justify-between h-32 group shadow-md">
+                        <div>
+                            <span class="font-medium text-slate-200 group-hover:text-indigo-300 transition line-clamp-2">${p.name}</span>
+                            <span class="text-xs text-slate-400 block mt-1">Stan: ${p.stock} szt.</span>
+                        </div>
                         <span class="text-xl font-bold text-emerald-400">${p.price.toFixed(2)} zł</span>
                     </div>
                 `;
             });
         }
 
-        function addToCart(id) {
+        function openProductModal(id) {
+            const product = products.find(p => p.id === id);
+            if (!product) return;
+
+            document.getElementById('modal-p-name').textContent = product.name;
+            document.getElementById('modal-p-price').textContent = product.price.toFixed(2) + ' zł';
+            document.getElementById('modal-p-stock').textContent = product.stock;
+            
+            const addBtn = document.getElementById('modal-add-btn');
+            addBtn.setAttribute('onclick', `addToCartFromModal(${product.id})`);
+            
+            document.getElementById('product-modal').classList.remove('hidden');
+        }
+
+        function closeProductModal() {
+            document.getElementById('product-modal').classList.add('hidden');
+        }
+
+        function addToCartFromModal(id) {
             const product = products.find(p => p.id === id);
             const existing = cart.find(item => item.id === id);
+            const currentQtyInCart = existing ? existing.qty : 0;
+
+            if (product.stock <= currentQtyInCart) {
+                alert('Brak wystarczającej ilości produktu na stanie!');
+                return;
+            }
             
             if (existing) {
                 existing.qty++;
@@ -215,6 +328,7 @@
                 cart.push({ ...product, qty: 1 });
             }
             renderCart();
+            closeProductModal();
         }
 
         function removeFromCart(id) {
@@ -267,20 +381,82 @@
             subTotalEl.textContent = total.toFixed(2) + ' zł';
         }
 
-        function checkout(method) {
+        function openPaymentModal(method) {
             if (cart.length === 0) {
                 alert('Koszyk jest pusty!');
                 return;
             }
-
+            currentPaymentMethod = method;
             let total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
             
-            // Wypełnij dane paragonu
+            document.getElementById('pay-method-label').textContent = method;
+            document.getElementById('pay-total').textContent = total.toFixed(2) + ' zł';
+            document.getElementById('pay-given').value = total.toFixed(2);
+            document.getElementById('pay-tip').value = '0.00';
+            document.getElementById('pay-change').textContent = '0.00 zł';
+
+            document.getElementById('payment-modal').classList.remove('hidden');
+        }
+
+        function closePaymentModal() {
+            document.getElementById('payment-modal').classList.add('hidden');
+        }
+
+        function calculateChange() {
+            let total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+            let given = parseFloat(document.getElementById('pay-given').value) || 0;
+            let tip = parseFloat(document.getElementById('pay-tip').value) || 0;
+            
+            let change = given - (total + tip);
+            document.getElementById('pay-change').textContent = change >= 0 ? change.toFixed(2) + ' zł' : '0.00 zł';
+        }
+
+        function confirmCheckout() {
+            let total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+            let given = parseFloat(document.getElementById('pay-given').value) || 0;
+            let tip = parseFloat(document.getElementById('pay-tip').value) || 0;
+
+            if (given < (total + tip)) {
+                alert('Wpłacona kwota jest mniejsza niż suma zamówienia i napiwku!');
+                return;
+            }
+
+            // Odejmij z magazynu
+            cart.forEach(cartItem => {
+                let p = products.find(prod => prod.id === cartItem.id);
+                if (p) {
+                    p.stock -= cartItem.qty;
+                }
+            });
+            saveProducts();
+
+            // Utwórz obiekt zamówienia do historii
             const now = new Date();
-            document.getElementById('receipt-date').textContent = `Data: ${now.toLocaleDateString()} ${now.toLocaleTimeString()}`;
-            document.getElementById('receipt-id').textContent = `Nr: #${Math.floor(100 + Math.random() * 900)}`;
-            document.getElementById('receipt-method').textContent = method;
+            const orderId = Math.floor(100 + Math.random() * 900);
+            const dateStr = `${now.toLocaleDateString()} ${now.toLocaleTimeString()}`;
+            
+            const newOrder = {
+                id: orderId,
+                date: dateStr,
+                items: [...cart],
+                method: currentPaymentMethod,
+                total: total,
+                tip: tip,
+                given: given,
+                change: given - (total + tip)
+            };
+
+            ordersHistory.unshift(newOrder); // dodaj na początek tablicy
+            saveOrders();
+
+            // Uzupełnij dane paragonu
+            document.getElementById('receipt-date').textContent = `Data: ${dateStr}`;
+            document.getElementById('receipt-id').textContent = `Nr: #${orderId}`;
+            document.getElementById('receipt-method').textContent = currentPaymentMethod;
             document.getElementById('receipt-total').textContent = total.toFixed(2) + ' zł';
+            document.getElementById('receipt-given').textContent = given.toFixed(2) + ' zł';
+            document.getElementById('receipt-tip').textContent = tip.toFixed(2) + ' zł';
+            document.getElementById('receipt-change').textContent = (given - (total + tip)).toFixed(2) + ' zł';
 
             const itemsList = document.getElementById('receipt-items-list');
             itemsList.innerHTML = '';
@@ -293,7 +469,7 @@
                 `;
             });
 
-            // Pokaż modal
+            closePaymentModal();
             document.getElementById('receipt-modal').classList.remove('hidden');
         }
 
@@ -301,6 +477,39 @@
             document.getElementById('receipt-modal').classList.add('hidden');
             cart = [];
             renderCart();
+            renderProducts();
+        }
+
+        function renderOrdersHistoryTable() {
+            const tbody = document.getElementById('orders-history-table');
+            tbody.innerHTML = '';
+
+            if (ordersHistory.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-slate-500">Brak zarejestrowanych zamówień</td></tr>`;
+                return;
+            }
+
+            ordersHistory.forEach(o => {
+                let itemsSummary = o.items.map(i => `${i.qty}x ${i.name}`).join(', ');
+                tbody.innerHTML += `
+                    <tr class="border-b border-slate-750 hover:bg-slate-850/50 transition">
+                        <td class="p-4 text-indigo-400 font-bold">#${o.id}</td>
+                        <td class="p-4 text-slate-300 text-sm">${o.date}</td>
+                        <td class="p-4 text-slate-300 text-sm max-w-xs truncate" title="${itemsSummary}">${itemsSummary}</td>
+                        <td class="p-4 text-slate-300 text-sm"><span class="bg-slate-700 px-2 py-1 rounded text-xs">${o.method}</span></td>
+                        <td class="p-4 text-slate-300 text-sm">${o.tip.toFixed(2)} zł</td>
+                        <td class="p-4 text-right text-emerald-400 font-semibold">${o.total.toFixed(2)} zł</td>
+                    </tr>
+                `;
+            });
+        }
+
+        function clearOrdersHistory() {
+            if(confirm('Czy na pewno chcesz wyczyścić całą historię zamówień?')) {
+                ordersHistory = [];
+                saveOrders();
+                renderOrdersHistoryTable();
+            }
         }
 
         function renderAdminTable() {
@@ -311,6 +520,7 @@
                     <tr class="border-b border-slate-750 hover:bg-slate-850/50 transition">
                         <td class="p-4 text-slate-200 font-medium">${p.name}</td>
                         <td class="p-4 text-emerald-400 font-semibold">${p.price.toFixed(2)} zł</td>
+                        <td class="p-4 text-slate-300">${p.stock} szt.</td>
                         <td class="p-4 text-right">
                             <button onclick="deleteProduct(${p.id})" class="bg-red-500/10 hover:bg-red-500/20 text-red-400 px-3 py-1.5 rounded-lg text-xs font-medium transition">Usuń</button>
                         </td>
@@ -323,11 +533,13 @@
             e.preventDefault();
             const name = document.getElementById('p-name').value;
             const price = parseFloat(document.getElementById('p-price').value);
+            const stock = parseInt(document.getElementById('p-stock').value);
 
             const newProduct = {
                 id: Date.now(),
                 name,
-                price
+                price,
+                stock
             };
 
             products.push(newProduct);
@@ -342,7 +554,6 @@
             renderAdminTable();
         }
 
-        // Inicjalizacja widoku
         renderProducts();
     </script>
 </body>
