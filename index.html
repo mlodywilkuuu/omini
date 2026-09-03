@@ -72,7 +72,7 @@
                 <span class="text-slate-400">🌐 Udział:</span>
                 <span id="company-market-share" class="font-bold text-blue-400">0.5%</span>
             </div>
-            <div class="glass-card px-3 py-2 rounded-2xl flex items-center gap-2 border-slate-700/60 shadow-inner">
+            <div class="glass-card px-3.5 py-2 rounded-2xl flex items-center gap-2 border-slate-700/60 shadow-inner">
                 <span class="text-slate-400">👥 Kadra:</span>
                 <span id="company-staff-count" class="font-bold text-indigo-400">0/5</span>
             </div>
@@ -186,7 +186,7 @@
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                         <div>
                             <h3 class="text-xl font-bold text-blue-300">🤝 Giełda Udziałów (Rynek Spółek)</h3>
-                            <p class="text-xs text-slate-400 mt-1">Składaj własne oferty kupna udziałów (inwestorzy i zarząd decydują na podstawie kwoty) lub przejmuj pakiety większościowe!</p>
+                            <p class="text-xs text-slate-400 mt-1">Składaj oferty kupna udziałów (inwestorzy i zarząd decydują na podstawie kwoty) lub przejmuj pakiety większościowe!</p>
                         </div>
                         <input type="text" id="company-search" oninput="renderAcquisitions()" placeholder="🔍 Szukaj firmy..." class="px-4 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-xs text-slate-200 focus:outline-none focus:border-blue-500 w-full md:w-64">
                     </div>
@@ -278,14 +278,14 @@
     <div id="offer-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4 z-50">
         <div class="glass-panel text-slate-100 w-full max-w-md rounded-3xl shadow-2xl p-6 space-y-4 border border-blue-500/40">
             <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-                <h3 class="text-lg font-bold text-blue-300" id="offer-modal-title">Złóż ofertę zakupu udziałów</h3>
+                <h3 class="text-lg font-bold text-blue-300">Złóż ofertę zakupu udziałów</h3>
                 <button onclick="closeOfferModal()" class="text-slate-400 hover:text-white text-sm font-bold px-2.5 py-0.5 rounded-lg bg-slate-800/50">✕</button>
             </div>
             <div class="space-y-3 text-xs">
                 <p id="offer-company-info" class="text-slate-300"></p>
                 <div class="glass-card p-3 rounded-xl space-y-2">
                     <label class="block text-slate-300 font-semibold">Liczba pakietów (po 10%):</label>
-                    <input type="number" id="offer-shares-count" min="1" max="10" value="1" oninput="updateOfferTotal()" class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-xs text-white">
+                    <input type="number" id="offer-shares-count" min="1" max="10" value="1" class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-xs text-white">
                 </div>
                 <div class="glass-card p-3 rounded-xl space-y-2">
                     <label class="block text-slate-300 font-semibold">Twoja propozycja ceny za 10% (Aktualna cena rynkowa: <strong id="offer-market-price" class="text-emerald-400">0</strong> zł):</label>
@@ -632,9 +632,9 @@
             });
         }
 
-        function saveGame() { localStorage.setItem('tech_giant_tycoon_save_v25', JSON.stringify(game)); }
+        function saveGame() { localStorage.setItem('tech_giant_tycoon_save_v26', JSON.stringify(game)); }
         function loadGame() {
-            const saved = localStorage.getItem('tech_giant_tycoon_save_v25');
+            const saved = localStorage.getItem('tech_giant_tycoon_save_v26');
             if(saved) {
                 try {
                     const parsed = JSON.parse(saved);
@@ -809,20 +809,15 @@
         }
 
         function updateOfferTotal() {
-            let comp = game.companies.find(c => c.id === id => id === activeOfferCompanyId);
             let count = parseInt(document.getElementById('offer-shares-count').value) || 1;
             let price = parseInt(document.getElementById('offer-price-input').value) || 0;
-            document.getElementById('offer-total-cost').textContent = (count * price).toLocaleString();
+            let totalEl = document.getElementById('offer-total-cost');
+            if(totalEl) totalEl.textContent = (count * price).toLocaleString();
         }
 
-        // Podpinamy nasłuch na inputy w modalu oferty
         document.addEventListener('input', (e) => {
             if(e.target.id === 'offer-shares-count' || e.target.id === 'offer-price-input') {
-                let count = parseInt(document.getElementById('offer-shares-count').value) || 1;
-                let price = parseInt(document.getElementById('offer-price-input').value) || 0;
-                let total = count * price;
-                let totalEl = document.getElementById('offer-total-cost');
-                if(totalEl) totalEl.textContent = total.toLocaleString();
+                updateOfferTotal();
             }
         });
 
@@ -847,7 +842,6 @@
                 return;
             }
 
-            // Mechanika akceptacji: zarząd i innowatorzy oczekują co najmniej 90% ceny rynkowej
             let minAcceptablePrice = comp.sharePrice * 0.9;
             if(proposedPricePerShare >= minAcceptablePrice) {
                 modifyMoney(-totalCost);
@@ -1357,7 +1351,7 @@
                 lblScreen.textContent = 'Kontroler'; unitScreen.textContent = 'gen'; rangeScreen.min = '1'; rangeScreen.max = '3'; rangeScreen.step = '1'; rangeScreen.value = '2';
             } else if(cat === 'Słuchawki') {
                 lblSize.textContent = 'Nausznik'; unitSize.textContent = 'mm'; rangeSize.min = '30'; rangeSize.max = '100'; rangeSize.value = '50';
-                rangeThick.min = '10'; rangeThick.max = '40'; rangeThick.value = '20';
+                rangeThick.min = '10'; rangeThick.max = '40'; rangeSize.value = '20';
                 lblScreen.textContent = 'Pasmo'; unitScreen.textContent = 'kHz'; rangeScreen.min = '10'; rangeScreen.max = '40'; rangeScreen.step = '2'; rangeScreen.value = '20';
             } else if(cat === 'Głośniki') {
                 lblSize.textContent = 'Moc'; unitSize.textContent = 'W'; rangeSize.min = '10'; rangeSize.max = '300'; rangeSize.value = '50';
@@ -1715,9 +1709,7 @@
             game.companies.forEach(c => {
                 let totalAssigned = c.playerShares + c.aiInvestors.reduce((acc, curr) => acc + curr.shares, 0);
                 
-                // Szansa, że inny inwestor dokupi udziały lub zwolni
                 if(Math.random() < 0.25 && totalAssigned < 10) {
-                    // Wybierz losowego inwestora AI i zwiększ jego udziały o 1 (10%)
                     if(c.aiInvestors.length > 0) {
                         let randInv = c.aiInvestors[Math.floor(Math.random() * c.aiInvestors.length)];
                         randInv.shares++;
@@ -1726,14 +1718,12 @@
                     }
                 }
 
-                // Spółki rynkowe mogą też co jakiś czas wypuszczać nowe firmy, bądź stare zmieniać ceny
                 if(Math.random() < 0.05) {
                     c.sharePrice += Math.floor((Math.random() - 0.4) * 3000);
                     if(c.sharePrice < 10000) c.sharePrice = 10000;
                 }
             });
 
-            // Ciągłe generowanie nowych spółek na giełdzie, jeśli jest ich mniej niż 15
             if(Math.random() < 0.1 && game.companies.length < 15) {
                 let p = companyPrefixes[Math.floor(Math.random() * companyPrefixes.length)];
                 let s = companySuffixes[Math.floor(Math.random() * companySuffixes.length)];
