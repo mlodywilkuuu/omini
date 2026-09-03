@@ -557,13 +557,13 @@
                 name: `${p} ${s} #${i}`,
                 specialization: ['Smartfony', 'Podzespoły', 'Audio', 'Wyświetlacze', 'Baterie', 'Procesory', 'Czujniki'][i % 7],
                 sharePricePerPercent: 1200 + (i * 350),
-                passiveIncome: 4500 + (i * 900), // Zwiększono bazowy przychód pasywny spółek
+                passiveIncome: 4500 + (i * 900),
                 playerShares: 0,
                 aiInvestors: generateAIInvestors(60),
                 marketingBudget: 0,
                 rdBudget: 0,
                 salaryMultiplier: 1.0,
-                dividendPercent: 25, // Zwiększono domyślny procent dywidend
+                dividendPercent: 25,
                 companyDebt: 0,
                 loanTotal: 0,
                 loanRemaining: 0,
@@ -698,9 +698,9 @@
             });
         }
 
-        function saveGame() { localStorage.setItem('tech_giant_tycoon_save_v41', JSON.stringify(game)); }
+        function saveGame() { localStorage.setItem('tech_giant_tycoon_save_v42', JSON.stringify(game)); }
         function loadGame() {
-            const saved = localStorage.getItem('tech_giant_tycoon_save_v41');
+            const saved = localStorage.getItem('tech_giant_tycoon_save_v42');
             if(saved) {
                 try {
                     const parsed = JSON.parse(saved);
@@ -1221,11 +1221,11 @@
             content.innerHTML = `
                 <div class="space-y-4">
                     <div class="glass-card p-3 rounded-xl space-y-1 border-blue-500/30">
-                        <label class="block text-slate-300 font-semibold">Budżet Marketingowy: <strong id="m-budget-val" class="text-blue-300">${comp.marketingBudget} zł/s</strong></label>
+                        <label class="block text-slate-300 font-semibold">Budżet Marketingowy (koszt co sekundę): <strong id="m-budget-val" class="text-rose-400">${comp.marketingBudget} zł/s</strong></label>
                         <input type="range" min="0" max="50000" step="1000" value="${comp.marketingBudget}" oninput="updateCompanyParam('${id}', 'marketingBudget', this.value)" class="w-full accent-blue-500">
                     </div>
                     <div class="glass-card p-3 rounded-xl space-y-1 border-indigo-500/30">
-                        <label class="block text-slate-300 font-semibold">Budżet R&D Spółki: <strong id="r-budget-val" class="text-indigo-300">${comp.rdBudget} zł/s</strong></label>
+                        <label class="block text-slate-300 font-semibold">Budżet R&D Spółki (koszt co sekundę): <strong id="r-budget-val" class="text-rose-400">${comp.rdBudget} zł/s</strong></label>
                         <input type="range" min="0" max="50000" step="1000" value="${comp.rdBudget}" oninput="updateCompanyParam('${id}', 'rdBudget', this.value)" class="w-full accent-indigo-500">
                     </div>
                     <div class="glass-card p-3 rounded-xl space-y-1 border-emerald-500/30">
@@ -2033,11 +2033,24 @@
             }
 
             let companyPassive = 0;
+            let totalCompanyCosts = 0;
+
             game.companies.forEach(c => {
                 if(c.playerShares > 0) {
-                    let mBonus = 1 + (c.marketingBudget / 15000);
-                    let rdBonus = 1 + (c.rdBudget / 15000);
-                    let netPassive = c.passiveIncome * mBonus * rdBonus;
+                    // Budżety marketingowe i R&D są teraz kosztami stałymi pobieranymi co sekundę!
+                    let marketingCost = c.marketingBudget || 0;
+                    let rdCost = c.rdBudget || 0;
+                    let staffPayrollCost = Math.round(1500 * (c.salaryMultiplier - 1)); // Koszt wyższych pensji pracowników w spółce
+                    let totalCosts = marketingCost + rdCost + staffPayrollCost;
+
+                    totalCompanyCosts += totalCosts;
+
+                    // Wpływ inwestycji na spółkę: wyższy marketing/R&D zwiększa zysk brutto z opóźnieniem (bonus do efektywności)
+                    let marketingEffect = 1 + (marketingCost / 10000);
+                    let rdEffect = 1 + (rdCost / 10000);
+                    let staffEffect = c.salaryMultiplier;
+
+                    let netPassive = (c.passiveIncome * marketingEffect * rdEffect * staffEffect) - totalCosts;
                     
                     if(c.loanRemaining > 0) {
                         let deduction = Math.min(c.loanRemaining, c.loanInstallmentPerSec);
@@ -2050,11 +2063,17 @@
                     let divPayout = companyEarnings * (c.dividendPercent / 100);
                     let myDivShare = divPayout * (c.playerShares / 100);
                     companyPassive += Math.round(myDivShare);
+
+                    // Jeśli spółka inwestuje, jej wartość (cena za 1%) rośnie szybciej w czasie!
+                    if(marketingCost > 0 || rdCost > 0) {
+                        c.sharePricePerPercent += Math.floor((marketingCost + rdCost) / 15000);
+                    }
                 }
             });
-            if(companyPassive > 0) {
+
+            if(companyPassive !== 0) {
                 modifyMoney(companyPassive);
-                game.stats.totalCompanyIncome += companyPassive;
+                if(companyPassive > 0) game.stats.totalCompanyIncome += companyPassive;
             }
 
             if(game.activeResearch) {
@@ -2137,7 +2156,7 @@
             window.currentStoreInc = currentStoreIncomePerSec;
             window.currentDevInc = currentDeviceIncomePerSec;
             window.currentCompInc = companyPassive;
-            window.currentSalaries = totalSalaries + currentRentsPerSec;
+            window.currentSalaries = totalSalaries + currentRentsPerSec + totalCompanyCosts;
 
             game.companies.forEach(c => {
                 let totalAssigned = c.playerShares + c.aiInvestors.reduce((acc, curr) => acc + curr.shares, 0) + (c.listedSharesForSale || 0);
@@ -2174,7 +2193,7 @@
                 }
 
                 if(Math.random() < 0.08) {
-                    c.sharePricePerPercent += Math.floor((Math.random() - 0.45) * 800);
+                    c.sharePricePerPercent += Math.floor((Math.random() - 0.42) * 800);
                     if(c.sharePricePerPercent < 1000) c.sharePricePerPercent = 1000;
                 }
             });
