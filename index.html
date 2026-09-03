@@ -52,40 +52,59 @@
         ::-webkit-scrollbar-thumb { background: rgba(59, 130, 246, 0.3); border-radius: 9999px; }
         ::-webkit-scrollbar-thumb:hover { background: rgba(59, 130, 246, 0.6); }
 
-        /* Styl dla pinesek na mapie */
+        /* Styl dla pinesek na mapie z odpornym tooltipem */
         .map-pin {
             position: absolute;
             transform: translate(-50%, -50%);
             cursor: pointer;
-            transition: transform 0.2s ease, z-index 0.2s ease;
+            padding: 15px; /* Obszar ułatwiający najechanie */
+            margin: -15px;
+            z-index: 10;
         }
         .map-pin:hover {
-            transform: translate(-50%, -50%) scale(1.4);
             z-index: 50;
+        }
+        .map-pin-dot {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: bold;
+            color: white;
+            border: 2px solid white;
+            transition: transform 0.2s ease;
+        }
+        .map-pin:hover .map-pin-dot {
+            transform: scale(1.4);
         }
         .map-tooltip {
             visibility: hidden;
             position: absolute;
-            bottom: 135%;
+            bottom: 75%;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(11, 17, 28, 0.95);
+            background: rgba(11, 17, 28, 0.96);
             backdrop-filter: blur(8px);
             border: 1px solid rgba(59, 130, 246, 0.4);
             color: #f8fafc;
             text-align: left;
-            padding: 8px 12px;
+            padding: 10px 14px;
             border-radius: 12px;
             z-index: 60;
-            width: 180px;
+            width: 190px;
             box-shadow: 0 10px 25px -5px rgba(0,0,0,0.8);
             opacity: 0;
-            transition: opacity 0.2s ease;
+            transition: opacity 0.2s ease, visibility 0.2s ease;
+            transition-delay: 0.1s;
             pointer-events: none;
         }
         .map-pin:hover .map-tooltip {
             visibility: visible;
             opacity: 1;
+            pointer-events: auto;
         }
     </style>
 </head>
@@ -276,7 +295,7 @@
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shrink-0">
                         <div>
                             <h3 class="text-xl font-bold text-blue-300">🌍 Interaktywna Mapa Świata</h3>
-                            <p class="text-xs text-slate-400 mt-1">Najedź na pineskę, aby sprawdzić szczegóły i otworzyć sklep. Użyj przycisków lub scrolla myszy do przybliżania.</p>
+                            <p class="text-xs text-slate-400 mt-1">Kliknij i przeciągnij, aby przesuwać mapę. Użyj przycisków lub scrolla myszy do przybliżania.</p>
                         </div>
                         <div class="flex items-center gap-3">
                             <input type="text" id="country-search" oninput="renderWorldMap()" placeholder="🔍 Szukaj kraju..." class="px-4 py-2 bg-slate-950 border border-slate-700 rounded-xl text-xs text-slate-200 focus:outline-none focus:border-blue-500 w-48">
@@ -288,23 +307,23 @@
                         </div>
                     </div>
 
-                    <!-- KONTENER MAPY ŚWIATA Z KONTURAMI I ZOOMEM -->
-                    <div id="world-map-viewport" class="relative w-full flex-1 bg-slate-950 rounded-2xl border border-slate-800 overflow-hidden shadow-inner flex items-center justify-center select-none" style="min-height: 500px;">
-                        <div id="world-map-canvas" class="absolute w-[1200px] h-[600px] transition-transform duration-100 ease-out origin-center" style="transform: scale(1);">
-                            <!-- Stylizowany SVG mapy świata / kontynentów -->
-                            <svg class="absolute inset-0 w-full h-full opacity-30 pointer-events-none" viewBox="0 0 1000 500" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <!-- KONTENER MAPY ŚWIATA Z KONTURAMI, ZOOMEM I PRZESUWANIEM -->
+                    <div id="world-map-viewport" class="relative w-full flex-1 bg-slate-950 rounded-2xl border border-slate-800 overflow-hidden shadow-inner flex items-center justify-center cursor-grab active:cursor-grabbing select-none" style="min-height: 500px;">
+                        <div id="world-map-canvas" class="absolute w-[1200px] h-[600px] origin-center" style="transform: translate(0px, 0px) scale(1);">
+                            <!-- Stylizowany SVG mapy świata / kontynentów dopasowany do współrzędnych 1200x600 -->
+                            <svg class="absolute inset-0 w-full h-full opacity-30 pointer-events-none" viewBox="0 0 1200 600" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <!-- Ameryka Północna -->
-                                <path d="M120,80 Q180,60 220,100 T280,180 Q220,240 160,180 Z" fill="#3b82f6" opacity="0.6"/>
+                                <path d="M150,100 Q250,70 300,130 T360,240 Q280,310 190,230 Z" fill="#3b82f6" opacity="0.6"/>
                                 <!-- Ameryka Południowa -->
-                                <path d="M220,260 Q280,280 260,380 T200,440 Q180,360 200,300 Z" fill="#3b82f6" opacity="0.5"/>
+                                <path d="M280,330 Q360,350 340,480 T240,560 Q210,460 240,380 Z" fill="#3b82f6" opacity="0.5"/>
                                 <!-- Europa -->
-                                <path d="M460,100 Q540,80 560,140 T500,200 Q440,180 450,120 Z" fill="#3b82f6" opacity="0.7"/>
+                                <path d="M550,120 Q650,90 680,170 T600,240 Q520,220 540,140 Z" fill="#3b82f6" opacity="0.7"/>
                                 <!-- Afryka -->
-                                <path d="M460,220 Q550,230 540,360 T460,440 Q420,340 440,260 Z" fill="#3b82f6" opacity="0.6"/>
+                                <path d="M550,265 Q670,280 650,440 T550,540 Q490,405 520,310 Z" fill="#3b82f6" opacity="0.6"/>
                                 <!-- Azja -->
-                                <path d="M580,70 Q750,40 850,120 T820,300 Q700,320 600,240 T580,120 Z" fill="#3b82f6" opacity="0.7"/>
+                                <path d="M700,80 Q920,45 1040,140 T1000,380 Q840,400 720,300 T700,140 Z" fill="#3b82f6" opacity="0.7"/>
                                 <!-- Australia -->
-                                <path d="M820,360 Q900,350 880,440 T800,430 Z" fill="#3b82f6" opacity="0.6"/>
+                                <path d="M980,440 Q1080,430 1060,540 T960,520 Z" fill="#3b82f6" opacity="0.6"/>
                             </svg>
                             <!-- Siatka kartograficzna -->
                             <div class="absolute inset-0 bg-[radial-gradient(#3b82f6_1px,transparent_1px)] [background-size:40px_40px] opacity-20 pointer-events-none"></div>
@@ -550,45 +569,45 @@
 
     <script>
         const rawCountries = [
-            ["pl", "Polska", 48, 35], ["de", "Niemcy", 42, 33], ["us", "Stany Zjednoczone", 20, 38], ["jp", "Japonia", 85, 42], ["gb", "Wielka Brytania", 35, 32],
-            ["fr", "Francja", 39, 37], ["kr", "Korea Południowa", 82, 44], ["cn", "Chiny", 75, 45], ["br", "Brazylia", 32, 70], ["it", "Włochy", 45, 40],
-            ["es", "Hiszpania", 36, 42], ["ca", "Kanada", 18, 25], ["au", "Australia", 85, 78], ["in", "Indie", 68, 52], ["mx", "Meksyk", 22, 52],
-            ["se", "Szwecja", 46, 22], ["ch", "Szwajcaria", 43, 38], ["nl", "Holandia", 40, 32], ["af", "Afganistan", 63, 46], ["al", "Albania", 48, 43],
-            ["dz", "Algieria", 41, 50], ["ad", "Andora", 38, 41], ["ao", "Angola", 50, 72], ["ag", "Antigua i Barbuda", 28, 55], ["ar", "Argentyna", 30, 82],
-            ["am", "Armenia", 58, 42], ["at", "Austria", 44, 37], ["az", "Azerbejdżan", 60, 42], ["bs", "Bahamy", 25, 48], ["bh", "Bahrajn", 65, 52],
-            ["bd", "Bangladesz", 72, 52], ["bb", "Barbados", 29, 56], ["by", "Białoruś", 52, 28], ["be", "Belgia", 39, 34], ["bz", "Belize", 22, 55],
-            ["bj", "Benin", 45, 60], ["bt", "Bhutan", 71, 48], ["bo", "Boliwia", 33, 74], ["ba", "Bośnia i Hercegowina", 47, 40], ["bw", "Botswana", 53, 78],
-            ["bn", "Brunei", 78, 65], ["bg", "Bułgaria", 50, 39], ["bf", "Burkina Faso", 43, 58], ["bi", "Burundi", 55, 68], ["cv", "Republika Zielonego Przylądka", 30, 58],
-            ["kh", "Kambodża", 76, 60], ["cm", "Kamerun", 47, 62], ["cf", "Republika Środkowoafrykańska", 50, 60], ["td", "Czad", 48, 55], ["cl", "Chile", 28, 80],
-            ["co", "Kolumbia", 28, 62], ["km", "Komory", 60, 72], ["cg", "Kongo", 48, 65], ["cd", "Demokratyczna Republika Konga", 51, 66], ["cr", "Kostaryka", 23, 58],
-            ["ci", "Wybrzeże Kości Słoniowej", 42, 60], ["hr", "Chorwacja", 46, 38], ["cu", "Kuba", 25, 50], ["cy", "Cypr", 54, 45], ["cz", "Czechy", 46, 35],
-            ["dk", "Dania", 44, 28], ["dj", "Dżibuti", 62, 55], ["dm", "Dominika", 28, 55], ["do", "Dominikana", 27, 52], ["ec", "Ekwador", 26, 66],
-            ["eg", "Egipt", 55, 48], ["sv", "Salwador", 21, 57], ["gq", "Gwinea Równikowa", 48, 64], ["er", "Erytrea", 61, 53], ["ee", "Estonia", 50, 24],
-            ["sz", "Eswatini", 55, 80], ["et", "Etiopia", 60, 58], ["fj", "Fidżi", 92, 75], ["fi", "Finlandia", 52, 22], ["ga", "Gabon", 48, 65],
-            ["gm", "Gambia", 40, 58], ["ge", "Gruzja", 58, 40], ["gh", "Ghana", 44, 60], ["gr", "Grecja", 48, 42], ["gd", "Grenada", 28, 56],
-            ["gt", "Gwatemala", 21, 53], ["gn", "Gwinea", 41, 59], ["gw", "Gwinea Bissau", 40, 58], ["gy", "Gujana", 33, 62], ["ht", "Haiti", 26, 51],
-            ["hn", "Honduras", 22, 54], ["hu", "Węgry", 47, 36], ["is", "Islandia", 30, 20], ["id", "Indonezja", 78, 68], ["ir", "Iran", 62, 45],
-            ["iq", "Irak", 60, 47], ["ie", "Irlandia", 33, 31], ["il", "Izrael", 57, 48], ["jm", "Jamajka", 25, 54], ["jo", "Jordania", 58, 48],
-            ["kz", "Kazachstan", 68, 32], ["ke", "Kenia", 58, 64], ["ki", "Kiribati", 95, 68], ["kp", "Korea Północna", 81, 42], ["kw", "Kuwejt", 63, 49],
-            ["kg", "Kirgistan", 70, 38], ["la", "Laos", 75, 58], ["lv", "Łotwa", 50, 25], ["lb", "Liban", 57, 47], ["ls", "Lesotho", 54, 81],
-            ["lr", "Liberia", 42, 61], ["ly", "Libia", 48, 50], ["li", "Liechtenstein", 43, 37], ["lt", "Litwa", 50, 26], ["lu", "Luksemburg", 40, 35],
-            ["mg", "Madagaskar", 62, 75], ["mw", "Malawi", 56, 72], ["my", "Malezja", 76, 64], ["mv", "Malediwy", 68, 65], ["ml", "Mali", 43, 53],
-            ["mt", "Malta", 46, 45], ["mh", "Wyspy Marshalla", 94, 60], ["mr", "Mauretania", 39, 53], ["mu", "Mauritius", 64, 76], ["fm", "Mikronezja", 91, 62],
-            ["md", "Mołdawia", 51, 37], ["mc", "Monako", 39, 39], ["mn", "Mongolia", 75, 30], ["me", "Czarnogóra", 47, 41], ["ma", "Maroko", 38, 48],
-            ["mz", "Mozambik", 57, 74], ["mm", "Mjanma", 72, 55], ["na", "Namibia", 50, 77], ["nr", "Nauru", 93, 65], ["np", "Nepal", 71, 46],
-            ["nz", "Nowa Zelandia", 90, 82], ["ni", "Nikaragua", 22, 56], ["ne", "Niger", 47, 54], ["ng", "Nigeria", 46, 59], ["mk", "Macedonia Północna", 48, 41],
-            ["no", "Norwegia", 44, 22], ["om", "Oman", 65, 53], ["pk", "Pakistan", 66, 46], ["pw", "Palau", 88, 65], ["pa", "Panama", 24, 60],
-            ["pg", "Papua-Nowa Gwinea", 88, 68], ["py", "Paragwaj", 33, 76], ["pe", "Peru", 28, 70], ["ph", "Filipiny", 82, 58], ["pt", "Portugalia", 35, 43],
-            ["qa", "Katar", 64, 51], ["ro", "Rumunia", 50, 37], ["ru", "Rosja", 65, 25], ["rw", "Rwanda", 54, 67], ["kn", "Saint Kitts i Nevis", 28, 55],
-            ["lc", "Saint Lucia", 28, 56], ["vc", "Saint Vincent i Grenadyny", 28, 57], ["ws", "Samoa", 95, 72], ["sm", "San Marino", 45, 40], ["st", "Wyspy Świętego Tomasza i Książęca", 45, 62],
-            ["sa", "Arabia Saudyjska", 62, 50], ["sn", "Senegal", 39, 58], ["rs", "Serbia", 48, 39], ["sc", "Seszele", 62, 70], ["sl", "Sierra Leone", 41, 60],
-            ["sg", "Singapur", 77, 65], ["sk", "Słowacja", 48, 35], ["si", "Słowenia", 46, 38], ["sb", "Wyspy Salomona", 90, 68], ["so", "Somalia", 63, 60],
-            ["za", "Republika Południowej Afryki", 52, 80], ["ss", "Sudan Południowy", 58, 60], ["lk", "Sri Lanka", 70, 62], ["sd", "Sudan", 56, 55], ["sr", "Surinam", 34, 62],
-            ["se2", "Szwecja", 46, 24], ["sy", "Syria", 59, 46], ["tw", "Tajwan", 80, 52], ["tj", "Tadżykistan", 69, 40], ["tz", "Tanzania", 57, 68],
-            ["th", "Tajlandia", 74, 58], ["tl", "Timor Wschodni", 82, 70], ["tg", "Togo", 44, 60], ["to", "Tonga", 96, 75], ["tt", "Trynidad i Tobago", 29, 58],
-            ["tn", "Tunezja", 43, 47], ["tr", "Turcja", 56, 42], ["tm", "Turkmenistan", 66, 40], ["tv", "Tuwalu", 94, 70], ["ug", "Uganda", 56, 64],
-            ["ua", "Ukraina", 53, 33], ["ae", "Zjednoczone Emiraty Arabskie", 64, 52], ["uy", "Urugwaj", 32, 79], ["uz", "Uzbekistan", 66, 38], ["vu", "Vanuatu", 91, 70],
-            ["va", "Watykan", 45, 40], ["ve", "Wenezuela", 29, 60], ["vn", "Wietnam", 76, 58], ["ye", "Jemen", 63, 55], ["zm", "Zambia", 54, 70], ["zw", "Zimbabwe", 55, 73]
+            ["pl", "Polska", 590, 180], ["de", "Niemcy", 570, 190], ["us", "Stany Zjednoczone", 230, 180], ["jp", "Japonia", 970, 200], ["gb", "Wielka Brytania", 535, 175],
+            ["fr", "Francja", 550, 210], ["kr", "Korea Południowa", 930, 215], ["cn", "Chiny", 860, 220], ["br", "Brazylia", 340, 430], ["it", "Włochy", 595, 235],
+            ["es", "Hiszpania", 530, 250], ["ca", "Kanada", 220, 110], ["au", "Australia", 1020, 480], ["in", "Indie", 790, 270], ["mx", "Meksyk", 210, 270],
+            ["se", "Szwecja", 595, 120], ["ch", "Szwajcaria", 575, 220], ["nl", "Holandia", 555, 170], ["af", "Afganistan", 740, 230], ["al", "Albania", 610, 235],
+            ["dz", "Algieria", 550, 310], ["ad", "Andora", 538, 245], ["ao", "Angola", 605, 480], ["ag", "Antigua i Barbuda", 295, 310], ["ar", "Argentyna", 310, 500],
+            ["am", "Armenia", 695, 215], ["at", "Austria", 585, 200], ["az", "Azerbejdżan", 710, 215], ["bs", "Bahamy", 275, 275], ["bh", "Bahrajn", 780, 310],
+            ["bd", "Bangladesz", 845, 280], ["bb", "Barbados", 310, 325], ["by", "Białoruś", 630, 150], ["be", "Belgia", 550, 180], ["bz", "Belize", 225, 315],
+            ["bj", "Benin", 575, 365], ["bt", "Bhutan", 855, 270], ["bo", "Boliwia", 320, 460], ["ba", "Bośnia i Hercegowina", 605, 220], ["bw", "Botswana", 620, 510],
+            ["bn", "Brunei", 890, 370], ["bg", "Bułgaria", 620, 220], ["bf", "Burkina Faso", 555, 360], ["bi", "Burundi", 650, 435], ["cv", "Republika Zielonego Przylądka", 480, 350],
+            ["kh", "Kambodża", 885, 320], ["cm", "Kamerun", 590, 390], ["cf", "Republika Środkowoafrykańska", 615, 390], ["td", "Czad", 600, 350], ["cl", "Chile", 295, 490],
+            ["co", "Kolumbia", 290, 370], ["km", "Komory", 685, 470], ["cg", "Kongo", 595, 420], ["cd", "Demokratyczna Republika Konga", 620, 420], ["cr", "Kostaryka", 240, 335],
+            ["ci", "Wybrzeże Kości Słoniowej", 540, 365], ["hr", "Chorwacja", 595, 210], ["cu", "Kuba", 270, 280], ["cy", "Cypr", 700, 245], ["cz", "Czechy", 595, 185],
+            ["dk", "Dania", 570, 155], ["dj", "Dżibuti", 680, 350], ["dm", "Dominika", 305, 315], ["do", "Dominikana", 290, 290], ["ec", "Ekwador", 280, 400],
+            ["eg", "Egipt", 650, 300], ["sv", "Salwador", 215, 330], ["gq", "Gwinea Równikowa", 585, 400], ["er", "Erytrea", 675, 335], ["ee", "Estonia", 615, 125],
+            ["sz", "Eswatini", 640, 520], ["et", "Etiopia", 670, 370], ["fj", "Fidżi", 1110, 495], ["fi", "Finlandia", 610, 115], ["ga", "Gabon", 585, 415],
+            ["gm", "Gambia", 505, 350], ["ge", "Gruzja", 695, 205], ["gh", "Ghana", 560, 370], ["gr", "Grecja", 615, 245], ["gd", "Grenada", 305, 325],
+            ["gt", "Gwatemala", 215, 315], ["gn", "Gwinea", 520, 360], ["gw", "Gwinea Bissau", 505, 355], ["gy", "Gujana", 325, 375], ["ht", "Haiti", 285, 295],
+            ["hn", "Honduras", 225, 320], ["hu", "Węgry", 600, 195], ["is", "Islandia", 480, 115], ["id", "Indonezja", 910, 410], ["ir", "Iran", 730, 240],
+            ["iq", "Irak", 715, 260], ["ie", "Irlandia", 515, 175], ["il", "Izrael", 700, 265], ["jm", "Jamajka", 270, 305], ["jo", "Jordania", 710, 270],
+            ["kz", "Kazachstan", 790, 150], ["ke", "Kenia", 665, 410], ["ki", "Kiribati", 1150, 450], ["kp", "Korea Północna", 930, 200], ["kw", "Kuwejt", 750, 280],
+            ["kg", "Kirgistan", 815, 185], ["la", "Laos", 880, 300], ["lv", "Łotwa", 615, 135], ["lb", "Liban", 705, 260], ["ls", "Lesotho", 630, 530],
+            ["lr", "Liberia", 530, 375], ["ly", "Libia", 595, 310], ["li", "Liechtenstein", 575, 210], ["lt", "Litwa", 615, 145], ["lu", "Luksemburg", 552, 185],
+            ["mg", "Madagaskar", 685, 490], ["mw", "Malawi", 655, 470], ["my", "Malezja", 885, 350], ["mv", "Malediwy", 815, 360], ["ml", "Mali", 540, 335],
+            ["mt", "Malta", 600, 260], ["mh", "Wyspy Marshalla", 1080, 390], ["mr", "Mauretania", 515, 330], ["mu", "Mauritius", 715, 500], ["fm", "Mikronezja", 1060, 370],
+            ["md", "Mołdawia", 630, 190], ["mc", "Monako", 555, 225], ["mn", "Mongolia", 880, 150], ["me", "Czarnogóra", 605, 228], ["ma", "Maroko", 525, 310],
+            ["mz", "Mozambik", 655, 490], ["mm", "Mjanma", 860, 285], ["na", "Namibia", 605, 500], ["nr", "Nauru", 1120, 420], ["np", "Nepal", 830, 260],
+            ["nz", "Nowa Zelandia", 1080, 550], ["ni", "Nikaragua", 230, 330], ["ne", "Niger", 575, 335], ["ng", "Nigeria", 575, 380], ["mk", "Macedonia Północna", 610, 230],
+            ["no", "Norwegia", 565, 130], ["om", "Oman", 770, 310], ["pk", "Pakistan", 770, 255], ["pw", "Palau", 980, 410], ["pa", "Panama", 250, 350],
+            ["pg", "Papua-Nowa Gwinea", 1010, 430], ["py", "Paragwaj", 325, 470], ["pe", "Peru", 295, 430], ["ph", "Filipiny", 930, 340], ["pt", "Portugalia", 520, 250],
+            ["qa", "Katar", 760, 295], ["ro", "Rumunia", 620, 195], ["ru", "Rosja", 800, 100], ["rw", "Rwanda", 645, 430], ["kn", "Saint Kitts i Nevis", 300, 315],
+            ["lc", "Saint Lucia", 305, 320], ["vc", "Saint Vincent i Grenadyny", 300, 325], ["ws", "Samoa", 1140, 470], ["sm", "San Marino", 590, 220], ["st", "Wyspy Świętego Tomasza i Książęca", 580, 410],
+            ["sa", "Arabia Saudyjska", 740, 290], ["sn", "Senegal", 500, 345], ["rs", "Serbia", 605, 215], ["sc", "Seszele", 700, 420], ["sl", "Sierra Leone", 515, 370],
+            ["sg", "Singapur", 885, 365], ["sk", "Słowacja", 600, 190], ["si", "Słowenia", 590, 210], ["sb", "Wyspy Salomona", 1060, 440], ["so", "Somalia", 685, 380],
+            ["za", "Republika Południowej Afryki", 625, 530], ["ss", "Sudan Południowy", 655, 390], ["lk", "Sri Lanka", 825, 335], ["sd", "Sudan", 645, 330], ["sr", "Surinam", 330, 375],
+            ["se2", "Szwecja", 595, 125], ["sy", "Syria", 710, 250], ["tw", "Tajwan", 935, 275], ["tj", "Tadżykistan", 805, 195], ["tz", "Tanzania", 665, 445],
+            ["th", "Tajlandia", 885, 290], ["tl", "Timor Wschodni", 930, 435], ["tg", "Togo", 565, 370], ["to", "Tonga", 1130, 500], ["tt", "Trynidad i Tobago", 315, 330],
+            ["tn", "Tunezja", 580, 300], ["tr", "Turcja", 690, 230], ["tm", "Turkmenistan", 775, 195], ["tv", "Tuwalu", 1120, 455], ["ug", "Uganda", 655, 415],
+            ["ua", "Ukraina", 650, 165], ["ae", "Zjednoczone Emiraty Arabskie", 760, 300], ["uy", "Urugwaj", 335, 500], ["uz", "Uzbekistan", 790, 185], ["vu", "Vanuatu", 1090, 465],
+            ["va", "Watykan", 590, 230], ["ve", "Wenezuela", 310, 375], ["vn", "Wietnam", 890, 310], ["ye", "Jemen", 750, 330], ["zm", "Zambia", 635, 470], ["zw", "Zimbabwe", 640, 485]
         ];
 
         const companyPrefixes = ['Apex', 'Nova', 'Cyber', 'Mega', 'Quantum', 'Hyper', 'Nexus', 'Prime', 'Zenith', 'Omni', 'Stellar', 'Void', 'Aether', 'Vortex', 'Solar', 'Matrix', 'Titan', 'Global', 'Neo', 'Alpha', 'Beta', 'Delta', 'Sigma', 'Echo', 'Phoenix', 'Titanium', 'Plasma', 'Nucleus', 'Infini', 'Terra'];
@@ -754,9 +773,9 @@
             });
         }
 
-        function saveGame() { localStorage.setItem('tech_giant_tycoon_save_v34', JSON.stringify(game)); }
+        function saveGame() { localStorage.setItem('tech_giant_tycoon_save_v35', JSON.stringify(game)); }
         function loadGame() {
-            const saved = localStorage.getItem('tech_giant_tycoon_save_v34');
+            const saved = localStorage.getItem('tech_giant_tycoon_save_v35');
             if(saved) {
                 try {
                     const parsed = JSON.parse(saved);
@@ -840,19 +859,33 @@
             inputEl.value = '';
         }
 
+        // Obsługa mapy: zoom i przeciąganie (pan)
         let currentMapZoom = 1.0;
-        function zoomMap(delta) {
-            currentMapZoom = Math.min(2.5, Math.max(0.7, currentMapZoom + delta));
+        let mapTranslateX = 0;
+        let mapTranslateY = 0;
+        let isDraggingMap = false;
+        let startDragX = 0;
+        let startDragY = 0;
+
+        function updateMapTransform() {
             const canvas = document.getElementById('world-map-canvas');
-            if(canvas) canvas.style.transform = `scale(${currentMapZoom})`;
-        }
-        function resetZoomMap() {
-            currentMapZoom = 1.0;
-            const canvas = document.getElementById('world-map-canvas');
-            if(canvas) canvas.style.transform = `scale(1)`;
+            if(canvas) {
+                canvas.style.transform = `translate(${mapTranslateX}px, ${mapTranslateY}px) scale(${currentMapZoom})`;
+            }
         }
 
-        // Obsługa scrolla myszą do zoomowania mapy
+        function zoomMap(delta) {
+            currentMapZoom = Math.min(2.5, Math.max(0.7, currentMapZoom + delta));
+            updateMapTransform();
+        }
+
+        function resetZoomMap() {
+            currentMapZoom = 1.0;
+            mapTranslateX = 0;
+            mapTranslateY = 0;
+            updateMapTransform();
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             const viewport = document.getElementById('world-map-viewport');
             if(viewport) {
@@ -861,6 +894,23 @@
                     let delta = e.deltaY < 0 ? 0.15 : -0.15;
                     zoomMap(delta);
                 }, { passive: false });
+
+                viewport.addEventListener('mousedown', (e) => {
+                    isDraggingMap = true;
+                    startDragX = e.clientX - mapTranslateX;
+                    startDragY = e.clientY - mapTranslateY;
+                });
+
+                window.addEventListener('mousemove', (e) => {
+                    if(!isDraggingMap) return;
+                    mapTranslateX = e.clientX - startDragX;
+                    mapTranslateY = e.clientY - startDragY;
+                    updateMapTransform();
+                });
+
+                window.addEventListener('mouseup', () => {
+                    isDraggingMap = false;
+                });
             }
         });
 
@@ -1359,11 +1409,11 @@
             filtered.forEach(c => {
                 let pin = document.createElement('div');
                 pin.className = 'map-pin';
-                pin.style.left = `${c.posX}%`;
-                pin.style.top = `${c.posY}%`;
+                pin.style.left = `${c.posX}px`;
+                pin.style.top = `${c.posY}px`;
                 pin.innerHTML = `
                     <div class="relative flex items-center justify-center">
-                        <div class="w-6 h-6 rounded-full ${c.storesCount > 0 ? 'bg-emerald-500 shadow-lg shadow-emerald-500/50' : 'bg-blue-600 shadow-lg shadow-blue-600/50'} border-2 border-white flex items-center justify-center text-[10px] font-bold text-white">${c.storesCount > 0 ? c.storesCount : '📍'}</div>
+                        <div class="map-pin-dot ${c.storesCount > 0 ? 'bg-emerald-500 shadow-lg shadow-emerald-500/50' : 'bg-blue-600 shadow-lg shadow-blue-600/50'}">${c.storesCount > 0 ? c.storesCount : '📍'}</div>
                         <div class="map-tooltip">
                             <div class="flex items-center gap-2 mb-1.5">
                                 <img src="${c.flagImg}" alt="${c.name}" class="w-5 h-3.5 object-cover rounded shadow border border-slate-700">
@@ -1791,7 +1841,7 @@
             } else if(cat === 'Rysik') {
                 lblSize.textContent = 'Długość'; unitSize.textContent = 'mm'; rangeSize.min = '100'; rangeSize.max = '160'; rangeSize.value = '140';
                 rangeThick.min = '5'; rangeThick.max = '15'; rangeSize.value = '9';
-                lblScreen.textContent = 'Nacisk'; unitScreen.textContent = 'tys.'; rangeScreen.min = '2'; rangeScreen.max = '16'; rangeScreen.step = '2'; rangeScreen.value = '4';
+                lblScreen.textContent = 'Nacisk'; unitSize.textContent = 'tys.'; rangeScreen.min = '2'; rangeScreen.max = '16'; rangeScreen.step = '2'; rangeScreen.value = '4';
             } else {
                 lblSize.textContent = 'Szerokość'; unitSize.textContent = 'mm'; rangeSize.min = '40'; rangeSize.max = '120'; rangeSize.value = '80';
                 rangeThick.min = '20'; rangeThick.max = '60'; rangeSize.value = '30';
