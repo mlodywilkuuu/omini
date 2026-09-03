@@ -185,8 +185,8 @@
                 <div class="glass-panel rounded-3xl p-8 shadow-2xl space-y-6">
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                         <div>
-                            <h3 class="text-xl font-bold text-blue-300">🤝 Giełda Udziałów (Rynek Firm)</h3>
-                            <p class="text-xs text-slate-400 mt-1">Wykupuj pojedyncze pakiety udziałów (po 10%), aby kontrolować spółki, czerpać zyski pasywne lub zlecać produkcję.</p>
+                            <h3 class="text-xl font-bold text-blue-300">🤝 Giełda Udziałów (Rynek Spółek)</h3>
+                            <p class="text-xs text-slate-400 mt-1">Kupuj udziały, śledź innych inwestorów i przejmuj pakiety większościowe (>50%), by zarządzać firmą!</p>
                         </div>
                         <input type="text" id="company-search" oninput="renderAcquisitions()" placeholder="🔍 Szukaj firmy..." class="px-4 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-xs text-slate-200 focus:outline-none focus:border-blue-500 w-full md:w-64">
                     </div>
@@ -273,6 +273,17 @@
 
         </div>
     </main>
+
+    <!-- MODAL ZARZĄDZANIA SPÓŁKĄ WIĘKSZOŚCIOWĄ -->
+    <div id="manage-company-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4 z-50">
+        <div class="glass-panel text-slate-100 w-full max-w-lg rounded-3xl shadow-2xl p-6 space-y-4 border border-blue-500/40">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 class="text-lg font-bold text-blue-300" id="manage-modal-title">Zarządzanie Spółką</h3>
+                <button onclick="closeManageModal()" class="text-slate-400 hover:text-white text-sm font-bold px-2.5 py-0.5 rounded-lg bg-slate-800/50">✕</button>
+            </div>
+            <div id="manage-modal-content" class="space-y-4 text-xs"></div>
+        </div>
+    </div>
 
     <!-- PŁYWAJĄCY KOMUNIKAT W STYLI TOAST -->
     <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2 pointer-events-none"></div>
@@ -440,7 +451,22 @@
 
         const companyPrefixes = ['Apex', 'Nova', 'Cyber', 'Mega', 'Quantum', 'Hyper', 'Nexus', 'Prime', 'Zenith', 'Omni', 'Stellar', 'Void', 'Aether', 'Vortex', 'Solar', 'Matrix', 'Titan', 'Global', 'Neo', 'Alpha', 'Beta', 'Delta', 'Sigma', 'Echo', 'Phoenix', 'Titanium', 'Plasma', 'Nucleus', 'Infini', 'Terra'];
         const companySuffixes = ['Tech', 'Labs', 'Dynamics', 'Corp', 'Systems', 'Industries', 'Solutions', 'Group', 'Electronics', 'Digital', 'Semiconductors', 'Audio', 'Mobility', 'Displays', 'Components'];
-        
+        const investorNames = ['BlackRock Ventures', 'Vanguard Tech Fund', 'SoftBank Vision', 'Silicon Valley Angels', 'Quantum Capital', 'Horizon Equity', 'Alpha Centauri Funds', 'Titanium Holdings'];
+
+        function generateAIInvestors() {
+            let count = Math.floor(Math.random() * 3) + 2; // 2 do 4 inwestorów
+            let shuffled = [...investorNames].sort(() => 0.5 - Math.random());
+            let invs = [];
+            let remainingShares = 10;
+            for(let i=0; i<count; i++) {
+                let shares = i === count - 1 ? remainingShares : Math.floor(Math.random() * (remainingShares - (count - i - 1))) + 1;
+                remainingShares -= shares;
+                invs.push({ name: shuffled[i], shares: shares });
+                if(remainingShares <= 0) break;
+            }
+            return invs;
+        }
+
         let initialCompanies = [];
         for(let i = 1; i <= 5; i++) {
             let p = companyPrefixes[i % companyPrefixes.length];
@@ -452,7 +478,12 @@
                 sharePrice: 15000 + (i * 5000),
                 passiveIncome: 500 + (i * 100),
                 playerShares: 0, // 0 do 10 (co 10% do 100%)
-                mode: 'passive'
+                aiInvestors: generateAIInvestors(),
+                mode: 'passive',
+                // Zarządzanie po przekroczeniu 50% (>5)
+                marketingBudget: 0,
+                rdBudget: 0,
+                salaryMultiplier: 1.0
             });
         }
 
@@ -579,9 +610,9 @@
             });
         }
 
-        function saveGame() { localStorage.setItem('tech_giant_tycoon_save_v23', JSON.stringify(game)); }
+        function saveGame() { localStorage.setItem('tech_giant_tycoon_save_v24', JSON.stringify(game)); }
         function loadGame() {
-            const saved = localStorage.getItem('tech_giant_tycoon_save_v23');
+            const saved = localStorage.getItem('tech_giant_tycoon_save_v24');
             if(saved) {
                 try {
                     const parsed = JSON.parse(saved);
@@ -688,27 +719,49 @@
             let filtered = game.companies.filter(c => c.name.toLowerCase().includes(query) || c.specialization.toLowerCase().includes(query));
 
             filtered.forEach(c => {
-                let canBuy = c.playerShares < 10;
+                let totalSharesOwned = c.playerShares;
+                let aiListHtml = '';
+                c.aiInvestors.forEach(inv => {
+                    aiListHtml += `<li class="text-slate-400">• ${inv.name}: <strong class="text-slate-200">${inv.shares * 10}%</strong></li>`;
+                });
+
+                let totalAssigned = c.playerShares + c.aiInvestors.reduce((acc, curr) => acc + curr.shares, 0);
+                let availableShares = 10 - totalAssigned;
+                let canBuy = availableShares > 0;
+
                 let buyBtn = canBuy 
                     ? `<button onclick="buyCompanyShare('${c.id}')" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-bold text-[11px]">Kup 10% udziałów (${c.sharePrice.toLocaleString()} zł)</button>`
-                    : `<span class="text-xs text-emerald-400 font-bold">Pakiet kontrolny 100% ✓</span>`;
+                    : `<span class="text-xs text-slate-500">Wszystkie udziały wykupione</span>`;
+
+                let isMajority = c.playerShares >= 6; // > 50%
+                let manageBtn = isMajority 
+                    ? `<button onclick="openManageModal('${c.id}')" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-lg font-bold text-[11px]">⚙️ Zarządzaj spółką</button>`
+                    : `<span class="text-[11px] text-slate-500" title="Wymagane >50% udziałów">🔒 Zarządzanie zablokowane (&gt;50%)</span>`;
 
                 let modeToggle = c.playerShares > 0 
-                    ? `<button onclick="toggleCompanyMode('${c.id}')" class="px-3 py-1.5 ${c.mode === 'passive' ? 'bg-indigo-600 hover:bg-indigo-500' : 'bg-emerald-600 hover:bg-emerald-500'} text-white rounded-lg font-bold text-[11px]">Tryb: ${c.mode === 'passive' ? 'Pasywny (Zmień na produkcję)' : 'Produkcja (Zmień na pasyw)'}</button>`
+                    ? `<button onclick="toggleCompanyMode('${c.id}')" class="px-3 py-1.5 ${c.mode === 'passive' ? 'bg-indigo-600 hover:bg-indigo-500' : 'bg-emerald-600 hover:bg-emerald-500'} text-white rounded-lg font-bold text-[11px]">Tryb: ${c.mode === 'passive' ? 'Pasywny' : 'Produkcja'}</button>`
                     : '';
 
                 container.innerHTML += `
-                    <div class="glass-card p-5 rounded-2xl flex flex-col justify-between gap-3 border ${c.playerShares === 10 ? 'border-emerald-500/40' : 'border-slate-700/60'}">
-                        <div>
+                    <div class="glass-card p-5 rounded-2xl flex flex-col justify-between gap-3 border ${isMajority ? 'border-amber-500/40' : 'border-slate-700/60'}">
+                        <div class="space-y-2">
                             <h4 class="font-bold text-slate-100 text-sm flex items-center justify-between">
                                 <span>🏢 ${c.name}</span>
-                                <span class="text-xs text-blue-300">Posiadasz: ${c.playerShares * 10}%</span>
+                                <span class="text-xs text-blue-300">Ty: ${c.playerShares * 10}%</span>
                             </h4>
-                            <p class="text-xs text-slate-400 mt-1">Specjalizacja: ${c.specialization}</p>
-                            <p class="text-xs text-slate-400 mt-0.5">Zysk pasywny (pełny): <strong class="text-emerald-400">+${c.passiveIncome.toLocaleString()} zł/s</strong></p>
+                            <p class="text-xs text-slate-400">Specjalizacja: ${c.specialization}</p>
+                            <p class="text-xs text-slate-400">Zysk pasywny (pełny): <strong class="text-emerald-400">+${c.passiveIncome.toLocaleString()} zł/s</strong></p>
+                            
+                            <div class="bg-slate-950/60 p-2.5 rounded-xl border border-slate-800 space-y-1">
+                                <span class="text-[11px] text-slate-400 font-bold block">Inni inwestorzy:</span>
+                                <ul class="text-[11px] space-y-0.5">${aiListHtml}</ul>
+                            </div>
                         </div>
                         <div class="pt-2 border-t border-slate-800/80 flex flex-col gap-2 items-end">
-                            ${modeToggle}
+                            <div class="flex gap-2 w-full justify-between items-center">
+                                ${modeToggle}
+                                ${manageBtn}
+                            </div>
                             ${buyBtn}
                         </div>
                     </div>
@@ -718,19 +771,22 @@
 
         function buyCompanyShare(id) {
             let comp = game.companies.find(c => c.id === id);
-            if(comp && comp.playerShares < 10) {
-                if(game.money < comp.sharePrice) {
-                    showToast('Za mało środków w budżecie na zakup tych udziałów!', 'error');
-                    return;
+            if(comp) {
+                let totalAssigned = comp.playerShares + comp.aiInvestors.reduce((acc, curr) => acc + curr.shares, 0);
+                if(totalAssigned < 10 && comp.playerShares < 10) {
+                    if(game.money < comp.sharePrice) {
+                        showToast('Za mało środków w budżecie na zakup tych udziałów!', 'error');
+                        return;
+                    }
+                    modifyMoney(-comp.sharePrice);
+                    comp.playerShares++;
+                    game.marketShare = parseFloat((game.marketShare + 0.1).toFixed(1));
+                    renderAcquisitions();
+                    updateManufacturerSelect();
+                    updateUI();
+                    saveGame();
+                    showToast(`Pomyślnie zakupiono 10% udziałów w firmie ${comp.name}!`, 'success');
                 }
-                modifyMoney(-comp.sharePrice);
-                comp.playerShares++;
-                game.marketShare = parseFloat((game.marketShare + 0.1).toFixed(1));
-                renderAcquisitions();
-                updateManufacturerSelect();
-                updateUI();
-                saveGame();
-                showToast(`Pomyślnie zakupiono 10% udziałów w firmie ${comp.name}!`, 'success');
             }
         }
 
@@ -743,6 +799,52 @@
                 saveGame();
                 showToast(`Zmieniono tryb pracy firmy ${comp.name}`, 'success');
             }
+        }
+
+        let activeManagingCompanyId = null;
+        function openManageModal(id) {
+            let comp = game.companies.find(c => c.id === id);
+            if(!comp) return;
+            activeManagingCompanyId = id;
+            document.getElementById('manage-modal-title').textContent = `Zarządzanie: ${comp.name}`;
+            
+            const content = document.getElementById('manage-modal-content');
+            content.innerHTML = `
+                <div class="space-y-4">
+                    <div class="glass-card p-3 rounded-xl space-y-1">
+                        <label class="block text-slate-300 font-semibold">Budżet Marketingowy: <strong id="m-budget-val" class="text-blue-300">${comp.marketingBudget} zł/s</strong></label>
+                        <input type="range" min="0" max="10000" step="500" value="${comp.marketingBudget}" oninput="updateCompanyParam('${id}', 'marketingBudget', this.value)" class="w-full accent-blue-500">
+                        <p class="text-[10px] text-slate-400">Zwiększa zysk pasywny oraz popyt na produkty spółki.</p>
+                    </div>
+                    <div class="glass-card p-3 rounded-xl space-y-1">
+                        <label class="block text-slate-300 font-semibold">Budżet R&D Spółki: <strong id="r-budget-val" class="text-indigo-300">${comp.rdBudget} zł/s</strong></label>
+                        <input type="range" min="0" max="15000" step="500" value="${comp.rdBudget}" oninput="updateCompanyParam('${id}', 'rdBudget', this.value)" class="w-full accent-indigo-500">
+                        <p class="text-[10px] text-slate-400">Przyspiesza rozwój technologiczny spółki i podnosi wartość pasywną.</p>
+                    </div>
+                    <div class="glass-card p-3 rounded-xl space-y-1">
+                        <label class="block text-slate-300 font-semibold">Mnożnik Pensji Pracowników: <strong id="s-mult-val" class="text-emerald-400">${comp.salaryMultiplier}x</strong></label>
+                        <input type="range" min="0.8" max="2.0" step="0.1" value="${comp.salaryMultiplier}" oninput="updateCompanyParam('${id}', 'salaryMultiplier', this.value)" class="w-full accent-emerald-500">
+                        <p class="text-[10px] text-slate-400">Wyższe pensje podnoszą wydajność spółki, niższe obniżają koszty.</p>
+                    </div>
+                </div>
+            `;
+            document.getElementById('manage-company-modal').classList.remove('hidden');
+        }
+
+        function updateCompanyParam(id, param, val) {
+            let comp = game.companies.find(c => c.id === id);
+            if(comp) {
+                comp[param] = parseFloat(val);
+                if(param === 'marketingBudget') document.getElementById('m-budget-val').textContent = `${val} zł/s`;
+                if(param === 'rdBudget') document.getElementById('r-budget-val').textContent = `${val} zł/s`;
+                if(param === 'salaryMultiplier') document.getElementById('s-mult-val').textContent = `${val}x`;
+                saveGame();
+            }
+        }
+
+        function closeManageModal() {
+            document.getElementById('manage-company-modal').classList.add('hidden');
+            activeManagingCompanyId = null;
         }
 
         function renderContracts() {
@@ -1182,7 +1284,7 @@
             } else if(cat === 'Słuchawki') {
                 lblSize.textContent = 'Nausznik'; unitSize.textContent = 'mm'; rangeSize.min = '30'; rangeSize.max = '100'; rangeSize.value = '50';
                 rangeThick.min = '10'; rangeThick.max = '40'; rangeThick.value = '20';
-                lblScreen.textContent = 'Pasmo'; unitScreen.textContent = 'kHz'; rangeScreen.min = '10'; rangeScreen.max = '40'; rangeScreen.step = '2'; rangeScreen.value = '20';
+                lblScreen.textContent = 'Pasmo'; unitSize.textContent = 'kHz'; rangeScreen.min = '10'; rangeScreen.max = '40'; rangeScreen.step = '2'; rangeScreen.value = '20';
             } else if(cat === 'Głośniki') {
                 lblSize.textContent = 'Moc'; unitSize.textContent = 'W'; rangeSize.min = '10'; rangeSize.max = '300'; rangeSize.value = '50';
                 rangeThick.min = '15'; rangeThick.max = '80'; rangeSize.value = '30';
@@ -1190,15 +1292,15 @@
             } else if(cat === 'Pad') {
                 lblSize.textContent = 'Szerokość'; unitSize.textContent = 'mm'; rangeSize.min = '120'; rangeSize.max = '180'; rangeSize.value = '150';
                 rangeThick.min = '30'; rangeThick.max = '80'; rangeSize.value = '50';
-                lblScreen.textContent = 'Wibracje'; unitScreen.textContent = 'pkt'; rangeScreen.min = '1'; rangeScreen.max = '5'; rangeScreen.step = '1'; rangeScreen.value = '3';
+                lblScreen.textContent = 'Wibracje'; unitSize.textContent = 'pkt'; rangeScreen.min = '1'; rangeScreen.max = '5'; rangeScreen.step = '1'; rangeScreen.value = '3';
             } else if(cat === 'Rysik') {
                 lblSize.textContent = 'Długość'; unitSize.textContent = 'mm'; rangeSize.min = '100'; rangeSize.max = '160'; rangeSize.value = '140';
                 rangeThick.min = '5'; rangeThick.max = '15'; rangeSize.value = '9';
-                lblScreen.textContent = 'Nacisk'; unitScreen.textContent = 'tys.'; rangeScreen.min = '2'; rangeScreen.max = '16'; rangeScreen.step = '2'; rangeScreen.value = '4';
+                lblScreen.textContent = 'Nacisk'; unitSize.textContent = 'tys.'; rangeScreen.min = '2'; rangeScreen.max = '16'; rangeScreen.step = '2'; rangeScreen.value = '4';
             } else {
                 lblSize.textContent = 'Szerokość'; unitSize.textContent = 'mm'; rangeSize.min = '40'; rangeSize.max = '120'; rangeSize.value = '80';
                 rangeThick.min = '20'; rangeThick.max = '60'; rangeSize.value = '30';
-                lblScreen.textContent = 'Rozdzielczość'; unitScreen.textContent = 'K'; rangeScreen.min = '1'; rangeScreen.max = '4'; rangeScreen.step = '1'; rangeScreen.value = '2';
+                lblScreen.textContent = 'Rozdzielczość'; unitSize.textContent = 'K'; rangeScreen.min = '1'; rangeScreen.max = '4'; rangeScreen.step = '1'; rangeScreen.value = '2';
             }
 
             updateDevicePreview();
@@ -1429,7 +1531,10 @@
             let companyPassive = 0;
             game.companies.forEach(c => {
                 if(c.playerShares > 0 && c.mode === 'passive') {
-                    companyPassive += Math.round(c.passiveIncome * (c.playerShares / 10));
+                    let mBonus = 1 + (c.marketingBudget / 20000);
+                    let rdBonus = 1 + (c.rdBudget / 30000);
+                    let netPassive = c.passiveIncome * mBonus * rdBonus;
+                    companyPassive += Math.round(netPassive * (c.playerShares / 10));
                 }
             });
             if(companyPassive > 0) {
@@ -1492,7 +1597,7 @@
             // Produkcja w przejętych firmach (tryb 'produce')
             game.companies.forEach(c => {
                 if(c.playerShares > 0 && c.mode === 'produce' && game.history.length > 0) {
-                    let producedUnits = Math.floor(2 * (c.playerShares / 10));
+                    let producedUnits = Math.floor(2 * (c.playerShares / 10) * c.salaryMultiplier);
                     let inc = producedUnits * 120;
                     currentDeviceIncomePerSec += inc;
                     game.stats.totalDeviceIncome += inc;
@@ -1545,7 +1650,11 @@
                     sharePrice: Math.floor(Math.random() * 50000) + 10000,
                     passiveIncome: Math.floor(Math.random() * 1000) + 300,
                     playerShares: 0,
-                    mode: 'passive'
+                    aiInvestors: generateAIInvestors(),
+                    mode: 'passive',
+                    marketingBudget: 0,
+                    rdBudget: 0,
+                    salaryMultiplier: 1.0
                 });
                 if(document.getElementById('tab-acquisitions') && !document.getElementById('tab-acquisitions').classList.contains('hidden')) {
                     renderAcquisitions();
