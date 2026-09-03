@@ -531,11 +531,12 @@
             'BlackRock Ventures', 'Vanguard Tech Fund', 'SoftBank Vision', 'Silicon Valley Angels', 
             'Quantum Capital', 'Horizon Equity', 'Alpha Centauri Funds', 'Titanium Holdings', 
             'Citadel Securities', 'Bridgewater Associates', 'Fidelity Investments', 'Sequoia Capital', 
-            'Andreessen Horowitz', 'Tiger Global Management', 'Berkshire Hathaway Tech'
+            'Andreessen Horowitz', 'Tiger Global Management', 'Berkshire Hathaway Tech',
+            'Goldman Sachs PE', 'Morgan Stanley Fund', 'JPMorgan Asset', 'State Street Global', 'Coatue Management'
         ];
 
         function generateAIInvestors(maxLimit = 70) {
-            let count = Math.floor(Math.random() * 3) + 2; 
+            let count = Math.floor(Math.random() * 4) + 3; // Od 3 do 6 inwestorów startowych
             let shuffled = [...investorNames].sort(() => 0.5 - Math.random());
             let invs = [];
             let remainingShares = maxLimit; 
@@ -698,9 +699,9 @@
             });
         }
 
-        function saveGame() { localStorage.setItem('tech_giant_tycoon_save_v44', JSON.stringify(game)); }
+        function saveGame() { localStorage.setItem('tech_giant_tycoon_save_v45', JSON.stringify(game)); }
         function loadGame() {
-            const saved = localStorage.getItem('tech_giant_tycoon_save_v44');
+            const saved = localStorage.getItem('tech_giant_tycoon_save_v45');
             if(saved) {
                 try {
                     const parsed = JSON.parse(saved);
@@ -877,7 +878,7 @@
                 let totalAssigned = c.playerShares + c.aiInvestors.reduce((acc, curr) => acc + curr.shares, 0) + (c.listedSharesForSale || 0);
                 let availableShares = Math.max(0, 100 - totalAssigned);
 
-                let aiListHtml = `<li class="text-slate-300">• ${game.playerName}: <strong class="text-blue-400">${c.playerShares}%</strong></li>`;
+                let aiListHtml = c.playerShares > 0 ? `<li class="text-slate-300">• ${game.playerName}: <strong class="text-blue-400">${c.playerShares}%</strong></li>` : '';
                 c.aiInvestors.forEach((inv, i) => {
                     aiListHtml += `<li class="text-slate-400">• <span class="text-amber-300 cursor-pointer hover:underline" title="Kliknij, aby odkupić udziały od tego inwestora" onclick="openTargetedBuyout('${c.id}', 'ai', ${i})">${inv.name}</span>: <strong class="text-slate-200">${inv.shares}%</strong></li>`;
                 });
@@ -907,7 +908,7 @@
                             
                             <div class="bg-slate-950/60 p-2.5 rounded-xl border border-slate-800 space-y-1">
                                 <span class="text-[11px] text-slate-400 font-bold block">Udziałowcy (kliknij w inwestora, by odkupić):</span>
-                                <ul class="text-[11px] space-y-0.5">${aiListHtml}</ul>
+                                <ul class="text-[11px] space-y-0.5 max-h-24 overflow-y-auto">${aiListHtml}</ul>
                             </div>
                         </div>
                         <div class="pt-2 border-t border-slate-800/80 flex flex-col gap-2 items-end">
@@ -2047,8 +2048,6 @@
 
                     totalCompanyCosts += totalCosts;
 
-                    // POPRAWKA: Inwestycje w marketing i R&D teraz realistycznie odejmują koszty, 
-                    // a do zysku dodają jedynie niewielki przyrost efektywności (1% zysku za każde 10k budżetu)
                     let marketingBonus = 1 + ((marketingCost / 10000) * 0.15);
                     let rdBonus = 1 + ((rdCost / 10000) * 0.15);
                     let staffBonus = 1 + ((c.salaryMultiplier - 1) * 0.2);
@@ -2063,12 +2062,11 @@
                         netPassive -= deduction;
                     }
 
-                    let companyEarnings = netPassive; // Może być ujemne jeśli wydatki przewyższają zysk!
+                    let companyEarnings = netPassive;
                     let divPayout = Math.max(0, companyEarnings * (c.dividendPercent / 100));
                     let myDivShare = divPayout * (c.playerShares / 100);
                     companyPassive += Math.round(myDivShare);
 
-                    // Rosnący budżet marketingowy i R&D podnosi wartość spółki w czasie
                     if(marketingCost > 0 || rdCost > 0) {
                         c.sharePricePerPercent += Math.floor((marketingCost + rdCost) / 25000);
                     }
@@ -2162,38 +2160,54 @@
             window.currentCompInc = companyPassive;
             window.currentSalaries = totalSalaries + currentRentsPerSec + totalCompanyCosts;
 
+            // DYNAMICZNY HANDEL NA GIEŁDZIE I AKTYWNOŚĆ INWESTORÓW
             game.companies.forEach(c => {
                 let totalAssigned = c.playerShares + c.aiInvestors.reduce((acc, curr) => acc + curr.shares, 0) + (c.listedSharesForSale || 0);
 
-                if(Math.random() < 0.25) {
-                    if(totalAssigned < 100 && c.aiInvestors.length > 0) {
-                        let randInv = c.aiInvestors[Math.floor(Math.random() * c.aiInvestors.length)];
-                        let canAdd = Math.min(100 - totalAssigned, 5);
-                        if(canAdd > 0) randInv.shares += canAdd;
-                    } else if(c.aiInvestors.length < 5 && totalAssigned < 100) {
-                        let newInvName = investorNames[Math.floor(Math.random() * investorNames.length)];
-                        if(!c.aiInvestors.some(i => i.name === newInvName)) {
-                            c.aiInvestors.push({ name: newInvName, shares: 5 });
+                // 1. Inwestorzy AI dokupują wolne udziały z rynku
+                if(totalAssigned < 100 && Math.random() < 0.45) {
+                    let freeShares = 100 - totalAssigned;
+                    let buyCount = Math.min(freeShares, Math.floor(Math.random() * 8) + 2);
+                    let targetInv = c.aiInvestors[Math.floor(Math.random() * c.aiInvestors.length)];
+                    if(targetInv) {
+                        targetInv.shares += buyCount;
+                    } else if(c.aiInvestors.length < 7) {
+                        let newName = investorNames[Math.floor(Math.random() * investorNames.length)];
+                        c.aiInvestors.push({ name: newName, shares: buyCount });
+                    }
+                }
+
+                // 2. Międzyinwestorski handel (kupno / sprzedaż wewnątrz spółki)
+                if(c.aiInvestors.length > 1 && Math.random() < 0.35) {
+                    let sellerIdx = Math.floor(Math.random() * c.aiInvestors.length);
+                    let seller = c.aiInvestors[sellerIdx];
+                    if(seller && seller.shares > 12) {
+                        let transferCount = Math.floor(Math.random() * 6) + 2;
+                        seller.shares -= transferCount;
+                        let buyer = c.aiInvestors.filter((_, idx) => idx !== sellerIdx)[Math.floor(Math.random() * (c.aiInvestors.length - 1))];
+                        if(buyer) {
+                            buyer.shares += transferCount;
+                        } else {
+                            c.listedSharesForSale = (c.listedSharesForSale || 0) + transferCount;
                         }
                     }
                 }
 
-                if(Math.random() < 0.15 && c.aiInvestors.length > 1) {
-                    let seller = c.aiInvestors[Math.floor(Math.random() * c.aiInvestors.length)];
-                    if(seller.shares > 10) {
-                        seller.shares -= 5;
-                        let buyer = c.aiInvestors.find(i => i.name !== seller.name);
-                        if(buyer) buyer.shares += 5;
-                        else c.listedSharesForSale = (c.listedSharesForSale || 0) + 5;
+                // 3. Nowi inwestorzy wchodzą do spółki, jeśli jest miejsce
+                if(c.aiInvestors.length < 7 && totalAssigned < 95 && Math.random() < 0.25) {
+                    let newName = investorNames[Math.floor(Math.random() * investorNames.length)];
+                    if(!c.aiInvestors.some(i => i.name === newName)) {
+                        c.aiInvestors.push({ name: newName, shares: Math.floor(Math.random() * 8) + 5 });
                     }
                 }
 
-                if(c.listedSharesForSale > 0 && Math.random() < 0.35) {
-                    let soldCount = Math.min(c.listedSharesForSale, Math.floor(Math.random() * 5) + 1);
+                // 4. Agresywne wykupywanie Twoich wystawionych akcji przez rynek
+                if((c.listedSharesForSale || 0) > 0 && Math.random() < 0.70) {
+                    let soldCount = Math.min(c.listedSharesForSale, Math.floor(Math.random() * 12) + 4);
                     c.listedSharesForSale -= soldCount;
                     let revenue = soldCount * c.listedSharePricePerPercent;
                     modifyMoney(revenue);
-                    showToast(`Rynek wykupił ${soldCount}% Twoich akcji w ${c.name} za ${revenue.toLocaleString()} zł!`, 'success');
+                    showToast(`Rynek giełdowy wykupił ${soldCount}% Twoich akcji w ${c.name} za ${revenue.toLocaleString()} zł!`, 'success');
                 }
 
                 if(Math.random() < 0.08) {
