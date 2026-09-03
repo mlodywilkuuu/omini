@@ -51,61 +51,6 @@
         ::-webkit-scrollbar-track { background: rgba(11, 17, 28, 0.5); }
         ::-webkit-scrollbar-thumb { background: rgba(59, 130, 246, 0.3); border-radius: 9999px; }
         ::-webkit-scrollbar-thumb:hover { background: rgba(59, 130, 246, 0.6); }
-
-        /* Styl dla pinesek na mapie z odpornym tooltipem */
-        .map-pin {
-            position: absolute;
-            transform: translate(-50%, -50%);
-            cursor: pointer;
-            padding: 15px; /* Obszar ułatwiający najechanie */
-            margin: -15px;
-            z-index: 10;
-        }
-        .map-pin:hover {
-            z-index: 50;
-        }
-        .map-pin-dot {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 10px;
-            font-weight: bold;
-            color: white;
-            border: 2px solid white;
-            transition: transform 0.2s ease;
-        }
-        .map-pin:hover .map-pin-dot {
-            transform: scale(1.4);
-        }
-        .map-tooltip {
-            visibility: hidden;
-            position: absolute;
-            bottom: 75%;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(11, 17, 28, 0.96);
-            backdrop-filter: blur(8px);
-            border: 1px solid rgba(59, 130, 246, 0.4);
-            color: #f8fafc;
-            text-align: left;
-            padding: 10px 14px;
-            border-radius: 12px;
-            z-index: 60;
-            width: 190px;
-            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.8);
-            opacity: 0;
-            transition: opacity 0.2s ease, visibility 0.2s ease;
-            transition-delay: 0.1s;
-            pointer-events: none;
-        }
-        .map-pin:hover .map-tooltip {
-            visibility: visible;
-            opacity: 1;
-            pointer-events: auto;
-        }
     </style>
 </head>
 <body class="animated-bg text-slate-100 h-screen flex flex-col overflow-hidden font-sans">
@@ -289,49 +234,18 @@
                 </div>
             </div>
 
-            <!-- ZAKŁADKA 5: MAPA ŚWIATA & SKLEPY -->
+            <!-- ZAKŁADKA 5: SKLEPY ŚWIATOWE (KAFELKI) -->
             <div id="tab-shops" class="tab-content flex-1 flex flex-col gap-6 overflow-y-auto hidden">
-                <div class="glass-panel rounded-3xl p-8 shadow-2xl space-y-6 flex flex-col flex-1 overflow-hidden">
-                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shrink-0">
+                <div class="glass-panel rounded-3xl p-8 shadow-2xl space-y-6 flex flex-col flex-1">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                         <div>
-                            <h3 class="text-xl font-bold text-blue-300">🌍 Interaktywna Mapa Świata</h3>
-                            <p class="text-xs text-slate-400 mt-1">Kliknij i przeciągnij, aby przesuwać mapę. Użyj przycisków lub scrolla myszy do przybliżania.</p>
+                            <h3 class="text-xl font-bold text-blue-300">🌍 Globalne Rynki i Sklepy</h3>
+                            <p class="text-xs text-slate-400 mt-1">Otwieraj oficjalne salony sprzedaży w kolejnych krajach, aby zwiększać przychody i udziały w rynku.</p>
                         </div>
-                        <div class="flex items-center gap-3">
-                            <input type="text" id="country-search" oninput="renderWorldMap()" placeholder="🔍 Szukaj kraju..." class="px-4 py-2 bg-slate-950 border border-slate-700 rounded-xl text-xs text-slate-200 focus:outline-none focus:border-blue-500 w-48">
-                            <div class="flex gap-1 bg-slate-950 border border-slate-700 rounded-xl p-1">
-                                <button onclick="zoomMap(0.2)" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 rounded-lg text-xs font-bold text-white">+</button>
-                                <button onclick="zoomMap(-0.2)" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 rounded-lg text-xs font-bold text-white">-</button>
-                                <button onclick="resetZoomMap()" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 rounded-lg text-xs font-bold text-slate-300">Reset</button>
-                            </div>
-                        </div>
+                        <input type="text" id="country-search" oninput="renderWorldShops()" placeholder="🔍 Szukaj kraju..." class="px-4 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-xs text-slate-200 focus:outline-none focus:border-blue-500 w-full md:w-64">
                     </div>
 
-                    <!-- KONTENER MAPY ŚWIATA Z KONTURAMI, ZOOMEM I PRZESUWANIEM -->
-                    <div id="world-map-viewport" class="relative w-full flex-1 bg-slate-950 rounded-2xl border border-slate-800 overflow-hidden shadow-inner flex items-center justify-center cursor-grab active:cursor-grabbing select-none" style="min-height: 500px;">
-                        <div id="world-map-canvas" class="absolute w-[1200px] h-[600px] origin-center" style="transform: translate(0px, 0px) scale(1);">
-                            <!-- Stylizowany SVG mapy świata / kontynentów dopasowany do współrzędnych 1200x600 -->
-                            <svg class="absolute inset-0 w-full h-full opacity-30 pointer-events-none" viewBox="0 0 1200 600" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <!-- Ameryka Północna -->
-                                <path d="M150,100 Q250,70 300,130 T360,240 Q280,310 190,230 Z" fill="#3b82f6" opacity="0.6"/>
-                                <!-- Ameryka Południowa -->
-                                <path d="M280,330 Q360,350 340,480 T240,560 Q210,460 240,380 Z" fill="#3b82f6" opacity="0.5"/>
-                                <!-- Europa -->
-                                <path d="M550,120 Q650,90 680,170 T600,240 Q520,220 540,140 Z" fill="#3b82f6" opacity="0.7"/>
-                                <!-- Afryka -->
-                                <path d="M550,265 Q670,280 650,440 T550,540 Q490,405 520,310 Z" fill="#3b82f6" opacity="0.6"/>
-                                <!-- Azja -->
-                                <path d="M700,80 Q920,45 1040,140 T1000,380 Q840,400 720,300 T700,140 Z" fill="#3b82f6" opacity="0.7"/>
-                                <!-- Australia -->
-                                <path d="M980,440 Q1080,430 1060,540 T960,520 Z" fill="#3b82f6" opacity="0.6"/>
-                            </svg>
-                            <!-- Siatka kartograficzna -->
-                            <div class="absolute inset-0 bg-[radial-gradient(#3b82f6_1px,transparent_1px)] [background-size:40px_40px] opacity-20 pointer-events-none"></div>
-                            
-                            <!-- Kontener na pineski krajów -->
-                            <div id="map-pins-container" class="absolute inset-0 w-full h-full"></div>
-                        </div>
-                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[550px] overflow-y-auto pr-2" id="world-shops-container"></div>
                 </div>
             </div>
 
@@ -859,61 +773,6 @@
             inputEl.value = '';
         }
 
-        // Obsługa mapy: zoom i przeciąganie (pan)
-        let currentMapZoom = 1.0;
-        let mapTranslateX = 0;
-        let mapTranslateY = 0;
-        let isDraggingMap = false;
-        let startDragX = 0;
-        let startDragY = 0;
-
-        function updateMapTransform() {
-            const canvas = document.getElementById('world-map-canvas');
-            if(canvas) {
-                canvas.style.transform = `translate(${mapTranslateX}px, ${mapTranslateY}px) scale(${currentMapZoom})`;
-            }
-        }
-
-        function zoomMap(delta) {
-            currentMapZoom = Math.min(2.5, Math.max(0.7, currentMapZoom + delta));
-            updateMapTransform();
-        }
-
-        function resetZoomMap() {
-            currentMapZoom = 1.0;
-            mapTranslateX = 0;
-            mapTranslateY = 0;
-            updateMapTransform();
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            const viewport = document.getElementById('world-map-viewport');
-            if(viewport) {
-                viewport.addEventListener('wheel', (e) => {
-                    e.preventDefault();
-                    let delta = e.deltaY < 0 ? 0.15 : -0.15;
-                    zoomMap(delta);
-                }, { passive: false });
-
-                viewport.addEventListener('mousedown', (e) => {
-                    isDraggingMap = true;
-                    startDragX = e.clientX - mapTranslateX;
-                    startDragY = e.clientY - mapTranslateY;
-                });
-
-                window.addEventListener('mousemove', (e) => {
-                    if(!isDraggingMap) return;
-                    mapTranslateX = e.clientX - startDragX;
-                    mapTranslateY = e.clientY - startDragY;
-                    updateMapTransform();
-                });
-
-                window.addEventListener('mouseup', () => {
-                    isDraggingMap = false;
-                });
-            }
-        });
-
         function switchTab(tab) {
             ['devices', 'rd', 'factory', 'acquisitions', 'contracts', 'shops', 'staff', 'hq', 'stats'].forEach(t => {
                 const el = document.getElementById(`tab-${t}`);
@@ -928,7 +787,7 @@
             if(tab === 'factory') { renderFactories(); initSalesChart(); }
             if(tab === 'acquisitions') renderAcquisitions();
             if(tab === 'contracts') renderContracts();
-            if(tab === 'shops') renderWorldMap();
+            if(tab === 'shops') renderWorldShops();
             if(tab === 'hq') renderHQ();
             if(tab === 'stats') renderStats();
         }
@@ -1396,39 +1255,33 @@
             }
         }
 
-        function renderWorldMap() {
-            const pinsContainer = document.getElementById('map-pins-container');
+        function renderWorldShops() {
+            const container = document.getElementById('world-shops-container');
             const searchInput = document.getElementById('country-search');
-            if(!pinsContainer) return;
+            if(!container) return;
 
-            pinsContainer.innerHTML = '';
-
+            container.innerHTML = '';
             let query = searchInput ? searchInput.value.toLowerCase() : '';
             let filtered = game.countries.filter(c => c.name.toLowerCase().includes(query));
 
             filtered.forEach(c => {
-                let pin = document.createElement('div');
-                pin.className = 'map-pin';
-                pin.style.left = `${c.posX}px`;
-                pin.style.top = `${c.posY}px`;
-                pin.innerHTML = `
-                    <div class="relative flex items-center justify-center">
-                        <div class="map-pin-dot ${c.storesCount > 0 ? 'bg-emerald-500 shadow-lg shadow-emerald-500/50' : 'bg-blue-600 shadow-lg shadow-blue-600/50'}">${c.storesCount > 0 ? c.storesCount : '📍'}</div>
-                        <div class="map-tooltip">
-                            <div class="flex items-center gap-2 mb-1.5">
-                                <img src="${c.flagImg}" alt="${c.name}" class="w-5 h-3.5 object-cover rounded shadow border border-slate-700">
-                                <strong class="text-xs text-slate-100">${c.name}</strong>
+                container.innerHTML += `
+                    <div class="glass-card p-5 rounded-2xl flex flex-col justify-between gap-3 border ${c.storesCount > 0 ? 'border-emerald-500/40' : 'border-slate-700/60'}">
+                        <div class="flex items-center gap-3 border-b border-slate-800 pb-3">
+                            <img src="${c.flagImg}" alt="${c.name}" class="w-8 h-6 object-cover rounded shadow border border-slate-700">
+                            <div>
+                                <h4 class="font-bold text-slate-100 text-sm">${c.name}</h4>
+                                <span class="text-xs text-blue-300">Posiadane sklepy: ${c.storesCount}</span>
                             </div>
-                            <div class="text-[10px] space-y-0.5 text-slate-300">
-                                <div>Sklepy: <strong class="text-blue-300">${c.storesCount}</strong></div>
-                                <div>Koszt: <strong class="text-emerald-400">${c.cost.toLocaleString()} zł</strong></div>
-                                <div>Zysk: <strong class="text-emerald-400">+${c.income.toLocaleString()} zł/s</strong></div>
-                            </div>
-                            <button onclick="buyCountryStore('${c.id}')" class="mt-2 w-full py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-[10px] font-bold transition">Otwórz Sklep</button>
                         </div>
+                        <div class="space-y-1 text-xs text-slate-300">
+                            <div>Koszt otwarcia: <strong class="text-emerald-400">${c.cost.toLocaleString()} zł</strong></div>
+                            <div>Przychód sklepu: <strong class="text-emerald-400">+${c.income.toLocaleString()} zł/s</strong></div>
+                            <div>Czynsz i podatki: <strong class="text-rose-400">-${c.rent.toLocaleString()} zł/s</strong></div>
+                        </div>
+                        <button onclick="buyCountryStore('${c.id}')" class="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-xs transition shadow-lg">Otwórz Sklep</button>
                     </div>
                 `;
-                pinsContainer.appendChild(pin);
             });
         }
 
@@ -1442,7 +1295,7 @@
                 modifyMoney(-country.cost);
                 country.storesCount++;
                 game.marketShare = parseFloat((game.marketShare + country.shareBoost).toFixed(1));
-                renderWorldMap();
+                renderWorldShops();
                 updateUI();
                 saveGame();
                 showToast(`Otwarto nowy sklep w kraju: ${country.name}!`, 'success');
@@ -1841,7 +1694,7 @@
             } else if(cat === 'Rysik') {
                 lblSize.textContent = 'Długość'; unitSize.textContent = 'mm'; rangeSize.min = '100'; rangeSize.max = '160'; rangeSize.value = '140';
                 rangeThick.min = '5'; rangeThick.max = '15'; rangeSize.value = '9';
-                lblScreen.textContent = 'Nacisk'; unitSize.textContent = 'tys.'; rangeScreen.min = '2'; rangeScreen.max = '16'; rangeScreen.step = '2'; rangeScreen.value = '4';
+                lblScreen.textContent = 'Nacisk'; unitScreen.textContent = 'tys.'; rangeScreen.min = '2'; rangeScreen.max = '16'; rangeScreen.step = '2'; rangeScreen.value = '4';
             } else {
                 lblSize.textContent = 'Szerokość'; unitSize.textContent = 'mm'; rangeSize.min = '40'; rangeSize.max = '120'; rangeSize.value = '80';
                 rangeThick.min = '20'; rangeThick.max = '60'; rangeSize.value = '30';
