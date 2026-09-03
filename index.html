@@ -172,7 +172,7 @@
                     <div id="factories-container" class="space-y-6"></div>
                     
                     <div class="glass-card p-6 rounded-2xl space-y-4 border-slate-700/60">
-                        <h4 class="text-sm font-bold text-slate-200">📈 Wykres Sprzedaży i Produkcji</h4>
+                        <h4 class="text-sm font-bold text-slate-200">📈 Wykres Sprzedaży i Produkcji (Falujący Trend Rynkowy)</h4>
                         <div class="h-64 relative">
                             <canvas id="factorySalesChart"></canvas>
                         </div>
@@ -186,7 +186,7 @@
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                         <div>
                             <h3 class="text-xl font-bold text-blue-300">🤝 Giełda Udziałów (Rynek Spółek)</h3>
-                            <p class="text-xs text-slate-400 mt-1">Składaj oferty kupna udziałów (firmy w które zainwestowano mogą też same proponować odkup lub sprzedaż) lub przejmuj pakiety większościowe!</p>
+                            <p class="text-xs text-slate-400 mt-1">Kupuj i odkupuj pakiety akcji, składaj oferty zarządom oraz przejmuj pakiety większościowe!</p>
                         </div>
                         <input type="text" id="company-search" oninput="renderAcquisitions()" placeholder="🔍 Szukaj firmy..." class="px-4 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-xs text-slate-200 focus:outline-none focus:border-blue-500 w-full md:w-64">
                     </div>
@@ -199,7 +199,7 @@
                 <div class="glass-panel rounded-3xl p-8 shadow-2xl space-y-6">
                     <div>
                         <h3 class="text-xl font-bold text-blue-300">📋 Zlecenia Kontraktowe B2B</h3>
-                        <p class="text-xs text-slate-400 mt-1">Wykonuj zlecenia dla zewnętrznych podmiotów za gotówkę.</p>
+                        <p class="text-xs text-slate-400 mt-1">Przeglądaj dostępne oferty i wybieraj, które zlecenia chcesz przyjąć do realizacji.</p>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="contracts-list"></div>
                 </div>
@@ -222,7 +222,14 @@
             <!-- ZAKŁADKA 6: KADRY (HR) -->
             <div id="tab-staff" class="tab-content flex-1 flex flex-col gap-6 overflow-y-auto hidden">
                 <div class="glass-panel rounded-3xl p-8 shadow-2xl space-y-6">
-                    <h3 class="text-xl font-bold text-blue-300">Giełda Pracy & Specjaliści</h3>
+                    <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                        <h3 class="text-xl font-bold text-blue-300">Giełda Pracy & Specjaliści</h3>
+                        <div class="flex gap-2">
+                            <button onclick="switchStaffCat('Inżynier Sprzętu')" id="staff-cat-eng" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-blue-600 text-white">Inżynierowie</button>
+                            <button onclick="switchStaffCat('Projektant UI/UX')" id="staff-cat-des" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-800 text-slate-400">Projektanci</button>
+                            <button onclick="switchStaffCat('Badacz / Naukowiec R&D')" id="staff-cat-res" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-800 text-slate-400">Naukowcy R&D</button>
+                        </div>
+                    </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="job-market"></div>
                 </div>
                 <div class="glass-panel rounded-3xl p-8 shadow-2xl space-y-4">
@@ -274,11 +281,11 @@
         </div>
     </main>
 
-    <!-- MODAL SKŁADANIA OFERTY KUPNA UDZIAŁÓW -->
+    <!-- MODAL SKŁADANIA OFERTY KUPNA / ODKUPU UDZIAŁÓW -->
     <div id="offer-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4 z-50">
         <div class="glass-panel text-slate-100 w-full max-w-md rounded-3xl shadow-2xl p-6 space-y-4 border border-blue-500/40">
             <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-                <h3 class="text-lg font-bold text-blue-300">Złóż ofertę zakupu udziałów</h3>
+                <h3 id="offer-modal-title" class="text-lg font-bold text-blue-300">Złóż ofertę zakupu udziałów</h3>
                 <button onclick="closeOfferModal()" class="text-slate-400 hover:text-white text-sm font-bold px-2.5 py-0.5 rounded-lg bg-slate-800/50">✕</button>
             </div>
             <div class="space-y-3 text-xs">
@@ -288,11 +295,11 @@
                     <input type="number" id="offer-shares-count" min="1" max="10" value="1" class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-xs text-white">
                 </div>
                 <div class="glass-card p-3 rounded-xl space-y-2">
-                    <label class="block text-slate-300 font-semibold">Twoja propozycja ceny za 10% (Aktualna cena rynkowa: <strong id="offer-market-price" class="text-emerald-400">0</strong> zł):</label>
+                    <label class="block text-slate-300 font-semibold">Propozycja ceny za 10% (Cena rynkowa: <strong id="offer-market-price" class="text-emerald-400">0</strong> zł):</label>
                     <input type="number" id="offer-price-input" class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-xs text-white">
                 </div>
-                <div class="text-slate-400 font-bold">Łączna kwota oferty: <span id="offer-total-cost" class="text-blue-400">0</span> zł</div>
-                <button onclick="submitShareOffer()" class="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold transition">Wyślij ofertę do zarządu i inwestorów</button>
+                <div class="text-slate-400 font-bold">Łączna kwota: <span id="offer-total-cost" class="text-blue-400">0</span> zł</div>
+                <button onclick="submitShareOffer()" id="offer-submit-btn" class="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold transition">Wyślij ofertę</button>
             </div>
         </div>
     </div>
@@ -336,7 +343,7 @@
         </div>
     </div>
 
-    <!-- MODAL TWORZENIA URZĄDZENIA (MNIEJSZY) -->
+    <!-- MODAL TWORZENIA URZĄDZENIA -->
     <div id="new-device-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4 z-50 overflow-y-auto">
         <div class="glass-panel text-slate-100 w-full max-w-2xl rounded-3xl shadow-2xl p-6 space-y-4 border border-blue-500/30 my-6">
             <div class="flex justify-between items-center border-b border-slate-800/80 pb-3">
@@ -370,7 +377,6 @@
                     </div>
                 </div>
 
-                <!-- DODATKOWY WYBÓR DLA SŁUCHAWK -->
                 <div id="sub-category-wrapper" class="glass-card p-3 rounded-xl space-y-1.5 border-slate-700/60 hidden">
                     <label class="block text-slate-300 font-semibold mb-0.5">Typ konstrukcji słuchawek</label>
                     <select id="dev-sub-category" class="w-full px-2.5 py-2 bg-slate-950 border border-slate-700/80 rounded-lg text-xs text-slate-200">
@@ -379,7 +385,6 @@
                     </select>
                 </div>
 
-                <!-- WYBÓR KTO PRODUKUJE -->
                 <div class="glass-card p-3 rounded-xl space-y-1.5 border-slate-700/60">
                     <label class="block text-slate-300 font-semibold">🏭 Kto ma produkować?</label>
                     <select id="dev-manufacturer" class="w-full px-2.5 py-2 bg-slate-950 border border-slate-700/80 rounded-lg text-xs text-slate-200">
@@ -387,10 +392,8 @@
                     </select>
                 </div>
 
-                <!-- SEKCJA WYMIARÓW I PODGLĄDU -->
                 <div class="glass-card p-4 rounded-xl space-y-3 border-slate-700/60">
                     <h4 class="text-xs font-bold text-slate-200 flex items-center gap-2"><span>📐</span> Wzornictwo i Wymiary Fizyczne</h4>
-                    
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                         <div>
                             <label class="block text-slate-400 mb-1 font-medium"><span id="lbl-size">Wysokość</span>: <strong id="val-size" class="text-blue-300">150</strong> <span id="unit-size">mm</span></label>
@@ -406,7 +409,6 @@
                         </div>
                     </div>
 
-                    <!-- PODGLĄD GRAFICZNY -->
                     <div class="p-4 bg-slate-950/80 rounded-xl border border-slate-800 flex flex-col items-center justify-center gap-2 relative overflow-hidden min-h-[140px]">
                         <span class="text-[10px] text-slate-500 uppercase tracking-widest font-semibold">Podgląd dynamiczny</span>
                         <div id="device-visual-preview" class="bg-gradient-to-tr from-slate-800 to-slate-700 border-2 border-slate-500 rounded-xl flex items-center justify-center shadow-xl transition-all duration-150 relative">
@@ -417,7 +419,6 @@
                     </div>
                 </div>
 
-                <!-- TECHNOLOGIE -->
                 <div class="glass-card p-3 rounded-xl space-y-2 border-slate-700/60">
                     <label class="text-slate-200 font-bold block text-xs flex items-center gap-1.5"><span>✨</span> Wybierz technologie:</label>
                     <div id="device-features-checkboxes" class="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto p-2 bg-slate-950/40 rounded-lg border border-slate-800"></div>
@@ -489,12 +490,12 @@
         const investorNames = ['BlackRock Ventures', 'Vanguard Tech Fund', 'SoftBank Vision', 'Silicon Valley Angels', 'Quantum Capital', 'Horizon Equity', 'Alpha Centauri Funds', 'Titanium Holdings'];
 
         function generateAIInvestors() {
-            let count = Math.floor(Math.random() * 3) + 2;
+            let count = Math.floor(Math.random() * 3) + 1; // 1 do 3 inwestorów
             let shuffled = [...investorNames].sort(() => 0.5 - Math.random());
             let invs = [];
-            let remainingShares = 10;
+            let remainingShares = 8; // Zostawiamy pakiety wolne
             for(let i=0; i<count; i++) {
-                let shares = i === count - 1 ? remainingShares : Math.floor(Math.random() * (remainingShares - (count - i - 1))) + 1;
+                let shares = i === count - 1 ? Math.min(remainingShares, Math.floor(Math.random() * 4) + 1) : Math.floor(Math.random() * 3) + 1;
                 remainingShares -= shares;
                 invs.push({ name: shuffled[i], shares: shares });
                 if(remainingShares <= 0) break;
@@ -531,6 +532,7 @@
             history: [],
             hiredStaff: [],
             marketCandidates: [],
+            activeStaffCat: 'Inżynier Sprzętu',
             factories: [
                 { id: 1, name: 'Fabryka Główna #1', level: 1, upgradeCost: 100000, lines: { Smartfon: { active: false, unitsProduced: 0 }, Tablet: { active: false, unitsProduced: 0 }, Laptop: { active: false, unitsProduced: 0 }, 'Komputer PC': { active: false, unitsProduced: 0 }, Konsola: { active: false, unitsProduced: 0 }, Słuchawki: { active: false, unitsProduced: 0 }, Głośniki: { active: false, unitsProduced: 0 }, Pad: { active: false, unitsProduced: 0 }, Rysik: { active: false, unitsProduced: 0 }, Kamerka: { active: false, unitsProduced: 0 } } }
             ],
@@ -538,12 +540,12 @@
             techTree: { phones: [], tablets: [], laptops: [], pcs: [], consoles: [], headphones: [], speakers: [], pads: [], stylus: [], webcams: [] },
             countries: [],
             companies: initialCompanies,
-            contracts: [
-                { id: 1, title: 'Produkcja 500 smartfonów dla operatora', reward: 120000, progress: 0, target: 500, type: 'Smartfon' },
-                { id: 2, title: 'Dostarczenie 300 par słuchawek', reward: 80000, progress: 0, target: 300, type: 'Słuchawki' },
-                { id: 3, title: 'Dostawa 200 tabletów do sieci sklepów', reward: 95000, progress: 0, target: 200, type: 'Tablet' },
-                { id: 4, title: 'Wyprodukowanie 150 konsol dla graczy', reward: 150000, progress: 0, target: 150, type: 'Konsola' }
+            availableContracts: [
+                { id: 101, title: 'Produkcja 300 smartfonów dla sieci Plus', reward: 90000, progress: 0, target: 300, type: 'Smartfon' },
+                { id: 102, title: 'Dostarczenie 200 par słuchawek bezprzewodowych', reward: 60000, progress: 0, target: 200, type: 'Słuchawki' },
+                { id: 103, title: 'Dostawa 100 tabletów edukacyjnych', reward: 75000, progress: 0, target: 100, type: 'Tablet' }
             ],
+            activeContracts: [],
             salesHistoryData: { labels: [], datasets: [] },
             stats: {
                 totalStoreIncome: 0,
@@ -558,14 +560,13 @@
         const firstNames = ['Jan', 'Piotr', 'Krzysztof', 'Andrzej', 'Tomasz', 'Paweł', 'Michał', 'Marcin', 'Jakub', 'Adam', 'Stanisław', 'Marek', 'Łukasz', 'Grzegorz', 'Mateusz', 'Wojciech', 'Kamil', 'Konrad', 'Bartosz', 'Łucja', 'Anna', 'Katarzyna', 'Maria', 'Małgorzata', 'Agnieszka', 'Krystyna', 'Barbara', 'Ewa', 'Elżbieta', 'Zofia', 'Magdalena', 'Joanna', 'Monika', 'Natalia', 'Karolina', 'Aleksandra', 'Marta', 'Alicja', 'Dorota', 'Patrycja'];
         const lastNames = ['Nowak', 'Wójcik', 'Woźniak', 'Kowalczyk', 'Kozłowska', 'Mazur', 'Krawczyk', 'Kaczmarek', 'Ziółkowska', 'Zając', 'Król', 'Wieczorek', 'Wróbel', 'Jabłońska', 'Duda', 'Olech', 'Szymańska', 'Woźny', 'Dąbrowski', 'Kozłowski', 'Jankowska', 'Mazurkiewicz', 'Kwiatkowska', 'Kaczor', 'Grabowski', 'Piotrowska', 'Pawłowska', 'Michalak', 'Nowicka', 'Adamczyk'];
 
-        function generateRandomStaffMember() {
-            const roles = ['Inżynier Sprzętu', 'Projektant UI/UX', 'Badacz / Naukowiec R&D'];
+        function generateRandomStaffMember(role) {
             const fName = firstNames[Math.floor(Math.random() * firstNames.length)];
             const lName = lastNames[Math.floor(Math.random() * lastNames.length)];
             return {
                 id: Date.now() + Math.random(),
                 name: `${fName} ${lName}`,
-                role: roles[Math.floor(Math.random() * roles.length)],
+                role: role,
                 skill: Math.floor(Math.random() * 35) + 15,
                 salary: 3500
             };
@@ -646,9 +647,9 @@
             });
         }
 
-        function saveGame() { localStorage.setItem('tech_giant_tycoon_save_v27', JSON.stringify(game)); }
+        function saveGame() { localStorage.setItem('tech_giant_tycoon_save_v28', JSON.stringify(game)); }
         function loadGame() {
-            const saved = localStorage.getItem('tech_giant_tycoon_save_v27');
+            const saved = localStorage.getItem('tech_giant_tycoon_save_v28');
             if(saved) {
                 try {
                     const parsed = JSON.parse(saved);
@@ -752,14 +753,10 @@
             container.innerHTML = '';
 
             let query = searchInput ? searchInput.value.toLowerCase() : '';
-            // Ukrywamy firmy, które mają w 100% wykupione udziały (brak dostępnych pakietów)
-            let filtered = game.companies.filter(c => {
-                let totalAssigned = c.playerShares + c.aiInvestors.reduce((acc, curr) => acc + curr.shares, 0);
-                return totalAssigned < 10 && (c.name.toLowerCase().includes(query) || c.specialization.toLowerCase().includes(query));
-            });
+            let filtered = game.companies.filter(c => c.name.toLowerCase().includes(query) || c.specialization.toLowerCase().includes(query));
 
             if(filtered.length === 0) {
-                container.innerHTML = `<div class="col-span-full text-center py-12 text-slate-500 text-sm">Brak dostępnych spółek z wolnymi udziałami na giełdzie.</div>`;
+                container.innerHTML = `<div class="col-span-full text-center py-12 text-slate-500 text-sm">Brak dostępnych spółek na giełdzie.</div>`;
                 return;
             }
 
@@ -772,12 +769,18 @@
                     aiListHtml += `<li class="text-slate-400">• ${inv.name}: <strong class="text-slate-200">${inv.shares * 10}%</strong></li>`;
                 });
 
-                let buyBtn = `<button onclick="openOfferModal('${c.id}')" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-bold text-[11px]">Złóż ofertę zakupu udziałów</button>`;
+                let buyBtn = availableShares > 0 
+                    ? `<button onclick="openOfferModal('${c.id}', 'buy')" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-bold text-[11px]">Kup udziały</button>` 
+                    : `<span class="text-[11px] text-slate-500">Wszystkie wykupione</span>`;
+
+                let sellBackBtn = c.playerShares > 0 
+                    ? `<button onclick="openOfferModal('${c.id}', 'sell')" class="px-3 py-1.5 bg-rose-600 hover:bg-rose-500 text-white rounded-lg font-bold text-[11px]">Odkup / Sprzedaj pakiety</button>` 
+                    : '';
 
                 let isMajority = c.playerShares >= 6;
                 let manageBtn = isMajority 
-                    ? `<button onclick="openManageModal('${c.id}')" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-lg font-bold text-[11px]">⚙️ Zarządzaj spółką</button>`
-                    : `<span class="text-[11px] text-slate-500" title="Wymagane >50% udziałów">🔒 Zarządzanie zablokowane (&gt;50%)</span>`;
+                    ? `<button onclick="openManageModal('${c.id}')" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-lg font-bold text-[11px]">⚙️ Zarządzaj</button>`
+                    : `<span class="text-[11px] text-slate-500">🔒 Wymagane >50%</span>`;
 
                 let modeToggle = c.playerShares > 0 
                     ? `<button onclick="toggleCompanyMode('${c.id}')" class="px-3 py-1.5 ${c.mode === 'passive' ? 'bg-indigo-600 hover:bg-indigo-500' : 'bg-emerald-600 hover:bg-emerald-500'} text-white rounded-lg font-bold text-[11px]">Tryb: ${c.mode === 'passive' ? 'Pasywny' : 'Produkcja'}</button>`
@@ -794,7 +797,7 @@
                             <p class="text-xs text-slate-400">Cena 10% udziału: <strong class="text-emerald-400">${c.sharePrice.toLocaleString()} zł</strong></p>
                             
                             <div class="bg-slate-950/60 p-2.5 rounded-xl border border-slate-800 space-y-1">
-                                <span class="text-[11px] text-slate-400 font-bold block">Inwestorzy i zarząd:</span>
+                                <span class="text-[11px] text-slate-400 font-bold block">Inwestorzy:</span>
                                 <ul class="text-[11px] space-y-0.5">${aiListHtml}</ul>
                             </div>
                         </div>
@@ -803,7 +806,10 @@
                                 ${modeToggle}
                                 ${manageBtn}
                             </div>
-                            ${buyBtn}
+                            <div class="flex gap-2 w-full justify-end">
+                                ${sellBackBtn}
+                                ${buyBtn}
+                            </div>
                         </div>
                     </div>
                 `;
@@ -811,14 +817,35 @@
         }
 
         let activeOfferCompanyId = null;
-        function openOfferModal(id) {
+        let activeOfferType = 'buy'; // 'buy' or 'sell'
+
+        function openOfferModal(id, type) {
             let comp = game.companies.find(c => c.id === id);
             if(!comp) return;
             activeOfferCompanyId = id;
-            document.getElementById('offer-company-info').textContent = `Firma: ${comp.name} | Specjalizacja: ${comp.specialization}`;
+            activeOfferType = type;
+
+            const titleEl = document.getElementById('offer-modal-title');
+            const submitBtn = document.getElementById('offer-submit-btn');
+            const sharesInput = document.getElementById('offer-shares-count');
+
+            if(type === 'buy') {
+                titleEl.textContent = `Złóż ofertę zakupu udziałów: ${comp.name}`;
+                submitBtn.textContent = 'Wyślij ofertę zakupu';
+                submitBtn.className = 'w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold transition';
+                sharesInput.max = 10;
+                sharesInput.value = 1;
+            } else {
+                titleEl.textContent = `Złóż ofertę odkupu/zwrotu akcji: ${comp.name}`;
+                submitBtn.textContent = 'Zwróć/Odkup udziały';
+                submitBtn.className = 'w-full py-3 bg-rose-600 hover:bg-rose-500 text-white rounded-xl font-bold transition';
+                sharesInput.max = comp.playerShares;
+                sharesInput.value = 1;
+            }
+
+            document.getElementById('offer-company-info').textContent = `Firma: ${comp.name} | Posiadasz: ${comp.playerShares * 10}%`;
             document.getElementById('offer-market-price').textContent = comp.sharePrice.toLocaleString();
             document.getElementById('offer-price-input').value = comp.sharePrice;
-            document.getElementById('offer-shares-count').value = 1;
             updateOfferTotal();
             document.getElementById('offer-modal').classList.remove('hidden');
         }
@@ -849,55 +876,68 @@
             let proposedPricePerShare = parseInt(document.getElementById('offer-price-input').value) || 0;
             let totalCost = count * proposedPricePerShare;
 
-            let totalAssigned = comp.playerShares + comp.aiInvestors.reduce((acc, curr) => acc + curr.shares, 0);
-            let availableShares = 10 - totalAssigned;
+            if(activeOfferType === 'buy') {
+                let totalAssigned = comp.playerShares + comp.aiInvestors.reduce((acc, curr) => acc + curr.shares, 0);
+                let availableShares = 10 - totalAssigned;
 
-            if(count > availableShares) {
-                showToast('W firmie nie ma tylu wolnych udziałów na sprzedaż!', 'error');
-                return;
-            }
+                if(count > availableShares) {
+                    showToast('W firmie nie ma tylu wolnych udziałów!', 'error');
+                    return;
+                }
+                if(game.money < totalCost) {
+                    showToast('Za mało środków w budżecie!', 'error');
+                    return;
+                }
 
-            if(game.money < totalCost) {
-                showToast('Za mało środków w budżecie na tę ofertę!', 'error');
-                return;
-            }
-
-            let minAcceptablePrice = comp.sharePrice * 0.9;
-            if(proposedPricePerShare >= minAcceptablePrice) {
-                modifyMoney(-totalCost);
-                comp.playerShares += count;
-                game.marketShare = parseFloat((game.marketShare + (count * 0.1)).toFixed(1));
+                let minAcceptablePrice = comp.sharePrice * 0.9;
+                if(proposedPricePerShare >= minAcceptablePrice) {
+                    modifyMoney(-totalCost);
+                    comp.playerShares += count;
+                    game.marketShare = parseFloat((game.marketShare + (count * 0.1)).toFixed(1));
+                    closeOfferModal();
+                    renderAcquisitions();
+                    updateManufacturerSelect();
+                    saveGame();
+                    showToast(`Zarząd zaakceptował ofertę! Zakupiono ${count * 10}% udziałów w ${comp.name}.`, 'success');
+                } else {
+                    closeOfferModal();
+                    showToast(`Zarząd odrzucił ofertę! Cena za niska.`, 'error');
+                }
+            } else {
+                if(count > comp.playerShares) {
+                    showToast('Nie masz tylu udziałów do odsprzedania!', 'error');
+                    return;
+                }
+                comp.playerShares -= count;
+                modifyMoney(totalCost);
+                game.marketShare = parseFloat((game.marketShare - (count * 0.1)).toFixed(1));
                 closeOfferModal();
                 renderAcquisitions();
                 updateManufacturerSelect();
                 saveGame();
-                showToast(`Zarząd i inwestorzy zaakceptowali ofertę! Zakupiono ${count * 10}% udziałów w ${comp.name}.`, 'success');
-            } else {
-                closeOfferModal();
-                showToast(`Zarząd odrzucił ofertę! Zaproponowana kwota za niska (oczekują min. ${(minAcceptablePrice).toLocaleString()} zł za pakiet).`, 'error');
+                showToast(`Pomyślnie odsprzedano ${count * 10}% udziałów spółki ${comp.name} za ${totalCost.toLocaleString()} zł.`, 'success');
             }
         }
 
-        // Obsługa propozycji od firm z zewnątrz (gdy gracz w nie zainwestował)
         let pendingProposal = null;
         function triggerCompanyProposal() {
             let investedCompanies = game.companies.filter(c => c.playerShares > 0);
             if(investedCompanies.length === 0) return;
 
             let comp = investedCompanies[Math.floor(Math.random() * investedCompanies.length)];
-            let isBuyOffer = Math.random() < 0.5 && comp.playerShares > 1; // Firma chce odkupić udziały lub zaproponować graczowi dokupienie
+            let isBuyOffer = Math.random() < 0.5 && comp.playerShares > 1;
 
             if(isBuyOffer) {
                 let offerPrice = comp.sharePrice * 1.3;
                 pendingProposal = { type: 'buyback', companyId: comp.id, shares: 1, price: offerPrice };
-                document.getElementById('proposal-desc').textContent = `Spółka ${comp.name} rozwija się świetnie i chce odkupić od Ciebie 10% swoich udziałów za premiowaną kwotę ${offerPrice.toLocaleString()} zł! Czy zgadzasz się na odkup?`;
+                document.getElementById('proposal-desc').textContent = `Spółka ${comp.name} chce odkupić od Ciebie 10% swoich udziałów za premiowaną kwotę ${offerPrice.toLocaleString()} zł!`;
                 document.getElementById('company-proposal-modal').classList.remove('hidden');
             } else if(comp.playerShares < 10) {
                 let totalAssigned = comp.playerShares + comp.aiInvestors.reduce((acc, curr) => acc + curr.shares, 0);
                 if(totalAssigned < 10) {
                     let cost = comp.sharePrice * 0.95;
                     pendingProposal = { type: 'sell', companyId: comp.id, shares: 1, price: cost };
-                    document.getElementById('proposal-desc').textContent = `Zarząd spółki ${comp.name} oferuje Ci dodatkowe 10% udziałów po okazyjnej cenie ${cost.toLocaleString()} zł. Chcesz skorzystać?`;
+                    document.getElementById('proposal-desc').textContent = `Zarząd spółki ${comp.name} oferuje Ci dodatkowe 10% udziałów po okazyjnej cenie ${cost.toLocaleString()} zł.`;
                     document.getElementById('company-proposal-modal').classList.remove('hidden');
                 }
             }
@@ -911,15 +951,15 @@
                     comp.playerShares -= pendingProposal.shares;
                     modifyMoney(pendingProposal.price);
                     game.marketShare = parseFloat((game.marketShare - 0.1).toFixed(1));
-                    showToast('Odkupiono udziały z zyskiem dla firmy!', 'success');
+                    showToast('Odkupiono udziały z zyskiem!', 'success');
                 } else if(pendingProposal.type === 'sell') {
                     if(game.money >= pendingProposal.price) {
                         modifyMoney(-pendingProposal.price);
                         comp.playerShares += pendingProposal.shares;
                         game.marketShare = parseFloat((game.marketShare + 0.1).toFixed(1));
-                        showToast('Zakupiono dodatkowe udziały od spółki!', 'success');
+                        showToast('Zakupiono dodatkowe udziały!', 'success');
                     } else {
-                        showToast('Brak środków na przyjęcie tej propozycji!', 'error');
+                        showToast('Brak środków!', 'error');
                     }
                 }
             }
@@ -958,17 +998,14 @@
                     <div class="glass-card p-3 rounded-xl space-y-1">
                         <label class="block text-slate-300 font-semibold">Budżet Marketingowy: <strong id="m-budget-val" class="text-blue-300">${comp.marketingBudget} zł/s</strong></label>
                         <input type="range" min="0" max="10000" step="500" value="${comp.marketingBudget}" oninput="updateCompanyParam('${id}', 'marketingBudget', this.value)" class="w-full accent-blue-500">
-                        <p class="text-[10px] text-slate-400">Zwiększa zysk pasywny oraz popyt na produkty spółki.</p>
                     </div>
                     <div class="glass-card p-3 rounded-xl space-y-1">
                         <label class="block text-slate-300 font-semibold">Budżet R&D Spółki: <strong id="r-budget-val" class="text-indigo-300">${comp.rdBudget} zł/s</strong></label>
                         <input type="range" min="0" max="15000" step="500" value="${comp.rdBudget}" oninput="updateCompanyParam('${id}', 'rdBudget', this.value)" class="w-full accent-indigo-500">
-                        <p class="text-[10px] text-slate-400">Przyspiesza rozwój technologiczny spółki i podnosi wartość pasywną.</p>
                     </div>
                     <div class="glass-card p-3 rounded-xl space-y-1">
-                        <label class="block text-slate-300 font-semibold">Mnożnik Pensji Pracowników: <strong id="s-mult-val" class="text-emerald-400">${comp.salaryMultiplier}x</strong></label>
+                        <label class="block text-slate-300 font-semibold">Mnożnik Pensji: <strong id="s-mult-val" class="text-emerald-400">${comp.salaryMultiplier}x</strong></label>
                         <input type="range" min="0.8" max="2.0" step="0.1" value="${comp.salaryMultiplier}" oninput="updateCompanyParam('${id}', 'salaryMultiplier', this.value)" class="w-full accent-emerald-500">
-                        <p class="text-[10px] text-slate-400">Wyższe pensje podnoszą wydajność spółki, niższe obniżają koszty.</p>
                     </div>
                 </div>
             `;
@@ -995,27 +1032,62 @@
             const container = document.getElementById('contracts-list');
             if(!container) return;
             container.innerHTML = '';
-            game.contracts.forEach(cnt => {
-                let pct = Math.min(100, Math.floor((cnt.progress / cnt.target) * 100));
-                container.innerHTML += `
-                    <div class="glass-card p-5 rounded-2xl space-y-3 border border-slate-700/60">
-                        <div class="flex justify-between items-center">
+
+            if(game.availableContracts.length === 0 && game.activeContracts.length === 0) {
+                container.innerHTML = `<div class="col-span-full text-center py-12 text-slate-500 text-sm">Brak dostępnych zleceń kontraktowych.</div>`;
+                return;
+            }
+
+            let html = `<div class="col-span-full font-bold text-sm text-blue-300 mb-2">Dostępne zlecenia do przyjęcia:</div>`;
+            game.availableContracts.forEach(cnt => {
+                html += `
+                    <div class="glass-card p-4 rounded-2xl space-y-2 border border-slate-700/60 flex flex-col justify-between">
+                        <div>
                             <h4 class="font-bold text-slate-100 text-sm">${cnt.title}</h4>
-                            <span class="text-xs font-extrabold text-emerald-400">Nagroda: ${cnt.reward.toLocaleString()} zł</span>
+                            <p class="text-xs text-slate-400 mt-1">Typ: <strong class="text-blue-300">${cnt.type}</strong> | Wymagane: ${cnt.target} szt.</p>
+                            <p class="text-xs text-emerald-400 font-bold mt-1">Nagroda: ${cnt.reward.toLocaleString()} zł</p>
                         </div>
-                        <p class="text-xs text-slate-400">Wymagany typ: <strong class="text-blue-300">${cnt.type}</strong></p>
-                        <div class="space-y-1">
-                            <div class="flex justify-between text-[11px] text-slate-400">
-                                <span>Postęp: ${cnt.progress} / ${cnt.target}</span>
-                                <span>${pct}%</span>
-                            </div>
-                            <div class="w-full bg-slate-950 h-2.5 rounded-full overflow-hidden border border-slate-800">
-                                <div class="bg-blue-500 h-full rounded-full transition-all" style="width: ${pct}%"></div>
-                            </div>
-                        </div>
+                        <button onclick="acceptContract(${cnt.id})" class="mt-2 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-xs transition">Przyjmij zlecenie</button>
                     </div>
                 `;
             });
+
+            if(game.activeContracts.length > 0) {
+                html += `<div class="col-span-full font-bold text-sm text-emerald-300 mt-4 mb-2">Aktywne zlecenia w realizacji:</div>`;
+                game.activeContracts.forEach(cnt => {
+                    let pct = Math.min(100, Math.floor((cnt.progress / cnt.target) * 100));
+                    html += `
+                        <div class="glass-card p-4 rounded-2xl space-y-2 border border-emerald-500/40">
+                            <div class="flex justify-between items-center">
+                                <h4 class="font-bold text-slate-100 text-sm">${cnt.title}</h4>
+                                <span class="text-xs font-extrabold text-emerald-400">Nagroda: ${cnt.reward.toLocaleString()} zł</span>
+                            </div>
+                            <div class="space-y-1">
+                                <div class="flex justify-between text-[11px] text-slate-400">
+                                    <span>Postęp: ${cnt.progress} / ${cnt.target}</span>
+                                    <span>${pct}%</span>
+                                </div>
+                                <div class="w-full bg-slate-950 h-2 rounded-full overflow-hidden border border-slate-800">
+                                    <div class="bg-emerald-500 h-full rounded-full transition-all" style="width: ${pct}%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+
+            container.innerHTML = html;
+        }
+
+        function acceptContract(id) {
+            let idx = game.availableContracts.findIndex(c => c.id === id);
+            if(idx !== -1) {
+                let cnt = game.availableContracts.splice(idx, 1)[0];
+                game.activeContracts.push(cnt);
+                renderContracts();
+                saveGame();
+                showToast(`Przyjęto zlecenie kontraktowe: ${cnt.title}`, 'success');
+            }
         }
 
         function renderWorldMap() {
@@ -1053,7 +1125,7 @@
             let country = game.countries.find(c => c.id === id);
             if(country) {
                 if(game.money < country.cost) {
-                    showToast('Za mało środków w budżecie na otwarcie salonu w tym kraju!', 'error');
+                    showToast('Za mało środków w budżecie!', 'error');
                     return;
                 }
                 modifyMoney(-country.cost);
@@ -1065,19 +1137,36 @@
             }
         }
 
+        function switchStaffCat(cat) {
+            game.activeStaffCat = cat;
+            ['Inżynier Sprzętu', 'Projektant UI/UX', 'Badacz / Naukowiec R&D'].forEach(c => {
+                let btnId = c === 'Inżynier Sprzętu' ? 'staff-cat-eng' : c === 'Projektant UI/UX' ? 'staff-cat-des' : 'staff-cat-res';
+                const btn = document.getElementById(btnId);
+                if(btn) btn.className = `px-3 py-1.5 rounded-xl text-xs font-bold ${c === cat ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-400'}`;
+            });
+            renderJobMarket();
+        }
+
         function renderJobMarket() {
-            if(game.marketCandidates.length < 4) {
-                while(game.marketCandidates.length < 4) {
-                    game.marketCandidates.push(generateRandomStaffMember());
-                }
+            // Generujemy kandydatów dla wybranej kategorii jeśli brak
+            while(game.marketCandidates.filter(c => c.role === game.activeStaffCat).length < 3) {
+                game.marketCandidates.push(generateRandomStaffMember(game.activeStaffCat));
             }
+
             const container = document.getElementById('job-market');
             if(!container) return;
             container.innerHTML = '';
-            game.marketCandidates.forEach(c => {
+
+            let filteredCands = game.marketCandidates.filter(c => c.role === game.activeStaffCat);
+
+            filteredCands.forEach(c => {
                 container.innerHTML += `
-                    <div class="glass-card p-4 rounded-2xl flex flex-col justify-between gap-3 text-xs">
-                        <div><strong>${c.name}</strong> (<strong class="text-blue-300">${c.role}</strong>) - Umiejętności: ${c.skill} | Pensja: ${c.salary} zł/s</div>
+                    <div class="glass-card p-4 rounded-2xl flex flex-col justify-between gap-3 text-xs border border-slate-700/60">
+                        <div>
+                            <strong>${c.name}</strong> 
+                            <span class="text-blue-300 block font-semibold mt-0.5">${c.role}</span>
+                            <span class="text-slate-400 block mt-1">Umiejętności: ${c.skill} | Pensja: ${c.salary} zł/s</span>
+                        </div>
                         <button onclick="hireCandidate(${c.id})" class="py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold transition">Zatrudnij</button>
                     </div>
                 `;
@@ -1110,9 +1199,9 @@
         function renderHiredStaff() {
             const container = document.getElementById('hired-staff-list');
             if(!container) return;
-            container.innerHTML = game.hiredStaff.length === 0 ? `<div class="text-center py-6 text-slate-500 text-sm">Brak.</div>` : '';
+            container.innerHTML = game.hiredStaff.length === 0 ? `<div class="text-center py-6 text-slate-500 text-sm">Brak zatrudnionych pracowników.</div>` : '';
             game.hiredStaff.forEach(s => {
-                container.innerHTML += `<div class="glass-card p-3 rounded-xl flex justify-between items-center text-xs"><span>${s.name} (<strong class="text-blue-300">${s.role}</strong>, Skil: ${s.skill})</span><button onclick="fireStaff(${s.id})" class="text-rose-400 hover:text-rose-300">Zwolnij</button></div>`;
+                container.innerHTML += `<div class="glass-card p-3 rounded-xl flex justify-between items-center text-xs"><span>${s.name} (<strong class="text-blue-300">${s.role}</strong>, Skil: ${s.skill})</span><button onclick="fireStaff(${s.id})" class="text-rose-400 hover:text-rose-300 font-bold">Zwolnij</button></div>`;
             });
         }
 
@@ -1165,7 +1254,7 @@
                             <div>
                                 <h4 class="font-bold text-slate-100 text-sm">${tech.name}</h4>
                                 <p class="text-xs text-slate-400 mt-1">${tech.desc}</p>
-                                <p class="text-[11px] text-blue-300 mt-2">Koszt: ${tech.cost.toLocaleString()} zł | Czas bazowy: ${tech.time}s</p>
+                                <p class="text-[11px] text-blue-300 mt-2">Koszt: ${tech.cost.toLocaleString()} zł | Czas: ${tech.time}s</p>
                             </div>
                             <div class="pt-2 border-t border-slate-800/80 flex justify-between items-center">${actionBtn}</div>
                         </div>
@@ -1195,7 +1284,7 @@
             let tech = Object.values(game.techTree).flat().find(t => t.id === id);
             if(tech) {
                 if(game.money < tech.cost) {
-                    showToast('Za mało środków w budżecie na rozpoczęcie badań!', 'error');
+                    showToast('Za mało środków w budżecie!', 'error');
                     return;
                 }
                 modifyMoney(-tech.cost);
@@ -1208,7 +1297,7 @@
         function buyNewFactory() {
             let cost = 150000 * Math.pow(1.3, game.factories.length);
             if(game.money < cost) {
-                showToast('Za mało środków na zakup nowej fabryki!', 'error');
+                showToast('Za mało środków na zakup fabryki!', 'error');
                 return;
             }
             modifyMoney(-cost);
@@ -1229,7 +1318,7 @@
             let fac = game.factories.find(f => f.id === id);
             if(fac) {
                 if(game.money < fac.upgradeCost) {
-                    showToast('Za mało środków na ulepszenie fabryki!', 'error');
+                    showToast('Za mało środków na ulepszenie!', 'error');
                     return;
                 }
                 modifyMoney(-fac.upgradeCost);
@@ -1428,7 +1517,7 @@
             } else if(cat === 'Słuchawki') {
                 lblSize.textContent = 'Nausznik'; unitSize.textContent = 'mm'; rangeSize.min = '30'; rangeSize.max = '100'; rangeSize.value = '50';
                 rangeThick.min = '10'; rangeThick.max = '40'; rangeSize.value = '20';
-                lblScreen.textContent = 'Pasmo'; unitSize.textContent = 'kHz'; rangeScreen.min = '10'; rangeScreen.max = '40'; rangeScreen.step = '2'; rangeScreen.value = '20';
+                lblScreen.textContent = 'Pasmo'; unitScreen.textContent = 'kHz'; rangeScreen.min = '10'; rangeScreen.max = '40'; rangeScreen.step = '2'; rangeScreen.value = '20';
             } else if(cat === 'Głośniki') {
                 lblSize.textContent = 'Moc'; unitSize.textContent = 'W'; rangeSize.min = '10'; rangeSize.max = '300'; rangeSize.value = '50';
                 rangeThick.min = '15'; rangeThick.max = '80'; rangeSize.value = '30';
@@ -1436,7 +1525,7 @@
             } else if(cat === 'Pad') {
                 lblSize.textContent = 'Szerokość'; unitSize.textContent = 'mm'; rangeSize.min = '120'; rangeSize.max = '180'; rangeSize.value = '150';
                 rangeThick.min = '30'; rangeThick.max = '80'; rangeSize.value = '50';
-                lblScreen.textContent = 'Wibracje'; unitSize.textContent = 'pkt'; rangeScreen.min = '1'; rangeScreen.max = '5'; rangeScreen.step = '1'; rangeScreen.value = '3';
+                lblScreen.textContent = 'Wibracje'; unitScreen.textContent = 'pkt'; rangeScreen.min = '1'; rangeScreen.max = '5'; rangeScreen.step = '1'; rangeScreen.value = '3';
             } else if(cat === 'Rysik') {
                 lblSize.textContent = 'Długość'; unitSize.textContent = 'mm'; rangeSize.min = '100'; rangeSize.max = '160'; rangeSize.value = '140';
                 rangeThick.min = '5'; rangeThick.max = '15'; rangeSize.value = '9';
@@ -1444,7 +1533,7 @@
             } else {
                 lblSize.textContent = 'Szerokość'; unitSize.textContent = 'mm'; rangeSize.min = '40'; rangeSize.max = '120'; rangeSize.value = '80';
                 rangeThick.min = '20'; rangeThick.max = '60'; rangeSize.value = '30';
-                lblScreen.textContent = 'Rozdzielczość'; unitSize.textContent = 'K'; rangeScreen.min = '1'; rangeScreen.max = '4'; rangeScreen.step = '1'; rangeScreen.value = '2';
+                lblScreen.textContent = 'Rozdzielczość'; unitScreen.textContent = 'K'; rangeScreen.min = '1'; rangeScreen.max = '4'; rangeScreen.step = '1'; rangeScreen.value = '2';
             }
 
             updateDevicePreview();
@@ -1575,13 +1664,10 @@
 
         function finishDevice() {
             const p = game.activeProject;
-            // Losowa ocena zależna od liczby technologii oraz losowego czynnika rynkowego
             let techBonus = p.techs.length * 0.4;
-            let randomFactor = (Math.random() * 2.5) - 1.25; // Od -1.25 do +1.25
+            let randomFactor = (Math.random() * 2.5) - 1.25;
             let rawScore = 5.0 + techBonus + randomFactor - (p.bugs * 0.05);
             let score = Math.min(10.0, Math.max(2.0, rawScore));
-
-            // Wpływ oceny na mnożnik sprzedaży produktu
             let salesMultiplier = Math.pow(score / 5, 2);
             
             game.history.push({ 
@@ -1603,7 +1689,7 @@
 
             document.getElementById('rev-title').textContent = `Premiera: ${p.name}!`;
             document.getElementById('rev-stars').textContent = '⭐'.repeat(Math.round(score/2)) + ` (${score.toFixed(1)}/10)`;
-            document.getElementById('rev-desc').textContent = `Nowy produkt trafia na rynek! Wykorzystane technologie (${p.techs.length}) znacząco wpłynęły na ocenę recenzentów.`;
+            document.getElementById('rev-desc').textContent = `Nowy produkt trafia na rynek! Wykorzystane technologie (${p.techs.length}) wpłynęły na końcową ocenę recenzentów.`;
             document.getElementById('review-modal').classList.remove('hidden');
 
             game.activeProject = null;
@@ -1708,7 +1794,7 @@
                 let p = game.activeProject;
                 p.eng += engPower * 0.2;
                 p.design += designPower * 0.2;
-                p.progress += engPower * 0.25; // Naprawiony pasek postępu
+                p.progress += engPower * 0.25;
                 if(p.progress >= p.maxProgress) finishDevice();
                 else updateUI();
             }
@@ -1721,7 +1807,9 @@
                     let matchingDev = game.history.find(h => h.rawCategory === cat);
                     if(line.active && matchingDev) {
                         let mult = matchingDev.salesMultiplier || 1.0;
-                        let producedUnits = Math.max(1, Math.floor(factoryPowerBase * fac.level * 0.8 * mult));
+                        // Falujący trend rynkowy (raz w górę, raz w dół)
+                        let marketWave = 1.0 + (Math.sin(Date.now() / 3000) * 0.35);
+                        let producedUnits = Math.max(1, Math.floor(factoryPowerBase * fac.level * 0.7 * mult * marketWave));
                         line.unitsProduced += producedUnits;
                         let inc = producedUnits * 140;
                         currentDeviceIncomePerSec += inc;
@@ -1730,7 +1818,7 @@
                         matchingDev.unitsSold += producedUnits;
                         matchingDev.revenueGenerated += inc;
 
-                        game.contracts.forEach(cnt => {
+                        game.activeContracts.forEach(cnt => {
                             if(cnt.type === cat && cnt.progress < cnt.target) {
                                 cnt.progress += producedUnits;
                                 if(cnt.progress >= cnt.target) {
@@ -1743,6 +1831,9 @@
                     }
                 }
             });
+
+            // Usunięcie ukończonych kontraktów z aktywnych
+            game.activeContracts = game.activeContracts.filter(cnt => cnt.progress < cnt.target);
 
             game.companies.forEach(c => {
                 if(c.playerShares > 0 && c.mode === 'produce' && game.history.length > 0) {
@@ -1787,10 +1878,9 @@
             window.currentCompInc = companyPassive;
             window.currentSalaries = totalSalaries + currentRentsPerSec;
 
-            // DYNAMICZNA SYMULACJA RYNKU: INWESTORZY AI DOKUPUJĄ UDZIAŁY ORAZ LOSOWE PROPOZYCJE DLA GRACZA
+            // GENEROWANIE I AKTUALIZACJA SPÓŁEK NA GIEŁDZIE NA BIEŻĄCO
             game.companies.forEach(c => {
                 let totalAssigned = c.playerShares + c.aiInvestors.reduce((acc, curr) => acc + curr.shares, 0);
-                
                 if(Math.random() < 0.25 && totalAssigned < 10) {
                     if(c.aiInvestors.length > 0) {
                         let randInv = c.aiInvestors[Math.floor(Math.random() * c.aiInvestors.length)];
@@ -1799,26 +1889,40 @@
                         c.aiInvestors.push({ name: investorNames[Math.floor(Math.random() * investorNames.length)], shares: 1 });
                     }
                 }
-
-                if(Math.random() < 0.05) {
-                    c.sharePrice += Math.floor((Math.random() - 0.4) * 3000);
+                if(Math.random() < 0.08) {
+                    c.sharePrice += Math.floor((Math.random() - 0.45) * 4000);
                     if(c.sharePrice < 10000) c.sharePrice = 10000;
                 }
             });
 
-            // Co jakiś czas generuj propozycję od spółki, w którą zainwestowano
-            if(Math.random() < 0.03) {
-                triggerCompanyProposal();
+            // Dodawanie nowych spółek na giełdę
+            if(Math.random() < 0.1 && game.companies.length < 20) {
+                let p = companyPrefixes[Math.floor(Math.random() * companyPrefixes.length)];
+                let s = companySuffixes[Math.floor(Math.random() * companySuffixes.length)];
+                let newId = `comp_${Date.now()}_${Math.random()}`;
+                game.companies.push({
+                    id: newId,
+                    name: `${p} ${s} #${game.companies.length + 1}`,
+                    specialization: ['Smartfony', 'Podzespoły', 'Audio', 'Wyświetlacze', 'Baterie'][Math.floor(Math.random() * 5)],
+                    sharePrice: Math.floor(Math.random() * 50000) + 15000,
+                    passiveIncome: Math.floor(Math.random() * 1200) + 400,
+                    playerShares: 0,
+                    aiInvestors: generateAIInvestors(),
+                    mode: 'passive',
+                    marketingBudget: 0,
+                    rdBudget: 0,
+                    salaryMultiplier: 1.0
+                });
             }
 
-            // Generowanie nowych zadań kontraktowych (więcej zadań)
-            if(Math.random() < 0.08 && game.contracts.length < 8) {
+            // Generowanie nowych zadań kontraktowych do wyboru
+            if(Math.random() < 0.06 && game.availableContracts.length < 6) {
                 const types = ['Smartfon', 'Tablet', 'Laptop', 'Konsola', 'Słuchawki'];
                 let tType = types[Math.floor(Math.random() * types.length)];
                 let targetCount = Math.floor(Math.random() * 400) + 150;
-                let rewardAmt = targetCount * 250;
-                game.contracts.push({
-                    id: Date.now(),
+                let rewardAmt = targetCount * 280;
+                game.availableContracts.push({
+                    id: Date.now() + Math.random(),
                     title: `Zamówienie na ${targetCount} szt. (${tType})`,
                     reward: rewardAmt,
                     progress: 0,
@@ -1830,23 +1934,8 @@
                 }
             }
 
-            if(Math.random() < 0.1 && game.companies.length < 15) {
-                let p = companyPrefixes[Math.floor(Math.random() * companyPrefixes.length)];
-                let s = companySuffixes[Math.floor(Math.random() * companySuffixes.length)];
-                let newId = `comp_${Date.now()}_${Math.random()}`;
-                game.companies.push({
-                    id: newId,
-                    name: `${p} ${s} #${game.companies.length + 1}`,
-                    specialization: ['Smartfony', 'Podzespoły', 'Audio', 'Wyświetlacze', 'Baterie'][Math.floor(Math.random() * 5)],
-                    sharePrice: Math.floor(Math.random() * 50000) + 10000,
-                    passiveIncome: Math.floor(Math.random() * 1000) + 300,
-                    playerShares: 0,
-                    aiInvestors: generateAIInvestors(),
-                    mode: 'passive',
-                    marketingBudget: 0,
-                    rdBudget: 0,
-                    salaryMultiplier: 1.0
-                });
+            if(Math.random() < 0.03) {
+                triggerCompanyProposal();
             }
 
             if(document.getElementById('tab-acquisitions') && !document.getElementById('tab-acquisitions').classList.contains('hidden')) {
@@ -1864,19 +1953,14 @@
                 game.history.forEach((h, idx) => {
                     let ds = game.salesHistoryData.datasets.find(d => d.label === h.name);
                     if(!ds) {
-                        // Unikalne, nienastępujące po sobie kolory linii na wykresie
                         let hue = (idx * 137.5) % 360; 
-                        let color = `hsl(${hue}, 80%, 55%)`;
+                        let color = `hsl(${hue}, 85%, 55%)`;
                         ds = { label: h.name, data: new Array(game.salesHistoryData.labels.length - 1).fill(0), borderColor: color, backgroundColor: color, tension: 0.3 };
                         game.salesHistoryData.datasets.push(ds);
                     }
                     ds.data.push(h.unitsSold);
                 });
                 salesChartInstance.update();
-            }
-
-            if(game.marketCandidates.length < 6) {
-                game.marketCandidates.push(generateRandomStaffMember());
             }
 
             saveGame();
