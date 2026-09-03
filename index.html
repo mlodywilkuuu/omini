@@ -698,9 +698,9 @@
             });
         }
 
-        function saveGame() { localStorage.setItem('tech_giant_tycoon_save_v43', JSON.stringify(game)); }
+        function saveGame() { localStorage.setItem('tech_giant_tycoon_save_v44', JSON.stringify(game)); }
         function loadGame() {
-            const saved = localStorage.getItem('tech_giant_tycoon_save_v43');
+            const saved = localStorage.getItem('tech_giant_tycoon_save_v44');
             if(saved) {
                 try {
                     const parsed = JSON.parse(saved);
@@ -2042,16 +2042,19 @@
                 if(c.playerShares > 0) {
                     let marketingCost = c.marketingBudget || 0;
                     let rdCost = c.rdBudget || 0;
-                    let staffPayrollCost = Math.round(1500 * (c.salaryMultiplier - 1));
+                    let staffPayrollCost = Math.round(2500 * (c.salaryMultiplier - 1));
                     let totalCosts = marketingCost + rdCost + staffPayrollCost;
 
                     totalCompanyCosts += totalCosts;
 
-                    let marketingEffect = 1 + (marketingCost / 10000);
-                    let rdEffect = 1 + (rdCost / 10000);
-                    let staffEffect = c.salaryMultiplier;
+                    // POPRAWKA: Inwestycje w marketing i R&D teraz realistycznie odejmują koszty, 
+                    // a do zysku dodają jedynie niewielki przyrost efektywności (1% zysku za każde 10k budżetu)
+                    let marketingBonus = 1 + ((marketingCost / 10000) * 0.15);
+                    let rdBonus = 1 + ((rdCost / 10000) * 0.15);
+                    let staffBonus = 1 + ((c.salaryMultiplier - 1) * 0.2);
 
-                    let netPassive = (c.passiveIncome * marketingEffect * rdEffect * staffEffect) - totalCosts;
+                    let grossEarnings = c.passiveIncome * marketingBonus * rdBonus * staffBonus;
+                    let netPassive = grossEarnings - totalCosts;
                     
                     if(c.loanRemaining > 0) {
                         let deduction = Math.min(c.loanRemaining, c.loanInstallmentPerSec);
@@ -2060,13 +2063,14 @@
                         netPassive -= deduction;
                     }
 
-                    let companyEarnings = Math.max(0, netPassive);
-                    let divPayout = companyEarnings * (c.dividendPercent / 100);
+                    let companyEarnings = netPassive; // Może być ujemne jeśli wydatki przewyższają zysk!
+                    let divPayout = Math.max(0, companyEarnings * (c.dividendPercent / 100));
                     let myDivShare = divPayout * (c.playerShares / 100);
                     companyPassive += Math.round(myDivShare);
 
+                    // Rosnący budżet marketingowy i R&D podnosi wartość spółki w czasie
                     if(marketingCost > 0 || rdCost > 0) {
-                        c.sharePricePerPercent += Math.floor((marketingCost + rdCost) / 15000);
+                        c.sharePricePerPercent += Math.floor((marketingCost + rdCost) / 25000);
                     }
                 }
             });
@@ -2262,7 +2266,7 @@
                     let ds = game.salesHistoryData.datasets.find(d => d.label === h.name);
                     if(!ds) {
                         let hue = (idx * 137.5) % 360; 
-                        let color = `hsl(${hue}, 85%, 55%)`;
+                        let color = `hsl(${hue}, 85%, 55%)`,
                         ds = { label: h.name, data: new Array(game.salesHistoryData.labels.length - 1).fill(0), borderColor: color, backgroundColor: color, tension: 0.3 };
                         game.salesHistoryData.datasets.push(ds);
                     }
