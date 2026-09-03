@@ -698,9 +698,9 @@
             });
         }
 
-        function saveGame() { localStorage.setItem('tech_giant_tycoon_save_v42', JSON.stringify(game)); }
+        function saveGame() { localStorage.setItem('tech_giant_tycoon_save_v43', JSON.stringify(game)); }
         function loadGame() {
-            const saved = localStorage.getItem('tech_giant_tycoon_save_v42');
+            const saved = localStorage.getItem('tech_giant_tycoon_save_v43');
             if(saved) {
                 try {
                     const parsed = JSON.parse(saved);
@@ -836,13 +836,16 @@
             const sellSelect = document.getElementById('sell-share-company');
             if(!container || !propContainer || !sellSelect) return;
 
+            let currentSelectedCompany = sellSelect.value;
+
             sellSelect.innerHTML = '';
             let ownedCompanies = game.companies.filter(c => c.playerShares > 0);
             if(ownedCompanies.length === 0) {
                 sellSelect.innerHTML = `<option value="">Brak posiadanych udziałów</option>`;
             } else {
                 ownedCompanies.forEach(c => {
-                    sellSelect.innerHTML += `<option value="${c.id}">${c.name} (Masz: ${c.playerShares}%)</option>`;
+                    let isSel = c.id === currentSelectedCompany ? 'selected' : '';
+                    sellSelect.innerHTML += `<option value="${c.id}" ${isSel}>${c.name} (Masz: ${c.playerShares}%)</option>`;
                 });
             }
 
@@ -2037,15 +2040,13 @@
 
             game.companies.forEach(c => {
                 if(c.playerShares > 0) {
-                    // Budżety marketingowe i R&D są teraz kosztami stałymi pobieranymi co sekundę!
                     let marketingCost = c.marketingBudget || 0;
                     let rdCost = c.rdBudget || 0;
-                    let staffPayrollCost = Math.round(1500 * (c.salaryMultiplier - 1)); // Koszt wyższych pensji pracowników w spółce
+                    let staffPayrollCost = Math.round(1500 * (c.salaryMultiplier - 1));
                     let totalCosts = marketingCost + rdCost + staffPayrollCost;
 
                     totalCompanyCosts += totalCosts;
 
-                    // Wpływ inwestycji na spółkę: wyższy marketing/R&D zwiększa zysk brutto z opóźnieniem (bonus do efektywności)
                     let marketingEffect = 1 + (marketingCost / 10000);
                     let rdEffect = 1 + (rdCost / 10000);
                     let staffEffect = c.salaryMultiplier;
@@ -2064,7 +2065,6 @@
                     let myDivShare = divPayout * (c.playerShares / 100);
                     companyPassive += Math.round(myDivShare);
 
-                    // Jeśli spółka inwestuje, jej wartość (cena za 1%) rośnie szybciej w czasie!
                     if(marketingCost > 0 || rdCost > 0) {
                         c.sharePricePerPercent += Math.floor((marketingCost + rdCost) / 15000);
                     }
