@@ -684,9 +684,9 @@
             });
         }
 
-        function saveGame() { localStorage.setItem('tech_giant_tycoon_save_v31', JSON.stringify(game)); }
+        function saveGame() { localStorage.setItem('tech_giant_tycoon_save_v32', JSON.stringify(game)); }
         function loadGame() {
-            const saved = localStorage.getItem('tech_giant_tycoon_save_v31');
+            const saved = localStorage.getItem('tech_giant_tycoon_save_v32');
             if(saved) {
                 try {
                     const parsed = JSON.parse(saved);
@@ -747,22 +747,27 @@
         function closeCheatModal() { document.getElementById('cheat-modal').classList.add('hidden'); }
         
         function executeCheat() {
-            const val = document.getElementById('cheat-input'].value.trim().toLowerCase();
-            const parts = val.split(' ');
+            const inputEl = document.getElementById('cheat-input');
+            if(!inputEl) return;
+            const val = inputEl.value.trim().toLowerCase();
             closeCheatModal();
 
-            if(parts[0] === 'kasa') {
+            if(val.startsWith('kasa')) {
+                let parts = val.split(' ');
                 let amount = parseInt(parts[1]) || 1000000;
                 modifyMoney(amount);
-            } else if(parts[0] === 'research' && parts[1] === 'all') {
+                showToast(`Dodano ${amount.toLocaleString()} zł!`, 'success');
+            } else if(val === 'research all') {
                 for(let cat in game.techTree) {
                     game.techTree[cat].forEach(t => t.unlocked = true);
                 }
                 game.activeResearch = null;
                 renderTechTree();
                 showToast('Cheat użyty: Wybadano wszystkie technologie!', 'success');
+            } else {
+                showToast('Nieznana komenda w terminalu!', 'error');
             }
-            document.getElementById('cheat-input').value = '';
+            inputEl.value = '';
         }
 
         function switchTab(tab) {
