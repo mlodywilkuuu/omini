@@ -372,7 +372,7 @@
     <div id="cheat-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4 z-50">
         <div class="glass-panel text-slate-100 w-full max-w-sm rounded-2xl shadow-2xl p-6 space-y-4 border border-blue-500/40">
             <h3 class="text-lg font-bold text-blue-400">Terminal Deweloperski (~)</h3>
-            <p class="text-xs text-slate-400">Wpisz kod (np. <code class="text-blue-300">kasa 500000</code>):</p>
+            <p class="text-xs text-slate-400">Wpisz kod (np. <code class="text-blue-300">kasa 500000</code> lub <code class="text-blue-300">research all</code>):</p>
             <input type="text" id="cheat-input" placeholder="Wpisz komendę..." class="w-full px-4 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-sm text-blue-400 font-mono focus:outline-none">
             <div class="flex justify-end gap-2">
                 <button onclick="closeCheatModal()" class="px-4 py-2 bg-slate-800 rounded-xl text-xs">Zamknij</button>
@@ -684,9 +684,9 @@
             });
         }
 
-        function saveGame() { localStorage.setItem('tech_giant_tycoon_save_v30', JSON.stringify(game)); }
+        function saveGame() { localStorage.setItem('tech_giant_tycoon_save_v31', JSON.stringify(game)); }
         function loadGame() {
-            const saved = localStorage.getItem('tech_giant_tycoon_save_v30');
+            const saved = localStorage.getItem('tech_giant_tycoon_save_v31');
             if(saved) {
                 try {
                     const parsed = JSON.parse(saved);
@@ -747,19 +747,20 @@
         function closeCheatModal() { document.getElementById('cheat-modal').classList.add('hidden'); }
         
         function executeCheat() {
-            const val = document.getElementById('cheat-input').value.trim().toLowerCase();
+            const val = document.getElementById('cheat-input'].value.trim().toLowerCase();
             const parts = val.split(' ');
             closeCheatModal();
 
             if(parts[0] === 'kasa') {
                 let amount = parseInt(parts[1]) || 1000000;
                 modifyMoney(amount);
-            } else if(parts[0] === 'odblokuj' && parts[1] === 'wszystko') {
+            } else if(parts[0] === 'research' && parts[1] === 'all') {
                 for(let cat in game.techTree) {
                     game.techTree[cat].forEach(t => t.unlocked = true);
                 }
+                game.activeResearch = null;
                 renderTechTree();
-                showToast('Odblokowano wszystkie technologie w R&D!', 'success');
+                showToast('Cheat użyty: Wybadano wszystkie technologie!', 'success');
             }
             document.getElementById('cheat-input').value = '';
         }
@@ -790,7 +791,6 @@
             const sellSelect = document.getElementById('sell-share-company');
             if(!container || !propContainer || !sellSelect) return;
 
-            // Wypełnienie selecta do wystawiania własnych akcji
             sellSelect.innerHTML = '';
             let ownedCompanies = game.companies.filter(c => c.playerShares > 0);
             if(ownedCompanies.length === 0) {
@@ -801,7 +801,6 @@
                 });
             }
 
-            // Renderowanie propozycji odkupu
             propContainer.innerHTML = '';
             if(game.pendingProposals.length === 0) {
                 propContainer.innerHTML = `<div class="text-xs text-slate-500">Brak oczekujących propozycji odkupu akcji.</div>`;
@@ -827,7 +826,7 @@
             let filtered = game.companies.filter(c => c.name.toLowerCase().includes(query) || c.specialization.toLowerCase().includes(query));
 
             filtered.forEach(c => {
-                let totalAssigned = c.playerShares + c.aiInvestors.reduce((acc, curr) => acc + curr.shares, 0);
+                let totalAssigned = c.playerShares + c.aiInvestors.reduce((acc, curr) => acc + curr.shares, 0) + (c.listedSharesForSale || 0);
                 let availableShares = 10 - totalAssigned;
 
                 let aiListHtml = `<li class="text-slate-300">• ${game.playerName}: <strong class="text-blue-400 cursor-pointer hover:underline" onclick="openTargetedBuyout('${c.id}', 'player', ${c.playerShares})">${c.playerShares * 10}%</strong></li>`;
@@ -1687,7 +1686,7 @@
             } else if(cat === 'Rysik') {
                 lblSize.textContent = 'Długość'; unitSize.textContent = 'mm'; rangeSize.min = '100'; rangeSize.max = '160'; rangeSize.value = '140';
                 rangeThick.min = '5'; rangeThick.max = '15'; rangeSize.value = '9';
-                lblScreen.textContent = 'Nacisk'; unitSize.textContent = 'tys.'; rangeScreen.min = '2'; rangeScreen.max = '16'; rangeScreen.step = '2'; rangeScreen.value = '4';
+                lblScreen.textContent = 'Nacisk'; unitScreen.textContent = 'tys.'; rangeScreen.min = '2'; rangeScreen.max = '16'; rangeScreen.step = '2'; rangeScreen.value = '4';
             } else {
                 lblSize.textContent = 'Szerokość'; unitSize.textContent = 'mm'; rangeSize.min = '40'; rangeSize.max = '120'; rangeSize.value = '80';
                 rangeThick.min = '20'; rangeThick.max = '60'; rangeSize.value = '30';
@@ -1933,7 +1932,6 @@
                     if(c.companyDebt > 0) netPassive -= (c.companyDebt * 0.01);
                     let companyEarnings = Math.max(0, netPassive);
                     
-                    // Dywidendy
                     let divPayout = companyEarnings * (c.dividendPercent / 100);
                     let myDivShare = divPayout * (c.playerShares / 10);
                     companyPassive += Math.round(myDivShare);
@@ -2026,7 +2024,6 @@
             window.currentCompInc = companyPassive;
             window.currentSalaries = totalSalaries + currentRentsPerSec;
 
-            // DYNAMICZNY RYNEK SPÓŁEK & WYSTAWIONE AKCJE
             game.companies.forEach(c => {
                 let totalAssigned = c.playerShares + c.aiInvestors.reduce((acc, curr) => acc + curr.shares, 0) + (c.listedSharesForSale || 0);
                 if(Math.random() < 0.2 && totalAssigned < 10) {
@@ -2038,7 +2035,6 @@
                     }
                 }
 
-                // AI lub rynek kupuje Twoje wystawione akcje
                 if(c.listedSharesForSale > 0 && Math.random() < 0.35) {
                     let soldCount = Math.min(c.listedSharesForSale, Math.floor(Math.random() * 2) + 1);
                     c.listedSharesForSale -= soldCount;
