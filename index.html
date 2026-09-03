@@ -136,7 +136,7 @@
                     <div class="flex justify-between items-center">
                         <div>
                             <h3 class="text-xl font-bold text-blue-300">Mega Drzewo Technologiczne (R&D)</h3>
-                            <p class="text-xs text-slate-400 mt-1">Zatrudniaj naukowców, aby przyspieszyć proces badań.</p>
+                            <p class="text-xs text-slate-400 mt-1">Szybkość badań rośnie wraz z liczbą zatrudnionych naukowców.</p>
                         </div>
                         <div id="active-research-info" class="glass-card px-4 py-2 rounded-2xl text-xs hidden">
                             Trwa badanie: <strong id="res-active-name" class="text-blue-400">Brak</strong> 
@@ -163,7 +163,7 @@
                     <div class="flex justify-between items-center">
                         <div>
                             <h3 class="text-xl font-bold text-blue-300">Zarządzanie Fabryką & Łańcuch Dostaw</h3>
-                            <p class="text-xs text-slate-400 mt-1">Produkuj urządzenia masowo i generuj przychody.</p>
+                            <p class="text-xs text-slate-400 mt-1">Tempo produkcji i zyski fabryki zależą od liczby zatrudnionych inżynierów i pracowników.</p>
                         </div>
                         <div class="glass-card px-4 py-2 rounded-2xl text-xs">Aktywne linie: <strong id="factory-lines-count" class="text-emerald-400">1</strong></div>
                     </div>
@@ -174,18 +174,21 @@
             <!-- ZAKŁADKA 4: MAPA ŚWIATA & SKLEPY -->
             <div id="tab-shops" class="tab-content flex-1 flex flex-col gap-6 overflow-y-auto hidden">
                 <div class="glass-panel rounded-3xl p-8 shadow-2xl space-y-6">
-                    <div>
-                        <h3 class="text-xl font-bold text-blue-300">Globalna Mapa Rynkowa & Salonów Firmowych (Wszystkie Kraje Świata)</h3>
-                        <p class="text-xs text-slate-400 mt-1">Otwieraj dowolną liczbę sklepów w każdym kraju świata. Uwaga: Sklepy generują zysk tylko wtedy, gdy masz aktywne urządzenia na rynku!</p>
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <div>
+                            <h3 class="text-xl font-bold text-blue-300">Globalna Mapa Rynkowa (Wszystkie 193 Kraje Świata)</h3>
+                            <p class="text-xs text-slate-400 mt-1">Otwieraj dowolną liczbę sklepów w każdym kraju świata.</p>
+                        </div>
+                        <input type="text" id="country-search" oninput="renderWorldMap()" placeholder="🔍 Szukaj kraju..." class="px-4 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-xs text-slate-200 focus:outline-none focus:border-blue-500 w-full md:w-64">
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="world-map-countries"></div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 max-h-[550px] overflow-y-auto pr-2" id="world-map-countries"></div>
                 </div>
             </div>
 
             <!-- ZAKŁADKA 5: KADRY (HR) -->
             <div id="tab-staff" class="tab-content flex-1 flex flex-col gap-6 overflow-y-auto hidden">
                 <div class="glass-panel rounded-3xl p-8 shadow-2xl space-y-6">
-                    <h3 class="text-xl font-bold text-blue-300">Giełda Pracy & Specjaliści</h3>
+                    <h3 class="text-xl font-bold text-blue-300">Giełda Pracy & Specjaliści (Nowi kandydaci pojawiają się automatycznie)</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="job-market"></div>
                 </div>
                 <div class="glass-panel rounded-3xl p-8 shadow-2xl space-y-4">
@@ -301,6 +304,48 @@
     </div>
 
     <script>
+        const rawCountries = [
+            ["pl", "Polska"], ["de", "Niemcy"], ["us", "Stany Zjednoczone"], ["jp", "Japonia"], ["gb", "Wielka Brytania"],
+            ["fr", "Francja"], ["kr", "Korea Południowa"], ["cn", "Chiny"], ["br", "Brazylia"], ["it", "Włochy"],
+            ["es", "Hiszpania"], ["ca", "Kanada"], ["au", "Australia"], ["in", "Indie"], ["mx", "Meksyk"],
+            ["se", "Szwecja"], ["ch", "Szwajcaria"], ["nl", "Holandia"], ["af", "Afganistan"], ["al", "Albania"],
+            ["dz", "Algieria"], ["ad", "Andora"], ["ao", "Angola"], ["ag", "Antigua i Barbuda"], ["ar", "Argentyna"],
+            ["am", "Armenia"], ["at", "Austria"], ["az", "Azerbejdżan"], ["bs", "Bahamy"], ["bh", "Bahrajn"],
+            ["bd", "Bangladesz"], ["bb", "Barbados"], ["by", "Białoruś"], ["be", "Belgia"], ["bz", "Belize"],
+            ["bj", "Benin"], ["bt", "Bhutan"], ["bo", "Boliwia"], ["ba", "Bośnia i Hercegowina"], ["bw", "Botswana"],
+            ["bn", "Brunei"], ["bg", "Bułgaria"], ["bf", "Burkina Faso"], ["bi", "Burundi"], ["cv", "Republika Zielonego Przylądka"],
+            ["kh", "Kambodża"], ["cm", "Kamerun"], ["cf", "Republika Środkowoafrykańska"], ["td", "Czad"], ["cl", "Chile"],
+            ["co", "Kolumbia"], ["km", "Komory"], ["cg", "Kongo"], ["cd", "Demokratyczna Republika Konga"], ["cr", "Kostaryka"],
+            ["ci", "Wybrzeże Kości Słoniowej"], ["hr", "Chorwacja"], ["cu", "Kuba"], ["cy", "Cypr"], ["cz", "Czechy"],
+            ["dk", "Dania"], ["dj", "Dżibuti"], ["dm", "Dominika"], ["do", "Dominikana"], ["ec", "Ekwador"],
+            ["eg", "Egipt"], ["sv", "Salwador"], ["gq", "Gwinea Równikowa"], ["er", "Erytrea"], ["ee", "Estonia"],
+            ["sz", "Eswatini"], ["et", "Etiopia"], ["fj", "Fidżi"], ["fi", "Finlandia"], ["ga", "Gabon"],
+            ["gm", "Gambia"], ["ge", "Gruzja"], ["gh", "Ghana"], ["gr", "Grecja"], ["gd", "Grenada"],
+            ["gt", "Gwatemala"], ["gn", "Gwinea"], ["gw", "Gwinea Bissau"], ["gy", "Gujana"], ["ht", "Haiti"],
+            ["hn", "Honduras"], ["hu", "Węgry"], ["is", "Islandia"], ["id", "Indonezja"], ["ir", "Iran"],
+            ["iq", "Irak"], ["ie", "Irlandia"], ["il", "Izrael"], ["jm", "Jamajka"], ["jo", "Jordania"],
+            ["kz", "Kazachstan"], ["ke", "Kenia"], ["ki", "Kiribati"], ["kp", "Korea Północna"], ["kw", "Kuwejt"],
+            ["kg", "Kirgistan"], ["la", "Laos"], ["lv", "Łotwa"], ["lb", "Liban"], ["ls", "Lesotho"],
+            ["lr", "Liberia"], ["ly", "Libia"], ["li", "Liechtenstein"], ["lt", "Litwa"], ["lu", "Luksemburg"],
+            ["mg", "Madagaskar"], ["mw", "Malawi"], ["my", "Malezja"], ["mv", "Malediwy"], ["ml", "Mali"],
+            ["mt", "Malta"], ["mh", "Wyspy Marshalla"], ["mr", "Mauretania"], ["mu", "Mauritius"], ["fm", "Mikronezja"],
+            ["md", "Mołdawia"], ["mc", "Monako"], ["mn", "Mongolia"], ["me", "Czarnogóra"], ["ma", "Maroko"],
+            ["mz", "Mozambik"], ["mm", "Mjanma"], ["na", "Namibia"], ["nr", "Nauru"], ["np", "Nepal"],
+            ["nz", "Nowa Zelandia"], ["ni", "Nikaragua"], ["ne", "Niger"], ["ng", "Nigeria"], ["mk", "Macedonia Północna"],
+            ["no", "Norwegia"], ["om", "Oman"], ["pk", "Pakistan"], ["pw", "Palau"], ["pa", "Panama"],
+            ["pg", "Papua-Nowa Gwinea"], ["py", "Paragwaj"], ["pe", "Peru"], ["ph", "Filipiny"], ["pt", "Portugalia"],
+            ["qa", "Katar"], ["ro", "Rumunia"], ["ru", "Rosja"], ["rw", "Rwanda"], ["kn", "Saint Kitts i Nevis"],
+            ["lc", "Saint Lucia"], ["vc", "Saint Vincent i Grenadyny"], ["ws", "Samoa"], ["sm", "San Marino"], ["st", "Wyspy Świętego Tomasza i Książęca"],
+            ["sa", "Arabia Saudyjska"], ["sn", "Senegal"], ["rs", "Serbia"], ["sc", "Seszele"], ["sl", "Sierra Leone"],
+            ["sg", "Singapur"], ["sk", "Słowacja"], ["si", "Słowenia"], ["sb", "Wyspy Salomona"], ["so", "Somalia"],
+            ["za", "Republika Południowej Afryki"], ["ss", "Sudan Południowy"], ["lk", "Sri Lanka"], ["sd", "Sudan"], ["sr", "Surinam"],
+            ["se2", "Szwecja"], ["sy", "Syria"], ["tw", "Tajwan"], ["tj", "Tadżykistan"], ["tz", "Tanzania"],
+            ["th", "Tajlandia"], ["tl", "Timor Wschodni"], ["tg", "Togo"], ["to", "Tonga"], ["tt", "Trynidad i Tobago"],
+            ["tn", "Tunezja"], ["tr", "Turcja"], ["tm", "Turkmenistan"], ["tv", "Tuwalu"], ["ug", "Uganda"],
+            ["ua", "Ukraina"], ["ae", "Zjednoczone Emiraty Arabskie"], ["uy", "Urugwaj"], ["uz", "Uzbekistan"], ["vu", "Vanuatu"],
+            ["va", "Watykan"], ["ve", "Wenezuela"], ["vn", "Wietnam"], ["ye", "Jemen"], ["zm", "Zambia"], ["zw", "Zimbabwe"]
+        ];
+
         let game = {
             money: 250000,
             marketShare: 0.5,
@@ -314,26 +359,7 @@
             factory: { active: false, unitsProduced: 0 },
             techCategory: 'phones',
             techTree: { phones: [], tablets: [], laptops: [], pcs: [] },
-            countries: [
-                { id: 'pl', name: 'Polska', flagImg: 'https://flagcdn.com/w40/pl.png', cost: 100000, income: 1200, rent: 200, shareBoost: 0.2, storesCount: 0 },
-                { id: 'de', name: 'Niemcy', flagImg: 'https://flagcdn.com/w40/de.png', cost: 350000, income: 4500, rent: 800, shareBoost: 0.5, storesCount: 0 },
-                { id: 'us', name: 'Stany Zjednoczone', flagImg: 'https://flagcdn.com/w40/us.png', cost: 1000000, income: 15000, rent: 2500, shareBoost: 1.5, storesCount: 0 },
-                { id: 'jp', name: 'Japonia', flagImg: 'https://flagcdn.com/w40/jp.png', cost: 800000, income: 11000, rent: 1800, shareBoost: 1.1, storesCount: 0 },
-                { id: 'gb', name: 'Wielka Brytania', flagImg: 'https://flagcdn.com/w40/gb.png', cost: 500000, income: 6800, rent: 1100, shareBoost: 0.7, storesCount: 0 },
-                { id: 'fr', name: 'Francja', flagImg: 'https://flagcdn.com/w40/fr.png', cost: 450000, income: 5900, rent: 950, shareBoost: 0.6, storesCount: 0 },
-                { id: 'kr', name: 'Korea Południowa', flagImg: 'https://flagcdn.com/w40/kr.png', cost: 700000, income: 9500, rent: 1500, shareBoost: 1.0, storesCount: 0 },
-                { id: 'cn', name: 'Chiny', flagImg: 'https://flagcdn.com/w40/cn.png', cost: 1500000, income: 24000, rent: 4000, shareBoost: 2.5, storesCount: 0 },
-                { id: 'br', name: 'Brazylia', flagImg: 'https://flagcdn.com/w40/br.png', cost: 300000, income: 3800, rent: 500, shareBoost: 0.4, storesCount: 0 },
-                { id: 'it', name: 'Włochy', flagImg: 'https://flagcdn.com/w40/it.png', cost: 420000, income: 5200, rent: 900, shareBoost: 0.5, storesCount: 0 },
-                { id: 'es', name: 'Hiszpania', flagImg: 'https://flagcdn.com/w40/es.png', cost: 380000, income: 4800, rent: 850, shareBoost: 0.45, storesCount: 0 },
-                { id: 'ca', name: 'Kanada', flagImg: 'https://flagcdn.com/w40/ca.png', cost: 650000, income: 8500, rent: 1400, shareBoost: 0.9, storesCount: 0 },
-                { id: 'au', name: 'Australia', flagImg: 'https://flagcdn.com/w40/au.png', cost: 600000, income: 7900, rent: 1300, shareBoost: 0.8, storesCount: 0 },
-                { id: 'in', name: 'Indie', flagImg: 'https://flagcdn.com/w40/in.png', cost: 900000, income: 14000, rent: 2200, shareBoost: 1.8, storesCount: 0 },
-                { id: 'mx', name: 'Meksyk', flagImg: 'https://flagcdn.com/w40/mx.png', cost: 320000, income: 4100, rent: 700, shareBoost: 0.4, storesCount: 0 },
-                { id: 'se', name: 'Szwecja', flagImg: 'https://flagcdn.com/w40/se.png', cost: 400000, income: 5000, rent: 850, shareBoost: 0.5, storesCount: 0 },
-                { id: 'ch', name: 'Szwajcaria', flagImg: 'https://flagcdn.com/w40/ch.png', cost: 750000, income: 10200, rent: 1700, shareBoost: 1.0, storesCount: 0 },
-                { id: 'nl', name: 'Holandia', flagImg: 'https://flagcdn.com/w40/nl.png', cost: 480000, income: 6200, rent: 1000, shareBoost: 0.65, storesCount: 0 }
-            ],
+            countries: [],
             stats: {
                 totalStoreIncome: 0,
                 totalDeviceIncome: 0,
@@ -342,6 +368,41 @@
             },
             hq: []
         };
+
+        const firstNames = ['Jan', 'Piotr', 'Krzysztof', 'Andrzej', 'Tomasz', 'Paweł', 'Michał', 'Marcin', 'Jakub', 'Adam', 'Stanisław', 'Marek', 'Łukasz', 'Grzegorz', 'Mateusz', 'Wojciech', 'Kamil', 'Konrad', 'Bartosz', 'Łucja', 'Anna', 'Katarzyna', 'Maria', 'Małgorzata', 'Agnieszka', 'Krystyna', 'Barbara', 'Ewa', 'Elżbieta', 'Zofia', 'Magdalena', 'Joanna', 'Monika', 'Natalia', 'Karolina', 'Aleksandra', 'Marta', 'Alicja', 'Dorota', 'Patrycja'];
+        const lastNames = ['Nowak', 'Wójcik', 'Woźniak', 'Kowalczyk', 'Kozłowska', 'Mazur', 'Krawczyk', 'Kaczmarek', 'Ziółkowska', 'Zając', 'Król', 'Wieczorek', 'Wróbel', 'Jabłońska', 'Duda', 'Olech', 'Szymańska', 'Woźny', 'Dąbrowski', 'Kozłowski', 'Jankowska', 'Mazurkiewicz', 'Kwiatkowska', 'Kaczor', 'Grabowski', 'Piotrowska', 'Pawłowska', 'Michalak', 'Nowicka', 'Adamczyk'];
+
+        function generateRandomStaffMember() {
+            const roles = ['Inżynier Sprzętu', 'Projektant UI/UX', 'Badacz / Naukowiec R&D'];
+            const fName = firstNames[Math.floor(Math.random() * firstNames.length)];
+            const lName = lastNames[Math.floor(Math.random() * lastNames.length)];
+            return {
+                id: Date.now() + Math.random(),
+                name: `${fName} ${lName}`,
+                role: roles[Math.floor(Math.random() * roles.length)],
+                skill: Math.floor(Math.random() * 35) + 15,
+                salary: 3500
+            };
+        }
+
+        // Inicjalizacja 193 krajów
+        rawCountries.forEach((c, idx) => {
+            let code = c[0] === 'se2' ? 'se' : c[0];
+            let baseCost = 80000 + (idx * 15000);
+            let baseIncome = 1000 + (idx * 120);
+            let baseRent = Math.round(baseIncome * 0.18);
+            let share = parseFloat((0.1 + (idx * 0.02)).toFixed(2));
+            game.countries.push({
+                id: `${code}_${idx}`,
+                name: c[1],
+                flagImg: `https://flagcdn.com/w40/${code}.png`,
+                cost: baseCost,
+                income: baseIncome,
+                rent: baseRent,
+                shareBoost: share,
+                storesCount: 0
+            });
+        });
 
         const prefixes = ['Nano', 'Ultra', 'Quantum', 'Hyper', 'Cyber', 'Mega', 'Pro', 'Apex', 'Matrix', 'Nexus', 'Prime', 'Zenith', 'Omni', 'Stellar', 'Void', 'Aether', 'Vortex', 'Solar', 'Eclipse', 'Titan'];
         const suffixes = ['Chip', 'Moduł', 'Matryca', 'Silnik', 'Procesor', 'System', 'Protokol', 'Sensor', 'Interfejs', 'Rdzeń'];
@@ -394,9 +455,9 @@
             });
         }
 
-        function saveGame() { localStorage.setItem('tech_giant_tycoon_save_v10', JSON.stringify(game)); }
+        function saveGame() { localStorage.setItem('tech_giant_tycoon_save_v11', JSON.stringify(game)); }
         function loadGame() {
-            const saved = localStorage.getItem('tech_giant_tycoon_save_v10');
+            const saved = localStorage.getItem('tech_giant_tycoon_save_v11');
             if(saved) {
                 try {
                     const parsed = JSON.parse(saved);
@@ -469,9 +530,14 @@
 
         function renderWorldMap() {
             const container = document.getElementById('world-map-countries');
+            const searchInput = document.getElementById('country-search');
             if(!container) return;
             container.innerHTML = '';
-            game.countries.forEach(c => {
+            
+            let query = searchInput ? searchInput.value.toLowerCase() : '';
+            let filtered = game.countries.filter(c => c.name.toLowerCase().includes(query));
+
+            filtered.forEach(c => {
                 container.innerHTML += `
                     <div class="glass-card p-5 rounded-2xl flex flex-col justify-between gap-3 border ${c.storesCount > 0 ? 'border-emerald-500/40' : 'border-slate-700/60'}">
                         <div>
@@ -509,30 +575,19 @@
             }
         }
 
-        function generateCandidates() {
-            game.marketCandidates = [];
-            const roles = ['Inżynier Sprzętu', 'Projektant UI/UX', 'Badacz / Naukowiec R&D'];
-            for(let i=0; i<4; i++) {
-                game.marketCandidates.push({
-                    id: Date.now() + i,
-                    name: `Ekspert ${Math.floor(Math.random()*900+100)}`,
-                    role: roles[Math.floor(Math.random() * roles.length)],
-                    skill: Math.floor(Math.random() * 35) + 15,
-                    salary: 3500
-                });
-            }
-            saveGame();
-        }
-
         function renderJobMarket() {
+            if(game.marketCandidates.length < 4) {
+                while(game.marketCandidates.length < 4) {
+                    game.marketCandidates.push(generateRandomStaffMember());
+                }
+            }
             const container = document.getElementById('job-market');
             if(!container) return;
-            if(game.marketCandidates.length === 0) generateCandidates();
             container.innerHTML = '';
             game.marketCandidates.forEach(c => {
                 container.innerHTML += `
                     <div class="glass-card p-4 rounded-2xl flex flex-col justify-between gap-3 text-xs">
-                        <div><strong>${c.name}</strong> (${c.role}) - Umiejętności: ${c.skill} | Pensja: ${c.salary} zł/s</div>
+                        <div><strong>${c.name}</strong> (<strong class="text-blue-300">${c.role}</strong>) - Umiejętności: ${c.skill} | Pensja: ${c.salary} zł/s</div>
                         <button onclick="hireCandidate(${c.id})" class="py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold transition">Zatrudnij</button>
                     </div>
                 `;
@@ -617,7 +672,7 @@
                             <div>
                                 <h4 class="font-bold text-slate-100 text-sm">${tech.name}</h4>
                                 <p class="text-xs text-slate-400 mt-1">${tech.desc}</p>
-                                <p class="text-[11px] text-blue-300 mt-2">Koszt: ${tech.cost.toLocaleString()} zł | Czas: ${tech.time}s</p>
+                                <p class="text-[11px] text-blue-300 mt-2">Koszt: ${tech.cost.toLocaleString()} zł | Czas bazowy: ${tech.time}s</p>
                             </div>
                             <div class="pt-2 border-t border-slate-800/80 flex justify-between items-center">${actionBtn}</div>
                         </div>
@@ -659,7 +714,7 @@
             if(!container) return;
             container.innerHTML = `
                 <div class="glass-card p-6 rounded-2xl space-y-4 text-xs">
-                    <div>Status fabryki: <strong class="text-emerald-400">${game.factory.active ? 'Aktywna produkcja' : 'Wstrzymana'}</strong></div>
+                    <div>Status fabryki: <strong class="text-emerald-400">${game.factory.active ? 'Aktywna produkcja masowa' : 'Wstrzymana'}</strong></div>
                     <div>Wyprodukowano egzemplarzy: <strong class="text-blue-300">${game.factory.unitsProduced}</strong></div>
                     <button onclick="toggleFactory()" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold transition">${game.factory.active ? 'Zatrzymaj produkcję' : 'Uruchom produkcję masową'}</button>
                 </div>
@@ -875,16 +930,25 @@
                     `;
                 });
             }
+
+            renderStats();
         }
 
         setInterval(() => {
-            let engPower = 1, designPower = 1, researchPower = 1;
+            let engPower = 0.5, designPower = 0.5, researchPower = 0.5, factoryPower = 0.5;
             let totalSalaries = 0;
 
             game.hiredStaff.forEach(s => {
-                if(s.role === 'Inżynier Sprzętu') engPower += s.skill * 0.2;
-                if(s.role === 'Projektant UI/UX') designPower += s.skill * 0.2;
-                if(s.role === 'Badacz / Naukowiec R&D') researchPower += s.skill * 0.4;
+                if(s.role === 'Inżynier Sprzętu') {
+                    engPower += s.skill * 0.15;
+                    factoryPower += s.skill * 0.1;
+                }
+                if(s.role === 'Projektant UI/UX') {
+                    designPower += s.skill * 0.15;
+                }
+                if(s.role === 'Badacz / Naukowiec R&D') {
+                    researchPower += s.skill * 0.25;
+                }
                 totalSalaries += s.salary;
             });
 
@@ -905,22 +969,23 @@
 
             if(game.activeProject) {
                 let p = game.activeProject;
-                p.eng += engPower * 0.2;
-                p.design += designPower * 0.2;
-                p.progress += 2;
+                p.eng += engPower * 0.1;
+                p.design += designPower * 0.1;
+                p.progress += engPower * 0.08;
                 if(p.progress >= p.maxProgress) finishDevice();
                 else updateUI();
             }
 
             if(game.factory.active && game.history.length > 0) {
-                game.factory.unitsProduced += 5;
-                let deviceIncome = 500;
+                let producedUnits = Math.max(1, Math.floor(factoryPower * 0.8));
+                game.factory.unitsProduced += producedUnits;
+                let deviceIncome = producedUnits * 120;
                 modifyMoney(deviceIncome);
                 game.stats.totalDeviceIncome += deviceIncome;
                 
                 if(game.history.length > 0) {
                     let lastDev = game.history[game.history.length - 1];
-                    lastDev.unitsSold += 5;
+                    lastDev.unitsSold += producedUnits;
                     lastDev.revenueGenerated += deviceIncome;
                 }
             }
@@ -952,6 +1017,11 @@
             } else if(totalRents > 0 && game.history.length > 0) {
                 modifyMoney(-totalRents);
                 game.stats.totalRentsPaid += totalRents;
+            }
+
+            // Automatyczne generowanie nowych kandydatów na giełdzie pracy co sekundę
+            if(game.marketCandidates.length < 6) {
+                game.marketCandidates.push(generateRandomStaffMember());
             }
 
             saveGame();
