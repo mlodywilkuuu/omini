@@ -535,7 +535,7 @@
         ];
 
         function generateAIInvestors(maxLimit = 70) {
-            let count = Math.floor(Math.random() * 3) + 2; // od 2 do 4 inwestorów na start
+            let count = Math.floor(Math.random() * 3) + 2; 
             let shuffled = [...investorNames].sort(() => 0.5 - Math.random());
             let invs = [];
             let remainingShares = maxLimit; 
@@ -557,14 +557,18 @@
                 name: `${p} ${s} #${i}`,
                 specialization: ['Smartfony', 'Podzespoły', 'Audio', 'Wyświetlacze', 'Baterie', 'Procesory', 'Czujniki'][i % 7],
                 sharePricePerPercent: 1200 + (i * 350),
-                passiveIncome: 400 + (i * 90),
+                passiveIncome: 4500 + (i * 900), // Zwiększono bazowy przychód pasywny spółek
                 playerShares: 0,
                 aiInvestors: generateAIInvestors(60),
                 marketingBudget: 0,
                 rdBudget: 0,
                 salaryMultiplier: 1.0,
-                dividendPercent: 10,
+                dividendPercent: 25, // Zwiększono domyślny procent dywidend
                 companyDebt: 0,
+                loanTotal: 0,
+                loanRemaining: 0,
+                loanInstallmentPerSec: 0,
+                loanInstallmentsLeft: 0,
                 listedSharesForSale: 0,
                 listedSharePricePerPercent: 0
             });
@@ -694,9 +698,9 @@
             });
         }
 
-        function saveGame() { localStorage.setItem('tech_giant_tycoon_save_v39', JSON.stringify(game)); }
+        function saveGame() { localStorage.setItem('tech_giant_tycoon_save_v41', JSON.stringify(game)); }
         function loadGame() {
-            const saved = localStorage.getItem('tech_giant_tycoon_save_v39');
+            const saved = localStorage.getItem('tech_giant_tycoon_save_v41');
             if(saved) {
                 try {
                     const parsed = JSON.parse(saved);
@@ -712,7 +716,6 @@
                     game = { ...game, ...parsed };
                 } catch(e) {}
             }
-            // Zabezpieczenie sumujące do max 100%
             game.companies.forEach(c => {
                 let sum = c.playerShares + (c.listedSharesForSale || 0) + c.aiInvestors.reduce((acc, i) => acc + i.shares, 0);
                 if(sum > 100) {
@@ -1171,15 +1174,59 @@
             document.getElementById('manage-modal-title').textContent = `Zaawansowany Zarząd: ${comp.name}`;
             
             const content = document.getElementById('manage-modal-content');
+            let loanSection = '';
+            if(comp.loanRemaining > 0) {
+                loanSection = `
+                    <div class="glass-card p-3 rounded-xl space-y-2 border-rose-500/40 bg-rose-950/10">
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="text-slate-300 font-bold">Aktywny Kredyt / Pożyczka:</span>
+                            <span class="text-rose-400 font-bold">${comp.loanRemaining.toLocaleString()} zł</span>
+                        </div>
+                        <div class="text-[11px] text-slate-400 flex justify-between">
+                            <span>Rata / sekundę: <strong class="text-emerald-400">${comp.loanInstallmentPerSec.toLocaleString()} zł</strong></span>
+                            <span>Pozostało rat: <strong class="text-blue-300">${comp.loanInstallmentsLeft}</strong></span>
+                        </div>
+                        <button onclick="repayCompanyLoan('${id}')" class="w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold transition text-xs">Spłać całość wcześniej (${comp.loanRemaining.toLocaleString()} zł)</button>
+                    </div>
+                `;
+            } else {
+                loanSection = `
+                    <div class="glass-card p-3 rounded-xl space-y-2 border-blue-500/40">
+                        <span class="text-slate-200 font-bold block">Zaciągnij nową pożyczkę ratalną</span>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-slate-400 mb-1">Kwota pożyczki:</label>
+                                <select id="loan-amount-sel" class="w-full px-2.5 py-1.5 bg-slate-950 border border-slate-700 rounded-lg text-white">
+                                    <option value="50000">50,000 zł</option>
+                                    <option value="150000" selected>150,000 zł</option>
+                                    <option value="500000">500,000 zł</option>
+                                    <option value="1500000">1,500,000 zł</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-slate-400 mb-1">Liczba rat:</label>
+                                <select id="loan-installments-sel" class="w-full px-2.5 py-1.5 bg-slate-950 border border-slate-700 rounded-lg text-white">
+                                    <option value="10">10 rat</option>
+                                    <option value="25" selected>25 rat</option>
+                                    <option value="50">50 rat</option>
+                                    <option value="100">100 rat</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button onclick="takeCompanyLoanModal('${id}')" class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold transition text-xs">Weź pożyczkę</button>
+                    </div>
+                `;
+            }
+
             content.innerHTML = `
                 <div class="space-y-4">
                     <div class="glass-card p-3 rounded-xl space-y-1 border-blue-500/30">
                         <label class="block text-slate-300 font-semibold">Budżet Marketingowy: <strong id="m-budget-val" class="text-blue-300">${comp.marketingBudget} zł/s</strong></label>
-                        <input type="range" min="0" max="25000" step="500" value="${comp.marketingBudget}" oninput="updateCompanyParam('${id}', 'marketingBudget', this.value)" class="w-full accent-blue-500">
+                        <input type="range" min="0" max="50000" step="1000" value="${comp.marketingBudget}" oninput="updateCompanyParam('${id}', 'marketingBudget', this.value)" class="w-full accent-blue-500">
                     </div>
                     <div class="glass-card p-3 rounded-xl space-y-1 border-indigo-500/30">
                         <label class="block text-slate-300 font-semibold">Budżet R&D Spółki: <strong id="r-budget-val" class="text-indigo-300">${comp.rdBudget} zł/s</strong></label>
-                        <input type="range" min="0" max="30000" step="500" value="${comp.rdBudget}" oninput="updateCompanyParam('${id}', 'rdBudget', this.value)" class="w-full accent-indigo-500">
+                        <input type="range" min="0" max="50000" step="1000" value="${comp.rdBudget}" oninput="updateCompanyParam('${id}', 'rdBudget', this.value)" class="w-full accent-indigo-500">
                     </div>
                     <div class="glass-card p-3 rounded-xl space-y-1 border-emerald-500/30">
                         <label class="block text-slate-300 font-semibold">Mnożnik Pensji Pracowników: <strong id="s-mult-val" class="text-emerald-400">${comp.salaryMultiplier}x</strong></label>
@@ -1187,17 +1234,10 @@
                     </div>
                     <div class="glass-card p-3 rounded-xl space-y-1 border-amber-500/30">
                         <label class="block text-slate-300 font-semibold">Polityka Dywidendowa (% zysków dla akcjonariuszy): <strong id="d-pct-val" class="text-amber-400">${comp.dividendPercent}%</strong></label>
-                        <input type="range" min="0" max="80" step="5" value="${comp.dividendPercent}" oninput="updateCompanyParam('${id}', 'dividendPercent', this.value)" class="w-full accent-amber-500">
+                        <input type="range" min="0" max="100" step="5" value="${comp.dividendPercent}" oninput="updateCompanyParam('${id}', 'dividendPercent', this.value)" class="w-full accent-amber-500">
                     </div>
-                    <div class="glass-card p-3 rounded-xl flex items-center justify-between border-slate-700">
-                        <div>
-                            <span class="font-bold text-slate-200">Zaciągnij Kredyt Korporacyjny (+100,000 zł)</span>
-                            <span class="text-slate-400 block text-[10px]">Zwiększa gotówkę firmy, generuje małe odsetki.</span>
-                        </div>
-                        <button onclick="takeCompanyLoan('${id}')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold">Pożyczka</button>
-                    </div>
+                    ${loanSection}
                     <div class="text-slate-400 text-[11px] flex justify-between">
-                        <span>Zadłużenie spółki: <strong class="text-rose-400">${comp.companyDebt || 0} zł</strong></span>
                         <span>Aktualna wycena za 1%: <strong class="text-emerald-400">${comp.sharePricePerPercent.toLocaleString()} zł</strong></span>
                     </div>
                 </div>
@@ -1217,15 +1257,42 @@
             }
         }
 
-        function takeCompanyLoan(id) {
+        function takeCompanyLoanModal(id) {
             let comp = game.companies.find(c => c.id === id);
-            if(comp) {
-                comp.companyDebt = (comp.companyDebt || 0) + 100000;
-                modifyMoney(100000);
-                showToast(`Zaciągnięto pożyczkę korporacyjną dla ${comp.name}!`, 'success');
-                openManageModal(id);
-                saveGame();
+            if(!comp) return;
+
+            let amount = parseInt(document.getElementById('loan-amount-sel').value) || 150000;
+            let installments = parseInt(document.getElementById('loan-installments-sel').value) || 25;
+            let totalWithInterest = Math.round(amount * 1.25);
+
+            comp.loanTotal = totalWithInterest;
+            comp.loanRemaining = totalWithInterest;
+            comp.loanInstallmentsLeft = installments;
+            comp.loanInstallmentPerSec = Math.ceil(totalWithInterest / installments);
+
+            modifyMoney(amount);
+            showToast(`Zaciągnięto pożyczkę w wysokości ${amount.toLocaleString()} zł na ${installments} rat!`, 'success');
+            openManageModal(id);
+            saveGame();
+        }
+
+        function repayCompanyLoan(id) {
+            let comp = game.companies.find(c => c.id === id);
+            if(!comp || comp.loanRemaining <= 0) return;
+
+            if(game.money < comp.loanRemaining) {
+                showToast('Za mało środków w głównym budżecie na spłatę całości!', 'error');
+                return;
             }
+
+            modifyMoney(-comp.loanRemaining);
+            comp.loanRemaining = 0;
+            comp.loanInstallmentsLeft = 0;
+            comp.loanInstallmentPerSec = 0;
+
+            showToast('Pomyślnie spłacono całą pożyczkę przed czasem!', 'success');
+            openManageModal(id);
+            saveGame();
         }
 
         function closeManageModal() {
@@ -1968,12 +2035,18 @@
             let companyPassive = 0;
             game.companies.forEach(c => {
                 if(c.playerShares > 0) {
-                    let mBonus = 1 + (c.marketingBudget / 20000);
-                    let rdBonus = 1 + (c.rdBudget / 30000);
-                    let netPassive = 450 * mBonus * rdBonus;
-                    if(c.companyDebt > 0) netPassive -= (c.companyDebt * 0.01);
-                    let companyEarnings = Math.max(0, netPassive);
+                    let mBonus = 1 + (c.marketingBudget / 15000);
+                    let rdBonus = 1 + (c.rdBudget / 15000);
+                    let netPassive = c.passiveIncome * mBonus * rdBonus;
                     
+                    if(c.loanRemaining > 0) {
+                        let deduction = Math.min(c.loanRemaining, c.loanInstallmentPerSec);
+                        c.loanRemaining -= deduction;
+                        c.loanInstallmentsLeft = Math.max(0, c.loanInstallmentsLeft - 1);
+                        netPassive -= deduction;
+                    }
+
+                    let companyEarnings = Math.max(0, netPassive);
                     let divPayout = companyEarnings * (c.dividendPercent / 100);
                     let myDivShare = divPayout * (c.playerShares / 100);
                     companyPassive += Math.round(myDivShare);
@@ -2066,11 +2139,9 @@
             window.currentCompInc = companyPassive;
             window.currentSalaries = totalSalaries + currentRentsPerSec;
 
-            // AKTYWNA SYMULACJE GIEŁDOWA INWESTORÓW AI (Kupują/sprzedają między sobą)
             game.companies.forEach(c => {
                 let totalAssigned = c.playerShares + c.aiInvestors.reduce((acc, curr) => acc + curr.shares, 0) + (c.listedSharesForSale || 0);
 
-                // Inwestorzy AI dokupują wolne akcje lub handlują między sobą
                 if(Math.random() < 0.25) {
                     if(totalAssigned < 100 && c.aiInvestors.length > 0) {
                         let randInv = c.aiInvestors[Math.floor(Math.random() * c.aiInvestors.length)];
@@ -2084,7 +2155,6 @@
                     }
                 }
 
-                // Inwestor AI czasem sprzedaje część udziałów innemu funduszowi lub na giełdę
                 if(Math.random() < 0.15 && c.aiInvestors.length > 1) {
                     let seller = c.aiInvestors[Math.floor(Math.random() * c.aiInvestors.length)];
                     if(seller.shares > 10) {
@@ -2104,8 +2174,8 @@
                 }
 
                 if(Math.random() < 0.08) {
-                    c.sharePricePerPercent += Math.floor((Math.random() - 0.45) * 400);
-                    if(c.sharePricePerPercent < 500) c.sharePricePerPercent = 500;
+                    c.sharePricePerPercent += Math.floor((Math.random() - 0.45) * 800);
+                    if(c.sharePricePerPercent < 1000) c.sharePricePerPercent = 1000;
                 }
             });
 
@@ -2118,14 +2188,18 @@
                     name: `${p} ${s} #${game.companies.length + 1}`,
                     specialization: ['Smartfony', 'Podzespoły', 'Audio', 'Wyświetlacze', 'Baterie', 'Procesory', 'Czujniki'][Math.floor(Math.random() * 7)],
                     sharePricePerPercent: Math.floor(Math.random() * 5000) + 1200,
-                    passiveIncome: Math.floor(Math.random() * 1200) + 400,
+                    passiveIncome: Math.floor(Math.random() * 5000) + 4000,
                     playerShares: 0,
                     aiInvestors: generateAIInvestors(60),
                     marketingBudget: 0,
                     rdBudget: 0,
                     salaryMultiplier: 1.0,
-                    dividendPercent: 10,
+                    dividendPercent: 25,
                     companyDebt: 0,
+                    loanTotal: 0,
+                    loanRemaining: 0,
+                    loanInstallmentPerSec: 0,
+                    loanInstallmentsLeft: 0,
                     listedSharesForSale: 0,
                     listedSharePricePerPercent: 0
                 });
