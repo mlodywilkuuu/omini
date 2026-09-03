@@ -123,8 +123,8 @@
                 </div>
 
                 <div class="glass-panel rounded-3xl p-8 shadow-2xl flex flex-col flex-1 overflow-hidden">
-                    <h3 class="text-lg font-bold text-slate-200 mb-4 flex items-center gap-3"><span>📦</span> Katalog Wypuszczonych Produktów</h3>
-                    <div class="flex-1 overflow-y-auto space-y-3.5 pr-2" id="products-history">
+                    <h3 class="text-lg font-bold text-slate-200 mb-4 flex items-center gap-3"><span>📦</span> Katalog Wypuszczonych Produktów & Statystyki Urządzeń</h3>
+                    <div class="flex-1 overflow-y-auto space-y-4 pr-2" id="products-history">
                         <div class="text-center py-12 text-slate-500 text-sm">Brak wydanych urządzeń na rynku.</div>
                     </div>
                 </div>
@@ -284,15 +284,6 @@
         </div>
     </div>
 
-    <!-- MODAL STATYSTYK KONKRETNEGO URZĄDZENIA -->
-    <div id="device-stats-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4 z-50">
-        <div class="glass-panel text-slate-100 w-full max-w-md rounded-3xl shadow-2xl p-6 space-y-4 border border-blue-500/40">
-            <h3 class="text-xl font-bold text-blue-300" id="dev-stat-title">Statystyki Urządzenia</h3>
-            <div id="dev-stat-content" class="space-y-3 text-xs"></div>
-            <button onclick="closeDeviceStatsModal()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold transition">Zamknij</button>
-        </div>
-    </div>
-
     <!-- MODAL PREMIERY -->
     <div id="review-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4 z-50">
         <div class="glass-panel text-slate-100 w-full max-w-md rounded-3xl shadow-2xl p-6 text-center space-y-4">
@@ -385,7 +376,7 @@
             };
         }
 
-        // Inicjalizacja 193 krajów
+        // Inicjalizacja domyślna krajów
         rawCountries.forEach((c, idx) => {
             let code = c[0] === 'se2' ? 'se' : c[0];
             let baseCost = 80000 + (idx * 15000);
@@ -455,12 +446,24 @@
             });
         }
 
-        function saveGame() { localStorage.setItem('tech_giant_tycoon_save_v11', JSON.stringify(game)); }
+        function saveGame() { 
+            localStorage.setItem('tech_giant_tycoon_save_v13', JSON.stringify(game)); 
+        }
+
         function loadGame() {
-            const saved = localStorage.getItem('tech_giant_tycoon_save_v11');
+            const saved = localStorage.getItem('tech_giant_tycoon_save_v13');
             if(saved) {
                 try {
                     const parsed = JSON.parse(saved);
+                    // Głębokie scalenie obiektów krajów, aby zachować stan sklepów i zaktualizować dane jeśli zmieniono
+                    if(parsed.countries && Array.isArray(parsed.countries)) {
+                        parsed.countries.forEach(savedC => {
+                            let target = game.countries.find(c => c.id === savedC.id);
+                            if(target) {
+                                target.storesCount = savedC.storesCount;
+                            }
+                        });
+                    }
                     game = { ...game, ...parsed };
                 } catch(e) {}
             }
@@ -873,24 +876,6 @@
             saveGame();
         }
 
-        function showDeviceStats(id) {
-            const dev = game.history.find(h => h.id === id);
-            if(!dev) return;
-            document.getElementById('dev-stat-title').textContent = dev.name;
-            document.getElementById('dev-stat-content').innerHTML = `
-                <div class="flex justify-between"><span class="text-slate-400">Kategoria:</span><strong class="text-blue-300">${dev.category}</strong></div>
-                <div class="flex justify-between"><span class="text-slate-400">Ocena recenzentów:</span><strong class="text-amber-400">${dev.score}/10</strong></div>
-                <div class="flex justify-between"><span class="text-slate-400">Wykorzystane technologie:</span><strong class="text-slate-200">${dev.techsCount}</strong></div>
-                <div class="flex justify-between"><span class="text-slate-400">Sprzedane egzemplarze:</span><strong class="text-emerald-400">${dev.unitsSold.toLocaleString()} szt.</strong></div>
-                <div class="flex justify-between"><span class="text-slate-400">Wygenerowany przychód:</span><strong class="text-emerald-400">${dev.revenueGenerated.toLocaleString()} zł</strong></div>
-            `;
-            document.getElementById('device-stats-modal').classList.remove('hidden');
-        }
-
-        function closeDeviceStatsModal() {
-            document.getElementById('device-stats-modal').classList.add('hidden');
-        }
-
         function updateUI() {
             document.getElementById('company-money').textContent = `${Math.floor(game.money).toLocaleString()} zł`;
             document.getElementById('company-market-share').textContent = `${game.marketShare}%`;
@@ -918,13 +903,21 @@
                 hList.innerHTML = game.history.length === 0 ? `<div class="text-center py-12 text-slate-500 text-sm">Brak wydanych urządzeń na rynku.</div>` : '';
                 game.history.slice().reverse().forEach(h => {
                     hList.innerHTML += `
-                        <div class="glass-card p-4 rounded-2xl flex justify-between items-center text-xs">
-                            <div>
-                                <strong>${h.name}</strong> (${h.category}) - <span class="text-amber-400 font-bold">Ocena: ${h.score}/10</span>
+                        <div class="glass-card p-5 rounded-2xl flex flex-col gap-3 text-xs border border-slate-700/60">
+                            <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+                                <div>
+                                    <strong class="text-sm text-slate-100">${h.name}</strong> 
+                                    <span class="text-xs bg-slate-800 text-blue-300 px-2 py-0.5 rounded-lg ml-2">${h.category}</span>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button onclick="withdrawDevice(${h.id})" class="px-3 py-1.5 bg-rose-600/80 hover:bg-rose-500 text-white rounded-xl font-bold">Wycofaj z rynku</button>
+                                </div>
                             </div>
-                            <div class="flex gap-2">
-                                <button onclick="showDeviceStats(${h.id})" class="px-3 py-1.5 bg-blue-600/80 hover:bg-blue-500 text-white rounded-xl font-bold">Statystyki</button>
-                                <button onclick="withdrawDevice(${h.id})" class="px-3 py-1.5 bg-rose-600/80 hover:bg-rose-500 text-white rounded-xl font-bold">Wycofaj</button>
+                            <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                <div><span class="text-slate-400">Ocena:</span> <strong class="text-amber-400">${h.score}/10</strong></div>
+                                <div><span class="text-slate-400">Technologie:</span> <strong class="text-slate-200">${h.techsCount}</strong></div>
+                                <div><span class="text-slate-400">Sprzedane szt.:</span> <strong class="text-emerald-400">${h.unitsSold.toLocaleString()}</strong></div>
+                                <div class="col-span-2 md:col-span-3"><span class="text-slate-400">Przychód urządzenia:</span> <strong class="text-emerald-400">${h.revenueGenerated.toLocaleString()} zł</strong></div>
                             </div>
                         </div>
                     `;
@@ -1019,7 +1012,6 @@
                 game.stats.totalRentsPaid += totalRents;
             }
 
-            // Automatyczne generowanie nowych kandydatów na giełdzie pracy co sekundę
             if(game.marketCandidates.length < 6) {
                 game.marketCandidates.push(generateRandomStaffMember());
             }
