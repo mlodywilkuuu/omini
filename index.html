@@ -3,2369 +3,422 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tech Giant Tycoon - Ultimate Hardware Edition v56</title>
+    <title>Tech Empire Tycoon</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        @keyframes gradientShift {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-        .animated-bg {
-            background: linear-gradient(-45deg, #030712, #0f172a, #1e1b4b, #020617);
-            background-size: 400% 400%;
-            animation: gradientShift 25s ease infinite;
-        }
         .glass-panel {
             background: rgba(11, 17, 28, 0.95);
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
+            backdrop-filter: blur(16px);
             border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.7);
         }
         .glass-card {
             background: rgba(17, 24, 39, 0.85);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
             border: 1px solid rgba(255, 255, 255, 0.06);
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.2s ease;
         }
         .glass-card:hover {
-            border-color: rgba(59, 130, 246, 0.5);
-            transform: translateY(-3px);
-            box-shadow: 0 12px 30px -5px rgba(59, 130, 246, 0.2);
+            border-color: rgba(59, 130, 246, 0.4);
+            transform: translateY(-2px);
         }
-        @keyframes floatUpRed {
-            0% { opacity: 1; transform: translateY(0) scale(1); }
-            100% { opacity: 0; transform: translateY(-45px) scale(1.1); }
-        }
-        @keyframes floatUpGreen {
-            0% { opacity: 1; transform: translateY(0) scale(1); }
-            100% { opacity: 0; transform: translateY(-45px) scale(1.1); }
-        }
-        .float-red { animation: floatUpRed 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
-        .float-green { animation: floatUpGreen 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
-        
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: rgba(11, 17, 28, 0.6); }
         ::-webkit-scrollbar-thumb { background: rgba(59, 130, 246, 0.4); border-radius: 9999px; }
-        ::-webkit-scrollbar-thumb:hover { background: rgba(59, 130, 246, 0.7); }
     </style>
 </head>
-<body class="animated-bg text-slate-100 h-screen flex flex-col overflow-hidden font-sans">
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans select-none overflow-x-hidden">
 
-    <!-- GÓRNY PASEK STATYSTYK -->
-    <header class="glass-panel border-b border-slate-800/80 px-6 py-4 flex justify-between items-center z-30 relative shadow-xl">
+    <!-- GÓRNY PASEK METryk -->
+    <header class="glass-panel border-b border-slate-800 px-6 py-4 flex flex-wrap justify-between items-center z-30 sticky top-0 gap-4">
         <div class="flex items-center gap-3">
-            <div class="w-4 h-4 rounded-full bg-blue-500 animate-pulse shadow-lg shadow-blue-500/60"></div>
-            <h1 class="text-xl font-extrabold tracking-wide bg-gradient-to-r from-blue-400 via-indigo-300 to-cyan-400 bg-clip-text text-transparent">Tech Giant <span class="text-xs bg-blue-500/20 border border-blue-500/40 text-blue-300 px-3 py-1 rounded-full ml-2 font-semibold shadow-inner">Ultimate v56</span></h1>
+            <div class="w-3.5 h-3.5 rounded-full bg-cyan-500 animate-pulse shadow-lg shadow-cyan-500/50"></div>
+            <h1 class="text-lg font-extrabold bg-gradient-to-r from-cyan-400 via-blue-400 to-indigo-400 bg-clip-text text-transparent">Tech Empire Tycoon</h1>
         </div>
-        <div class="flex gap-3 text-xs items-center relative">
-            <div id="floating-money-container" class="absolute -bottom-12 left-0 pointer-events-none z-50 font-bold"></div>
-
-            <div class="glass-card px-4 py-2.5 rounded-2xl flex items-center gap-2 border-slate-700/60 shadow-inner">
+        <div class="flex gap-3 text-xs flex-wrap items-center">
+            <div class="glass-card px-3.5 py-2 rounded-xl flex items-center gap-2">
                 <span class="text-slate-400">💰 Gotówka:</span>
-                <span id="company-money" class="font-bold text-emerald-400 text-sm">350,000 zł</span>
+                <span id="stat-money" class="font-bold text-emerald-400 text-sm">150,000 zł</span>
             </div>
-            <div class="glass-card px-4 py-2.5 rounded-2xl flex items-center gap-2 border-slate-700/60 shadow-inner">
+            <div class="glass-card px-3.5 py-2 rounded-xl flex items-center gap-2">
                 <span class="text-slate-400">🌐 Udział w rynku:</span>
-                <span id="company-market-share" class="font-bold text-blue-400 text-sm">0.5%</span>
+                <span id="stat-market" class="font-bold text-cyan-400 text-sm">0.2%</span>
             </div>
-            <div class="glass-card px-4 py-2.5 rounded-2xl flex items-center gap-2 border-slate-700/60 shadow-inner">
-                <span class="text-slate-400">👥 Kadra:</span>
-                <span id="company-staff-count" class="font-bold text-indigo-400 text-sm">0/5</span>
+            <div class="glass-card px-3.5 py-2 rounded-xl flex items-center gap-2">
+                <span class="text-slate-400">👥 Inżynierowie:</span>
+                <span id="stat-staff" class="font-bold text-indigo-400 text-sm">2 / 10</span>
+            </div>
+            <div class="glass-card px-3.5 py-2 rounded-xl flex items-center gap-2">
+                <span class="text-slate-400">⚡ Innowacje:</span>
+                <span id="stat-points" class="font-bold text-purple-400 text-sm">0 pkt</span>
             </div>
         </div>
     </header>
 
-    <!-- ZAKŁADKI GŁÓWNE -->
-    <main class="flex-1 flex flex-col overflow-hidden">
-        <div class="bg-slate-950/60 border-b border-slate-800/70 px-8 py-3 flex gap-3 overflow-x-auto shadow-md">
-            <button onclick="switchTab('devices')" id="tab-btn-devices" class="px-5 py-2.5 rounded-2xl font-semibold text-sm transition bg-blue-600 text-white shadow-lg shadow-blue-600/30 shrink-0">Projekty & Sprzęt</button>
-            <button onclick="switchTab('rd')" id="tab-btn-rd" class="px-5 py-2.5 rounded-2xl font-semibold text-sm transition text-slate-400 hover:text-white hover:bg-slate-800/40 shrink-0">Drzewo Badań (R&D)</button>
-            <button onclick="switchTab('factory')" id="tab-btn-factory" class="px-5 py-2.5 rounded-2xl font-semibold text-sm transition text-slate-400 hover:text-white hover:bg-slate-800/40 shrink-0">Fabryka & Produkcja</button>
-            <button onclick="switchTab('acquisitions')" id="tab-btn-acquisitions" class="px-5 py-2.5 rounded-2xl font-semibold text-sm transition text-slate-400 hover:text-white hover:bg-slate-800/40 shrink-0">🤝 Giełda Udziałów</button>
-            <button onclick="switchTab('contracts')" id="tab-btn-contracts" class="px-5 py-2.5 rounded-2xl font-semibold text-sm transition text-slate-400 hover:text-white hover:bg-slate-800/40 shrink-0">📋 Zlecenia Kontraktowe</button>
-            <button onclick="switchTab('shops')" id="tab-btn-shops" class="px-5 py-2.5 rounded-2xl font-semibold text-sm transition text-slate-400 hover:text-white hover:bg-slate-800/40 shrink-0">🌍 Sklepy Światowe</button>
-            <button onclick="switchTab('marketing')" id="tab-btn-marketing" class="px-5 py-2.5 rounded-2xl font-semibold text-sm transition text-slate-400 hover:text-white hover:bg-slate-800/40 shrink-0">📢 Marketing & PR</button>
-            <button onclick="switchTab('staff')" id="tab-btn-staff" class="px-5 py-2.5 rounded-2xl font-semibold text-sm transition text-slate-400 hover:text-white hover:bg-slate-800/40 shrink-0">Kadry (HR)</button>
-            <button onclick="switchTab('hq')" id="tab-btn-hq" class="px-5 py-2.5 rounded-2xl font-semibold text-sm transition text-slate-400 hover:text-white hover:bg-slate-800/40 shrink-0">Siedziba</button>
-            <button onclick="switchTab('stats')" id="tab-btn-stats" class="px-5 py-2.5 rounded-2xl font-semibold text-sm transition text-slate-400 hover:text-white hover:bg-slate-800/40 shrink-0">📊 Finanse & Statystyki</button>
+    <!-- NAWIGACJA ZAKŁADEK -->
+    <nav class="bg-slate-900/60 border-b border-slate-800/80 px-8 py-3 flex gap-3 overflow-x-auto shadow-inner">
+        <button onclick="switchTab('products')" id="tab-btn-products" class="px-5 py-2.5 rounded-xl font-semibold text-xs transition bg-blue-600 text-white shadow-lg shadow-blue-600/30 shrink-0">💻 Produkty & Oprogramowanie</button>
+        <button onclick="switchTab('rd')" id="tab-btn-rd" class="px-5 py-2.5 rounded-xl font-semibold text-xs transition text-slate-400 hover:text-white hover:bg-slate-800/40 shrink-0">🧪 Laboratorium R&D</button>
+        <button onclick="switchTab('hr')" id="tab-btn-hr" class="px-5 py-2.5 rounded-xl font-semibold text-xs transition text-slate-400 hover:text-white hover:bg-slate-800/40 shrink-0">👥 Kadry & Siedziba</button>
+        <button onclick="switchTab('market')" id="tab-btn-market" class="px-5 py-2.5 rounded-xl font-semibold text-xs transition text-slate-400 hover:text-white hover:bg-slate-800/40 shrink-0">🤝 Przejęcia & Konkurencja</button>
+    </nav>
+
+    <!-- ZAWARTOŚĆ GŁÓWNA -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-8 flex flex-col gap-6">
+
+        <!-- ZAKŁADKA 1: PRODUKTY -->
+        <div id="tab-products" class="tab-content flex flex-col gap-6">
+            <div class="glass-panel rounded-3xl p-6 shadow-xl flex justify-between items-center">
+                <div>
+                    <h2 class="text-base font-bold text-cyan-300">Portfel Oprogramowania i Usług</h2>
+                    <p class="text-xs text-slate-400 mt-1">Twórz systemy operacyjne, pakiety biurowe, chmurę obliczeniową oraz modele sztucznej inteligencji.</p>
+                </div>
+                <button onclick="openNewProductModal()" class="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl font-bold text-xs transition shadow-lg shadow-blue-600/30">+ Nowy Projekt</button>
+            </div>
+
+            <div id="products-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Generowane dynamicznie -->
+            </div>
         </div>
 
-        <div class="flex-1 flex overflow-hidden p-8 gap-8">
-
-            <!-- ZAKŁADKA 1: URZĄDZENIA -->
-            <div id="tab-devices" class="tab-content flex-1 flex flex-col gap-6 overflow-y-auto">
-                <div class="glass-panel rounded-3xl p-8 shadow-2xl flex flex-col justify-between relative overflow-hidden">
-                    <div class="absolute top-0 right-0 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl pointer-events-none"></div>
-                    <h3 class="text-xl font-bold text-blue-300 mb-6 flex items-center gap-3"><span>📱</span> Aktualny Projekt Sprzętowy</h3>
-
-                    <div id="no-project-view" class="py-16 text-center">
-                        <p class="text-sm text-slate-400 mb-6 max-w-md mx-auto leading-relaxed">Zaprojektuj swój własny smartfon, tablet, laptop, komputer, konsolę, słuchawki, głośniki, pad, rysik, kamerkę, smartwatch lub drona!</p>
-                        <button onclick="openNewDeviceModal()" class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white px-8 py-3.5 rounded-2xl font-bold transition shadow-xl shadow-blue-600/30 transform hover:-translate-y-0.5">+ Nowy Projekt Urządzenia</button>
-                    </div>
-
-                    <div id="active-project-view" class="hidden space-y-6">
-                        <div class="flex justify-between items-center text-sm">
-                            <div>
-                                <span id="proj-name" class="font-bold text-xl text-slate-100">Model</span>
-                                <span id="proj-type" class="text-xs bg-slate-800/80 text-blue-300 px-3 py-1.5 rounded-xl ml-3 border border-slate-700 font-medium">Smartfon</span>
-                            </div>
-                            <span id="proj-progress-text" class="font-extrabold text-emerald-400 text-base">0%</span>
-                        </div>
-                        <div class="w-full bg-slate-950/80 h-5 rounded-2xl overflow-hidden border border-slate-800 p-1">
-                            <div id="proj-progress-bar" class="bg-gradient-to-r from-blue-500 via-indigo-500 to-emerald-400 h-full rounded-xl transition-all duration-100 shadow-lg shadow-blue-500/30" style="width: 0%;"></div>
-                        </div>
-                        <div class="grid grid-cols-3 gap-4 pt-2 text-center text-xs">
-                            <div class="glass-card p-4 rounded-2xl"><span class="text-slate-400 block mb-1 font-medium">Inżynieria</span><span id="stat-eng" class="font-extrabold text-blue-300 text-base">0</span></div>
-                            <div class="glass-card p-4 rounded-2xl"><span class="text-slate-400 block mb-1 font-medium">Design & UI</span><span id="stat-design" class="font-extrabold text-indigo-300 text-base">0</span></div>
-                            <div class="glass-card p-4 rounded-2xl"><span class="text-slate-400 block mb-1 font-medium">Błędy prototypu</span><span id="stat-bugs" class="font-extrabold text-rose-400 text-base">0</span></div>
-                        </div>
-                    </div>
-                </div>
+        <!-- ZAKŁADKA 2: R&D -->
+        <div id="tab-rd" class="tab-content flex flex-col gap-6 hidden">
+            <div class="glass-panel rounded-3xl p-6 shadow-xl">
+                <h2 class="text-base font-bold text-purple-300">Drzewo Technologiczne i Badania AI</h2>
+                <p class="text-xs text-slate-400 mt-1">Inwestuj punkty innowacji, aby odblokować technologie zmieniające bieg historii cyfrowej.</p>
             </div>
-
-            <!-- ZAKŁADKA 2: DRZEWO BADAŃ (R&D) -->
-            <div id="tab-rd" class="tab-content flex-1 flex flex-col gap-6 overflow-y-auto hidden">
-                <div class="glass-panel rounded-3xl p-8 shadow-2xl space-y-6">
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <h3 class="text-xl font-bold text-blue-300">Mega Drzewo Technologiczne (R&D)</h3>
-                            <p class="text-xs text-slate-400 mt-1">Szybkość badań rośnie wraz z liczbą zatrudnionych naukowców.</p>
-                        </div>
-                        <div id="active-research-info" class="glass-card px-4 py-2 rounded-2xl text-xs hidden">
-                            Trwa badanie: <strong id="res-active-name" class="text-blue-400">Brak</strong> 
-                            <div class="w-full bg-slate-900 h-2 rounded-full mt-1 overflow-hidden border border-slate-700">
-                                <div id="res-progress-bar" class="bg-blue-500 h-full w-0 transition-all"></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="flex gap-2 border-b border-slate-800 pb-3 overflow-x-auto">
-                        <button onclick="switchRdCat('phones')" id="rd-cat-phones" class="px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 text-white shrink-0">📱 Telefony</button>
-                        <button onclick="switchRdCat('tablets')" id="rd-cat-tablets" class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-800 text-slate-400 hover:text-white shrink-0">📟 Tablety</button>
-                        <button onclick="switchRdCat('laptops')" id="rd-cat-laptops" class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-800 text-slate-400 hover:text-white shrink-0">💻 Laptopy</button>
-                        <button onclick="switchRdCat('pcs')" id="rd-cat-pcs" class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-800 text-slate-400 hover:text-white shrink-0">🖥️ PC</button>
-                        <button onclick="switchRdCat('consoles')" id="rd-cat-consoles" class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-800 text-slate-400 hover:text-white shrink-0">🎮 Konsole</button>
-                        <button onclick="switchRdCat('headphones')" id="rd-cat-headphones" class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-800 text-slate-400 hover:text-white shrink-0">🎧 Słuchawki</button>
-                        <button onclick="switchRdCat('speakers')" id="rd-cat-speakers" class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-800 text-slate-400 hover:text-white shrink-0">🔊 Głośniki</button>
-                        <button onclick="switchRdCat('pads')" id="rd-cat-pads" class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-800 text-slate-400 hover:text-white shrink-0">🕹️ Pady</button>
-                        <button onclick="switchRdCat('stylus')" id="rd-cat-stylus" class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-800 text-slate-400 hover:text-white shrink-0">🖊️ Rysiki</button>
-                        <button onclick="switchRdCat('webcams')" id="rd-cat-webcams" class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-800 text-slate-400 hover:text-white shrink-0">📷 Kamerki</button>
-                        <button onclick="switchRdCat('smartwatches')" id="rd-cat-smartwatches" class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-800 text-slate-400 hover:text-white shrink-0">⌚ Smartwatche</button>
-                        <button onclick="switchRdCat('drones')" id="rd-cat-drones" class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-800 text-slate-400 hover:text-white shrink-0">🛸 Drony</button>
-                    </div>
-
-                    <div id="rd-category-container" class="space-y-6"></div>
-                </div>
+            <div id="tech-tree-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Generowane dynamicznie -->
             </div>
-
-            <!-- ZAKŁADKA 3: FABRYKA -->
-            <div id="tab-factory" class="tab-content flex-1 flex flex-col gap-6 overflow-y-auto hidden">
-                <div class="glass-panel rounded-3xl p-8 shadow-2xl space-y-6">
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <h3 class="text-xl font-bold text-blue-300">Zarządzanie Fabrykami & Linie Produkcyjne</h3>
-                            <p class="text-xs text-slate-400 mt-1">Kupuj nowe budynki fabryczne, ulepszaj je i uruchamiaj linie produkcyjne.</p>
-                        </div>
-                        <button onclick="buyNewFactory()" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-xs shadow-lg">+ Kup Nową Fabrykę (150,000 zł)</button>
-                    </div>
-                    <div id="factories-container" class="space-y-6"></div>
-                    
-                    <div class="glass-card p-6 rounded-2xl space-y-4 border-slate-700/60">
-                        <h4 class="text-sm font-bold text-slate-200">📈 Wykres Sprzedaży i Produkcji (Falujący Trend Rynkowy)</h4>
-                        <div class="h-64 relative">
-                            <canvas id="factorySalesChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ZAKŁADKA 4: GIEŁDA UDZIAŁÓW -->
-            <div id="tab-acquisitions" class="tab-content flex-1 flex flex-col gap-6 overflow-y-auto hidden">
-                <div class="glass-panel rounded-3xl p-8 shadow-2xl space-y-6">
-                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                        <div>
-                            <h3 class="text-xl font-bold text-blue-300">🤝 Giełda Udziałów & Wystawianie Akcji</h3>
-                            <p class="text-xs text-slate-400 mt-1">Zarządzaj ofertami kupna/sprzedaży, wystawiaj własne pakiety akcji na giełdę i odpowiadaj na propozycje.</p>
-                        </div>
-                        <input type="text" id="company-search" oninput="renderAcquisitions()" placeholder="🔍 Szukaj firmy..." class="px-4 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-xs text-slate-200 focus:outline-none focus:border-blue-500 w-full md:w-64">
-                    </div>
-
-                    <!-- SEKCJA WYSTAWIANIA WŁASNYCH AKCJI NA SPRZEDAŻ -->
-                    <div class="glass-card p-5 rounded-2xl space-y-3 border border-blue-500/40">
-                        <h4 class="font-bold text-blue-300 text-sm">📈 Wystaw Własne Pakiety Akcji na Giełdę</h4>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
-                            <div>
-                                <label class="block text-slate-400 mb-1">Wybierz spółkę:</label>
-                                <select id="sell-share-company" class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-white"></select>
-                            </div>
-                            <div>
-                                <label class="block text-slate-400 mb-1">Liczba % akcji do wystawienia:</label>
-                                <input type="number" id="sell-share-count" min="1" max="100" value="10" class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-white">
-                            </div>
-                            <div>
-                                <label class="block text-slate-400 mb-1">Cena żądana za 1% (zł):</label>
-                                <input type="number" id="sell-share-price" min="100" value="2000" class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-white">
-                            </div>
-                        </div>
-                        <button onclick="listMySharesForSale()" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-xs transition shadow-lg">Wystaw na giełdę</button>
-                    </div>
-
-                    <!-- SEKCJA PROPOZYCJI ODKUPU OD INNYCH -->
-                    <div class="glass-card p-5 rounded-2xl space-y-3 border border-amber-500/40">
-                        <h4 class="font-bold text-amber-300 text-sm">📬 Oczekujące Propozycje Odkupienia od Inwestorów</h4>
-                        <div id="proposals-container" class="space-y-2">
-                            <div class="text-xs text-slate-500">Brak oczekujących propozycji od podmiotów zewnętrznych.</div>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[400px] overflow-y-auto pr-2" id="acquisitions-list"></div>
-                </div>
-            </div>
-
-            <!-- ZAKŁADKA 4.5: ZLECENIA KONTRAKTOWE -->
-            <div id="tab-contracts" class="tab-content flex-1 flex flex-col gap-6 overflow-y-auto hidden">
-                <div class="glass-panel rounded-3xl p-8 shadow-2xl space-y-6">
-                    <div>
-                        <h3 class="text-xl font-bold text-blue-300">📋 Zlecenia Kontraktowe B2B</h3>
-                        <p class="text-xs text-slate-400 mt-1">Przeglądaj dostępne oferty i wybieraj, które zlecenia chcesz przyjąć do realizacji.</p>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="contracts-list"></div>
-                </div>
-            </div>
-
-            <!-- ZAKŁADKA 5: SKLEPY ŚWIATOWE -->
-            <div id="tab-shops" class="tab-content flex-1 flex flex-col gap-6 overflow-y-auto hidden">
-                <div class="glass-panel rounded-3xl p-8 shadow-2xl space-y-6 flex flex-col flex-1">
-                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                        <div>
-                            <h3 class="text-xl font-bold text-blue-300">🌍 Globalne Rynki i Sklepy</h3>
-                            <p class="text-xs text-slate-400 mt-1">Otwieraj oficjalne salony sprzedaży w kolejnych krajach, aby zwiększać przychody i udziały w rynku.</p>
-                        </div>
-                        <input type="text" id="country-search" oninput="renderWorldShops()" placeholder="🔍 Szukaj kraju..." class="px-4 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-xs text-slate-200 focus:outline-none focus:border-blue-500 w-full md:w-64">
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[550px] overflow-y-auto pr-2" id="world-shops-container"></div>
-                </div>
-            </div>
-
-            <!-- ZAKŁADKA 5.5: MARKETING & PR -->
-            <div id="tab-marketing" class="tab-content flex-1 flex flex-col gap-6 overflow-y-auto hidden">
-                <div class="glass-panel rounded-3xl p-8 shadow-2xl space-y-6">
-                    <div>
-                        <h3 class="text-xl font-bold text-blue-300">📢 Globalne Kampanie Marketingowe & PR</h3>
-                        <p class="text-xs text-slate-400 mt-1">Inwestuj w reklamy telewizyjne, kampanie w internecie i eventy premierowe, aby drastycznie zwiększyć popyt na swoje produkty.</p>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="marketing-campaigns-container">
-                        <div class="glass-card p-5 rounded-2xl space-y-3 border border-slate-700/60 flex flex-col justify-between">
-                            <div>
-                                <h4 class="font-bold text-slate-100 text-sm">🌐 Kampania Social Media</h4>
-                                <p class="text-xs text-slate-400 mt-1">Lekka promocja w mediach społecznościowych.</p>
-                                <p class="text-xs text-emerald-400 font-bold mt-2">Koszt: 15,000 zł | Boost: +25% sprzedaży</p>
-                            </div>
-                            <button onclick="launchMarketingCampaign('social', 15000, 0.25)" class="py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-xs transition">Uruchom kampanię</button>
-                        </div>
-                        <div class="glass-card p-5 rounded-2xl space-y-3 border border-slate-700/60 flex flex-col justify-between">
-                            <div>
-                                <h4 class="font-bold text-slate-100 text-sm">📺 Reklama Telewizyjna & Billboardy</h4>
-                                <p class="text-xs text-slate-400 mt-1">Masowa kampania w mediach tradycyjnych.</p>
-                                <p class="text-xs text-emerald-400 font-bold mt-2">Koszt: 75,000 zł | Boost: +70% sprzedaży</p>
-                            </div>
-                            <button onclick="launchMarketingCampaign('tv', 75000, 0.70)" class="py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-xs transition">Uruchom kampanię</button>
-                        </div>
-                        <div class="glass-card p-5 rounded-2xl space-y-3 border border-slate-700/60 flex flex-col justify-between">
-                            <div>
-                                <h4 class="font-bold text-slate-100 text-sm">🚀 Mega Konferencja Światowa (Keynote)</h4>
-                                <p class="text-xs text-slate-400 mt-1">Wydarzenie na żywo transmitowane na cały świat.</p>
-                                <p class="text-xs text-emerald-400 font-bold mt-2">Koszt: 250,000 zł | Boost: +180% sprzedaży</p>
-                            </div>
-                            <button onclick="launchMarketingCampaign('keynote', 250000, 1.80)" class="py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-xs transition">Zorganizuj Keynote</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ZAKŁADKA 6: KADRY (HR) -->
-            <div id="tab-staff" class="tab-content flex-1 flex flex-col gap-6 overflow-y-auto hidden">
-                <div class="glass-panel rounded-3xl p-8 shadow-2xl space-y-6">
-                    <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-                        <h3 class="text-xl font-bold text-blue-300">Giełda Pracy & Specjaliści</h3>
-                        <div class="flex gap-2">
-                            <button onclick="switchStaffCat('Inżynier Sprzętu')" id="staff-cat-eng" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-blue-600 text-white">Inżynierowie</button>
-                            <button onclick="switchStaffCat('Projektant UI/UX')" id="staff-cat-des" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-800 text-slate-400">Projektanci</button>
-                            <button onclick="switchStaffCat('Badacz / Naukowiec R&D')" id="staff-cat-res" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-800 text-slate-400">Naukowcy R&D</button>
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="job-market"></div>
-                </div>
-                <div class="glass-panel rounded-3xl p-8 shadow-2xl space-y-4">
-                    <h3 class="text-lg font-bold text-slate-200">Zatrudniony Zespół</h3>
-                    <div class="space-y-3" id="hired-staff-list"><div class="text-center py-6 text-slate-500 text-sm">Brak pracowników.</div></div>
-                </div>
-            </div>
-
-            <!-- ZAKŁADKA 7: SIEDZIBA -->
-            <div id="tab-hq" class="tab-content flex-1 flex flex-col gap-6 overflow-y-auto hidden">
-                <div class="glass-panel rounded-3xl p-8 shadow-2xl space-y-6">
-                    <h3 class="text-xl font-bold text-blue-300">Rozbudowa Siedziby i Laboratoriów (40 Poziomów)</h3>
-                    <div id="hq-current-status" class="glass-card p-6 rounded-2xl space-y-3"></div>
-                </div>
-            </div>
-
-            <!-- ZAKŁADKA 8: FINANSE & STATYSTYKI -->
-            <div id="tab-stats" class="tab-content flex-1 flex flex-col gap-6 overflow-y-auto hidden">
-                <div class="glass-panel rounded-3xl p-8 shadow-2xl space-y-6">
-                    <h3 class="text-xl font-bold text-blue-300">📈 Statystyki Finansowe na Żywo</h3>
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div class="glass-card p-4 rounded-2xl">
-                            <span class="text-slate-400 text-xs block mb-1">Przychód ze sklepów</span>
-                            <span id="stat-tab-store-inc" class="font-bold text-emerald-400 text-base">+0 zł/s</span>
-                        </div>
-                        <div class="glass-card p-4 rounded-2xl">
-                            <span class="text-slate-400 text-xs block mb-1">Przychód z fabryk</span>
-                            <span id="stat-tab-dev-inc" class="font-bold text-emerald-400 text-base">+0 zł/s</span>
-                        </div>
-                        <div class="glass-card p-4 rounded-2xl">
-                            <span class="text-slate-400 text-xs block mb-1">Przychód z firm</span>
-                            <span id="stat-tab-comp-inc" class="font-bold text-emerald-400 text-base">+0 zł/s</span>
-                        </div>
-                        <div class="glass-card p-4 rounded-2xl">
-                            <span class="text-slate-400 text-xs block mb-1">Koszty i pensje</span>
-                            <span id="stat-tab-salaries" class="font-bold text-rose-400 text-base">-0 zł/s</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="glass-panel rounded-3xl p-8 shadow-2xl flex flex-col flex-1 overflow-hidden">
-                    <h3 class="text-lg font-bold text-slate-200 mb-4 flex items-center gap-3"><span>📦</span> Katalog Wypuszczonych Produktów & Statystyki</h3>
-                    <div class="flex-1 overflow-y-auto space-y-4 pr-2" id="products-history">
-                        <div class="text-center py-12 text-slate-500 text-sm">Brak wydanych urządzeń na rynku.</div>
-                    </div>
-                </div>
-            </div>
-
         </div>
+
+        <!-- ZAKŁADKA 3: HR I SIEDZIBA -->
+        <div id="tab-hr" class="tab-content flex flex-col gap-6 hidden">
+            <div class="glass-panel rounded-3xl p-6 shadow-xl flex justify-between items-center">
+                <div>
+                    <h2 class="text-base font-bold text-indigo-300">Zarządzanie Siedzibą</h2>
+                    <p id="hq-info" class="text-xs text-slate-400 mt-1">Obiekt: Garaż start-upowy (Limit inżynierów: 10)</p>
+                </div>
+                <button onclick="upgradeHQ()" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-xs transition shadow-lg">Rozbuduj Siedzibę (500,000 zł)</button>
+            </div>
+
+            <div class="glass-panel rounded-3xl p-6 shadow-xl space-y-4">
+                <h3 class="text-sm font-bold text-slate-200">Giełda Talentów (Zatrudnij Inżynierów)</h3>
+                <div id="recruitment-grid" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- Generowane dynamicznie -->
+                </div>
+            </div>
+        </div>
+
+        <!-- ZAKŁADKA 4: PRZEJĘCIA -->
+        <div id="tab-market" class="tab-content flex flex-col gap-6 hidden">
+            <div class="glass-panel rounded-3xl p-6 shadow-xl">
+                <h2 class="text-base font-bold text-emerald-300">Rynek Korporacyjny i Fuzje</h2>
+                <p class="text-xs text-slate-400 mt-1">Wykupuj pakiety akcji konkurencyjnych spółek technologicznych, aby przejmować ich pasywne zyski.</p>
+            </div>
+            <div id="competitors-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Generowane dynamicznie -->
+            </div>
+        </div>
+
     </main>
 
-    <!-- MODAL SKŁADANIA / ODKUPU UDZIAŁÓW -->
-    <div id="offer-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4 z-50">
-        <div class="glass-panel text-slate-100 w-full max-w-md rounded-3xl shadow-2xl p-6 space-y-4 border border-blue-500/40">
+    <!-- MODAL TWORZENIA PRODUKTU -->
+    <div id="product-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4 z-50">
+        <div class="glass-panel text-slate-100 w-full max-w-md rounded-3xl shadow-2xl p-6 space-y-4 border border-blue-500/30">
             <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-                <h3 id="offer-modal-title" class="text-lg font-bold text-blue-300">Złóż ofertę</h3>
-                <button onclick="closeOfferModal()" class="text-slate-400 hover:text-white text-sm font-bold px-2.5 py-0.5 rounded-lg bg-slate-800/50">✕</button>
+                <h3 class="text-base font-bold text-blue-300">Rozpocznij Nowy Projekt</h3>
+                <button onclick="closeProductModal()" class="text-slate-400 hover:text-white text-xs font-bold px-2 py-1 rounded bg-slate-800">✕</button>
             </div>
             <div class="space-y-3 text-xs">
-                <p id="offer-company-info" class="text-slate-300"></p>
-                <div class="glass-card p-3 rounded-xl space-y-2">
-                    <label class="block text-slate-300 font-semibold">Procent akcji do kupienia (%):</label>
-                    <input type="number" id="offer-shares-count" min="1" max="100" value="10" class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-xs text-white">
+                <div>
+                    <label class="block text-slate-400 mb-1">Nazwa Produktu:</label>
+                    <input type="text" id="prod-name" placeholder="np. OmniOS / CloudSphere" class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white">
                 </div>
-                <div class="glass-card p-3 rounded-xl space-y-2">
-                    <label class="block text-slate-300 font-semibold">Propozycja ceny za 1% (Cena rynkowa za 1%: <strong id="offer-market-price" class="text-emerald-400">0</strong> zł):</label>
-                    <input type="number" id="offer-price-input" class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-xs text-white">
+                <div>
+                    <label class="block text-slate-400 mb-1">Kategoria:</label>
+                    <select id="prod-cat" class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white">
+                        <option value="OS">System Operacyjny</option>
+                        <option value="Cloud">Usługa Chmurowa / Serwery</option>
+                        <option value="AI">Model Sztucznej Inteligencji</option>
+                        <option value="Browser">Przeglądarka / Wyszukiwarka</option>
+                    </select>
                 </div>
-                <div class="text-slate-400 font-bold">Łączna kwota: <span id="offer-total-cost" class="text-blue-400">0</span> zł</div>
-                <button onclick="submitShareOffer()" id="offer-submit-btn" class="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold transition">Potwierdź</button>
+                <button onclick="createProduct()" class="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold transition shadow-lg">Rozpocznij Rozwój</button>
             </div>
         </div>
     </div>
 
-    <!-- MODAL NEGOCJACJI OFERTY -->
-    <div id="negotiate-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4 z-50">
-        <div class="glass-panel text-slate-100 w-full max-w-md rounded-3xl shadow-2xl p-6 space-y-4 border border-amber-500/40">
-            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-                <h3 class="text-lg font-bold text-amber-300">Negocjacje Oferty</h3>
-                <button onclick="closeNegotiateModal()" class="text-slate-400 hover:text-white text-sm font-bold px-2.5 py-0.5 rounded-lg bg-slate-800/50">✕</button>
-            </div>
-            <div class="space-y-3 text-xs">
-                <p id="neg-info" class="text-slate-300"></p>
-                <div class="glass-card p-3 rounded-xl space-y-2">
-                    <label class="block text-slate-300 font-semibold">Twoja kontroferta za 1% (Zaproponowana: <strong id="neg-orig-price" class="text-amber-400">0</strong> zł):</label>
-                    <input type="number" id="neg-price-input" class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-xs text-white">
-                </div>
-                <div class="flex gap-2">
-                    <button onclick="submitCounterOffer()" class="flex-1 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold transition">Wyślij kontrofertę</button>
-                    <button onclick="acceptOriginalProposal()" class="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold transition">Akceptuj oryginał</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ROZBUDOWANY PANEL ZARZĄDZANIA SPÓŁKĄ WIĘKSZOŚCIOWĄ -->
-    <div id="manage-company-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4 z-50">
-        <div class="glass-panel text-slate-100 w-full max-w-xl rounded-3xl shadow-2xl p-6 space-y-4 border border-blue-500/40">
-            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-                <h3 class="text-lg font-bold text-blue-300" id="manage-modal-title">Zaawansowany Zarząd Spółki</h3>
-                <button onclick="closeManageModal()" class="text-slate-400 hover:text-white text-sm font-bold px-2.5 py-0.5 rounded-lg bg-slate-800/50">✕</button>
-            </div>
-            <div id="manage-modal-content" class="space-y-4 text-xs max-h-[70vh] overflow-y-auto pr-2"></div>
-        </div>
-    </div>
-
-    <!-- PŁYWAJĄCY KOMUNIKAT W STYLI TOAST -->
+    <!-- POWIADOMIENIA (TOAST) -->
     <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
-    <!-- TERMINAL DEWELOPERSKI (~) -->
-    <div id="cheat-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4 z-50">
-        <div class="glass-panel text-slate-100 w-full max-w-sm rounded-2xl shadow-2xl p-6 space-y-4 border border-blue-500/40">
-            <h3 class="text-lg font-bold text-blue-400">Terminal Deweloperski (~)</h3>
-            <p class="text-xs text-slate-400">Wpisz kod (np. <code class="text-blue-300">kasa 500000</code>, <code class="text-blue-300">hr max</code> lub <code class="text-blue-300">research all</code>):</p>
-            <input type="text" id="cheat-input" placeholder="Wpisz komendę..." class="w-full px-4 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-sm text-blue-400 font-mono focus:outline-none">
-            <div class="flex justify-end gap-2">
-                <button onclick="closeCheatModal()" class="px-4 py-2 bg-slate-800 rounded-xl text-xs">Zamknij</button>
-                <button onclick="executeCheat()" class="px-4 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold">Wykonaj</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL TWORZENIA URZĄDZENIA -->
-    <div id="new-device-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4 z-50 overflow-y-auto">
-        <div class="glass-panel text-slate-100 w-full max-w-2xl rounded-3xl shadow-2xl p-6 space-y-4 border border-blue-500/30 my-6">
-            <div class="flex justify-between items-center border-b border-slate-800/80 pb-3">
-                <div>
-                    <h3 class="text-lg font-extrabold text-blue-300 flex items-center gap-2"><span>🛠️</span> Studio Projektowe</h3>
-                    <p class="text-[11px] text-slate-400 mt-0.5">Skonfiguruj produkt i wybierz fabrykę.</p>
-                </div>
-                <button onclick="closeNewDeviceModal()" class="text-slate-400 hover:text-white text-sm font-bold px-2.5 py-0.5 rounded-lg bg-slate-800/50">✕</button>
-            </div>
-
-            <form onsubmit="startNewDevice(event)" class="space-y-4 text-xs">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div class="glass-card p-3 rounded-xl space-y-1.5 border-slate-700/60">
-                        <label class="block text-slate-300 font-semibold mb-0.5">Nazwa Modelu</label>
-                        <input type="text" id="dev-name" required placeholder="np. Apex Quantum X" class="w-full px-3 py-2 bg-slate-950 border border-slate-700/80 rounded-lg text-xs text-slate-100 font-medium focus:outline-none focus:border-blue-500">
-                    </div>
-                    <div class="glass-card p-3 rounded-xl space-y-1.5 border-slate-700/60">
-                        <label class="block text-slate-300 font-semibold mb-0.5">Kategoria Produktu</label>
-                        <select id="dev-category" onchange="onCategoryChange()" class="w-full px-2.5 py-2 bg-slate-950 border border-slate-700/80 rounded-lg text-xs text-slate-200">
-                            <option value="Smartfon">Smartfon</option>
-                            <option value="Tablet">Tablet</option>
-                            <option value="Laptop">Laptop</option>
-                            <option value="Komputer PC">Komputer PC</option>
-                            <option value="Konsola">Konsola do gier</option>
-                            <option value="Słuchawki">Słuchawki</option>
-                            <option value="Głośniki">Głośniki</option>
-                            <option value="Pad">Pad</option>
-                            <option value="Rysik">Rysik</option>
-                            <option value="Kamerka">Kamerka</option>
-                            <option value="Smartwatch">Smartwatch</option>
-                            <option value="Dron">Dron</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div id="sub-category-wrapper" class="glass-card p-3 rounded-xl space-y-1.5 border-slate-700/60 hidden">
-                    <label class="block text-slate-300 font-semibold mb-0.5">Typ konstrukcji słuchawek</label>
-                    <select id="dev-sub-category" class="w-full px-2.5 py-2 bg-slate-950 border border-slate-700/80 rounded-lg text-xs text-slate-200">
-                        <option value="Douszne">Douszne</option>
-                        <option value="Nauszne">Nauszne</option>
-                    </select>
-                </div>
-
-                <div class="glass-card p-3 rounded-xl space-y-1.5 border-slate-700/60">
-                    <label class="block text-slate-300 font-semibold">🏭 Kto ma produkować?</label>
-                    <select id="dev-manufacturer" class="w-full px-2.5 py-2 bg-slate-950 border border-slate-700/80 rounded-lg text-xs text-slate-200">
-                        <option value="own">Własna Fabryka Korporacji</option>
-                    </select>
-                </div>
-
-                <div class="glass-card p-4 rounded-xl space-y-3 border-slate-700/60">
-                    <h4 class="text-xs font-bold text-slate-200 flex items-center gap-2"><span>📐</span> Wzornictwo i Wymiary Fizyczne</h4>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                        <div>
-                            <label class="block text-slate-400 mb-1 font-medium"><span id="lbl-size">Wysokość</span>: <strong id="val-size" class="text-blue-300">150</strong> <span id="unit-size">mm</span></label>
-                            <input type="range" id="range-size" min="120" max="180" value="150" oninput="updateDevicePreview()" class="w-full accent-blue-500 bg-slate-950 rounded-lg">
-                        </div>
-                        <div>
-                            <label class="block text-slate-400 mb-1 font-medium">Grubość: <strong id="val-thick" class="text-indigo-300">8</strong> mm</label>
-                            <input type="range" id="range-thick" min="5" max="25" value="8" oninput="updateDevicePreview()" class="w-full accent-indigo-500 bg-slate-950 rounded-lg">
-                        </div>
-                        <div>
-                            <label class="block text-slate-400 mb-1 font-medium"><span id="lbl-screen">Ekran</span>: <strong id="val-screen" class="text-emerald-400">6.1</strong> <span id="unit-screen">cali</span></label>
-                            <input type="range" id="range-screen" min="2.0" max="18.0" step="0.5" value="6.1" oninput="updateDevicePreview()" class="w-full accent-emerald-500 bg-slate-950 rounded-lg">
-                        </div>
-                    </div>
-
-                    <div class="p-4 bg-slate-950/80 rounded-xl border border-slate-800 flex flex-col items-center justify-center gap-2 relative overflow-hidden min-h-[140px]">
-                        <span class="text-[10px] text-slate-500 uppercase tracking-widest font-semibold">Podgląd dynamiczny</span>
-                        <div id="device-visual-preview" class="bg-gradient-to-tr from-slate-800 to-slate-700 border-2 border-slate-500 rounded-xl flex items-center justify-center shadow-xl transition-all duration-150 relative">
-                            <div id="device-screen-preview" class="bg-blue-600/30 border border-blue-400/50 rounded-lg flex items-center justify-center text-[10px] text-blue-200 font-bold shadow-inner">
-                                <span id="preview-screen-text">6.1"</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="glass-card p-3 rounded-xl space-y-2 border-slate-700/60">
-                    <label class="text-slate-200 font-bold block text-xs flex items-center gap-1.5"><span>✨</span> Wybierz technologie:</label>
-                    <div id="device-features-checkboxes" class="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto p-2 bg-slate-950/40 rounded-lg border border-slate-800"></div>
-                </div>
-
-                <div class="flex justify-end gap-2 pt-2 border-t border-slate-800">
-                    <button type="button" onclick="closeNewDeviceModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg font-semibold transition">Anuluj</button>
-                    <button type="submit" class="px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-bold transition shadow-lg shadow-blue-600/30">Rozpocznij Inżynierię</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- MODAL PREMIERY -->
-    <div id="review-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4 z-50">
-        <div class="glass-panel text-slate-100 w-full max-w-md rounded-3xl shadow-2xl p-6 text-center space-y-4">
-            <h3 class="text-xl font-bold text-blue-300" id="rev-title">Premiera!</h3>
-            <div id="rev-stars" class="text-amber-400">⭐⭐⭐⭐⭐</div>
-            <p class="text-xs text-slate-300 leading-relaxed" id="rev-desc"></p>
-            <button onclick="closeReviewModal()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold transition">Super!</button>
-        </div>
-    </div>
-
     <script>
-        const rawCountries = [
-            ["pl", "Polska", 590, 180], ["de", "Niemcy", 570, 190], ["us", "Stany Zjednoczone", 230, 180], ["jp", "Japonia", 970, 200], ["gb", "Wielka Brytania", 535, 175],
-            ["fr", "Francja", 550, 210], ["kr", "Korea Południowa", 930, 215], ["cn", "Chiny", 860, 220], ["br", "Brazylia", 340, 430], ["it", "Włochy", 595, 235],
-            ["es", "Hiszpania", 530, 250], ["ca", "Kanada", 220, 110], ["au", "Australia", 1020, 480], ["in", "Indie", 790, 270], ["mx", "Meksyk", 210, 270],
-            ["se", "Szwecja", 595, 120], ["ch", "Szwajcaria", 575, 220], ["nl", "Holandia", 555, 170], ["af", "Afganistan", 740, 230], ["al", "Albania", 610, 235],
-            ["dz", "Algieria", 550, 310], ["ad", "Andora", 538, 245], ["ao", "Angola", 605, 480], ["ag", "Antigua i Barbuda", 295, 310], ["ar", "Argentyna", 310, 500],
-            ["am", "Armenia", 695, 215], ["at", "Austria", 585, 200], ["az", "Azerbejdżan", 710, 215], ["bs", "Bahamy", 275, 275], ["bh", "Bahrajn", 780, 310],
-            ["bd", "Bangladesz", 845, 280], ["bb", "Barbados", 310, 325], ["by", "Białoruś", 630, 150], ["be", "Belgia", 550, 180], ["bz", "Belize", 225, 315],
-            ["bj", "Benin", 575, 365], ["bt", "Bhutan", 855, 270], ["bo", "Boliwia", 320, 460], ["ba", "Bośnia i Hercegowina", 605, 220], ["bw", "Botswana", 620, 510],
-            ["bn", "Brunei", 890, 370], ["bg", "Bułgaria", 620, 220], ["bf", "Burkina Faso", 555, 360], ["bi", "Burundi", 650, 435], ["cv", "Republika Zielonego Przylądka", 480, 350],
-            ["kh", "Kambodża", 885, 320], ["cm", "Kamerun", 590, 390], ["cf", "Republika Środkowoafrykańska", 615, 390], ["td", "Czad", 600, 350], ["cl", "Chile", 295, 490],
-            ["co", "Kolumbia", 290, 370], ["km", "Komory", 685, 470], ["cg", "Kongo", 595, 420], ["cd", "Demokratyczna Republika Konga", 620, 420], ["cr", "Kostaryka", 240, 335],
-            ["ci", "Wybrzeże Kości Słoniowej", 540, 365], ["hr", "Chorwacja", 595, 210], ["cu", "Kuba", 270, 280], ["cy", "Cypr", 700, 245], ["cz", "Czechy", 595, 185],
-            ["dk", "Dania", 570, 155], ["dj", "Dżibuti", 680, 350], ["dm", "Dominika", 305, 315], ["do", "Dominikana", 290, 290], ["ec", "Ekwador", 280, 400],
-            ["eg", "Egipt", 650, 300], ["sv", "Salwador", 215, 330], ["gq", "Gwinea Równikowa", 585, 400], ["er", "Erytrea", 675, 335], ["ee", "Estonia", 615, 125],
-            ["sz", "Eswatini", 640, 520], ["et", "Etiopia", 670, 370], ["fj", "Fidżi", 1110, 495], ["fi", "Finlandia", 610, 115], ["ga", "Gabon", 585, 415],
-            ["gm", "Gambia", 505, 350], ["ge", "Gruzja", 695, 205], ["gh", "Ghana", 560, 370], ["gr", "Grecja", 615, 245], ["gd", "Grenada", 305, 325],
-            ["gt", "Gwatemala", 215, 315], ["gn", "Gwinea", 520, 360], ["gw", "Gwinea Bissau", 505, 355], ["gy", "Gujana", 325, 375], ["ht", "Haiti", 285, 295],
-            ["hn", "Honduras", 225, 320], ["hu", "Węgry", 600, 195], ["is", "Islandia", 480, 115], ["id", "Indonezja", 910, 410], ["ir", "Iran", 730, 240],
-            ["iq", "Irak", 715, 260], ["ie", "Irlandia", 515, 175], ["il", "Izrael", 700, 265], ["jm", "Jamajka", 270, 305], ["jo", "Jordania", 710, 270],
-            ["kz", "Kazachstan", 790, 150], ["ke", "Kenia", 665, 410], ["ki", "Kiribati", 1150, 450], ["kp", "Korea Północna", 930, 200], ["kw", "Kuwejt", 750, 280],
-            ["kg", "Kirgistan", 815, 185], ["la", "Laos", 880, 300], ["lv", "Łotwa", 615, 135], ["lb", "Liban", 705, 260], ["ls", "Lesotho", 630, 530],
-            ["lr", "Liberia", 530, 375], ["ly", "Libia", 595, 310], ["li", "Liechtenstein", 575, 210], ["lt", "Litwa", 615, 145], ["lu", "Luksemburg", 552, 185],
-            ["mg", "Madagaskar", 685, 490], ["mw", "Malawi", 655, 470], ["my", "Malezja", 885, 350], ["mv", "Malediwy", 815, 360], ["ml", "Mali", 540, 335],
-            ["mt", "Malta", 600, 260], ["mh", "Wyspy Marshalla", 1080, 390], ["mr", "Mauretania", 515, 330], ["mu", "Mauritius", 715, 500], ["fm", "Mikronezja", 1060, 370],
-            ["md", "Mołdawia", 630, 190], ["mc", "Monako", 555, 225], ["mn", "Mongolia", 880, 150], ["me", "Czarnogóra", 605, 228], ["ma", "Maroko", 525, 310],
-            ["mz", "Mozambik", 655, 490], ["mm", "Mjanma", 860, 285], ["na", "Namibia", 605, 500], ["nr", "Nauru", 1120, 420], ["np", "Nepal", 830, 260],
-            ["nz", "Nowa Zelandia", 1080, 550], ["ni", "Nikaragua", 230, 330], ["ne", "Niger", 575, 335], ["ng", "Nigeria", 575, 380], ["mk", "Macedonia Północna", 610, 230],
-            ["no", "Norwegia", 565, 130], ["om", "Oman", 770, 310], ["pk", "Pakistan", 770, 255], ["pw", "Palau", 980, 410], ["pa", "Panama", 250, 350],
-            ["pg", "Papua-Nowa Gwinea", 1010, 430], ["py", "Paragwaj", 325, 470], ["pe", "Peru", 295, 430], ["ph", "Filipiny", 930, 340], ["pt", "Portugalia", 520, 250],
-            ["qa", "Katar", 760, 295], ["ro", "Rumunia", 620, 195], ["ru", "Rosja", 800, 100], ["rw", "Rwanda", 645, 430], ["kn", "Saint Kitts i Nevis", 300, 315],
-            ["lc", "Saint Lucia", 305, 320], ["vc", "Saint Vincent i Grenadyny", 300, 325], ["ws", "Samoa", 1140, 470], ["sm", "San Marino", 590, 220], ["st", "Wyspy Świętego Tomasza i Książęca", 580, 410],
-            ["sa", "Arabia Saudyjska", 740, 290], ["sn", "Senegal", 500, 345], ["rs", "Serbia", 605, 215], ["sc", "Seszele", 700, 420], ["sl", "Sierra Leone", 515, 370],
-            ["sg", "Singapur", 885, 365], ["sk", "Słowacja", 600, 190], ["si", "Słowenia", 590, 210], ["sb", "Wyspy Salomona", 1060, 440], ["so", "Somalia", 685, 380],
-            ["za", "Republika Południowej Afryki", 625, 530], ["ss", "Sudan Południowy", 655, 390], ["lk", "Sri Lanka", 825, 335], ["sd", "Sudan", 645, 330], ["sr", "Surinam", 330, 375],
-            ["se2", "Szwecja", 595, 125], ["sy", "Syria", 710, 250], ["tw", "Tajwan", 935, 275], ["tj", "Tadżykistan", 805, 195], ["tz", "Tanzania", 665, 445],
-            ["th", "Tajlandia", 885, 290], ["tl", "Timor Wschodni", 930, 435], ["tg", "Togo", 565, 370], ["to", "Tonga", 1130, 500], ["tt", "Trynidad i Tobago", 315, 330],
-            ["tn", "Tunezja", 580, 300], ["tr", "Turcja", 690, 230], ["tm", "Turkmenistan", 775, 195], ["tv", "Tuwalu", 1120, 455], ["ug", "Uganda", 655, 415],
-            ["ua", "Ukraina", 650, 165], ["ae", "Zjednoczone Emiraty Arabskie", 760, 300], ["uy", "Urugwaj", 335, 500], ["uz", "Uzbekistan", 790, 185], ["vu", "Vanuatu", 1090, 465],
-            ["va", "Watykan", 590, 230], ["ve", "Wenezuela", 310, 375], ["vn", "Wietnam", 890, 310], ["ye", "Jemen", 750, 330], ["zm", "Zambia", 635, 470], ["zw", "Zimbabwe", 640, 485]
-        ];
-
-        const companyPrefixes = ['Apex', 'Nova', 'Cyber', 'Mega', 'Quantum', 'Hyper', 'Nexus', 'Prime', 'Zenith', 'Omni', 'Stellar', 'Void', 'Aether', 'Vortex', 'Solar', 'Matrix', 'Titan', 'Global', 'Neo', 'Alpha', 'Beta', 'Delta', 'Sigma', 'Echo', 'Phoenix', 'Titanium', 'Plasma', 'Nucleus', 'Infini', 'Terra', 'Cyberdyne', 'Omnitech', 'Stark', 'Weyland', 'Tyrell', 'Initech', 'Massive', 'Abstergo', 'Vault', 'Soylent'];
-        const companySuffixes = ['Tech', 'Labs', 'Dynamics', 'Corp', 'Systems', 'Industries', 'Solutions', 'Group', 'Electronics', 'Digital', 'Semiconductors', 'Audio', 'Mobility', 'Displays', 'Components', 'Robotics', 'Networks', 'Quantum', 'AI', 'Bio', 'Defense', 'Energy', 'Cloud', 'Logic', 'Vision'];
-        
-        const investorNames = [
-            'BlackRock Ventures', 'Vanguard Tech Fund', 'SoftBank Vision', 'Silicon Valley Angels', 
-            'Quantum Capital', 'Horizon Equity', 'Alpha Centauri Funds', 'Titanium Holdings', 
-            'Citadel Securities', 'Bridgewater Associates', 'Fidelity Investments', 'Sequoia Capital', 
-            'Andreessen Horowitz', 'Tiger Global Management', 'Berkshire Hathaway Tech',
-            'Goldman Sachs PE', 'Morgan Stanley Fund', 'JPMorgan Asset', 'State Street Global', 'Coatue Management'
-        ];
-
-        function generateAIInvestors(maxLimit = 70) {
-            let count = Math.floor(Math.random() * 4) + 3;
-            let shuffled = [...investorNames].sort(() => 0.5 - Math.random());
-            let invs = [];
-            let remainingShares = maxLimit; 
-            for(let i=0; i<count; i++) {
-                let shares = i === count - 1 ? Math.min(remainingShares, Math.floor(Math.random() * (remainingShares || 1)) + 5) : Math.floor(Math.random() * (remainingShares / 2)) + 5;
-                remainingShares -= shares;
-                if(shares > 0) invs.push({ name: shuffled[i], shares: shares });
-                if(remainingShares <= 0) break;
-            }
-            return invs;
-        }
-
-        let initialCompanies = [];
-        for(let i = 1; i <= 15; i++) {
-            let p = companyPrefixes[i % companyPrefixes.length];
-            let s = companySuffixes[i % companySuffixes.length];
-            initialCompanies.push({
-                id: `comp_${Date.now()}_${i}`,
-                name: `${p} ${s} #${i}`,
-                specialization: ['Smartfony', 'Podzespoły', 'Audio', 'Wyświetlacze', 'Baterie', 'Procesory', 'Czujniki'][i % 7],
-                sharePricePerPercent: 1200 + (i * 350),
-                passiveIncome: 4500 + (i * 900),
-                playerShares: 0,
-                aiInvestors: generateAIInvestors(60),
-                marketingBudget: 0,
-                rdBudget: 0,
-                salaryMultiplier: 1.0,
-                dividendPercent: 25,
-                companyDebt: 0,
-                loanTotal: 0,
-                loanRemaining: 0,
-                loanInstallmentPerSec: 0,
-                loanInstallmentsLeft: 0,
-                listedSharesForSale: 0,
-                listedSharePricePerPercent: 0
-            });
-        }
-
         let game = {
-            playerName: 'Mateusz Korporacja',
-            money: 350000,
-            marketShare: 0.5,
-            staffLimit: 5,
-            activeHQIndex: 0,
-            activeProject: null,
-            activeResearch: null,
-            history: [],
-            hiredStaff: [],
-            marketCandidates: [],
-            activeStaffCat: 'Inżynier Sprzętu',
-            factories: [
-                { id: 1, name: 'Fabryka Główna #1', level: 1, upgradeCost: 100000, lines: { Smartfon: { active: false, unitsProduced: 0 }, Tablet: { active: false, unitsProduced: 0 }, Laptop: { active: false, unitsProduced: 0 }, 'Komputer PC': { active: false, unitsProduced: 0 }, Konsola: { active: false, unitsProduced: 0 }, Słuchawki: { active: false, unitsProduced: 0 }, Głośniki: { active: false, unitsProduced: 0 }, Pad: { active: false, unitsProduced: 0 }, Rysik: { active: false, unitsProduced: 0 }, Kamerka: { active: false, unitsProduced: 0 }, Smartwatch: { active: false, unitsProduced: 0 }, Dron: { active: false, unitsProduced: 0 } } }
+            money: 250000,
+            marketShare: 0.1,
+            innovationPoints: 10,
+            hqLevel: 1,
+            staffLimit: 10,
+            staff: [
+                { id: 1, name: 'Jan Kowalski', skill: 15, salary: 4000 },
+                { id: 2, name: 'Anna Nowak', skill: 20, salary: 5500 }
             ],
-            techCategory: 'phones',
-            techTree: { phones: [], tablets: [], laptops: [], pcs: [], consoles: [], headphones: [], speakers: [], pads: [], stylus: [], webcams: [], smartwatches: [], drones: [] },
-            countries: [],
-            companies: initialCompanies,
-            pendingProposals: [],
-            availableContracts: [
-                { id: 101, title: 'Produkcja 300 smartfonów dla sieci Plus', reward: 90000, progress: 0, target: 300, type: 'Smartfon' },
-                { id: 102, title: 'Dostarczenie 200 par słuchawek bezprzewodowych', reward: 60000, progress: 0, target: 200, type: 'Słuchawki' },
-                { id: 103, title: 'Dostawa 100 tabletów edukacyjnych', reward: 75000, progress: 0, target: 100, type: 'Tablet' },
-                { id: 104, title: 'Dostawa 50 nowoczesnych smartwatchy', reward: 110000, progress: 0, target: 50, type: 'Smartwatch' }
+            candidates: [],
+            products: [
+                { id: 1, name: 'Nexus Search v1', category: 'Browser', progress: 100, maxProgress: 100, active: true, revenue: 1200, rating: 6.5 }
             ],
-            activeContracts: [],
-            salesHistoryData: { labels: [], datasets: [] },
-            stats: { totalStoreIncome: 0, totalDeviceIncome: 0, totalCompanyIncome: 0, totalSalariesPaid: 0, totalRentsPaid: 0 },
-            hq: [],
-            marketingBoost: 1.0,
-            marketingTimer: 0
+            techs: [
+                { id: 'cloud_infra', name: 'Architektura Chmurowa', cost: 25, unlocked: false, desc: 'Odblokowuje masowe centra danych.' },
+                { id: 'deep_learning', name: 'Sieci Neuronowe Deep Learning', cost: 60, unlocked: false, desc: 'Umożliwia rozwój produktów AI nowej generacji.' },
+                { id: 'quantum_logic', name: 'Logika Kwantowa', cost: 150, unlocked: false, desc: 'Zwiększa efektywność inżynierów o 200%.' }
+            ],
+            competitors: [
+                { id: 1, name: 'MicroSoft Corp', sharePrice: 12000, playerShares: 0, passiveInc: 3500 },
+                { id: 2, name: 'Alphabet Systems', sharePrice: 18000, playerShares: 0, passiveInc: 5000 },
+                { id: 3, name: 'Apex Cloud', sharePrice: 8500, playerShares: 0, passiveInc: 2100 }
+            ]
         };
 
-        const firstNames = ['Jan', 'Piotr', 'Krzysztof', 'Andrzej', 'Tomasz', 'Paweł', 'Michał', 'Marcin', 'Jakub', 'Adam', 'Stanisław', 'Marek', 'Łukasz', 'Grzegorz', 'Mateusz', 'Wojciech', 'Kamil', 'Konrad', 'Bartosz', 'Łucja', 'Anna', 'Katarzyna', 'Maria', 'Małgorzata', 'Agnieszka', 'Krystyna', 'Barbara', 'Ewa', 'Elżbieta', 'Zofia', 'Magdalena', 'Joanna', 'Monika', 'Natalia', 'Karolina', 'Aleksandra', 'Marta', 'Alicja', 'Dorota', 'Patrycja'];
-        const lastNames = ['Nowak', 'Wójcik', 'Woźniak', 'Kowalczyk', 'Kozłowska', 'Mazur', 'Krawczyk', 'Kaczmarek', 'Ziółkowska', 'Zając', 'Król', 'Wieczorek', 'Wróbel', 'Jabłońska', 'Duda', 'Olech', 'Szymańska', 'Woźny', 'Dąbrowski', 'Kozłowski', 'Jankowska', 'Mazurkiewicz', 'Kwiatkowska', 'Kaczor', 'Grabowski', 'Piotrowska', 'Pawłowska', 'Michalak', 'Nowicka', 'Adamczyk'];
+        const firstNames = ['Michał', 'Katarzyna', 'Piotr', 'Magdalena', 'Tomasz', 'Agnieszka', 'Łukasz', 'Karolina'];
+        const lastNames = ['Zieliński', 'Wójcik', 'Krawczyk', 'Kamiński', 'Lewandowski', 'Dąbrowski', 'Kozłowski'];
 
-        function generateRandomStaffMember(role, customSkill = null) {
-            const fName = firstNames[Math.floor(Math.random() * firstNames.length)];
-            const lName = lastNames[Math.floor(Math.random() * lastNames.length)];
-            const skill = customSkill !== null ? customSkill : (Math.floor(Math.random() * 35) + 15);
-            return {
-                id: Date.now() + Math.random(),
-                name: `${fName} ${lName}`,
-                role: role,
-                skill: skill,
-                salary: skill >= 90 ? 18000 : 3500
-            };
-        }
-
-        rawCountries.forEach((c, idx) => {
-            let code = c[0] === 'se2' ? 'se' : c[0];
-            let baseCost = 80000 + (idx * 12000);
-            let baseIncome = 1000 + (idx * 100);
-            let baseRent = Math.round(baseIncome * 0.18);
-            let share = parseFloat((0.1 + (idx * 0.015)).toFixed(2));
-            game.countries.push({
-                id: `${code}_${idx}`,
-                name: c[1],
-                flagImg: `https://flagcdn.com/w40/${code}.png`,
-                cost: baseCost,
-                income: baseIncome,
-                rent: baseRent,
-                shareBoost: share,
-                storesCount: 0,
-                posX: c[2],
-                posY: c[3]
-            });
-        });
-
-        const prefixes = ['Nano', 'Ultra', 'Quantum', 'Hyper', 'Cyber', 'Mega', 'Pro', 'Apex', 'Matrix', 'Nexus', 'Prime', 'Zenith', 'Omni', 'Stellar', 'Void', 'Aether', 'Vortex', 'Solar', 'Eclipse', 'Titan'];
-        const suffixes = ['Chip', 'Moduł', 'Matryca', 'Silnik', 'Procesor', 'System', 'Protokol', 'Sensor', 'Interfejs', 'Rdzeń'];
-
-        function generateTechCategory(baseId, baseName) {
-            let list = [
-                { id: `${baseId}_base`, name: baseName, cost: 15000, time: 15, unlocked: true, parent: null, tier: 1, desc: `Podstawowa technologia dla ${baseName}.` }
-            ];
-            let counter = 1;
-            for(let t = 2; t <= 10; t++) {
-                for(let i = 0; i < 10; i++) {
-                    counter++;
-                    let pId = counter <= 11 ? `${baseId}_base` : `${baseId}_tech_${counter - 5}`;
-                    list.push({
-                        id: `${baseId}_tech_${counter}`,
-                        name: `${prefixes[i % prefixes.length]} ${suffixes[counter % suffixes.length]} ${counter}`,
-                        cost: 20000 + (t * 12000) + (i * 3000),
-                        time: 20 + (t * 5),
-                        unlocked: false,
-                        parent: pId,
-                        tier: t,
-                        desc: `Zaawansowany komponent inżynieryjny stopnia ${t}.`
-                    });
-                }
-            }
-            return list;
-        }
-
-        game.techTree.phones = generateTechCategory('phone', 'Technologia Smartfonów');
-        game.techTree.tablets = generateTechCategory('tablet', 'Technologia Tabletów');
-        game.techTree.laptops = generateTechCategory('laptop', 'Technologia Laptopów');
-        game.techTree.pcs = generateTechCategory('pc', 'Technologia Komputerów PC');
-        game.techTree.consoles = generateTechCategory('console', 'Technologia Konsol do Gier');
-        game.techTree.headphones = generateTechCategory('headphone', 'Technologia Słuchawek');
-        game.techTree.speakers = generateTechCategory('speaker', 'Technologia Głośników');
-        game.techTree.pads = generateTechCategory('pad', 'Technologia Padów');
-        game.techTree.stylus = generateTechCategory('stylus', 'Technologia Rysików');
-        game.techTree.webcams = generateTechCategory('webcam', 'Technologia Kamerek');
-        game.techTree.smartwatches = generateTechCategory('smartwatch', 'Technologia Smartwatchy');
-        game.techTree.drones = generateTechCategory('drone', 'Technologia Dronów');
-
-        const hqNames = [
-            'Garaż Podmiejski', 'Mały Warsztat', 'Biuro na Poddaszu', 'Lokal w Centrum', 'Studio Innowacji',
-            'Piętro w Wieżowcu', 'Nowoczesny Lofty', 'Park Technologiczny', 'Kampus Badawczy', 'Centrala Korporacji',
-            'Wieża Megakorporacji', 'Cyber-Siedziba Alpha', 'Kompleks Badawczy Omega', 'Stacja Badawcza Neo', 'Kompleks Innowacji Global',
-            'Silicon Valley Branch', 'Globalne Centrum Dev', 'Futurystyczna Arka', 'Stacja Orbitalная Dev', 'Neo-Tokyo Megablock',
-            'Miasto Przyszłości HQ', 'Ultimate Titan Tower', 'Siedziba Quantum', 'Nexus Prime Base', 'Apex Core Station',
-            'Stellar Zenith HQ', 'Infinity Horizon Lab', 'Matrix Grid Tower', 'Singularity Complex', 'Aether Citadel',
-            'Void Sector HQ', 'Quantum Spire', 'Omega Horizon Base', 'Hyperion Arch', 'Genesis Titan Hub',
-            'Solaris Core', 'Eclipse Citadel', 'Vortex Prime', 'Astral Dominion', 'Omni Tower Enterprise'
-        ];
-        
-        for(let i=0; i<40; i++) {
-            game.hq.push({
-                name: hqNames[i],
-                limit: 5 + (i * 12),
-                cost: i === 0 ? 0 : 50000 * Math.pow(1.35, i)
-            });
-        }
-
-        function saveGame() { localStorage.setItem('tech_giant_tycoon_save_v56', JSON.stringify(game)); }
-        function loadGame() {
-            const saved = localStorage.getItem('tech_giant_tycoon_save_v56');
-            if(saved) {
-                try {
-                    const parsed = JSON.parse(saved);
-                    if(parsed.countries && Array.isArray(parsed.countries)) {
-                        parsed.countries.forEach(savedC => {
-                            let target = game.countries.find(c => c.id === savedC.id);
-                            if(target) target.storesCount = savedC.storesCount;
-                        });
-                    }
-                    if(parsed.companies && Array.isArray(parsed.companies)) {
-                        game.companies = parsed.companies;
-                    }
-                    game = { ...game, ...parsed };
-                } catch(e) {}
-            }
-            if(game.hq && game.hq[game.activeHQIndex]) {
-                game.staffLimit = game.hq[game.activeHQIndex].limit;
-            }
-            game.companies.forEach(c => {
-                let sum = c.playerShares + (c.listedSharesForSale || 0) + c.aiInvestors.reduce((acc, i) => acc + i.shares, 0);
-                if(sum > 100) {
-                    let diff = sum - 100;
-                    if(c.aiInvestors.length > 0) {
-                        c.aiInvestors[0].shares = Math.max(0, c.aiInvestors[0].shares - diff);
-                    }
-                }
-            });
-        }
-
-        function showToast(message, type = 'error') {
+        function showToast(msg, type = 'success') {
             const container = document.getElementById('toast-container');
             if(!container) return;
-            const toast = document.createElement('div');
-            toast.className = `px-4 py-3 rounded-2xl shadow-2xl text-xs font-semibold backdrop-blur-md border transition-all duration-300 transform translate-y-2 opacity-0 flex items-center gap-2 ${type === 'error' ? 'bg-rose-950/90 border-rose-500/50 text-rose-200 shadow-rose-950/50' : 'bg-emerald-950/90 border-emerald-500/50 text-emerald-200 shadow-emerald-950/50'}`;
-            toast.innerHTML = `<span>${type === 'error' ? '⚠️' : '✅'}</span> <span>${message}</span>`;
-            container.appendChild(toast);
-            
-            setTimeout(() => { toast.classList.remove('translate-y-2', 'opacity-0'); }, 10);
-            setTimeout(() => {
-                toast.classList.add('translate-y-2', 'opacity-0');
-                setTimeout(() => toast.remove(), 300);
-            }, 3000);
-        }
-
-        function showMoneyAnimation(amount, isAdd) {
-            const container = document.getElementById('floating-money-container');
-            if(!container) return;
-            const el = document.createElement('div');
-            el.textContent = `${isAdd ? '+' : ''}${amount.toLocaleString()} zł`;
-            el.className = `absolute font-bold text-sm pointer-events-none ${isAdd ? 'text-emerald-400 float-green' : 'text-rose-400 float-red'}`;
-            container.appendChild(el);
-            setTimeout(() => el.remove(), 1200);
+            const t = document.createElement('div');
+            t.className = `px-4 py-3 rounded-2xl shadow-2xl text-xs font-semibold backdrop-blur-md border transition-all duration-300 ${type === 'error' ? 'bg-rose-950/90 border-rose-500/50 text-rose-200' : 'bg-emerald-950/90 border-emerald-500/50 text-emerald-200'}`;
+            t.innerHTML = `<span>${type === 'error' ? '⚠️' : '✅'}</span> ${msg}`;
+            container.appendChild(t);
+            setTimeout(() => t.remove(), 3000);
         }
 
         function modifyMoney(amount) {
             game.money += amount;
-            showMoneyAnimation(amount, amount >= 0);
             updateUI();
-            saveGame();
-        }
-
-        window.addEventListener('keydown', (e) => {
-            if(e.key === '`' || e.key === '~') {
-                e.preventDefault();
-                document.getElementById('cheat-modal').classList.remove('hidden');
-                document.getElementById('cheat-input').focus();
-            }
-        });
-
-        function closeCheatModal() { document.getElementById('cheat-modal').classList.add('hidden'); }
-        
-        function executeCheat() {
-            const inputEl = document.getElementById('cheat-input');
-            if(!inputEl) return;
-            const val = inputEl.value.trim().toLowerCase();
-            closeCheatModal();
-
-            if(val.startsWith('kasa')) {
-                let parts = val.split(' ');
-                let amount = parseInt(parts[1]) || 1000000;
-                modifyMoney(amount);
-                showToast(`Dodano ${amount.toLocaleString()} zł!`, 'success');
-            } else if(val === 'hr max') {
-                game.hiredStaff = [];
-                let roles = ['Inżynier Sprzętu', 'Projektant UI/UX', 'Badacz / Naukowiec R&D'];
-                for(let i = 0; i < game.staffLimit; i++) {
-                    let r = roles[i % roles.length];
-                    game.hiredStaff.push({
-                        id: Date.now() + Math.random(),
-                        name: `${firstNames[Math.floor(Math.random() * firstNames.length)]} ${lastNames[Math.floor(Math.random() * lastNames.length)]}`,
-                        role: r,
-                        skill: 100,
-                        salary: 18000
-                    });
-                }
-                updateUI();
-                renderJobMarket();
-                saveGame();
-                showToast(`Zatrudniono maksymalną liczbę elity (${game.staffLimit} pracowników z perkiem 100)!`, 'success');
-            } else if(val === 'research all') {
-                for(let cat in game.techTree) {
-                    game.techTree[cat].forEach(t => t.unlocked = true);
-                }
-                game.activeResearch = null;
-                renderTechTree();
-                showToast('Cheat użyty: Wybadano wszystkie technologie!', 'success');
-            } else {
-                showToast('Nieznana komenda w terminalu!', 'error');
-            }
-            inputEl.value = '';
         }
 
         function switchTab(tab) {
-            ['devices', 'rd', 'factory', 'acquisitions', 'contracts', 'shops', 'marketing', 'staff', 'hq', 'stats'].forEach(t => {
-                const el = document.getElementById(`tab-${t}`);
-                if(el) el.classList.toggle('hidden', t !== tab);
+            ['products', 'rd', 'hr', 'market'].forEach(t => {
+                document.getElementById(`tab-${t}`).classList.toggle('hidden', t !== tab);
                 const btn = document.getElementById(`tab-btn-${t}`);
-                if(btn) {
-                    btn.className = `px-5 py-2.5 rounded-2xl font-semibold text-sm transition shrink-0 ${t === tab ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30' : 'text-slate-400 hover:text-white hover:bg-slate-800/40'}`;
-                }
+                btn.className = `px-5 py-2.5 rounded-xl font-semibold text-xs transition shrink-0 ${t === tab ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30' : 'text-slate-400 hover:text-white hover:bg-slate-800/40'}`;
             });
-            if(tab === 'staff') renderJobMarket();
+            if(tab === 'hr') renderHR();
             if(tab === 'rd') renderTechTree();
-            if(tab === 'factory') { renderFactories(); initSalesChart(); }
-            if(tab === 'acquisitions') renderAcquisitions();
-            if(tab === 'contracts') renderContracts();
-            if(tab === 'shops') renderWorldShops();
-            if(tab === 'hq') renderHQ();
-            if(tab === 'stats') renderStats();
+            if(tab === 'market') renderCompetitors();
+            if(tab === 'products') renderProducts();
         }
 
-        function launchMarketingCampaign(type, cost, boostValue) {
-            if(game.money < cost) {
-                showToast('Za mało środków na przeprowadzenie kampanii marketingowej!', 'error');
-                return;
-            }
-            modifyMoney(-cost);
-            game.marketingBoost += boostValue;
-            game.marketingTimer = 60;
-            showToast(`Uruchomiono kampanię marketingową! Popyt wzrósł o ${Math.round(boostValue * 100)}%.`, 'success');
-        }
+        function openNewProductModal() { document.getElementById('product-modal').classList.remove('hidden'); }
+        function closeProductModal() { document.getElementById('product-modal').classList.add('hidden'); }
 
-        function renderAcquisitions() {
-            const container = document.getElementById('acquisitions-list');
-            const propContainer = document.getElementById('proposals-container');
-            const searchInput = document.getElementById('company-search');
-            const sellSelect = document.getElementById('sell-share-company');
-            if(!container || !propContainer || !sellSelect) return;
+        function createProduct() {
+            const name = document.getElementById('prod-name').value.trim();
+            const category = document.getElementById('prod-cat').value;
+            if(!name) { showToast('Wprowadź nazwę produktu!', 'error'); return; }
 
-            let currentSelectedCompany = sellSelect.value;
-
-            sellSelect.innerHTML = '';
-            let ownedCompanies = game.companies.filter(c => c.playerShares > 0);
-            if(ownedCompanies.length === 0) {
-                sellSelect.innerHTML = `<option value="">Brak posiadanych udziałów</option>`;
-            } else {
-                ownedCompanies.forEach(c => {
-                    let isSel = c.id === currentSelectedCompany ? 'selected' : '';
-                    sellSelect.innerHTML += `<option value="${c.id}" ${isSel}>${c.name} (Masz: ${c.playerShares}%)</option>`;
-                });
-            }
-
-            propContainer.innerHTML = '';
-            if(game.pendingProposals.length === 0) {
-                propContainer.innerHTML = `<div class="text-xs text-slate-500">Brak oczekujących propozycji odkupu akcji.</div>`;
-            } else {
-                game.pendingProposals.forEach(prop => {
-                    propContainer.innerHTML += `
-                        <div class="glass-card p-3 rounded-xl flex justify-between items-center text-xs border border-amber-500/30">
-                            <div>
-                                <strong class="text-amber-300">${prop.senderName}</strong> chce odkupić ${prop.shares}% akcji w <strong class="text-slate-100">${prop.companyName}</strong> za <strong class="text-emerald-400">${prop.price.toLocaleString()} zł</strong>.
-                            </div>
-                            <div class="flex gap-2">
-                                <button onclick="openNegotiateModal('${prop.id}')" class="px-3 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold">Negocjuj</button>
-                                <button onclick="acceptProposal('${prop.id}')" class="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-bold">Akceptuj</button>
-                                <button onclick="rejectProposal('${prop.id}')" class="px-3 py-1 bg-rose-600 hover:bg-rose-500 text-white rounded-lg font-bold">Odrzuć</button>
-                            </div>
-                        </div>
-                    `;
-                });
-            }
-
-            container.innerHTML = '';
-            let query = searchInput ? searchInput.value.toLowerCase() : '';
-            let filtered = game.companies.filter(c => c.name.toLowerCase().includes(query) || c.specialization.toLowerCase().includes(query));
-
-            filtered.forEach(c => {
-                let totalAssigned = c.playerShares + c.aiInvestors.reduce((acc, curr) => acc + curr.shares, 0) + (c.listedSharesForSale || 0);
-                let availableShares = Math.max(0, 100 - totalAssigned);
-
-                let aiListHtml = c.playerShares > 0 ? `<li class="text-blue-300 font-bold">• ${game.playerName} (Ty): <strong class="text-blue-400">${c.playerShares}%</strong></li>` : '';
-                c.aiInvestors.forEach((inv, i) => {
-                    aiListHtml += `<li class="text-slate-400">• <span class="text-amber-300 cursor-pointer hover:underline" title="Kliknij, aby odkupić udziały od tego inwestora" onclick="openTargetedBuyout('${c.id}', 'ai', ${i})">${inv.name}</span>: <strong class="text-slate-200">${inv.shares}%</strong></li>`;
-                });
-
-                if(c.listedSharesForSale > 0) {
-                    aiListHtml += `<li class="text-emerald-400 font-bold">• Wystawione na giełdę: ${c.listedSharesForSale}% (Cena 1%: ${c.listedSharePricePerPercent.toLocaleString()} zł)</li>`;
-                }
-
-                let buyBtn = availableShares > 0 
-                    ? `<button onclick="openOfferModal('${c.id}', 'buy')" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-bold text-[11px]">Kup z rynku</button>` 
-                    : `<span class="text-[11px] text-slate-500">Wszystkie wykupione</span>`;
-
-                let isMajority = c.playerShares > 50;
-                let manageBtn = isMajority 
-                    ? `<button onclick="openManageModal('${c.id}')" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-lg font-bold text-[11px]">⚙️ Zarządzaj firmą</button>`
-                    : `<span class="text-[11px] text-slate-500">🔒 Wymagane >50%</span>`;
-
-                container.innerHTML += `
-                    <div class="glass-card p-5 rounded-2xl flex flex-col justify-between gap-3 border ${isMajority ? 'border-amber-500/40' : 'border-slate-700/60'}">
-                        <div class="space-y-2">
-                            <h4 class="font-bold text-slate-100 text-sm flex items-center justify-between">
-                                <span>🏢 ${c.name}</span>
-                                <span class="text-xs text-blue-300">Wolne: ${availableShares}%</span>
-                            </h4>
-                            <p class="text-xs text-slate-400">Specjalizacja: ${c.specialization}</p>
-                            <p class="text-xs text-slate-400">Cena 1% udziału: <strong class="text-emerald-400">${c.sharePricePerPercent.toLocaleString()} zł</strong></p>
-                            
-                            <div class="bg-slate-950/60 p-2.5 rounded-xl border border-slate-800 space-y-1">
-                                <span class="text-[11px] text-slate-400 font-bold block">Udziałowcy (kliknij w inwestora, by odkupić):</span>
-                                <ul class="text-[11px] space-y-0.5 max-h-24 overflow-y-auto">${aiListHtml}</ul>
-                            </div>
-                        </div>
-                        <div class="pt-2 border-t border-slate-800/80 flex flex-col gap-2 items-end">
-                            <div class="flex gap-2 w-full justify-between items-center">
-                                ${manageBtn}
-                            </div>
-                            <div class="flex gap-2 w-full justify-end">
-                                ${buyBtn}
-                            </div>
-                        </div>
-                    </div>
-                `;
+            game.products.push({
+                id: Date.now(),
+                name,
+                category,
+                progress: 0,
+                maxProgress: 120,
+                active: false,
+                revenue: 0,
+                rating: 0
             });
+            closeProductModal();
+            renderProducts();
+            showToast(`Rozpoczęto rozwój projektu: ${name}`);
         }
 
-        function listMySharesForSale() {
-            const select = document.getElementById('sell-share-company');
-            const countInput = document.getElementById('sell-share-count');
-            const priceInput = document.getElementById('sell-share-price');
-            
-            let compId = select.value;
-            let count = parseInt(countInput.value) || 1;
-            let price = parseInt(priceInput.value) || 2000;
-
-            let comp = game.companies.find(c => c.id === compId);
-            if(!comp) {
-                showToast('Wybierz prawidłową spółkę!', 'error');
-                return;
-            }
-            if(count > comp.playerShares) {
-                showToast('Nie masz tylu udziałów do wystawienia!', 'error');
-                return;
-            }
-
-            comp.playerShares -= count;
-            comp.listedSharesForSale = (comp.listedSharesForSale || 0) + count;
-            comp.listedSharePricePerPercent = price;
-
-            renderAcquisitions();
-            saveGame();
-            showToast(`Wystawiono ${count}% udziałów spółki ${comp.name} na giełdę!`, 'success');
-        }
-
-        let activeOfferCompanyId = null;
-        let activeOfferType = 'buy'; 
-        let targetBuyoutData = null;
-
-        function openOfferModal(id, type) {
-            let comp = game.companies.find(c => c.id === id);
-            if(!comp) return;
-            activeOfferCompanyId = id;
-            activeOfferType = type || 'buy';
-            targetBuyoutData = null;
-
-            let totalAssigned = comp.playerShares + comp.aiInvestors.reduce((acc, curr) => acc + curr.shares, 0) + (comp.listedSharesForSale || 0);
-            let available = Math.max(0, 100 - totalAssigned);
-
-            const titleEl = document.getElementById('offer-modal-title');
-            const submitBtn = document.getElementById('offer-submit-btn');
-            const sharesInput = document.getElementById('offer-shares-count');
-
-            titleEl.textContent = `Złóż ofertę zakupu udziałów: ${comp.name}`;
-            submitBtn.textContent = 'Wyślij ofertę zakupu';
-            sharesInput.max = available;
-            sharesInput.value = Math.min(10, available);
-
-            document.getElementById('offer-company-info').textContent = `Firma: ${comp.name} (Dostępne wolne: ${available}%)`;
-            document.getElementById('offer-market-price').textContent = comp.sharePricePerPercent.toLocaleString();
-            document.getElementById('offer-price-input').value = comp.sharePricePerPercent;
-            updateOfferTotal();
-            document.getElementById('offer-modal').classList.remove('hidden');
-        }
-
-        function openTargetedBuyout(companyId, ownerType, ownerIndexOrShares) {
-            let comp = game.companies.find(c => c.id === companyId);
-            if(!comp) return;
-
-            let inv = comp.aiInvestors[ownerIndexOrShares];
-            if(!inv || inv.shares <= 0) return;
-
-            targetBuyoutData = { companyId, investorName: inv.name, maxShares: inv.shares };
-            activeOfferCompanyId = companyId;
-            activeOfferType = 'buyout_ai';
-
-            const titleEl = document.getElementById('offer-modal-title');
-            const submitBtn = document.getElementById('offer-submit-btn');
-            const sharesInput = document.getElementById('offer-shares-count');
-
-            titleEl.textContent = `Odkup udziały od ${inv.name} (${comp.name})`;
-            submitBtn.textContent = 'Złóż ofertę odkupu';
-            sharesInput.max = inv.shares;
-            sharesInput.value = 1;
-
-            document.getElementById('offer-company-info').textContent = `Odkupujesz od: ${inv.name} (posiada ${inv.shares}%)`;
-            let premiumPrice = Math.round(comp.sharePricePerPercent * 1.25);
-            document.getElementById('offer-market-price').textContent = premiumPrice.toLocaleString();
-            document.getElementById('offer-price-input').value = premiumPrice;
-            updateOfferTotal();
-            document.getElementById('offer-modal').classList.remove('hidden');
-        }
-
-        function closeOfferModal() {
-            document.getElementById('offer-modal').classList.add('hidden');
-            activeOfferCompanyId = null;
-            targetBuyoutData = null;
-        }
-
-        function updateOfferTotal() {
-            let count = parseInt(document.getElementById('offer-shares-count').value) || 1;
-            let price = parseInt(document.getElementById('offer-price-input').value) || 0;
-            let totalEl = document.getElementById('offer-total-cost');
-            if(totalEl) totalEl.textContent = (count * price).toLocaleString();
-        }
-
-        document.addEventListener('input', (e) => {
-            if(e.target.id === 'offer-shares-count' || e.target.id === 'offer-price-input') {
-                updateOfferTotal();
-            }
-        });
-
-        function submitShareOffer() {
-            let comp = game.companies.find(c => c.id === activeOfferCompanyId);
-            if(!comp) return;
-
-            let count = parseInt(document.getElementById('offer-shares-count').value) || 1;
-            let proposedPricePerPercent = parseInt(document.getElementById('offer-price-input').value) || 0;
-            let totalCost = count * proposedPricePerPercent;
-
-            if(game.money < totalCost) {
-                showToast('Za mało środków w budżecie na tę transakcję!', 'error');
-                return;
-            }
-
-            if(activeOfferType === 'buyout_ai' && targetBuyoutData) {
-                let inv = comp.aiInvestors.find(i => i.name === targetBuyoutData.investorName);
-                if(inv && count <= inv.shares) {
-                    modifyMoney(-totalCost);
-                    inv.shares -= count;
-                    if(inv.shares <= 0) {
-                        comp.aiInvestors = comp.aiInvestors.filter(i => i.name !== inv.name);
-                    }
-                    comp.playerShares += count;
-                    closeOfferModal();
-                    renderAcquisitions();
-                    saveGame();
-                    showToast(`✅ Pomyślnie odkupiono ${count}% udziałów od ${inv.name} za ${totalCost.toLocaleString()} zł!`, 'success');
-                } else {
-                    showToast('Inwestor nie posiada już tylu udziałów.', 'error');
-                }
-            } else {
-                let totalAssigned = comp.playerShares + comp.aiInvestors.reduce((acc, curr) => acc + curr.shares, 0) + (comp.listedSharesForSale || 0);
-                let availableShares = 100 - totalAssigned;
-                if(count > availableShares) {
-                    showToast('Brak tylu wolnych udziałów w firmie na rynku!', 'error');
-                    return;
-                }
-                modifyMoney(-totalCost);
-                comp.playerShares += count;
-                closeOfferModal();
-                renderAcquisitions();
-                saveGame();
-                showToast(`✅ Pomyślnie zakupiono ${count}% wolnych udziałów w ${comp.name} za ${totalCost.toLocaleString()} zł!`, 'success');
-            }
-            closeOfferModal();
-            renderAcquisitions();
-        }
-
-        function triggerAIProposal() {
-            let investedCompanies = game.companies.filter(c => c.playerShares > 0);
-            if(investedCompanies.length === 0) return;
-
-            let comp = investedCompanies[Math.floor(Math.random() * investedCompanies.length)];
-            let buyer = investorNames[Math.floor(Math.random() * investorNames.length)];
-            let offerPrice = Math.round(comp.sharePricePerPercent * 1.25);
-
-            game.pendingProposals.push({
-                id: Date.now() + Math.random(),
-                companyId: comp.id,
-                companyName: comp.name,
-                senderName: buyer,
-                shares: 5,
-                price: offerPrice * 5
-            });
-
-            showToast(`Nowa propozycja odkupu akcji od inwestora dla ${comp.name}!`, 'success');
-            if(document.getElementById('tab-acquisitions') && !document.getElementById('tab-acquisitions').classList.contains('hidden')) {
-                renderAcquisitions();
-            }
-        }
-
-        function acceptProposal(id) {
-            let propIdx = game.pendingProposals.findIndex(p => p.id == id);
-            if(propIdx !== -1) {
-                let prop = game.pendingProposals[propIdx];
-                let comp = game.companies.find(c => c.id === prop.companyId);
-                if(comp && comp.playerShares >= prop.shares) {
-                    comp.playerShares -= prop.shares;
-                    modifyMoney(prop.price);
-                    game.pendingProposals.splice(propIdx, 1);
-                    renderAcquisitions();
-                    saveGame();
-                    showToast(`✅ Sprzedano ${prop.shares}% akcji ${comp.name} za ${prop.price.toLocaleString()} zł! Gotówka trafiła na konto.`, 'success');
-                } else {
-                    showToast('Nie masz już wystarczającej liczby udziałów!', 'error');
-                    game.pendingProposals.splice(propIdx, 1);
-                    renderAcquisitions();
-                }
-            }
-        }
-
-        function rejectProposal(id) {
-            game.pendingProposals = game.pendingProposals.filter(p => p.id != id);
-            renderAcquisitions();
-            showToast('Odrzucono propozycję odkupu.', 'error');
-        }
-
-        let activeNegotiationPropId = null;
-        function openNegotiateModal(id) {
-            let prop = game.pendingProposals.find(p => p.id == id);
-            if(!prop) return;
-            activeNegotiationPropId = id;
-
-            let pricePerPercent = Math.round(prop.price / prop.shares);
-            document.getElementById('neg-info').textContent = `Inwestor ${prop.senderName} proponuje ${prop.price.toLocaleString()} zł za ${prop.shares}% akcji ${prop.companyName}.`;
-            document.getElementById('neg-orig-price').textContent = pricePerPercent.toLocaleString();
-            document.getElementById('neg-price-input').value = Math.round(pricePerPercent * 1.15);
-            document.getElementById('negotiate-modal').classList.remove('hidden');
-        }
-
-        function closeNegotiateModal() {
-            document.getElementById('negotiate-modal').classList.add('hidden');
-            activeNegotiationPropId = null;
-        }
-
-        function acceptOriginalProposal() {
-            if(activeNegotiationPropId) {
-                let id = activeNegotiationPropId;
-                closeNegotiateModal();
-                acceptProposal(id);
-            }
-        }
-
-        function submitCounterOffer() {
-            let prop = game.pendingProposals.find(p => p.id == activeNegotiationPropId);
-            if(!prop) return;
-
-            let origPricePerPercent = prop.price / prop.shares;
-            let counterPricePerPercent = parseInt(document.getElementById('neg-price-input').value) || origPricePerPercent;
-            let maxAcceptable = origPricePerPercent * 1.4;
-
-            closeNegotiateModal();
-
-            if(counterPricePerPercent <= maxAcceptable) {
-                prop.price = Math.round(counterPricePerPercent * prop.shares);
-                acceptProposal(prop.id);
-                showToast('Inwestor przyjął Twoją kontrofertę!', 'success');
-            } else {
-                game.pendingProposals = game.pendingProposals.filter(p => p.id != prop.id);
-                renderAcquisitions();
-                showToast('Inwestor odrzucił zbyt wysoką kontrofertę i wycofał się!', 'error');
-            }
-        }
-
-        let activeManagingCompanyId = null;
-        function openManageModal(id) {
-            let comp = game.companies.find(c => c.id === id);
-            if(!comp) return;
-            activeManagingCompanyId = id;
-            document.getElementById('manage-modal-title').textContent = `Zaawansowany Zarząd: ${comp.name}`;
-            
-            const content = document.getElementById('manage-modal-content');
-            let loanSection = '';
-            if(comp.loanRemaining > 0) {
-                loanSection = `
-                    <div class="glass-card p-3 rounded-xl space-y-2 border-rose-500/40 bg-rose-950/10">
-                        <div class="flex justify-between items-center text-xs">
-                            <span class="text-slate-300 font-bold">Aktywny Kredyt / Pożyczka:</span>
-                            <span class="text-rose-400 font-bold">${comp.loanRemaining.toLocaleString()} zł</span>
-                        </div>
-                        <div class="text-[11px] text-slate-400 flex justify-between">
-                            <span>Rata / sekundę: <strong class="text-emerald-400">${comp.loanInstallmentPerSec.toLocaleString()} zł</strong></span>
-                            <span>Pozostało rat: <strong class="text-blue-300">${comp.loanInstallmentsLeft}</strong></span>
-                        </div>
-                        <button onclick="repayCompanyLoan('${id}')" class="w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold transition text-xs">Spłać całość wcześniej (${comp.loanRemaining.toLocaleString()} zł)</button>
-                    </div>
-                `;
-            } else {
-                loanSection = `
-                    <div class="glass-card p-3 rounded-xl space-y-2 border-blue-500/40">
-                        <span class="text-slate-200 font-bold block">Zaciągnij nową pożyczkę ratalną</span>
-                        <div class="grid grid-cols-2 gap-2">
-                            <div>
-                                <label class="block text-slate-400 mb-1">Kwota pożyczki:</label>
-                                <select id="loan-amount-sel" class="w-full px-2.5 py-1.5 bg-slate-950 border border-slate-700 rounded-lg text-white">
-                                    <option value="50000">50,000 zł</option>
-                                    <option value="150000" selected>150,000 zł</option>
-                                    <option value="500000">500,000 zł</option>
-                                    <option value="1500000">1,500,000 zł</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-slate-400 mb-1">Liczba rat:</label>
-                                <select id="loan-installments-sel" class="w-full px-2.5 py-1.5 bg-slate-950 border border-slate-700 rounded-lg text-white">
-                                    <option value="10">10 rat</option>
-                                    <option value="25" selected>25 rat</option>
-                                    <option value="50">50 rat</option>
-                                    <option value="100">100 rat</option>
-                                </select>
-                            </div>
-                        </div>
-                        <button onclick="takeCompanyLoanModal('${id}')" class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold transition text-xs">Weź pożyczkę</button>
-                    </div>
-                `;
-            }
-
-            content.innerHTML = `
-                <div class="space-y-4">
-                    <div class="glass-card p-3 rounded-xl space-y-1 border-blue-500/30">
-                        <label class="block text-slate-300 font-semibold">Budżet Marketingowy (koszt co sekundę): <strong id="m-budget-val" class="text-rose-400">${comp.marketingBudget} zł/s</strong></label>
-                        <input type="range" min="0" max="50000" step="1000" value="${comp.marketingBudget}" oninput="updateCompanyParam('${id}', 'marketingBudget', this.value)" class="w-full accent-blue-500">
-                    </div>
-                    <div class="glass-card p-3 rounded-xl space-y-1 border-indigo-500/30">
-                        <label class="block text-slate-300 font-semibold">Budżet R&D Spółki (koszt co sekundę): <strong id="r-budget-val" class="text-rose-400">${comp.rdBudget} zł/s</strong></label>
-                        <input type="range" min="0" max="50000" step="1000" value="${comp.rdBudget}" oninput="updateCompanyParam('${id}', 'rdBudget', this.value)" class="w-full accent-indigo-500">
-                    </div>
-                    <div class="glass-card p-3 rounded-xl space-y-1 border-emerald-500/30">
-                        <label class="block text-slate-300 font-semibold">Mnożnik Pensji Pracowników: <strong id="s-mult-val" class="text-emerald-400">${comp.salaryMultiplier}x</strong></label>
-                        <input type="range" min="0.8" max="3.0" step="0.1" value="${comp.salaryMultiplier}" oninput="updateCompanyParam('${id}', 'salaryMultiplier', this.value)" class="w-full accent-emerald-500">
-                    </div>
-                    <div class="glass-card p-3 rounded-xl space-y-1 border-amber-500/30">
-                        <label class="block text-slate-300 font-semibold">Polityka Dywidendowa (% zysków dla akcjonariuszy): <strong id="d-pct-val" class="text-amber-400">${comp.dividendPercent}%</strong></label>
-                        <input type="range" min="0" max="100" step="5" value="${comp.dividendPercent}" oninput="updateCompanyParam('${id}', 'dividendPercent', this.value)" class="w-full accent-amber-500">
-                    </div>
-                    ${loanSection}
-                    <div class="text-slate-400 text-[11px] flex justify-between">
-                        <span>Aktualna wycena za 1%: <strong class="text-emerald-400">${comp.sharePricePerPercent.toLocaleString()} zł</strong></span>
-                    </div>
-                </div>
-            `;
-            document.getElementById('manage-company-modal').classList.remove('hidden');
-        }
-
-        function updateCompanyParam(id, param, val) {
-            let comp = game.companies.find(c => c.id === id);
-            if(comp) {
-                comp[param] = parseFloat(val);
-                if(param === 'marketingBudget') document.getElementById('m-budget-val').textContent = `${val} zł/s`;
-                if(param === 'rdBudget') document.getElementById('r-budget-val').textContent = `${val} zł/s`;
-                if(param === 'salaryMultiplier') document.getElementById('s-mult-val').textContent = `${val}x`;
-                if(param === 'dividendPercent') document.getElementById('d-pct-val').textContent = `${val}%`;
-                saveGame();
-            }
-        }
-
-        function takeCompanyLoanModal(id) {
-            let comp = game.companies.find(c => c.id === id);
-            if(!comp) return;
-
-            let amount = parseInt(document.getElementById('loan-amount-sel').value) || 150000;
-            let installments = parseInt(document.getElementById('loan-installments-sel').value) || 25;
-            let totalWithInterest = Math.round(amount * 1.25);
-
-            comp.loanTotal = totalWithInterest;
-            comp.loanRemaining = totalWithInterest;
-            comp.loanInstallmentsLeft = installments;
-            comp.loanInstallmentPerSec = Math.ceil(totalWithInterest / installments);
-
-            modifyMoney(amount);
-            showToast(`Zaciągnięto pożyczkę w wysokości ${amount.toLocaleString()} zł na ${installments} rat!`, 'success');
-            openManageModal(id);
-            saveGame();
-        }
-
-        function repayCompanyLoan(id) {
-            let comp = game.companies.find(c => c.id === id);
-            if(!comp || comp.loanRemaining <= 0) return;
-
-            if(game.money < comp.loanRemaining) {
-                showToast('Za mało środków w głównym budżecie na spłatę całości!', 'error');
-                return;
-            }
-
-            modifyMoney(-comp.loanRemaining);
-            comp.loanRemaining = 0;
-            comp.loanInstallmentsLeft = 0;
-            comp.loanInstallmentPerSec = 0;
-
-            showToast('Pomyślnie spłacono całą pożyczkę przed czasem!', 'success');
-            openManageModal(id);
-            saveGame();
-        }
-
-        function closeManageModal() {
-            document.getElementById('manage-company-modal').classList.add('hidden');
-            activeManagingCompanyId = null;
-        }
-
-        function renderContracts() {
-            const container = document.getElementById('contracts-list');
-            if(!container) return;
-            container.innerHTML = '';
-
-            let html = `<div class="col-span-full font-bold text-sm text-blue-300 mb-2">Dostępne zlecenia do przyjęcia:</div>`;
-            game.availableContracts.forEach(cnt => {
-                html += `
-                    <div class="glass-card p-4 rounded-2xl space-y-2 border border-slate-700/60 flex flex-col justify-between">
+        function renderProducts() {
+            const grid = document.getElementById('products-grid');
+            grid.innerHTML = '';
+            game.products.forEach(p => {
+                let pct = Math.min(100, Math.floor((p.progress / p.maxProgress) * 100));
+                grid.innerHTML += `
+                    <div class="glass-card p-5 rounded-2xl flex flex-col justify-between gap-4">
                         <div>
-                            <h4 class="font-bold text-slate-100 text-sm">${cnt.title}</h4>
-                            <p class="text-xs text-slate-400 mt-1">Typ: <strong class="text-blue-300">${cnt.type}</strong> | Wymagane: ${cnt.target} szt.</p>
-                            <p class="text-xs text-emerald-400 font-bold mt-1">Nagroda: ${cnt.reward.toLocaleString()} zł</p>
-                        </div>
-                        <button onclick="acceptContract(${cnt.id})" class="mt-2 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-xs transition">Przyjmij zlecenie</button>
-                    </div>
-                `;
-            });
-
-            if(game.activeContracts.length > 0) {
-                html += `<div class="col-span-full font-bold text-sm text-emerald-300 mt-4 mb-2">Aktywne zlecenia w realizacji:</div>`;
-                game.activeContracts.forEach(cnt => {
-                    let pct = Math.min(100, Math.floor((cnt.progress / cnt.target) * 100));
-                    html += `
-                        <div class="glass-card p-4 rounded-2xl space-y-2 border border-emerald-500/40">
                             <div class="flex justify-between items-center">
-                                <h4 class="font-bold text-slate-100 text-sm">${cnt.title}</h4>
-                                <span class="text-xs font-extrabold text-emerald-400">Nagroda: ${cnt.reward.toLocaleString()} zł</span>
+                                <h4 class="font-bold text-slate-100 text-sm">${p.name}</h4>
+                                <span class="text-[10px] bg-slate-900 px-2.5 py-1 rounded-lg text-cyan-300 font-semibold">${p.category}</span>
                             </div>
-                            <div class="space-y-1">
-                                <div class="flex justify-between text-[11px] text-slate-400">
-                                    <span>Postęp: ${cnt.progress} / ${cnt.target}</span>
-                                    <span>${pct}%</span>
-                                </div>
-                                <div class="w-full bg-slate-950 h-2 rounded-full overflow-hidden border border-slate-800">
-                                    <div class="bg-emerald-500 h-full rounded-full transition-all" style="width: ${pct}%"></div>
-                                </div>
-                            </div>
+                            <p class="text-xs text-slate-400 mt-2">${p.active ? `Przychód: <strong class="text-emerald-400">${p.revenue.toLocaleString()} zł/s</strong> | Ocena: ${p.rating}/10` : 'Trwają prace inżynieryjne...'}</p>
                         </div>
-                    `;
-                });
-            }
-
-            container.innerHTML = html;
-        }
-
-        function acceptContract(id) {
-            let idx = game.availableContracts.findIndex(c => c.id === id);
-            if(idx !== -1) {
-                let cnt = game.availableContracts.splice(idx, 1)[0];
-                game.activeContracts.push(cnt);
-                renderContracts();
-                saveGame();
-                showToast(`Przyjęto zlecenie kontraktowe: ${cnt.title}`, 'success');
-            }
-        }
-
-        function renderWorldShops() {
-            const container = document.getElementById('world-shops-container');
-            const searchInput = document.getElementById('country-search');
-            if(!container) return;
-
-            container.innerHTML = '';
-            let query = searchInput ? searchInput.value.toLowerCase() : '';
-            let filtered = game.countries.filter(c => c.name.toLowerCase().includes(query));
-
-            filtered.forEach(c => {
-                container.innerHTML += `
-                    <div class="glass-card p-5 rounded-2xl flex flex-col justify-between gap-3 border ${c.storesCount > 0 ? 'border-emerald-500/40' : 'border-slate-700/60'}">
-                        <div class="flex items-center gap-3 border-b border-slate-800 pb-3">
-                            <img src="${c.flagImg}" alt="${c.name}" class="w-8 h-6 object-cover rounded shadow border border-slate-700">
-                            <div>
-                                <h4 class="font-bold text-slate-100 text-sm">${c.name}</h4>
-                                <span class="text-xs text-blue-300">Posiadane sklepy: ${c.storesCount}</span>
+                        <div class="space-y-1.5">
+                            <div class="flex justify-between text-[11px] text-slate-400">
+                                <span>${p.active ? 'Status: Na rynku' : 'Postęp prac'}</span>
+                                <span>${pct}%</span>
+                            </div>
+                            <div class="w-full bg-slate-950 h-2 rounded-full overflow-hidden border border-slate-800">
+                                <div class="bg-blue-500 h-full transition-all" style="width: ${pct}%"></div>
                             </div>
                         </div>
-                        <div class="space-y-1 text-xs text-slate-300">
-                            <div>Koszt otwarcia: <strong class="text-emerald-400">${c.cost.toLocaleString()} zł</strong></div>
-                            <div>Przychód sklepu: <strong class="text-emerald-400">+${c.income.toLocaleString()} zł/s</strong></div>
-                            <div>Czynsz i podatki: <strong class="text-rose-400">-${c.rent.toLocaleString()} zł/s</strong></div>
-                        </div>
-                        <button onclick="buyCountryStore('${c.id}')" class="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-xs transition shadow-lg">Otwórz Sklep</button>
                     </div>
                 `;
             });
-        }
-
-        function buyCountryStore(id) {
-            let country = game.countries.find(c => c.id === id);
-            if(country) {
-                if(game.money < country.cost) {
-                    showToast('Za mało środków w budżecie!', 'error');
-                    return;
-                }
-                modifyMoney(-country.cost);
-                country.storesCount++;
-                game.marketShare = parseFloat((game.marketShare + country.shareBoost).toFixed(1));
-                renderWorldShops();
-                updateUI();
-                saveGame();
-                showToast(`Otwarto nowy sklep w kraju: ${country.name}!`, 'success');
-            }
-        }
-
-        function switchStaffCat(cat) {
-            game.activeStaffCat = cat;
-            ['Inżynier Sprzętu', 'Projektant UI/UX', 'Badacz / Naukowiec R&D'].forEach(c => {
-                let btnId = c === 'Inżynier Sprzętu' ? 'staff-cat-eng' : c === 'Projektant UI/UX' ? 'staff-cat-des' : 'staff-cat-res';
-                const btn = document.getElementById(btnId);
-                if(btn) btn.className = `px-3 py-1.5 rounded-xl text-xs font-bold ${c === cat ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-400'}`;
-            });
-            renderJobMarket();
-        }
-
-        function renderJobMarket() {
-            while(game.marketCandidates.filter(c => c.role === game.activeStaffCat).length < 3) {
-                game.marketCandidates.push(generateRandomStaffMember(game.activeStaffCat));
-            }
-
-            const container = document.getElementById('job-market');
-            if(!container) return;
-            container.innerHTML = '';
-
-            let filteredCands = game.marketCandidates.filter(c => c.role === game.activeStaffCat);
-
-            filteredCands.forEach(c => {
-                container.innerHTML += `
-                    <div class="glass-card p-4 rounded-2xl flex flex-col justify-between gap-3 text-xs border border-slate-700/60">
-                        <div>
-                            <strong>${c.name}</strong> 
-                            <span class="text-blue-300 block font-semibold mt-0.5">${c.role}</span>
-                            <span class="text-slate-400 block mt-1">Umiejętności: ${c.skill} | Pensja: ${c.salary} zł/s</span>
-                        </div>
-                        <button onclick="hireCandidate(${c.id})" class="py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold transition">Zatrudnij</button>
-                    </div>
-                `;
-            });
-            renderHiredStaff();
-        }
-
-        function hireCandidate(id) {
-            if(game.hiredStaff.length >= game.staffLimit) { 
-                showToast('Osiągnęliście limit pracowników dla obecnej siedziby!', 'error'); 
-                return; 
-            }
-            const cand = game.marketCandidates.find(c => c.id === id);
-            if(cand) { 
-                game.hiredStaff.push(cand); 
-                game.marketCandidates = game.marketCandidates.filter(c => c.id !== id); 
-                renderJobMarket(); 
-                updateUI(); 
-                saveGame(); 
-            }
-        }
-
-        function fireStaff(id) {
-            game.hiredStaff = game.hiredStaff.filter(s => s.id !== id);
-            renderJobMarket(); 
-            updateUI(); 
-            saveGame();
-        }
-
-        function renderHiredStaff() {
-            const container = document.getElementById('hired-staff-list');
-            if(!container) return;
-            container.innerHTML = game.hiredStaff.length === 0 ? `<div class="text-center py-6 text-slate-500 text-sm">Brak zatrudnionych pracowników.</div>` : '';
-            game.hiredStaff.forEach(s => {
-                container.innerHTML += `<div class="glass-card p-3 rounded-xl flex justify-between items-center text-xs"><span>${s.name} (<strong class="text-blue-300">${s.role}</strong>, Skil: ${s.skill})</span><button onclick="fireStaff(${s.id})" class="text-rose-400 hover:text-rose-300 font-bold">Zwolnij</button></div>`;
-            });
-        }
-
-        function switchRdCat(cat) {
-            game.techCategory = cat;
-            ['phones', 'tablets', 'laptops', 'pcs', 'consoles', 'headphones', 'speakers', 'pads', 'stylus', 'webcams', 'smartwatches', 'drones'].forEach(c => {
-                const btn = document.getElementById(`rd-cat-${c}`);
-                if(btn) btn.className = `px-4 py-2 rounded-xl text-xs font-bold ${c === cat ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-400 hover:text-white'} shrink-0`;
-            });
-            renderTechTree();
         }
 
         function renderTechTree() {
-            const container = document.getElementById('rd-category-container');
-            if(!container) return;
-            container.innerHTML = '';
-            const techs = game.techTree[game.techCategory];
-
-            let tiers = {};
-            techs.forEach(t => {
-                if(!tiers[t.tier]) tiers[t.tier] = [];
-                tiers[t.tier].push(t);
-            });
-
-            for(let tier in tiers) {
-                let tierHtml = `<div class="space-y-3"><h5 class="text-xs font-bold text-blue-400 uppercase tracking-wider">Poziom drzewa ${tier}</h5><div class="grid grid-cols-1 md:grid-cols-2 gap-4">`;
-                
-                tiers[tier].forEach(tech => {
-                    let parentUnlocked = true;
-                    if(tech.parent) {
-                        let parentTech = techs.find(t => t.id === tech.parent);
-                        if(parentTech && !parentTech.unlocked) parentUnlocked = false;
-                    }
-
-                    let isResearching = game.activeResearch && game.activeResearch.id === tech.id;
-                    let actionBtn = '';
-
-                    if(tech.unlocked) {
-                        actionBtn = `<span class="text-xs text-emerald-400 font-bold">Zbadane ✓</span>`;
-                    } else if(isResearching) {
-                        actionBtn = `<span class="text-xs text-blue-400 font-bold animate-pulse">Badanie w toku...</span>`;
-                    } else if(!parentUnlocked) {
-                        actionBtn = `<span class="text-xs text-slate-500">Wymaga technologii nadrzędnej</span>`;
-                    } else {
-                        actionBtn = `<button onclick="startResearch('${tech.id}')" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-xs">Badaj (${tech.cost.toLocaleString()} zł)</button>`;
-                    }
-
-                    tierHtml += `
-                        <div class="glass-card p-4 rounded-2xl flex flex-col justify-between gap-3 border ${tech.unlocked ? 'border-emerald-500/40' : 'border-slate-700/60'}">
-                            <div>
-                                <h4 class="font-bold text-slate-100 text-sm">${tech.name}</h4>
-                                <p class="text-xs text-slate-400 mt-1">${tech.desc}</p>
-                                <p class="text-[11px] text-blue-300 mt-2">Koszt: ${tech.cost.toLocaleString()} zł | Czas: ${tech.time}s</p>
-                            </div>
-                            <div class="pt-2 border-t border-slate-800/80 flex justify-between items-center">${actionBtn}</div>
-                        </div>
-                    `;
-                });
-
-                tierHtml += `</div></div>`;
-                container.innerHTML += tierHtml;
-            }
-
-            if(game.activeResearch) {
-                document.getElementById('active-research-info').classList.remove('hidden');
-                let activeObj = Object.values(game.techTree).flat().find(t => t.id === game.activeResearch.id);
-                document.getElementById('res-active-name').textContent = activeObj ? activeObj.name : '';
-                let pct = Math.floor((game.activeResearch.progress / game.activeResearch.maxProgress) * 100);
-                document.getElementById('res-progress-bar').style.width = `${pct}%`;
-            } else {
-                document.getElementById('active-research-info').classList.add('hidden');
-            }
-        }
-
-        function startResearch(id) {
-            if(game.activeResearch) { 
-                showToast('Pracownicy badają już inną technologię!', 'error'); 
-                return; 
-            }
-            let tech = Object.values(game.techTree).flat().find(t => t.id === id);
-            if(tech) {
-                if(game.money < tech.cost) {
-                    showToast('Za mało środków w budżecie!', 'error');
-                    return;
-                }
-                modifyMoney(-tech.cost);
-                game.activeResearch = { id: tech.id, progress: 0, maxProgress: tech.time };
-                renderTechTree();
-                saveGame();
-            }
-        }
-
-        function buyNewFactory() {
-            let cost = 150000 * Math.pow(1.3, game.factories.length);
-            if(game.money < cost) {
-                showToast('Za mało środków na zakup fabryki!', 'error');
-                return;
-            }
-            modifyMoney(-cost);
-            let newId = game.factories.length + 1;
-            game.factories.push({
-                id: newId,
-                name: `Fabryka Korporacji #${newId}`,
-                level: 1,
-                upgradeCost: 100000 * newId,
-                lines: { Smartfon: { active: false, unitsProduced: 0 }, Tablet: { active: false, unitsProduced: 0 }, Laptop: { active: false, unitsProduced: 0 }, 'Komputer PC': { active: false, unitsProduced: 0 }, Konsola: { active: false, unitsProduced: 0 }, Słuchawki: { active: false, unitsProduced: 0 }, Głośniki: { active: false, unitsProduced: 0 }, Pad: { active: false, unitsProduced: 0 }, Rysik: { active: false, unitsProduced: 0 }, Kamerka: { active: false, unitsProduced: 0 }, Smartwatch: { active: false, unitsProduced: 0 }, Dron: { active: false, unitsProduced: 0 } }
-            });
-            renderFactories();
-            saveGame();
-            showToast('Zakupiono nową fabrykę!', 'success');
-        }
-
-        function upgradeFactory(id) {
-            let fac = game.factories.find(f => f.id === id);
-            if(fac) {
-                if(game.money < fac.upgradeCost) {
-                    showToast('Za mało środków na ulepszenie!', 'error');
-                    return;
-                }
-                modifyMoney(-fac.upgradeCost);
-                fac.level++;
-                fac.upgradeCost = Math.round(fac.upgradeCost * 1.5);
-                renderFactories();
-                saveGame();
-                showToast(`Ulepszono ${fac.name} do poziomu ${fac.level}!`, 'success');
-            }
-        }
-
-        function renderFactories() {
-            const container = document.getElementById('factories-container');
-            if(!container) return;
-            container.innerHTML = '';
-
-            game.factories.forEach(fac => {
-                let linesHtml = '';
-                for(let cat in fac.lines) {
-                    let line = fac.lines[cat];
-                    linesHtml += `
-                        <div class="glass-card p-3 rounded-xl flex items-center justify-between text-xs border ${line.active ? 'border-emerald-500/40' : 'border-slate-800'}">
-                            <div>
-                                <span class="font-bold text-slate-200">${cat}</span>
-                                <span class="text-slate-400 block text-[10px]">Wyprodukowano: ${line.unitsProduced} szt.</span>
-                            </div>
-                            <button onclick="toggleFactoryLine(${fac.id}, '${cat}')" class="px-3 py-1.5 rounded-lg font-bold transition text-[11px] ${line.active ? 'bg-emerald-600 text-white' : 'bg-slate-800 text-slate-400 hover:text-white'}">${line.active ? 'Działa' : 'Uruchom'}</button>
-                        </div>
-                    `;
-                }
-
-                container.innerHTML += `
-                    <div class="glass-card p-6 rounded-2xl space-y-4 border border-slate-700/60">
-                        <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-                            <div>
-                                <h4 class="font-bold text-slate-100 text-sm">🏭 ${fac.name} (Poziom ${fac.level})</h4>
-                                <p class="text-xs text-slate-400">Mnożnik wydajności: x${fac.level}</p>
-                            </div>
-                            <button onclick="upgradeFactory(${fac.id})" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-xs">Ulepsz fabrykę (${fac.upgradeCost.toLocaleString()} zł)</button>
-                        </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">${linesHtml}</div>
-                    </div>
-                `;
-            });
-        }
-
-        function toggleFactoryLine(facId, cat) {
-            let fac = game.factories.find(f => f.id === facId);
-            if(fac) {
-                fac.lines[cat].active = !fac.lines[cat].active;
-                renderFactories();
-                saveGame();
-            }
-        }
-
-        let salesChartInstance = null;
-        function initSalesChart() {
-            const ctx = document.getElementById('factorySalesChart');
-            if(!ctx) return;
-            if(salesChartInstance) salesChartInstance.destroy();
-
-            salesChartInstance = new Chart(ctx, {
-                type: 'line',
-                data: game.salesHistoryData,
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } },
-                        x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } }
-                    },
-                    plugins: { legend: { labels: { color: '#f8fafc' } } }
-                }
-            });
-        }
-
-        function renderHQ() {
-            const container = document.getElementById('hq-current-status');
-            if(!container) return;
-            const currentHQ = game.hq[game.activeHQIndex];
-            const nextHQ = game.hq[game.activeHQIndex + 1];
-
-            let upgradeSection = '';
-            if(nextHQ) {
-                upgradeSection = `
-                    <div class="pt-4 border-t border-slate-800 flex justify-between items-center">
+            const grid = document.getElementById('tech-tree-grid');
+            grid.innerHTML = '';
+            game.techTree.forEach(t => {
+                grid.innerHTML += `
+                    <div class="glass-card p-5 rounded-2xl flex flex-col justify-between gap-4 border ${t.unlocked ? 'border-emerald-500/40' : 'border-slate-800'}">
                         <div>
-                            <h5 class="font-bold text-slate-200 text-sm">Kolejny poziom: ${nextHQ.name}</h5>
-                            <p class="text-xs text-slate-400">Limit pracowników: <strong class="text-blue-300">${nextHQ.limit}</strong> | Koszt: <strong class="text-amber-400">${nextHQ.cost.toLocaleString()} zł</strong></p>
+                            <h4 class="font-bold text-slate-100 text-sm">${t.name}</h4>
+                            <p class="text-xs text-slate-400 mt-1">${t.desc}</p>
                         </div>
-                        <button onclick="upgradeHQ()" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-xs transition shadow-lg shadow-blue-600/30">Ulepsz Siedzibę</button>
+                        <div class="flex justify-between items-center pt-2 border-t border-slate-800">
+                            <span class="text-xs text-purple-400 font-bold">${t.cost} pkt innowacji</span>
+                            ${t.unlocked ? '<span class="text-xs text-emerald-400 font-bold">Odblokowane ✓</span>' : `<button onclick="unlockTech('${t.id}')" class="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-xl font-bold text-xs transition">Badaj</button>`}
+                        </div>
                     </div>
                 `;
-            } else {
-                upgradeSection = `<div class="text-emerald-400 font-bold text-xs pt-4 border-t border-slate-800">Osiągnięto maksymalny, 40. poziom siedziby!</div>`;
+            });
+        }
+
+        function unlockTech(id) {
+            let t = game.techTree.find(x => x.id === id);
+            if(t && !t.unlocked) {
+                if(game.innovationPoints >= t.cost) {
+                    game.innovationPoints -= t.cost;
+                    t.unlocked = true;
+                    renderTechTree();
+                    showToast(`Pomyślnie zbadano technologię: ${t.name}!`);
+                } else {
+                    showToast('Za mało punktów innowacji!', 'error');
+                }
+            }
+        }
+
+        function renderHR() {
+            const grid = document.getElementById('recruitment-grid');
+            while(game.candidates.length < 3) {
+                game.candidates.push({
+                    id: Date.now() + Math.random(),
+                    name: `${firstNames[Math.floor(Math.random()*firstNames.length)]} ${lastNames[Math.floor(Math.random()*lastNames.length)]}`,
+                    skill: Math.floor(Math.random() * 25) + 10,
+                    salary: Math.floor(Math.random() * 4000) + 3000
+                });
             }
 
-            container.innerHTML = `
-                <div class="space-y-3 text-xs">
-                    <div class="flex justify-between items-center">
-                        <span class="text-slate-400">Poziom Siedziby:</span>
-                        <strong class="text-blue-300 font-bold text-sm">${game.activeHQIndex + 1} / 40</strong>
+            grid.innerHTML = '';
+            game.candidates.forEach(c => {
+                grid.innerHTML += `
+                    <div class="glass-card p-4 rounded-2xl flex flex-col justify-between gap-3">
+                        <div>
+                            <strong class="text-sm text-slate-100">${c.name}</strong>
+                            <p class="text-xs text-slate-400 mt-1">Umiejętności: <strong class="text-indigo-300">${c.skill}</strong> | Pensja: ${c.salary} zł/s</p>
+                        </div>
+                        <button onclick="hireCandidate(${c.id})" class="py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-xs transition">Zatrudnij</button>
                     </div>
-                    <div class="flex justify-between items-center">
-                        <span class="text-slate-400">Nazwa obiektu:</span>
-                        <strong class="text-slate-100 font-bold text-sm">${currentHQ.name}</strong>
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <span class="text-slate-400">Limit pracowników:</span>
-                        <strong class="text-emerald-400 font-bold text-sm">${currentHQ.limit}</strong>
-                    </div>
-                    ${upgradeSection}
-                </div>
-            `;
+                `;
+            });
+        }
+
+        function hireCandidate(id) {
+            if(game.staff.length >= game.staffLimit) { showToast('Osiągnięto limit personelu w obecnej siedzibie!', 'error'); return; }
+            let idx = game.candidates.findIndex(c => c.id === id);
+            if(idx !== -1) {
+                game.staff.push(game.candidates.splice(idx, 1)[0]);
+                renderHR();
+                updateUI();
+                showToast('Zatrudniono nowego inżyniera!');
+            }
         }
 
         function upgradeHQ() {
-            const nextIdx = game.activeHQIndex + 1;
-            if(nextIdx >= game.hq.length) return;
-            const nextHQ = game.hq[nextIdx];
-
-            if(game.money < nextHQ.cost) {
-                showToast('Za mało środków na ulepszenie siedziby!', 'error');
-                return;
-            }
-
-            modifyMoney(-nextHQ.cost);
-            game.activeHQIndex = nextIdx;
-            game.staffLimit = nextHQ.limit;
-            renderHQ();
-            updateUI();
-            saveGame();
-            showToast(`Pomyślnie rozbudowano siedzibę do: ${nextHQ.name}!`, 'success');
-        }
-
-        function renderStats() {
-            document.getElementById('stat-tab-store-inc').textContent = `+${window.currentStoreInc || 0} zł/s`;
-            document.getElementById('stat-tab-dev-inc').textContent = `+${window.currentDevInc || 0} zł/s`;
-            document.getElementById('stat-tab-comp-inc').textContent = `+${window.currentCompInc || 0} zł/s`;
-            document.getElementById('stat-tab-salaries').textContent = `-${window.currentSalaries || 0} zł/s`;
-        }
-
-        function openNewDeviceModal() {
-            onCategoryChange();
-            updateManufacturerSelect();
-            updateDeviceComponentsSelect();
-            document.getElementById('new-device-modal').classList.remove('hidden');
-        }
-        function closeNewDeviceModal() {
-            document.getElementById('new-device-modal').classList.add('hidden');
-        }
-
-        function updateManufacturerSelect() {
-            const select = document.getElementById('dev-manufacturer');
-            if(!select) return;
-            select.innerHTML = `<option value="own">Własna Fabryka Korporacji</option>`;
-            game.companies.forEach(c => {
-                if(c.playerShares > 50) {
-                    select.innerHTML += `<option value="${c.id}">${c.name} (${c.playerShares}% udziałów - Pakiet większościowy)</option>`;
-                }
-            });
-        }
-
-        function onCategoryChange() {
-            const cat = document.getElementById('dev-category').value;
-            const subWrapper = document.getElementById('sub-category-wrapper');
-            const rangeSize = document.getElementById('range-size');
-            const rangeThick = document.getElementById('range-thick');
-            const rangeScreen = document.getElementById('range-screen');
-            const lblSize = document.getElementById('lbl-size');
-            const lblScreen = document.getElementById('lbl-screen');
-            const unitSize = document.getElementById('unit-size');
-            const unitScreen = document.getElementById('unit-screen');
-
-            subWrapper.classList.toggle('hidden', cat !== 'Słuchawki');
-
-            if(cat === 'Smartfon') {
-                lblSize.textContent = 'Wysokość'; unitSize.textContent = 'mm'; rangeSize.min = '120'; rangeSize.max = '180'; rangeSize.value = '150';
-                rangeThick.min = '6'; rangeThick.max = '12'; rangeThick.value = '8';
-                lblScreen.textContent = 'Ekran'; unitScreen.textContent = 'cali'; rangeScreen.min = '5.0'; rangeScreen.max = '7.5'; rangeScreen.step = '0.1'; rangeScreen.value = '6.1';
-            } else if(cat === 'Smartwatch') {
-                lblSize.textContent = 'Średnica'; unitSize.textContent = 'mm'; rangeSize.min = '38'; rangeSize.max = '48'; rangeSize.value = '42';
-                rangeThick.min = '8'; rangeThick.max = '16'; rangeThick.value = '11';
-                lblScreen.textContent = 'Ekran AMOLED'; unitScreen.textContent = 'cali'; rangeScreen.min = '1.2'; rangeScreen.max = '2.0'; rangeScreen.step = '0.1'; rangeScreen.value = '1.4';
-            } else if(cat === 'Dron') {
-                lblSize.textContent = 'Rozpiętość'; unitSize.textContent = 'cm'; rangeSize.min = '20'; rangeSize.max = '80'; rangeSize.value = '35';
-                rangeThick.min = '10'; rangeThick.max = '40'; rangeThick.value = '20';
-                lblScreen.textContent = 'Kamera'; unitScreen.textContent = 'K'; rangeScreen.min = '1'; rangeScreen.max = '4'; rangeScreen.step = '1'; rangeScreen.value = '4';
-            } else if(cat === 'Tablet') {
-                lblSize.textContent = 'Obudowa'; unitSize.textContent = 'cali'; rangeSize.min = '8.0'; rangeSize.max = '14.0'; rangeSize.value = '10.5';
-                rangeThick.min = '5'; rangeThick.max = '12'; rangeThick.value = '7';
-                lblScreen.textContent = 'Ekran'; unitScreen.textContent = 'cali'; rangeScreen.min = '8.0'; rangeScreen.max = '14.0'; rangeScreen.step = '0.1'; rangeScreen.value = '10.5';
-            } else if(cat === 'Laptop') {
-                lblSize.textContent = 'Szerokość'; unitSize.textContent = 'cm'; rangeSize.min = '30'; rangeSize.max = '45'; rangeSize.value = '35';
-                rangeThick.min = '12'; rangeThick.max = '30'; rangeThick.value = '18';
-                lblScreen.textContent = 'Matryca'; unitScreen.textContent = 'cali'; rangeScreen.min = '13.0'; rangeScreen.max = '18.0'; rangeScreen.step = '0.5'; rangeScreen.value = '15.6';
-            } else if(cat === 'Komputer PC') {
-                lblSize.textContent = 'Gabaryt'; unitSize.textContent = 'L'; rangeSize.min = '15'; rangeSize.max = '70'; rangeSize.value = '35';
-                rangeThick.min = '15'; rangeThick.max = '35'; rangeThick.value = '22';
-                lblScreen.textContent = 'Monitory'; unitScreen.textContent = 'szt.'; rangeScreen.min = '1'; rangeScreen.max = '3'; rangeScreen.step = '1'; rangeScreen.value = '1';
-            } else if(cat === 'Konsola') {
-                lblSize.textContent = 'Wielkość'; unitSize.textContent = 'cm'; rangeSize.min = '20'; rangeSize.max = '45'; rangeSize.value = '30';
-                rangeThick.min = '40'; rangeThick.max = '120'; rangeSize.value = '70';
-                lblScreen.textContent = 'Kontroler'; unitScreen.textContent = 'gen'; rangeScreen.min = '1'; rangeScreen.max = '3'; rangeScreen.step = '1'; rangeScreen.value = '2';
-            } else if(cat === 'Słuchawki') {
-                lblSize.textContent = 'Nausznik'; unitSize.textContent = 'mm'; rangeSize.min = '30'; rangeSize.max = '100'; rangeSize.value = '50';
-                rangeThick.min = '10'; rangeThick.max = '40'; rangeSize.value = '20';
-                lblScreen.textContent = 'Pasmo'; unitScreen.textContent = 'kHz'; rangeScreen.min = '10'; rangeScreen.max = '40'; rangeScreen.step = '2'; rangeScreen.value = '20';
-            } else if(cat === 'Głośniki') {
-                lblSize.textContent = 'Moc'; unitSize.textContent = 'W'; rangeSize.min = '10'; rangeSize.max = '300'; rangeSize.value = '50';
-                rangeThick.min = '15'; rangeThick.max = '80'; rangeSize.value = '30';
-                lblScreen.textContent = 'Przetworniki'; unitScreen.textContent = 'szt.'; rangeScreen.min = '1'; rangeScreen.max = '5'; rangeScreen.step = '1'; rangeScreen.value = '2';
-            } else if(cat === 'Pad') {
-                lblSize.textContent = 'Szerokość'; unitSize.textContent = 'mm'; rangeSize.min = '120'; rangeSize.max = '180'; rangeSize.value = '150';
-                rangeThick.min = '30'; rangeThick.max = '80'; rangeSize.value = '50';
-                lblScreen.textContent = 'Wibracje'; unitScreen.textContent = 'pkt'; rangeScreen.min = '1'; rangeScreen.max = '5'; rangeScreen.step = '1'; rangeScreen.value = '3';
-            } else if(cat === 'Rysik') {
-                lblSize.textContent = 'Długość'; unitSize.textContent = 'mm'; rangeSize.min = '100'; rangeSize.max = '160'; rangeSize.value = '140';
-                rangeThick.min = '5'; rangeThick.max = '15'; rangeSize.value = '9';
-                lblScreen.textContent = 'Nacisk'; unitScreen.textContent = 'tys.'; rangeScreen.min = '2'; rangeScreen.max = '16'; rangeScreen.step = '2'; rangeScreen.value = '4';
+            let cost = 500000 * game.hqLevel;
+            if(game.money >= cost) {
+                modifyMoney(-cost);
+                game.hqLevel++;
+                game.staffLimit += 15;
+                document.getElementById('hq-info').textContent = `Obiekt poziom ${game.hqLevel} (Limit inżynierów: ${game.staffLimit})`;
+                showToast('Rozbudowano siedzibę korporacji!');
             } else {
-                lblSize.textContent = 'Szerokość'; unitSize.textContent = 'mm'; rangeSize.min = '40'; rangeSize.max = '120'; rangeSize.value = '80';
-                rangeThick.min = '20'; rangeThick.max = '60'; rangeSize.value = '30';
-                lblScreen.textContent = 'Rozdzielczość'; unitScreen.textContent = 'K'; rangeScreen.min = '1'; rangeScreen.max = '4'; rangeScreen.step = '1'; rangeScreen.value = '2';
+                showToast('Za mało środków na rozbudowę siedziby!', 'error');
             }
-
-            updateDevicePreview();
-            updateDeviceComponentsSelect();
         }
 
-        function updateDevicePreview() {
-            const cat = document.getElementById('dev-category').value;
-            const subCat = document.getElementById('dev-sub-category').value;
-            const sizeVal = parseFloat(document.getElementById('range-size').value);
-            const thickVal = parseFloat(document.getElementById('range-thick').value);
-            const screenVal = parseFloat(document.getElementById('range-screen').value);
-
-            document.getElementById('val-size').textContent = sizeVal;
-            document.getElementById('val-thick').textContent = thickVal;
-            document.getElementById('val-screen').textContent = screenVal;
-
-            const visual = document.getElementById('device-visual-preview');
-            const screenPrev = document.getElementById('device-screen-preview');
-            const screenText = document.getElementById('preview-screen-text');
-
-            let baseW = 90, baseH = 140;
-            if(cat === 'Smartfon') {
-                baseW = 75; baseH = 135; screenText.textContent = `${screenVal}"`;
-                visual.style.borderRadius = '16px'; screenPrev.style.borderRadius = '12px';
-            } else if(cat === 'Smartwatch') {
-                baseW = 85; baseH = 85; screenText.textContent = `${screenVal}"`;
-                visual.style.borderRadius = '50%'; screenPrev.style.borderRadius = '50%';
-            } else if(cat === 'Dron') {
-                baseW = 120; baseH = 120; screenText.textContent = `Dron`;
-                visual.style.borderRadius = '20px'; screenPrev.style.borderRadius = '50%';
-            } else if(cat === 'Tablet') {
-                baseW = 120; baseH = 110; screenText.textContent = `${screenVal}"`;
-                visual.style.borderRadius = '12px'; screenPrev.style.borderRadius = '8px';
-            } else if(cat === 'Laptop') {
-                baseW = 150; baseH = 95; screenText.textContent = `Laptop`;
-                visual.style.borderRadius = '8px'; screenPrev.style.borderRadius = '6px';
-            } else if(cat === 'Komputer PC') {
-                baseW = 90; baseH = 130; screenText.textContent = `PC Tower`;
-                visual.style.borderRadius = '10px'; screenPrev.style.borderRadius = '6px';
-            } else if(cat === 'Konsola') {
-                baseW = 130; baseH = 80; screenText.textContent = `Konsola`;
-                visual.style.borderRadius = '24px'; screenPrev.style.borderRadius = '16px';
-            } else if(cat === 'Słuchawki') {
-                baseW = 110; baseH = 110; 
-                screenText.textContent = subCat;
-                visual.style.borderRadius = subCat === 'Nauszne' ? '50px' : '20px';
-                screenPrev.style.borderRadius = '50%';
-            } else if(cat === 'Głośniki') {
-                baseW = 90; baseH = 120; screenText.textContent = `Głośnik`;
-                visual.style.borderRadius = '12px'; screenPrev.style.borderRadius = '50%';
-            } else if(cat === 'Pad') {
-                baseW = 130; baseH = 75; screenText.textContent = `Pad`;
-                visual.style.borderRadius = '30px'; screenPrev.style.borderRadius = '16px';
-            } else if(cat === 'Rysik') {
-                baseW = 150; baseH = 30; screenText.textContent = `Rysik`;
-                visual.style.borderRadius = '15px'; screenPrev.style.borderRadius = '10px';
-            } else {
-                baseW = 90; baseH = 60; screenText.textContent = `Kamerka`;
-                visual.style.borderRadius = '12px'; screenPrev.style.borderRadius = '50%';
-            }
-
-            visual.style.width = `${baseW}px`;
-            visual.style.height = `${baseH}px`;
-            screenPrev.style.width = `calc(100% - 16px)`;
-            screenPrev.style.height = `calc(100% - 16px)`;
-        }
-
-        function updateDeviceComponentsSelect() {
-            const cat = document.getElementById('dev-category').value;
-            const container = document.getElementById('device-features-checkboxes');
-            if(!container) return;
-            container.innerHTML = '';
-
-            let mapCat = 'phones';
-            if(cat === 'Smartfon') mapCat = 'phones';
-            else if(cat === 'Smartwatch') mapCat = 'smartwatches';
-            else if(cat === 'Dron') mapCat = 'drones';
-            else if(cat === 'Tablet') mapCat = 'tablets';
-            else if(cat === 'Laptop') mapCat = 'laptops';
-            else if(cat === 'Komputer PC') mapCat = 'pcs';
-            else if(cat === 'Konsola') mapCat = 'consoles';
-            else if(cat === 'Słuchawki') mapCat = 'headphones';
-            else if(cat === 'Głośniki') mapCat = 'speakers';
-            else if(cat === 'Pad') mapCat = 'pads';
-            else if(cat === 'Rysik') mapCat = 'stylus';
-            else if(cat === 'Kamerka') mapCat = 'webcams';
-
-            let techs = game.techTree[mapCat].filter(t => t.unlocked);
-
-            if(techs.length === 0) {
-                container.innerHTML = `<span class="text-slate-500 text-xs col-span-2 text-center py-2">Brak zbadanych technologii w tej kategorii.</span>`;
-                return;
-            }
-
-            techs.forEach(t => {
-                container.innerHTML += `
-                    <label class="flex items-center gap-2 glass-card p-2 rounded-lg cursor-pointer hover:border-blue-500/50">
-                        <input type="checkbox" name="dev-tech" value="${t.name}" class="rounded bg-slate-900 border-slate-700 text-blue-600 w-3.5 h-3.5"> 
-                        <span class="font-medium text-slate-200 text-[11px]">${t.name}</span>
-                    </label>
+        function renderCompetitors() {
+            const grid = document.getElementById('competitors-grid');
+            grid.innerHTML = '';
+            game.competitors.forEach(c => {
+                grid.innerHTML += `
+                    <div class="glass-card p-5 rounded-2xl flex flex-col justify-between gap-4">
+                        <div>
+                            <h4 class="font-bold text-slate-100 text-sm">${c.name}</h4>
+                            <p class="text-xs text-slate-400 mt-1">Cena 1% akcji: <strong class="text-emerald-400">${c.sharePrice.toLocaleString()} zł</strong></p>
+                            <p class="text-xs text-slate-400 mt-0.5">Posiadasz: <strong class="text-cyan-400">${c.playerShares}%</strong></p>
+                        </div>
+                        <button onclick="buyShares(${c.id})" class="py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold text-xs transition">Kup 1% Akcji</button>
+                    </div>
                 `;
             });
         }
 
-        function startNewDevice(e) {
-            e.preventDefault();
-            const name = document.getElementById('dev-name').value;
-            const category = document.getElementById('dev-category').value;
-            const subCategory = document.getElementById('dev-sub-category').value;
-            const manufacturer = document.getElementById('dev-manufacturer').value;
-            const size = document.getElementById('range-size').value;
-            const thickness = document.getElementById('range-thick').value;
-            const screen = document.getElementById('range-screen').value;
-
-            const selectedTechs = [];
-            document.querySelectorAll('input[name="dev-tech"]:checked').forEach(cb => selectedTechs.push(cb.value));
-
-            game.activeProject = { 
-                name, 
-                category: category === 'Słuchawki' ? `Słuchawki (${subCategory})` : category, 
-                rawCategory: category,
-                manufacturer,
-                specs: { size, thickness, screen },
-                techs: selectedTechs, 
-                eng: 0, 
-                design: 0, 
-                bugs: 20, 
-                progress: 0, 
-                maxProgress: 150 
-            };
-            closeNewDeviceModal();
-            updateUI();
-            saveGame();
-        }
-
-        function finishDevice() {
-            const p = game.activeProject;
-            let techBonus = p.techs.length * 0.4;
-            let randomFactor = (Math.random() * 2.5) - 1.25;
-            let rawScore = 5.0 + techBonus + randomFactor - (p.bugs * 0.05);
-            let score = Math.min(10.0, Math.max(2.0, rawScore));
-            let salesMultiplier = Math.pow(score / 5, 2);
-            
-            game.history.push({ 
-                id: Date.now(),
-                name: p.name, 
-                category: p.category, 
-                rawCategory: p.rawCategory,
-                manufacturer: p.manufacturer,
-                specs: p.specs,
-                score: score.toFixed(1),
-                salesMultiplier: salesMultiplier,
-                unitsSold: 0,
-                revenueGenerated: 0
-            });
-            
-            game.factories.forEach(fac => {
-                if(fac.lines[p.rawCategory]) fac.lines[p.rawCategory].active = true;
-            });
-
-            document.getElementById('rev-title').textContent = `Premiera: ${p.name}!`;
-            document.getElementById('rev-stars').textContent = '⭐'.repeat(Math.round(score/2)) + ` (${score.toFixed(1)}/10)`;
-            document.getElementById('rev-desc').textContent = `Nowy produkt trafia na rynek! Wykorzystane technologie (${p.techs.length}) wpłynęły na końcową ocenę recenzentów.`;
-            document.getElementById('review-modal').classList.remove('hidden');
-
-            game.activeProject = null;
-            updateUI();
-            saveGame();
-        }
-
-        function closeReviewModal() { document.getElementById('review-modal').classList.add('hidden'); }
-        function withdrawDevice(id) {
-            game.history = game.history.filter(h => h.id !== id);
-            updateUI();
-            saveGame();
+        function buyShares(id) {
+            let comp = game.competitors.find(c => c.id === id);
+            if(comp && comp.playerShares < 50) {
+                if(game.money >= comp.sharePrice) {
+                    modifyMoney(-comp.sharePrice);
+                    comp.playerShares += 1;
+                    renderCompetitors();
+                    showToast(`Zakupiono 1% akcji spółki ${comp.name}!`);
+                } else {
+                    showToast('Za mało gotówki na zakup akcji!', 'error');
+                }
+            } else {
+                showToast('Osiągnięto pakiet kontrolny spółki!', 'error');
+            }
         }
 
         function updateUI() {
-            document.getElementById('company-money').textContent = `${Math.floor(game.money).toLocaleString()} zł`;
-            document.getElementById('company-market-share').textContent = `${game.marketShare}%`;
-            document.getElementById('company-staff-count').textContent = `${game.hiredStaff.length}/${game.staffLimit}`;
-
-            if(game.activeProject) {
-                document.getElementById('no-project-view').classList.add('hidden');
-                document.getElementById('active-project-view').classList.remove('hidden');
-                let p = game.activeProject;
-                document.getElementById('proj-name').textContent = p.name;
-                document.getElementById('proj-type').textContent = p.category;
-                let pct = Math.min(100, Math.floor((p.progress / p.maxProgress) * 100));
-                document.getElementById('proj-progress-text').textContent = `${pct}%`;
-                document.getElementById('proj-progress-bar').style.width = `${pct}%`;
-                document.getElementById('stat-eng').textContent = Math.floor(p.eng);
-                document.getElementById('stat-design').textContent = Math.floor(p.design);
-                document.getElementById('stat-bugs').textContent = Math.floor(p.bugs);
-            } else {
-                document.getElementById('no-project-view').classList.remove('hidden');
-                document.getElementById('active-project-view').classList.add('hidden');
-            }
-
-            const hList = document.getElementById('products-history');
-            if(hList) {
-                hList.innerHTML = game.history.length === 0 ? `<div class="text-center py-12 text-slate-500 text-sm">Brak wydanych urządzeń na rynku.</div>` : '';
-                game.history.slice().reverse().forEach(h => {
-                    hList.innerHTML += `
-                        <div class="glass-card p-4 rounded-2xl flex flex-col gap-2 text-xs border border-slate-700/60">
-                            <div class="flex justify-between items-center border-b border-slate-800 pb-2">
-                                <div>
-                                    <strong class="text-sm text-slate-100">${h.name}</strong> 
-                                    <span class="text-xs bg-slate-800 text-blue-300 px-2 py-0.5 rounded-lg ml-2">${h.category}</span>
-                                </div>
-                                <button onclick="withdrawDevice(${h.id})" class="px-3 py-1 bg-rose-600 hover:bg-rose-500 text-white rounded-lg font-bold">Wycofaj</button>
-                            </div>
-                            <div class="grid grid-cols-3 gap-2">
-                                <div><span class="text-slate-400">Ocena:</span> <strong class="text-amber-400">${h.score}/10</strong></div>
-                                <div><span class="text-slate-400">Sprzedane:</span> <strong class="text-emerald-400">${h.unitsSold.toLocaleString()}</strong></div>
-                                <div><span class="text-slate-400">Przychód:</span> <strong class="text-emerald-400">${h.revenueGenerated.toLocaleString()} zł</strong></div>
-                            </div>
-                        </div>
-                    `;
-                });
-            }
+            document.getElementById('stat-money').textContent = `${Math.floor(game.money).toLocaleString()} zł`;
+            document.getElementById('stat-market').textContent = `${game.marketShare.toFixed(1)}%`;
+            document.getElementById('stat-staff').textContent = `${game.staff.length} / ${game.staffLimit}`;
+            document.getElementById('stat-points').textContent = `${game.innovationPoints} pkt`;
         }
 
+        // PĘTLA GŁÓWNA GRY (1s)
         setInterval(() => {
-            let engPower = 0.5, designPower = 0.5, researchPower = 0.5, factoryPowerBase = 0.5;
-            let totalSalaries = 0;
+            let totalSkill = game.staff.reduce((acc, s) => acc + s.skill, 0);
+            let totalSalaries = game.staff.reduce((acc, s) => acc + s.salary, 0);
 
-            game.hiredStaff.forEach(s => {
-                if(s.role === 'Inżynier Sprzętu') { engPower += s.skill * 0.15; factoryPowerBase += s.skill * 0.1; }
-                if(s.role === 'Projektant UI/UX') { designPower += s.skill * 0.15; }
-                if(s.role === 'Badacz / Naukowiec R&D') { researchPower += s.skill * 0.25; }
-                totalSalaries += s.salary;
+            if(totalSalaries > 0) modifyMoney(-totalSalaries);
+
+            // Rozwój produktów i generowanie innowacji
+            game.products.forEach(p => {
+                if(!p.active) {
+                    p.progress += totalSkill * 0.1;
+                    if(p.progress >= p.maxProgress) {
+                        p.active = true;
+                        p.rating = (Math.random() * 2 + 7.5).toFixed(1);
+                        p.revenue = Math.floor(totalSkill * 125 * (p.rating / 5));
+                        game.marketShare = parseFloat((game.marketShare + 0.4).toFixed(1));
+                        game.innovationPoints += 15;
+                        showToast(`Premiera sukcesu! Produkt "${p.name}" trafia na rynek.`);
+                    }
+                } else {
+                    modifyMoney(p.revenue);
+                }
             });
 
-            if(totalSalaries > 0) {
-                modifyMoney(-totalSalaries);
-                game.stats.totalSalariesPaid += totalSalaries;
-            }
-
-            if(game.marketingTimer > 0) {
-                game.marketingTimer--;
-                if(game.marketingTimer <= 0) {
-                    game.marketingBoost = 1.0;
-                    showToast('Aktywna kampania marketingowa dobiegła końca.', 'error');
-                }
-            }
-
-            let companyPassive = 0;
-            let totalCompanyCosts = 0;
-
-            game.companies.forEach(c => {
+            // Pasywne zyski z akcji konkurencji
+            game.competitors.forEach(c => {
                 if(c.playerShares > 0) {
-                    let guaranteedDividend = Math.round((c.sharePricePerPercent * 0.15) * c.playerShares);
-                    companyPassive += guaranteedDividend;
-
-                    let marketingCost = c.marketingBudget || 0;
-                    let rdCost = c.rdBudget || 0;
-                    let staffPayrollCost = Math.round(2500 * (c.salaryMultiplier - 1));
-                    let totalCosts = marketingCost + rdCost + staffPayrollCost;
-                    totalCompanyCosts += totalCosts;
-
-                    if(c.loanRemaining > 0) {
-                        let deduction = Math.min(c.loanRemaining, c.loanInstallmentPerSec);
-                        c.loanRemaining -= deduction;
-                        c.loanInstallmentsLeft = Math.max(0, c.loanInstallmentsLeft - 1);
-                    }
-
-                    if(marketingCost > 0 || rdCost > 0) {
-                        c.sharePricePerPercent += Math.floor((marketingCost + rdCost) / 25000);
-                    }
+                    let div = Math.round((c.passiveInc * (c.playerShares / 100)));
+                    modifyMoney(div);
                 }
             });
 
-            if(companyPassive > 0) {
-                modifyMoney(companyPassive);
-                game.stats.totalCompanyIncome += companyPassive;
-            }
-
-            if(game.activeResearch) {
-                game.activeResearch.progress += researchPower * 0.2;
-                if(game.activeResearch.progress >= game.activeResearch.maxProgress) {
-                    let techObj = Object.values(game.techTree).flat().find(t => t.id === game.activeResearch.id);
-                    if(techObj) techObj.unlocked = true;
-                    game.activeResearch = null;
-                }
-                renderTechTree();
-            }
-
-            if(game.activeProject) {
-                let p = game.activeProject;
-                p.eng += engPower * 0.2;
-                p.design += designPower * 0.2;
-                p.progress += engPower * 0.25;
-                if(p.progress >= p.maxProgress) finishDevice();
-                else updateUI();
-            }
-
-            let currentDeviceIncomePerSec = 0;
-            
-            game.factories.forEach(fac => {
-                for(let cat in fac.lines) {
-                    let line = fac.lines[cat];
-                    let matchingDev = game.history.find(h => h.rawCategory === cat);
-                    if(line.active && matchingDev) {
-                        let mult = (matchingDev.salesMultiplier || 1.0) * game.marketingBoost;
-                        let marketWave = 1.0 + (Math.sin(Date.now() / 3000) * 0.35);
-                        let producedUnits = Math.max(1, Math.floor(factoryPowerBase * fac.level * 0.7 * mult * marketWave));
-                        line.unitsProduced += producedUnits;
-                        let inc = producedUnits * 140;
-                        currentDeviceIncomePerSec += inc;
-                        game.stats.totalDeviceIncome += inc;
-
-                        matchingDev.unitsSold += producedUnits;
-                        matchingDev.revenueGenerated += inc;
-
-                        game.activeContracts.forEach(cnt => {
-                            if(cnt.type === cat && cnt.progress < cnt.target) {
-                                cnt.progress += producedUnits;
-                                if(cnt.progress >= cnt.target) {
-                                    modifyMoney(cnt.reward);
-                                    showToast(`Ukończono zlecenie kontraktowe! Nagroda: ${cnt.reward.toLocaleString()} zł`, 'success');
-                                    cnt.progress = cnt.target;
-                                }
-                            }
-                        });
-                    }
-                }
-            });
-
-            game.activeContracts = game.activeContracts.filter(cnt => cnt.progress < cnt.target);
-
-            if(currentDeviceIncomePerSec > 0) modifyMoney(currentDeviceIncomePerSec);
-
-            let currentStoreIncomePerSec = 0;
-            let currentRentsPerSec = 0;
-
-            if(game.history.length > 0) {
-                game.countries.forEach(c => {
-                    if(c.storesCount > 0) {
-                        currentStoreIncomePerSec += c.income * c.storesCount;
-                        currentRentsPerSec += c.rent * c.storesCount;
-                    }
-                });
-
-                if(currentStoreIncomePerSec > 0) {
-                    modifyMoney(currentStoreIncomePerSec);
-                    game.stats.totalStoreIncome += currentStoreIncomePerSec;
-                }
-            }
-
-            if(currentRentsPerSec > 0) {
-                modifyMoney(-currentRentsPerSec);
-                game.stats.totalRentsPaid += currentRentsPerSec;
-            }
-
-            window.currentStoreInc = currentStoreIncomePerSec;
-            window.currentDevInc = currentDeviceIncomePerSec;
-            window.currentCompInc = companyPassive;
-            window.currentSalaries = totalSalaries + currentRentsPerSec + totalCompanyCosts;
-
-            game.companies.forEach(c => {
-                let totalAssigned = c.playerShares + c.aiInvestors.reduce((acc, curr) => acc + curr.shares, 0) + (c.listedSharesForSale || 0);
-
-                if(totalAssigned < 100 && Math.random() < 0.45) {
-                    let freeShares = 100 - totalAssigned;
-                    let buyCount = Math.min(freeShares, Math.floor(Math.random() * 8) + 2);
-                    let targetInv = c.aiInvestors[Math.floor(Math.random() * c.aiInvestors.length)];
-                    if(targetInv) {
-                        targetInv.shares += buyCount;
-                    } else if(c.aiInvestors.length < 7) {
-                        let newName = investorNames[Math.floor(Math.random() * investorNames.length)];
-                        c.aiInvestors.push({ name: newName, shares: buyCount });
-                    }
-                }
-
-                if(c.aiInvestors.length > 1 && Math.random() < 0.35) {
-                    let sellerIdx = Math.floor(Math.random() * c.aiInvestors.length);
-                    let seller = c.aiInvestors[sellerIdx];
-                    if(seller && seller.shares > 12) {
-                        let transferCount = Math.floor(Math.random() * 6) + 2;
-                        seller.shares -= transferCount;
-                        let buyer = c.aiInvestors.filter((_, idx) => idx !== sellerIdx)[Math.floor(Math.random() * (c.aiInvestors.length - 1))];
-                        if(buyer) {
-                            buyer.shares += transferCount;
-                        } else {
-                            c.listedSharesForSale = (c.listedSharesForSale || 0) + transferCount;
-                        }
-                    }
-                }
-
-                if(c.aiInvestors.length < 7 && totalAssigned < 95 && Math.random() < 0.25) {
-                    let newName = investorNames[Math.floor(Math.random() * investorNames.length)];
-                    if(!c.aiInvestors.some(i => i.name === newName)) {
-                        c.aiInvestors.push({ name: newName, shares: Math.floor(Math.random() * 8) + 5 });
-                    }
-                }
-
-                if((c.listedSharesForSale || 0) > 0 && Math.random() < 0.70) {
-                    let soldCount = Math.min(c.listedSharesForSale, Math.floor(Math.random() * 12) + 4);
-                    c.listedSharesForSale -= soldCount;
-                    let revenue = soldCount * c.listedSharePricePerPercent;
-                    modifyMoney(revenue);
-                    showToast(`Rynek giełdowy wykupił ${soldCount}% Twoich akcji w ${c.name} za ${revenue.toLocaleString()} zł!`, 'success');
-                }
-
-                if(Math.random() < 0.08) {
-                    c.sharePricePerPercent += Math.floor((Math.random() - 0.42) * 800);
-                    if(c.sharePricePerPercent < 1000) c.sharePricePerPercent = 1000;
-                }
-            });
-
-            if(Math.random() < 0.1 && game.companies.length < 35) {
-                let p = companyPrefixes[Math.floor(Math.random() * companyPrefixes.length)];
-                let s = companySuffixes[Math.floor(Math.random() * companySuffixes.length)];
-                let newId = `comp_${Date.now()}_${Math.random()}`;
-                game.companies.push({
-                    id: newId,
-                    name: `${p} ${s} #${game.companies.length + 1}`,
-                    specialization: ['Smartfony', 'Podzespoły', 'Audio', 'Wyświetlacze', 'Baterie', 'Procesory', 'Czujniki'][Math.floor(Math.random() * 7)],
-                    sharePricePerPercent: Math.floor(Math.random() * 5000) + 1200,
-                    passiveIncome: Math.floor(Math.random() * 5000) + 4000,
-                    playerShares: 0,
-                    aiInvestors: generateAIInvestors(60),
-                    marketingBudget: 0,
-                    rdBudget: 0,
-                    salaryMultiplier: 1.0,
-                    dividendPercent: 25,
-                    companyDebt: 0,
-                    loanTotal: 0,
-                    loanRemaining: 0,
-                    loanInstallmentPerSec: 0,
-                    loanInstallmentsLeft: 0,
-                    listedSharesForSale: 0,
-                    listedSharePricePerPercent: 0
-                });
-            }
-
-            if(Math.random() < 0.06 && game.availableContracts.length < 6) {
-                const types = ['Smartfon', 'Tablet', 'Laptop', 'Konsola', 'Słuchawki', 'Smartwatch', 'Dron'];
-                let tType = types[Math.floor(Math.random() * types.length)];
-                let targetCount = Math.floor(Math.random() * 400) + 150;
-                let rewardAmt = targetCount * 280;
-                game.availableContracts.push({
-                    id: Date.now() + Math.random(),
-                    title: `Zamówienie na ${targetCount} szt. (${tType})`,
-                    reward: rewardAmt,
-                    progress: 0,
-                    target: targetCount,
-                    type: tType
-                });
-                if(document.getElementById('tab-contracts') && !document.getElementById('tab-contracts').classList.contains('hidden')) {
-                    renderContracts();
-                }
-            }
-
-            if(Math.random() < 0.04) {
-                triggerAIProposal();
-            }
-
-            if(document.getElementById('tab-acquisitions') && !document.getElementById('tab-acquisitions').classList.contains('hidden')) {
-                renderAcquisitions();
-            }
-
-            let nowLabel = new Date().toLocaleTimeString();
-            if(game.salesHistoryData.labels.length > 15) {
-                game.salesHistoryData.labels.shift();
-                game.salesHistoryData.datasets.forEach(ds => ds.data.shift());
-            }
-            game.salesHistoryData.labels.push(nowLabel);
-
-            if(salesChartInstance) {
-                game.history.forEach((h, idx) => {
-                    let ds = game.salesHistoryData.datasets.find(d => d.label === h.name);
-                    if(!ds) {
-                        let hue = (idx * 137.5) % 360; 
-                        let color = `hsl(${hue}, 85%, 55%)`,
-                        ds = { label: h.name, data: new Array(game.salesHistoryData.labels.length - 1).fill(0), borderColor: color, backgroundColor: color, tension: 0.3 };
-                        game.salesHistoryData.datasets.push(ds);
-                    }
-                    ds.data.push(h.unitsSold);
-                });
-                salesChartInstance.update();
-            }
-
-            saveGame();
+            updateUI();
+            if(document.getElementById('tab-products').classList.contains('hidden') === false) renderProducts();
         }, 1000);
 
-        loadGame();
-        renderHQ();
         updateUI();
+        renderProducts();
     </script>
 </body>
 </html>
