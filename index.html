@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tech Giant Tycoon - Ultimate Hardware Edition v50</title>
+    <title>Tech Giant Tycoon - Ultimate Hardware Edition v53</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -59,7 +59,7 @@
     <header class="glass-panel border-b border-slate-800/80 px-6 py-4 flex justify-between items-center z-30 relative shadow-xl">
         <div class="flex items-center gap-3">
             <div class="w-4 h-4 rounded-full bg-blue-500 animate-pulse shadow-lg shadow-blue-500/60"></div>
-            <h1 class="text-xl font-extrabold tracking-wide bg-gradient-to-r from-blue-400 via-indigo-300 to-cyan-400 bg-clip-text text-transparent">Tech Giant <span class="text-xs bg-blue-500/20 border border-blue-500/40 text-blue-300 px-3 py-1 rounded-full ml-2 font-semibold shadow-inner">Ultimate v50</span></h1>
+            <h1 class="text-xl font-extrabold tracking-wide bg-gradient-to-r from-blue-400 via-indigo-300 to-cyan-400 bg-clip-text text-transparent">Tech Giant <span class="text-xs bg-blue-500/20 border border-blue-500/40 text-blue-300 px-3 py-1 rounded-full ml-2 font-semibold shadow-inner">Ultimate v53</span></h1>
         </div>
         <div class="flex gap-3 text-xs items-center relative">
             <div id="floating-money-container" class="absolute -bottom-12 left-0 pointer-events-none z-50 font-bold"></div>
@@ -745,9 +745,9 @@
             });
         }
 
-        function saveGame() { localStorage.setItem('tech_giant_tycoon_save_v50', JSON.stringify(game)); }
+        function saveGame() { localStorage.setItem('tech_giant_tycoon_save_v53', JSON.stringify(game)); }
         function loadGame() {
-            const saved = localStorage.getItem('tech_giant_tycoon_save_v50');
+            const saved = localStorage.getItem('tech_giant_tycoon_save_v53');
             if(saved) {
                 try {
                     const parsed = JSON.parse(saved);
@@ -953,10 +953,6 @@
                     ? `<button onclick="openManageModal('${c.id}')" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-lg font-bold text-[11px]">⚙️ Zarządzaj firmą</button>`
                     : `<span class="text-[11px] text-slate-500">🔒 Wymagane >50%</span>`;
 
-                let hostileBtn = (!isMajority && game.money >= (c.sharePricePerPercent * 25))
-                    ? `<button onclick="launchHostileTakeover('${c.id}')" class="px-3 py-1.5 bg-rose-600 hover:bg-rose-500 text-white rounded-lg font-bold text-[11px]">⚔️ Wrogie Przejęcie</button>`
-                    : '';
-
                 container.innerHTML += `
                     <div class="glass-card p-5 rounded-2xl flex flex-col justify-between gap-3 border ${isMajority ? 'border-amber-500/40' : 'border-slate-700/60'}">
                         <div class="space-y-2">
@@ -975,7 +971,6 @@
                         <div class="pt-2 border-t border-slate-800/80 flex flex-col gap-2 items-end">
                             <div class="flex gap-2 w-full justify-between items-center">
                                 ${manageBtn}
-                                ${hostileBtn}
                             </div>
                             <div class="flex gap-2 w-full justify-end">
                                 ${buyBtn}
@@ -984,33 +979,6 @@
                     </div>
                 `;
             });
-        }
-
-        function launchHostileTakeover(id) {
-            let comp = game.companies.find(c => c.id === id);
-            if(!comp) return;
-            let cost = comp.sharePricePerPercent * 25;
-            if(game.money < cost) {
-                showToast('Za mało środków na przeprowadzenie wrogiego przejęcia (wymagane 25% po cenie premii)!', 'error');
-                return;
-            }
-            modifyMoney(-cost);
-            let gained = 25;
-            comp.playerShares += gained;
-            
-            while(gained > 0 && comp.aiInvestors.length > 0) {
-                let inv = comp.aiInvestors[0];
-                if(inv.shares <= gained) {
-                    gained -= inv.shares;
-                    comp.aiInvestors.shift();
-                } else {
-                    inv.shares -= gained;
-                    gained = 0;
-                }
-            }
-            renderAcquisitions();
-            saveGame();
-            showToast(`Przeprowadzono wrogie przejęcie! Przejęto dodatkowe udziały w ${comp.name}.`, 'success');
         }
 
         function listMySharesForSale() {
@@ -2126,6 +2094,52 @@
             }
         }
 
+        function submitShareOffer() {
+            let comp = game.companies.find(c => c.id === activeOfferCompanyId);
+            if(!comp) return;
+
+            let count = parseInt(document.getElementById('offer-shares-count').value) || 1;
+            let proposedPricePerPercent = parseInt(document.getElementById('offer-price-input').value) || 0;
+            let totalCost = count * proposedPricePerPercent;
+
+            if(game.money < totalCost) {
+                showToast('Za mało środków w budżecie na tę transakcję!', 'error');
+                return;
+            }
+
+            if(activeOfferType === 'buyout_ai' && targetBuyoutData) {
+                let inv = comp.aiInvestors.find(i => i.name === targetBuyoutData.investorName);
+                if(inv && count <= inv.shares) {
+                    modifyMoney(-totalCost);
+                    inv.shares -= count;
+                    if(inv.shares <= 0) {
+                        comp.aiInvestors = comp.aiInvestors.filter(i => i.name !== inv.name);
+                    }
+                    comp.playerShares += count;
+                    closeOfferModal();
+                    renderAcquisitions();
+                    saveGame();
+                    showToast(`✅ Pomyślnie odkupiono ${count}% udziałów od ${inv.name} za ${totalCost.toLocaleString()} zł!`, 'success');
+                } else {
+                    showToast('Inwestor nie posiada już tylu udziałów.', 'error');
+                }
+            } else {
+                let totalAssigned = comp.playerShares + comp.aiInvestors.reduce((acc, curr) => acc + curr.shares, 0) + (comp.listedSharesForSale || 0);
+                let availableShares = 100 - totalAssigned;
+                if(count > availableShares) {
+                    showToast('Brak tylu wolnych udziałów w firmie na rynku!', 'error');
+                    return;
+                }
+                modifyMoney(-totalCost);
+                comp.playerShares += count;
+                closeOfferModal();
+                renderAcquisitions();
+                saveGame();
+                showToast(`✅ Pomyślnie zakupiono ${count}% wolnych udziałów w ${comp.name} za ${totalCost.toLocaleString()} zł!`, 'success');
+            }
+            renderAcquisitions();
+        }
+
         setInterval(() => {
             let engPower = 0.5, designPower = 0.5, researchPower = 0.5, factoryPowerBase = 0.5;
             let totalSalaries = 0;
@@ -2155,31 +2169,21 @@
 
             game.companies.forEach(c => {
                 if(c.playerShares > 0) {
+                    // Gwarantowany przychód za każdy posiadany 1% (nawet 1% daje stały zysk bazujący na wycenie spółki)
+                    let guaranteedDividend = Math.round((c.sharePricePerPercent * 0.15) * c.playerShares);
+                    companyPassive += guaranteedDividend;
+
                     let marketingCost = c.marketingBudget || 0;
                     let rdCost = c.rdBudget || 0;
                     let staffPayrollCost = Math.round(2500 * (c.salaryMultiplier - 1));
                     let totalCosts = marketingCost + rdCost + staffPayrollCost;
-
                     totalCompanyCosts += totalCosts;
 
-                    let marketingBonus = 1 + ((marketingCost / 10000) * 0.15);
-                    let rdBonus = 1 + ((rdCost / 10000) * 0.15);
-                    let staffBonus = 1 + ((c.salaryMultiplier - 1) * 0.2);
-
-                    let grossEarnings = c.passiveIncome * marketingBonus * rdBonus * staffBonus;
-                    let netPassive = grossEarnings - totalCosts;
-                    
                     if(c.loanRemaining > 0) {
                         let deduction = Math.min(c.loanRemaining, c.loanInstallmentPerSec);
                         c.loanRemaining -= deduction;
                         c.loanInstallmentsLeft = Math.max(0, c.loanInstallmentsLeft - 1);
-                        netPassive -= deduction;
                     }
-
-                    let companyEarnings = netPassive;
-                    let divPayout = Math.max(0, companyEarnings * (c.dividendPercent / 100));
-                    let myDivShare = divPayout * (c.playerShares / 100);
-                    companyPassive += Math.round(myDivShare);
 
                     if(marketingCost > 0 || rdCost > 0) {
                         c.sharePricePerPercent += Math.floor((marketingCost + rdCost) / 25000);
@@ -2187,9 +2191,9 @@
                 }
             });
 
-            if(companyPassive !== 0) {
+            if(companyPassive > 0) {
                 modifyMoney(companyPassive);
-                if(companyPassive > 0) game.stats.totalCompanyIncome += companyPassive;
+                game.stats.totalCompanyIncome += companyPassive;
             }
 
             if(game.activeResearch) {
