@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tech Giant Tycoon v57 - Hardware & Acquisitions</title>
+    <title>Tech Empire Tycoon v4</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         .glass-panel {
             background: rgba(11, 17, 28, 0.95);
@@ -22,6 +21,16 @@
             border-color: rgba(59, 130, 246, 0.5);
             transform: translateY(-2px);
         }
+        @keyframes floatUpGreen {
+            0% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-35px) scale(1.1); }
+        }
+        @keyframes floatUpRed {
+            0% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-35px) scale(1.1); }
+        }
+        .anim-green { animation: floatUpGreen 1s ease-out forwards; }
+        .anim-red { animation: floatUpRed 1s ease-out forwards; }
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: rgba(11, 17, 28, 0.6); }
         ::-webkit-scrollbar-thumb { background: rgba(59, 130, 246, 0.4); border-radius: 9999px; }
@@ -32,146 +41,126 @@
     <!-- GÓRNY PASEK -->
     <header class="glass-panel border-b border-slate-800 px-6 py-4 flex justify-between items-center z-30 sticky top-0">
         <div class="flex items-center gap-3">
-            <div class="w-3.5 h-3.5 rounded-full bg-blue-500 animate-pulse shadow-lg shadow-blue-500/50"></div>
-            <h1 class="text-lg font-extrabold bg-gradient-to-r from-blue-400 via-indigo-300 to-cyan-400 bg-clip-text text-transparent">Tech Giant Tycoon <span class="text-xs bg-blue-500/20 text-blue-300 px-2.5 py-1 rounded-full ml-2">v57</span></h1>
+            <div class="w-3.5 h-3.5 rounded-full bg-cyan-500 animate-pulse shadow-lg shadow-cyan-500/50"></div>
+            <h1 class="text-lg font-extrabold bg-gradient-to-r from-cyan-400 via-blue-400 to-indigo-400 bg-clip-text text-transparent">Tech Empire Tycoon <span class="text-xs bg-cyan-500/20 text-cyan-300 px-2 py-0.5 rounded-full ml-2">v4.0</span></h1>
         </div>
-        <div class="flex gap-3 text-xs items-center">
-            <div class="glass-card px-4 py-2 rounded-xl flex items-center gap-2">
+        <div class="flex gap-3 text-xs items-center relative">
+            <div class="glass-card px-4 py-2 rounded-xl flex items-center gap-2 relative">
                 <span class="text-slate-400">💰 Gotówka:</span>
-                <span id="company-money" class="font-bold text-emerald-400 text-sm">350,000 zł</span>
+                <span id="company-money" class="font-bold text-emerald-400 text-sm">250,000 zł</span>
+                <!-- Kontener animacji gotówki -->
+                <div id="money-anim-container" class="absolute right-0 top-0 pointer-events-none overflow-visible"></div>
             </div>
             <div class="glass-card px-4 py-2 rounded-xl flex items-center gap-2">
-                <span class="text-slate-400">🌐 Udział w rynku:</span>
-                <span id="company-market-share" class="font-bold text-blue-400 text-sm">0.5%</span>
+                <span class="text-slate-400">👥 Kadra:</span>
+                <span id="company-staff-count" class="font-bold text-indigo-400 text-sm">0 / 5</span>
             </div>
         </div>
     </header>
 
     <!-- ZAKŁADKI -->
     <nav class="bg-slate-900/60 border-b border-slate-800 px-8 py-3 flex gap-3 overflow-x-auto shadow-inner">
-        <button onclick="switchTab('devices')" id="tab-btn-devices" class="px-5 py-2.5 rounded-xl font-semibold text-xs transition bg-blue-600 text-white shadow-lg shrink-0">📱 Projekty & Urządzenia</button>
-        <button onclick="switchTab('factory')" id="tab-btn-factory" class="px-5 py-2.5 rounded-xl font-semibold text-xs transition text-slate-400 hover:text-white shrink-0">🏭 Fabryki & Linie</button>
-        <button onclick="switchTab('acquisitions')" id="tab-btn-acquisitions" class="px-5 py-2.5 rounded-xl font-semibold text-xs transition text-slate-400 hover:text-white shrink-0">🤝 Giełda Udziałów</button>
-        <button onclick="switchTab('staff')" id="tab-btn-staff" class="px-5 py-2.5 rounded-xl font-semibold text-xs transition text-slate-400 hover:text-white shrink-0">👥 Kadry (HR)</button>
+        <button onclick="switchTab('software')" id="tab-btn-software" class="px-5 py-2.5 rounded-xl font-semibold text-xs transition bg-blue-600 text-white shadow-lg shrink-0">💻 Oprogramowanie & Platformy</button>
+        <button onclick="switchTab('servers')" id="tab-btn-servers" class="px-5 py-2.5 rounded-xl font-semibold text-xs transition text-slate-400 hover:text-white shrink-0">🖥️ Serwerownia & Racki</button>
+        <button onclick="switchTab('market')" id="tab-btn-market" class="px-5 py-2.5 rounded-xl font-semibold text-xs transition text-slate-400 hover:text-white shrink-0">🤝 Giełda Akcji & Przejęcia</button>
+        <button onclick="switchTab('management')" id="tab-btn-management" class="px-5 py-2.5 rounded-xl font-semibold text-xs transition text-slate-400 hover:text-white shrink-0">🏢 Zarządzanie Spółkami (>50%)</button>
+        <button onclick="switchTab('hr')" id="tab-btn-hr" class="px-5 py-2.5 rounded-xl font-semibold text-xs transition text-slate-400 hover:text-white shrink-0">👥 Giełda Pracy (HR)</button>
     </nav>
 
     <!-- TREŚĆ GŁÓWNA -->
     <main class="flex-1 max-w-7xl w-full mx-auto p-8 flex flex-col gap-6">
 
-        <!-- ZAKŁADKA 1: URZĄDZENIA -->
-        <div id="tab-devices" class="tab-content flex flex-col gap-6">
-            <div class="glass-panel rounded-3xl p-8 shadow-2xl flex flex-col justify-between relative overflow-hidden">
-                <h3 class="text-xl font-bold text-blue-300 mb-4">🛠️ Aktualny Projekt Sprzętowy</h3>
-                <div id="no-project-view" class="py-12 text-center">
-                    <p class="text-xs text-slate-400 mb-4">Zaprojektuj swój własny smartfon, tablet, laptop, konsolę lub słuchawki.</p>
-                    <button onclick="openNewDeviceModal()" class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 rounded-xl font-bold text-xs transition shadow-lg">+ Nowy Projekt Urządzenia</button>
+        <!-- ZAKŁADKA 1: OPROGRAMOWANIE -->
+        <div id="tab-software" class="tab-content flex flex-col gap-6">
+            <div class="glass-panel rounded-3xl p-6 shadow-xl flex justify-between items-center">
+                <div>
+                    <h2 class="text-base font-bold text-cyan-300">Portfolio Cyfrowych Produktów</h2>
+                    <p class="text-xs text-slate-400 mt-1">Twórz przeglądarki, serwisy społecznościowe oraz systemy operacyjne.</p>
                 </div>
-                <div id="active-project-view" class="hidden space-y-4">
-                    <div class="flex justify-between items-center text-sm">
-                        <span id="proj-name" class="font-bold text-lg text-slate-100">Model</span>
-                        <span id="proj-progress-text" class="font-extrabold text-emerald-400">0%</span>
-                    </div>
-                    <div class="w-full bg-slate-950 h-4 rounded-xl overflow-hidden border border-slate-800 p-0.5">
-                        <div id="proj-progress-bar" class="bg-blue-500 h-full rounded-lg transition-all" style="width: 0%;"></div>
-                    </div>
-                </div>
+                <button onclick="openNewSoftwareModal()" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-xs transition shadow-lg">+ Nowy Projekt</button>
             </div>
+            <div id="software-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
         </div>
 
-        <!-- ZAKŁADKA 2: FABRYKA -->
-        <div id="tab-factory" class="tab-content flex flex-col gap-6 hidden">
-            <div class="glass-panel rounded-3xl p-8 shadow-2xl space-y-6">
-                <div class="flex justify-between items-center">
-                    <h3 class="text-xl font-bold text-blue-300">Zarządzanie Fabrykami & Linie Produkcyjne</h3>
-                    <button onclick="buyNewFactory()" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-xs shadow-lg">+ Kup Nową Fabrykę (150,000 zł)</button>
+        <!-- ZAKŁADKA 2: SERWEROWNIA -->
+        <div id="tab-servers" class="tab-content flex flex-col gap-6 hidden">
+            <div class="glass-panel rounded-3xl p-6 shadow-xl flex justify-between items-center">
+                <div>
+                    <h2 class="text-base font-bold text-blue-300">Zarządzanie Infrastrukturą Serwerową</h2>
+                    <p class="text-xs text-slate-400 mt-1">Włączaj lub wyłączaj racki serwerowe, by kontrolować koszty i obsłużyć użytkowników.</p>
                 </div>
-                <div id="factories-container" class="space-y-6"></div>
+                <button onclick="buyServerRack()" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-xs transition shadow-lg">+ Dokup Rack (50,000 zł)</button>
             </div>
+            <div id="servers-grid" class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
         </div>
 
-        <!-- ZAKŁADKA 3: GIEŁDA UDZIAŁÓW -->
-        <div id="tab-acquisitions" class="tab-content flex flex-col gap-6 hidden">
-            <div class="glass-panel rounded-3xl p-8 shadow-2xl space-y-6">
-                <h3 class="text-xl font-bold text-blue-300">🤝 Giełda Udziałów & Wystawianie Akcji</h3>
-                
-                <!-- Sekcja wystawiania własnych akcji -->
-                <div class="glass-card p-5 rounded-2xl space-y-3 border border-blue-500/40">
-                    <h4 class="font-bold text-blue-300 text-sm">📈 Wystaw Własne Pakiety Akcji na Giełdę</h4>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
-                        <div>
-                            <label class="block text-slate-400 mb-1">Wybierz spółkę:</label>
-                            <select id="sell-share-company" class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-white"></select>
-                        </div>
-                        <div>
-                            <label class="block text-slate-400 mb-1">Liczba % akcji:</label>
-                            <input type="number" id="sell-share-count" min="1" max="100" value="10" class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-white">
-                        </div>
-                        <div>
-                            <label class="block text-slate-400 mb-1">Cena żądana za 1% (zł):</label>
-                            <input type="number" id="sell-share-price" min="100" value="2000" class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-white">
-                        </div>
-                    </div>
-                    <button onclick="listMySharesForSale()" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-xs transition">Wystaw na giełdę</button>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="acquisitions-list"></div>
+        <!-- ZAKŁADKA 3: GIEŁDA AKCJI I INWESTORZY -->
+        <div id="tab-market" class="tab-content flex flex-col gap-6 hidden">
+            <div class="glass-panel rounded-3xl p-6 shadow-xl">
+                <h2 class="text-base font-bold text-emerald-300">Rynek Korporacyjny & Inwestorzy</h2>
+                <p class="text-xs text-slate-400 mt-1">Analizuj listę akcjonariuszy zewnętrznych firm i odkupuj od nich udziały.</p>
             </div>
+            <div id="market-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
         </div>
 
-        <!-- ZAKŁADKA 4: KADRY -->
-        <div id="tab-staff" class="tab-content flex flex-col gap-6 hidden">
-            <div class="glass-panel rounded-3xl p-8 shadow-2xl space-y-4">
-                <h3 class="text-xl font-bold text-blue-300">Zatrudnieni Pracownicy</h3>
-                <div id="hired-staff-list" class="space-y-2"><div class="text-xs text-slate-500">Brak pracowników.</div></div>
+        <!-- ZAKŁADKA 4: ZARZĄDZANIE SPÓŁKAMI KONTROLOWANYMI -->
+        <div id="tab-management" class="tab-content flex flex-col gap-6 hidden">
+            <div class="glass-panel rounded-3xl p-6 shadow-xl">
+                <h2 class="text-base font-bold text-purple-300">Panel Kontrolny Spółek Córka (>50% Udziałów)</h2>
+                <p class="text-xs text-slate-400 mt-1">Zarządzaj polityką firm, w których posiadasz pakiet większościowy.</p>
             </div>
+            <div id="management-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+        </div>
+
+        <!-- ZAKŁADKA 5: HR -->
+        <div id="tab-hr" class="tab-content flex flex-col gap-6 hidden">
+            <div class="glass-panel rounded-3xl p-6 shadow-xl flex justify-between items-center">
+                <div>
+                    <h2 class="text-base font-bold text-indigo-300">Giełda Talentów Inżynieryjnych</h2>
+                    <p class="text-xs text-slate-400 mt-1">Zatrudniaj specjalistów przyspieszających rozwój projektów.</p>
+                </div>
+                <span class="text-xs text-slate-400">Limit biura: <strong id="staff-limit-label" class="text-indigo-300">5</strong></span>
+            </div>
+            <div id="recruitment-grid" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
         </div>
 
     </main>
 
-    <!-- MODAL TWORZENIA URZĄDZENIA -->
-    <div id="new-device-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4 z-50">
-        <div class="glass-panel text-slate-100 w-full max-w-lg rounded-3xl shadow-2xl p-6 space-y-4 border border-blue-500/30">
+    <!-- MODAL TWORZENIA OPROGRAMOWANIA -->
+    <div id="software-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4 z-50">
+        <div class="glass-panel text-slate-100 w-full max-w-md rounded-3xl shadow-2xl p-6 space-y-4 border border-blue-500/30">
             <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-                <h3 class="text-lg font-bold text-blue-300">Studio Projektowe</h3>
-                <button onclick="closeNewDeviceModal()" class="text-slate-400 hover:text-white text-xs font-bold px-2.5 py-1 rounded bg-slate-800">✕</button>
+                <h3 class="text-base font-bold text-blue-300">Nowy Projekt Cyfrowy</h3>
+                <button onclick="closeSoftwareModal()" class="text-slate-400 hover:text-white text-xs font-bold px-2 py-1 rounded bg-slate-800">✕</button>
             </div>
-            <form onsubmit="startNewDevice(event)" class="space-y-3 text-xs">
+            <form onsubmit="createSoftware(event)" class="space-y-3 text-xs">
                 <div>
-                    <label class="block text-slate-300 font-semibold mb-1">Nazwa Modelu</label>
-                    <input type="text" id="dev-name" required placeholder="np. Quantum Phone X" class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-white">
+                    <label class="block text-slate-400 mb-1">Nazwa:</label>
+                    <input type="text" id="soft-name" required placeholder="np. OmniBrowser / Streamix / NeoOS" class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white">
                 </div>
                 <div>
-                    <label class="block text-slate-300 font-semibold mb-1">Kategoria</label>
-                    <select id="dev-category" class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-white">
-                        <option value="Smartfon">Smartfon</option>
-                        <option value="Tablet">Tablet</option>
-                        <option value="Laptop">Laptop</option>
-                        <option value="Konsola">Konsola</option>
+                    <label class="block text-slate-400 mb-1">Typ Produktu:</label>
+                    <select id="soft-type" class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white">
+                        <option value="Przeglądarka">Przeglądarka internetowa</option>
+                        <option value="Serwis społecznościowy">Serwis społecznościowy</option>
+                        <option value="System operacyjny">System operacyjny</option>
                     </select>
                 </div>
-                <button type="submit" class="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold transition">Rozpocznij Inżynierię</button>
+                <button type="submit" class="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold transition">Rozpocznij Kodowanie</button>
             </form>
         </div>
     </div>
 
-    <!-- MODAL KUPNA/ZŁOŻENIA OFERTY -->
-    <div id="offer-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4 z-50">
-        <div class="glass-panel text-slate-100 w-full max-w-sm rounded-3xl shadow-2xl p-6 space-y-4 border border-blue-500/40">
-            <h3 id="offer-modal-title" class="text-lg font-bold text-blue-300">Kup udziały</h3>
-            <div class="space-y-3 text-xs">
-                <p id="offer-company-info" class="text-slate-300"></p>
-                <div>
-                    <label class="block text-slate-300 font-semibold mb-1">Procent akcji (%):</label>
-                    <input type="number" id="offer-shares-count" min="1" max="100" value="5" class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-white">
-                </div>
-                <div>
-                    <label class="block text-slate-300 font-semibold mb-1">Cena za 1% (zł):</label>
-                    <input type="number" id="offer-price-input" class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-white">
-                </div>
-                <div class="flex gap-2">
-                    <button onclick="closeOfferModal()" class="flex-1 py-2 bg-slate-800 rounded-xl font-bold">Anuluj</button>
-                    <button onclick="submitShareOffer()" class="flex-1 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold">Potwierdź</button>
-                </div>
+    <!-- MODAL SZCZEGÓŁÓW INWESTORÓW SPÓŁKI -->
+    <div id="investors-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4 z-50">
+        <div class="glass-panel text-slate-100 w-full max-w-lg rounded-3xl shadow-2xl p-6 space-y-4 border border-emerald-500/30">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 id="inv-modal-title" class="text-base font-bold text-emerald-300">Akcjonariat Spółki</h3>
+                <button onclick="closeInvestorsModal()" class="text-slate-400 hover:text-white text-xs font-bold px-2 py-1 rounded bg-slate-800">✕</button>
+            </div>
+            <div id="investors-list-container" class="space-y-2 max-h-60 overflow-y-auto"></div>
+            <div class="pt-3 border-t border-slate-800 flex justify-end">
+                <button onclick="closeInvestorsModal()" class="px-4 py-2 bg-slate-800 text-white rounded-xl text-xs font-bold">Zamknij</button>
             </div>
         </div>
     </div>
@@ -181,18 +170,44 @@
 
     <script>
         let game = {
-            money: 500000,
-            marketShare: 0.5,
-            activeProject: null,
-            history: [],
-            factories: [
-                { id: 1, name: 'Fabryka Główna #1', level: 1, upgradeCost: 100000, lines: { Smartfon: { active: false }, Tablet: { active: false }, Laptop: { active: false }, Konsola: { active: false } } }
+            money: 250000,
+            staffLimit: 5,
+            staff: [],
+            candidates: [],
+            servers: [
+                { id: 1, active: true, capacity: 10000, upkeep: 300 },
+                { id: 2, active: false, capacity: 10000, upkeep: 300 }
             ],
+            software: [],
             companies: [
-                { id: 'c1', name: 'Apex Tech', specialization: 'Smartfony', sharePricePerPercent: 1500, playerShares: 0, aiInvestors: [{ name: 'Vanguard', shares: 50 }] },
-                { id: 'c2', name: 'Nova Systems', specialization: 'Procesory', sharePricePerPercent: 2800, playerShares: 0, aiInvestors: [{ name: 'BlackRock', shares: 40 }] }
+                { 
+                    id: 'comp_1', 
+                    name: 'Apex Solutions', 
+                    sharePrice: 12000, 
+                    playerShares: 0, 
+                    investors: [
+                        { name: 'Założyciel', shares: 45 },
+                        { name: 'Fundusz Venture Alpha', shares: 30 },
+                        { name: 'Anioł Biznesu Jan', shares: 25 }
+                    ]
+                },
+                { 
+                    id: 'comp_2', 
+                    name: 'Cyber Dynamics', 
+                    sharePrice: 22000, 
+                    playerShares: 0, 
+                    investors: [
+                        { name: 'Główny Inżynier', shares: 55 },
+                        { name: 'Bank Inwestycyjny Omega', shares: 45 }
+                    ]
+                }
             ]
         };
+
+        const firstNames = ['Michał', 'Katarzyna', 'Piotr', 'Magdalena', 'Tomasz', 'Agnieszka', 'Łukasz', 'Karolina', 'Jan', 'Anna'];
+        const lastNames = ['Zieliński', 'Wójcik', 'Krawczyk', 'Kamiński', 'Lewandowski', 'Dąbrowski', 'Kozłowski', 'Nowak'];
+        const compPrefix = ['Nova', 'Apex', 'Hyper', 'Stellar', 'Quantum', 'Omni', 'Vertex', 'Alpha'];
+        const compSuffix = ['Tech', 'Systems', 'Media', 'Net', 'Solutions', 'Software', 'Corp'];
 
         function showToast(msg, type = 'success') {
             const container = document.getElementById('toast-container');
@@ -206,181 +221,313 @@
 
         function modifyMoney(amount) {
             game.money += amount;
+            triggerMoneyAnimation(amount);
             updateUI();
         }
 
+        function triggerMoneyAnimation(amount) {
+            const container = document.getElementById('money-anim-container');
+            if(!container) return;
+            const el = document.createElement('div');
+            el.className = `absolute right-0 text-xs font-bold ${amount >= 0 ? 'text-emerald-400 anim-green' : 'text-rose-400 anim-red'}`;
+            el.textContent = `${amount >= 0 ? '+' : ''}${Math.round(amount).toLocaleString()} zł`;
+            container.appendChild(el);
+            setTimeout(() => el.remove(), 1000);
+        }
+
         function switchTab(tab) {
-            ['devices', 'factory', 'acquisitions', 'staff'].forEach(t => {
+            ['software', 'servers', 'market', 'management', 'hr'].forEach(t => {
                 document.getElementById(`tab-${t}`).classList.toggle('hidden', t !== tab);
                 const btn = document.getElementById(`tab-btn-${t}`);
                 btn.className = `px-5 py-2.5 rounded-xl font-semibold text-xs transition shrink-0 ${t === tab ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`;
             });
-            if(tab === 'factory') renderFactories();
-            if(tab === 'acquisitions') renderAcquisitions();
+            if(tab === 'software') renderSoftware();
+            if(tab === 'servers') renderServers();
+            if(tab === 'market') renderMarket();
+            if(tab === 'management') renderManagement();
+            if(tab === 'hr') renderHR();
         }
 
-        function openNewDeviceModal() { document.getElementById('new-device-modal').classList.remove('hidden'); }
-        function closeNewDeviceModal() { document.getElementById('new-device-modal').classList.add('hidden'); }
+        function openNewSoftwareModal() { document.getElementById('software-modal').classList.remove('hidden'); }
+        function closeSoftwareModal() { document.getElementById('software-modal').classList.add('hidden'); }
 
-        function startNewDevice(e) {
+        function createSoftware(e) {
             e.preventDefault();
-            const name = document.getElementById('dev-name').value;
-            const category = document.getElementById('dev-category').value;
-            game.activeProject = { name, category, progress: 0, maxProgress: 100 };
-            closeNewDeviceModal();
-            updateUI();
-            showToast('Rozpoczęto inżynierię urządzenia!');
+            const name = document.getElementById('soft-name').value;
+            const type = document.getElementById('soft-type').value;
+            game.software.push({
+                id: Date.now(),
+                name,
+                type,
+                progress: 0,
+                maxProgress: 120,
+                active: false,
+                users: 0,
+                revenue: 0
+            });
+            closeSoftwareModal();
+            renderSoftware();
+            showToast(`Rozpoczęto tworzenie produktu: ${name}`);
         }
 
-        function renderFactories() {
-            const container = document.getElementById('factories-container');
-            container.innerHTML = '';
-            game.factories.forEach(f => {
-                let linesHtml = '';
-                for(let cat in f.lines) {
-                    let line = f.lines[cat];
-                    linesHtml += `
-                        <div class="glass-card p-3 rounded-xl flex justify-between items-center text-xs">
-                            <span>${cat}</span>
-                            <button onclick="toggleLine(${f.id}, '${cat}')" class="px-3 py-1.5 rounded-lg font-bold ${line.active ? 'bg-emerald-600 text-white' : 'bg-slate-800 text-slate-400'}">${line.active ? 'Działa' : 'Uruchom'}</button>
+        function renderSoftware() {
+            const grid = document.getElementById('software-grid');
+            grid.innerHTML = game.software.length === 0 ? '<div class="text-xs text-slate-500 col-span-full">Brak projektów.</div>' : '';
+            game.software.forEach(s => {
+                let pct = Math.min(100, Math.floor((s.progress / s.maxProgress) * 100));
+                grid.innerHTML += `
+                    <div class="glass-card p-5 rounded-2xl flex flex-col justify-between gap-4">
+                        <div>
+                            <div class="flex justify-between items-center">
+                                <h4 class="font-bold text-slate-100 text-sm">${s.name}</h4>
+                                <span class="text-[10px] bg-slate-900 px-2 py-0.5 rounded-lg text-cyan-300">${s.type}</span>
+                            </div>
+                            <p class="text-xs text-slate-400 mt-2">${s.active ? `Użytkownicy: <strong class="text-cyan-400">${Math.floor(s.users).toLocaleString()}</strong> | Przychód: <strong class="text-emerald-400">${Math.floor(s.revenue).toLocaleString()} zł/s</strong>` : 'Trwają prace programistyczne...'}</p>
                         </div>
-                    `;
-                }
-                container.innerHTML += `
-                    <div class="glass-card p-5 rounded-2xl space-y-3">
-                        <h4 class="font-bold text-sm">🏭 ${f.name} (Poziom ${f.level})</h4>
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-2">${linesHtml}</div>
+                        <div class="space-y-1">
+                            <div class="flex justify-between text-[11px] text-slate-400">
+                                <span>${s.active ? 'Status: Działa' : 'Postęp'}</span>
+                                <span>${pct}%</span>
+                            </div>
+                            <div class="w-full bg-slate-950 h-2 rounded-full overflow-hidden border border-slate-800">
+                                <div class="bg-blue-500 h-full transition-all" style="width: ${pct}%"></div>
+                            </div>
+                        </div>
                     </div>
                 `;
             });
         }
 
-        function toggleLine(facId, cat) {
-            let f = game.factories.find(fac => fac.id === facId);
-            if(f) {
-                f.lines[cat].active = !f.lines[cat].active;
-                renderFactories();
-            }
-        }
-
-        function buyNewFactory() {
-            let cost = 150000 * game.factories.length;
+        function buyServerRack() {
+            let cost = 50000;
             if(game.money >= cost) {
                 modifyMoney(-cost);
-                game.factories.push({
-                    id: game.factories.length + 1,
-                    name: `Fabryka Korporacji #${game.factories.length + 1}`,
-                    level: 1,
-                    lines: { Smartfon: { active: false }, Tablet: { active: false }, Laptop: { active: false }, Konsola: { active: false } }
+                game.servers.push({
+                    id: game.servers.length + 1,
+                    active: true,
+                    capacity: 15000,
+                    upkeep: 450
                 });
-                renderFactories();
-                showToast('Kupiono nową fabrykę!');
+                renderServers();
+                showToast('Zakupiono nowy rack serwerowy!');
             } else {
                 showToast('Za mało środków!', 'error');
             }
         }
 
-        function renderAcquisitions() {
-            const container = document.getElementById('acquisitions-list');
-            const select = document.getElementById('sell-share-company');
-            container.innerHTML = '';
-            select.innerHTML = '';
+        function toggleServer(id) {
+            let s = game.servers.find(srv => srv.id === id);
+            if(s) {
+                s.active = !s.active;
+                renderServers();
+                showToast(`Zmieniono stan racka #${s.id}`);
+            }
+        }
 
-            game.companies.forEach(c => {
-                if(c.playerShares > 0) {
-                    select.innerHTML += `<option value="${c.id}">${c.name} (Masz: ${c.playerShares}%)</option>`;
-                }
-
-                container.innerHTML += `
-                    <div class="glass-card p-4 rounded-2xl flex flex-col justify-between gap-3 text-xs">
+        function renderServers() {
+            const grid = document.getElementById('servers-grid');
+            grid.innerHTML = '';
+            game.servers.forEach(s => {
+                grid.innerHTML += `
+                    <div class="glass-card p-4 rounded-2xl flex flex-col justify-between gap-3 text-xs border ${s.active ? 'border-emerald-500/30' : 'border-rose-500/30'}">
                         <div>
-                            <h4 class="font-bold text-slate-100 text-sm">🏢 ${c.name}</h4>
-                            <p class="text-slate-400 mt-1">Cena 1% udziału: <strong class="text-emerald-400">${c.sharePricePerPercent.toLocaleString()} zł</strong></p>
-                            <p class="text-slate-400">Twoje udziały: <strong class="text-blue-400">${c.playerShares}%</strong></p>
+                            <div class="flex justify-between items-center font-bold">
+                                <span>Rack Serwerowy #${s.id}</span>
+                                <span class="${s.active ? 'text-emerald-400' : 'text-rose-400'}">${s.active ? 'WŁĄCZONY' : 'WYŁĄCZONY'}</span>
+                            </div>
+                            <p class="text-slate-400 mt-2">Pojemność: <strong class="text-cyan-400">${s.capacity.toLocaleString()} uż.</strong></p>
+                            <p class="text-slate-400">Utrzymanie: ${s.active ? s.upkeep : 0} zł/s</p>
                         </div>
-                        <button onclick="openOfferModal('${c.id}')" class="py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold transition">Kup udziały</button>
+                        <button onclick="toggleServer(${s.id})" class="py-2 rounded-xl font-bold transition ${s.active ? 'bg-rose-600 hover:bg-rose-500 text-white' : 'bg-emerald-600 hover:bg-emerald-500 text-white'}">${s.active ? 'Wyłącz rack' : 'Włącz rack'}</button>
                     </div>
                 `;
             });
         }
 
-        let currentOfferCompId = null;
-        function openOfferModal(id) {
-            currentOfferCompId = id;
-            let c = game.companies.find(comp => comp.id === id);
-            if(!c) return;
-            document.getElementById('offer-company-info').textContent = `Spółka: ${c.name}`;
-            document.getElementById('offer-price-input').value = c.sharePricePerPercent;
-            document.getElementById('offer-modal').classList.remove('hidden');
+        function renderMarket() {
+            const grid = document.getElementById('market-grid');
+            grid.innerHTML = '';
+            game.companies.forEach(c => {
+                grid.innerHTML += `
+                    <div class="glass-card p-5 rounded-2xl flex flex-col justify-between gap-4 text-xs">
+                        <div>
+                            <h4 class="font-bold text-slate-100 text-sm">🏢 ${c.name}</h4>
+                            <p class="text-slate-400 mt-1">Cena 1% udziału: <strong class="text-emerald-400">${c.sharePrice.toLocaleString()} zł</strong></p>
+                            <p class="text-slate-400">Twoje udziały: <strong class="text-cyan-400">${c.playerShares}%</strong></p>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="openInvestorsModal('${c.id}')" class="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl font-bold transition">Lista Inwestorów</button>
+                        </div>
+                    </div>
+                `;
+            });
         }
 
-        function closeOfferModal() {
-            document.getElementById('offer-modal').classList.add('hidden');
-            currentOfferCompId = null;
-        }
-
-        function submitShareOffer() {
-            let c = game.companies.find(comp => comp.id === currentOfferCompId);
-            if(!c) return;
-            let count = parseInt(document.getElementById('offer-shares-count').value) || 1;
-            let price = parseInt(document.getElementById('offer-price-input').value) || c.sharePricePerPercent;
-            let total = count * price;
-
-            if(game.money < total) {
-                showToast('Za mało środków!', 'error');
-                return;
-            }
-
-            modifyMoney(-total);
-            c.playerShares += count;
-            closeOfferModal();
-            renderAcquisitions();
-            showToast(`Zakupiono ${count}% udziałów w ${c.name}!`);
-        }
-
-        function listMySharesForSale() {
-            let compId = document.getElementById('sell-share-company').value;
-            let count = parseInt(document.getElementById('sell-share-count').value) || 1;
+        let currentInvCompId = null;
+        function openInvestorsModal(compId) {
+            currentInvCompId = compId;
             let c = game.companies.find(comp => comp.id === compId);
-            if(!c || c.playerShares < count) {
-                showToast('Nie masz tylu udziałów do wystawienia!', 'error');
+            if(!c) return;
+            document.getElementById('inv-modal-title').textContent = `Akcjonariat: ${c.name}`;
+            const container = document.getElementById('investors-list-container');
+            container.innerHTML = '';
+
+            c.investors.forEach((inv, idx) => {
+                container.innerHTML += `
+                    <div class="flex justify-between items-center p-3 rounded-xl bg-slate-900/80 border border-slate-800">
+                        <span>${inv.name} (${inv.shares}%)</span>
+                        <button onclick="buySharesFrom('${compId}', ${idx}, 5)" class="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-bold text-xs">Odkup 5% (${(c.sharePrice * 5).toLocaleString()} zł)</button>
+                    </div>
+                `;
+            });
+            document.getElementById('investors-modal').classList.remove('hidden');
+        }
+
+        function closeInvestorsModal() {
+            document.getElementById('investors-modal').classList.add('hidden');
+            currentInvCompId = null;
+        }
+
+        function buySharesFrom(compId, invIdx, count) {
+            let c = game.companies.find(comp => comp.id === compId);
+            if(!c) return;
+            let inv = c.investors[invIdx];
+            if(!inv || inv.shares < count) {
+                showToast('Inwestor nie chce sprzedać tylu udziałów!', 'error');
                 return;
             }
-            c.playerShares -= count;
-            renderAcquisitions();
-            showToast(`Wystawiono ${count}% udziałów ${c.name} na giełdę!`);
+            let totalCost = c.sharePrice * count;
+            if(game.money < totalCost) {
+                showToast('Za mało gotówki!', 'error');
+                return;
+            }
+
+            modifyMoney(-totalCost);
+            inv.shares -= count;
+            c.playerShares += count;
+            if(inv.shares <= 0) {
+                c.investors.splice(invIdx, 1);
+            }
+            openInvestorsModal(compId);
+            renderMarket();
+            showToast(`Odkupiono ${count}% udziałów od ${inv.name}!`);
+        }
+
+        function renderManagement() {
+            const grid = document.getElementById('management-grid');
+            grid.innerHTML = '';
+            let controlled = game.companies.filter(c => c.playerShares > 50);
+            if(controlled.length === 0) {
+                grid.innerHTML = '<div class="text-xs text-slate-500 col-span-full">Brak spółek z pakietem większościowym (>50%). Zwiększ udziały w zakładce Giełda!</div>';
+                return;
+            }
+            controlled.forEach(c => {
+                grid.innerHTML += `
+                    <div class="glass-card p-5 rounded-2xl space-y-3 text-xs border border-purple-500/40">
+                        <h4 class="font-bold text-purple-300 text-sm">🏛️ ${c.name} (Pakiet: ${c.playerShares}%)</h4>
+                        <p class="text-slate-400">Kontrolujesz zarząd spółki. Możesz przeprowadzić restrukturyzację lub pobrać dywidendę.</p>
+                        <div class="flex gap-2">
+                            <button onclick="collectDividend('${c.id}')" class="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-xl font-bold">Wypłać Dywidendę (50,000 zł)</button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function collectDividend(compId) {
+            let c = game.companies.find(comp => comp.id === compId);
+            if(c) {
+                modifyMoney(50000);
+                showToast(`Wypłacono dywidendę ze spółki ${c.name}!`);
+            }
+        }
+
+        function renderHR() {
+            const grid = document.getElementById('recruitment-grid');
+            while(game.candidates.length < 3) {
+                game.candidates.push({
+                    id: Date.now() + Math.random(),
+                    name: `${firstNames[Math.floor(Math.random()*firstNames.length)]} ${lastNames[Math.floor(Math.random()*lastNames.length)]}`,
+                    skill: Math.floor(Math.random() * 20) + 10,
+                    salary: Math.floor(Math.random() * 3000) + 2000
+                });
+            }
+            grid.innerHTML = '';
+            game.candidates.forEach(cand => {
+                grid.innerHTML += `
+                    <div class="glass-card p-4 rounded-2xl flex flex-col justify-between gap-3 text-xs">
+                        <div>
+                            <strong class="text-sm text-slate-100">${cand.name}</strong>
+                            <p class="text-slate-400 mt-1">Umiejętności: <strong class="text-indigo-300">${cand.skill}</strong> | Pensja: ${cand.salary} zł/s</p>
+                        </div>
+                        <button onclick="hireCandidate(${cand.id})" class="py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold transition">Zatrudnij</button>
+                    </div>
+                `;
+            });
+        }
+
+        function hireCandidate(id) {
+            if(game.staff.length >= game.staffLimit) { showToast('Osiągnięto limit personelu!', 'error'); return; }
+            let idx = game.candidates.findIndex(c => c.id === id);
+            if(idx !== -1) {
+                game.staff.push(game.candidates.splice(idx, 1)[0]);
+                renderHR();
+                updateUI();
+                showToast('Zatrudniono inżyniera!');
+            }
         }
 
         function updateUI() {
             document.getElementById('company-money').textContent = `${Math.floor(game.money).toLocaleString()} zł`;
-            document.getElementById('company-market-share').textContent = `${game.marketShare}%`;
-
-            if(game.activeProject) {
-                document.getElementById('no-project-view').classList.add('hidden');
-                document.getElementById('active-project-view').classList.remove('hidden');
-                let p = game.activeProject;
-                document.getElementById('proj-name').textContent = p.name;
-                p.progress += 2;
-                let pct = Math.min(100, p.progress);
-                document.getElementById('proj-progress-text').textContent = `${pct}%`;
-                document.getElementById('proj-progress-bar').style.width = `${pct}%`;
-                if(pct >= 100) {
-                    showToast(`Zakończono projekt ${p.name}!`);
-                    game.activeProject = null;
-                }
-            }
+            document.getElementById('company-staff-count').textContent = `${game.staff.length} / ${game.staffLimit}`;
+            document.getElementById('staff-limit-label').textContent = game.staffLimit;
         }
 
-        // Pętla gry
+        // Pętla główna gry
         setInterval(() => {
-            // Pasywne zyski z akcji (>0%)
-            game.companies.forEach(c => {
-                if(c.playerShares > 0) {
-                    let dividend = Math.round(c.sharePricePerPercent * 0.1 * c.playerShares);
-                    modifyMoney(dividend);
+            let totalSalaries = game.staff.reduce((acc, s) => acc + s.salary, 0);
+            let activeServersUpkeep = game.servers.filter(s => s.active).reduce((acc, s) => acc + s.upkeep, 0);
+            let totalCost = totalSalaries + activeServersUpkeep;
+            if(totalCost > 0) modifyMoney(-totalCost);
+
+            let totalSkill = game.staff.reduce((acc, s) => acc + s.skill, 0);
+            let totalCapacity = game.servers.filter(s => s.active).reduce((acc, s) => acc + s.capacity, 0);
+            let currentUsers = game.software.reduce((acc, s) => acc + s.users, 0);
+
+            game.software.forEach(s => {
+                if(!s.active) {
+                    s.progress += (totalSkill > 0 ? totalSkill * 0.15 : 0.1);
+                    if(s.progress >= s.maxProgress) {
+                        s.active = true;
+                        showToast(`Premiera ${s.name} zakończona sukcesem!`);
+                    }
+                } else {
+                    if(currentUsers < totalCapacity) {
+                        s.users += (totalSkill * 10 + 30);
+                    }
+                    s.revenue = s.users * 0.2;
+                    modifyMoney(s.revenue);
                 }
             });
+
+            // Ciągłe generowanie nowych firm na giełdzie w tle
+            if(Math.random() < 0.1 && game.companies.length < 6) {
+                let newName = compPrefix[Math.floor(Math.random()*compPrefix.length)] + ' ' + compSuffix[Math.floor(Math.random()*compSuffix.length)];
+                game.companies.push({
+                    id: 'comp_' + Date.now(),
+                    name: newName,
+                    sharePrice: Math.floor(Math.random() * 20000) + 8000,
+                    playerShares: 0,
+                    investors: [
+                        { name: 'Założyciel', shares: 60 },
+                        { name: 'Fundusz Seed', shares: 40 }
+                    ]
+                });
+                if(!document.getElementById('tab-market').classList.contains('hidden')) renderMarket();
+            }
+
             updateUI();
+            if(!document.getElementById('tab-software').classList.contains('hidden')) renderSoftware();
         }, 1000);
 
         updateUI();
