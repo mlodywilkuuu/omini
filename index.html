@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tech Giant Tycoon - Ultimate Hardware Edition v48</title>
+    <title>Tech Giant Tycoon - Ultimate Hardware Edition v49</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -59,7 +59,7 @@
     <header class="glass-panel border-b border-slate-800/80 px-6 py-4 flex justify-between items-center z-30 relative shadow-xl">
         <div class="flex items-center gap-3">
             <div class="w-4 h-4 rounded-full bg-blue-500 animate-pulse shadow-lg shadow-blue-500/60"></div>
-            <h1 class="text-xl font-extrabold tracking-wide bg-gradient-to-r from-blue-400 via-indigo-300 to-cyan-400 bg-clip-text text-transparent">Tech Giant <span class="text-xs bg-blue-500/20 border border-blue-500/40 text-blue-300 px-3 py-1 rounded-full ml-2 font-semibold shadow-inner">Ultimate v48</span></h1>
+            <h1 class="text-xl font-extrabold tracking-wide bg-gradient-to-r from-blue-400 via-indigo-300 to-cyan-400 bg-clip-text text-transparent">Tech Giant <span class="text-xs bg-blue-500/20 border border-blue-500/40 text-blue-300 px-3 py-1 rounded-full ml-2 font-semibold shadow-inner">Ultimate v49</span></h1>
         </div>
         <div class="flex gap-3 text-xs items-center relative">
             <div id="floating-money-container" class="absolute -bottom-12 left-0 pointer-events-none z-50 font-bold"></div>
@@ -745,9 +745,9 @@
             });
         }
 
-        function saveGame() { localStorage.setItem('tech_giant_tycoon_save_v48', JSON.stringify(game)); }
+        function saveGame() { localStorage.setItem('tech_giant_tycoon_save_v49', JSON.stringify(game)); }
         function loadGame() {
-            const saved = localStorage.getItem('tech_giant_tycoon_save_v48');
+            const saved = localStorage.getItem('tech_giant_tycoon_save_v49');
             if(saved) {
                 try {
                     const parsed = JSON.parse(saved);
@@ -935,7 +935,7 @@
                 let totalAssigned = c.playerShares + c.aiInvestors.reduce((acc, curr) => acc + curr.shares, 0) + (c.listedSharesForSale || 0);
                 let availableShares = Math.max(0, 100 - totalAssigned);
 
-                let aiListHtml = c.playerShares > 0 ? `<li class="text-slate-300">• ${game.playerName}: <strong class="text-blue-400">${c.playerShares}%</strong></li>` : '';
+                let aiListHtml = c.playerShares > 0 ? `<li class="text-blue-300 font-bold">• ${game.playerName} (Ty): <strong class="text-blue-400">${c.playerShares}%</strong></li>` : '';
                 c.aiInvestors.forEach((inv, i) => {
                     aiListHtml += `<li class="text-slate-400">• <span class="text-amber-300 cursor-pointer hover:underline" title="Kliknij, aby odkupić udziały od tego inwestora" onclick="openTargetedBuyout('${c.id}', 'ai', ${i})">${inv.name}</span>: <strong class="text-slate-200">${inv.shares}%</strong></li>`;
                 });
@@ -998,7 +998,6 @@
             let gained = 25;
             comp.playerShares += gained;
             
-            // Odbierz udziały inwestorom AI
             while(gained > 0 && comp.aiInvestors.length > 0) {
                 let inv = comp.aiInvestors[0];
                 if(inv.shares <= gained) {
@@ -1128,7 +1127,7 @@
             let totalCost = count * proposedPricePerPercent;
 
             if(game.money < totalCost) {
-                showToast('Za mało środków w budżecie!', 'error');
+                showToast('Za mało środków w budżecie na tę transakcję!', 'error');
                 return;
             }
 
@@ -1144,7 +1143,7 @@
                     closeOfferModal();
                     renderAcquisitions();
                     saveGame();
-                    showToast(`Pomyślnie odkupiono ${count}% od ${inv.name}!`, 'success');
+                    showToast(`✅ Pomyślnie odkupiono ${count}% udziałów od ${inv.name} za ${totalCost.toLocaleString()} zł!`, 'success');
                 } else {
                     showToast('Inwestor nie posiada już tylu udziałów.', 'error');
                 }
@@ -1152,7 +1151,7 @@
                 let totalAssigned = comp.playerShares + comp.aiInvestors.reduce((acc, curr) => acc + curr.shares, 0) + (comp.listedSharesForSale || 0);
                 let availableShares = 100 - totalAssigned;
                 if(count > availableShares) {
-                    showToast('Brak tylu wolnych udziałów w firmie!', 'error');
+                    showToast('Brak tylu wolnych udziałów w firmie na rynku!', 'error');
                     return;
                 }
                 modifyMoney(-totalCost);
@@ -1160,7 +1159,7 @@
                 closeOfferModal();
                 renderAcquisitions();
                 saveGame();
-                showToast(`Zakupiono ${count}% wolnych udziałów w ${comp.name}!`, 'success');
+                showToast(`✅ Pomyślnie zakupiono ${count}% wolnych udziałów w ${comp.name} za ${totalCost.toLocaleString()} zł!`, 'success');
             }
         }
 
@@ -1198,7 +1197,7 @@
                     game.pendingProposals.splice(propIdx, 1);
                     renderAcquisitions();
                     saveGame();
-                    showToast('Zaakceptowano propozycję odkupu akcji!', 'success');
+                    showToast(`✅ Sprzedano ${prop.shares}% akcji ${comp.name} za ${prop.price.toLocaleString()} zł! Gotówka trafiła na konto.`, 'success');
                 } else {
                     showToast('Nie masz już wystarczającej liczby udziałów!', 'error');
                     game.pendingProposals.splice(propIdx, 1);
@@ -1210,7 +1209,7 @@
         function rejectProposal(id) {
             game.pendingProposals = game.pendingProposals.filter(p => p.id != id);
             renderAcquisitions();
-            showToast('Odrzucono propozycję.', 'error');
+            showToast('Odrzucono propozycję odkupu.', 'error');
         }
 
         let activeNegotiationPropId = null;
@@ -1897,7 +1896,7 @@
             } else if(cat === 'Rysik') {
                 lblSize.textContent = 'Długość'; unitSize.textContent = 'mm'; rangeSize.min = '100'; rangeSize.max = '160'; rangeSize.value = '140';
                 rangeThick.min = '5'; rangeThick.max = '15'; rangeSize.value = '9';
-                lblScreen.textContent = 'Nacisk'; unitSize.textContent = 'tys.'; rangeScreen.min = '2'; rangeScreen.max = '16'; rangeScreen.step = '2'; rangeScreen.value = '4';
+                lblScreen.textContent = 'Nacisk'; unitScreen.textContent = 'tys.'; rangeScreen.min = '2'; rangeScreen.max = '16'; rangeScreen.step = '2'; rangeScreen.value = '4';
             } else {
                 lblSize.textContent = 'Szerokość'; unitSize.textContent = 'mm'; rangeSize.min = '40'; rangeSize.max = '120'; rangeSize.value = '80';
                 rangeThick.min = '20'; rangeThick.max = '60'; rangeSize.value = '30';
