@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tech Empire Tycoon v19 - Ultimate Megalopolis Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         @keyframes gradientShift {
             0% { background-position: 0% 50%; }
@@ -150,7 +151,7 @@
                 </div>
             </div>
 
-            <!-- STAŁY PANEL PRZYDZIAŁU -->
+            <!-- STAŁY PANEL PRZYDZIAŁU (stabilny, bez zamykania) -->
             <div class="glass-panel rounded-3xl p-6 shadow-2xl space-y-4 border border-blue-500/30">
                 <div class="border-b border-slate-800 pb-3">
                     <h2 class="text-base font-bold text-blue-300">🖥️ Stały Panel Przydziału Mocy do Serwisów</h2>
@@ -169,7 +170,7 @@
             <div id="servers-grid" class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
         </div>
 
-        <!-- ZAKŁADKA 3: STATYSTYKI -->
+        <!-- ZAKŁADKA 3: STATYSTYKI Z WYKRESAMI -->
         <div id="tab-stats" class="tab-content flex flex-col gap-6 hidden">
             <div class="glass-panel rounded-3xl p-6 shadow-2xl space-y-4 border border-emerald-500/30">
                 <div class="border-b border-slate-800 pb-3">
@@ -192,6 +193,22 @@
                     <div class="glass-card p-4 rounded-2xl space-y-1">
                         <span class="text-slate-400 text-xs">Bilans Netto:</span>
                         <div id="fin-net" class="text-lg font-bold text-cyan-400">0 zł/s</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- INTERAKTYWNE WYKRESY (Chart.js) -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="glass-panel rounded-3xl p-6 shadow-2xl space-y-4">
+                    <h3 class="text-sm font-bold text-cyan-300">📈 Dynamika Gotówki Korporacji</h3>
+                    <div class="h-64 relative">
+                        <canvas id="chartMoney"></canvas>
+                    </div>
+                </div>
+                <div class="glass-panel rounded-3xl p-6 shadow-2xl space-y-4">
+                    <h3 class="text-sm font-bold text-emerald-300">📊 Przychody i Wydatki w czasie</h3>
+                    <div class="h-64 relative">
+                        <canvas id="chartIncome"></canvas>
                     </div>
                 </div>
             </div>
@@ -389,7 +406,6 @@
             <div class="space-y-4 text-xs">
                 <p id="buyout-info" class="text-slate-300"></p>
                 
-                <!-- BIEŻĄCA STRUKTURA AKCJONARIATU W MODALU -->
                 <div class="glass-card p-3 rounded-xl space-y-2">
                     <span class="font-semibold text-slate-300 block">Aktualny podział udziałów w spółce:</span>
                     <div id="modal-ownership-breakdown" class="space-y-1.5 max-h-36 overflow-y-auto"></div>
@@ -615,10 +631,16 @@
                         { name: 'Dyrektor Generalny', shares: 40, type: 'Insider' }
                     ]
                 }
-            ]
+            ],
+            // Historia do wykresów
+            historyLabels: [],
+            historyMoney: [],
+            historyIncome: []
         };
 
         let selectedStartMoney = 350000;
+        let chartMoneyInstance = null;
+        let chartIncomeInstance = null;
 
         function setStartBonus(amount, profileKey) {
             selectedStartMoney = amount;
@@ -646,6 +668,7 @@
             
             updateUI();
             renderSoftware();
+            initCharts();
             showToast(`Witaj w imperium, ${game.companyName}!`);
         }
 
@@ -763,7 +786,13 @@
             });
             if(tab === 'software') renderSoftware();
             if(tab === 'servers') renderServers();
-            if(tab === 'stats') renderStats();
+            if(tab === 'stats') {
+                renderStats();
+                setTimeout(() => {
+                    if(chartMoneyInstance) chartMoneyInstance.update();
+                    if(chartIncomeInstance) chartIncomeInstance.update();
+                }, 50);
+            }
             if(tab === 'market') renderMarket();
             if(tab === 'hr') renderHR();
         }
@@ -938,15 +967,9 @@
         function renderSoftware() {
             const grid = document.getElementById('software-grid');
             grid.innerHTML = game.software.length === 0 ? '<div class="text-xs text-slate-500 col-span-full">Brak projektów. Kliknij "+ Nowy Projekt", aby zacząć.</div>' : '';
-            let activeServers = game.servers.filter(srv => srv.active);
 
             game.software.forEach(s => {
                 let pct = Math.min(100, Math.floor((s.progress / s.maxProgress) * 100));
-                let serverOptions = `<option value="null">-- Brak (Offline) --</option>`;
-                activeServers.forEach(srv => {
-                    let sel = s.assignedServerId === srv.id ? 'selected' : '';
-                    serverOptions += `<option value="${srv.id}" ${sel}>Rack #${srv.id} (${srv.capacity.toLocaleString()} uż.)</option>`;
-                });
 
                 grid.innerHTML += `
                     <div class="glass-card p-5 rounded-2xl flex flex-col justify-between gap-4">
@@ -959,12 +982,6 @@
                             <p class="text-xs text-slate-400 mt-1">${s.active ? `Wyświetlenia: <strong class="text-cyan-400">${Math.floor(s.views).toLocaleString()}</strong> | Przychód: <strong class="text-emerald-400">${Math.floor(s.revenue).toLocaleString()} zł/s</strong>` : 'Trwają prace programistyczne...'}</p>
                         </div>
                         <div class="space-y-2">
-                            <div class="text-[11px] text-slate-400">
-                                <label class="block mb-1">Przypisz serwer:</label>
-                                <select onchange="assignServer(${s.id}, this.value)" class="w-full px-2 py-1.5 bg-slate-950 border border-slate-700 rounded-lg text-white">
-                                    ${serverOptions}
-                                </select>
-                            </div>
                             ${s.active ? `
                                 <button onclick="openUpdateModal(${s.id})" class="w-full py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl font-bold text-xs transition shadow">🚀 Centrum Aktualizacji</button>
                             ` : `
@@ -981,6 +998,57 @@
                         </div>
                     </div>
                 `;
+            });
+        }
+
+        function initCharts() {
+            const ctxMoney = document.getElementById('chartMoney').getContext('2d');
+            chartMoneyInstance = new Chart(ctxMoney, {
+                type: 'line',
+                data: {
+                    labels: game.historyLabels,
+                    datasets: [{
+                        label: 'Gotówka (zł)',
+                        data: game.historyMoney,
+                        borderColor: '#38bdf8',
+                        backgroundColor: 'rgba(56, 189, 248, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#94a3b8', font: { size: 10 } } },
+                        y: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#94a3b8', font: { size: 10 } } }
+                    }
+                }
+            });
+
+            const ctxIncome = document.getElementById('chartIncome').getContext('2d');
+            chartIncomeInstance = new Chart(ctxIncome, {
+                type: 'bar',
+                data: {
+                    labels: game.historyLabels,
+                    datasets: [{
+                        label: 'Przychód Netto (zł/s)',
+                        data: game.historyIncome,
+                        backgroundColor: '#34d399',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#94a3b8', font: { size: 10 } } },
+                        y: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#94a3b8', font: { size: 10 } } }
+                    }
+                }
             });
         }
 
@@ -1482,10 +1550,9 @@
                     if(inv.shares <= 0) c.investors.splice(buyoutData.invIdx, 1);
                 }
             } else if(buyoutData.isMarket) {
-                // Pomniejszamy losowego inwestora lub wolny rynek
+                // Wolny rynek pomniejszony
             }
 
-            // Odświeżenie modalu (dynamiczna zmiana struktury w czasie rzeczywistym)
             if(buyoutData.invIdx !== null && c.investors[buyoutData.invIdx]) {
                 buyoutData.maxShares = c.investors[buyoutData.invIdx].shares;
             } else if(buyoutData.isMarket) {
@@ -1583,9 +1650,11 @@
             document.getElementById('company-staff-count').textContent = `${game.staff.length} / ${game.staffLimit}`;
         }
 
+        let tickCounter = 0;
+
         // Pętla główna gry
         setInterval(() => {
-            if(document.getElementById('start-screen') && !document.getElementById('start-screen').classList.contains('hidden')) return;
+            if(document.getElementById('start-screen') && !document.getElementById('start-screen'].classList.contains('hidden')) return;
 
             let totalSalaries = game.staff.reduce((acc, s) => acc + s.salary, 0);
             let activeServersUpkeep = game.servers.filter(s => s.active).reduce((acc, s) => acc + s.upkeep, 0);
@@ -1596,6 +1665,7 @@
             if(totalCost > 0) modifyMoney(-totalCost);
 
             let totalSkill = game.staff.reduce((acc, s) => acc + s.skill, 0);
+            let currentTickIncome = 0;
 
             game.software.forEach(s => {
                 if(!s.active) {
@@ -1613,6 +1683,7 @@
                             }
                             s.views += Math.floor(s.users * 1.8 + 100);
                             s.revenue = s.users * 0.25;
+                            currentTickIncome += s.revenue;
                             modifyMoney(s.revenue);
                         } else {
                             s.revenue = 0;
@@ -1623,7 +1694,27 @@
                 }
             });
 
-            // Dynamiczna rotacja 6 firm na giełdzie oraz symulacja produktów
+            tickCounter++;
+            if(tickCounter >= 2) {
+                tickCounter = 0;
+                let nowStr = new Date().toLocaleTimeString();
+                game.historyLabels.push(nowStr);
+                game.historyMoney.push(Math.round(game.money));
+                game.historyIncome.push(Math.round(currentTickIncome + totalDividends - totalCost));
+
+                if(game.historyLabels.length > 15) {
+                    game.historyLabels.shift();
+                    game.historyMoney.shift();
+                    game.historyIncome.shift();
+                }
+
+                if(chartMoneyInstance && chartIncomeInstance) {
+                    chartMoneyInstance.update();
+                    chartIncomeInstance.update();
+                }
+            }
+
+            // Spółki zależne
             game.companies.forEach(c => {
                 let change = (Math.random() * 0.12 - 0.05);
                 if(c.policy === 'aggressive') change += 0.03;
@@ -1670,10 +1761,9 @@
                 }
             });
 
-            // Rotacja spółek na rynku (dokładnie utrzymujemy maksymalnie 6 firm, które się zmieniają)
+            // Utrzymujemy dokładnie 6 aktywnych spółek na rynku
             if(Math.random() < 0.15) {
                 if(game.companies.length > 6) {
-                    // Usuwamy losową firmę, w której gracz nie ma większości ani udziałów
                     let removableIndex = game.companies.findIndex(c => c.playerShares === 0);
                     if(removableIndex !== -1) {
                         game.companies.splice(removableIndex, 1);
