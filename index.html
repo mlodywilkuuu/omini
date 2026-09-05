@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tech Empire Tycoon v17 - Ultimate Megalopolis Edition</title>
+    <title>Tech Empire Tycoon v19 - Ultimate Megalopolis Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @keyframes gradientShift {
@@ -52,11 +52,40 @@
 </head>
 <body class="animated-bg text-slate-100 min-h-screen flex flex-col font-sans select-none overflow-x-hidden">
 
-    <!-- GÓRNY PASEK -->
+    <!-- EKRAN STARTOWY / WYBÓR NAZWY FIRMY -->
+    <div id="start-screen" class="fixed inset-0 bg-slate-950/95 backdrop-blur-xl z-50 flex items-center justify-center p-4">
+        <div class="glass-panel w-full max-w-lg rounded-3xl p-8 space-y-6 border border-cyan-500/30 shadow-2xl">
+            <div class="text-center space-y-2">
+                <div class="w-12 h-12 rounded-full bg-cyan-400 animate-pulse shadow-lg shadow-cyan-500/60 mx-auto mb-4"></div>
+                <h1 class="text-2xl font-extrabold bg-gradient-to-r from-cyan-400 via-blue-400 to-indigo-400 bg-clip-text text-transparent">Tech Empire Tycoon</h1>
+                <p class="text-xs text-slate-400">Wprowadź nazwę swojej nowej korporacji technologicznej, aby rozpocząć drogę na szczyt.</p>
+            </div>
+            
+            <div class="space-y-4 text-xs">
+                <div class="glass-card p-4 rounded-2xl space-y-2">
+                    <label class="block text-slate-200 font-semibold">Nazwa Firmy:</label>
+                    <input type="text" id="setup-company-name" value="Apex Corp" class="w-full px-4 py-3 bg-slate-950 border border-slate-700 rounded-xl text-white text-sm focus:outline-none focus:border-cyan-500 font-bold">
+                </div>
+
+                <div class="glass-card p-4 rounded-2xl space-y-2">
+                    <label class="block text-slate-200 font-semibold">Profil Startowy / Kapitał:</label>
+                    <div class="grid grid-cols-3 gap-2 pt-1">
+                        <button type="button" onclick="setStartBonus(350000, 'standard')" id="btn-profile-standard" class="p-3 rounded-xl border border-cyan-500 bg-cyan-500/10 text-cyan-300 font-bold text-center transition">Standard<br><span class="text-[10px] text-slate-400">350k zł</span></button>
+                        <button type="button" onclick="setStartBonus(1500000, 'vc')" id="btn-profile-vc" class="p-3 rounded-xl border border-slate-700 bg-slate-900 text-slate-300 font-semibold text-center transition">Wsparcie VC<br><span class="text-[10px] text-slate-400">1.5M zł</span></button>
+                        <button type="button" onclick="setStartBonus(50000, 'hardcore')" id="btn-profile-hardcore" class="p-3 rounded-xl border border-slate-700 bg-slate-900 text-slate-300 font-semibold text-center transition">Garażowiec<br><span class="text-[10px] text-slate-400">50k zł</span></button>
+                    </div>
+                </div>
+
+                <button onclick="startTheGame()" class="w-full py-4 bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white rounded-2xl font-bold text-sm transition shadow-lg shadow-blue-600/40">Rozpocznij Rozgrywkę 🚀</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- GÓRny PASEK -->
     <header class="glass-panel border-b border-slate-800/80 px-6 py-4 flex justify-between items-center z-30 sticky top-0 shadow-xl">
         <div class="flex items-center gap-3">
             <div class="w-4 h-4 rounded-full bg-cyan-400 animate-pulse shadow-lg shadow-cyan-500/60"></div>
-            <h1 class="text-lg font-extrabold bg-gradient-to-r from-cyan-400 via-blue-400 to-indigo-400 bg-clip-text text-transparent">Tech Empire Tycoon <span class="text-xs bg-cyan-500/20 border border-cyan-500/30 text-cyan-300 px-2 py-0.5 rounded-full ml-2">v17.0 Ultimate</span></h1>
+            <h1 id="header-company-title" class="text-lg font-extrabold bg-gradient-to-r from-cyan-400 via-blue-400 to-indigo-400 bg-clip-text text-transparent">Tech Empire Tycoon <span class="text-xs bg-cyan-500/20 border border-cyan-500/30 text-cyan-300 px-2 py-0.5 rounded-full ml-2">v19.0 Dynamic Market</span></h1>
         </div>
         <div class="flex gap-3 text-xs items-center relative">
             <div class="glass-card px-4 py-2 rounded-2xl flex items-center gap-2 border-slate-700/60 relative shadow-inner">
@@ -132,7 +161,7 @@
             <div class="glass-panel rounded-3xl p-6 shadow-2xl flex justify-between items-center">
                 <div>
                     <h2 class="text-base font-bold text-blue-300">Fizyczne Racki Serwerowe</h2>
-                    <p class="text-xs text-slate-400 mt-1">Włączaj, wyłączaj lub dokupuj szafy serwerowe.</p>
+                    <p class="text-xs text-slate-400 mt-1">Włączaj, wyłączaj lub dokupuj szafy serwerowe (zawsze trafiają do puli domyślnie wyłączone).</p>
                 </div>
                 <button onclick="buyServerRack()" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold text-xs transition shadow-lg">+ Dokup Rack (60,000 zł)</button>
             </div>
@@ -189,7 +218,7 @@
             <div id="market-grid" class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6"></div>
         </div>
 
-        <!-- ZAKŁADKA 5: BIURO I ROZBUDOWA (Z jednym przyciskiem ulepszenia) -->
+        <!-- ZAKŁADKA 5: BIURO I ROZBUDOWA -->
         <div id="tab-hr" class="tab-content flex flex-col gap-6 hidden">
             <div class="glass-panel rounded-3xl p-6 shadow-2xl space-y-4 border border-indigo-500/30">
                 <div class="border-b border-slate-800 pb-3 flex justify-between items-center">
@@ -229,9 +258,9 @@
 
     </main>
 
-    <!-- MODAL CENTRUM AKTUALIZACJI Z PASKIEM POSTĘPU -->
+    <!-- MODAL CENTRUM AKTUALIZACJI Z PASKIEM POSTĘPU I WIELOKROTNYM WYBOREM JĘZYKÓW -->
     <div id="update-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4 z-50">
-        <div class="glass-panel text-slate-100 w-full max-w-lg rounded-3xl shadow-2xl p-6 space-y-5 border border-blue-500/40">
+        <div class="glass-panel text-slate-100 w-full max-w-xl rounded-3xl shadow-2xl p-6 space-y-5 border border-blue-500/40 max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center border-b border-slate-800 pb-3">
                 <h3 id="update-modal-title" class="text-base font-bold text-blue-300">Centrum Wydawania Aktualizacji</h3>
                 <button onclick="closeUpdateModal()" class="text-slate-400 hover:text-white text-xs font-bold px-2 py-1 rounded bg-slate-800">✕</button>
@@ -246,14 +275,19 @@
                         <option value="ui">Przebudowa UI/UX (+30% wyświetleń, koszt: 40,000 zł)</option>
                         <option value="ai">Moduł Sztucznej Inteligencji (Podwojenie przychodów, koszt: 100,000 zł)</option>
                         <option value="security">Zaawansowany Firewall (Ochrona przed awariami, koszt: 75,000 zł)</option>
+                        <option value="monetization">Optymalizacja Monetyzacji (+50% przychodu, koszt: 120,000 zł)</option>
+                        <option value="cloudsync">Synchronizacja w Chmurze (+40% lojalności użytkowników, koszt: 90,000 zł)</option>
                     </select>
                 </div>
 
                 <div class="glass-card p-4 rounded-2xl space-y-3">
-                    <label class="block text-slate-200 font-semibold">Wybierz lokalizację językową:</label>
-                    <select id="update-lang-select" class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white">
-                        <option value="none">-- Brak nowego tłumaczenia --</option>
-                    </select>
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="block text-slate-200 font-semibold">Wybierz lokalizacje językowe (zaznacz wiele):</label>
+                        <span id="selected-langs-count" class="text-blue-400 font-bold">Zaznaczono: 0</span>
+                    </div>
+                    <div id="update-languages-checkboxes" class="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto p-2 bg-slate-950/60 rounded-xl border border-slate-800">
+                        <!-- Generowane dynamicznie -->
+                    </div>
                 </div>
 
                 <!-- PASEK POSTĘPU AKTUALIZACJI -->
@@ -438,6 +472,7 @@
         ];
 
         let game = {
+            companyName: 'Apex Corp',
             money: 350000,
             officeIndex: 0,
             staffLimit: 3,
@@ -479,7 +514,35 @@
             ]
         };
 
-        // Rozbudowana lista 15 biur
+        let selectedStartMoney = 350000;
+
+        function setStartBonus(amount, profileKey) {
+            selectedStartMoney = amount;
+            ['standard', 'vc', 'hardcore'].forEach(key => {
+                const btn = document.getElementById(`btn-profile-${key}`);
+                if (key === profileKey) {
+                    btn.className = "p-3 rounded-xl border border-cyan-500 bg-cyan-500/10 text-cyan-300 font-bold text-center transition";
+                } else {
+                    btn.className = "p-3 rounded-xl border border-slate-700 bg-slate-900 text-slate-300 font-semibold text-center transition";
+                }
+            });
+        }
+
+        function startTheGame() {
+            const nameInput = document.getElementById('setup-company-name').value.trim();
+            if (nameInput) {
+                game.companyName = nameInput;
+            }
+            game.money = selectedStartMoney;
+            
+            document.getElementById('header-company-title').innerHTML = `${game.companyName} <span class="text-xs bg-cyan-500/20 border border-cyan-500/30 text-cyan-300 px-2 py-0.5 rounded-full ml-2">v19.0 Dynamic Market</span>`;
+            document.getElementById('start-screen').classList.add('hidden');
+            
+            updateUI();
+            renderSoftware();
+            showToast(`Witaj w imperium, ${game.companyName}!`);
+        }
+
         const offices = [
             { name: 'Pokój w Akademiku', limit: 3, cost: 0, desc: 'Darmowy start na starym laptopie.' },
             { name: 'Garaż Start-upowy', limit: 8, cost: 75000, desc: 'Klasyczny garaż z kilkoma biurkami.' },
@@ -517,7 +580,6 @@
         const lastNames = ['Zieliński', 'Wójcik', 'Krawczyk', 'Kamiński', 'Lewandowski', 'Dąbrowski', 'Nowak', 'Mazur', 'Król', 'Wieczorek'];
         const compPrefix = ['Nova', 'Apex', 'Hyper', 'Stellar', 'Quantum', 'Omni', 'Vertex', 'Alpha', 'Nexus', 'Zenith', 'Titan', 'Vortex'];
         const compSuffix = ['Tech', 'Systems', 'Media', 'Net', 'Solutions', 'Software', 'Corp', 'Dynamics', 'AI', 'Global', 'Cloud'];
-        const investorTypes = ['Fundusz VC', 'Anioł Biznesu', 'Główny Inżynier', 'Bank Inwestycyjny', 'Założyciel'];
 
         function showToast(msg, type = 'success') {
             const container = document.getElementById('toast-container');
@@ -635,19 +697,33 @@
             if(!s) return;
             currentUpdateSoftId = softId;
             document.getElementById('update-modal-title').textContent = `Centrum Aktualizacji: ${s.name} (v${s.version}.${s.subVersion})`;
-            document.getElementById('update-modal-desc').textContent = `Wybierz pakiet aktualizacji oraz zainstaluj wsparcie dla nowych języków.`;
+            document.getElementById('update-modal-desc').textContent = `Wybierz pakiet aktualizacji oraz zaznacz dowolną liczbę nowych języków do lokalizacji.`;
             
-            const langSelect = document.getElementById('update-lang-select');
-            langSelect.innerHTML = `<option value="none">-- Brak nowego tłumaczenia --</option>`;
+            const container = document.getElementById('update-languages-checkboxes');
+            container.innerHTML = '';
+            
             worldLanguages.forEach(lang => {
                 if(!s.languages.includes(lang.code)) {
-                    langSelect.innerHTML += `<option value="${lang.code}">${lang.name} (+x${lang.bonus} bazy, koszt: ${lang.cost.toLocaleString()} zł)</option>`;
+                    container.innerHTML += `
+                        <label class="flex items-center gap-2 p-1.5 hover:bg-slate-900 rounded-lg cursor-pointer">
+                            <input type="checkbox" name="update-lang-cb" value="${lang.code}" data-cost="${lang.cost}" data-bonus="${lang.bonus}" onchange="updateSelectedLanguagesCount()" class="w-4 h-4 rounded bg-slate-900 border-slate-700 text-blue-600 focus:ring-0">
+                            <span class="text-slate-300 text-[11px]">${lang.name} <strong class="text-emerald-400">(${lang.cost.toLocaleString()} zł)</strong></span>
+                        </label>
+                    `;
                 }
             });
+            updateSelectedLanguagesCount();
 
             document.getElementById('update-progress-container').classList.add('hidden');
             document.getElementById('update-submit-btn').disabled = false;
             document.getElementById('update-modal').classList.remove('hidden');
+        }
+
+        function updateSelectedLanguagesCount() {
+            const checkboxes = document.querySelectorAll('input[name="update-lang-cb"]:checked');
+            let totalLangCost = 0;
+            checkboxes.forEach(cb => totalLangCost += parseInt(cb.dataset.cost));
+            document.getElementById('selected-langs-count').textContent = `Zaznaczono: ${checkboxes.length} (Koszt tłumaczeń: ${totalLangCost.toLocaleString()} zł)`;
         }
 
         function closeUpdateModal() {
@@ -661,18 +737,23 @@
             if(!s) return;
 
             let updateType = document.getElementById('update-type-select').value;
-            let langCode = document.getElementById('update-lang-select').value;
             
             let cost = 15000;
             if(updateType === 'ui') cost = 40000;
             if(updateType === 'ai') cost = 100000;
             if(updateType === 'security') cost = 75000;
+            if(updateType === 'monetization') cost = 120000;
+            if(updateType === 'cloudsync') cost = 90000;
 
-            let langObj = null;
-            if(langCode !== 'none') {
-                langObj = worldLanguages.find(l => l.code === langCode);
-                if(langObj) cost += langObj.cost;
-            }
+            let selectedCheckboxes = document.querySelectorAll('input[name="update-lang-cb"]:checked');
+            let chosenLangs = [];
+            let langBonusTotal = 0;
+
+            selectedCheckboxes.forEach(cb => {
+                cost += parseInt(cb.dataset.cost);
+                chosenLangs.push(cb.value);
+                langBonusTotal += parseFloat(cb.dataset.bonus) * 0.4;
+            });
 
             if(game.money < cost) {
                 showToast('Za mało środków na przeprowadzenie aktualizacji!', 'error');
@@ -703,10 +784,16 @@
                     if(updateType === 'bugfix') s.users = Math.round(s.users * 1.15 + 500);
                     if(updateType === 'ui') { s.views = Math.round(s.views * 1.3); s.users = Math.round(s.users * 1.25); }
                     if(updateType === 'ai') { s.revenue *= 1.5; s.users = Math.round(s.users * 1.4); }
-                    if(langObj) {
-                        s.languages.push(langObj.code);
-                        s.globalMultiplier += (langObj.bonus * 0.4);
-                    }
+                    if(updateType === 'security') { s.users = Math.round(s.users * 1.1); }
+                    if(updateType === 'monetization') { s.revenue *= 1.5; }
+                    if(updateType === 'cloudsync') { s.users = Math.round(s.users * 1.25); }
+
+                    chosenLangs.forEach(lCode => {
+                        if(!s.languages.includes(lCode)) {
+                            s.languages.push(lCode);
+                        }
+                    });
+                    s.globalMultiplier += langBonusTotal;
 
                     closeUpdateModal();
                     renderSoftware();
@@ -847,7 +934,7 @@
                 let currentTierObj = serverTiers[game.serverTier - 1];
                 game.servers.push({
                     id: game.servers.length + 1,
-                    active: false, // domyślnie wyłączony, żeby nie tracić kasy
+                    active: false,
                     capacity: Math.round(15000 * currentTierObj.multiplier),
                     upkeep: 400 * game.serverTier
                 });
@@ -1127,7 +1214,7 @@
             let totalAssigned = c.playerShares + c.investors.reduce((acc, i) => acc + i.shares, 0);
             let freeShares = Math.max(0, 100 - totalAssigned);
             buyoutData = { compId, invIdx: null, isMarket: true, maxShares: freeShares };
-            document.getElementById('buyout-modal-title').textContent = `Zakup z rynku: ${c.name}`;
+            document.getElementById('buyout-modal-title').textContent = `Zakup z wolnego rynku: ${c.name}`;
             document.getElementById('buyout-market-price').textContent = c.sharePrice.toLocaleString();
             document.getElementById('buyout-price').value = c.sharePrice;
             document.getElementById('buyout-count').value = Math.min(5, freeShares);
@@ -1187,17 +1274,18 @@
 
             modifyMoney(-totalCost);
             c.playerShares += count;
-            if(!buyoutData.isMarket) {
+            if(!buyoutData.isMarket && buyoutData.invIdx !== null) {
                 let inv = c.investors[buyoutData.invIdx];
-                inv.shares -= count;
-                if(inv.shares <= 0) c.investors.splice(buyoutData.invIdx, 1);
+                if(inv) {
+                    inv.shares -= count;
+                    if(inv.shares <= 0) c.investors.splice(buyoutData.invIdx, 1);
+                }
             }
             closeBuyoutModal();
             renderMarket();
             showToast('Zakupiono pomyślnie udziały!');
         }
 
-        // --- OBSŁUGA POJEDYNCZEGO PRZYCISKU ULEPSZENIA BIURA ---
         function upgradeOffice() {
             if(game.officeIndex >= offices.length - 1) {
                 showToast('Osiągnięto absolutnie najwyższy poziom biura w grze!', 'error');
@@ -1276,6 +1364,8 @@
 
         // Pętla główna gry
         setInterval(() => {
+            if(document.getElementById('start-screen') && !document.getElementById('start-screen').classList.contains('hidden')) return;
+
             let totalSalaries = game.staff.reduce((acc, s) => acc + s.salary, 0);
             let activeServersUpkeep = game.servers.filter(s => s.active).reduce((acc, s) => acc + s.upkeep, 0);
             let totalCost = totalSalaries + activeServersUpkeep;
@@ -1312,12 +1402,30 @@
                 }
             });
 
-            if(Math.random() < 0.3) {
+            if(Math.random() < 0.35) {
                 game.companies.forEach(c => {
                     let change = (Math.random() * 0.12 - 0.05);
                     if(c.policy === 'aggressive') change += 0.03;
                     c.trend = 1 + change;
                     c.sharePrice = Math.max(2000, Math.round(c.sharePrice * (1 + change)));
+
+                    if(c.investors.length > 1 && Math.random() < 0.5) {
+                        let idx1 = Math.floor(Math.random() * c.investors.length);
+                        let idx2 = Math.floor(Math.random() * c.investors.length);
+                        if(idx1 !== idx2 && c.investors[idx1].shares > 5) {
+                            let transferAmount = Math.floor(Math.random() * 5) + 1;
+                            c.investors[idx1].shares -= transferAmount;
+                            c.investors[idx2].shares += transferAmount;
+                        }
+                    }
+
+                    let totalAssigned = c.playerShares + c.investors.reduce((acc, i) => acc + i.shares, 0);
+                    let freeShares = 100 - totalAssigned;
+                    if(freeShares > 0 && Math.random() < 0.4 && c.investors.length > 0) {
+                        let luckyInvestor = c.investors[Math.floor(Math.random() * c.investors.length)];
+                        let buyAmount = Math.min(freeShares, Math.floor(Math.random() * 5) + 1);
+                        luckyInvestor.shares += buyAmount;
+                    }
                 });
                 if(!document.getElementById('tab-market').classList.contains('hidden')) renderMarket();
             }
