@@ -709,11 +709,9 @@
             game.money = selectedStartMoney;
 
             if (selectedStartMode === 'sandbox') {
-                // Maksymalny poziom biura (ostatni indeks)
                 game.officeIndex = offices.length - 1;
                 game.staffLimit = offices[game.officeIndex].limit;
 
-                // Najlepsi pracownicy (maksymalny personel)
                 game.staff = [];
                 for (let i = 0; i < game.staffLimit; i++) {
                     game.staff.push({
@@ -725,7 +723,6 @@
                     });
                 }
 
-                // Maksymalny poziom serwerów i racks
                 game.serverTier = serverTiers.length;
                 game.serverUpgradeCost = 999999999;
                 let maxTierObj = serverTiers[serverTiers.length - 1];
@@ -733,7 +730,7 @@
                 for (let i = 1; i <= 20; i++) {
                     game.servers.push({
                         id: i,
-                        active: true,
+                        active: false,
                         capacity: Math.round(15000 * maxTierObj.multiplier),
                         upkeep: 1000
                     });
@@ -775,7 +772,6 @@
             'Inżynier Kwantowy (Maksymalna wydajność)'
         ];
 
-        // 100 tierów serwerowych
         const serverTiers = [];
         let baseMult = 1.0;
         let baseCost = 150000;
@@ -898,7 +894,7 @@
             if (selectedStartMode === 'sandbox') {
                 initialProgress = 120;
                 initialActive = true;
-                initialRating = (Math.random() * 2 + 8).toFixed(1); // 8.0 - 10.0 w sandbox
+                initialRating = (Math.random() * 2 + 8).toFixed(1);
             }
 
             game.software.push({
@@ -1031,7 +1027,6 @@
                     });
                     s.globalMultiplier += langBonusTotal;
 
-                    // Losowa ocena po aktualizacji (poprawa lub pogorszenie)
                     let ratingChange = (Math.random() * 0.6 - 0.2);
                     let currentR = parseFloat(s.rating) || 7.0;
                     s.rating = Math.min(10.0, Math.max(3.0, currentR + ratingChange)).toFixed(1);
@@ -1230,7 +1225,6 @@
                 });
             }
 
-            // Statystyki kupionych spółek + przypisanie serwerów
             const subContainer = document.getElementById('subsidiaries-stats-container');
             subContainer.innerHTML = '';
             let ownedSubsidiaries = game.companies.filter(c => c.playerShares > 0);
@@ -1338,6 +1332,8 @@
         function renderServers() {
             const grid = document.getElementById('servers-grid');
             const allocationGrid = document.getElementById('server-allocation-grid');
+            if(!grid || !allocationGrid) return;
+            
             grid.innerHTML = '';
             allocationGrid.innerHTML = '';
             
@@ -1422,9 +1418,14 @@
 
         function renderMarket() {
             const grid = document.getElementById('market-grid');
+            if(!grid) return;
             grid.innerHTML = '';
             game.companies.forEach(c => {
                 let totalAssigned = c.playerShares + c.investors.reduce((acc, i) => acc + i.shares, 0);
+                if (totalAssigned > 100) {
+                    c.playerShares = Math.max(0, 100 - c.investors.reduce((acc, i) => acc + i.shares, 0));
+                    totalAssigned = 100;
+                }
                 let freeShares = Math.max(0, 100 - totalAssigned);
 
                 let investorsHtml = '';
@@ -1600,13 +1601,18 @@
             if(!c) return;
             let inv = c.investors[invIdx];
             if(!inv) return;
-            buyoutData = { compId, invIdx, isMarket: false, maxShares: inv.shares };
+            
+            let totalAssignedWithoutThisInv = c.playerShares + c.investors.reduce((acc, i, idx) => idx === invIdx ? acc : acc + i.shares, 0);
+            let maxAllowedBy100 = Math.max(0, 100 - totalAssignedWithoutThisInv);
+            let effectiveMax = Math.min(inv.shares, maxAllowedBy100);
+
+            buyoutData = { compId, invIdx, isMarket: false, maxShares: effectiveMax };
             document.getElementById('buyout-modal-title').textContent = `Kup udziały od: ${inv.name} (${c.name})`;
             document.getElementById('buyout-market-price').textContent = c.sharePrice.toLocaleString();
             document.getElementById('buyout-price').value = c.sharePrice;
-            document.getElementById('buyout-max-allowed').textContent = inv.shares;
-            document.getElementById('buyout-count').max = inv.shares;
-            document.getElementById('buyout-count').value = Math.min(5, inv.shares);
+            document.getElementById('buyout-max-allowed').textContent = effectiveMax;
+            document.getElementById('buyout-count').max = effectiveMax;
+            document.getElementById('buyout-count').value = Math.min(5, effectiveMax);
             updateBuyoutBreakdown();
             updateBuyoutTotal();
             document.getElementById('buyout-modal').classList.remove('hidden');
@@ -1634,14 +1640,17 @@
             buyoutData = null;
         }
 
-        document.getElementById('buyout-count').addEventListener('input', updateBuyoutTotal);
-        document.getElementById('buyout-price').addEventListener('input', updateBuyoutTotal);
+        const buyoutCountInput = document.getElementById('buyout-count');
+        const buyoutPriceInput = document.getElementById('buyout-price');
+        if(buyoutCountInput) buyoutCountInput.addEventListener('input', updateBuyoutTotal);
+        if(buyoutPriceInput) buyoutPriceInput.addEventListener('input', updateBuyoutTotal);
 
         function updateBuyoutBreakdown() {
             if(!buyoutData) return;
             let c = game.companies.find(comp => comp.id === buyoutData.compId);
             if(!c) return;
             let container = document.getElementById('modal-ownership-breakdown');
+            if(!container) return;
             container.innerHTML = `
                 <div class="flex justify-between items-center text-cyan-400 font-semibold px-2 py-1 bg-slate-950 rounded-lg">
                     <span>Ty (Gracz):</span>
@@ -1670,13 +1679,29 @@
 
         function updateBuyoutTotal() {
             if(!buyoutData) return;
-            let count = parseInt(document.getElementById('buyout-count').value) || 0;
-            let price = parseInt(document.getElementById('buyout-price').value) || 0;
+            let countEl = document.getElementById('buyout-count');
+            let priceEl = document.getElementById('buyout-price');
+            let totalEl = document.getElementById('buyout-total');
+            if(!countEl || !priceEl || !totalEl) return;
+
+            let count = parseInt(countEl.value) || 0;
+            let price = parseInt(priceEl.value) || 0;
+            
+            let c = game.companies.find(comp => comp.id === buyoutData.compId);
+            if (c) {
+                let currentTotalAssigned = c.playerShares + c.investors.reduce((acc, i, idx) => (buyoutData.invIdx !== null && idx === buyoutData.invIdx) ? acc : acc + i.shares, 0);
+                let maxAllowed = Math.max(0, 100 - currentTotalAssigned);
+                if (count > maxAllowed) {
+                    count = maxAllowed;
+                    countEl.value = count;
+                }
+            }
+
             if(count > buyoutData.maxShares) {
                 count = buyoutData.maxShares;
-                document.getElementById('buyout-count').value = count;
+                countEl.value = count;
             }
-            document.getElementById('buyout-total').textContent = (count * price).toLocaleString();
+            totalEl.textContent = (count * price).toLocaleString();
         }
 
         function submitBuyout() {
@@ -1685,6 +1710,11 @@
             if(!c) return;
             let count = parseInt(document.getElementById('buyout-count').value) || 0;
             let price = parseInt(document.getElementById('buyout-price').value) || 0;
+
+            let currentTotalAssigned = c.playerShares + c.investors.reduce((acc, i, idx) => (buyoutData.invIdx !== null && idx === buyoutData.invIdx) ? acc : acc + i.shares, 0);
+            if (currentTotalAssigned + count > 100) {
+                count = Math.max(0, 100 - currentTotalAssigned);
+            }
 
             let totalCost = count * price;
             if(count <= 0 || count > buyoutData.maxShares || game.money < totalCost) {
@@ -1701,12 +1731,17 @@
                     inv.shares -= count;
                     if(inv.shares <= 0) c.investors.splice(buyoutData.invIdx, 1);
                 }
-            } else if(buyoutData.isMarket) {
-                // Wolny rynek pomniejszony
+            }
+
+            let absoluteTotal = c.playerShares + c.investors.reduce((acc, i) => acc + i.shares, 0);
+            if (absoluteTotal > 100) {
+                let excess = absoluteTotal - 100;
+                c.playerShares = Math.max(0, c.playerShares - excess);
             }
 
             if(buyoutData.invIdx !== null && c.investors[buyoutData.invIdx]) {
-                buyoutData.maxShares = c.investors[buyoutData.invIdx].shares;
+                let otherAssigned = c.playerShares + c.investors.reduce((acc, i, idx) => idx === buyoutData.invIdx ? acc : acc + i.shares, 0);
+                buyoutData.maxShares = Math.min(c.investors[buyoutData.invIdx].shares, Math.max(0, 100 - otherAssigned));
             } else if(buyoutData.isMarket) {
                 let totalAssigned = c.playerShares + c.investors.reduce((acc, i) => acc + i.shares, 0);
                 buyoutData.maxShares = Math.max(0, 100 - totalAssigned);
@@ -1762,6 +1797,7 @@
             }
 
             const grid = document.getElementById('recruitment-grid');
+            if(!grid) return;
             while(game.candidates.length < 4) {
                 game.candidates.push({
                     id: Date.now() + Math.random(),
@@ -1798,8 +1834,10 @@
         }
 
         function updateUI() {
-            document.getElementById('company-money').textContent = `${Math.floor(game.money).toLocaleString()} zł`;
-            document.getElementById('company-staff-count').textContent = `${game.staff.length} / ${game.staffLimit}`;
+            const moneyEl = document.getElementById('company-money');
+            const staffEl = document.getElementById('company-staff-count');
+            if(moneyEl) moneyEl.textContent = `${Math.floor(game.money).toLocaleString()} zł`;
+            if(staffEl) staffEl.textContent = `${game.staff.length} / ${game.staffLimit}`;
         }
 
         let tickCounter = 0;
@@ -1815,6 +1853,8 @@
             if(totalCost > 0) modifyMoney(-totalCost);
 
             let totalSkill = game.staff.reduce((acc, s) => acc + s.skill, 0);
+            if (totalSkill === 0 && game.staff.length === 0) totalSkill = 1; // Minimalna moc bez personelu dla płynności w piaskownicy
+
             let currentTickIncome = 0;
 
             game.software.forEach(s => {
@@ -1822,7 +1862,6 @@
                     s.progress += (totalSkill > 0 ? totalSkill * 0.15 : 0.1);
                     if(s.progress >= s.maxProgress) {
                         s.active = true;
-                        // Losowa ocena krytyków po premierze (od 4.0 do 9.8)
                         let baseRating = (Math.random() * 5.8 + 4.0).toFixed(1);
                         s.rating = baseRating;
                         showToast(`Premiera ${s.name} zakończona sukcesem! Ocena krytyków: ${baseRating}/10`);
@@ -1877,7 +1916,6 @@
                 c.trend = 1 + change;
                 c.sharePrice = Math.max(2000, Math.round(c.sharePrice * (1 + change)));
 
-                // Jeśli sprzedam udziały (<50%), odłączamy serwery przypisane do spółki
                 if(c.playerShares <= 50) {
                     c.assignedServerId = null;
                 }
@@ -1906,7 +1944,6 @@
                             if(c.devMode === 'player') growthMult = 1.8;
                             else if(c.devMode === 'hybrid') growthMult = 1.4;
 
-                            // Jeśli spółka ma przypisany serwer gracza, sprawdźmy jego pojemność
                             if(c.assignedServerId !== null) {
                                 let srv = game.servers.find(sr => sr.id === c.assignedServerId && sr.active);
                                 if(srv) {
@@ -1934,7 +1971,6 @@
                 }
             });
 
-            // Utrzymujemy dokładnie 6 aktywnych spółek na rynku
             if(Math.random() < 0.15) {
                 if(game.companies.length > 6) {
                     let removableIndex = game.companies.findIndex(c => c.playerShares === 0);
@@ -1964,9 +2000,7 @@
             }
 
             updateUI();
-            // Odświeżamy serwery tylko gdy zakładka serwerów NIE jest aktywnie edytowana lub nie resetujemy już wybranego selecta w locie (tutaj renderServers jest wywoływane oszczędniej, a sekcja ma max-h-96 i overflow)
             if(!document.getElementById('tab-servers').classList.contains('hidden')) {
-                // Zapobiegamy gubieniu fokusu jeśli użytkownik klika wewnątrz panelu serwerów
                 if (document.activeElement && document.activeElement.tagName !== 'SELECT') {
                     renderServers();
                 }
@@ -1975,7 +2009,6 @@
             if(!document.getElementById('tab-stats').classList.contains('hidden')) renderStats();
         }, 1000);
 
-        // Inicjalizacja startowa przy załadowaniu (ponieważ ekran startowy został usunięty)
         updateUI();
         renderSoftware();
         initCharts();
