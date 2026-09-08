@@ -1172,6 +1172,11 @@
         }
 
         function renderStats() {
+            // Jeśli użytkownik ma obecnie fokus na jakimś selectcie w sekcji spółek, nie odświeżaj jej, aby nie chować menu
+            if (document.activeElement && document.activeElement.tagName === 'SELECT' && document.activeElement.closest('#subsidiaries-stats-container')) {
+                return;
+            }
+
             const container = document.getElementById('services-stats-container');
             container.innerHTML = '';
             let totalIncome = game.software.reduce((acc, s) => acc + (s.active ? s.revenue : 0), 0);
@@ -1330,6 +1335,11 @@
         }
 
         function renderServers() {
+            // Jeśli użytkownik ma zaznaczony select w panelu serwerów, nie nadpisujemy go, żeby nie chować menu
+            if (document.activeElement && document.activeElement.tagName === 'SELECT' && document.activeElement.closest('#server-allocation-grid')) {
+                return;
+            }
+
             const grid = document.getElementById('servers-grid');
             const allocationGrid = document.getElementById('server-allocation-grid');
             if(!grid || !allocationGrid) return;
@@ -1853,7 +1863,7 @@
             if(totalCost > 0) modifyMoney(-totalCost);
 
             let totalSkill = game.staff.reduce((acc, s) => acc + s.skill, 0);
-            if (totalSkill === 0 && game.staff.length === 0) totalSkill = 1; // Minimalna moc bez personelu dla płynności w piaskownicy
+            if (totalSkill === 0 && game.staff.length === 0) totalSkill = 1;
 
             let currentTickIncome = 0;
 
@@ -2001,9 +2011,7 @@
 
             updateUI();
             if(!document.getElementById('tab-servers').classList.contains('hidden')) {
-                if (document.activeElement && document.activeElement.tagName !== 'SELECT') {
-                    renderServers();
-                }
+                renderServers();
             }
             if(!document.getElementById('tab-software').classList.contains('hidden')) renderSoftware();
             if(!document.getElementById('tab-stats').classList.contains('hidden')) renderStats();
