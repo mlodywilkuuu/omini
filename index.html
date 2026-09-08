@@ -36,6 +36,11 @@
             transform: translateY(-2px);
             box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.2);
         }
+        select option {
+            background-color: #020617;
+            color: #f1f5f9;
+            padding: 8px;
+        }
         @keyframes floatUpGreen {
             0% { opacity: 1; transform: translateY(0) scale(1); }
             100% { opacity: 0; transform: translateY(-40px) scale(1.1); }
@@ -1172,7 +1177,6 @@
         }
 
         function renderStats() {
-            // Jeśli użytkownik ma obecnie fokus na jakimś selectcie w sekcji spółek, nie odświeżaj jej, aby nie chować menu
             if (document.activeElement && document.activeElement.tagName === 'SELECT' && document.activeElement.closest('#subsidiaries-stats-container')) {
                 return;
             }
@@ -1180,6 +1184,18 @@
             const container = document.getElementById('services-stats-container');
             container.innerHTML = '';
             let totalIncome = game.software.reduce((acc, s) => acc + (s.active ? s.revenue : 0), 0);
+            
+            // Dochodzą przychody ze spółek przejętych z serwerami/kontrolą gracza
+            game.companies.forEach(c => {
+                if (c.playerShares > 50) {
+                    c.software.forEach(sw => {
+                        if (sw.active && (c.usePlayerServers || c.devMode === 'player' || c.devMode === 'hybrid')) {
+                            totalIncome += (sw.revenue * 0.5); // Udział gracza w przychodach spółki
+                        }
+                    });
+                }
+            });
+
             let totalDividends = game.companies.reduce((acc, c) => acc + (c.playerShares > 0 ? (c.playerShares * c.sharePrice * 0.0004) : 0), 0);
             let totalSalaries = game.staff.reduce((acc, st) => acc + st.salary, 0);
             let activeServersUpkeep = game.servers.filter(s => s.active).reduce((acc, s) => acc + s.upkeep, 0);
@@ -1335,7 +1351,6 @@
         }
 
         function renderServers() {
-            // Jeśli użytkownik ma zaznaczony select w panelu serwerów, nie nadpisujemy go, żeby nie chować menu
             if (document.activeElement && document.activeElement.tagName === 'SELECT' && document.activeElement.closest('#server-allocation-grid')) {
                 return;
             }
@@ -1867,6 +1882,7 @@
 
             let currentTickIncome = 0;
 
+            // Produkty gracza
             game.software.forEach(s => {
                 if(!s.active) {
                     s.progress += (totalSkill > 0 ? totalSkill * 0.15 : 0.1);
@@ -1897,6 +1913,91 @@
                 }
             });
 
+            // Spółki zależne
+            game.companies.forEach(c => {
+                let change = (Math.random() * 0.12 - 0.05);
+                if(c.policy === 'aggressive') change += 0.03;
+                c.trend = 1 + change;
+                c.sharePrice = Math.max(2000, Math.round(c.sharePrice * (1 + change)));
+
+                if(c.playerShares <= 50) {
+                    c.assignedServerId = null;
+                }
+
+                if(c.playerShares > 50) {
+                    // Automatyczne tworzenie produktu przez spółkę
+                    if(c.software.length === 0 && Math.random() < 0.25) {
+                        let types = ['Przeglądarka', 'Serwis społecznościowy', 'System operacyjny', 'Komunikator', 'E-commerce'];
+                        let pName = c.name + ' ' + types[Math.floor(Math.random()*types.length)];
+                        let newSw = {
+                            id: Date.now() + Math.random(),
+                            name: pName,
+                            type: types[Math.floor(Math.random()*types.length)],
+                            version: 1,
+                            subVersion: 0,
+                            active: true,
+                            users: 5000,
+                            views: 20000,
+                            revenue: 500,
+                            globalMultiplier: 1.2,
+                            assignedServerId: null,
+                            rating: '7.8'
+                        };
+
+                        if (c.devMode === 'player') {
+                            // Jeśli gracz przejmuje pełną kontrolę, produkt ląduje bezpośrednio na głównej liście gracza!
+                            game.software.push(newSw);
+                            showToast(`Spółka ${c.name} ukończyła projekt "${pName}"! Trafił on do Twojego portfolio na głównej liście.`);
+                        } else {
+                            // W trybie niezależnym/hybrydowym produkt zostaje w spółce
+                            c.software.push(newSw);
+                        }
+                    }
+
+                    // Obsługa zysków z produktów spółki i użycia serwerów gracza
+                    c.software.forEach(sw => {
+                        if(sw.active) {
+                            let growthMult = 1.0;
+                            if(c.devMode === 'player') growthMult = 1.8;
+                            else if(c.devMode === 'hybrid') growthMult = 1.4;
+
+                            let revenueGenerated = 0;
+                            if(c.assignedServerId !== null) {
+                                let srv = game.servers.find(sr => sr.id === c.assignedServerId && sr.active);
+                                if(srv) {
+                                    sw.users += Math.round(500 * growthMult);
+                                    sw.revenue = sw.users * 0.3;
+                                    revenueGenerated = sw.revenue;
+                                } else {
+                                    sw.revenue = 0;
+                                }
+                            } else {
+                                sw.users += Math.round(200 * growthMult);
+                                sw.revenue = sw.users * 0.15;
+                                revenueGenerated = sw.revenue;
+                            }
+
+                            // Jeśli spółka używa serwerów gracza lub gracz zarządza, gracz zarabia udziały z przychodu!
+                            if (revenueGenerated > 0 && (c.usePlayerServers || c.devMode === 'player' || c.devMode === 'hybrid')) {
+                                let playerShareEarnings = revenueGenerated * 0.5; // 50% zysków z tego produktu trafia do gracza
+                                currentTickIncome += playerShareEarnings;
+                                modifyMoney(playerShareEarnings);
+                            }
+                        }
+                    });
+                }
+
+                if(c.investors.length > 1 && Math.random() < 0.5) {
+                    let idx1 = Math.floor(Math.random() * c.investors.length);
+                    let idx2 = Math.floor(Math.random() * c.investors.length);
+                    if(idx1 !== idx2 && c.investors[idx1].shares > 5) {
+                        let transferAmount = Math.floor(Math.random() * 5) + 1;
+                        c.investors[idx1].shares -= transferAmount;
+                        c.investors[idx2].shares += transferAmount;
+                    }
+                }
+            });
+
             tickCounter++;
             if(tickCounter >= 2) {
                 tickCounter = 0;
@@ -1918,68 +2019,6 @@
                     chartIncomeInstance.update();
                 }
             }
-
-            // Spółki zależne
-            game.companies.forEach(c => {
-                let change = (Math.random() * 0.12 - 0.05);
-                if(c.policy === 'aggressive') change += 0.03;
-                c.trend = 1 + change;
-                c.sharePrice = Math.max(2000, Math.round(c.sharePrice * (1 + change)));
-
-                if(c.playerShares <= 50) {
-                    c.assignedServerId = null;
-                }
-
-                if(c.playerShares > 50) {
-                    if(c.software.length === 0 && Math.random() < 0.2) {
-                        let types = ['Przeglądarka', 'Serwis społecznościowy', 'System operacyjny', 'Komunikator', 'E-commerce'];
-                        let pName = compPrefix[Math.floor(Math.random()*compPrefix.length)] + ' ' + (c.devMode === 'player' ? 'App' : 'Soft');
-                        c.software.push({
-                            id: Date.now() + Math.random(),
-                            name: pName,
-                            type: types[Math.floor(Math.random()*types.length)],
-                            version: 1,
-                            subVersion: 0,
-                            active: true,
-                            users: 1000,
-                            views: 5000,
-                            revenue: 250,
-                            rating: '7.5'
-                        });
-                    }
-
-                    c.software.forEach(sw => {
-                        if(sw.active) {
-                            let growthMult = 1.0;
-                            if(c.devMode === 'player') growthMult = 1.8;
-                            else if(c.devMode === 'hybrid') growthMult = 1.4;
-
-                            if(c.assignedServerId !== null) {
-                                let srv = game.servers.find(sr => sr.id === c.assignedServerId && sr.active);
-                                if(srv) {
-                                    sw.users += Math.round(500 * growthMult);
-                                    sw.revenue = sw.users * 0.3;
-                                } else {
-                                    sw.revenue = 0;
-                                }
-                            } else {
-                                sw.users += Math.round(200 * growthMult);
-                                sw.revenue = sw.users * 0.15;
-                            }
-                        }
-                    });
-                }
-
-                if(c.investors.length > 1 && Math.random() < 0.5) {
-                    let idx1 = Math.floor(Math.random() * c.investors.length);
-                    let idx2 = Math.floor(Math.random() * c.investors.length);
-                    if(idx1 !== idx2 && c.investors[idx1].shares > 5) {
-                        let transferAmount = Math.floor(Math.random() * 5) + 1;
-                        c.investors[idx1].shares -= transferAmount;
-                        c.investors[idx2].shares += transferAmount;
-                    }
-                }
-            });
 
             if(Math.random() < 0.15) {
                 if(game.companies.length > 6) {
