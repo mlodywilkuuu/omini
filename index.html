@@ -1185,12 +1185,11 @@
             container.innerHTML = '';
             let totalIncome = game.software.reduce((acc, s) => acc + (s.active ? s.revenue : 0), 0);
             
-            // Dochodzą przychody ze spółek przejętych z serwerami/kontrolą gracza
             game.companies.forEach(c => {
                 if (c.playerShares > 50) {
                     c.software.forEach(sw => {
                         if (sw.active && (c.usePlayerServers || c.devMode === 'player' || c.devMode === 'hybrid')) {
-                            totalIncome += (sw.revenue * 0.5); // Udział gracza w przychodach spółki
+                            totalIncome += (sw.revenue * 0.5);
                         }
                     });
                 }
@@ -1257,7 +1256,7 @@
                 ownedSubsidiaries.forEach(c => {
                     let subSoftwareHtml = '';
                     if(c.software.length === 0) {
-                        subSoftwareHtml = '<p class="text-xs text-slate-500 italic">Brak aktywnych produktów spółki.</p>';
+                        subSoftwareHtml = '<p class="text-xs text-slate-500 italic">Brak wewnętrznych produktów spółki.</p>';
                     } else {
                         c.software.forEach(sw => {
                             subSoftwareHtml += `
@@ -1294,7 +1293,7 @@
                                 </div>
                             </div>
                             <div class="space-y-2 pt-1">
-                                <span class="text-xs font-semibold text-slate-400 block">Produkty spółki:</span>
+                                <span class="text-xs font-semibold text-slate-400 block">Produkty wewnętrzne spółki:</span>
                                 <div class="space-y-1.5 max-h-40 overflow-y-auto">${subSoftwareHtml}</div>
                             </div>
                         </div>
@@ -1882,7 +1881,7 @@
 
             let currentTickIncome = 0;
 
-            // Produkty gracza
+            // Produkty gracza (oraz przejęte spółek w trybie 'player')
             game.software.forEach(s => {
                 if(!s.active) {
                     s.progress += (totalSkill > 0 ? totalSkill * 0.15 : 0.1);
@@ -1926,42 +1925,47 @@
 
                 if(c.playerShares > 50) {
                     // Automatyczne tworzenie produktu przez spółkę
-                    if(c.software.length === 0 && Math.random() < 0.25) {
+                    if(Math.random() < 0.25) {
                         let types = ['Przeglądarka', 'Serwis społecznościowy', 'System operacyjny', 'Komunikator', 'E-commerce'];
                         let pName = c.name + ' ' + types[Math.floor(Math.random()*types.length)];
-                        let newSw = {
-                            id: Date.now() + Math.random(),
-                            name: pName,
-                            type: types[Math.floor(Math.random()*types.length)],
-                            version: 1,
-                            subVersion: 0,
-                            active: true,
-                            users: 5000,
-                            views: 20000,
-                            revenue: 500,
-                            globalMultiplier: 1.2,
-                            assignedServerId: null,
-                            rating: '7.8'
-                        };
+                        
+                        // Sprawdź, czy produkt o takiej nazwie już istnieje
+                        let alreadyExists = game.software.some(sw => sw.name === pName) || c.software.some(sw => sw.name === pName);
+                        
+                        if (!alreadyExists) {
+                            let newSw = {
+                                id: Date.now() + Math.random(),
+                                name: pName,
+                                type: types[Math.floor(Math.random()*types.length)],
+                                version: 1,
+                                subVersion: 0,
+                                active: true,
+                                users: 5000,
+                                views: 20000,
+                                revenue: 500,
+                                globalMultiplier: 1.2,
+                                assignedServerId: c.assignedServerId, // Automatyczne przypisanie serwera spółki, jeśli jest
+                                rating: '7.8'
+                            };
 
-                        if (c.devMode === 'player') {
-                            // Jeśli gracz przejmuje pełną kontrolę, produkt ląduje bezpośrednio na głównej liście gracza!
-                            game.software.push(newSw);
-                            showToast(`Spółka ${c.name} ukończyła projekt "${pName}"! Trafił on do Twojego portfolio na głównej liście.`);
-                        } else {
-                            // W trybie niezależnym/hybrydowym produkt zostaje w spółce
-                            c.software.push(newSw);
+                            if (c.devMode === 'player') {
+                                // Jeśli gracz przejmuje pełną kontrolę, produkt trafia BEZPOŚREDNIO na główną listę gracza!
+                                game.software.push(newSw);
+                                showToast(`Spółka ${c.name} stworzyła projekt "${pName}" i dodano go do Twojego głównego portfolio!`);
+                            } else {
+                                // W trybie niezależnym/hybrydowym produkt zostaje w spółce
+                                c.software.push(newSw);
+                            }
                         }
                     }
 
-                    // Obsługa zysków z produktów spółki i użycia serwerów gracza
+                    // Obsługa zysków z produktów wewnętrznych spółki (jeśli są w trybie niezależnym/hybrydowym)
                     c.software.forEach(sw => {
                         if(sw.active) {
-                            let growthMult = 1.0;
-                            if(c.devMode === 'player') growthMult = 1.8;
-                            else if(c.devMode === 'hybrid') growthMult = 1.4;
-
+                            let growthMult = c.devMode === 'hybrid' ? 1.4 : 1.0;
                             let revenueGenerated = 0;
+                            
+                            // Użycie serwera spółki lub przypisanego serwera gracza
                             if(c.assignedServerId !== null) {
                                 let srv = game.servers.find(sr => sr.id === c.assignedServerId && sr.active);
                                 if(srv) {
@@ -1977,9 +1981,9 @@
                                 revenueGenerated = sw.revenue;
                             }
 
-                            // Jeśli spółka używa serwerów gracza lub gracz zarządza, gracz zarabia udziały z przychodu!
-                            if (revenueGenerated > 0 && (c.usePlayerServers || c.devMode === 'player' || c.devMode === 'hybrid')) {
-                                let playerShareEarnings = revenueGenerated * 0.5; // 50% zysków z tego produktu trafia do gracza
+                            // Jeśli spółka używa serwerów gracza lub jest w trybie hybrydowym, gracz zarabia udziały z przychodu!
+                            if (revenueGenerated > 0 && (c.usePlayerServers || c.devMode === 'hybrid')) {
+                                let playerShareEarnings = revenueGenerated * (c.playerShares / 100); 
                                 currentTickIncome += playerShareEarnings;
                                 modifyMoney(playerShareEarnings);
                             }
