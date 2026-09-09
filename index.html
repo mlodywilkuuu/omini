@@ -2772,6 +2772,41 @@ function upgradeServer(id){
 
 }
 
+function deleteServer(id){
+    const index=state.servers.findIndex(s=>s.id===id);
+    if(index<0)return;
+
+    const s=state.servers[index];
+    const data=serverTypes[s.type];
+    const resale=Math.floor(data.price*(0.35+Math.min(s.level,100)*0.005));
+
+    openModal(
+        `🗑️ Usuń serwer — ${escapeHtml(data.name)}`,
+        `
+        <div class="card">
+            <p>Serwer <b>${escapeHtml(data.name)}</b> jest na poziomie <b>LVL ${s.level}</b>.</p>
+            <p class="muted">Po usunięciu odzyskasz około <b class="green">${money(resale)}</b>.</p>
+            <button class="btn danger" style="width:100%" onclick="confirmDeleteServer('${s.id}')">🗑️ Usuń serwer</button>
+        </div>`
+    );
+}
+
+function confirmDeleteServer(id){
+    const index=state.servers.findIndex(s=>s.id===id);
+    if(index<0)return closeModal();
+
+    const s=state.servers[index];
+    const data=serverTypes[s.type];
+    const resale=Math.floor(data.price*(0.35+Math.min(s.level,100)*0.005));
+
+    state.servers.splice(index,1);
+    changeCash(resale,`sprzedaż/usunięcie ${data.name} LVL ${s.level}`);
+    closeModal();
+    toast(`🗑️ Usunięto ${data.name}. Odzyskano ${money(resale)}.`,`good`);
+    saveGame();
+    renderAll();
+}
+
 function totalServerCapacity(){
 
     return state.servers.reduce((sum,s)=>{
@@ -3218,72 +3253,59 @@ function confirmSellShares(companyId){
    DYNAMIC SHAREHOLDERS
 ============================================================ */
 
-function rebalanceShareholders(company){
+function normalizeCompanyShares(company){
+    if(!company)return;
 
-    const remaining=100-company.playerShares;
+    company.playerShares=clamp(Math.round(Number(company.playerShares)||0),0,100);
 
-    if(remaining<=0){
+    const target=Math.max(0,100-company.playerShares);
+    let holders=(Array.isArray(company.shareholders)?company.shareholders:[])
+        .filter(h=>h&&Number(h.shares)>0)
+        .map(h=>({...h,shares:Math.max(0,Math.round(Number(h.shares)||0))}));
+
+    if(target===0){
         company.shareholders=[];
         return;
     }
 
-    const old=company.shareholders||[];
+    let current=holders.reduce((sum,h)=>sum+h.shares,0);
 
-    let desired=Math.min(8,remaining);
-    desired=Math.max(1,random(Math.min(3,desired),desired));
-
-    const selected=[...old]
-        .filter(x=>x.shares>0)
-        .sort(()=>Math.random()-.5)
-        .slice(0,desired);
-
-    while(selected.length<desired){
-
-        const name=
-            investorNames[
-                random(0,investorNames.length-1)
-            ];
-
-        if(!selected.some(x=>x.name===name)){
-
-            selected.push({
-                id:uid("holder"),
-                name,
-                shares:1
-            });
-
-        }
-
+    if(!holders.length){
+        initializeShareholders(company);
+        return;
     }
 
-    let sharesLeft=remaining;
+    // Zachowujemy tych samych udziałowców. Zmiana udziałów gracza
+    // tylko proporcjonalnie zmienia ich liczbę — bez losowania i znikania.
+    if(current!==target){
+        const factor=target/current;
+        let assigned=0;
 
-    selected.forEach((holder,index)=>{
+        holders.forEach((h,i)=>{
+            if(i===holders.length-1){
+                h.shares=Math.max(0,target-assigned);
+            }else{
+                h.shares=Math.max(0,Math.floor(h.shares*factor));
+                assigned+=h.shares;
+            }
+        });
 
-        const left=selected.length-index;
-
-        if(left===1){
-            holder.shares=sharesLeft;
-        }else{
-
-            const max=Math.max(
-                1,
-                sharesLeft-(left-1)
-            );
-
-            holder.shares=random(
-                1,
-                Math.min(30,max)
-            );
-
+        // Rozdajemy brakujące pojedyncze udziały bez tworzenia nowych osób.
+        let diff=target-holders.reduce((sum,h)=>sum+h.shares,0);
+        let i=0;
+        while(diff>0&&holders.length){
+            holders[i%holders.length].shares++;
+            diff--;
+            i++;
         }
+    }
 
-        sharesLeft-=holder.shares;
+    company.shareholders=holders.filter(h=>h.shares>0);
+}
 
-    });
-
-    company.shareholders=selected.filter(x=>x.shares>0);
-
+function rebalanceShareholders(company){
+    // Kompatybilność ze starszymi zapisami gry. Nie losujemy już udziałowców.
+    normalizeCompanyShares(company);
 }
 
 
@@ -3310,7 +3332,11 @@ function openBuyout(companyId,holderId){
                 <label>Liczba udziałów do wykupu</label>
                 <input id="buyoutSharesAmount" type="number" min="1" max="${max}" value="1">
             </div>
-            <div class="card"><span class="muted">Łączny koszt</span><div class="stat-value" id="shareBuyoutTotal">${money(price)}</div></div>
+            <div class="card">
+                <span class="muted">Łączny koszt</span>
+                <div class="stat-value" id="shareBuyoutTotal">${money(price)}</div>
+                <div class="muted" style="margin-top:5px">Po wykupie: <b id="shareBuyoutRemaining">${max-1}</b> udziałów u tego udziałowca</div>
+            </div>
             <button class="btn primary" style="width:100%" onclick="confirmShareBuyout('${company.id}','${holder.id}')">🤝 Wykup udziały</button>
         </div>`
     );
@@ -3319,7 +3345,10 @@ function openBuyout(companyId,holderId){
         const input=document.getElementById("buyoutSharesAmount");
         if(input)input.addEventListener("input",()=>{
             const qty=clamp(parseInt(input.value)||0,0,max);
-            document.getElementById("shareBuyoutTotal").textContent=money(qty*price);
+            const total=document.getElementById("shareBuyoutTotal");
+            const remaining=document.getElementById("shareBuyoutRemaining");
+            if(total)total.textContent=money(qty*price);
+            if(remaining)remaining.textContent=max-qty;
         });
     },0);
 }
@@ -4393,7 +4422,7 @@ function gameTick(){
                 (sum,s)=>{
                     return sum+
                         serverTypes[s.type].price*
-                        .0015*
+                        .0006*
                         s.level;
                 },
                 0
@@ -4422,15 +4451,19 @@ function gameTick(){
             return;
         }
 
+        // Stabilniejsza giełda: ceny nie skaczą już co kilka sekund o duże wartości.
+        // Lekki dodatni trend + mała losowa zmiana sprawiają, że inwestycje są mniej
+        // karzące, a kontrolowane spółki mają niewielki bonus.
         const volatility=
-            (Math.random()-.48)*
-            (.015+state.reputation/10000);
+            .0008 +
+            (Math.random()-.5)*
+            (.0035+state.reputation/30000);
 
         const controlled=
             company.playerShares>50;
 
         const managementBoost=
-            controlled?.003:0;
+            controlled?.0015:0;
 
         company.price=
             clamp(
@@ -4903,6 +4936,7 @@ function renderServers(){
 
             <div class="server-actions">
                 <button class="btn primary" onclick="upgradeServer('${s.id}')">🛒 / ⬆️ Ulepsz serwer — ${money(upgradeCost)}</button>
+                <button class="btn danger" onclick="deleteServer('${s.id}')">🗑️ Usuń / sprzedaj</button>
             </div>
 
         </div>
@@ -5013,6 +5047,7 @@ function renderOffices(){
 function renderStock(){
 
     ensureMarketCompanies();
+    state.market.forEach(normalizeCompanyShares);
 
     const companies=state.market;
     const controlled=companies.filter(c=>c.playerShares>50).length;
@@ -5456,7 +5491,7 @@ function renderDashboardNumbers(){
                 (sum,s)=>
                     sum+
                     serverTypes[s.type].price*
-                    .0015*
+                    .0006*
                     s.level,
                 0
             )
