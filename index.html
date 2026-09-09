@@ -2615,6 +2615,7 @@ function hireCandidate(id){
     state.employees.push({id:uid("emp"),name:c.name,role:c.role,tags:[...c.tags],productivity:c.productivity,salary:c.salary,permissions:[...c.permissions]});
     state.employeeCandidates.splice(i,1);
     ensureEmployeeCandidates();
+    saveGame();
     logEvent(`👨‍💻 Zatrudniono <b>${escapeHtml(c.name)}</b> — <span class="badge">${escapeHtml(roles[c.role].name)}</span>.`);
     renderAll();
 }
@@ -2654,7 +2655,7 @@ function hireBestEmployee(){
             name:c.name,
             role:c.role,
             tags:perks,
-            productivity:Math.max(Number(c.productivity)||0,18),
+            productivity:Math.max(Number(c.productivity)||0,25),
             salary:Math.max(Number(c.salary)||0,500),
             permissions:Array.isArray(c.permissions)?[...c.permissions]:[]
         });
@@ -5566,18 +5567,9 @@ function runCheat(){
     const parts=command.split(/\s+/);
 
     if(parts[0].toLowerCase()==="employee" && parts[1]?.toLowerCase()==="best"){
-        if(state.employees.length>=employeeCapacity()){
-            toast("Brakuje miejsc w biurach. Ulepsz biuro.","bad");
-            return;
-        }
-        const c=generateEmployeeCandidate(true);
-        state.employees.push({
-            id:uid("emp"),name:c.name,role:c.role,tags:[...c.tags],
-            productivity:Math.max(c.productivity,18),salary:c.salary,permissions:[...c.permissions]
-        });
-        logEvent(`⚡ Kod <b>employee best</b>: dodano najlepszego kandydata <b>${escapeHtml(c.name)}</b>.`);
+        // Jedno użycie kodu uzupełnia WSZYSTKIE wolne miejsca w biurach.
+        hireBestEmployee();
         closeModal();
-        renderAll();
         return;
     }
 
