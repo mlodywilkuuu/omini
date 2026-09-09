@@ -2620,11 +2620,52 @@ function hireCandidate(id){
 }
 
 function hireBestEmployee(){
-    if(state.employees.length>=employeeCapacity()){toast("Brakuje miejsc w biurach. Ulepsz biuro.","bad");return;}
-    const best=state.employeeCandidates.reduce((a,b)=>!a||b.score>a.score?b:a,null);
-    if(best)hireCandidate(best.id);
-}
+    const max=typeof employeeCapacity==="function" ? Math.max(0,Math.floor(employeeCapacity())) : 0;
+    if(!Array.isArray(state.employees))state.employees=[];
+    if(!Array.isArray(state.employeeCandidates))state.employeeCandidates=[];
 
+    if(state.employees.length>=max){
+        toast(`Brakuje miejsc w biurach (${state.employees.length}/${max}). Ulepsz biuro.`,"bad");
+        return;
+    }
+
+    // Zapełnij wszystkie wolne miejsca najlepszymi możliwymi pracownikami.
+    const premiumTags=["ELITE","TOP PERFORMER","GENIUS","HYPER PRODUCTIVITY"];
+    while(state.employees.length<max){
+        if(typeof ensureEmployeeCandidates==="function")ensureEmployeeCandidates();
+
+        let candidates=state.employeeCandidates||[];
+        if(!candidates.length && typeof generateEmployeeCandidate==="function"){
+            candidates.push(generateEmployeeCandidate(true));
+        }
+        if(!candidates.length)break;
+
+        candidates.sort((a,b)=>
+            (Number(b.score)||0)-(Number(a.score)||0) ||
+            (Number(b.productivity)||0)-(Number(a.productivity)||0)
+        );
+
+        const c=candidates[0];
+        const perks=Array.isArray(c.tags)?[...c.tags]:[];
+        premiumTags.forEach(x=>{if(!perks.includes(x))perks.push(x);});
+
+        state.employees.push({
+            id:uid("emp"),
+            name:c.name,
+            role:c.role,
+            tags:perks,
+            productivity:Math.max(Number(c.productivity)||0,18),
+            salary:Math.max(Number(c.salary)||0,500),
+            permissions:Array.isArray(c.permissions)?[...c.permissions]:[]
+        });
+        state.employeeCandidates=state.employeeCandidates.filter(x=>x.id!==c.id);
+    }
+
+    ensureEmployeeCandidates();
+    logEvent(`🏆 <b>employee best</b>: zatrudniono najlepszych pracowników do pełnego limitu (${state.employees.length}/${max}).`);
+    saveGame();
+    renderAll();
+}
 function hireEmployee(){
     ensureEmployeeCandidates();
     const best=state.employeeCandidates.reduce((a,b)=>!a||b.score>a.score?b:a,null);
