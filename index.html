@@ -5437,29 +5437,31 @@ let lastFullRenderTick=-999;
 function renderTickUI(){
     const t=Number(state.tick)||0;
 
-    // Te elementy są małe i mogą być odświeżane często.
+    // TICK NIE PRZEBUDOWUJE CAŁEGO DOM. Aktualizujemy tylko liczby nagłówka.
+    // To usuwa przycięcia przy dużej liczbie produktów, pracowników i spółek.
     renderHeader();
     renderDashboardNumbers();
 
-    // Lista produktów jest cięższa — odświeżamy ją co 2 ticki.
-    if(t-lastProductsRenderTick>=2){
-        renderProducts();
-        lastProductsRenderTick=t;
-    }
+    // Odświeżamy tylko aktualnie otwartą stronę. Ukryte strony są
+    // przebudowywane dopiero po wejściu na nie przez showPage().
+    const active=document.querySelector('.page.active');
+    if(!active)return;
 
-    // Pełny render aplikacji tylko co 5 ticków (15 s).
-    // Wszystkie ręczne akcje nadal wywołują renderAll() natychmiast.
-    if(t-lastFullRenderTick>=5){
-        renderEvents();
-        renderEmployees();
-        renderServers();
-        renderOffices();
-        renderStock();
-        renderSubsidiaries();
-        renderManagement();
-        renderStatistics();
-        lastFullRenderTick=t;
-    }
+    const id=active.id;
+
+    // Cięższe listy odświeżamy rzadziej.
+    if(t-lastFullRenderTick<3)return;
+    lastFullRenderTick=t;
+
+    if(id==='page-products') renderProducts();
+    else if(id==='page-employees') renderEmployees();
+    else if(id==='page-servers') renderServers();
+    else if(id==='page-offices') renderOffices();
+    else if(id==='page-stock') renderStock();
+    else if(id==='page-subsidiaries') renderSubsidiaries();
+    else if(id==='page-management') renderManagement();
+    else if(id==='page-statistics') renderStatistics();
+    else if(id==='page-dashboard') renderEvents();
 }
 
 
@@ -5581,6 +5583,8 @@ function openCheatPanel(){
             input.addEventListener("keydown",e=>{
 
                 if(e.key==="Enter"){
+                    e.preventDefault();
+                    e.stopPropagation();
                     runCheat();
                 }
 
