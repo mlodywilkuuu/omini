@@ -278,6 +278,47 @@ button{cursor:pointer}
     margin:0 0 13px;
 }
 
+.compact-card{
+    padding:12px;
+    border-radius:13px;
+}
+
+.compact-card h3{font-size:14px;margin-bottom:7px}
+.compact-card .stat-value{font-size:20px;margin-top:5px}
+
+.top-timebox{
+    display:flex;
+    align-items:center;
+    gap:18px;
+    padding:9px 14px;
+    border:1px solid var(--border);
+    border-radius:13px;
+    background:rgba(13,22,40,.72);
+}
+.top-timebox div{display:flex;flex-direction:column;gap:2px}
+.top-timebox small{font-size:9px;color:var(--muted);letter-spacing:.08em}
+.top-timebox strong{font-size:16px}
+
+.employee-candidates{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:10px;
+}
+.employee-candidate{
+    padding:13px;
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:13px;
+    background:linear-gradient(145deg,rgba(31,45,75,.55),rgba(8,14,27,.7));
+}
+.employee-candidate .candidate-top{display:flex;justify-content:space-between;gap:8px;align-items:start}
+.employee-candidate .candidate-name{font-weight:800;font-size:14px}
+.employee-candidate .candidate-score{font-weight:900;color:var(--cyan)}
+.employee-perks{display:flex;flex-wrap:wrap;gap:5px;margin:9px 0}
+.employee-perks .badge{font-size:9px;padding:4px 7px}
+
+@media(max-width:1100px){.employee-candidates{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:760px){.employee-candidates{grid-template-columns:1fr}.top-timebox{gap:10px;padding:8px 10px}}
+
 .grid{
     display:grid;
     grid-template-columns:repeat(4,1fr);
@@ -577,33 +618,62 @@ th{
 }
 
 .flow-chart{
-    height:220px;
+    height:270px;
+    position:relative;
     display:flex;
     align-items:flex-end;
     gap:7px;
-    padding:15px 8px 0;
+    padding:28px 12px 34px;
     overflow:hidden;
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:18px;
+    background:
+        linear-gradient(to bottom,rgba(255,255,255,.055) 1px,transparent 1px) 0 0/100% 20%,
+        radial-gradient(circle at 50% 100%,rgba(55,215,255,.08),transparent 55%),
+        rgba(5,12,25,.46);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.035),0 18px 45px rgba(0,0,0,.18);
 }
+.flow-chart:before{content:"PRZYCHODY";position:absolute;top:9px;left:13px;font-size:9px;font-weight:800;letter-spacing:.12em;color:var(--green)}
+.flow-chart:after{content:"WYDATKI";position:absolute;top:9px;right:13px;font-size:9px;font-weight:800;letter-spacing:.12em;color:var(--red)}
 
 .flow-column{
     flex:1;
-    min-width:10px;
+    min-width:12px;
     height:100%;
     display:flex;
     align-items:flex-end;
-    gap:3px;
+    justify-content:center;
+    gap:4px;
+    position:relative;
+}
+
+.flow-column::after{
+    content:attr(data-tick);
+    position:absolute;
+    bottom:-23px;
+    left:50%;
+    transform:translateX(-50%);
+    color:var(--muted);
+    font-size:9px;
+    white-space:nowrap;
 }
 
 .flow-bar{
-    flex:1;
-    min-height:3px;
-    border-radius:4px 4px 0 0;
-    transition:height .25s ease;
+    width:calc(50% - 3px);
+    min-height:4px;
+    border-radius:8px 8px 3px 3px;
+    transition:height .3s ease,filter .2s ease,transform .2s ease;
     cursor:help;
+    box-shadow:0 7px 18px rgba(0,0,0,.25),inset 0 1px 0 rgba(255,255,255,.22);
 }
 
-.flow-income{ background:#21df91; }
-.flow-expense{ background:#ff5575; }
+.flow-bar:hover{
+    filter:brightness(1.18);
+    transform:translateY(-2px);
+}
+
+.flow-income{ background:linear-gradient(to top,#16b878,#49f2b0); }
+.flow-expense{ background:linear-gradient(to top,#d83e61,#ff7993); }
 
 /* SERVER */
 
@@ -921,6 +991,11 @@ th{
         Panel firmy
     </div>
 
+    <div class="top-timebox">
+        <div><small>DZIEŃ</small><strong id="topDay">1</strong></div>
+        <div><small>GODZINA</small><strong id="topClock">00:00</strong></div>
+    </div>
+
     <div class="cashbox">
         <small>GOTÓWKA FIRMY</small>
         <div class="cash" id="cash">$250,000</div>
@@ -943,25 +1018,25 @@ th{
 
     <div class="grid">
 
-        <div class="card stat">
+        <div class="card stat compact-card">
             <div class="stat-label">Gotówka</div>
             <div class="stat-value" id="dashCash">$250,000</div>
             <div class="stat-extra">kapitał firmy</div>
         </div>
 
-        <div class="card stat">
+        <div class="card stat compact-card">
             <div class="stat-label">Pracownicy</div>
             <div class="stat-value" id="dashEmployees">0</div>
             <div class="stat-extra" id="dashCapacity">0 / 0 miejsc</div>
         </div>
 
-        <div class="card stat">
+        <div class="card stat compact-card">
             <div class="stat-label">Produkty</div>
             <div class="stat-value" id="dashProducts">0</div>
             <div class="stat-extra">w portfolio</div>
         </div>
 
-        <div class="card stat">
+        <div class="card stat compact-card">
             <div class="stat-label">Wartość udziałów</div>
             <div class="stat-value" id="dashStocks">$0</div>
             <div class="stat-extra">portfel giełdowy</div>
@@ -1058,24 +1133,9 @@ th{
     <br>
 
     <div class="card">
-
-        <h3>➕ Zatrudnij pracownika</h3>
-
-        <div class="grid3">
-            <div class="card">
-                <b>🤖 Automatyczne zatrudnianie</b>
-                <p class="muted">Gra sama wygeneruje imię, stanowisko i tagi pracownika.</p>
-            </div>
-            <div class="card">
-                <b>🏷️ Tagi</b>
-                <p class="muted">Np. <span class="badge">Programista</span> <span class="badge">AI</span> <span class="badge">DevOps</span></p>
-            </div>
-            <div>
-                <label style="display:block;color:var(--muted);font-size:12px;margin-bottom:5px">Akcja</label>
-                <button class="btn primary" onclick="hireEmployee()">👨‍💻 Wygeneruj pracownika</button>
-            </div>
-        </div>
-
+        <h3>👥 Kandydaci do zatrudnienia</h3>
+        <p class="muted">Gra automatycznie generuje pracowników. Każdy kandydat ma rolę, tagi i losowo dobrane mocne perki.</p>
+        <div id="employeeCandidates" class="employee-candidates"></div>
     </div>
 
     <div class="card">
@@ -1122,64 +1182,56 @@ th{
             <h3>🖥️ Serwer podstawowy</h3>
             <p class="muted">Dobry na początek.</p>
             <div class="stat-value">$12,000</div>
-            <button class="btn primary" onclick="buyServer('basic')">Kup serwer</button>
-            <button class="btn" onclick="buyAndUpgradeServerType('basic')">⬆️ Ulepsz / kup</button>
+            <button class="btn primary" id="server-action-basic" onclick="manageServerType('basic')">🛒 Kup / ⬆️ Ulepsz</button>
         </div>
 
         <div class="card">
             <h3>⚡ Serwer wydajny</h3>
             <p class="muted">Duża moc obliczeniowa.</p>
             <div class="stat-value">$45,000</div>
-            <button class="btn primary" onclick="buyServer('power')">Kup serwer</button>
-            <button class="btn" onclick="buyAndUpgradeServerType('power')">⬆️ Ulepsz / kup</button>
+            <button class="btn primary" id="server-action-power" onclick="manageServerType('power')">🛒 Kup / ⬆️ Ulepsz</button>
         </div>
 
         <div class="card">
             <h3>🤖 AI Cluster</h3>
             <p class="muted">Infrastruktura dla AI.</p>
             <div class="stat-value">$150,000</div>
-            <button class="btn primary" onclick="buyServer('ai')">Kup serwer</button>
-            <button class="btn" onclick="buyAndUpgradeServerType('ai')">⬆️ Ulepsz / kup</button>
+            <button class="btn primary" id="server-action-ai" onclick="manageServerType('ai')">🛒 Kup / ⬆️ Ulepsz</button>
         </div>
 
         <div class="card">
             <h3>🚀 Compute Pro</h3>
             <p class="muted">Wysoka moc dla dużych produktów.</p>
             <div class="stat-value">$300,000</div>
-            <button class="btn primary" onclick="buyServer('compute')">Kup serwer</button>
-            <button class="btn" onclick="buyAndUpgradeServerType('compute')">⬆️ Ulepsz / kup</button>
+            <button class="btn primary" id="server-action-compute" onclick="manageServerType('compute')">🛒 Kup / ⬆️ Ulepsz</button>
         </div>
 
         <div class="card">
             <h3>🧠 Neural Rack</h3>
             <p class="muted">Akceleracja modeli AI i ML.</p>
             <div class="stat-value">$550,000</div>
-            <button class="btn primary" onclick="buyServer('neural')">Kup serwer</button>
-            <button class="btn" onclick="buyAndUpgradeServerType('neural')">⬆️ Ulepsz / kup</button>
+            <button class="btn primary" id="server-action-neural" onclick="manageServerType('neural')">🛒 Kup / ⬆️ Ulepsz</button>
         </div>
 
         <div class="card">
             <h3>☁️ Cloud Node</h3>
             <p class="muted">Duża pojemność usług internetowych.</p>
             <div class="stat-value">$900,000</div>
-            <button class="btn primary" onclick="buyServer('cloud')">Kup serwer</button>
-            <button class="btn" onclick="buyAndUpgradeServerType('cloud')">⬆️ Ulepsz / kup</button>
+            <button class="btn primary" id="server-action-cloud" onclick="manageServerType('cloud')">🛒 Kup / ⬆️ Ulepsz</button>
         </div>
 
         <div class="card">
             <h3>💾 Data Vault</h3>
             <p class="muted">Magazyn danych i systemy enterprise.</p>
             <div class="stat-value">$1,400,000</div>
-            <button class="btn primary" onclick="buyServer('vault')">Kup serwer</button>
-            <button class="btn" onclick="buyAndUpgradeServerType('vault')">⬆️ Ulepsz / kup</button>
+            <button class="btn primary" id="server-action-vault" onclick="manageServerType('vault')">🛒 Kup / ⬆️ Ulepsz</button>
         </div>
 
         <div class="card">
             <h3>⚛️ Quantum Core</h3>
             <p class="muted">Najwyższa klasa infrastruktury.</p>
             <div class="stat-value">$2,500,000</div>
-            <button class="btn primary" onclick="buyServer('quantum')">Kup serwer</button>
-            <button class="btn" onclick="buyAndUpgradeServerType('quantum')">⬆️ Ulepsz / kup</button>
+            <button class="btn primary" id="server-action-quantum" onclick="manageServerType('quantum')">🛒 Kup / ⬆️ Ulepsz</button>
         </div>
 
     </div>
@@ -1214,24 +1266,24 @@ th{
         <div class="card">
             <h3>🏠 Małe biuro</h3>
             <p class="muted">10 pracowników na poziomie 1.</p>
-            <button class="btn primary" onclick="buyOffice('small')">
-                Kup — $25,000
+            <button class="btn primary" onclick="manageOfficeType('small')">
+                Kup / ⬆️ Ulepsz — $25,000
             </button>
         </div>
 
         <div class="card">
             <h3>🏙️ Biuro miejskie</h3>
             <p class="muted">25 pracowników na poziomie 1.</p>
-            <button class="btn primary" onclick="buyOffice('city')">
-                Kup — $75,000
+            <button class="btn primary" onclick="manageOfficeType('city')">
+                Kup / ⬆️ Ulepsz — $75,000
             </button>
         </div>
 
         <div class="card">
             <h3>🏢 Headquarters</h3>
             <p class="muted">60 pracowników na poziomie 1.</p>
-            <button class="btn primary" onclick="buyOffice('hq')">
-                Kup — $200,000
+            <button class="btn primary" onclick="manageOfficeType('hq')">
+                Kup / ⬆️ Ulepsz — $200,000
             </button>
         </div>
 
@@ -1547,6 +1599,7 @@ const state = {
     selectedProductType:null,
 
     employees:[],
+    employeeCandidates:[],
 
     offices:[],
 
@@ -2198,13 +2251,15 @@ function startProductCreation(){
 
 
 function withdrawProduct(productId){
-    const p=state.products.find(x=>x.id===productId);
-    if(!p || p.status!=="released")return;
-    if(!confirm(`Wycofać produkt "${p.name}" z rynku? Przestanie generować przychód.`))return;
-    p.status="withdrawn";
-    p.assignedTo=null;
-    logEvent(`⛔ Produkt <b>${escapeHtml(p.name)}</b> wycofano z rynku.`);
-    toast(`${escapeHtml(p.name)} wycofany z rynku.`);
+    const index=state.products.findIndex(x=>x.id===productId);
+    if(index<0)return;
+    const product=state.products[index];
+    if(product.status!=="released")return;
+
+    // Wycofanie oznacza całkowite usunięcie produktu z listy rynku.
+    state.products.splice(index,1);
+
+    logEvent(`⛔ Produkt <b>${escapeHtml(product.name)}</b> wycofano z rynku.`);
     renderAll();
 }
 
@@ -2408,52 +2463,75 @@ function officeCapacity(o){
 
 }
 
-function hireEmployee(){
+const employeeFirstNames=["Jan","Anna","Piotr","Maja","Kacper","Oliwia","Jakub","Zuzanna","Adam","Julia","Michał","Natalia","Alex","Emma","Daniel","Sophia","Liam","Noah","Amelia","Lucas"];
+const employeeLastNames=["Kowalski","Nowak","Wiśniewski","Zieliński","Wójcik","Kamińska","Lewandowski","Dąbrowska","Mazur","Kaczmarek","Król","Pawlak","Morgan","Carter","Brooks","Miller"];
+const employeePerkPool=[
+    "Szybki rozwój","Mistrz kodu","AI Expert","DevOps Pro","Architekt systemów",
+    "Optymalizator kosztów","Lider produktu","Cyber Shield","Innowator","Mentor zespołu",
+    "Automatyzacja","Wysoka wydajność"
+];
 
+function generateEmployeeCandidate(best=false){
+    const used=new Set(state.employeeCandidates.map(e=>e.name).concat(state.employees.map(e=>e.name)));
+    let name;
+    for(let i=0;i<40;i++){
+        const n=employeeFirstNames[random(0,employeeFirstNames.length-1)]+' '+employeeLastNames[random(0,employeeLastNames.length-1)];
+        if(!used.has(n)){name=n;break;}
+    }
+    name=name||`Talent ${state.employees.length+state.employeeCandidates.length+1}`;
+    const preferred=["ai","cto","senior","security","devops","pm","developer"];
+    const role=best?preferred[random(0,preferred.length-1)]:Object.keys(roles)[random(0,Object.keys(roles).length-1)];
+    const data=roles[role];
+    const perkCount=best?4:random(2,4);
+    const perks=[...employeePerkPool].sort(()=>Math.random()-.5).slice(0,perkCount);
+    const bonus=best?random(3,7):random(0,4);
+    return {id:uid("cand"),name,role,productivity:data.productivity+bonus,salary:Math.floor(data.salary*(best?1.08:0.92+Math.random()*.25)),permissions:[...data.permissions],tags:[data.name,...perks],score:Math.min(99,50+data.productivity*4+bonus*4+(best?15:random(0,8)))};
+}
+
+function ensureEmployeeCandidates(){
+    if(!Array.isArray(state.employeeCandidates))state.employeeCandidates=[];
+    while(state.employeeCandidates.length<6)state.employeeCandidates.push(generateEmployeeCandidate(state.employeeCandidates.length===0));
+}
+
+function hireCandidate(id){
     if(state.employees.length>=employeeCapacity()){
-        toast("Brakuje miejsc w biurach. Ulepsz lub kup biuro.","bad");
+        toast("Brakuje miejsc w biurach. Ulepsz biuro.","bad");
         return;
     }
-
-    const employeeNames=[
-        "Jan Kowalski","Anna Nowak","Piotr Wiśniewski","Maja Zielińska",
-        "Kacper Wójcik","Oliwia Kamińska","Jakub Lewandowski","Zuzanna Dąbrowska",
-        "Adam Mazur","Julia Kaczmarek","Michał Król","Natalia Pawlak",
-        "Alex Morgan","Emma Carter","Daniel Brooks","Sophia Miller"
-    ];
-
-    const usedNames=new Set(state.employees.map(e=>e.name));
-    const available=employeeNames.filter(n=>!usedNames.has(n));
-    const name=available.length
-        ?available[random(0,available.length-1)]
-        :`Pracownik ${state.employees.length+1}`;
-
-    const roleKeys=Object.keys(roles);
-    const role=roleKeys[random(0,roleKeys.length-1)];
-    const data=roles[role];
-
-    const employee={
-        id:uid("emp"),
-        name,
-        role,
-        tags:[data.name,...data.permissions.slice(0,3)],
-        productivity:data.productivity,
-        salary:data.salary,
-        permissions:[...data.permissions]
-    };
-
-    state.employees.push(employee);
-
-    logEvent(`👨‍💻 Wygenerowano <b>${escapeHtml(name)}</b> — <span class="badge">${escapeHtml(data.name)}</span>.`);
-    toast(`${escapeHtml(name)} dołączył(a) jako ${escapeHtml(data.name)}.` ,"good");
+    const i=state.employeeCandidates.findIndex(e=>e.id===id);
+    if(i<0)return;
+    const c=state.employeeCandidates[i];
+    state.employees.push({id:uid("emp"),name:c.name,role:c.role,tags:[...c.tags],productivity:c.productivity,salary:c.salary,permissions:[...c.permissions]});
+    state.employeeCandidates.splice(i,1);
+    ensureEmployeeCandidates();
+    logEvent(`👨‍💻 Zatrudniono <b>${escapeHtml(c.name)}</b> — <span class="badge">${escapeHtml(roles[c.role].name)}</span>.`);
     renderAll();
+}
 
+function hireBestEmployee(){
+    if(state.employees.length>=employeeCapacity()){toast("Brakuje miejsc w biurach. Ulepsz biuro.","bad");return;}
+    const best=state.employeeCandidates.reduce((a,b)=>!a||b.score>a.score?b:a,null);
+    if(best)hireCandidate(best.id);
+}
+
+function hireEmployee(){
+    ensureEmployeeCandidates();
+    const best=state.employeeCandidates.reduce((a,b)=>!a||b.score>a.score?b:a,null);
+    if(best)hireCandidate(best.id);
 }
 
 
 /* ============================================================
    SERVERS
 ============================================================ */
+
+function manageServerType(type){
+    const owned=state.servers.filter(s=>s.type===type);
+    if(!owned.length){ buyServer(type); return; }
+    const target=owned.reduce((a,b)=>a.level<b.level?a:b);
+    if(target.level<100){ upgradeServer(target.id); return; }
+    buyServer(type);
+}
 
 function buyServer(type){
 
@@ -2529,6 +2607,14 @@ function totalServerCapacity(){
 /* ============================================================
    OFFICES
 ============================================================ */
+
+function manageOfficeType(type){
+    const owned=state.offices.filter(o=>o.type===type);
+    if(!owned.length){ buyOffice(type); return; }
+    const target=owned.reduce((a,b)=>a.level<b.level?a:b);
+    if(target.level<100){ upgradeOffice(target.id); return; }
+    buyOffice(type);
+}
 
 function buyOffice(type){
 
@@ -3441,11 +3527,21 @@ function assignProduct(productId,targetId){
 function withdrawSubsidiaryFromMarket(id){
     const sub=state.subsidiaries.find(s=>s.id===id);
     if(!sub)return;
-    if(!confirm(`Wycofać spółkę "${sub.name}" z rynku? Jej przypisane produkty przestaną generować przychód.`))return;
-    sub.offMarket=true;
-    state.products.forEach(p=>{ if(p.assignedTo===id)p.status="withdrawn"; });
+
+    // Wycofana spółka znika z listy, a jej produkty nie zostają jako martwe rekordy.
+    state.products=state.products.filter(p=>p.assignedTo!==id);
+
+    // Podfirmy wracają poziom wyżej, aby nie zostały osierocone.
+    state.subsidiaries.forEach(child=>{
+        if(child.parentId===id && child.parentType==="subsidiary"){
+            child.parentId=sub.parentId||"root";
+            child.parentType=sub.parentType||"root";
+            child.level=Math.max(1,(sub.level||1));
+        }
+    });
+
+    state.subsidiaries=state.subsidiaries.filter(s=>s.id!==id);
     logEvent(`⛔ Spółkę <b>${escapeHtml(sub.name)}</b> wycofano z rynku.`);
-    toast(`${escapeHtml(sub.name)} wycofana z rynku.` ,"good");
     renderAll();
 }
 
@@ -3470,14 +3566,29 @@ function mergeSubsidiary(id){
 }
 
 function withdrawCompanyFromMarket(id){
-    const company=state.market.find(c=>c.id===id);
-    if(!company || company.playerShares<=50)return;
-    if(!confirm(`Wycofać ${company.name} z giełdy? Firma pozostanie w Twojej strukturze, a jej akcje przestaną być przedmiotem obrotu.`))return;
-    company.offMarket=true;
-    state.products.forEach(p=>{ if(p.assignedTo===`company:${id}`)p.assignedTo=null; });
-    state.subsidiaries.forEach(s=>{ if(s.parentType==="company"&&s.parentId===id){s.parentId="root";s.parentType="root";} });
+    const index=state.market.findIndex(c=>c.id===id);
+    if(index<0)return;
+    const company=state.market[index];
+    if(company.playerShares<=50)return;
+
+    // Firma jest usuwana z giełdy, a nie tylko oznaczana jako "poza giełdą".
+    state.products.forEach(p=>{
+        if(p.assignedTo===`company:${id}`)p.assignedTo=null;
+    });
+
+    // Spółki zależne zostają pod centralą, żeby nie zostały bez właściciela.
+    state.subsidiaries.forEach(s=>{
+        if(s.parentType==="company"&&s.parentId===id){
+            s.parentId="root";
+            s.parentType="root";
+            s.level=1;
+        }
+    });
+
+    delete state.portfolio[id];
+    state.market.splice(index,1);
+
     logEvent(`⛔ ${escapeHtml(company.name)} wycofano z giełdy.`);
-    toast(`${escapeHtml(company.name)} wycofana z giełdy.` ,"good");
     renderAll();
 }
 
@@ -4015,12 +4126,14 @@ function renderHeader(){
         .textContent=state.day;
 
     const seconds=state.tick%60;
+    const clock=String(Math.floor(state.tick/60)).padStart(2,"0")+":"+String(seconds).padStart(2,"0");
 
     document.getElementById("sideClock")
-        .textContent=
-        String(Math.floor(state.tick/60)).padStart(2,"0")+
-        ":"+
-        String(seconds).padStart(2,"0");
+        .textContent=clock;
+    const topDay=document.getElementById("topDay");
+    const topClock=document.getElementById("topClock");
+    if(topDay)topDay.textContent=state.day;
+    if(topClock)topClock.textContent=clock;
 
     document.getElementById("reputation")
         .textContent=state.reputation;
@@ -4078,7 +4191,7 @@ function renderProducts(){
 
     box.innerHTML=state.products.map(p=>`
 
-        <div class="card product-card">
+        <div class="card product-card compact-card">
 
             <div class="product-head">
 
@@ -4209,6 +4322,26 @@ function renderProducts(){
 
 function renderEmployees(){
 
+    ensureEmployeeCandidates();
+
+    const candidateBox=document.getElementById("employeeCandidates");
+    if(candidateBox){
+        candidateBox.innerHTML=state.employeeCandidates.map(c=>`
+            <div class="employee-candidate">
+                <div class="candidate-top">
+                    <div>
+                        <div class="candidate-name">👤 ${escapeHtml(c.name)}</div>
+                        <span class="badge">${escapeHtml(roles[c.role]?.name||c.role)}</span>
+                    </div>
+                    <div class="candidate-score">${c.score}/99</div>
+                </div>
+                <div style="margin-top:8px;font-size:12px">⚡ ${c.productivity} produktywności · ${money(c.salary)}/tick</div>
+                <div class="employee-perks">${(c.tags||[]).map(t=>`<span class="badge">${escapeHtml(t)}</span>`).join("")}</div>
+                <button class="btn primary" style="width:100%" onclick="hireCandidate('${c.id}')">👨‍💻 Zatrudnij</button>
+            </div>
+        `).join("");
+    }
+
     const totalProductivity=
         state.employees.reduce(
             (s,e)=>s+e.productivity,
@@ -4324,8 +4457,7 @@ function renderServers(){
             </p>
 
             <div class="server-actions">
-                <button class="btn primary" onclick="buyServer('${s.type}')">🛒 Kup kolejny — ${money(d.price)}</button>
-                <button class="btn" onclick="upgradeServer('${s.id}')">⬆️ Ulepsz — ${money(upgradeCost)}</button>
+                <button class="btn primary" onclick="upgradeServer('${s.id}')">🛒 / ⬆️ Ulepsz serwer — ${money(upgradeCost)}</button>
             </div>
 
         </div>
@@ -4372,7 +4504,7 @@ function renderOffices(){
 
         return `
 
-        <div class="card office-card">
+        <div class="card office-card compact-card">
 
             <div class="grid2">
 
@@ -4451,7 +4583,7 @@ function renderStock(){
         const holderTotal=(c.shareholders||[]).reduce((sum,h)=>sum+h.shares,0);
 
         return `
-            <div class="card">
+            <div class="card compact-card">
                 <div class="grid3">
                     <div>
                         <div style="font-size:20px">🏢 <b>${escapeHtml(c.name)}</b></div>
@@ -4890,11 +5022,11 @@ function renderStatistics(){
         }else{
             const max=Math.max(1,...flows.flatMap(x=>[x.income||0,x.expense||0]));
             chart.innerHTML=flows.map(f=>{
-                const ih=Math.max(2,((f.income||0)/max)*100);
-                const eh=Math.max(2,((f.expense||0)/max)*100);
-                return `<div class="flow-column" title="Tick ${f.tick}">
-                    <div class="flow-bar flow-income" style="height:${ih}%" title="Przychód: ${money(f.income||0)}"></div>
-                    <div class="flow-bar flow-expense" style="height:${eh}%" title="Wydatek: ${money(f.expense||0)}"></div>
+                const ih=(f.income||0)<=0?1:Math.max(3,((f.income||0)/max)*100);
+                const eh=(f.expense||0)<=0?1:Math.max(3,((f.expense||0)/max)*100);
+                return `<div class="flow-column" data-tick="T${f.tick}" aria-label="Tick ${f.tick}">
+                    <div class="flow-bar flow-income" style="height:${ih}%" title="Przychód · Tick ${f.tick}: ${money(f.income||0)}"></div>
+                    <div class="flow-bar flow-expense" style="height:${eh}%" title="Wydatek · Tick ${f.tick}: ${money(f.expense||0)}"></div>
                 </div>`;
             }).join("");
         }
@@ -5038,6 +5170,10 @@ function openCheatPanel(){
             <b class="blue">
                 money [dowolna liczba]
             </b>
+            <br>
+            <b class="purple">
+                employee best
+            </b>
 
             <br>
 
@@ -5045,7 +5181,7 @@ function openCheatPanel(){
 
             money 1000<br>
             money 500000<br>
-            money 999999999999999
+            employee best
 
             <br><br>
 
@@ -5089,28 +5225,30 @@ function runCheat(){
 
     const parts=command.split(/\s+/);
 
-    if(
-        parts[0].toLowerCase()!=="money"
-    ){
-
-        toast(
-            "Nieprawidłowy kod. Dostępny jest tylko: money [liczba]",
-            "bad"
-        );
-
+    if(parts[0].toLowerCase()==="employee" && parts[1]?.toLowerCase()==="best"){
+        if(state.employees.length>=employeeCapacity()){
+            toast("Brakuje miejsc w biurach. Ulepsz biuro.","bad");
+            return;
+        }
+        const c=generateEmployeeCandidate(true);
+        state.employees.push({
+            id:uid("emp"),name:c.name,role:c.role,tags:[...c.tags],
+            productivity:Math.max(c.productivity,18),salary:c.salary,permissions:[...c.permissions]
+        });
+        logEvent(`⚡ Kod <b>employee best</b>: dodano najlepszego kandydata <b>${escapeHtml(c.name)}</b>.`);
+        closeModal();
+        renderAll();
         return;
+    }
 
+    if(parts[0].toLowerCase()!=="money"){
+        toast("Nieprawidłowy kod. Dostępne: money [liczba] lub employee best","bad");
+        return;
     }
 
     if(parts.length!==2){
-
-        toast(
-            "Użyj: money [dowolna liczba]",
-            "bad"
-        );
-
+        toast("Użyj: money [dowolna liczba]","bad");
         return;
-
     }
 
     const amount=Number(parts[1]);
@@ -5214,6 +5352,8 @@ function loadGame(){
         state.employees.forEach(e=>{
             if(!Array.isArray(e.tags))e.tags=[roles[e.role]?.name||e.role,...(e.permissions||[]).slice(0,3)];
         });
+        if(!Array.isArray(state.employeeCandidates))state.employeeCandidates=[];
+        ensureEmployeeCandidates();
 
         state.subsidiaries.forEach(s=>{
 
