@@ -4892,6 +4892,8 @@ function gameTick(){
     });
 
     // Jeden zbiorczy wpływ gotówki z produktów centrali i spółek córek.
+    // Niezależnie od miejsca przypisania produktu pieniądze trafiają do kasy
+    // właściciela gry, a statystyki spółki zachowują osobne przychody.
     if(tickProductIncome>0){
         changeCash(tickProductIncome,"przychód produktów i spółek córek");
     }
@@ -5895,13 +5897,19 @@ function renderStatistics(){
         if(!flows.length){
             chart.innerHTML=`<div class="muted" style="width:100%;text-align:center;padding-top:90px">Brak danych — poczekaj na pierwsze ticki.</div>`;
         }else{
-            const max=Math.max(1,...flows.flatMap(x=>[x.income||0,x.expense||0]));
+            // Każda seria ma własną skalę. Jednorazowy duży zakup nie spłaszcza
+            // całego wykresu i dzięki temu zmiany przychodów ze spółek oraz produktów
+            // są widoczne na każdym ticku.
+            const maxIncome=Math.max(1,...flows.map(x=>Number(x.income)||0));
+            const maxExpense=Math.max(1,...flows.map(x=>Number(x.expense)||0));
             chart.innerHTML=flows.map(f=>{
-                const ih=(f.income||0)<=0?1:Math.max(3,((f.income||0)/max)*100);
-                const eh=(f.expense||0)<=0?1:Math.max(3,((f.expense||0)/max)*100);
-                return `<div class="flow-column" data-tick="T${f.tick}" aria-label="Tick ${f.tick}">
-                    <div class="flow-bar flow-income" style="height:${ih}%" title="Przychód · Tick ${f.tick}: ${money(f.income||0)}"></div>
-                    <div class="flow-bar flow-expense" style="height:${eh}%" title="Wydatek · Tick ${f.tick}: ${money(f.expense||0)}"></div>
+                const income=Number(f.income)||0;
+                const expense=Number(f.expense)||0;
+                const ih=income<=0?1:Math.max(3,(income/maxIncome)*100);
+                const eh=expense<=0?1:Math.max(3,(expense/maxExpense)*100);
+                return `<div class="flow-column" data-tick="T${f.tick}" aria-label="Tick ${f.tick}: przychód ${money(income)}, wydatek ${money(expense)}">
+                    <div class="flow-bar flow-income" style="height:${ih}%" title="Przychód · Tick ${f.tick}: ${money(income)}"></div>
+                    <div class="flow-bar flow-expense" style="height:${eh}%" title="Wydatek · Tick ${f.tick}: ${money(expense)}"></div>
                 </div>`;
             }).join("");
         }
@@ -5932,7 +5940,7 @@ function renderDashboardNumbers(){
 
     const expense=
         Math.floor(
-            (Number(state.employeeTotalSalary)||refreshEmployeeTotals().salary||0)/20
+            (Number(state.employeeTotalSalary)||refreshEmployeeTotals().salary||0)/30
         )+
         Math.floor(
             state.servers.reduce(
