@@ -1093,6 +1093,10 @@ th{
             📊 <span>Statystyki</span>
         </button>
 
+        <button data-page="laboratory">
+            🔬 <span>Laboratorium</span>
+        </button>
+
     </nav>
 
     <div class="side-info">
@@ -1555,6 +1559,25 @@ th{
 </section>
 
 
+<!-- ================= LABORATORY ================= -->
+
+<section class="page" id="page-laboratory">
+    <div class="page-title">
+        <h2>🔬 Laboratorium</h2>
+        <p>Inwestuj w badania, odblokowuj technologie i rozwijaj nowe generacje produktów całej grupy.</p>
+    </div>
+    <div class="grid">
+        <div class="card stat"><div class="stat-label">Odblokowane technologie</div><div class="stat-value" id="labTechCount">0</div></div>
+        <div class="card stat"><div class="stat-label">Premia technologiczna</div><div class="stat-value green" id="labTechBonus">+0%</div></div>
+        <div class="card stat"><div class="stat-label">Budżet na badania</div><div class="stat-value" id="labCash">$0</div></div>
+    </div>
+    <section class="panel" style="margin-top:14px">
+        <h3>🌐 Drzewo technologii</h3>
+        <p class="muted">Odblokowane technologie zwiększają przychody produktów, także tych należących do kontrolowanych spółek i spółek córek.</p>
+        <div id="technologyTree" class="tech-tree"></div>
+    </section>
+</section>
+
 <!-- ================= STATISTICS ================= -->
 
 <section class="page" id="page-statistics">
@@ -1694,7 +1717,7 @@ th{
 </section>
 
 </div>
-<section class="panel"><h2>🔬 Laboratorium technologii</h2><p>Rozwijaj R&D, odblokowuj nowe gałęzie i zwiększaj przychody całej grupy.</p><div id="technologyTree" class="tech-tree"></div></section></main>
+</main>
 </div>
 
 
@@ -1877,6 +1900,46 @@ const productTypes={
         revenue:1700
     },
 
+    streaming:{
+        name:"Platforma streamingowa",
+        icon:"📺",
+        baseTime:210,
+        baseCost:125000,
+        revenue:6200
+    },
+
+    media:{
+        name:"Studio filmów i seriali",
+        icon:"🎬",
+        baseTime:240,
+        baseCost:180000,
+        revenue:8200
+    },
+
+    sportsstream:{
+        name:"Streaming sportowy",
+        icon:"🏟️",
+        baseTime:230,
+        baseCost:200000,
+        revenue:9800
+    },
+
+    kidsstream:{
+        name:"Streaming dziecięcy",
+        icon:"🧸",
+        baseTime:190,
+        baseCost:110000,
+        revenue:5400
+    },
+
+    animestream:{
+        name:"Streaming anime",
+        icon:"🍿",
+        baseTime:205,
+        baseCost:135000,
+        revenue:6800
+    },
+
     xai:{
         name:"Asystent AI",
         icon:"🧠",
@@ -1985,7 +2048,23 @@ const technologyTree={
     mobility:{name:"MobilityTech",icon:"🚗",cost:240000,requires:["robotics"],bonus:.12},
     blockchain:{name:"Blockchain",icon:"⛓️",cost:170000,requires:["fintech"],bonus:.10},
     edtech:{name:"EdTech",icon:"🎓",cost:90000,requires:["agents"],bonus:.08},
-    space:{name:"SpaceTech",icon:"🚀",cost:700000,requires:["quantum","energy"],bonus:.25}
+    streaming:{name:"Media & Streaming",icon:"📺",cost:140000,requires:[],bonus:.10},
+    space:{name:"SpaceTech",icon:"🚀",cost:700000,requires:["quantum","energy"],bonus:.25},
+    cloud:{name:"Cloud Computing",icon:"☁️",cost:120000,requires:["security"],bonus:.09},
+    bigdata:{name:"Big Data",icon:"📊",cost:110000,requires:["cloud"],bonus:.08},
+    recommendation:{name:"Silniki rekomendacji",icon:"🎯",cost:130000,requires:["agents","bigdata"],bonus:.11},
+    computerVision:{name:"Computer Vision",icon:"👁️",cost:160000,requires:["agents"],bonus:.10},
+    speech:{name:"AI Speech",icon:"🎙️",cost:140000,requires:["agents"],bonus:.09},
+    automation:{name:"Automatyzacja przemysłowa",icon:"🏭",cost:180000,requires:["robotics"],bonus:.12},
+    autonomousVehicles:{name:"Pojazdy autonomiczne",icon:"🚘",cost:320000,requires:["mobility","computerVision"],bonus:.16},
+    satellites:{name:"Satelity i komunikacja",icon:"🛰️",cost:450000,requires:["space"],bonus:.18},
+    "6g":{name:"Sieci 6G",icon:"📡",cost:260000,requires:["chips"],bonus:.13},
+    quantumSecurity:{name:"Kryptografia postkwantowa",icon:"🔐",cost:350000,requires:["quantum","security"],bonus:.17},
+    mediaProduction:{name:"Produkcja cyfrowa",icon:"🎥",cost:180000,requires:["streaming"],bonus:.12},
+    virtualProduction:{name:"Wirtualna produkcja filmowa",icon:"🎞️",cost:280000,requires:["mediaProduction","vr"],bonus:.16},
+    gameEngine:{name:"Silnik gier nowej generacji",icon:"🎮",cost:240000,requires:["vr","chips"],bonus:.14},
+    digitalPayments:{name:"Płatności cyfrowe",icon:"💸",cost:150000,requires:["fintech","blockchain"],bonus:.11},
+    greenDatacenters:{name:"Zielone centra danych",icon:"🌿",cost:300000,requires:["cloud","energy"],bonus:.14}
 };
 function hasTech(id){return !!state.technologies?.[id]}
 function techUnlocked(id){const x=technologyTree[id];return !!x&&x.requires.every(hasTech)}
@@ -2001,7 +2080,13 @@ function buyTechnology(id){
     saveGame(); renderAll();
 }
 function renderTechnologyTree(){
-    const el=document.getElementById("technologyTree"); if(!el)return;
+    const el=document.getElementById("technologyTree");
+    const ownedCount=Object.keys(state.technologies||{}).filter(id=>technologyTree[id]).length;
+    const bonus=Math.round((techMultiplier()-1)*100);
+    const countEl=document.getElementById("labTechCount"); if(countEl)countEl.textContent=ownedCount+" / "+Object.keys(technologyTree).length;
+    const bonusEl=document.getElementById("labTechBonus"); if(bonusEl)bonusEl.textContent="+"+bonus+"%";
+    const cashEl=document.getElementById("labCash"); if(cashEl)cashEl.textContent=money(state.cash);
+    if(!el)return;
     el.innerHTML=Object.entries(technologyTree).map(([id,x])=>{
         const owned=hasTech(id), open=techUnlocked(id);
         const req=x.requires.length?x.requires.map(r=>technologyTree[r]?.name||r).join(", "):"brak";
@@ -4311,6 +4396,8 @@ function createAutonomousProduct(type,id){
         status:"released",
         revenuePerTick:Math.floor(data.revenue*(.8+Math.random()*.45)),
         totalRevenue:0,
+        subscribers:(["streaming","sportsstream","kidsstream","animestream"].includes(strategy.type)?0:undefined),
+        catalogSize:(strategy.type==="media"?1:undefined),
         assignedTo:type+":"+id,
         ownerType:type,
         ownerId:id,
@@ -4422,8 +4509,11 @@ function autonomousCompaniesTick(){
         managementCompanies().forEach(c=>{
             ensureEntitySettings(c);
             if(c.updateMode!=="auto")return;
-            state.products.filter(p=>p.status==="released" && p.assignedTo===`company:${c.id}`)
-                .forEach(p=>autoUpdateOwnedProduct(p));
+            // Kontrolowana spółka aktualizuje nie tylko własne produkty,
+            // ale również produkty przypisane do niej z poziomu grupy.
+            state.products.filter(p=>p.status==="released" && (
+                p.assignedTo===`company:${c.id}` || p.ownerType==="company" && p.ownerId===c.id
+            )).forEach(p=>autoUpdateOwnedProduct(p));
         });
         state.subsidiaries.forEach(s=>{
             ensureEntitySettings(s);
@@ -4603,6 +4693,22 @@ function gameTick(){
         let income=Math.floor(
             p.revenuePerTick*efficiency*techMultiplier()
         );
+
+        // Streaming rozwija bazę subskrybentów i zarabia z abonamentów.
+        // Wzrost zależy od oceny, reputacji i technologii Media & Streaming.
+        if(["streaming","sportsstream","kidsstream","animestream"].includes(p.type)){
+            p.subscribers=Math.max(0,Math.floor(p.subscribers||0));
+            const subGrowth=Math.max(1,Math.floor(8+(Number(p.rating)||5)*4+(state.reputation||0)/10));
+            p.subscribers+=subGrowth;
+            const subscriptionMultiplier=hasTech("streaming")?1.18:1;
+            income=Math.floor(income*subscriptionMultiplier);
+        }
+
+        if(p.type==="media"){
+            p.catalogSize=Math.max(1,Math.floor(p.catalogSize||1));
+            if(state.tick%20===0)p.catalogSize++;
+            income=Math.floor(income*(1+Math.min(.35,(p.catalogSize||1)*.008)));
+        }
 
         if(p.ownerType&&p.ownerId){
             const owner=entityObject(p.ownerType,p.ownerId);
@@ -5011,6 +5117,8 @@ function renderProducts(){
                             <div><small class="muted">Aktual.</small><strong>${p.updates||0}</strong></div>
                             <div><small class="muted">Języki</small><strong>${(p.languages||[]).length}</strong></div>
                         </div>
+                        ${["streaming","sportsstream","kidsstream","animestream"].includes(p.type)?`<div style="margin-top:8px"><small class="muted">👥 Subskrybenci</small><strong>${(p.subscribers||0).toLocaleString("pl-PL")}</strong></div>`:""}
+                        ${p.type==="media"?`<div style="margin-top:8px"><small class="muted">🎬 Katalog</small><strong>${p.catalogSize||1} produkcji</strong></div>`:""}
                         <div class="product-actions" style="margin-top:9px">
                             <button class="btn primary" onclick="openUpdateModal('${p.id}')">🔄 Aktualizuj</button>
                             <button class="btn danger" onclick="withdrawProduct('${p.id}')">⛔ Wycofaj</button>
@@ -5768,6 +5876,9 @@ function renderTickUI(){
 
     const id=active.id;
 
+    // Statystyki i wykres zarabiania mają być na bieżąco.
+    if(id==='page-statistics') { renderStatistics(); return; }
+
     // Cięższe listy odświeżamy rzadziej.
     if(t-lastFullRenderTick<4)return;
     lastFullRenderTick=t;
@@ -5780,6 +5891,7 @@ function renderTickUI(){
     else if(id==='page-subsidiaries') renderSubsidiaries();
     else if(id==='page-management') renderManagement();
     else if(id==='page-statistics') renderStatistics();
+    else if(id==='page-laboratory') renderTechnologyTree();
     else if(id==='page-dashboard') renderEvents();
 }
 
