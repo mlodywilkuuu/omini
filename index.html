@@ -895,6 +895,22 @@ th{
     opacity:.75;
 }
 
+/* PRODUCTS: kompaktowe kafelki i segregacja po typach */
+.products-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:18px}
+.product-tile{padding:12px!important;border-radius:13px!important;min-width:0}
+.product-tile .product-head{align-items:flex-start}
+.product-tile .product-icon-small{font-size:24px;line-height:1}
+.product-tile h3{font-size:14px;margin:4px 0 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:190px}
+.product-tile .product-rating{font-size:17px;white-space:nowrap}
+.product-tile .grid3{grid-template-columns:repeat(2,1fr);gap:7px}
+.product-tile .grid3 strong{font-size:12px}
+.product-group{margin:0 0 20px}
+.product-group-title{display:flex;align-items:center;gap:8px;margin:0 0 9px;font-size:15px}
+.product-group-title .badge{font-size:9px}
+@media(max-width:1200px){.products-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:900px){.products-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.products-grid{grid-template-columns:1fr}}
+
 /* MOBILE */
 
 @media(max-width:1100px){
@@ -4158,21 +4174,35 @@ function recalcLevels(){
 }
 
 function autonomousCompaniesTick(){
-    if(state.tick%30!==0)return;
-    managementCompanies().forEach(c=>{
-        ensureEntitySettings(c);
-        if(c.autonomousProducts)createAutonomousProduct("company",c.id);
-        entityProducts("company",c.id).forEach(p=>{
-            if(c.updateMode==="auto" && state.tick%60===0)autoUpdateOwnedProduct(p);
+    // Firmowe produkty są tworzone i aktualizowane automatycznie.
+    // Co 30 ticków (90 s) firma może stworzyć kolejny produkt, a co 20 ticków
+    // (60 s) tryb AUTO wykonuje realną aktualizację produktów przypisanych do firmy.
+    if(state.tick%30===0){
+        managementCompanies().forEach(c=>{
+            ensureEntitySettings(c);
+            if(c.autonomousProducts)createAutonomousProduct("company",c.id);
         });
-    });
-    state.subsidiaries.forEach(s=>{
-        ensureEntitySettings(s);
-        if(s.autonomousProducts)createAutonomousProduct("subsidiary",s.id);
-        entityProducts("subsidiary",s.id).forEach(p=>{
-            if(s.updateMode==="auto" && state.tick%60===0)autoUpdateOwnedProduct(p);
+        state.subsidiaries.forEach(s=>{
+            ensureEntitySettings(s);
+            if(s.autonomousProducts)createAutonomousProduct("subsidiary",s.id);
         });
-    });
+    }
+
+    if(state.tick%20===0){
+        managementCompanies().forEach(c=>{
+            ensureEntitySettings(c);
+            if(c.updateMode!=="auto")return;
+            state.products.filter(p=>p.status==="released" && p.assignedTo===`company:${c.id}`)
+                .forEach(p=>autoUpdateOwnedProduct(p));
+        });
+        state.subsidiaries.forEach(s=>{
+            ensureEntitySettings(s);
+            if(s.updateMode!=="auto")return;
+            state.products.filter(p=>p.status==="released" && p.assignedTo===s.id)
+                .forEach(p=>autoUpdateOwnedProduct(p));
+        });
+        saveGame();
+    }
 }
 
 function injectCompanyCash(id){
@@ -4691,169 +4721,66 @@ function renderEvents(){
 ============================================================ */
 
 function renderProducts(){
-
     const box=document.getElementById("productsList");
+    if(!box)return;
 
-    if(!state.products.length){
-
-        box.innerHTML=`
-            <div class="card">
-                <h3>Brak produktów</h3>
-                <p class="muted">
-                    Przejdź na stronę główną i rozpocznij tworzenie
-                    pierwszego produktu.
-                </p>
-            </div>
-        `;
-
+    const visibleProducts=state.products.filter(p=>p && p.status!=="withdrawn");
+    if(!visibleProducts.length){
+        box.innerHTML=`<div class="card"><h3>Brak produktów</h3><p class="muted">Przejdź na stronę główną i rozpocznij tworzenie pierwszego produktu.</p></div>`;
         return;
-
     }
 
     const companies=managementCompanies();
+    const groups={};
+    visibleProducts.forEach(p=>{
+        const key=p.type || "other";
+        if(!groups[key])groups[key]=[];
+        groups[key].push(p);
+    });
 
-    // Na liście pokazujemy wyłącznie aktywne/projektowane produkty.
-    // Wycofany produkt nie jest już elementem state.products, ale filtr chroni UI
-    // także przed starym zapisem gry zawierającym status "withdrawn".
-    const visibleProducts=state.products.filter(p=>p.status!=="withdrawn");
+    const typeInfo=key=>productTypes[key]||{name:key,icon:"📦"};
 
-    if(!visibleProducts.length){
-        box.innerHTML=`
-            <div class="card">
-                <h3>Brak produktów</h3>
-                <p class="muted">Brak produktów na rynku lub w trakcie tworzenia.</p>
+    box.innerHTML=Object.entries(groups).map(([type,items])=>{
+        const info=typeInfo(type);
+        return `<section class="product-group">
+            <h3 class="product-group-title">${info.icon||"📦"} ${escapeHtml(info.name||type)} <span class="badge">${items.length} produktów</span></h3>
+            <div class="products-grid">
+            ${items.map(p=>`
+                <div class="card product-card product-tile">
+                    <div class="product-head">
+                        <div style="min-width:0">
+                            <div class="product-icon-small">${p.icon||info.icon||"📦"}</div>
+                            <h3 title="${escapeHtml(p.name)}">${escapeHtml(p.name)}</h3>
+                            <span class="badge">${escapeHtml(p.typeName||info.name||type)}</span>
+                            <span class="badge version">${escapeHtml(normalizeVersion(p.version)||"v1.0")}</span>
+                        </div>
+                        <div class="product-rating">${p.status==="creating"?"⏳":(Number(p.rating)||0).toFixed(1)+"/10"}</div>
+                    </div>
+                    ${p.status==="creating"?`
+                        <div style="margin-top:9px"><span class="muted">Tworzenie — ${p.remaining} ticków</span><div class="progress"><div style="width:${p.progress}%"></div></div></div>
+                    `:`
+                        <div class="grid3" style="margin-top:10px">
+                            <div><small class="muted">Przychód</small><strong class="green">${money(p.totalRevenue||0)}</strong></div>
+                            <div><small class="muted">/ tick</small><strong class="green">${money(Math.floor(p.revenuePerTick||0))}</strong></div>
+                            <div><small class="muted">Aktual.</small><strong>${p.updates||0}</strong></div>
+                            <div><small class="muted">Języki</small><strong>${(p.languages||[]).length}</strong></div>
+                        </div>
+                        <div class="product-actions" style="margin-top:9px">
+                            <button class="btn primary" onclick="openUpdateModal('${p.id}')">🔄 Aktualizuj</button>
+                            <button class="btn danger" onclick="withdrawProduct('${p.id}')">⛔ Wycofaj</button>
+                            <select onchange="assignProduct('${p.id}',this.value)" style="width:auto;min-width:150px;max-width:100%">
+                                <option value="root" ${!p.assignedTo?"selected":""}>🏢 Centrala</option>
+                                ${state.subsidiaries.map(s=>`<option value="${s.id}" ${p.assignedTo===s.id?"selected":""}>🌳 ${escapeHtml(s.name)}</option>`).join("")}
+                                ${companies.map(c=>`<option value="company:${c.id}" ${p.assignedTo===`company:${c.id}`?"selected":""}>👔 ${escapeHtml(c.name)}</option>`).join("")}
+                            </select>
+                        </div>
+                        <div style="margin-top:7px;color:var(--muted);font-size:10px">📍 ${escapeHtml(productTargetLabel(p.assignedTo))}<br>🔢 ${escapeHtml(normalizeVersion(p.version)||"v1.0")} · ${p.lastUpdateCategory ? getUpdateCategory(p.lastUpdateCategory).icon+" "+escapeHtml(getUpdateCategory(p.lastUpdateCategory).name.replace(/^\S+\s/,"")) : "brak aktualizacji"}</div>
+                    `}
+                </div>
+            `).join("")}
             </div>
-        `;
-        return;
-    }
-
-    box.innerHTML=visibleProducts.map(p=>`
-
-        <div class="card product-card compact-card">
-
-            <div class="product-head">
-
-                <div>
-
-                    <div style="font-size:30px">${p.icon}</div>
-
-                    <h3>${escapeHtml(p.name)}</h3>
-
-                    <span class="badge">
-                        ${escapeHtml(p.typeName)}
-                    </span>
-                    <span class="badge version">${escapeHtml(normalizeVersion(p.version)||"v1.0")}</span>
-
-                </div>
-
-                <div class="product-rating">
-
-                    ${
-                        p.status==="creating"
-                        ?"⏳"
-                        :p.rating.toFixed(1)+"/10"
-                    }
-
-                </div>
-
-            </div>
-
-            <br>
-
-            ${
-                p.status==="creating"
-                ?`
-                <span class="muted">
-                    Tworzenie produktu — pozostało ${p.remaining} ticków
-                </span>
-
-                <div class="progress">
-                    <div style="width:${p.progress}%"></div>
-                </div>
-                `
-                :p.status==="withdrawn"
-                ?`
-                    <div class="card" style="margin:0">
-                        <strong>⛔ Produkt wycofany z rynku</strong>
-                        <p class="muted">Nie generuje już przychodu. Możesz ponownie wprowadzić go na rynek.</p>
-                        <button class="btn success" onclick="relaunchProduct('${p.id}')">🚀 Wprowadź ponownie</button>
-                    </div>
-                `
-                :`
-                <div class="grid3">
-
-                    <div>
-                        <small class="muted">Przychód</small>
-                        <strong class="green">
-                            ${money(p.totalRevenue)}
-                        </strong>
-                    </div>
-
-                    <div>
-                        <small class="muted">Dochód / tick</small>
-                        <strong class="green">${money(Math.floor(p.revenuePerTick||0))}</strong>
-                    </div>
-
-                    <div>
-                        <small class="muted">Aktualizacje</small>
-                        <strong>${p.updates}</strong>
-                    </div>
-
-                    <div>
-                        <small class="muted">Języki</small>
-                        <strong>${p.languages.length}</strong>
-                    </div>
-
-                </div>
-
-                <br>
-
-                <div class="product-actions">
-                    <button class="btn primary" onclick="openUpdateModal('${p.id}')">🔄 Wydaj aktualizację</button>
-                    <button class="btn danger" onclick="withdrawProduct('${p.id}')" ${p.status!=="released"?"disabled":""}>⛔ Wycofaj z rynku</button>
-                    <select onchange="assignProduct('${p.id}',this.value)"
-                    style="width:auto;min-width:280px">
-
-                    <option value="root"
-                        ${!p.assignedTo?"selected":""}>
-                        🏢 Centrala
-                    </option>
-
-                    ${state.subsidiaries.map(s=>`
-                        <option value="${s.id}"
-                            ${p.assignedTo===s.id?"selected":""}>
-                            🌳 ${escapeHtml(s.name)}
-                        </option>
-                    `).join("")}
-
-                    ${companies.map(c=>`
-                        <option value="company:${c.id}"
-                            ${p.assignedTo===`company:${c.id}`?"selected":""}>
-                            👔 ${escapeHtml(c.name)} — większość udziałów
-                        </option>
-                    `).join("")}
-
-                    </select>
-                </div>
-
-                <div style="margin-top:10px;color:var(--muted);font-size:11px">
-                    Przypisano:
-                    <b>${escapeHtml(productTargetLabel(p.assignedTo))}</b>
-                </div>
-                `
-
-            }
-
-            <div style="margin-top:10px;color:var(--muted);font-size:11px">
-                🌍 Języki: ${p.languages.join(", ")}
-                <br>🔢 Wersja: <span class="badge version">${escapeHtml(normalizeVersion(p.version)||"v1.0")}</span>
-                ${p.lastUpdateCategory ? `<br>📦 Ostatnia aktualizacja: ${getUpdateCategory(p.lastUpdateCategory).icon} ${escapeHtml(getUpdateCategory(p.lastUpdateCategory).name.replace(/^\S+\s/,""))}` : ""}
-            </div>
-
-        </div>
-
-    `).join("");
-
+        </section>`;
+    }).join("");
 }
 
 
@@ -5913,6 +5840,11 @@ function loadGame(){
 
 }
 
+
+/* Zapis przy zamknięciu/odświeżeniu strony, żeby nie cofać postępu. */
+window.addEventListener("beforeunload",saveGame);
+window.addEventListener("pagehide",saveGame);
+document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="hidden")saveGame(); });
 
 /* ============================================================
    AUTO SAVE
