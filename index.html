@@ -2926,6 +2926,8 @@ function confirmDeleteServer(id){
     const resale=Math.floor(data.price*(0.35+Math.min(s.level,100)*0.005));
 
     state.servers.splice(index,1);
+    /* Zapisz usunięcie od razu, zanim wykonamy kolejne operacje UI. */
+    saveGame();
     changeCash(resale,`sprzedaż/usunięcie ${data.name} LVL ${s.level}`);
     closeModal();
     toast(`🗑️ Usunięto ${data.name}. Odzyskano ${money(resale)}.`,`good`);
@@ -5776,13 +5778,14 @@ function runCheat(){
 function saveGame(){
 
     try{
-
-        localStorage.setItem(
-            "techEmpireSave",
-            JSON.stringify(state)
-        );
-
-    }catch(e){}
+        const payload=JSON.stringify(state);
+        localStorage.setItem("techEmpireSave",payload);
+        localStorage.setItem("techEmpireSaveBackup",payload);
+        localStorage.setItem("techEmpireSaveTime",String(Date.now()));
+        return true;
+    }catch(e){
+        return false;
+    }
 
 }
 
@@ -5790,10 +5793,13 @@ function loadGame(){
 
     try{
 
-        const saved=
-            localStorage.getItem("techEmpireSave");
+        let saved=localStorage.getItem("techEmpireSave");
 
-        if(!saved)return;
+        if(!saved){
+            saved=localStorage.getItem("techEmpireSaveBackup");
+        }
+
+        if(!saved)return false;
 
         const data=JSON.parse(saved);
 
@@ -5884,9 +5890,12 @@ function loadGame(){
 
         ensureMarketCompanies();
 
+        return true;
+
     }catch(e){
 
         console.warn("Nie udało się wczytać zapisu.");
+        return false;
 
     }
 
@@ -5912,7 +5921,17 @@ setInterval(
    START
 ============================================================ */
 
-loadGame();
+const loadedExistingGame=loadGame();
+
+/* NOWA GRA: dokładnie 1 serwer startowy. Nie dodawaj go ponownie po odświeżeniu. */
+if(!loadedExistingGame){
+    state.servers=[{
+        id:uid("server"),
+        type:"basic",
+        level:1
+    }];
+    saveGame();
+}
 
 renderAll();
 
