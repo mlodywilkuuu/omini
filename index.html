@@ -168,7 +168,8 @@ button{cursor:pointer}
     font-weight:700;
 }
 
-.cashbox{
+.cashbox,
+.employee-topbox{
     position:relative;
     padding:7px 15px;
     border:1px solid var(--border);
@@ -177,10 +178,24 @@ button{cursor:pointer}
     overflow:visible;
 }
 
-.cashbox small{
+.cashbox small,
+.employee-topbox small{
     display:block;
     color:var(--muted);
     font-size:9px;
+}
+
+.employee-topbox{
+    padding:7px 15px;
+    border:1px solid var(--border);
+    background:rgba(20,29,48,.7);
+    border-radius:11px;
+    min-width:105px;
+}
+
+.employee-topbox .employee-count{
+    font-weight:900;
+    font-size:19px;
 }
 
 .cash{
@@ -999,6 +1014,11 @@ th{
     <div class="cashbox">
         <small>GOTÓWKA FIRMY</small>
         <div class="cash" id="cash">$250,000</div>
+    </div>
+
+    <div class="employee-topbox">
+        <small>PRACOWNICY</small>
+        <div class="employee-count" id="topEmployees">0 / 0</div>
     </div>
 
 </header>
@@ -4107,6 +4127,11 @@ function renderHeader(){
     document.getElementById("cash")
         .textContent=money(state.cash);
 
+    const topEmployees=document.getElementById("topEmployees");
+    if(topEmployees){
+        topEmployees.textContent=`${state.employees.length} / ${employeeCapacity()}`;
+    }
+
     document.getElementById("dashCash")
         .textContent=money(state.cash);
 
@@ -4680,10 +4705,10 @@ function renderSubsidiaries(){
                 <div class="tree-company">
                     <div style="font-size:19px">🌳 <b>${escapeHtml(s.name)}</b></div>
                     <div class="muted" style="margin-top:5px">
-                        Poziom ${s.level} · Produkty ${state.products.filter(p=>p.assignedTo===s.id).length} · Przychód ${money(s.totalRevenue)}
+                        Poziom ${s.level} · Produkty ${state.products.filter(p=>p.status!=="withdrawn" && p.assignedTo===s.id).length} · Przychód ${money(s.totalRevenue)}
                     </div>
                     <div style="margin-top:8px">
-                        ${state.products.filter(p=>p.assignedTo===s.id).map(p=>`<span class="badge">${p.icon} ${escapeHtml(p.name)}</span>`).join("") || `<span class="muted">Brak przypisanych produktów</span>`}
+                        ${state.products.filter(p=>p.status!=="withdrawn" && p.assignedTo===s.id).map(p=>`<span class="badge">${p.icon} ${escapeHtml(p.name)}</span>`).join("") || `<span class="muted">Brak przypisanych produktów</span>`}
                     </div>
                     <div style="margin-top:10px">
                         <button class="btn" onclick="mergeSubsidiary('${s.id}')">🔗 Połącz z firmą nadrzędną</button>
@@ -4718,7 +4743,7 @@ function renderSubsidiaries(){
         <div class="tree">
             <div class="tree-company">
                 <div style="font-size:21px">🏢 <b>NovaCore Technologies</b></div>
-                <div class="muted">Centrala · ${state.products.filter(p=>!p.assignedTo).length} produktów</div>
+                <div class="muted">Centrala · ${state.products.filter(p=>p.status!=="withdrawn" && !p.assignedTo).length} produktów</div>
             </div>
             ${companies.map(companyNodeHTML).join("")}
             ${nodeHTML("root","root")}
@@ -4746,7 +4771,7 @@ function renderSubsidiaries(){
                 </div>
                 <div>
                     <small class="muted">Produkty</small>
-                    <div class="stat-value">${state.products.filter(p=>p.assignedTo===s.id).length}</div>
+                    <div class="stat-value">${state.products.filter(p=>p.status!=="withdrawn" && p.assignedTo===s.id).length}</div>
                 </div>
             </div>
             <div class="row" style="margin-top:12px">
@@ -4757,7 +4782,7 @@ function renderSubsidiaries(){
                 </select>
             </div>
             <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
-                ${state.products.filter(p=>p.assignedTo===s.id).map(p=>`
+                ${state.products.filter(p=>p.status!=="withdrawn" && p.assignedTo===s.id).map(p=>`
                     <span class="badge">${p.icon} ${escapeHtml(p.name)} <button class="btn" style="padding:2px 6px;margin-left:5px" onclick="assignProduct('${p.id}','root')">×</button></span>
                 `).join("") || `<span class="muted">Brak przypisanych produktów</span>`}
                 <button class="btn" onclick="mergeSubsidiary('${s.id}')">🔗 Połącz z firmą nadrzędną</button>
@@ -4911,8 +4936,12 @@ function renderStatistics(){
         );
 
 
+    const activeProducts=state.products.filter(p=>
+        p && p.status!=="withdrawn"
+    );
+
     document.getElementById("statsProducts").innerHTML=
-        state.products.map(p=>`
+        activeProducts.map(p=>`
 
             <tr>
 
@@ -5112,7 +5141,13 @@ function renderDashboardNumbers(){
    RENDER ALL
 ============================================================ */
 
+function cleanupWithdrawnProducts(){
+    if(!Array.isArray(state.products)) state.products=[];
+    state.products=state.products.filter(p=>p && p.status!=="withdrawn");
+}
+
 function renderAll(){
+    cleanupWithdrawnProducts();
 
     renderHeader();
     renderEvents();
