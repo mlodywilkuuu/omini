@@ -4446,7 +4446,7 @@ function gameTick(){
     });
     if(state.cashFlowHistory.length>40)state.cashFlowHistory.shift();
 
-    renderAll();
+    renderTickUI();
 
 }
 
@@ -5424,6 +5424,42 @@ function renderDashboardNumbers(){
     document.getElementById("expenseTick")
         .textContent=money(state.lastTickExpense||0);
 
+}
+
+
+/* ============================================================
+   LEKKI RENDER TICKA
+============================================================ */
+
+let lastProductsRenderTick=-999;
+let lastFullRenderTick=-999;
+
+function renderTickUI(){
+    const t=Number(state.tick)||0;
+
+    // Te elementy są małe i mogą być odświeżane często.
+    renderHeader();
+    renderDashboardNumbers();
+
+    // Lista produktów jest cięższa — odświeżamy ją co 2 ticki.
+    if(t-lastProductsRenderTick>=2){
+        renderProducts();
+        lastProductsRenderTick=t;
+    }
+
+    // Pełny render aplikacji tylko co 5 ticków (15 s).
+    // Wszystkie ręczne akcje nadal wywołują renderAll() natychmiast.
+    if(t-lastFullRenderTick>=5){
+        renderEvents();
+        renderEmployees();
+        renderServers();
+        renderOffices();
+        renderStock();
+        renderSubsidiaries();
+        renderManagement();
+        renderStatistics();
+        lastFullRenderTick=t;
+    }
 }
 
 
