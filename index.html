@@ -1201,6 +1201,14 @@ th{
                 <button class="btn primary service-btn" onclick="openProductCreator('os')">💻 System operacyjny</button>
                 <button class="btn primary service-btn" onclick="openProductCreator('cloud')">☁️ Platforma chmurowa</button>
                 <button class="btn primary service-btn" onclick="openProductCreator('marketplace')">🛒 Marketplace</button>
+                <button class="btn primary service-btn" onclick="openProductCreator('mail')">✉️ Mail — Poczta</button>
+                <button class="btn primary service-btn" onclick="openProductCreator('music')">🎵 Music — Muzyka</button>
+                <button class="btn primary service-btn" onclick="openProductCreator('maps')">🗺️ Maps — Nawigacja</button>
+                <button class="btn primary service-btn" onclick="openProductCreator('fintech')">💳 PayTech — Płatności</button>
+                <button class="btn primary service-btn" onclick="openProductCreator('security')">🛡️ CyberShield — Bezpieczeństwo</button>
+                <button class="btn primary service-btn" onclick="openProductCreator('games')">🎮 GameHub — Gry</button>
+                <button class="btn primary service-btn" onclick="openProductCreator('smart')">🏠 SmartHome — Inteligentny dom</button>
+                <button class="btn primary service-btn" onclick="openProductCreator('devtools')">🧰 DevTools — Programowanie</button>
             </div>
 
         </div>
@@ -1274,7 +1282,11 @@ th{
 
     <div class="card">
 
-        <h3>👥 Zespół</h3>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+            <h3 style="margin:0">👥 Zespół</h3>
+            <button class="btn danger" onclick="fireAllEmployees()" ${state.employees.length?'':'disabled'}>🗑️ Zwolnij wszystkich</button>
+        </div>
+        <p class="muted" style="margin:8px 0 14px">Możesz zwolnić pojedynczego pracownika albo cały zespół. Zwolnienie zatrzymuje jego pensję od następnego ticka.</p>
 
         <div class="table-wrap">
 
@@ -1287,6 +1299,7 @@ th{
                         <th>Produktywność</th>
                         <th>Pensja</th>
                         <th>Uprawnienia</th>
+                        <th>Akcja</th>
                     </tr>
                 </thead>
 
@@ -1926,13 +1939,15 @@ const productTypes={
         revenue:2200
     },
 
-    os:{
-        name:"System operacyjny",
-        icon:"💻",
-        baseTime:220,
-        baseCost:90000,
-        revenue:4200
-    }
+    os:{name:"System operacyjny",icon:"💻",baseTime:220,baseCost:90000,revenue:4200},
+    mail:{name:"Poczta i komunikacja",icon:"✉️",baseTime:85,baseCost:28000,revenue:1550},
+    music:{name:"Platforma muzyczna",icon:"🎵",baseTime:150,baseCost:65000,revenue:3300},
+    maps:{name:"Mapy i nawigacja",icon:"🗺️",baseTime:165,baseCost:72000,revenue:3500},
+    fintech:{name:"FinTech i płatności",icon:"💳",baseTime:190,baseCost:110000,revenue:5200},
+    security:{name:"Cyberbezpieczeństwo",icon:"🛡️",baseTime:175,baseCost:85000,revenue:4100},
+    games:{name:"Platforma gier",icon:"🎮",baseTime:200,baseCost:95000,revenue:4800},
+    smart:{name:"Inteligentny dom",icon:"🏠",baseTime:185,baseCost:105000,revenue:4500},
+    devtools:{name:"Narzędzia dla programistów",icon:"🧰",baseTime:140,baseCost:55000,revenue:2900}
 
 };
 
@@ -2423,8 +2438,7 @@ function startProductCreation(){
 
     changeCash(-data.baseCost,"rozpoczęcie projektu "+name);
 
-    const productivity=
-        Math.max(1,state.employees.reduce((sum,e)=>sum+e.productivity,0));
+    const productivity=Math.max(1,Number(state.employeeTotalProductivity)||refreshEmployeeTotals().productivity||0);
 
     const creationTime=
         Math.max(
@@ -2843,6 +2857,59 @@ function hireBestEmployee(type="root",ownerId="root"){
     ensureEmployeeCandidates();
     refreshEmployeeTotals();
     return hired;
+}
+
+function fireEmployee(id){
+    const index=state.employees.findIndex(e=>e.id===id);
+    if(index<0)return;
+    const e=state.employees[index];
+    const roleName=roles[e.role]?.name||e.role||"Pracownik";
+    openModal(`🗑️ Zwolnij pracownika — ${escapeHtml(e.name)}`,`
+        <div class="card">
+            <p>Czy na pewno chcesz zwolnić <b>${escapeHtml(e.name)}</b>?</p>
+            <p class="muted">Stanowisko: <b>${escapeHtml(roleName)}</b> · Pensja: <b>${money(e.salary)}/tick</b>.</p>
+            <button class="btn danger" style="width:100%" onclick="confirmFireEmployee('${e.id}')">🗑️ Zwolnij pracownika</button>
+        </div>
+    `);
+}
+
+function confirmFireEmployee(id){
+    const index=state.employees.findIndex(e=>e.id===id);
+    if(index<0)return closeModal();
+    const e=state.employees[index];
+    state.employees.splice(index,1);
+    refreshEmployeeTotals();
+    saveGame();
+    closeModal();
+    logEvent(`🗑️ Zwolniono <b>${escapeHtml(e.name)}</b>.`);
+    toast(`Zwolniono ${escapeHtml(e.name)}.`,"good");
+    renderAll();
+}
+
+function fireAllEmployees(){
+    const count=Array.isArray(state.employees)?state.employees.length:0;
+    if(!count){
+        toast("Nie masz żadnych pracowników.","bad");
+        return;
+    }
+    openModal(`🗑️ Zwolnij wszystkich pracowników`,`
+        <div class="card">
+            <p>Czy na pewno chcesz zwolnić <b>wszystkich ${count}</b> pracowników?</p>
+            <p class="muted">Zatrzymasz całkowicie koszt wynagrodzeń od następnego ticka.</p>
+            <button class="btn danger" style="width:100%" onclick="confirmFireAllEmployees()">🗑️ Zwolnij wszystkich</button>
+        </div>
+    `);
+}
+
+function confirmFireAllEmployees(){
+    const count=Array.isArray(state.employees)?state.employees.length:0;
+    state.employees=[];
+    refreshEmployeeTotals();
+    saveGame();
+    closeModal();
+    logEvent(`🗑️ Zwolniono wszystkich pracowników (${count}).`);
+    toast(`Zwolniono ${count} pracowników. Koszt pensji został wyzerowany.`,`good`);
+    renderAll();
 }
 
 function hireBestEmployeesEverywhere(){
@@ -4453,14 +4520,16 @@ function gameTick(){
     });
 
 
-    /* PRODUCT REVENUE */
+    /* PRODUCT REVENUE — jeden zbiorczy wpis gotówki na tick, bez lawiny DOM/logów. */
+
+    let tickProductIncome=0;
+    const serverCapacity=Math.max(1,totalServerCapacity());
+    const companyMap=new Map(state.market.map(c=>[c.id,c]));
+    const subsidiaryMap=new Map(state.subsidiaries.map(s=>[s.id,s]));
 
     state.products.forEach(p=>{
 
         if(p.status!=="released")return;
-
-        const serverCapacity=
-            Math.max(1,totalServerCapacity());
 
         const required=
             10+
@@ -4492,9 +4561,7 @@ function gameTick(){
 
             if(p.assignedTo.startsWith("company:")){
 
-                const company=state.market.find(
-                    c=>c.id===p.assignedTo.slice(8)
-                );
+                const company=companyMap.get(p.assignedTo.slice(8));
 
                 if(company){
 
@@ -4514,9 +4581,7 @@ function gameTick(){
 
             }else{
 
-                const sub=state.subsidiaries.find(
-                    s=>s.id===p.assignedTo
-                );
+                const sub=subsidiaryMap.get(p.assignedTo);
 
                 if(sub){
 
@@ -4539,12 +4604,13 @@ function gameTick(){
 
         }
 
-        changeCash(
-            income,
-            `przychód produktu ${p.name}`
-        );
+        tickProductIncome+=income;
 
     });
+
+    if(tickProductIncome>0){
+        changeCash(tickProductIncome,"przychód produktów");
+    }
 
 
     /* SUBSIDIARY REVENUE */
@@ -4649,11 +4715,12 @@ function gameTick(){
     }
 
 
-    /* STOCK MARKET */
+    /* STOCK MARKET — ceny aktualizujemy co 6 sekund zamiast co 3. */
 
-    ensureMarketCompanies();
+    if(state.tick%2===0){
+        ensureMarketCompanies();
 
-    state.market.forEach(company=>{
+        state.market.forEach(company=>{
 
         if(company.offMarket){
             return;
@@ -4703,7 +4770,8 @@ function gameTick(){
 
         }
 
-    });
+        });
+    }
 
 
     /* WŁASNE PRODUKTY FIRM I SPÓŁEK CÓREK */
@@ -4983,6 +5051,10 @@ function renderEmployees(){
                     ${(e.tags||[roles[e.role]?.name,...(e.permissions||[]).slice(0,2)])
                         .map(p=>`<span class="badge">${escapeHtml(p)}</span>`)
                         .join(" ")}
+                </td>
+
+                <td>
+                    <button class="btn danger" onclick="fireEmployee('${e.id}')">🗑️ Zwolnij</button>
                 </td>
 
             </tr>
@@ -5576,16 +5648,6 @@ function renderStatistics(){
 
 function renderDashboardNumbers(){
 
-    const income=
-        state.products.reduce(
-            (sum,p)=>
-                sum+
-                (p.status==="released"
-                    ?Math.floor(p.revenuePerTick)
-                    :0),
-            0
-        );
-
     const sub=
         state.subsidiaries.reduce(
             (sum,s)=>sum+Math.floor(s.revenuePerTick),
@@ -5647,7 +5709,7 @@ function renderTickUI(){
     const id=active.id;
 
     // Cięższe listy odświeżamy rzadziej.
-    if(t-lastFullRenderTick<3)return;
+    if(t-lastFullRenderTick<4)return;
     lastFullRenderTick=t;
 
     if(id==='page-products') renderProducts();
