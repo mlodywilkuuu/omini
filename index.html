@@ -4,553 +4,582 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tech Empire Simulator</title>
+<title>Tech Empire — Company Simulator</title>
 
 <style>
-* {
-    box-sizing: border-box;
+*{box-sizing:border-box}
+
+:root{
+    --bg:#060910;
+    --panel:#0c121d;
+    --panel2:#111a29;
+    --border:#202d43;
+    --text:#edf3ff;
+    --muted:#78869e;
+    --blue:#6678ff;
+    --cyan:#28c7ff;
+    --green:#35d98b;
+    --red:#ff5870;
+    --yellow:#ffc857;
+    --purple:#ae7aff;
 }
 
-:root {
-    --bg: #070b13;
-    --panel: #0e1524;
-    --panel2: #121b2d;
-    --border: #22304a;
-    --text: #e8eefc;
-    --muted: #8794ad;
-    --primary: #6c7cff;
-    --primary2: #8794ff;
-    --green: #32d583;
-    --red: #ff5d73;
-    --yellow: #ffc857;
-    --cyan: #35c9ff;
-    --purple: #b17cff;
-}
-
-body {
-    margin: 0;
+body{
+    margin:0;
     background:
-        radial-gradient(circle at 20% 0%, #172142 0, transparent 35%),
-        radial-gradient(circle at 100% 30%, #18203c 0, transparent 30%),
+        radial-gradient(circle at 20% 0%,#162040,transparent 35%),
+        radial-gradient(circle at 100% 50%,#151e3b,transparent 30%),
         var(--bg);
-    color: var(--text);
-    font-family: Inter, Arial, sans-serif;
+    color:var(--text);
+    font-family:Inter,Arial,sans-serif;
 }
 
-button,
-input,
-select {
-    font: inherit;
+button,input,select{
+    font:inherit;
 }
 
-button {
-    cursor: pointer;
+button{
+    cursor:pointer;
 }
 
-.app {
-    display: flex;
-    min-height: 100vh;
+.app{
+    min-height:100vh;
+    display:flex;
 }
 
-/* SIDEBAR */
-
-.sidebar {
-    width: 250px;
-    background: rgba(7, 11, 19, .96);
-    border-right: 1px solid var(--border);
-    padding: 20px 14px;
-    position: fixed;
-    inset: 0 auto 0 0;
-    z-index: 10;
+.sidebar{
+    width:245px;
+    position:fixed;
+    inset:0 auto 0 0;
+    background:#070b12ee;
+    border-right:1px solid var(--border);
+    padding:20px 14px;
+    z-index:20;
 }
 
-.logo {
-    font-size: 21px;
-    font-weight: 900;
-    margin-bottom: 5px;
+.logo{
+    font-size:22px;
+    font-weight:900;
 }
 
-.logo span {
-    color: var(--primary2);
+.logo span{
+    color:var(--blue);
 }
 
-.version {
-    color: var(--muted);
-    font-size: 11px;
-    margin-bottom: 25px;
+.subtitle{
+    font-size:10px;
+    color:var(--muted);
+    margin-top:4px;
+    margin-bottom:25px;
 }
 
-.nav-title {
-    color: #58657e;
-    font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    margin: 20px 10px 8px;
+.nav-title{
+    font-size:9px;
+    color:#536079;
+    text-transform:uppercase;
+    letter-spacing:1.5px;
+    margin:20px 10px 7px;
 }
 
-.nav button {
-    width: 100%;
-    text-align: left;
-    border: 0;
-    background: transparent;
-    color: #aeb9cc;
-    padding: 11px 12px;
-    border-radius: 9px;
-    margin-bottom: 3px;
+.nav button{
+    width:100%;
+    padding:11px 12px;
+    margin-bottom:3px;
+    border:0;
+    border-radius:8px;
+    background:transparent;
+    color:#a9b5c9;
+    text-align:left;
 }
 
 .nav button:hover,
-.nav button.active {
-    background: #17223a;
-    color: white;
+.nav button.active{
+    background:#172139;
+    color:white;
 }
 
-.nav button.active {
-    box-shadow: inset 3px 0 0 var(--primary);
+.main{
+    width:calc(100% - 245px);
+    margin-left:245px;
+    padding:20px;
 }
 
-.main {
-    margin-left: 250px;
-    width: calc(100% - 250px);
-    padding: 22px;
+.topbar{
+    height:65px;
+    border-bottom:1px solid var(--border);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:20px;
 }
 
-/* TOPBAR */
-
-.topbar {
-    height: 65px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    border-bottom: 1px solid var(--border);
-    margin-bottom: 22px;
+.topbar h1{
+    margin:0;
+    font-size:22px;
 }
 
-.company-title h1 {
-    margin: 0;
-    font-size: 23px;
+.topbar small{
+    color:var(--muted);
 }
 
-.company-title small {
-    color: var(--muted);
+.top-money{
+    font-size:22px;
+    font-weight:900;
 }
 
-.top-stats {
-    display: flex;
-    gap: 10px;
+#moneyDisplay{
+    transition:color .2s;
 }
 
-.stat-mini {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    padding: 9px 13px;
-    border-radius: 9px;
-    min-width: 120px;
+.money-up{
+    color:var(--green)!important;
 }
 
-.stat-mini small {
-    display: block;
-    color: var(--muted);
-    font-size: 10px;
+.money-down{
+    color:var(--red)!important;
 }
 
-.stat-mini strong {
-    display: block;
-    margin-top: 3px;
+.topstats{
+    display:flex;
+    gap:8px;
 }
 
-/* VIEWS */
-
-.view {
-    display: none;
+.mini{
+    min-width:115px;
+    background:var(--panel);
+    border:1px solid var(--border);
+    padding:8px 12px;
+    border-radius:8px;
 }
 
-.view.active {
-    display: block;
+.mini small{
+    display:block;
+    font-size:9px;
 }
 
-/* DASHBOARD */
-
-.grid {
-    display: grid;
-    gap: 15px;
+.mini b{
+    display:block;
+    margin-top:4px;
 }
 
-.grid-4 {
-    grid-template-columns: repeat(4, 1fr);
+.view{
+    display:none;
 }
 
-.grid-3 {
-    grid-template-columns: repeat(3, 1fr);
+.view.active{
+    display:block;
 }
 
-.grid-2 {
-    grid-template-columns: repeat(2, 1fr);
+.grid{
+    display:grid;
+    gap:14px;
 }
 
-.card {
-    background: linear-gradient(145deg, rgba(18, 27, 45, .96), rgba(11, 17, 29, .96));
-    border: 1px solid var(--border);
-    border-radius: 13px;
-    padding: 17px;
-    box-shadow: 0 8px 30px rgba(0,0,0,.15);
+.g4{
+    grid-template-columns:repeat(4,1fr);
+}
+
+.g3{
+    grid-template-columns:repeat(3,1fr);
+}
+
+.g2{
+    grid-template-columns:repeat(2,1fr);
+}
+
+.card{
+    background:linear-gradient(145deg,#111a29,#0a101a);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:16px;
 }
 
 .card h2,
-.card h3 {
-    margin: 0 0 14px;
+.card h3{
+    margin:0 0 13px;
 }
 
-.kpi {
-    font-size: 26px;
-    font-weight: 900;
-    margin-top: 6px;
+.kpi{
+    font-size:27px;
+    font-weight:900;
+    margin-top:5px;
 }
 
-.kpi.green {
-    color: var(--green);
+.green{color:var(--green)}
+.red{color:var(--red)}
+.blue{color:var(--cyan)}
+.yellow{color:var(--yellow)}
+.purple{color:var(--purple)}
+
+.muted{
+    color:var(--muted);
 }
 
-.kpi.red {
-    color: var(--red);
+.btn{
+    background:#172238;
+    color:white;
+    border:1px solid var(--border);
+    border-radius:7px;
+    padding:8px 12px;
 }
 
-.kpi.blue {
-    color: var(--cyan);
+.btn:hover{
+    filter:brightness(1.18);
 }
 
-.kpi.purple {
-    color: var(--purple);
+.primary{
+    background:var(--blue);
+    border-color:var(--blue);
 }
 
-.muted {
-    color: var(--muted);
+.success{
+    background:#103728;
+    border-color:#1f7754;
+    color:#67e7aa;
 }
 
-.progress {
-    height: 8px;
-    background: #202b41;
-    border-radius: 20px;
-    overflow: hidden;
-    margin-top: 8px;
+.danger{
+    background:#3e1720;
+    border-color:#71303c;
+    color:#ff8798;
 }
 
-.progress > div {
-    height: 100%;
-    background: linear-gradient(90deg, var(--primary), var(--cyan));
+.warning{
+    background:#443716;
+    border-color:#765f24;
+    color:#ffd872;
 }
 
-/* BUTTONS */
-
-.btn {
-    border: 1px solid var(--border);
-    background: #172139;
-    color: white;
-    padding: 9px 13px;
-    border-radius: 8px;
+.progress{
+    height:7px;
+    background:#1c2739;
+    border-radius:20px;
+    overflow:hidden;
+    margin-top:7px;
 }
 
-.btn:hover {
-    filter: brightness(1.15);
+.progress div{
+    height:100%;
+    background:linear-gradient(90deg,var(--blue),var(--cyan));
 }
 
-.btn-primary {
-    background: var(--primary);
-    border-color: var(--primary);
+table{
+    width:100%;
+    border-collapse:collapse;
 }
 
-.btn-green {
-    background: #123c2b;
-    border-color: #1f7b56;
-    color: #73efb1;
+th,td{
+    padding:10px 8px;
+    border-bottom:1px solid #1b2638;
+    text-align:left;
 }
 
-.btn-red {
-    background: #401923;
-    border-color: #78303e;
-    color: #ff91a0;
+th{
+    color:var(--muted);
+    font-size:9px;
+    text-transform:uppercase;
 }
 
-.btn-yellow {
-    background: #443717;
-    border-color: #756023;
-    color: #ffd976;
+.badge{
+    display:inline-block;
+    background:#18243a;
+    color:#abbcff;
+    padding:4px 7px;
+    border-radius:5px;
+    font-size:9px;
+    margin:2px;
 }
 
-/* TABLE */
-
-.table-wrap {
-    overflow-x: auto;
+.badge.green{
+    background:#103526;
+    color:#64e4a6;
 }
 
-table {
-    width: 100%;
-    border-collapse: collapse;
+.badge.red{
+    background:#3c1921;
+    color:#ff8596;
 }
 
-th,
-td {
-    padding: 11px 9px;
-    border-bottom: 1px solid #1c2940;
-    text-align: left;
+.badge.yellow{
+    background:#3d3216;
+    color:#ffd46c;
 }
 
-th {
-    color: var(--muted);
-    font-size: 11px;
-    text-transform: uppercase;
+.form{
+    display:flex;
+    gap:8px;
+    margin-bottom:9px;
 }
 
-.badge {
-    display: inline-block;
-    padding: 4px 7px;
-    border-radius: 6px;
-    background: #19243b;
-    color: #aebcff;
-    font-size: 10px;
+input,select{
+    width:100%;
+    background:#080e18;
+    color:white;
+    border:1px solid var(--border);
+    border-radius:7px;
+    padding:9px;
 }
 
-.badge.green {
-    background: #103526;
-    color: #65e6a6;
+.company-stock{
+    border:1px solid var(--border);
+    background:#0d1624;
+    border-radius:10px;
+    padding:14px;
 }
 
-.badge.red {
-    background: #3c1921;
-    color: #ff8797;
+.stock-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
 }
 
-.badge.yellow {
-    background: #3d3215;
-    color: #ffd66e;
+.stock-price{
+    font-size:22px;
+    font-weight:900;
 }
 
-/* SERVER CARDS */
-
-.server {
-    position: relative;
+.stock-up{
+    color:var(--green);
 }
 
-.server-icon {
-    font-size: 30px;
+.stock-down{
+    color:var(--red);
 }
 
-.server-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+.stock-chart{
+    height:50px;
+    display:flex;
+    align-items:end;
+    gap:3px;
+    margin:10px 0;
 }
 
-.server-specs {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 7px;
-    margin: 13px 0;
+.stock-bar{
+    flex:1;
+    background:var(--blue);
+    opacity:.65;
+    border-radius:2px 2px 0 0;
 }
 
-.spec {
-    background: #0a111f;
-    border-radius: 7px;
-    padding: 8px;
+.share-box{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:7px;
+    margin-top:10px;
 }
 
-.spec small {
-    display: block;
-    color: var(--muted);
-    font-size: 9px;
+.share-stat{
+    background:#080e18;
+    padding:8px;
+    border-radius:7px;
 }
 
-.spec b {
-    display: block;
-    margin-top: 2px;
+.share-stat small{
+    display:block;
+    color:var(--muted);
+    font-size:8px;
 }
 
-/* TREE */
-
-.tree {
-    padding-left: 10px;
+.share-stat b{
+    display:block;
+    margin-top:3px;
 }
 
-.tree-node {
-    border-left: 2px solid #293650;
-    margin-left: 12px;
-    padding: 8px 0 8px 18px;
+.tree-node{
+    border-left:2px solid #293750;
+    margin-left:10px;
+    padding:8px 0 8px 17px;
 }
 
-.tree-company {
-    display: inline-flex;
-    align-items: center;
-    gap: 9px;
-    padding: 9px 12px;
-    background: #121d31;
-    border: 1px solid var(--border);
-    border-radius: 9px;
+.tree-company{
+    display:inline-block;
+    padding:10px 13px;
+    background:#121d30;
+    border:1px solid var(--border);
+    border-radius:8px;
 }
 
-.tree-children {
-    margin-left: 22px;
+.tree-children{
+    margin-left:20px;
 }
 
-/* PRODUCT */
-
-.product-card {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 15px;
+.log{
+    max-height:300px;
+    overflow:auto;
 }
 
-.product-left {
-    flex: 1;
+.log-item{
+    padding:8px 0;
+    border-bottom:1px solid #192437;
+    color:#aab6c9;
+    font-size:11px;
 }
 
-.product-name {
-    font-weight: 800;
-    font-size: 16px;
+.modal{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:#000b;
+    z-index:100;
+    align-items:center;
+    justify-content:center;
 }
 
-.product-meta {
-    color: var(--muted);
-    font-size: 11px;
-    margin-top: 4px;
+.modal.show{
+    display:flex;
 }
 
-/* FORMS */
-
-.form-row {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 10px;
+.modal-content{
+    width:min(560px,94vw);
+    max-height:90vh;
+    overflow:auto;
+    background:#0c1422;
+    border:1px solid var(--border);
+    border-radius:13px;
+    padding:20px;
+    box-shadow:0 20px 80px #000;
 }
 
-input,
-select {
-    width: 100%;
-    padding: 10px 11px;
-    background: #09101d;
-    border: 1px solid var(--border);
-    color: white;
-    border-radius: 8px;
-    outline: none;
+.modal-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:17px;
 }
 
-input:focus,
-select:focus {
-    border-color: var(--primary);
+.modal-header h2{
+    margin:0;
 }
 
-/* CODE PANEL */
-
-.cheat-box {
-    border: 1px solid #44366d;
-    background:
-        linear-gradient(135deg, rgba(72, 47, 119, .18), rgba(15, 12, 29, .8));
+.offer{
+    background:#101b2d;
+    border:1px solid #293b5a;
+    border-radius:9px;
+    padding:13px;
+    margin-bottom:9px;
 }
 
-.code-list {
-    display: grid;
-    gap: 9px;
+.console{
+    background:#090d15;
+    border:1px solid #49366f;
+    padding:16px;
+    border-radius:10px;
 }
 
-.code-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 12px;
-    background: #0a101d;
-    border: 1px solid #292040;
-    border-radius: 9px;
+.code-input{
+    font-family:monospace;
+    color:#c4a6ff;
 }
 
-.code-row code {
-    color: #c7a9ff;
-    font-family: monospace;
+#toastContainer{
+    position:fixed;
+    right:20px;
+    bottom:20px;
+    z-index:500;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
 }
 
-.log {
-    max-height: 260px;
-    overflow-y: auto;
+.toast{
+    min-width:260px;
+    padding:12px 15px;
+    border-radius:8px;
+    background:#121c2d;
+    border:1px solid var(--border);
+    box-shadow:0 10px 40px #0008;
+    animation:toastIn .25s ease;
 }
 
-.log-item {
-    padding: 9px 0;
-    border-bottom: 1px solid #1b273c;
-    color: #aebbd0;
-    font-size: 12px;
-}
-
-/* MODAL */
-
-.modal {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,.7);
-    align-items: center;
-    justify-content: center;
-    z-index: 100;
-}
-
-.modal.show {
-    display: flex;
-}
-
-.modal-content {
-    width: min(550px, 94vw);
-    background: #0d1626;
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 20px;
-}
-
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 17px;
-}
-
-/* MOBILE */
-
-@media(max-width: 900px) {
-    .sidebar {
-        width: 70px;
+@keyframes toastIn{
+    from{
+        transform:translateX(100px);
+        opacity:0;
     }
-
-    .sidebar .logo,
-    .sidebar .version,
-    .sidebar .nav-title {
-        display: none;
-    }
-
-    .nav button {
-        text-align: center;
-        font-size: 0;
-    }
-
-    .nav button::first-letter {
-        font-size: 18px;
-    }
-
-    .main {
-        margin-left: 70px;
-        width: calc(100% - 70px);
-    }
-
-    .grid-4,
-    .grid-3 {
-        grid-template-columns: 1fr 1fr;
+    to{
+        transform:translateX(0);
+        opacity:1;
     }
 }
 
-@media(max-width: 600px) {
-    .grid-4,
-    .grid-3,
-    .grid-2 {
-        grid-template-columns: 1fr;
+.money-float{
+    position:fixed;
+    pointer-events:none;
+    z-index:999;
+    font-weight:900;
+    font-size:18px;
+    animation:moneyFloat 1.1s ease forwards;
+}
+
+@keyframes moneyFloat{
+    0%{
+        opacity:0;
+        transform:translateY(10px) scale(.8);
+    }
+    20%{
+        opacity:1;
+    }
+    100%{
+        opacity:0;
+        transform:translateY(-75px) scale(1.15);
+    }
+}
+
+.modal-fade{
+    animation:modalIn .2s ease;
+}
+
+@keyframes modalIn{
+    from{
+        transform:scale(.94);
+        opacity:0;
+    }
+    to{
+        transform:scale(1);
+        opacity:1;
+    }
+}
+
+@media(max-width:900px){
+    .sidebar{
+        width:68px;
     }
 
-    .top-stats {
-        display: none;
+    .logo,
+    .subtitle,
+    .nav-title{
+        display:none;
+    }
+
+    .nav button{
+        font-size:0;
+        text-align:center;
+    }
+
+    .nav button::first-letter{
+        font-size:18px;
+    }
+
+    .main{
+        margin-left:68px;
+        width:calc(100% - 68px);
+    }
+
+    .g4,
+    .g3{
+        grid-template-columns:1fr 1fr;
+    }
+}
+
+@media(max-width:600px){
+    .g4,
+    .g3,
+    .g2{
+        grid-template-columns:1fr;
+    }
+
+    .topstats{
+        display:none;
     }
 }
 </style>
@@ -561,164 +590,220 @@ select:focus {
 <div class="app">
 
 <aside class="sidebar">
-    <div class="logo">TECH<span>EMPIRE</span></div>
-    <div class="version">CEO SIMULATOR v2.0</div>
+
+    <div class="logo">
+        TECH<span>EMPIRE</span>
+    </div>
+
+    <div class="subtitle">
+        CEO / HOLDING SIMULATOR
+    </div>
 
     <div class="nav">
+
         <div class="nav-title">Firma</div>
 
-        <button class="active" onclick="showView('dashboard', this)">
+        <button class="active"
+                onclick="showView('dashboard',this)">
             🏠 Dashboard
         </button>
 
-        <button onclick="showView('products', this)">
+        <button onclick="showView('products',this)">
             🚀 Produkty
         </button>
 
-        <button onclick="showView('employees', this)">
+        <button onclick="showView('employees',this)">
             👨‍💻 Pracownicy
         </button>
 
-        <button onclick="showView('servers', this)">
+        <button onclick="showView('servers',this)">
             🖥️ Serwery
         </button>
 
-        <button onclick="showView('offices', this)">
+        <button onclick="showView('offices',this)">
             🏢 Biura
         </button>
 
-        <div class="nav-title">Grupa</div>
+        <div class="nav-title">Holding</div>
 
-        <button onclick="showView('subsidiaries', this)">
-            🏛️ Spółki córki
+        <button onclick="showView('subsidiaries',this)">
+            🏛️ Spółki
         </button>
 
-        <button onclick="showView('finance', this)">
+        <button onclick="showView('management',this)">
+            👑 Zarządzanie
+        </button>
+
+        <div class="nav-title">Rynek</div>
+
+        <button onclick="showView('stock',this)">
+            📈 Giełda
+        </button>
+
+        <button onclick="showView('finance',this)">
             💰 Finanse
         </button>
 
         <div class="nav-title">Developer</div>
 
-        <button onclick="showView('codes', this)">
+        <button onclick="showView('codes',this)">
             🧪 Kody
         </button>
 
-        <button onclick="showView('logs', this)">
+        <button onclick="showView('logs',this)">
             📜 Log
         </button>
+
     </div>
+
 </aside>
+
 
 <main class="main">
 
 <header class="topbar">
-    <div class="company-title">
-        <h1 id="companyName">NovaTech Holdings</h1>
-        <small id="dateLabel">Rok 1 • Styczeń</small>
+
+    <div>
+        <h1 id="companyName">
+            NovaTech
+        </h1>
+
+        <small id="dateLabel">
+            Rok 1 • Styczeń
+        </small>
     </div>
 
-    <div class="top-stats">
-        <div class="stat-mini">
+    <div class="topstats">
+
+        <div class="mini">
             <small>GOTÓWKA</small>
-            <strong id="topCash">$2,500,000</strong>
+            <b id="topCash">$50,000</b>
         </div>
 
-        <div class="stat-mini">
+        <div class="mini">
             <small>WYCENA</small>
-            <strong id="topValuation">$8,500,000</strong>
+            <b id="topValuation">$50,000</b>
         </div>
 
-        <div class="stat-mini">
-            <small>PRACOWNICY</small>
-            <strong id="topEmployees">14</strong>
+        <div class="mini">
+            <small>AKCJE</small>
+            <b id="topShares">100 / 100</b>
         </div>
+
     </div>
+
 </header>
+
 
 <!-- DASHBOARD -->
 
 <section id="dashboard" class="view active">
 
-    <div class="grid grid-4">
+    <div class="grid g4">
 
         <div class="card">
             <span class="muted">Gotówka</span>
-            <div class="kpi green" id="cashKpi">$2.50M</div>
-            <small class="muted">+4.8% w tym miesiącu</small>
-        </div>
-
-        <div class="card">
-            <span class="muted">Przychód miesięczny</span>
-            <div class="kpi blue" id="revenueKpi">$186K</div>
-            <small class="muted">MRR</small>
+            <div class="kpi green" id="cashKpi">
+                $50K
+            </div>
+            <small class="muted">
+                kapitał początkowy
+            </small>
         </div>
 
         <div class="card">
             <span class="muted">Wycena</span>
-            <div class="kpi purple" id="valuationKpi">$8.50M</div>
-            <small class="muted">Enterprise value</small>
+            <div class="kpi purple" id="valuationKpi">
+                $50K
+            </div>
+            <small class="muted">
+                wartość firmy
+            </small>
+        </div>
+
+        <div class="card">
+            <span class="muted">Pracownicy</span>
+            <div class="kpi blue" id="employeesKpi">
+                1
+            </div>
+            <small class="muted">
+                założyciel
+            </small>
         </div>
 
         <div class="card">
             <span class="muted">Użytkownicy</span>
-            <div class="kpi" id="usersKpi">128K</div>
-            <small class="muted">aktywnych</small>
+            <div class="kpi" id="usersKpi">
+                0
+            </div>
+            <small class="muted">
+                firma dopiero startuje
+            </small>
         </div>
 
     </div>
 
     <br>
 
-    <div class="grid grid-2">
+    <div class="grid g2">
 
         <div class="card">
-            <h3>Kondycja firmy</h3>
 
-            <p class="muted">Reputacja</p>
-            <b id="reputationText">78 / 100</b>
+            <h3>Start firmy</h3>
+
+            <p class="muted">
+                Zaczynasz jako mały startup z ograniczonym kapitałem.
+                Zbuduj pierwszy produkt, znajdź klientów i zwiększaj wycenę.
+            </p>
+
             <div class="progress">
-                <div id="reputationBar" style="width:78%"></div>
+                <div id="reputationBar"
+                     style="width:10%">
+                </div>
             </div>
 
-            <p class="muted">Morale</p>
-            <b id="moraleText">86 / 100</b>
-            <div class="progress">
-                <div id="moraleBar" style="width:86%"></div>
-            </div>
+            <br>
 
-            <p class="muted">Udział rynku</p>
-            <b id="marketText">12.4%</b>
-            <div class="progress">
-                <div id="marketBar" style="width:62%"></div>
-            </div>
+            <span class="muted">
+                Reputacja:
+            </span>
+
+            <b id="reputation">
+                10 / 100
+            </b>
+
         </div>
 
         <div class="card">
+
             <h3>Szybkie akcje</h3>
 
-            <div class="form-row">
-                <button class="btn btn-primary" onclick="advanceMonth()">
+            <div class="form">
+                <button class="btn primary"
+                        onclick="advanceMonth()">
                     ⏩ Następny miesiąc
                 </button>
 
-                <button class="btn btn-green" onclick="openHire()">
-                    + Zatrudnij
+                <button class="btn success"
+                        onclick="openHire()">
+                    + Pracownik
                 </button>
             </div>
 
-            <div class="form-row">
-                <button class="btn" onclick="showView('servers')">
-                    🖥️ Serwery
+            <div class="form">
+
+                <button class="btn"
+                        onclick="showView('stock')">
+                    📈 Giełda
                 </button>
 
-                <button class="btn" onclick="showView('subsidiaries')">
-                    🏛️ Spółki
+                <button class="btn"
+                        onclick="showView('products')">
+                    🚀 Produkt
                 </button>
+
             </div>
 
-            <button class="btn btn-yellow" onclick="randomEvent()">
-                🎲 Losowe wydarzenie
-            </button>
         </div>
 
     </div>
@@ -726,8 +811,13 @@ select:focus {
     <br>
 
     <div class="card">
+
         <h3>Ostatnie wydarzenia</h3>
-        <div class="log" id="dashboardLog"></div>
+
+        <div id="dashboardLog"
+             class="log">
+        </div>
+
     </div>
 
 </section>
@@ -738,21 +828,25 @@ select:focus {
 <section id="products" class="view">
 
     <div class="card">
-        <div style="display:flex;justify-content:space-between;align-items:center;">
-            <div>
-                <h2>Produkty</h2>
-                <span class="muted">Zarządzaj portfolio technologicznego imperium.</span>
-            </div>
 
-            <button class="btn btn-primary" onclick="createProduct()">
-                + Nowy produkt
-            </button>
-        </div>
+        <h2>Produkty</h2>
+
+        <p class="muted">
+            Twórz produkty i przypisuj je do spółek z grupy.
+        </p>
+
+        <button class="btn primary"
+                onclick="createProduct()">
+            + Nowy produkt
+        </button>
+
     </div>
 
     <br>
 
-    <div class="grid grid-2" id="productList"></div>
+    <div class="grid g2"
+         id="productList">
+    </div>
 
 </section>
 
@@ -762,36 +856,37 @@ select:focus {
 <section id="employees" class="view">
 
     <div class="card">
-        <div style="display:flex;justify-content:space-between;">
-            <div>
-                <h2>Pracownicy</h2>
-                <span class="muted">Zespół technologiczny, zarząd i specjaliści.</span>
-            </div>
 
-            <button class="btn btn-green" onclick="openHire()">
-                + Rekrutacja
-            </button>
-        </div>
+        <h2>Pracownicy</h2>
+
+        <button class="btn success"
+                onclick="openHire()">
+            + Zatrudnij
+        </button>
+
     </div>
 
     <br>
 
-    <div class="card table-wrap">
+    <div class="card">
+
         <table>
+
             <thead>
                 <tr>
-                    <th>Pracownik</th>
+                    <th>Osoba</th>
                     <th>Dział</th>
                     <th>Skill</th>
                     <th>Perki</th>
                     <th>Pensja</th>
-                    <th>Status</th>
                     <th></th>
                 </tr>
             </thead>
 
             <tbody id="employeeTable"></tbody>
+
         </table>
+
     </div>
 
 </section>
@@ -802,23 +897,26 @@ select:focus {
 <section id="servers" class="view">
 
     <div class="card">
-        <div style="display:flex;justify-content:space-between;align-items:center;">
-            <div>
-                <h2>Centra serwerowe</h2>
-                <span class="muted">
-                    Buduj własną infrastrukturę i skaluj produkty.
-                </span>
-            </div>
 
-            <button class="btn btn-primary" onclick="buyServer()">
-                + Kup serwer
-            </button>
-        </div>
+        <h2>Infrastruktura serwerowa</h2>
+
+        <p class="muted">
+            Rozwijaj własne serwery, zwiększaj pojemność
+            i obsługuj więcej klientów.
+        </p>
+
+        <button class="btn primary"
+                onclick="buyServer()">
+            + Kup serwer
+        </button>
+
     </div>
 
     <br>
 
-    <div class="grid grid-3" id="serverList"></div>
+    <div class="grid g3"
+         id="serverList">
+    </div>
 
 </section>
 
@@ -828,19 +926,21 @@ select:focus {
 <section id="offices" class="view">
 
     <div class="card">
-        <h2>Biura</h2>
-        <p class="muted">
-            Biuro zwiększa maksymalną liczbę pracowników, morale i możliwości firmy.
-        </p>
 
-        <button class="btn btn-primary" onclick="buyOffice()">
-            + Otwórz nowe biuro
+        <h2>Biura</h2>
+
+        <button class="btn primary"
+                onclick="buyOffice()">
+            + Otwórz biuro
         </button>
+
     </div>
 
     <br>
 
-    <div class="grid grid-3" id="officeList"></div>
+    <div class="grid g3"
+         id="officeList">
+    </div>
 
 </section>
 
@@ -850,43 +950,51 @@ select:focus {
 <section id="subsidiaries" class="view">
 
     <div class="card">
-        <h2>Struktura grupy kapitałowej</h2>
+
+        <h2>Grupa kapitałowa</h2>
 
         <p class="muted">
-            Twórz spółki córki, przypisuj im produkty i buduj wielopoziomową
-            strukturę holdingową.
+            Przejmuj firmy albo zakładaj własne spółki.
+            Spółki mogą posiadać kolejne spółki.
         </p>
 
-        <button class="btn btn-primary" onclick="openSubsidiaryModal()">
+        <button class="btn primary"
+                onclick="openSubsidiaryModal()">
             + Utwórz spółkę córkę
         </button>
+
     </div>
 
     <br>
 
     <div class="card">
-        <div class="tree" id="companyTree"></div>
+
+        <h3>Struktura właścicielska</h3>
+
+        <div id="companyTree"></div>
+
     </div>
 
-    <br>
+</section>
+
+
+<!-- STOCK MARKET -->
+
+<section id="stock" class="view">
 
     <div class="card">
-        <h3>Portfolio produktów grupy</h3>
 
-        <div class="table-wrap">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Produkt</th>
-                        <th>Właściciel</th>
-                        <th>Przychód</th>
-                        <th>Użytkownicy</th>
-                    </tr>
-                </thead>
+        <h2>📈 Giełda</h2>
 
-                <tbody id="subsidiaryProducts"></tbody>
-            </table>
+        <p class="muted">
+            Każda firma posiada dokładnie 100 udziałów.
+            Kupuj akcje konkurentów i przejmuj kontrolę.
+        </p>
+
+        <div class="grid g3"
+             id="stockList">
         </div>
+
     </div>
 
 </section>
@@ -896,21 +1004,45 @@ select:focus {
 
 <section id="finance" class="view">
 
-    <div class="grid grid-3">
+    <div class="grid g3">
 
         <div class="card">
-            <span class="muted">Przychód</span>
-            <div class="kpi green" id="financeRevenue">$186K</div>
+
+            <span class="muted">
+                Gotówka
+            </span>
+
+            <div class="kpi green"
+                 id="financeCash">
+                $50K
+            </div>
+
         </div>
 
         <div class="card">
-            <span class="muted">Koszty</span>
-            <div class="kpi red" id="financeCosts">$92K</div>
+
+            <span class="muted">
+                Przychód
+            </span>
+
+            <div class="kpi blue"
+                 id="financeRevenue">
+                $0
+            </div>
+
         </div>
 
         <div class="card">
-            <span class="muted">Zysk</span>
-            <div class="kpi blue" id="financeProfit">$94K</div>
+
+            <span class="muted">
+                Koszty
+            </span>
+
+            <div class="kpi red"
+                 id="financeCosts">
+                $0
+            </div>
+
         </div>
 
     </div>
@@ -918,27 +1050,44 @@ select:focus {
     <br>
 
     <div class="card">
-        <h2>Operacje finansowe</h2>
 
-        <div class="form-row">
-            <button class="btn btn-green" onclick="addMoney(100000)">
-                +$100K inwestycji
-            </button>
+        <h3>Kapitał</h3>
 
-            <button class="btn btn-green" onclick="addMoney(1000000)">
-                +$1M inwestycji
-            </button>
+        <button class="btn success"
+                onclick="addMoney(10000)">
+            +$10K
+        </button>
 
-            <button class="btn btn-green" onclick="addMoney(10000000)">
-                +$10M inwestycji
-            </button>
-        </div>
+        <button class="btn success"
+                onclick="addMoney(100000)">
+            +$100K
+        </button>
 
-        <div class="form-row">
-            <button class="btn btn-yellow" onclick="takeLoan()">
-                🏦 Zaciągnij kredyt
-            </button>
-        </div>
+        <button class="btn success"
+                onclick="addMoney(1000000)">
+            +$1M
+        </button>
+
+    </div>
+
+</section>
+
+
+<!-- MANAGEMENT -->
+
+<section id="management" class="view">
+
+    <div class="card">
+
+        <h2>👑 Panel zarządzania przejętymi firmami</h2>
+
+        <p class="muted">
+            Ten panel odblokowuje się dopiero po uzyskaniu
+            większości udziałów w firmie.
+        </p>
+
+        <div id="managementList"></div>
+
     </div>
 
 </section>
@@ -948,111 +1097,59 @@ select:focus {
 
 <section id="codes" class="view">
 
-    <div class="card cheat-box">
+    <div class="console">
 
         <h2>🧪 Developer Console</h2>
 
         <p class="muted">
-            Panel kodów testowych/developerskich. Przydatny podczas budowy
-            symulatora. Kody działają lokalnie w tej wersji.
+            Naciśnij na klawiaturze <b>~</b>, aby otworzyć
+            konsolę kodów w dowolnym momencie.
         </p>
 
-        <br>
+        <button class="btn warning"
+                onclick="openCodeModal()">
+            Otwórz panel kodów
+        </button>
 
-        <div class="code-list">
+        <br><br>
 
-            <div class="code-row">
-                <div>
-                    <code>money100k</code>
-                    <div class="muted">Dodaje $100 000</div>
-                </div>
-                <button class="btn" onclick="useCode('money100k')">
-                    AKTYWUJ
-                </button>
-            </div>
+        <div class="form">
 
-            <div class="code-row">
-                <div>
-                    <code>money1m</code>
-                    <div class="muted">Dodaje $1 000 000</div>
-                </div>
-                <button class="btn" onclick="useCode('money1m')">
-                    AKTYWUJ
-                </button>
-            </div>
+            <input
+                id="codeInputPage"
+                class="code-input"
+                placeholder="Wpisz kod..."
+            >
 
-            <div class="code-row">
-                <div>
-                    <code>money100m</code>
-                    <div class="muted">Dodaje $100 000 000</div>
-                </div>
-                <button class="btn" onclick="useCode('money100m')">
-                    AKTYWUJ
-                </button>
-            </div>
-
-            <div class="code-row">
-                <div>
-                    <code>godmode</code>
-                    <div class="muted">
-                        Maksymalizuje reputację, morale i część statystyk.
-                    </div>
-                </div>
-                <button class="btn" onclick="useCode('godmode')">
-                    AKTYWUJ
-                </button>
-            </div>
-
-            <div class="code-row">
-                <div>
-                    <code>bestemployees</code>
-                    <div class="muted">
-                        Rekrutuje elitarnych pracowników z najlepszymi perkami.
-                    </div>
-                </div>
-                <button class="btn" onclick="useCode('bestemployees')">
-                    AKTYWUJ
-                </button>
-            </div>
-
-            <div class="code-row">
-                <div>
-                    <code>maxservers</code>
-                    <div class="muted">
-                        Maksymalizuje poziom wszystkich serwerów.
-                    </div>
-                </div>
-                <button class="btn" onclick="useCode('maxservers')">
-                    AKTYWUJ
-                </button>
-            </div>
-
-            <div class="code-row">
-                <div>
-                    <code>empire</code>
-                    <div class="muted">
-                        Pakiet developerski: pieniądze + pracownicy + serwery.
-                    </div>
-                </div>
-                <button class="btn" onclick="useCode('empire')">
-                    AKTYWUJ
-                </button>
-            </div>
+            <button class="btn primary"
+                    onclick="executeCodeFromPage()">
+                Wykonaj
+            </button>
 
         </div>
+
+        <p class="muted">
+            Dostępne: money, money1m, money100m,
+            bestemployees, maxservers, godmode, shares
+        </p>
 
     </div>
 
 </section>
 
 
-<!-- LOGS -->
+<!-- LOG -->
 
 <section id="logs" class="view">
 
     <div class="card">
-        <h2>Dziennik firmy</h2>
-        <div class="log" id="fullLog"></div>
+
+        <h2>Log firmy</h2>
+
+        <div id="fullLog"
+             class="log">
+        </div>
+
     </div>
 
 </section>
@@ -1061,23 +1158,230 @@ select:focus {
 </div>
 
 
-<!-- HIRE MODAL -->
+<!-- CODE MODAL -->
 
-<div class="modal" id="hireModal">
+<div class="modal"
+     id="codeModal">
 
-    <div class="modal-content">
+    <div class="modal-content modal-fade">
 
         <div class="modal-header">
-            <h2>Rekrutacja</h2>
-            <button class="btn" onclick="closeModal('hireModal')">✕</button>
+
+            <h2>🧪 Developer Console</h2>
+
+            <button class="btn"
+                    onclick="closeModal('codeModal')">
+                ✕
+            </button>
+
         </div>
 
-        <div class="form-row">
-            <input id="hireName" placeholder="Imię i nazwisko">
+        <p class="muted">
+            Wpisz kod developerski.
+        </p>
+
+        <div class="form">
+
+            <input
+                id="codeInput"
+                class="code-input"
+                autofocus
+                placeholder="np. money100m"
+            >
+
+            <button class="btn primary"
+                    onclick="executeCode()">
+                WYKONAJ
+            </button>
+
         </div>
 
-        <div class="form-row">
+        <br>
+
+        <div class="offer">
+            <code>money</code>
+            <br>
+            <small class="muted">
+                +$10 000
+            </small>
+        </div>
+
+        <div class="offer">
+            <code>money1m</code>
+            <br>
+            <small class="muted">
+                +$1 000 000
+            </small>
+        </div>
+
+        <div class="offer">
+            <code>money100m</code>
+            <br>
+            <small class="muted">
+                +$100 000 000
+            </small>
+        </div>
+
+        <div class="offer">
+            <code>bestemployees</code>
+            <br>
+            <small class="muted">
+                Elitarni pracownicy z najlepszymi perkami
+            </small>
+        </div>
+
+        <div class="offer">
+            <code>maxservers</code>
+            <br>
+            <small class="muted">
+                Maksymalne serwery
+            </small>
+        </div>
+
+        <div class="offer">
+            <code>godmode</code>
+            <br>
+            <small class="muted">
+                Maksymalna reputacja i rozwój
+            </small>
+        </div>
+
+    </div>
+</div>
+
+
+<!-- BUY SHARES MODAL -->
+
+<div class="modal"
+     id="stockModal">
+
+    <div class="modal-content modal-fade">
+
+        <div class="modal-header">
+
+            <h2 id="stockModalTitle">
+                Kupno udziałów
+            </h2>
+
+            <button class="btn"
+                    onclick="closeModal('stockModal')">
+                ✕
+            </button>
+
+        </div>
+
+        <div id="stockModalBody"></div>
+
+    </div>
+</div>
+
+
+<!-- BUYOUT MODAL -->
+
+<div class="modal"
+     id="buyoutModal">
+
+    <div class="modal-content modal-fade">
+
+        <div class="modal-header">
+
+            <h2>
+                🤝 Propozycja wykupu
+            </h2>
+
+            <button class="btn"
+                    onclick="closeModal('buyoutModal')">
+                ✕
+            </button>
+
+        </div>
+
+        <div id="buyoutBody"></div>
+
+    </div>
+</div>
+
+
+<!-- SUBSIDIARY MODAL -->
+
+<div class="modal"
+     id="subsidiaryModal">
+
+    <div class="modal-content modal-fade">
+
+        <div class="modal-header">
+
+            <h2>
+                🏢 Nowa spółka
+            </h2>
+
+            <button class="btn"
+                    onclick="closeModal('subsidiaryModal')">
+                ✕
+            </button>
+
+        </div>
+
+        <div class="form">
+
+            <input id="subName"
+                   placeholder="Nazwa spółki">
+
+        </div>
+
+        <div class="form">
+
+            <select id="subParent"></select>
+
+        </div>
+
+        <div class="form">
+
+            <input id="subCapital"
+                   type="number"
+                   value="10000"
+                   placeholder="Kapitał">
+
+        </div>
+
+        <button class="btn primary"
+                onclick="createSubsidiary()">
+            Utwórz
+        </button>
+
+    </div>
+</div>
+
+
+<!-- HIRE MODAL -->
+
+<div class="modal"
+     id="hireModal">
+
+    <div class="modal-content modal-fade">
+
+        <div class="modal-header">
+
+            <h2>
+                👨‍💻 Rekrutacja
+            </h2>
+
+            <button class="btn"
+                    onclick="closeModal('hireModal')">
+                ✕
+            </button>
+
+        </div>
+
+        <div class="form">
+            <input id="hireName"
+                   placeholder="Imię i nazwisko">
+        </div>
+
+        <div class="form">
+
             <select id="hireDepartment">
+
                 <option>Engineering</option>
                 <option>AI Research</option>
                 <option>Product</option>
@@ -1086,20 +1390,41 @@ select:focus {
                 <option>Security</option>
                 <option>Finance</option>
                 <option>Management</option>
+
             </select>
+
         </div>
 
-        <div class="form-row">
-            <select id="hireLevel">
-                <option value="55">Junior — 55 skill</option>
-                <option value="72">Mid — 72 skill</option>
-                <option value="86">Senior — 86 skill</option>
-                <option value="95">Principal — 95 skill</option>
-                <option value="100">Legendary — 100 skill</option>
+        <div class="form">
+
+            <select id="hireSkill">
+
+                <option value="55">
+                    Junior — 55
+                </option>
+
+                <option value="70">
+                    Mid — 70
+                </option>
+
+                <option value="82">
+                    Senior — 82
+                </option>
+
+                <option value="92">
+                    Principal — 92
+                </option>
+
+                <option value="100">
+                    Legendary — 100
+                </option>
+
             </select>
+
         </div>
 
-        <button class="btn btn-green" onclick="hireEmployee()">
+        <button class="btn success"
+                onclick="hireEmployee()">
             Zatrudnij
         </button>
 
@@ -1107,202 +1432,152 @@ select:focus {
 </div>
 
 
-<!-- SUBSIDIARY MODAL -->
-
-<div class="modal" id="subsidiaryModal">
-
-    <div class="modal-content">
-
-        <div class="modal-header">
-            <h2>Nowa spółka córka</h2>
-            <button class="btn" onclick="closeModal('subsidiaryModal')">✕</button>
-        </div>
-
-        <div class="form-row">
-            <input id="subName" placeholder="np. NovaAI Labs">
-        </div>
-
-        <div class="form-row">
-            <select id="subParent"></select>
-        </div>
-
-        <div class="form-row">
-            <input
-                id="subCapital"
-                type="number"
-                value="250000"
-                placeholder="Kapitał początkowy">
-        </div>
-
-        <button class="btn btn-primary" onclick="createSubsidiary()">
-            Utwórz spółkę
-        </button>
-
-    </div>
-</div>
+<div id="toastContainer"></div>
 
 
 <script>
 
 /* ============================================================
-   GAME STATE
+   GAME DATA
 ============================================================ */
 
 const state = {
 
-    company: {
-        id: 1,
-        name: "NovaTech Holdings",
-        cash: 2500000,
-        valuation: 8500000,
-        reputation: 78,
-        morale: 86,
-        marketShare: 12.4,
-        revenue: 186000,
-        costs: 92000,
-        users: 128000
+    year:1,
+    month:1,
+
+    company:{
+        id:1,
+        name:"NovaTech",
+        cash:50000,
+        valuation:50000,
+        reputation:10,
+        morale:70,
+        revenue:0,
+        costs:0,
+        users:0,
+        ownedShares:100
     },
 
-    year: 1,
-    month: 1,
-
-    employees: [
+    employees:[
         {
-            id: 1,
-            name: "Alex Kowalski",
-            department: "CEO / Product",
-            skill: 96,
-            salary: 0,
-            perks: ["Founder", "Visionary", "Negotiator", "Product Genius"]
-        },
-        {
-            id: 2,
-            name: "Maja Nowak",
-            department: "Engineering",
-            skill: 94,
-            salary: 18000,
-            perks: ["10x Engineer", "Cloud Expert", "Architect"]
-        },
-        {
-            id: 3,
-            name: "Jan Zieliński",
-            department: "AI Research",
-            skill: 91,
-            salary: 21000,
-            perks: ["AI Genius", "Researcher", "Patent Hunter"]
-        },
-        {
-            id: 4,
-            name: "Ola Wójcik",
-            department: "Sales",
-            skill: 87,
-            salary: 12000,
-            perks: ["Closer", "Enterprise Sales"]
+            id:1,
+            name:"Założyciel",
+            department:"CEO",
+            skill:70,
+            salary:0,
+            perks:[
+                "Founder",
+                "Visionary"
+            ]
         }
     ],
 
-    products: [
+    products:[],
+
+    servers:[],
+
+    offices:[],
+
+    subsidiaries:[
         {
-            id: 1,
-            name: "NovaCloud",
-            category: "Cloud",
-            users: 76000,
-            revenue: 92000,
-            quality: 92,
-            progress: 100,
-            owner: 1
-        },
-        {
-            id: 2,
-            name: "NovaAI",
-            category: "Artificial Intelligence",
-            users: 42000,
-            revenue: 68000,
-            quality: 88,
-            progress: 84,
-            owner: 1
-        },
-        {
-            id: 3,
-            name: "NovaSecure",
-            category: "Cybersecurity",
-            users: 10000,
-            revenue: 26000,
-            quality: 81,
-            progress: 71,
-            owner: 1
+            id:1,
+            name:"NovaTech",
+            parent:null,
+            level:0,
+            capital:50000,
+            products:[]
         }
     ],
 
-    servers: [
+    /* Wszystkie firmy mają dokładnie 100 udziałów */
+    publicCompanies:[
         {
-            id: 1,
-            name: "Warsaw Core",
-            location: "Warszawa",
-            level: 4,
-            cpu: 82,
-            ram: 76,
-            storage: 68,
-            uptime: 99.95,
-            capacity: 80000,
-            cost: 18000
+            id:101,
+            name:"ByteForge",
+            sector:"Software",
+            value:180000,
+            price:1800,
+            shares:100,
+            history:[1600,1650,1720,1690,1750,1800],
+            owners:[
+                {name:"Founders",shares:42},
+                {name:"Alpha Capital",shares:24},
+                {name:"Marek Ventures",shares:18},
+                {name:"Public",shares:16}
+            ]
         },
-        {
-            id: 2,
-            name: "Frankfurt Edge",
-            location: "Frankfurt",
-            level: 3,
-            cpu: 65,
-            ram: 62,
-            storage: 55,
-            uptime: 99.91,
-            capacity: 55000,
-            cost: 13000
-        }
-    ],
 
-    offices: [
         {
-            id: 1,
-            name: "NovaTech HQ",
-            city: "Warszawa",
-            level: 4,
-            capacity: 100,
-            employees: 14,
-            morale: 92,
-            cost: 22000
+            id:102,
+            name:"QuantumAI",
+            sector:"Artificial Intelligence",
+            value:420000,
+            price:4200,
+            shares:100,
+            history:[3500,3700,3900,4050,4100,4200],
+            owners:[
+                {name:"Quantum Founders",shares:38},
+                {name:"Future Fund",shares:26},
+                {name:"TechBridge",shares:21},
+                {name:"Public",shares:15}
+            ]
         },
+
         {
-            id: 2,
-            name: "AI Lab",
-            city: "Kraków",
-            level: 2,
-            capacity: 30,
-            employees: 4,
-            morale: 88,
-            cost: 9000
+            id:103,
+            name:"CloudSphere",
+            sector:"Cloud",
+            value:320000,
+            price:3200,
+            history:[3000,2900,3050,3100,3150,3200],
+            owners:[
+                {name:"Cloud Founders",shares:45},
+                {name:"North Capital",shares:20},
+                {name:"Baltic Ventures",shares:19},
+                {name:"Public",shares:16}
+            ]
+        },
+
+        {
+            id:104,
+            name:"CyberCore",
+            sector:"Cybersecurity",
+            value:250000,
+            price:2500,
+            history:[2100,2200,2350,2250,2400,2500],
+            owners:[
+                {name:"Cyber Group",shares:35},
+                {name:"SecureFund",shares:27},
+                {name:"Private Investors",shares:23},
+                {name:"Public",shares:15}
+            ]
+        },
+
+        {
+            id:105,
+            name:"RoboDynamics",
+            sector:"Robotics",
+            value:600000,
+            price:6000,
+            history:[5100,5300,5500,5700,5850,6000],
+            owners:[
+                {name:"Robo Founders",shares:31},
+                {name:"Industrial Fund",shares:29},
+                {name:"Future Robotics",shares:25},
+                {name:"Public",shares:15}
+            ]
         }
     ],
 
-    subsidiaries: [
-        {
-            id: 1,
-            parent: null,
-            name: "NovaTech Holdings",
-            type: "Holding",
-            capital: 2500000,
-            products: [],
-            level: 0
-        }
+    logs:[
+        "Założono NovaTech.",
+        "Kapitał początkowy: $50,000.",
+        "Rozpoczynasz jako niezależny startup."
     ],
 
-    logs: [
-        "Firma NovaTech Holdings rozpoczęła działalność.",
-        "Uruchomiono NovaCloud.",
-        "Podpisano kontrakt enterprise.",
-        "Otwarto AI Lab w Krakowie.",
-        "NovaAI otrzymało pierwszych klientów."
-    ]
+    acquiredCompanies:[]
+
 };
 
 
@@ -1310,115 +1585,30 @@ const state = {
    HELPERS
 ============================================================ */
 
-function money(value) {
-    return "$" + Math.round(value).toLocaleString("en-US");
+function money(v){
+
+    return "$" +
+        Math.round(v)
+        .toLocaleString("en-US");
+
 }
 
-function compactMoney(value) {
+function compact(v){
 
-    if (Math.abs(value) >= 1000000000)
-        return "$" + (value / 1000000000).toFixed(2) + "B";
+    if(Math.abs(v)>=1000000000)
+        return "$"+(v/1000000000).toFixed(2)+"B";
 
-    if (Math.abs(value) >= 1000000)
-        return "$" + (value / 1000000).toFixed(2) + "M";
+    if(Math.abs(v)>=1000000)
+        return "$"+(v/1000000).toFixed(2)+"M";
 
-    if (Math.abs(value) >= 1000)
-        return "$" + (value / 1000).toFixed(0) + "K";
+    if(Math.abs(v)>=1000)
+        return "$"+(v/1000).toFixed(0)+"K";
 
-    return money(value);
+    return money(v);
+
 }
 
-function log(message) {
-
-    state.logs.unshift(
-        `R${state.year} M${state.month}: ${message}`
-    );
-
-    state.logs = state.logs.slice(0, 100);
-
-    renderLogs();
-}
-
-
-/* ============================================================
-   NAVIGATION
-============================================================ */
-
-function showView(id, button) {
-
-    document.querySelectorAll(".view")
-        .forEach(v => v.classList.remove("active"));
-
-    document.getElementById(id)
-        .classList.add("active");
-
-    document.querySelectorAll(".nav button")
-        .forEach(b => b.classList.remove("active"));
-
-    if (button)
-        button.classList.add("active");
-
-    renderAll();
-}
-
-
-/* ============================================================
-   DASHBOARD
-============================================================ */
-
-function renderDashboard() {
-
-    const c = state.company;
-
-    document.getElementById("topCash").textContent =
-        compactMoney(c.cash);
-
-    document.getElementById("topValuation").textContent =
-        compactMoney(c.valuation);
-
-    document.getElementById("topEmployees").textContent =
-        state.employees.length;
-
-    document.getElementById("cashKpi").textContent =
-        compactMoney(c.cash);
-
-    document.getElementById("revenueKpi").textContent =
-        compactMoney(c.revenue);
-
-    document.getElementById("valuationKpi").textContent =
-        compactMoney(c.valuation);
-
-    document.getElementById("usersKpi").textContent =
-        c.users.toLocaleString();
-
-    document.getElementById("reputationText").textContent =
-        `${c.reputation} / 100`;
-
-    document.getElementById("reputationBar").style.width =
-        c.reputation + "%";
-
-    document.getElementById("moraleText").textContent =
-        `${c.morale} / 100`;
-
-    document.getElementById("moraleBar").style.width =
-        c.morale + "%";
-
-    document.getElementById("marketText").textContent =
-        c.marketShare.toFixed(1) + "%";
-
-    document.getElementById("marketBar").style.width =
-        Math.min(100, c.marketShare * 5) + "%";
-
-    document.getElementById("dateLabel").textContent =
-        `Rok ${state.year} • ${monthName()}`;
-
-    document.getElementById("dashboardLog").innerHTML =
-        state.logs.slice(0, 8)
-        .map(x => `<div class="log-item">${x}</div>`)
-        .join("");
-}
-
-function monthName() {
+function monthName(){
 
     return [
         "Styczeń",
@@ -1433,103 +1623,271 @@ function monthName() {
         "Październik",
         "Listopad",
         "Grudzień"
-    ][state.month - 1];
+    ][state.month-1];
+
 }
 
 
 /* ============================================================
-   MONTH SIMULATION
+   MONEY ANIMATION
 ============================================================ */
 
-function advanceMonth() {
+let displayedCash = state.company.cash;
 
-    const c = state.company;
+function animateMoney(oldValue,newValue){
 
-    let revenueGrowth =
-        1 + (Math.random() * .12 - .03);
+    const element =
+        document.getElementById("moneyDisplay");
 
-    let employeeCost =
-        state.employees.reduce(
-            (sum, e) => sum + e.salary / 12,
-            0
-        );
+    const top =
+        document.getElementById("topCash");
 
-    let serverCost =
-        state.servers.reduce(
-            (sum, s) => sum + s.cost,
-            0
-        );
+    const duration = 650;
 
-    let officeCost =
-        state.offices.reduce(
-            (sum, o) => sum + o.cost,
-            0
-        );
+    const start =
+        performance.now();
 
-    c.revenue *= revenueGrowth;
+    const difference =
+        newValue-oldValue;
 
-    const newUsers =
-        Math.round(c.users * (0.02 + Math.random() * .05));
-
-    c.users += newUsers;
-
-    const totalCosts =
-        employeeCost + serverCost + officeCost + 18000;
-
-    c.costs = totalCosts;
-
-    const profit =
-        c.revenue - totalCosts;
-
-    c.cash += profit;
-
-    c.valuation =
-        Math.max(
-            100000,
-            c.revenue * 12 * 3.8
-            + c.cash
-        );
-
-    c.marketShare +=
-        (Math.random() * 0.5) - 0.1;
-
-    c.marketShare =
-        Math.max(0.1, Math.min(100, c.marketShare));
-
-    state.products.forEach(product => {
-
-        if (product.progress < 100) {
-
-            product.progress +=
-                Math.floor(Math.random() * 6) + 2;
-
-            product.progress =
-                Math.min(100, product.progress);
-        }
-
-        const growth =
-            1 + Math.random() * .08;
-
-        product.users =
-            Math.floor(product.users * growth);
-
-        product.revenue =
-            Math.floor(product.revenue * growth);
-    });
-
-    state.month++;
-
-    if (state.month > 12) {
-        state.month = 1;
-        state.year++;
-    }
-
-    log(
-        `Zakończono miesiąc. Zysk: ${money(profit)}. ` +
-        `Nowi użytkownicy: ${newUsers.toLocaleString()}.`
+    element.classList.remove(
+        "money-up",
+        "money-down"
     );
 
+    if(difference>0)
+        element.classList.add("money-up");
+
+    if(difference<0)
+        element.classList.add("money-down");
+
+    function frame(now){
+
+        const progress =
+            Math.min(
+                1,
+                (now-start)/duration
+            );
+
+        const eased =
+            1-Math.pow(1-progress,3);
+
+        const value =
+            oldValue +
+            difference*eased;
+
+        top.textContent =
+            money(value);
+
+        if(progress<1)
+            requestAnimationFrame(frame);
+        else{
+            top.textContent =
+                money(newValue);
+
+            setTimeout(()=>{
+                element.classList.remove(
+                    "money-up",
+                    "money-down"
+                );
+            },500);
+        }
+
+    }
+
+    requestAnimationFrame(frame);
+
+    createMoneyFloat(difference);
+}
+
+
+function changeCash(amount){
+
+    const old =
+        state.company.cash;
+
+    state.company.cash += amount;
+
+    animateMoney(
+        old,
+        state.company.cash
+    );
+
+    return state.company.cash;
+
+}
+
+
+function createMoneyFloat(amount){
+
+    const el =
+        document.createElement("div");
+
+    el.className =
+        "money-float";
+
+    el.textContent =
+        (amount>=0?"+":"-") +
+        money(Math.abs(amount));
+
+    el.style.left =
+        (window.innerWidth-210)+"px";
+
+    el.style.top =
+        "82px";
+
+    el.style.color =
+        amount>=0
+        ? "var(--green)"
+        : "var(--red)";
+
+    document.body.appendChild(el);
+
+    setTimeout(
+        ()=>el.remove(),
+        1200
+    );
+
+}
+
+
+/* ============================================================
+   LOG / TOAST
+============================================================ */
+
+function log(message){
+
+    state.logs.unshift(
+        `R${state.year} M${state.month}: ${message}`
+    );
+
+    state.logs =
+        state.logs.slice(0,100);
+
+    renderLogs();
+
+}
+
+
+function toast(message){
+
+    const el =
+        document.createElement("div");
+
+    el.className="toast";
+
+    el.textContent=message;
+
+    document
+        .getElementById("toastContainer")
+        .appendChild(el);
+
+    setTimeout(
+        ()=>el.remove(),
+        3000
+    );
+
+}
+
+
+/* ============================================================
+   NAVIGATION
+============================================================ */
+
+function showView(id,button){
+
+    document
+        .querySelectorAll(".view")
+        .forEach(
+            x=>x.classList.remove("active")
+        );
+
+    document
+        .getElementById(id)
+        .classList.add("active");
+
+    document
+        .querySelectorAll(".nav button")
+        .forEach(
+            x=>x.classList.remove("active")
+        );
+
+    if(button)
+        button.classList.add("active");
+
     renderAll();
+
+}
+
+
+/* ============================================================
+   DASHBOARD
+============================================================ */
+
+function renderDashboard(){
+
+    const c =
+        state.company;
+
+    document.getElementById(
+        "companyName"
+    ).textContent=c.name;
+
+    document.getElementById(
+        "dateLabel"
+    ).textContent=
+        `Rok ${state.year} • ${monthName()}`;
+
+    document.getElementById(
+        "cashKpi"
+    ).textContent=
+        compact(c.cash);
+
+    document.getElementById(
+        "topValuation"
+    ).textContent=
+        compact(c.valuation);
+
+    document.getElementById(
+        "topShares"
+    ).textContent=
+        `${c.ownedShares} / 100`;
+
+    document.getElementById(
+        "employeesKpi"
+    ).textContent=
+        state.employees.length;
+
+    document.getElementById(
+        "usersKpi"
+    ).textContent=
+        c.users.toLocaleString();
+
+    document.getElementById(
+        "valuationKpi"
+    ).textContent=
+        compact(c.valuation);
+
+    document.getElementById(
+        "reputation"
+    ).textContent=
+        `${c.reputation} / 100`;
+
+    document.getElementById(
+        "reputationBar"
+    ).style.width=
+        c.reputation+"%";
+
+    document.getElementById(
+        "dashboardLog"
+    ).innerHTML=
+        state.logs
+        .slice(0,8)
+        .map(
+            x=>`<div class="log-item">${x}</div>`
+        )
+        .join("");
+
 }
 
 
@@ -1537,194 +1895,270 @@ function advanceMonth() {
    PRODUCTS
 ============================================================ */
 
-function renderProducts() {
+function renderProducts(){
 
-    const container =
-        document.getElementById("productList");
+    const box =
+        document.getElementById(
+            "productList"
+        );
 
-    container.innerHTML =
-        state.products.map(product => {
+    if(!state.products.length){
+
+        box.innerHTML=`
+            <div class="card">
+                <h3>Brak produktów</h3>
+                <p class="muted">
+                    Twój startup jeszcze niczego nie sprzedaje.
+                </p>
+            </div>
+        `;
+
+        return;
+
+    }
+
+    box.innerHTML =
+        state.products
+        .map(p=>{
 
             const owner =
                 state.subsidiaries.find(
-                    s => s.id === product.owner
+                    s=>s.id===p.owner
                 );
 
             return `
                 <div class="card">
 
-                    <div class="product-card">
+                    <h3>
+                        🚀 ${p.name}
+                    </h3>
 
-                        <div class="product-left">
+                    <span class="badge">
+                        ${p.category}
+                    </span>
 
-                            <div class="product-name">
-                                🚀 ${product.name}
-                            </div>
+                    <span class="badge green">
+                        ${owner?.name || "NovaTech"}
+                    </span>
 
-                            <div class="product-meta">
-                                ${product.category}
-                                • właściciel:
-                                ${owner ? owner.name : "Holding"}
-                            </div>
+                    <br><br>
 
-                            <br>
+                    <div class="grid g3">
 
-                            <div class="grid grid-3">
-
-                                <div>
-                                    <small class="muted">
-                                        Użytkownicy
-                                    </small>
-                                    <b>
-                                        ${product.users.toLocaleString()}
-                                    </b>
-                                </div>
-
-                                <div>
-                                    <small class="muted">
-                                        Przychód
-                                    </small>
-                                    <b>
-                                        ${compactMoney(product.revenue)}
-                                    </b>
-                                </div>
-
-                                <div>
-                                    <small class="muted">
-                                        Quality
-                                    </small>
-                                    <b>
-                                        ${product.quality}/100
-                                    </b>
-                                </div>
-
-                            </div>
-
-                            <br>
-
+                        <div>
                             <small class="muted">
-                                Rozwój ${product.progress}%
+                                Użytkownicy
                             </small>
+                            <b>
+                                ${p.users.toLocaleString()}
+                            </b>
+                        </div>
 
-                            <div class="progress">
-                                <div style="width:${product.progress}%"></div>
-                            </div>
+                        <div>
+                            <small class="muted">
+                                MRR
+                            </small>
+                            <b>
+                                ${money(p.revenue)}
+                            </b>
+                        </div>
 
+                        <div>
+                            <small class="muted">
+                                Quality
+                            </small>
+                            <b>
+                                ${p.quality}
+                            </b>
                         </div>
 
                     </div>
 
                     <br>
 
-                    <button
-                        class="btn"
-                        onclick="upgradeProduct(${product.id})">
+                    <small class="muted">
+                        Rozwój ${p.progress}%
+                    </small>
+
+                    <div class="progress">
+                        <div style="
+                            width:${p.progress}%
+                        "></div>
+                    </div>
+
+                    <br>
+
+                    <button class="btn"
+                            onclick="upgradeProduct(${p.id})">
                         ⚙️ Rozwijaj
                     </button>
 
-                    <button
-                        class="btn"
-                        onclick="assignProductPrompt(${product.id})">
-                        🏛️ Przenieś do spółki
+                    <button class="btn"
+                            onclick="assignProduct(${p.id})">
+                        🏛️ Przenieś
                     </button>
 
                 </div>
             `;
 
-        }).join("");
+        })
+        .join("");
+
 }
 
-function createProduct() {
+
+function createProduct(){
 
     const name =
-        prompt("Nazwa nowego produktu:");
+        prompt(
+            "Nazwa produktu:"
+        );
 
-    if (!name)
+    if(!name)
         return;
 
-    const categories = [
-        "AI",
-        "Cloud",
-        "Cybersecurity",
-        "SaaS",
-        "FinTech",
-        "Developer Tools",
-        "Robotics",
-        "Gaming"
-    ];
+    const cost=10000;
 
-    const category =
-        categories[
-            Math.floor(Math.random() * categories.length)
-        ];
+    if(state.company.cash<cost){
 
-    const product = {
+        toast("Brak $10,000 na rozpoczęcie projektu.");
 
-        id: Date.now(),
+        return;
+
+    }
+
+    changeCash(-cost);
+
+    const product={
+
+        id:Date.now(),
 
         name,
 
-        category,
+        category:[
+            "AI",
+            "Cloud",
+            "SaaS",
+            "Cybersecurity",
+            "FinTech",
+            "Gaming",
+            "Robotics"
+        ][
+            Math.floor(
+                Math.random()*7
+            )
+        ],
 
-        users: 0,
+        users:0,
 
-        revenue: 0,
+        revenue:0,
 
-        quality: 55,
+        quality:50,
 
-        progress: 5,
+        progress:5,
 
-        owner: 1
+        owner:1
+
     };
 
     state.products.push(product);
 
-    state.company.cash -= 25000;
-
     log(
-        `Rozpoczęto budowę produktu ${name} (${category}).`
+        `Rozpoczęto budowę ${name}.`
     );
 
     renderAll();
+
 }
 
-function upgradeProduct(id) {
 
-    const product =
-        state.products.find(p => p.id === id);
+function upgradeProduct(id){
 
-    if (!product)
-        return;
-
-    const cost = 15000;
-
-    if (state.company.cash < cost) {
-
-        alert("Brak pieniędzy.");
-
-        return;
-    }
-
-    state.company.cash -= cost;
-
-    product.progress =
-        Math.min(
-            100,
-            product.progress + 10
+    const p =
+        state.products.find(
+            x=>x.id===id
         );
 
-    product.quality =
+    if(!p)
+        return;
+
+    const cost=5000;
+
+    if(state.company.cash<cost){
+
+        toast("Brak środków.");
+
+        return;
+
+    }
+
+    changeCash(-cost);
+
+    p.progress=
         Math.min(
             100,
-            product.quality + 2
+            p.progress+12
+        );
+
+    p.quality=
+        Math.min(
+            100,
+            p.quality+3
         );
 
     log(
-        `${product.name} ulepszono. ` +
-        `Postęp: ${product.progress}%.`
+        `${p.name}: rozwój +12%.`
     );
 
     renderAll();
+
+}
+
+
+function assignProduct(id){
+
+    const p =
+        state.products.find(
+            x=>x.id===id
+        );
+
+    const list =
+        state.subsidiaries
+        .map(
+            s=>`${s.id}: ${s.name}`
+        )
+        .join("\n");
+
+    const answer =
+        prompt(
+            `Przypisz ${p.name} do:\n\n${list}`
+        );
+
+    if(!answer)
+        return;
+
+    const companyId =
+        Number(
+            answer.split(":")[0]
+        );
+
+    const company =
+        state.subsidiaries.find(
+            s=>s.id===companyId
+        );
+
+    if(!company)
+        return;
+
+    p.owner=
+        company.id;
+
+    log(
+        `${p.name} przypisano do ${company.name}.`
+    );
+
+    renderAll();
+
 }
 
 
@@ -1732,60 +2166,52 @@ function upgradeProduct(id) {
    EMPLOYEES
 ============================================================ */
 
-function renderEmployees() {
+function renderEmployees(){
 
-    const table =
-        document.getElementById("employeeTable");
-
-    table.innerHTML =
-        state.employees.map(employee => {
+    document.getElementById(
+        "employeeTable"
+    ).innerHTML=
+        state.employees
+        .map(e=>{
 
             return `
                 <tr>
 
                     <td>
-                        <b>${employee.name}</b>
+                        <b>${e.name}</b>
                     </td>
 
                     <td>
-                        <span class="badge">
-                            ${employee.department}
-                        </span>
+                        ${e.department}
                     </td>
 
                     <td>
-                        <b>${employee.skill}</b>/100
+                        <b>${e.skill}</b>/100
                     </td>
 
                     <td>
-                        ${employee.perks
+                        ${e.perks
                             .map(
-                                p =>
+                                p=>
                                 `<span class="badge green">
                                     ${p}
                                 </span>`
                             )
-                            .join(" ")
+                            .join("")
                         }
                     </td>
 
                     <td>
-                        ${money(employee.salary)}
-                    </td>
-
-                    <td>
-                        <span class="badge green">
-                            AKTYWNY
-                        </span>
+                        ${money(e.salary)}
                     </td>
 
                     <td>
                         ${
-                            employee.salary > 0
+                            e.salary>0
                             ?
                             `<button
-                                class="btn btn-red"
-                                onclick="fireEmployee(${employee.id})">
+                                class="btn danger"
+                                onclick="fireEmployee(${e.id})">
                                 Zwolnij
                             </button>`
                             :
@@ -1796,58 +2222,77 @@ function renderEmployees() {
                 </tr>
             `;
 
-        }).join("");
+        })
+        .join("");
+
 }
 
-function openHire() {
+
+function openHire(){
 
     document
-        .getElementById("hireModal")
+        .getElementById(
+            "hireModal"
+        )
         .classList.add("show");
+
 }
 
-function hireEmployee() {
+
+function hireEmployee(){
 
     const name =
-        document.getElementById("hireName").value
-        || "Nowy pracownik";
+        document
+        .getElementById("hireName")
+        .value
+        .trim()
+        ||
+        "Nowy pracownik";
 
     const department =
-        document.getElementById("hireDepartment").value;
+        document
+        .getElementById("hireDepartment")
+        .value;
 
     const skill =
         Number(
-            document.getElementById("hireLevel").value
+            document
+            .getElementById("hireSkill")
+            .value
         );
 
     const salary =
-        Math.round(
-            skill * 170
-        );
+        skill*150;
 
-    const perks = [];
+    const perks=[];
 
-    if (skill >= 90)
+    if(skill>=80)
+        perks.push("Senior");
+
+    if(skill>=90)
         perks.push("Elite");
 
-    if (department === "Engineering")
+    if(skill>=95)
+        perks.push("Legendary");
+
+    if(department==="Engineering")
         perks.push("10x Engineer");
 
-    if (department === "AI Research")
+    if(department==="AI Research")
         perks.push("AI Genius");
 
-    if (department === "Sales")
-        perks.push("Closer");
-
-    if (department === "Security")
+    if(department==="Security")
         perks.push("Security Expert");
 
-    if (skill >= 95)
-        perks.push("Legendary");
+    if(department==="Sales")
+        perks.push("Closer");
+
+    if(department==="Product")
+        perks.push("Product Visionary");
 
     state.employees.push({
 
-        id: Date.now(),
+        id:Date.now(),
 
         name,
 
@@ -1861,27 +2306,32 @@ function hireEmployee() {
 
     });
 
-    state.company.cash -= salary * .5;
+    changeCash(
+        -salary
+    );
 
     log(
-        `Zatrudniono ${name} jako ${department}. ` +
-        `Skill ${skill}.`
+        `Zatrudniono ${name} (${department}).`
     );
 
     closeModal("hireModal");
 
     renderAll();
+
 }
 
-function fireEmployee(id) {
+
+function fireEmployee(id){
 
     const employee =
-        state.employees.find(e => e.id === id);
+        state.employees.find(
+            e=>e.id===id
+        );
 
-    if (!employee)
+    if(!employee)
         return;
 
-    if (
+    if(
         !confirm(
             `Zwolnić ${employee.name}?`
         )
@@ -1890,14 +2340,15 @@ function fireEmployee(id) {
 
     state.employees =
         state.employees.filter(
-            e => e.id !== id
+            e=>e.id!==id
         );
 
     log(
-        `Zwolniono pracownika ${employee.name}.`
+        `Zwolniono ${employee.name}.`
     );
 
     renderAll();
+
 }
 
 
@@ -1905,215 +2356,195 @@ function fireEmployee(id) {
    SERVERS
 ============================================================ */
 
-function renderServers() {
+function renderServers(){
 
-    const container =
-        document.getElementById("serverList");
+    const box =
+        document.getElementById(
+            "serverList"
+        );
 
-    container.innerHTML =
-        state.servers.map(server => {
+    box.innerHTML =
+        state.servers
+        .map(s=>{
 
-            const upgradeCost =
-                Math.round(
-                    25000 *
-                    Math.pow(1.55, server.level)
+            const cost =
+                10000 *
+                Math.pow(
+                    1.5,
+                    s.level
                 );
 
             return `
-                <div class="card server">
+                <div class="card">
 
-                    <div class="server-header">
+                    <h3>
+                        🖥️ ${s.name}
+                    </h3>
 
-                        <div>
-                            <div class="server-icon">
-                                🖥️
-                            </div>
+                    <span class="badge green">
+                        LVL ${s.level}
+                    </span>
 
-                            <h3>
-                                ${server.name}
-                            </h3>
+                    <p class="muted">
+                        ${s.location}
+                    </p>
 
-                            <small class="muted">
-                                ${server.location}
-                            </small>
-                        </div>
+                    <div class="share-box">
 
-                        <span class="badge green">
-                            LVL ${server.level}
-                        </span>
-
-                    </div>
-
-                    <div class="server-specs">
-
-                        <div class="spec">
+                        <div class="share-stat">
                             <small>CPU</small>
-                            <b>${server.cpu}%</b>
+                            <b>${s.cpu}%</b>
                         </div>
 
-                        <div class="spec">
+                        <div class="share-stat">
                             <small>RAM</small>
-                            <b>${server.ram}%</b>
+                            <b>${s.ram}%</b>
                         </div>
 
-                        <div class="spec">
+                        <div class="share-stat">
                             <small>Storage</small>
-                            <b>${server.storage}%</b>
+                            <b>${s.storage}%</b>
                         </div>
 
-                    </div>
+                        <div class="share-stat">
+                            <small>Capacity</small>
+                            <b>${s.capacity.toLocaleString()}</b>
+                        </div>
 
-                    <div>
-                        <small class="muted">
-                            Uptime
-                        </small>
-
-                        <b>
-                            ${server.uptime.toFixed(2)}%
-                        </b>
-                    </div>
-
-                    <div>
-                        <small class="muted">
-                            Pojemność
-                        </small>
-
-                        <b>
-                            ${server.capacity.toLocaleString()}
-                            użytkowników
-                        </b>
                     </div>
 
                     <br>
 
                     <button
-                        class="btn btn-primary"
-                        onclick="upgradeServer(${server.id})">
-                        ⬆️ Ulepsz
-                        ${money(upgradeCost)}
+                        class="btn primary"
+                        onclick="upgradeServer(${s.id})">
+                        ⬆️ ${money(cost)}
                     </button>
 
                 </div>
             `;
 
-        }).join("");
+        })
+        .join("");
+
 }
 
-function buyServer() {
 
-    const locations = [
-        "Warszawa",
-        "Frankfurt",
-        "Londyn",
-        "Amsterdam",
-        "Singapur",
-        "Tokio",
-        "Nowy Jork",
-        "Helsinki"
-    ];
+function buyServer(){
+
+    const cost=30000;
+
+    if(state.company.cash<cost){
+
+        toast(
+            "Potrzebujesz $30,000."
+        );
+
+        return;
+
+    }
 
     const location =
         prompt(
-            "Lokalizacja serwera:\n" +
-            locations.join(", ")
+            "Lokalizacja serwera:",
+            "Warszawa"
         );
 
-    if (!location)
+    if(!location)
         return;
 
-    const cost = 100000;
-
-    if (state.company.cash < cost) {
-
-        alert("Brak środków.");
-
-        return;
-    }
-
-    state.company.cash -= cost;
+    changeCash(-cost);
 
     state.servers.push({
 
-        id: Date.now(),
+        id:Date.now(),
 
         name:
-            `${location} Core ${state.servers.length + 1}`,
+            `${location} Server`,
 
         location,
 
-        level: 1,
+        level:1,
 
-        cpu: 25,
+        cpu:25,
 
-        ram: 25,
+        ram:25,
 
-        storage: 25,
+        storage:25,
 
-        uptime: 99.5,
-
-        capacity: 20000,
-
-        cost: 7000
+        capacity:10000
 
     });
 
     log(
-        `Uruchomiono nowe centrum serwerowe w ${location}.`
+        `Kupiono serwer w ${location}.`
     );
 
     renderAll();
+
 }
 
-function upgradeServer(id) {
 
-    const server =
-        state.servers.find(s => s.id === id);
+function upgradeServer(id){
 
-    if (!server)
+    const s =
+        state.servers.find(
+            x=>x.id===id
+        );
+
+    if(!s)
         return;
 
     const cost =
-        Math.round(
-            25000 *
-            Math.pow(1.55, server.level)
+        10000*
+        Math.pow(
+            1.5,
+            s.level
         );
 
-    if (state.company.cash < cost) {
+    if(state.company.cash<cost){
 
-        alert(
+        toast(
             `Potrzebujesz ${money(cost)}.`
         );
 
         return;
+
     }
 
-    state.company.cash -= cost;
+    changeCash(-cost);
 
-    server.level++;
+    s.level++;
 
-    server.cpu =
-        Math.min(100, server.cpu + 12);
+    s.cpu=
+        Math.min(
+            100,
+            s.cpu+12
+        );
 
-    server.ram =
-        Math.min(100, server.ram + 12);
+    s.ram=
+        Math.min(
+            100,
+            s.ram+12
+        );
 
-    server.storage =
-        Math.min(100, server.storage + 14);
+    s.storage=
+        Math.min(
+            100,
+            s.storage+12
+        );
 
-    server.capacity =
-        Math.round(server.capacity * 1.45);
-
-    server.uptime =
-        Math.min(99.999, server.uptime + .03);
-
-    server.cost =
-        Math.round(server.cost * 1.15);
+    s.capacity=
+        Math.round(
+            s.capacity*1.45
+        );
 
     log(
-        `${server.name} ulepszony do poziomu ${server.level}.`
+        `${s.name} ulepszony do LVL ${s.level}.`
     );
 
     renderAll();
+
 }
 
 
@@ -2121,49 +2552,283 @@ function upgradeServer(id) {
    OFFICES
 ============================================================ */
 
-function renderOffices() {
+function renderOffices(){
 
-    const container =
-        document.getElementById("officeList");
-
-    container.innerHTML =
-        state.offices.map(office => {
+    document.getElementById(
+        "officeList"
+    ).innerHTML=
+        state.offices
+        .map(o=>{
 
             return `
                 <div class="card">
 
-                    <h2>🏢 ${office.name}</h2>
+                    <h3>
+                        🏢 ${o.name}
+                    </h3>
 
                     <p class="muted">
-                        ${office.city}
+                        ${o.city}
                     </p>
 
-                    <div class="grid grid-3">
+                    <div class="share-box">
+
+                        <div class="share-stat">
+                            <small>LVL</small>
+                            <b>${o.level}</b>
+                        </div>
+
+                        <div class="share-stat">
+                            <small>Capacity</small>
+                            <b>${o.capacity}</b>
+                        </div>
+
+                        <div class="share-stat">
+                            <small>Morale</small>
+                            <b>${o.morale}</b>
+                        </div>
+
+                        <div class="share-stat">
+                            <small>Koszt</small>
+                            <b>${money(o.cost)}</b>
+                        </div>
+
+                    </div>
+
+                    <br>
+
+                    <button class="btn primary"
+                            onclick="upgradeOffice(${o.id})">
+                        ⬆️ Rozbuduj
+                    </button>
+
+                </div>
+            `;
+
+        })
+        .join("");
+
+}
+
+
+function buyOffice(){
+
+    const cost=20000;
+
+    if(state.company.cash<cost){
+
+        toast(
+            "Potrzebujesz $20,000."
+        );
+
+        return;
+
+    }
+
+    const city =
+        prompt(
+            "Miasto:",
+            "Warszawa"
+        );
+
+    if(!city)
+        return;
+
+    changeCash(-cost);
+
+    state.offices.push({
+
+        id:Date.now(),
+
+        name:
+            `NovaTech ${city}`,
+
+        city,
+
+        level:1,
+
+        capacity:10,
+
+        morale:75,
+
+        cost:4000
+
+    });
+
+    log(
+        `Otwarto biuro w ${city}.`
+    );
+
+    renderAll();
+
+}
+
+
+function upgradeOffice(id){
+
+    const o =
+        state.offices.find(
+            x=>x.id===id
+        );
+
+    if(!o)
+        return;
+
+    const cost =
+        o.level*15000;
+
+    if(state.company.cash<cost){
+
+        toast(
+            `Koszt: ${money(cost)}`
+        );
+
+        return;
+
+    }
+
+    changeCash(-cost);
+
+    o.level++;
+
+    o.capacity+=10;
+
+    o.morale=
+        Math.min(
+            100,
+            o.morale+4
+        );
+
+    o.cost=
+        Math.round(
+            o.cost*1.2
+        );
+
+    log(
+        `${o.name} rozbudowane do LVL ${o.level}.`
+    );
+
+    renderAll();
+
+}
+
+
+/* ============================================================
+   STOCK MARKET
+============================================================ */
+
+function renderStocks(){
+
+    const box =
+        document.getElementById(
+            "stockList"
+        );
+
+    box.innerHTML =
+        state.publicCompanies
+        .map(company=>{
+
+            const owned =
+                getOwnedShares(company);
+
+            const majority =
+                owned>=51;
+
+            const change =
+                company.history[
+                    company.history.length-1
+                ] -
+                company.history[
+                    company.history.length-2
+                ];
+
+            return `
+                <div class="company-stock">
+
+                    <div class="stock-head">
 
                         <div>
-                            <small class="muted">
-                                Poziom
-                            </small>
+
+                            <h3>
+                                ${company.name}
+                            </h3>
+
+                            <span class="badge">
+                                ${company.sector}
+                            </span>
+
+                        </div>
+
+                        <div class="stock-price">
+                            ${money(company.price)}
+                        </div>
+
+                    </div>
+
+                    <div class="${
+                        change>=0
+                        ?"stock-up"
+                        :"stock-down"
+                    }">
+
+                        ${
+                            change>=0
+                            ? "▲"
+                            : "▼"
+                        }
+
+                        ${money(Math.abs(change))}
+                    </div>
+
+                    <div class="stock-chart">
+
+                        ${
+                            company.history
+                            .map(
+                                h=>
+                                `<div
+                                    class="stock-bar"
+                                    style="
+                                        height:${Math.max(
+                                            10,
+                                            h/company.price*40
+                                        )}px">
+                                </div>`
+                            )
+                            .join("")
+                        }
+
+                    </div>
+
+                    <div class="share-box">
+
+                        <div class="share-stat">
+                            <small>Twoje</small>
+                            <b>${owned}/100</b>
+                        </div>
+
+                        <div class="share-stat">
+                            <small>Kontrola</small>
                             <b>
-                                ${office.level}
+                                ${
+                                    majority
+                                    ?"TAK"
+                                    :"NIE"
+                                }
                             </b>
                         </div>
 
-                        <div>
-                            <small class="muted">
-                                Pojemność
-                            </small>
+                        <div class="share-stat">
+                            <small>Akcjonariusze</small>
                             <b>
-                                ${office.capacity}
+                                ${company.owners.length}
                             </b>
                         </div>
 
-                        <div>
-                            <small class="muted">
-                                Morale
-                            </small>
+                        <div class="share-stat">
+                            <small>Wycena</small>
                             <b>
-                                ${office.morale}
+                                ${compact(company.value)}
                             </b>
                         </div>
 
@@ -2171,220 +2836,905 @@ function renderOffices() {
 
                     <br>
 
-                    <div class="progress">
-                        <div style="
-                            width:${Math.min(
-                                100,
-                                office.employees /
-                                office.capacity * 100
-                            )}%">
-                        </div>
-                    </div>
-
-                    <small class="muted">
-                        ${office.employees}/${office.capacity}
-                        stanowisk
-                    </small>
-
-                    <br><br>
+                    <button
+                        class="btn primary"
+                        onclick="openBuyShares(${company.id})">
+                        📈 Kup udziały
+                    </button>
 
                     <button
-                        class="btn btn-primary"
-                        onclick="upgradeOffice(${office.id})">
-                        ⬆️ Rozbuduj
+                        class="btn warning"
+                        onclick="openBuyout(${company.id})">
+                        🤝 Propozycja wykupu
                     </button>
+
+                    ${
+                        majority
+                        ?
+                        `
+                        <button
+                            class="btn success"
+                            onclick="showManagement(${company.id})">
+                            👑 Zarządzaj
+                        </button>
+                        `
+                        :
+                        ""
+                    }
 
                 </div>
             `;
 
-        }).join("");
-}
+        })
+        .join("");
 
-function buyOffice() {
-
-    const city =
-        prompt(
-            "Miasto nowego biura:"
-        );
-
-    if (!city)
-        return;
-
-    const cost = 180000;
-
-    if (state.company.cash < cost) {
-
-        alert("Brak pieniędzy.");
-
-        return;
-    }
-
-    state.company.cash -= cost;
-
-    state.offices.push({
-
-        id: Date.now(),
-
-        name:
-            `${state.company.name} ${city}`,
-
-        city,
-
-        level: 1,
-
-        capacity: 25,
-
-        employees: 0,
-
-        morale: 78,
-
-        cost: 7000
-
-    });
-
-    log(
-        `Otwarto nowe biuro w ${city}.`
-    );
-
-    renderAll();
-}
-
-function upgradeOffice(id) {
-
-    const office =
-        state.offices.find(o => o.id === id);
-
-    if (!office)
-        return;
-
-    const cost =
-        50000 * office.level;
-
-    if (state.company.cash < cost) {
-
-        alert(
-            `Koszt: ${money(cost)}`
-        );
-
-        return;
-    }
-
-    state.company.cash -= cost;
-
-    office.level++;
-
-    office.capacity += 25;
-
-    office.morale =
-        Math.min(
-            100,
-            office.morale + 3
-        );
-
-    office.cost =
-        Math.round(
-            office.cost * 1.15
-        );
-
-    log(
-        `Biuro ${office.name} rozbudowane do LVL ${office.level}.`
-    );
-
-    renderAll();
 }
 
 
 /* ============================================================
-   SUBSIDIARIES / HOLDING TREE
+   STOCK OWNERSHIP
 ============================================================ */
 
-function renderSubsidiaries() {
+const ourInvestorName =
+    "NovaTech";
 
-    const tree =
-        document.getElementById("companyTree");
+function getOwnedShares(company){
+
+    const owner =
+        company.owners.find(
+            x=>x.name===ourInvestorName
+        );
+
+    return owner
+        ? owner.shares
+        : 0;
+
+}
+
+
+function totalOwnersShares(company){
+
+    return company.owners.reduce(
+        (sum,o)=>sum+o.shares,
+        0
+    );
+
+}
+
+
+function openBuyShares(companyId){
+
+    const company =
+        state.publicCompanies.find(
+            c=>c.id===companyId
+        );
+
+    if(!company)
+        return;
+
+    const owned =
+        getOwnedShares(company);
+
+    const available =
+        100-owned;
+
+    document.getElementById(
+        "stockModalTitle"
+    ).textContent=
+        `Kup udziały — ${company.name}`;
+
+    document.getElementById(
+        "stockModalBody"
+    ).innerHTML=`
+
+        <p class="muted">
+            Cena jednego udziału:
+        </p>
+
+        <h2>
+            ${money(company.price)}
+        </h2>
+
+        <p>
+            Posiadasz:
+            <b>${owned}/100</b>
+        </p>
+
+        <p>
+            Dostępne:
+            <b>${available}</b>
+        </p>
+
+        <div class="form">
+
+            <input
+                id="buyShareAmount"
+                type="number"
+                min="1"
+                max="${available}"
+                value="1"
+                oninput="updateShareCost(${company.id})"
+            >
+
+        </div>
+
+        <div class="card">
+
+            Koszt:
+            <b id="shareCost">
+                ${money(company.price)}
+            </b>
+
+        </div>
+
+        <br>
+
+        <button
+            class="btn primary"
+            onclick="buyShares(${company.id})">
+            Kup udziały
+        </button>
+
+    `;
+
+    document
+        .getElementById("stockModal")
+        .classList.add("show");
+
+}
+
+
+function updateShareCost(companyId){
+
+    const company =
+        state.publicCompanies.find(
+            c=>c.id===companyId
+        );
+
+    const amount =
+        Number(
+            document
+            .getElementById(
+                "buyShareAmount"
+            ).value
+        );
+
+    document.getElementById(
+        "shareCost"
+    ).textContent=
+        money(
+            amount*company.price
+        );
+
+}
+
+
+function buyShares(companyId){
+
+    const company =
+        state.publicCompanies.find(
+            c=>c.id===companyId
+        );
+
+    const amount =
+        Number(
+            document
+            .getElementById(
+                "buyShareAmount"
+            ).value
+        );
+
+    if(
+        !amount ||
+        amount<1
+    )
+        return;
+
+    const owned =
+        getOwnedShares(company);
+
+    if(
+        owned+amount>100
+    ){
+
+        toast(
+            "Nie możesz posiadać więcej niż 100 udziałów."
+        );
+
+        return;
+
+    }
+
+    const cost =
+        amount*company.price;
+
+    if(
+        state.company.cash<cost
+    ){
+
+        toast(
+            "Brak pieniędzy."
+        );
+
+        return;
+
+    }
+
+    changeCash(-cost);
+
+    let owner =
+        company.owners.find(
+            x=>x.name===ourInvestorName
+        );
+
+    if(!owner){
+
+        owner={
+            name:ourInvestorName,
+            shares:0
+        };
+
+        company.owners.push(owner);
+
+    }
+
+    owner.shares+=amount;
+
+    company.owners =
+        company.owners.filter(
+            x=>x.shares>0
+        );
+
+    log(
+        `Kupiono ${amount} udziałów ${company.name}.`
+    );
+
+    if(
+        owner.shares>=51
+    ){
+
+        toast(
+            `Przejęto kontrolę nad ${company.name}!`
+        );
+
+        log(
+            `NovaTech uzyskało większość w ${company.name}.`
+        );
+
+    }
+
+    closeModal("stockModal");
+
+    renderAll();
+
+}
+
+
+/* ============================================================
+   BUYOUT DEPARTMENT / SHAREHOLDER OFFER
+============================================================ */
+
+function openBuyout(companyId){
+
+    const company =
+        state.publicCompanies.find(
+            c=>c.id===companyId
+        );
+
+    if(!company)
+        return;
+
+    document.getElementById(
+        "buyoutBody"
+    ).innerHTML=`
+
+        <h3>
+            ${company.name}
+        </h3>
+
+        <p class="muted">
+            Kliknij nazwę akcjonariusza,
+            aby otworzyć okno składania propozycji wykupu.
+        </p>
+
+        ${
+            company.owners
+            .filter(
+                o=>o.name!==ourInvestorName
+            )
+            .map(
+                owner=>
+                `
+                <div class="offer">
+
+                    <button
+                        class="btn"
+                        style="width:100%;text-align:left;"
+                        onclick="openShareholderOffer(
+                            ${company.id},
+                            '${owner.name.replace(/'/g,"\\'")}'
+                        )">
+
+                        <b>
+                            ${owner.name}
+                        </b>
+
+                        <br>
+
+                        <small class="muted">
+                            ${owner.shares} udziałów
+                            •
+                            ${owner.shares}%
+                        </small>
+
+                    </button>
+
+                </div>
+                `
+            )
+            .join("")
+        }
+
+    `;
+
+    document
+        .getElementById(
+            "buyoutModal"
+        )
+        .classList.add("show");
+
+}
+
+
+/* ============================================================
+   SHAREHOLDER OFFER
+============================================================ */
+
+function openShareholderOffer(
+    companyId,
+    shareholderName
+){
+
+    const company =
+        state.publicCompanies.find(
+            c=>c.id===companyId
+        );
+
+    const shareholder =
+        company.owners.find(
+            o=>o.name===shareholderName
+        );
+
+    if(!shareholder)
+        return;
+
+    const suggested =
+        company.price*1.15;
+
+    document.getElementById(
+        "buyoutBody"
+    ).innerHTML=`
+
+        <h3>
+            Oferta dla:
+            ${shareholder.name}
+        </h3>
+
+        <p>
+            Posiada:
+            <b>
+                ${shareholder.shares}
+            </b>
+            udziałów
+        </p>
+
+        <div class="form">
+
+            <input
+                id="offerShares"
+                type="number"
+                min="1"
+                max="${shareholder.shares}"
+                value="${Math.min(10,shareholder.shares)}"
+            >
+
+        </div>
+
+        <div class="form">
+
+            <input
+                id="offerPrice"
+                type="number"
+                value="${Math.round(suggested)}"
+            >
+
+        </div>
+
+        <p class="muted">
+            Cena jednego udziału.
+            Oferta powyżej ceny rynkowej zwiększa
+            szansę akceptacji.
+        </p>
+
+        <button
+            class="btn primary"
+            onclick="submitBuyoutOffer(
+                ${company.id},
+                '${shareholder.name.replace(/'/g,"\\'")}'
+            )">
+            📄 Złóż propozycję
+        </button>
+
+    `;
+
+}
+
+
+function submitBuyoutOffer(
+    companyId,
+    shareholderName
+){
+
+    const company =
+        state.publicCompanies.find(
+            c=>c.id===companyId
+        );
+
+    const shareholder =
+        company.owners.find(
+            o=>o.name===shareholderName
+        );
+
+    const shares =
+        Number(
+            document
+            .getElementById(
+                "offerShares"
+            ).value
+        );
+
+    const price =
+        Number(
+            document
+            .getElementById(
+                "offerPrice"
+            ).value
+        );
+
+    if(
+        !shares ||
+        !price ||
+        shares>shareholder.shares
+    )
+        return;
+
+    const total =
+        shares*price;
+
+    if(
+        state.company.cash<total
+    ){
+
+        toast(
+            `Potrzebujesz ${money(total)}.`
+        );
+
+        return;
+
+    }
+
+    /*
+        Szansa akceptacji:
+        50% baza + premia za ofertę
+    */
+
+    const premium =
+        price/company.price;
+
+    let chance =
+        .35;
+
+    if(premium>=1.1)
+        chance+=.2;
+
+    if(premium>=1.25)
+        chance+=.2;
+
+    if(premium>=1.5)
+        chance+=.2;
+
+    chance =
+        Math.min(.95,chance);
+
+    if(
+        Math.random()<=chance
+    ){
+
+        changeCash(-total);
+
+        shareholder.shares-=shares;
+
+        let ours =
+            company.owners.find(
+                o=>o.name===ourInvestorName
+            );
+
+        if(!ours){
+
+            ours={
+                name:ourInvestorName,
+                shares:0
+            };
+
+            company.owners.push(ours);
+
+        }
+
+        ours.shares+=shares;
+
+        company.owners =
+            company.owners.filter(
+                o=>o.shares>0
+            );
+
+        log(
+            `${shareholderName} sprzedał ${shares} udziałów ${company.name}.`
+        );
+
+        toast(
+            "Oferta zaakceptowana!"
+        );
+
+    }else{
+
+        log(
+            `${shareholderName} odrzucił ofertę wykupu.`
+        );
+
+        toast(
+            "Akcjonariusz odrzucił ofertę."
+        );
+
+    }
+
+    closeModal("buyoutModal");
+
+    renderAll();
+
+}
+
+
+/* ============================================================
+   DYNAMIC SHAREHOLDER MARKET
+============================================================ */
+
+function simulateShareholders(){
+
+    state.publicCompanies
+    .forEach(company=>{
+
+        /*
+            Akcjonariusze ciągle się zmieniają.
+        */
+
+        const names=[
+            "Alpha Capital",
+            "North Fund",
+            "Baltic Ventures",
+            "Future Labs",
+            "Private Investors",
+            "Growth Union",
+            "TechBridge",
+            "Index Fund",
+            "Global Equity",
+            "Public"
+        ];
+
+        /* Usuń część drobnych inwestorów */
+        company.owners =
+            company.owners.filter(
+                o=>
+                o.name===ourInvestorName ||
+                o.shares>=3
+            );
+
+        /*
+            Losowa sprzedaż/kupno
+        */
+
+        if(
+            Math.random()<.55
+        ){
+
+            const index =
+                Math.floor(
+                    Math.random()*company.owners.length
+                );
+
+            const owner =
+                company.owners[index];
+
+            if(
+                owner &&
+                owner.name!==ourInvestorName &&
+                owner.shares>2
+            ){
+
+                const amount =
+                    Math.min(
+                        owner.shares-1,
+                        Math.ceil(
+                            Math.random()*4
+                        )
+                    );
+
+                owner.shares-=amount;
+
+                let buyerName =
+                    names[
+                        Math.floor(
+                            Math.random()*names.length
+                        )
+                    ];
+
+                if(
+                    buyerName===ourInvestorName
+                )
+                    buyerName="Private Investors";
+
+                let buyer =
+                    company.owners.find(
+                        o=>o.name===buyerName
+                    );
+
+                if(!buyer){
+
+                    buyer={
+                        name:buyerName,
+                        shares:0
+                    };
+
+                    company.owners.push(
+                        buyer
+                    );
+
+                }
+
+                buyer.shares+=amount;
+
+            }
+
+        }
+
+        /*
+            Zabezpieczamy dokładnie 100 udziałów.
+        */
+
+        let total =
+            totalOwnersShares(company);
+
+        if(total<100){
+
+            let publicOwner =
+                company.owners.find(
+                    o=>o.name==="Public"
+                );
+
+            if(!publicOwner){
+
+                publicOwner={
+                    name:"Public",
+                    shares:0
+                };
+
+                company.owners.push(
+                    publicOwner
+                );
+
+            }
+
+            publicOwner.shares+=100-total;
+
+        }
+
+        if(total>100){
+
+            const publicOwner =
+                company.owners.find(
+                    o=>o.name==="Public"
+                );
+
+            if(publicOwner){
+
+                publicOwner.shares=
+                    Math.max(
+                        0,
+                        publicOwner.shares-(total-100)
+                    );
+
+            }
+
+        }
+
+        /*
+            Liczba akcjonariuszy może się zmieniać.
+        */
+
+        if(
+            Math.random()<.3
+        ){
+
+            const randomName =
+                names[
+                    Math.floor(
+                        Math.random()*names.length
+                    )
+                ];
+
+            if(
+                !company.owners.find(
+                    o=>o.name===randomName
+                )
+            ){
+
+                const publicOwner =
+                    company.owners.find(
+                        o=>o.name==="Public"
+                    );
+
+                if(
+                    publicOwner &&
+                    publicOwner.shares>=2
+                ){
+
+                    publicOwner.shares-=2;
+
+                    company.owners.push({
+
+                        name:randomName,
+
+                        shares:2
+
+                    });
+
+                }
+
+            }
+
+        }
+
+    });
+
+}
+
+
+/* ============================================================
+   STOCK PRICE SIMULATION
+============================================================ */
+
+function updateStockPrices(){
+
+    state.publicCompanies
+    .forEach(company=>{
+
+        const change =
+            1+
+            (
+                Math.random()*.14-
+                .05
+            );
+
+        company.price =
+            Math.max(
+                10,
+                Math.round(
+                    company.price*change
+                )
+            );
+
+        company.value =
+            company.price*100;
+
+        company.history.push(
+            company.price
+        );
+
+        company.history =
+            company.history.slice(-12);
+
+    });
+
+}
+
+
+/* ============================================================
+   SUBSIDIARIES
+============================================================ */
+
+function renderSubsidiaries(){
 
     const root =
         state.subsidiaries.find(
-            s => s.parent === null
+            s=>s.parent===null
         );
 
-    tree.innerHTML =
+    document.getElementById(
+        "companyTree"
+    ).innerHTML=
         renderCompanyNode(root);
 
-    renderSubsidiaryProducts();
-
     const select =
-        document.getElementById("subParent");
+        document.getElementById(
+            "subParent"
+        );
 
     select.innerHTML =
-        state.subsidiaries.map(s => {
+        state.subsidiaries
+        .map(
+            s=>
+            `
+            <option value="${s.id}">
+                ${"—".repeat(s.level)}
+                ${s.name}
+            </option>
+            `
+        )
+        .join("");
 
-            return `
-                <option value="${s.id}">
-                    ${"— ".repeat(s.level)}
-                    ${s.name}
-                </option>
-            `;
-
-        }).join("");
 }
 
-function renderCompanyNode(company) {
 
-    if (!company)
-        return "";
+function renderCompanyNode(company){
 
     const children =
         state.subsidiaries.filter(
-            s => s.parent === company.id
+            s=>s.parent===company.id
         );
 
     const products =
         state.products.filter(
-            p => p.owner === company.id
+            p=>p.owner===company.id
         );
 
     return `
+
         <div class="tree-node">
 
             <div class="tree-company">
 
-                <span>
-                    ${
-                        company.level === 0
-                        ? "🏛️"
-                        : "🏢"
-                    }
-                </span>
+                <b>
+                    ${company.level===0?"🏛️":"🏢"}
+                    ${company.name}
+                </b>
 
-                <div>
-                    <b>${company.name}</b>
+                <br>
 
-                    <div class="muted">
-                        ${company.type}
-                        • kapitał:
-                        ${compactMoney(company.capital)}
-                    </div>
-
-                    <div class="muted">
-                        Produkty:
-                        ${products.length}
-                    </div>
-                </div>
+                <small class="muted">
+                    Kapitał:
+                    ${money(company.capital)}
+                    • Produkty:
+                    ${products.length}
+                </small>
 
             </div>
 
             ${
                 products.length
                 ?
-                `<div style="margin-top:7px;">
-                    ${products.map(
-                        p =>
-                        `<span class="badge">
-                            🚀 ${p.name}
-                        </span>`
-                    ).join(" ")}
-                </div>`
+                `
+                <div>
+                    ${
+                        products
+                        .map(
+                            p=>
+                            `<span class="badge">
+                                🚀 ${p.name}
+                            </span>`
+                        )
+                        .join("")
+                    }
+                </div>
+                `
                 :
                 ""
             }
@@ -2393,7 +3743,13 @@ function renderCompanyNode(company) {
                 children.length
                 ?
                 `<div class="tree-children">
-                    ${children.map(renderCompanyNode).join("")}
+                    ${
+                        children
+                        .map(
+                            renderCompanyNode
+                        )
+                        .join("")
+                    }
                 </div>`
                 :
                 ""
@@ -2401,254 +3757,571 @@ function renderCompanyNode(company) {
 
         </div>
     `;
+
 }
 
-function renderSubsidiaryProducts() {
 
-    const table =
-        document.getElementById(
-            "subsidiaryProducts"
-        );
-
-    table.innerHTML =
-        state.products.map(product => {
-
-            const owner =
-                state.subsidiaries.find(
-                    s => s.id === product.owner
-                );
-
-            return `
-                <tr>
-
-                    <td>
-                        🚀 ${product.name}
-                    </td>
-
-                    <td>
-                        <span class="badge">
-                            ${owner ? owner.name : "Holding"}
-                        </span>
-                    </td>
-
-                    <td>
-                        ${compactMoney(product.revenue)}
-                    </td>
-
-                    <td>
-                        ${product.users.toLocaleString()}
-                    </td>
-
-                </tr>
-            `;
-
-        }).join("");
-}
-
-function openSubsidiaryModal() {
+function openSubsidiaryModal(){
 
     renderSubsidiaries();
 
     document
-        .getElementById("subsidiaryModal")
+        .getElementById(
+            "subsidiaryModal"
+        )
         .classList.add("show");
+
 }
 
-function createSubsidiary() {
+
+function createSubsidiary(){
 
     const name =
         document
-            .getElementById("subName")
-            .value.trim();
+        .getElementById(
+            "subName"
+        )
+        .value
+        .trim();
 
     const parent =
         Number(
             document
-                .getElementById("subParent")
-                .value
+            .getElementById(
+                "subParent"
+            ).value
         );
 
     const capital =
         Number(
             document
-                .getElementById("subCapital")
-                .value
+            .getElementById(
+                "subCapital"
+            ).value
         );
 
-    if (!name || capital <= 0)
+    if(
+        !name ||
+        capital<=0
+    )
         return;
 
-    if (state.company.cash < capital) {
+    if(
+        state.company.cash<capital
+    ){
 
-        alert("Holding nie ma wystarczającej gotówki.");
+        toast(
+            "Brak pieniędzy."
+        );
 
         return;
+
     }
 
     const parentCompany =
         state.subsidiaries.find(
-            s => s.id === parent
+            s=>s.id===parent
         );
 
-    const company = {
+    const newCompany={
 
-        id: Date.now(),
-
-        parent,
+        id:Date.now(),
 
         name,
 
-        type: "Spółka zależna",
+        parent,
+
+        level:
+            parentCompany.level+1,
 
         capital,
 
-        products: [],
-
-        level:
-            parentCompany
-            ? parentCompany.level + 1
-            : 1
+        products:[]
 
     };
 
-    state.company.cash -= capital;
+    changeCash(-capital);
 
-    state.subsidiaries.push(company);
-
-    log(
-        `Utworzono spółkę ${name} pod ${parentCompany.name}.`
+    state.subsidiaries.push(
+        newCompany
     );
 
-    closeModal("subsidiaryModal");
+    log(
+        `Utworzono ${name} jako spółkę zależną ${parentCompany.name}.`
+    );
+
+    closeModal(
+        "subsidiaryModal"
+    );
 
     renderAll();
+
 }
 
-function assignProductPrompt(productId) {
 
-    const product =
-        state.products.find(
-            p => p.id === productId
+/* ============================================================
+   MANAGEMENT
+============================================================ */
+
+function renderManagement(){
+
+    const box =
+        document.getElementById(
+            "managementList"
         );
 
-    const options =
-        state.subsidiaries
-            .map(
-                s =>
-                `${s.id}: ${s.name}`
-            )
-            .join("\n");
-
-    const answer =
-        prompt(
-            `Do której spółki przypisać ${product.name}?\n\n` +
-            options
+    const controlled =
+        state.publicCompanies.filter(
+            c=>getOwnedShares(c)>=51
         );
 
-    if (!answer)
+    if(!controlled.length){
+
+        box.innerHTML=`
+            <div class="card">
+                <h3>🔒 Panel zablokowany</h3>
+                <p class="muted">
+                    Kup co najmniej 51 ze 100 udziałów
+                    dowolnej firmy.
+                </p>
+            </div>
+        `;
+
         return;
 
-    const id =
-        Number(
-            answer.split(":")[0]
-        );
+    }
+
+    box.innerHTML =
+        controlled
+        .map(
+            company=>
+            `
+            <div class="card"
+                 style="margin-top:10px">
+
+                <h3>
+                    👑 ${company.name}
+                </h3>
+
+                <span class="badge green">
+                    KONTROLA ${getOwnedShares(company)}%
+                </span>
+
+                <br><br>
+
+                <div class="grid g3">
+
+                    <button
+                        class="btn"
+                        onclick="managementAction('${company.name}','marketing')">
+                        📣 Marketing
+                    </button>
+
+                    <button
+                        class="btn"
+                        onclick="managementAction('${company.name}','hire')">
+                        👨‍💻 Rekrutacja
+                    </button>
+
+                    <button
+                        class="btn"
+                        onclick="managementAction('${company.name}','product')">
+                        🚀 Rozwój produktów
+                    </button>
+
+                </div>
+
+                <br>
+
+                <button
+                    class="btn warning"
+                    onclick="managementAction('${company.name}','dividend')">
+                    💰 Wypłać dywidendę
+                </button>
+
+                <button
+                    class="btn danger"
+                    onclick="managementAction('${company.name}','sell')">
+                    📉 Sprzedaj część udziałów
+                </button>
+
+            </div>
+            `
+        )
+        .join("");
+
+}
+
+
+function showManagement(companyId){
 
     const company =
-        state.subsidiaries.find(
-            s => s.id === id
+        state.publicCompanies.find(
+            c=>c.id===companyId
         );
 
-    if (!company)
+    if(
+        !company ||
+        getOwnedShares(company)<51
+    ){
+
+        toast(
+            "Potrzebujesz minimum 51%."
+        );
+
         return;
 
-    product.owner = company.id;
+    }
 
-    log(
-        `Produkt ${product.name} przypisano do ${company.name}.`
-    );
+    showView("management");
 
-    renderAll();
 }
 
 
-/* ============================================================
-   FINANCE
-============================================================ */
+function managementAction(
+    companyName,
+    action
+){
 
-function renderFinance() {
-
-    document.getElementById(
-        "financeRevenue"
-    ).textContent =
-        compactMoney(state.company.revenue);
-
-    document.getElementById(
-        "financeCosts"
-    ).textContent =
-        compactMoney(state.company.costs);
-
-    document.getElementById(
-        "financeProfit"
-    ).textContent =
-        compactMoney(
-            state.company.revenue -
-            state.company.costs
-        );
-}
-
-function addMoney(amount) {
-
-    state.company.cash += amount;
-
-    state.company.valuation +=
-        amount * .6;
-
-    log(
-        `Wpłata kapitału: ${money(amount)}.`
-    );
-
-    renderAll();
-}
-
-function takeLoan() {
-
-    const amount =
-        Number(
-            prompt(
-                "Kwota kredytu:"
-            )
+    const company =
+        state.publicCompanies.find(
+            c=>c.name===companyName
         );
 
-    if (!amount || amount <= 0)
+    if(!company)
         return;
 
-    state.company.cash += amount;
+    switch(action){
 
-    state.company.valuation -=
-        amount * .2;
+        case "marketing":
 
-    log(
-        `Zaciągnięto kredyt ${money(amount)}.`
-    );
+            company.value*=1.08;
 
-    renderAll();
-}
-
-
-/* ============================================================
-   DEVELOPER CODES
-============================================================ */
-
-function useCode(code) {
-
-    switch(code) {
-
-        case "money100k":
-
-            addMoney(100000);
+            company.price=
+                Math.round(
+                    company.value/100
+                );
 
             log(
-                "DEV CODE: money100k"
+                `Zarząd ${company.name}: uruchomiono kampanię marketingową.`
+            );
+
+            break;
+
+        case "hire":
+
+            company.value*=1.04;
+
+            log(
+                `Zarząd ${company.name}: zatrudniono nowych specjalistów.`
+            );
+
+            break;
+
+        case "product":
+
+            company.value*=1.12;
+
+            company.price=
+                Math.round(
+                    company.value/100
+                );
+
+            log(
+                `Zarząd ${company.name}: rozpoczęto nowy projekt R&D.`
+            );
+
+            break;
+
+        case "dividend":
+
+            const dividend =
+                Math.round(
+                    company.value*.02
+                );
+
+            const ourShares =
+                getOwnedShares(company);
+
+            const payout =
+                Math.round(
+                    dividend*
+                    ourShares/100
+                );
+
+            changeCash(payout);
+
+            log(
+                `${company.name}: otrzymano dywidendę ${money(payout)}.`
+            );
+
+            break;
+
+        case "sell":
+
+            if(
+                getOwnedShares(company)<=51
+            ){
+
+                toast(
+                    "Nie możesz zejść poniżej 51%."
+                );
+
+                return;
+
+            }
+
+            const amount=
+                Math.min(
+                    5,
+                    getOwnedShares(company)-51
+                );
+
+            const owner =
+                company.owners.find(
+                    o=>o.name===ourInvestorName
+                );
+
+            owner.shares-=amount;
+
+            const publicOwner =
+                company.owners.find(
+                    o=>o.name==="Public"
+                );
+
+            publicOwner.shares+=amount;
+
+            changeCash(
+                amount*company.price
+            );
+
+            log(
+                `Sprzedano ${amount} udziałów ${company.name}.`
+            );
+
+            break;
+
+    }
+
+    renderAll();
+
+}
+
+
+/* ============================================================
+   TIME
+============================================================ */
+
+function advanceMonth(){
+
+    let revenue=
+        state.products.reduce(
+            (sum,p)=>
+                sum+
+                (
+                    p.progress>=100
+                    ?
+                    Math.max(
+                        100,
+                        p.users*
+                        .15
+                    )
+                    :
+                    0
+                ),
+            0
+        );
+
+    let costs=
+        state.employees.reduce(
+            (sum,e)=>
+                sum+e.salary,
+            0
+        );
+
+    costs+=
+        state.servers.length*1500;
+
+    costs+=
+        state.offices.length*1000;
+
+    const profit=
+        revenue-costs;
+
+    if(profit!==0)
+        changeCash(profit);
+
+    state.company.revenue=
+        revenue;
+
+    state.company.costs=
+        costs;
+
+    state.company.users=
+        state.products.reduce(
+            (sum,p)=>sum+p.users,
+            0
+        );
+
+    state.company.valuation=
+        Math.max(
+            50000,
+            state.company.cash+
+            revenue*12*4
+        );
+
+    state.products.forEach(p=>{
+
+        if(p.progress>=100){
+
+            p.users=
+                Math.round(
+                    p.users*
+                    (
+                        1+
+                        Math.random()*.15
+                    )
+                );
+
+            p.revenue=
+                Math.round(
+                    p.users*.8
+                );
+
+        }
+
+    });
+
+    updateStockPrices();
+
+    simulateShareholders();
+
+    state.month++;
+
+    if(state.month>12){
+
+        state.month=1;
+        state.year++;
+
+    }
+
+    const event =
+        Math.random();
+
+    if(event<.15){
+
+        state.company.reputation=
+            Math.min(
+                100,
+                state.company.reputation+2
+            );
+
+        log(
+            "Dobry miesiąc dla startupu. Reputacja +2."
+        );
+
+    }
+
+    else if(event>.9){
+
+        const loss=
+            Math.min(
+                state.company.cash,
+                5000
+            );
+
+        changeCash(-loss);
+
+        log(
+            `Nieoczekiwany koszt operacyjny: ${money(loss)}.`
+        );
+
+    }
+
+    log(
+        `Zakończono ${monthName()}. Przychód: ${money(revenue)}.`
+    );
+
+    renderAll();
+
+}
+
+
+/* ============================================================
+   CODES
+============================================================ */
+
+function openCodeModal(){
+
+    document
+        .getElementById(
+            "codeModal"
+        )
+        .classList.add("show");
+
+    setTimeout(
+        ()=>{
+            document
+            .getElementById(
+                "codeInput"
+            )
+            .focus();
+        },
+        100
+    );
+
+}
+
+
+function executeCodeFromPage(){
+
+    const input =
+        document
+        .getElementById(
+            "codeInputPage"
+        );
+
+    executeCodeValue(
+        input.value
+    );
+
+    input.value="";
+
+}
+
+
+function executeCode(){
+
+    const input =
+        document
+        .getElementById(
+            "codeInput"
+        );
+
+    executeCodeValue(
+        input.value
+    );
+
+    input.value="";
+
+}
+
+
+function executeCodeValue(raw){
+
+    const code =
+        raw
+        .trim()
+        .toLowerCase();
+
+    switch(code){
+
+        case "money":
+
+            changeCash(10000);
+
+            log(
+                "DEV: +$10,000"
             );
 
             break;
@@ -2656,10 +4329,10 @@ function useCode(code) {
 
         case "money1m":
 
-            addMoney(1000000);
+            changeCash(1000000);
 
             log(
-                "DEV CODE: money1m"
+                "DEV: +$1,000,000"
             );
 
             break;
@@ -2667,43 +4340,10 @@ function useCode(code) {
 
         case "money100m":
 
-            addMoney(100000000);
+            changeCash(100000000);
 
             log(
-                "DEV CODE: money100m"
-            );
-
-            break;
-
-
-        case "godmode":
-
-            state.company.cash += 50000000;
-
-            state.company.reputation = 100;
-
-            state.company.morale = 100;
-
-            state.company.marketShare = 75;
-
-            state.company.valuation *= 5;
-
-            state.products.forEach(
-                p => {
-
-                    p.quality = 100;
-
-                    p.progress = 100;
-
-                    p.users *= 10;
-
-                    p.revenue *= 5;
-
-                }
-            );
-
-            log(
-                "DEV CODE: GODMODE aktywowany."
+                "DEV: +$100,000,000"
             );
 
             break;
@@ -2711,46 +4351,46 @@ function useCode(code) {
 
         case "bestemployees":
 
-            const eliteNames = [
-                "Elon-9",
+            const names=[
                 "Ada Prime",
-                "Linus X",
-                "Grace AI",
                 "Alan Quantum",
-                "Ada Lovelace II",
+                "Grace AI",
+                "Linus X",
+                "Steve Vision",
                 "Satoshi Core",
-                "Steve Vision"
+                "Marie Neural",
+                "Dennis Cloud"
             ];
 
-            eliteNames.forEach(
-                (name, index) => {
+            names.forEach(
+                (name,i)=>{
 
                     state.employees.push({
 
-                        id: Date.now() + index,
+                        id:
+                            Date.now()+i,
 
                         name,
 
-                        department:
-                            [
-                                "Engineering",
-                                "AI Research",
-                                "Security",
-                                "Product"
-                            ][index % 4],
+                        department:[
+                            "Engineering",
+                            "AI Research",
+                            "Security",
+                            "Product"
+                        ][i%4],
 
-                        skill: 100,
+                        skill:100,
 
-                        salary: 30000,
+                        salary:0,
 
-                        perks: [
+                        perks:[
                             "Legendary",
                             "10x Engineer",
                             "AI Genius",
-                            "Founder Mindset",
                             "Cloud Expert",
                             "Security Expert",
-                            "Visionary"
+                            "Visionary",
+                            "Founder Mindset"
                         ]
 
                     });
@@ -2759,7 +4399,7 @@ function useCode(code) {
             );
 
             log(
-                "DEV CODE: bestemployees — zatrudniono elitarny zespół."
+                "DEV: dodano elitarny zespół."
             );
 
             break;
@@ -2768,174 +4408,127 @@ function useCode(code) {
         case "maxservers":
 
             state.servers.forEach(
-                server => {
+                s=>{
 
-                    server.level = 20;
-
-                    server.cpu = 100;
-
-                    server.ram = 100;
-
-                    server.storage = 100;
-
-                    server.uptime = 99.999;
-
-                    server.capacity =
-                        10000000;
+                    s.level=20;
+                    s.cpu=100;
+                    s.ram=100;
+                    s.storage=100;
+                    s.capacity=10000000;
 
                 }
             );
 
             log(
-                "DEV CODE: wszystkie serwery osiągnęły LVL 20."
+                "DEV: wszystkie serwery MAX."
             );
 
             break;
 
 
-        case "empire":
+        case "godmode":
 
-            state.company.cash +=
-                100000000;
+            changeCash(100000000);
 
-            state.company.reputation = 100;
+            state.company.reputation=100;
+            state.company.morale=100;
 
-            state.company.morale = 100;
+            state.products.forEach(
+                p=>{
 
-            state.company.marketShare = 80;
-
-            state.servers.forEach(
-                server => {
-
-                    server.level = 20;
-
-                    server.cpu = 100;
-
-                    server.ram = 100;
-
-                    server.storage = 100;
-
-                    server.capacity =
-                        10000000;
+                    p.progress=100;
+                    p.quality=100;
+                    p.users*=20;
+                    p.revenue*=20;
 
                 }
             );
 
-            for(let i = 0; i < 5; i++) {
-
-                state.employees.push({
-
-                    id: Date.now() + i,
-
-                    name:
-                        `Empire Specialist ${i + 1}`,
-
-                    department:
-                        "Executive",
-
-                    skill: 100,
-
-                    salary: 0,
-
-                    perks: [
-                        "Legendary",
-                        "Genius",
-                        "Elite",
-                        "Loyal"
-                    ]
-
-                });
-
-            }
-
             log(
-                "DEV CODE: EMPIRE — tryb potężnego imperium."
+                "DEV: GODMODE."
             );
 
             break;
+
+
+        case "shares":
+
+            state.publicCompanies
+            .forEach(
+                c=>{
+
+                    let ours =
+                        c.owners.find(
+                            o=>
+                            o.name===ourInvestorName
+                        );
+
+                    if(!ours){
+
+                        ours={
+                            name:ourInvestorName,
+                            shares:0
+                        };
+
+                        c.owners.push(ours);
+
+                    }
+
+                    /*
+                        DEV — dajemy maksymalnie 51%,
+                        ale nie odbieramy istniejącym udziałowcom
+                        bezpośrednio; przesuwamy udziały z Public.
+                    */
+
+                    const needed=
+                        51-ours.shares;
+
+                    const publicOwner =
+                        c.owners.find(
+                            o=>o.name==="Public"
+                        );
+
+                    const amount=
+                        Math.min(
+                            needed,
+                            publicOwner
+                            ?publicOwner.shares
+                            :0
+                        );
+
+                    if(publicOwner){
+
+                        publicOwner.shares-=amount;
+                        ours.shares+=amount;
+
+                    }
+
+                }
+            );
+
+            log(
+                "DEV: uzyskano pakiety kontrolne tam, gdzie było to możliwe."
+            );
+
+            break;
+
+
+        default:
+
+            toast(
+                "Nieznany kod."
+            );
+
+            return;
 
     }
 
-    renderAll();
-}
-
-
-/* ============================================================
-   RANDOM EVENTS
-============================================================ */
-
-function randomEvent() {
-
-    const events = [
-
-        () => {
-
-            const bonus = 250000;
-
-            state.company.cash += bonus;
-
-            state.company.reputation += 5;
-
-            log(
-                `Viralowy produkt! +${money(bonus)}.`
-            );
-
-        },
-
-        () => {
-
-            state.company.revenue *= 1.3;
-
-            log(
-                "Nowy kontrakt enterprise zwiększył przychody o 30%."
-            );
-
-        },
-
-        () => {
-
-            state.company.cash -= 120000;
-
-            state.company.reputation -= 4;
-
-            log(
-                "Incydent bezpieczeństwa kosztował firmę $120K."
-            );
-
-        },
-
-        () => {
-
-            state.company.users =
-                Math.round(
-                    state.company.users * 1.2
-                );
-
-            log(
-                "Produkt trafił na pierwszą stronę dużego portalu."
-            );
-
-        },
-
-        () => {
-
-            state.company.marketShare += 2;
-
-            log(
-                "Konkurent wycofał się z jednego segmentu rynku."
-            );
-
-        }
-
-    ];
-
-    events[
-        Math.floor(
-            Math.random() * events.length
-        )
-    ]();
+    toast(
+        "Kod wykonany: "+code
+    );
 
     renderAll();
+
 }
 
 
@@ -2943,11 +4536,12 @@ function randomEvent() {
    MODALS
 ============================================================ */
 
-function closeModal(id) {
+function closeModal(id){
 
     document
         .getElementById(id)
         .classList.remove("show");
+
 }
 
 
@@ -2955,95 +4549,121 @@ function closeModal(id) {
    LOG
 ============================================================ */
 
-function renderLogs() {
+function renderLogs(){
 
     document.getElementById(
         "fullLog"
-    ).innerHTML =
+    ).innerHTML=
         state.logs
-            .map(
-                x =>
-                `<div class="log-item">${x}</div>`
-            )
-            .join("");
+        .map(
+            x=>
+            `<div class="log-item">${x}</div>`
+        )
+        .join("");
+
 }
 
 
 /* ============================================================
-   SAVE / LOAD
+   FINANCE
 ============================================================ */
 
-function saveGame() {
+function renderFinance(){
 
-    localStorage.setItem(
-        "techEmpireSave",
-        JSON.stringify(state)
-    );
-
-    alert("Gra została zapisana.");
-}
-
-function loadGame() {
-
-    const saved =
-        localStorage.getItem(
-            "techEmpireSave"
+    document.getElementById(
+        "financeCash"
+    ).textContent=
+        compact(
+            state.company.cash
         );
 
-    if (!saved) {
+    document.getElementById(
+        "financeRevenue"
+    ).textContent=
+        compact(
+            state.company.revenue
+        );
 
-        alert("Brak zapisu.");
+    document.getElementById(
+        "financeCosts"
+    ).textContent=
+        compact(
+            state.company.costs
+        );
 
-        return;
-    }
-
-    const data =
-        JSON.parse(saved);
-
-    Object.assign(state, data);
-
-    renderAll();
-
-    alert("Gra została wczytana.");
 }
 
 
 /* ============================================================
-   RENDER ALL
+   ALL RENDER
 ============================================================ */
 
-function renderAll() {
+function renderAll(){
 
     renderDashboard();
-    renderProducts();
+
     renderEmployees();
+
+    renderProducts();
+
     renderServers();
+
     renderOffices();
+
     renderSubsidiaries();
+
+    renderStocks();
+
     renderFinance();
+
+    renderManagement();
+
     renderLogs();
+
 }
 
 
 /* ============================================================
-   KEYBOARD DEV CONSOLE
+   KEYBOARD ~ CODE WINDOW
 ============================================================ */
 
 document.addEventListener(
     "keydown",
-    event => {
+    event=>{
 
-        if (
-            event.ctrlKey &&
-            event.shiftKey &&
-            event.key.toLowerCase() === "d"
-        ) {
+        /*
+            ~ / ` otwiera panel kodów
+        */
 
-            showView("codes");
+        if(
+            event.key==="~" ||
+            event.key==="`"
+        ){
 
-            log(
-                "Otworzono Developer Console."
-            );
+            const modal =
+                document.getElementById(
+                    "codeModal"
+                );
+
+            if(
+                modal.classList.contains("show")
+            )
+                closeModal("codeModal");
+            else
+                openCodeModal();
+
+        }
+
+        if(
+            event.key==="Escape"
+        ){
+
+            document
+                .querySelectorAll(".modal.show")
+                .forEach(
+                    m=>
+                    m.classList.remove("show")
+                );
 
         }
 
@@ -3052,7 +4672,7 @@ document.addEventListener(
 
 
 /* ============================================================
-   INITIALIZATION
+   INITIAL GAME
 ============================================================ */
 
 renderAll();
