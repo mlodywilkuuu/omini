@@ -2256,10 +2256,11 @@ function withdrawProduct(productId){
     const product=state.products[index];
     if(product.status!=="released")return;
 
-    // Wycofanie oznacza całkowite usunięcie produktu z listy rynku.
+    // Wycofanie = trwałe usunięcie produktu z listy produktów.
     state.products.splice(index,1);
 
-    logEvent(`⛔ Produkt <b>${escapeHtml(product.name)}</b> wycofano z rynku.`);
+    // Zapis od razu, żeby produkt nie wrócił po odświeżeniu strony.
+    saveGame();
     renderAll();
 }
 
@@ -4189,7 +4190,22 @@ function renderProducts(){
 
     const companies=managementCompanies();
 
-    box.innerHTML=state.products.map(p=>`
+    // Na liście pokazujemy wyłącznie aktywne/projektowane produkty.
+    // Wycofany produkt nie jest już elementem state.products, ale filtr chroni UI
+    // także przed starym zapisem gry zawierającym status "withdrawn".
+    const visibleProducts=state.products.filter(p=>p.status!=="withdrawn");
+
+    if(!visibleProducts.length){
+        box.innerHTML=`
+            <div class="card">
+                <h3>Brak produktów</h3>
+                <p class="muted">Brak produktów na rynku lub w trakcie tworzenia.</p>
+            </div>
+        `;
+        return;
+    }
+
+    box.innerHTML=visibleProducts.map(p=>`
 
         <div class="card product-card compact-card">
 
