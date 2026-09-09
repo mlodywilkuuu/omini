@@ -1172,6 +1172,14 @@ th{
 
     <br>
 
+    <div class="card">
+        <h3>💸 Co zabiera Ci pieniądze?</h3>
+        <p class="muted">Łączne wydatki według kategorii od początku tej rozgrywki.</p>
+        <div id="expenseBreakdown"></div>
+    </div>
+
+    <br>
+
     <div class="grid2">
 
         <div class="card">
@@ -1722,6 +1730,8 @@ const state = {
 
     totalExpenses:0,
 
+    expenseBreakdown:{},
+
     selectedProductType:null,
 
     employees:[],
@@ -2123,7 +2133,24 @@ function changeCash(amount,reason=""){
     cashEl.classList.add("pulse");
 
     if(amount>=0) state.totalRevenue+=amount;
-    else state.totalExpenses+=Math.abs(amount);
+    else {
+        const expense=Math.abs(amount);
+        state.totalExpenses+=expense;
+        if(!state.expenseBreakdown)state.expenseBreakdown={};
+        const r=String(reason||"Inny wydatek");
+        let category="Inne wydatki";
+        if(r.includes("wynagrodzenia"))category="👨‍💻 Wynagrodzenia pracowników";
+        else if(r.includes("utrzymanie serwerów"))category="🖥️ Utrzymanie serwerów";
+        else if(r.includes("utrzymanie biur"))category="🏢 Utrzymanie biur";
+        else if(r.includes("aktualizacji") || r.includes("aktualizację"))category="🔄 Aktualizacje produktów";
+        else if(r.includes("zakup"))category="🛒 Zakupy";
+        else if(r.includes("ulepszenie"))category="⬆️ Ulepszenia";
+        else if(r.includes("dokapitalizowanie"))category="💰 Dokapitalizowanie spółek";
+        else if(r.includes("program rozwoju"))category="🚀 Programy rozwoju";
+        else if(r.includes("udzia"))category="📈 Inwestycje giełdowe";
+        else if(r.includes("spółkę córkę") || r.includes("spółki córki"))category="🌳 Spółki córki";
+        state.expenseBreakdown[category]=(state.expenseBreakdown[category]||0)+expense;
+    }
 
     if(reason){
         logEvent(
@@ -2998,6 +3025,30 @@ function buyOffice(type){
 
     renderAll();
 
+}
+
+function deleteOffice(id){
+    const index=state.offices.findIndex(o=>o.id===id);
+    if(index<0)return;
+    const o=state.offices[index];
+    const data=officeTypes[o.type];
+    const resale=Math.floor(data.price*(0.35+Math.min(o.level,100)*0.005));
+    openModal(`🗑️ Usuń biuro — ${escapeHtml(data.name)}`,`<div class="card"><p>Biuro <b>${escapeHtml(data.name)}</b> jest na poziomie <b>LVL ${o.level}</b>.</p><p class="muted">Po usunięciu odzyskasz około <b class="green">${money(resale)}</b>.</p><p class="muted">Usunięcie zmniejszy dostępną liczbę miejsc dla pracowników.</p><button class="btn danger" style="width:100%" onclick="confirmDeleteOffice('${o.id}')">🗑️ Usuń biuro</button></div>`);
+}
+
+function confirmDeleteOffice(id){
+    const index=state.offices.findIndex(o=>o.id===id);
+    if(index<0)return closeModal();
+    const o=state.offices[index];
+    const data=officeTypes[o.type];
+    const resale=Math.floor(data.price*(0.35+Math.min(o.level,100)*0.005));
+    state.offices.splice(index,1);
+    saveGame();
+    changeCash(resale,`sprzedaż/usunięcie ${data.name} LVL ${o.level}`);
+    closeModal();
+    toast(`🗑️ Usunięto ${data.name}. Odzyskano ${money(resale)}.`,`good`);
+    saveGame();
+    renderAll();
 }
 
 function upgradeOffice(id){
@@ -4585,6 +4636,19 @@ function gameTick(){
     }
 
 
+    /* OFFICE COSTS */
+    const officeCost=Math.floor(
+        state.offices.reduce(
+            (sum,o)=>sum+officeTypes[o.type].price*.00025*o.level,
+            0
+        )
+    );
+    if(officeCost>0){
+        changeCash(-officeCost,"utrzymanie biur");
+        expenses+=officeCost;
+    }
+
+
     /* STOCK MARKET */
 
     ensureMarketCompanies();
@@ -5065,6 +5129,7 @@ function renderOffices(){
                         }
 
                     </button>
+                    <button class="btn danger" style="margin-top:8px" onclick="deleteOffice('${o.id}')">🗑️ Usuń / sprzedaj</button>
 
                 </div>
 
@@ -5350,6 +5415,16 @@ function renderStatistics(){
             portfolioValue()
         );
 
+
+    const expenseBox=document.getElementById("expenseBreakdown");
+    if(expenseBox){
+        const entries=Object.entries(state.expenseBreakdown||{}).filter(([,v])=>Number(v)>0).sort((a,b)=>b[1]-a[1]);
+        const total=entries.reduce((sum,[,v])=>sum+v,0);
+        expenseBox.innerHTML=entries.length ? entries.map(([label,value])=>{
+            const pct=total>0?value/total*100:0;
+            return `<div style="display:grid;grid-template-columns:minmax(180px,1fr) 100px 70px;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--border)"><div><b>${escapeHtml(label)}</b></div><div class="red" style="text-align:right">-${money(value)}</div><div class="muted" style="text-align:right">${pct.toFixed(1)}%</div></div>`;
+        }).join("")+`<div style="display:flex;justify-content:space-between;margin-top:12px;font-weight:700"><span>Razem wydatki</span><span class="red">-${money(total)}</span></div>` : `<div class="muted">Brak zarejestrowanych wydatków.</div>`;
+    }
 
     const activeProducts=state.products.filter(p=>
         p && p.status!=="withdrawn"
@@ -5807,6 +5882,8 @@ function loadGame(){
             state,
             data
         );
+
+        if(!state.expenseBreakdown || typeof state.expenseBreakdown!=="object")state.expenseBreakdown={};
 
         state.market.forEach(c=>{
 
