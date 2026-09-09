@@ -1,448 +1,3064 @@
+```html
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tech Empire Tycoon v20 - Complete Edition</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        @keyframes gradientShift {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-        .animated-bg {
-            background: linear-gradient(-45deg, #020617, #090d1a, #111827, #020617);
-            background-size: 400% 400%;
-            animation: gradientShift 25s ease infinite;
-        }
-        .glass-panel {
-            background: rgba(11, 17, 28, 0.92);
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.9);
-        }
-        .glass-card {
-            background: rgba(17, 24, 39, 0.85);
-            backdrop-filter: blur(14px);
-            -webkit-backdrop-filter: blur(14px);
-            border: 1px solid rgba(255, 255, 255, 0.07);
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .glass-card:hover {
-            border-color: rgba(59, 130, 246, 0.45);
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.2);
-        }
-        select option {
-            background-color: #020617;
-            color: #f1f5f9;
-            padding: 8px;
-        }
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: rgba(11, 17, 28, 0.6); }
-        ::-webkit-scrollbar-thumb { background: rgba(59, 130, 246, 0.4); border-radius: 9999px; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tech Empire Simulator</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+:root {
+    --bg: #070b13;
+    --panel: #0e1524;
+    --panel2: #121b2d;
+    --border: #22304a;
+    --text: #e8eefc;
+    --muted: #8794ad;
+    --primary: #6c7cff;
+    --primary2: #8794ff;
+    --green: #32d583;
+    --red: #ff5d73;
+    --yellow: #ffc857;
+    --cyan: #35c9ff;
+    --purple: #b17cff;
+}
+
+body {
+    margin: 0;
+    background:
+        radial-gradient(circle at 20% 0%, #172142 0, transparent 35%),
+        radial-gradient(circle at 100% 30%, #18203c 0, transparent 30%),
+        var(--bg);
+    color: var(--text);
+    font-family: Inter, Arial, sans-serif;
+}
+
+button,
+input,
+select {
+    font: inherit;
+}
+
+button {
+    cursor: pointer;
+}
+
+.app {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* SIDEBAR */
+
+.sidebar {
+    width: 250px;
+    background: rgba(7, 11, 19, .96);
+    border-right: 1px solid var(--border);
+    padding: 20px 14px;
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 10;
+}
+
+.logo {
+    font-size: 21px;
+    font-weight: 900;
+    margin-bottom: 5px;
+}
+
+.logo span {
+    color: var(--primary2);
+}
+
+.version {
+    color: var(--muted);
+    font-size: 11px;
+    margin-bottom: 25px;
+}
+
+.nav-title {
+    color: #58657e;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin: 20px 10px 8px;
+}
+
+.nav button {
+    width: 100%;
+    text-align: left;
+    border: 0;
+    background: transparent;
+    color: #aeb9cc;
+    padding: 11px 12px;
+    border-radius: 9px;
+    margin-bottom: 3px;
+}
+
+.nav button:hover,
+.nav button.active {
+    background: #17223a;
+    color: white;
+}
+
+.nav button.active {
+    box-shadow: inset 3px 0 0 var(--primary);
+}
+
+.main {
+    margin-left: 250px;
+    width: calc(100% - 250px);
+    padding: 22px;
+}
+
+/* TOPBAR */
+
+.topbar {
+    height: 65px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 22px;
+}
+
+.company-title h1 {
+    margin: 0;
+    font-size: 23px;
+}
+
+.company-title small {
+    color: var(--muted);
+}
+
+.top-stats {
+    display: flex;
+    gap: 10px;
+}
+
+.stat-mini {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 9px 13px;
+    border-radius: 9px;
+    min-width: 120px;
+}
+
+.stat-mini small {
+    display: block;
+    color: var(--muted);
+    font-size: 10px;
+}
+
+.stat-mini strong {
+    display: block;
+    margin-top: 3px;
+}
+
+/* VIEWS */
+
+.view {
+    display: none;
+}
+
+.view.active {
+    display: block;
+}
+
+/* DASHBOARD */
+
+.grid {
+    display: grid;
+    gap: 15px;
+}
+
+.grid-4 {
+    grid-template-columns: repeat(4, 1fr);
+}
+
+.grid-3 {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.grid-2 {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+.card {
+    background: linear-gradient(145deg, rgba(18, 27, 45, .96), rgba(11, 17, 29, .96));
+    border: 1px solid var(--border);
+    border-radius: 13px;
+    padding: 17px;
+    box-shadow: 0 8px 30px rgba(0,0,0,.15);
+}
+
+.card h2,
+.card h3 {
+    margin: 0 0 14px;
+}
+
+.kpi {
+    font-size: 26px;
+    font-weight: 900;
+    margin-top: 6px;
+}
+
+.kpi.green {
+    color: var(--green);
+}
+
+.kpi.red {
+    color: var(--red);
+}
+
+.kpi.blue {
+    color: var(--cyan);
+}
+
+.kpi.purple {
+    color: var(--purple);
+}
+
+.muted {
+    color: var(--muted);
+}
+
+.progress {
+    height: 8px;
+    background: #202b41;
+    border-radius: 20px;
+    overflow: hidden;
+    margin-top: 8px;
+}
+
+.progress > div {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary), var(--cyan));
+}
+
+/* BUTTONS */
+
+.btn {
+    border: 1px solid var(--border);
+    background: #172139;
+    color: white;
+    padding: 9px 13px;
+    border-radius: 8px;
+}
+
+.btn:hover {
+    filter: brightness(1.15);
+}
+
+.btn-primary {
+    background: var(--primary);
+    border-color: var(--primary);
+}
+
+.btn-green {
+    background: #123c2b;
+    border-color: #1f7b56;
+    color: #73efb1;
+}
+
+.btn-red {
+    background: #401923;
+    border-color: #78303e;
+    color: #ff91a0;
+}
+
+.btn-yellow {
+    background: #443717;
+    border-color: #756023;
+    color: #ffd976;
+}
+
+/* TABLE */
+
+.table-wrap {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th,
+td {
+    padding: 11px 9px;
+    border-bottom: 1px solid #1c2940;
+    text-align: left;
+}
+
+th {
+    color: var(--muted);
+    font-size: 11px;
+    text-transform: uppercase;
+}
+
+.badge {
+    display: inline-block;
+    padding: 4px 7px;
+    border-radius: 6px;
+    background: #19243b;
+    color: #aebcff;
+    font-size: 10px;
+}
+
+.badge.green {
+    background: #103526;
+    color: #65e6a6;
+}
+
+.badge.red {
+    background: #3c1921;
+    color: #ff8797;
+}
+
+.badge.yellow {
+    background: #3d3215;
+    color: #ffd66e;
+}
+
+/* SERVER CARDS */
+
+.server {
+    position: relative;
+}
+
+.server-icon {
+    font-size: 30px;
+}
+
+.server-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.server-specs {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 7px;
+    margin: 13px 0;
+}
+
+.spec {
+    background: #0a111f;
+    border-radius: 7px;
+    padding: 8px;
+}
+
+.spec small {
+    display: block;
+    color: var(--muted);
+    font-size: 9px;
+}
+
+.spec b {
+    display: block;
+    margin-top: 2px;
+}
+
+/* TREE */
+
+.tree {
+    padding-left: 10px;
+}
+
+.tree-node {
+    border-left: 2px solid #293650;
+    margin-left: 12px;
+    padding: 8px 0 8px 18px;
+}
+
+.tree-company {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    padding: 9px 12px;
+    background: #121d31;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+}
+
+.tree-children {
+    margin-left: 22px;
+}
+
+/* PRODUCT */
+
+.product-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+}
+
+.product-left {
+    flex: 1;
+}
+
+.product-name {
+    font-weight: 800;
+    font-size: 16px;
+}
+
+.product-meta {
+    color: var(--muted);
+    font-size: 11px;
+    margin-top: 4px;
+}
+
+/* FORMS */
+
+.form-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+input,
+select {
+    width: 100%;
+    padding: 10px 11px;
+    background: #09101d;
+    border: 1px solid var(--border);
+    color: white;
+    border-radius: 8px;
+    outline: none;
+}
+
+input:focus,
+select:focus {
+    border-color: var(--primary);
+}
+
+/* CODE PANEL */
+
+.cheat-box {
+    border: 1px solid #44366d;
+    background:
+        linear-gradient(135deg, rgba(72, 47, 119, .18), rgba(15, 12, 29, .8));
+}
+
+.code-list {
+    display: grid;
+    gap: 9px;
+}
+
+.code-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px;
+    background: #0a101d;
+    border: 1px solid #292040;
+    border-radius: 9px;
+}
+
+.code-row code {
+    color: #c7a9ff;
+    font-family: monospace;
+}
+
+.log {
+    max-height: 260px;
+    overflow-y: auto;
+}
+
+.log-item {
+    padding: 9px 0;
+    border-bottom: 1px solid #1b273c;
+    color: #aebbd0;
+    font-size: 12px;
+}
+
+/* MODAL */
+
+.modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.7);
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+}
+
+.modal.show {
+    display: flex;
+}
+
+.modal-content {
+    width: min(550px, 94vw);
+    background: #0d1626;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 17px;
+}
+
+/* MOBILE */
+
+@media(max-width: 900px) {
+    .sidebar {
+        width: 70px;
+    }
+
+    .sidebar .logo,
+    .sidebar .version,
+    .sidebar .nav-title {
+        display: none;
+    }
+
+    .nav button {
+        text-align: center;
+        font-size: 0;
+    }
+
+    .nav button::first-letter {
+        font-size: 18px;
+    }
+
+    .main {
+        margin-left: 70px;
+        width: calc(100% - 70px);
+    }
+
+    .grid-4,
+    .grid-3 {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media(max-width: 600px) {
+    .grid-4,
+    .grid-3,
+    .grid-2 {
+        grid-template-columns: 1fr;
+    }
+
+    .top-stats {
+        display: none;
+    }
+}
+</style>
 </head>
-<body class="animated-bg text-slate-100 min-h-screen flex flex-col font-sans select-none overflow-x-hidden">
 
-    <!-- EKRAN STARTOWY -->
-    <div id="start-screen" class="fixed inset-0 bg-slate-950/95 backdrop-blur-xl z-50 flex items-center justify-center p-4">
-        <div class="glass-panel w-full max-w-lg rounded-3xl p-8 space-y-6 border border-cyan-500/30 shadow-2xl">
-            <div class="text-center space-y-2">
-                <div class="w-12 h-12 rounded-full bg-cyan-400 animate-pulse shadow-lg shadow-cyan-500/60 mx-auto mb-4"></div>
-                <h1 class="text-2xl font-extrabold bg-gradient-to-r from-cyan-400 via-blue-400 to-indigo-400 bg-clip-text text-transparent">Tech Empire Tycoon v20</h1>
-                <p class="text-xs text-slate-400">Twórz aplikacje, inwestuj w spółki córki, R&D i rozwijaj serwery.</p>
+<body>
+
+<div class="app">
+
+<aside class="sidebar">
+    <div class="logo">TECH<span>EMPIRE</span></div>
+    <div class="version">CEO SIMULATOR v2.0</div>
+
+    <div class="nav">
+        <div class="nav-title">Firma</div>
+
+        <button class="active" onclick="showView('dashboard', this)">
+            🏠 Dashboard
+        </button>
+
+        <button onclick="showView('products', this)">
+            🚀 Produkty
+        </button>
+
+        <button onclick="showView('employees', this)">
+            👨‍💻 Pracownicy
+        </button>
+
+        <button onclick="showView('servers', this)">
+            🖥️ Serwery
+        </button>
+
+        <button onclick="showView('offices', this)">
+            🏢 Biura
+        </button>
+
+        <div class="nav-title">Grupa</div>
+
+        <button onclick="showView('subsidiaries', this)">
+            🏛️ Spółki córki
+        </button>
+
+        <button onclick="showView('finance', this)">
+            💰 Finanse
+        </button>
+
+        <div class="nav-title">Developer</div>
+
+        <button onclick="showView('codes', this)">
+            🧪 Kody
+        </button>
+
+        <button onclick="showView('logs', this)">
+            📜 Log
+        </button>
+    </div>
+</aside>
+
+<main class="main">
+
+<header class="topbar">
+    <div class="company-title">
+        <h1 id="companyName">NovaTech Holdings</h1>
+        <small id="dateLabel">Rok 1 • Styczeń</small>
+    </div>
+
+    <div class="top-stats">
+        <div class="stat-mini">
+            <small>GOTÓWKA</small>
+            <strong id="topCash">$2,500,000</strong>
+        </div>
+
+        <div class="stat-mini">
+            <small>WYCENA</small>
+            <strong id="topValuation">$8,500,000</strong>
+        </div>
+
+        <div class="stat-mini">
+            <small>PRACOWNICY</small>
+            <strong id="topEmployees">14</strong>
+        </div>
+    </div>
+</header>
+
+<!-- DASHBOARD -->
+
+<section id="dashboard" class="view active">
+
+    <div class="grid grid-4">
+
+        <div class="card">
+            <span class="muted">Gotówka</span>
+            <div class="kpi green" id="cashKpi">$2.50M</div>
+            <small class="muted">+4.8% w tym miesiącu</small>
+        </div>
+
+        <div class="card">
+            <span class="muted">Przychód miesięczny</span>
+            <div class="kpi blue" id="revenueKpi">$186K</div>
+            <small class="muted">MRR</small>
+        </div>
+
+        <div class="card">
+            <span class="muted">Wycena</span>
+            <div class="kpi purple" id="valuationKpi">$8.50M</div>
+            <small class="muted">Enterprise value</small>
+        </div>
+
+        <div class="card">
+            <span class="muted">Użytkownicy</span>
+            <div class="kpi" id="usersKpi">128K</div>
+            <small class="muted">aktywnych</small>
+        </div>
+
+    </div>
+
+    <br>
+
+    <div class="grid grid-2">
+
+        <div class="card">
+            <h3>Kondycja firmy</h3>
+
+            <p class="muted">Reputacja</p>
+            <b id="reputationText">78 / 100</b>
+            <div class="progress">
+                <div id="reputationBar" style="width:78%"></div>
             </div>
-            
-            <div class="space-y-4 text-xs">
-                <div class="glass-card p-4 rounded-2xl space-y-2">
-                    <label class="block text-slate-200 font-semibold">Nazwa Firmy / Holdingu:</label>
-                    <input type="text" id="setup-company-name" value="Apex Holding" class="w-full px-4 py-3 bg-slate-950 border border-slate-700 rounded-xl text-white text-sm focus:outline-none focus:border-cyan-500 font-bold">
-                </div>
 
-                <div class="glass-card p-4 rounded-2xl space-y-2">
-                    <label class="block text-slate-200 font-semibold">Kapitał Startowy:</label>
-                    <div class="grid grid-cols-2 gap-2 pt-1">
-                        <button type="button" onclick="setStartBonus(500000)" class="p-3 rounded-xl border border-cyan-500 bg-cyan-500/10 text-cyan-300 font-bold text-center">Standard<br><span class="text-[10px] text-slate-400">500,000 zł</span></button>
-                        <button type="button" onclick="setStartBonus(2500000)" class="p-3 rounded-xl border border-slate-700 bg-slate-900 text-slate-300 font-semibold text-center">Inwestor VC<br><span class="text-[10px] text-slate-400">2,500,000 zł</span></button>
-                    </div>
-                </div>
-
-                <button onclick="startTheGame()" class="w-full py-4 bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white rounded-2xl font-bold text-sm transition shadow-lg shadow-blue-600/40">Rozpocznij Rozgrywkę 🚀</button>
+            <p class="muted">Morale</p>
+            <b id="moraleText">86 / 100</b>
+            <div class="progress">
+                <div id="moraleBar" style="width:86%"></div>
             </div>
+
+            <p class="muted">Udział rynku</p>
+            <b id="marketText">12.4%</b>
+            <div class="progress">
+                <div id="marketBar" style="width:62%"></div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>Szybkie akcje</h3>
+
+            <div class="form-row">
+                <button class="btn btn-primary" onclick="advanceMonth()">
+                    ⏩ Następny miesiąc
+                </button>
+
+                <button class="btn btn-green" onclick="openHire()">
+                    + Zatrudnij
+                </button>
+            </div>
+
+            <div class="form-row">
+                <button class="btn" onclick="showView('servers')">
+                    🖥️ Serwery
+                </button>
+
+                <button class="btn" onclick="showView('subsidiaries')">
+                    🏛️ Spółki
+                </button>
+            </div>
+
+            <button class="btn btn-yellow" onclick="randomEvent()">
+                🎲 Losowe wydarzenie
+            </button>
+        </div>
+
+    </div>
+
+    <br>
+
+    <div class="card">
+        <h3>Ostatnie wydarzenia</h3>
+        <div class="log" id="dashboardLog"></div>
+    </div>
+
+</section>
+
+
+<!-- PRODUCTS -->
+
+<section id="products" class="view">
+
+    <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div>
+                <h2>Produkty</h2>
+                <span class="muted">Zarządzaj portfolio technologicznego imperium.</span>
+            </div>
+
+            <button class="btn btn-primary" onclick="createProduct()">
+                + Nowy produkt
+            </button>
         </div>
     </div>
 
-    <!-- GÓRNY PASEK -->
-    <header class="glass-panel border-b border-slate-800/80 px-6 py-4 flex justify-between items-center z-30 sticky top-0 shadow-xl">
-        <div class="flex items-center gap-3">
-            <div class="w-4 h-4 rounded-full bg-cyan-400 animate-pulse shadow-lg shadow-cyan-500/60"></div>
-            <h1 id="header-company-title" class="text-lg font-extrabold bg-gradient-to-r from-cyan-400 via-blue-400 to-indigo-400 bg-clip-text text-transparent">Apex Holding <span class="text-xs bg-cyan-500/20 border border-cyan-500/30 text-cyan-300 px-2 py-0.5 rounded-full ml-2">v20 Complete</span></h1>
-        </div>
-        <div class="flex gap-3 text-xs items-center">
-            <div class="glass-card px-4 py-2 rounded-2xl flex items-center gap-2 border-slate-700/60 shadow-inner">
-                <span class="text-slate-400">💰 Gotówka:</span>
-                <span id="company-money" class="font-bold text-emerald-400 text-sm">500,000 zł</span>
+    <br>
+
+    <div class="grid grid-2" id="productList"></div>
+
+</section>
+
+
+<!-- EMPLOYEES -->
+
+<section id="employees" class="view">
+
+    <div class="card">
+        <div style="display:flex;justify-content:space-between;">
+            <div>
+                <h2>Pracownicy</h2>
+                <span class="muted">Zespół technologiczny, zarząd i specjaliści.</span>
             </div>
-            <div class="glass-card px-4 py-2 rounded-2xl flex items-center gap-2 border-slate-700/60 shadow-inner">
-                <span class="text-slate-400">🖥️ Pojemność Serwerów:</span>
-                <span id="server-capacity" class="font-bold text-cyan-400 text-sm">100 GB</span>
-            </div>
-        </div>
-    </header>
 
-    <!-- ZAKŁADKI MENU -->
-    <nav class="bg-slate-950/60 border-b border-slate-800/80 px-8 py-3 flex gap-3 overflow-x-auto shadow-md">
-        <button onclick="switchTab('software')" id="tab-btn-software" class="px-5 py-2.5 rounded-2xl font-semibold text-xs transition bg-blue-600 text-white shrink-0">💻 Produkty & Aplikacje</button>
-        <button onclick="switchTab('subsidiaries')" id="tab-btn-subsidiaries" class="px-5 py-2.5 rounded-2xl font-semibold text-xs transition text-slate-400 hover:text-white shrink-0">🏢 Spółki Córki</button>
-        <button onclick="switchTab('servers')" id="tab-btn-servers" class="px-5 py-2.5 rounded-2xl font-semibold text-xs transition text-slate-400 hover:text-white shrink-0">🖥️ Serwery & Infrastruktura</button>
-        <button onclick="switchTab('rnd')" id="tab-btn-rnd" class="px-5 py-2.5 rounded-2xl font-semibold text-xs transition text-slate-400 hover:text-white shrink-0">🔬 R&D & Oddziały</button>
-        <button onclick="switchTab('stats')" id="tab-btn-stats" class="px-5 py-2.5 rounded-2xl font-semibold text-xs transition text-slate-400 hover:text-white shrink-0">📊 Finanse & Analityka</button>
-    </nav>
-
-    <!-- TREŚĆ GŁÓWNA -->
-    <main class="flex-1 max-w-7xl w-full mx-auto p-8 flex flex-col gap-6">
-
-        <!-- ZAKŁADKA 1: PRODUKTY -->
-        <div id="tab-software" class="tab-content flex flex-col gap-6">
-            <div class="glass-panel rounded-3xl p-6 shadow-2xl flex justify-between items-center">
-                <div>
-                    <h2 class="text-base font-bold text-cyan-300">Główne Portfolio Oprogramowania</h2>
-                    <p class="text-xs text-slate-400 mt-1">Twórz nowe aplikacje i przypisuj je do holdingu lub spółek zależnych.</p>
-                </div>
-                <button onclick="createNewProduct()" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-xs transition shadow-lg">+ Stwórz Nowy Produkt</button>
-            </div>
-            <div id="product-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
-        </div>
-
-        <!-- ZAKŁADKA 2: SPÓŁKI CÓRKI -->
-        <div id="tab-subsidiaries" class="tab-content flex flex-col gap-6 hidden">
-            <div class="glass-panel rounded-3xl p-6 shadow-2xl flex justify-between items-center border border-purple-500/30">
-                <div>
-                    <h2 class="text-base font-bold text-purple-300">Zarządzanie Spółkami Córkami</h2>
-                    <p class="text-xs text-slate-400 mt-1">Twórz wydzielone podmioty, które generują dodatkowe dywidendy.</p>
-                </div>
-                <button onclick="openCreateSubsidiaryModal()" class="px-5 py-2.5 bg-purple-600 hover:bg-purple-500 text-white rounded-xl font-bold text-xs transition shadow-lg">+ Załóż Spółkę Córkę</button>
-            </div>
-            <div id="subsidiary-list" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
-        </div>
-
-        <!-- ZAKŁADKA 3: SERWERY -->
-        <div id="tab-servers" class="tab-content flex flex-col gap-6 hidden">
-            <div class="glass-panel rounded-3xl p-6 space-y-4 border border-cyan-500/30">
-                <h3 class="text-base font-bold text-cyan-300">🖥️ Rozbudowa Serwerowni</h3>
-                <p class="text-xs text-slate-400">Zwiększaj przepustowość infrastruktury, aby utrzymać rosnącą liczbę aplikacji.</p>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="glass-card p-4 rounded-xl space-y-2">
-                        <h4 class="font-bold text-sm text-slate-200">Serwer Chmurowy v1 (+100 GB)</h4>
-                        <p class="text-xs text-slate-400">Koszt zakupu: 50,000 zł | Utrzymanie: 1,000 zł/s</p>
-                        <button onclick="buyServer(100, 50000, 1000)" class="w-full py-2 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded-lg text-xs">Zakup Serwer</button>
-                    </div>
-                    <div class="glass-card p-4 rounded-xl space-y-2">
-                        <h4 class="font-bold text-sm text-slate-200">Klaster Serwerów AI (+500 GB)</h4>
-                        <p class="text-xs text-slate-400">Koszt zakupu: 200,000 zł | Utrzymanie: 3,500 zł/s</p>
-                        <button onclick="buyServer(500, 200000, 3500)" class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-lg text-xs">Zakup Klaster</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ZAKŁADKA 4: R&D I ODDZIAŁY -->
-        <div id="tab-rnd" class="tab-content flex flex-col gap-6 hidden">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- BIURO BADAŃ -->
-                <div class="glass-panel rounded-3xl p-6 space-y-4 border border-cyan-500/30">
-                    <h3 class="text-base font-bold text-cyan-300">🔬 Biuro Badań i Rozwoju (R&D)</h3>
-                    <p class="text-xs text-slate-400">Odblokowuj innowacje zwiększające zyski z produktów.</p>
-                    <div class="space-y-3">
-                        <div class="glass-card p-4 rounded-xl flex justify-between items-center">
-                            <div>
-                                <h4 class="font-bold text-sm text-slate-200">Sieci Neurowa Gen-2</h4>
-                                <p class="text-[11px] text-slate-400">+25% przychodów z produktów</p>
-                            </div>
-                            <button onclick="researchTech('ai', 150000)" id="tech-btn-ai" class="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg text-xs font-bold">Badać (150k zł)</button>
-                        </div>
-                        <div class="glass-card p-4 rounded-xl flex justify-between items-center">
-                            <div>
-                                <h4 class="font-bold text-sm text-slate-200">Optymalizacja Kwantowa</h4>
-                                <p class="text-[11px] text-slate-400">-20% do kosztów serwerów</p>
-                            </div>
-                            <button onclick="researchTech('quantum', 300000)" id="tech-btn-quantum" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold">Badać (300k zł)</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- ODDZIAŁY -->
-                <div class="glass-panel rounded-3xl p-6 space-y-4 border border-indigo-500/30">
-                    <h3 class="text-base font-bold text-indigo-300">🌍 Rekrutacja w Filia Zewnętrznych</h3>
-                    <p class="text-xs text-slate-400">Buduj zespoły inżynierskie w kluczowych regionach.</p>
-                    <div class="glass-card p-4 rounded-xl flex justify-between items-center">
-                        <div>
-                            <h4 class="font-bold text-sm text-slate-200">Oddział: Dolina Krzemowa</h4>
-                            <p class="text-[11px] text-slate-400">Inżynierowie: <span id="staff-silicon">0</span>/10</p>
-                        </div>
-                        <button onclick="hireStaff('silicon', 25000)" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold">Zatrudnij (25k zł)</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ZAKŁADKA 5: STATYSTYKI -->
-        <div id="tab-stats" class="tab-content flex flex-col gap-6 hidden">
-            <div class="glass-panel rounded-3xl p-6 shadow-2xl space-y-4">
-                <h3 class="text-base font-bold text-emerald-300">📊 Raport Finansowy</h3>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div class="glass-card p-4 rounded-2xl">
-                        <span class="text-xs text-slate-400">Przychód z Aplikacji:</span>
-                        <div id="stat-total-revenue" class="text-lg font-bold text-emerald-400">+0 zł/s</div>
-                    </div>
-                    <div class="glass-card p-4 rounded-2xl">
-                        <span class="text-xs text-slate-400">Dywidendy Spółek Córek:</span>
-                        <div id="stat-subsidiary-dividends" class="text-lg font-bold text-purple-400">+0 zł/s</div>
-                    </div>
-                    <div class="glass-card p-4 rounded-2xl">
-                        <span class="text-xs text-slate-400">Koszty Utrzymania Serwerów:</span>
-                        <div id="stat-total-costs" class="text-lg font-bold text-rose-400">-0 zł/s</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-    </main>
-
-    <!-- MODALE -->
-    <div id="modal-create-subsidiary" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4 z-50">
-        <div class="glass-panel w-full max-w-md rounded-3xl p-6 space-y-4 border border-purple-500/40">
-            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-                <h3 class="text-base font-bold text-purple-300">Utwórz Spółkę Córkę</h3>
-                <button onclick="closeModal('modal-create-subsidiary')" class="text-slate-400 hover:text-white">✕</button>
-            </div>
-            <div class="space-y-3 text-xs">
-                <div>
-                    <label class="block text-slate-300 font-semibold mb-1">Nazwa Podmiotu:</label>
-                    <input type="text" id="sub-name-input" value="Nova Cloud Sp. z o.o." class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white">
-                </div>
-                <div>
-                    <label class="block text-slate-300 font-semibold mb-1">Kapitał Początkowy (zł):</label>
-                    <input type="number" id="sub-capital-input" value="100000" class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white">
-                </div>
-                <button onclick="confirmCreateSubsidiary()" class="w-full py-3 bg-purple-600 hover:bg-purple-500 text-white rounded-xl font-bold transition shadow-lg mt-2">Przelej Środki i Utwórz</button>
-            </div>
+            <button class="btn btn-green" onclick="openHire()">
+                + Rekrutacja
+            </button>
         </div>
     </div>
 
-    <div id="modal-assign-product" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4 z-50">
-        <div class="glass-panel w-full max-w-md rounded-3xl p-6 space-y-4 border border-blue-500/40">
-            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-                <h3 class="text-base font-bold text-blue-300">Transfer Produktu</h3>
-                <button onclick="closeModal('modal-assign-product')" class="text-slate-400 hover:text-white">✕</button>
+    <br>
+
+    <div class="card table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Pracownik</th>
+                    <th>Dział</th>
+                    <th>Skill</th>
+                    <th>Perki</th>
+                    <th>Pensja</th>
+                    <th>Status</th>
+                    <th></th>
+                </tr>
+            </thead>
+
+            <tbody id="employeeTable"></tbody>
+        </table>
+    </div>
+
+</section>
+
+
+<!-- SERVERS -->
+
+<section id="servers" class="view">
+
+    <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div>
+                <h2>Centra serwerowe</h2>
+                <span class="muted">
+                    Buduj własną infrastrukturę i skaluj produkty.
+                </span>
             </div>
-            <div class="space-y-3 text-xs">
-                <p class="text-slate-300">Wybierz docelową spółkę zależną:</p>
-                <select id="assign-subsidiary-select" class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white"></select>
-                <button onclick="confirmAssignProduct()" class="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold transition shadow-lg mt-2">Potwierdź Transfer</button>
-            </div>
+
+            <button class="btn btn-primary" onclick="buyServer()">
+                + Kup serwer
+            </button>
         </div>
     </div>
 
-    <script>
-        // LOGIKA APLIKACJI
-        let gameState = {
-            money: 500000,
-            serverCapacity: 100,
-            serverCosts: 0,
-            companyName: "Apex Holding",
+    <br>
+
+    <div class="grid grid-3" id="serverList"></div>
+
+</section>
+
+
+<!-- OFFICES -->
+
+<section id="offices" class="view">
+
+    <div class="card">
+        <h2>Biura</h2>
+        <p class="muted">
+            Biuro zwiększa maksymalną liczbę pracowników, morale i możliwości firmy.
+        </p>
+
+        <button class="btn btn-primary" onclick="buyOffice()">
+            + Otwórz nowe biuro
+        </button>
+    </div>
+
+    <br>
+
+    <div class="grid grid-3" id="officeList"></div>
+
+</section>
+
+
+<!-- SUBSIDIARIES -->
+
+<section id="subsidiaries" class="view">
+
+    <div class="card">
+        <h2>Struktura grupy kapitałowej</h2>
+
+        <p class="muted">
+            Twórz spółki córki, przypisuj im produkty i buduj wielopoziomową
+            strukturę holdingową.
+        </p>
+
+        <button class="btn btn-primary" onclick="openSubsidiaryModal()">
+            + Utwórz spółkę córkę
+        </button>
+    </div>
+
+    <br>
+
+    <div class="card">
+        <div class="tree" id="companyTree"></div>
+    </div>
+
+    <br>
+
+    <div class="card">
+        <h3>Portfolio produktów grupy</h3>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Produkt</th>
+                        <th>Właściciel</th>
+                        <th>Przychód</th>
+                        <th>Użytkownicy</th>
+                    </tr>
+                </thead>
+
+                <tbody id="subsidiaryProducts"></tbody>
+            </table>
+        </div>
+    </div>
+
+</section>
+
+
+<!-- FINANCE -->
+
+<section id="finance" class="view">
+
+    <div class="grid grid-3">
+
+        <div class="card">
+            <span class="muted">Przychód</span>
+            <div class="kpi green" id="financeRevenue">$186K</div>
+        </div>
+
+        <div class="card">
+            <span class="muted">Koszty</span>
+            <div class="kpi red" id="financeCosts">$92K</div>
+        </div>
+
+        <div class="card">
+            <span class="muted">Zysk</span>
+            <div class="kpi blue" id="financeProfit">$94K</div>
+        </div>
+
+    </div>
+
+    <br>
+
+    <div class="card">
+        <h2>Operacje finansowe</h2>
+
+        <div class="form-row">
+            <button class="btn btn-green" onclick="addMoney(100000)">
+                +$100K inwestycji
+            </button>
+
+            <button class="btn btn-green" onclick="addMoney(1000000)">
+                +$1M inwestycji
+            </button>
+
+            <button class="btn btn-green" onclick="addMoney(10000000)">
+                +$10M inwestycji
+            </button>
+        </div>
+
+        <div class="form-row">
+            <button class="btn btn-yellow" onclick="takeLoan()">
+                🏦 Zaciągnij kredyt
+            </button>
+        </div>
+    </div>
+
+</section>
+
+
+<!-- CODES -->
+
+<section id="codes" class="view">
+
+    <div class="card cheat-box">
+
+        <h2>🧪 Developer Console</h2>
+
+        <p class="muted">
+            Panel kodów testowych/developerskich. Przydatny podczas budowy
+            symulatora. Kody działają lokalnie w tej wersji.
+        </p>
+
+        <br>
+
+        <div class="code-list">
+
+            <div class="code-row">
+                <div>
+                    <code>money100k</code>
+                    <div class="muted">Dodaje $100 000</div>
+                </div>
+                <button class="btn" onclick="useCode('money100k')">
+                    AKTYWUJ
+                </button>
+            </div>
+
+            <div class="code-row">
+                <div>
+                    <code>money1m</code>
+                    <div class="muted">Dodaje $1 000 000</div>
+                </div>
+                <button class="btn" onclick="useCode('money1m')">
+                    AKTYWUJ
+                </button>
+            </div>
+
+            <div class="code-row">
+                <div>
+                    <code>money100m</code>
+                    <div class="muted">Dodaje $100 000 000</div>
+                </div>
+                <button class="btn" onclick="useCode('money100m')">
+                    AKTYWUJ
+                </button>
+            </div>
+
+            <div class="code-row">
+                <div>
+                    <code>godmode</code>
+                    <div class="muted">
+                        Maksymalizuje reputację, morale i część statystyk.
+                    </div>
+                </div>
+                <button class="btn" onclick="useCode('godmode')">
+                    AKTYWUJ
+                </button>
+            </div>
+
+            <div class="code-row">
+                <div>
+                    <code>bestemployees</code>
+                    <div class="muted">
+                        Rekrutuje elitarnych pracowników z najlepszymi perkami.
+                    </div>
+                </div>
+                <button class="btn" onclick="useCode('bestemployees')">
+                    AKTYWUJ
+                </button>
+            </div>
+
+            <div class="code-row">
+                <div>
+                    <code>maxservers</code>
+                    <div class="muted">
+                        Maksymalizuje poziom wszystkich serwerów.
+                    </div>
+                </div>
+                <button class="btn" onclick="useCode('maxservers')">
+                    AKTYWUJ
+                </button>
+            </div>
+
+            <div class="code-row">
+                <div>
+                    <code>empire</code>
+                    <div class="muted">
+                        Pakiet developerski: pieniądze + pracownicy + serwery.
+                    </div>
+                </div>
+                <button class="btn" onclick="useCode('empire')">
+                    AKTYWUJ
+                </button>
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- LOGS -->
+
+<section id="logs" class="view">
+
+    <div class="card">
+        <h2>Dziennik firmy</h2>
+        <div class="log" id="fullLog"></div>
+    </div>
+
+</section>
+
+</main>
+</div>
+
+
+<!-- HIRE MODAL -->
+
+<div class="modal" id="hireModal">
+
+    <div class="modal-content">
+
+        <div class="modal-header">
+            <h2>Rekrutacja</h2>
+            <button class="btn" onclick="closeModal('hireModal')">✕</button>
+        </div>
+
+        <div class="form-row">
+            <input id="hireName" placeholder="Imię i nazwisko">
+        </div>
+
+        <div class="form-row">
+            <select id="hireDepartment">
+                <option>Engineering</option>
+                <option>AI Research</option>
+                <option>Product</option>
+                <option>Sales</option>
+                <option>Marketing</option>
+                <option>Security</option>
+                <option>Finance</option>
+                <option>Management</option>
+            </select>
+        </div>
+
+        <div class="form-row">
+            <select id="hireLevel">
+                <option value="55">Junior — 55 skill</option>
+                <option value="72">Mid — 72 skill</option>
+                <option value="86">Senior — 86 skill</option>
+                <option value="95">Principal — 95 skill</option>
+                <option value="100">Legendary — 100 skill</option>
+            </select>
+        </div>
+
+        <button class="btn btn-green" onclick="hireEmployee()">
+            Zatrudnij
+        </button>
+
+    </div>
+</div>
+
+
+<!-- SUBSIDIARY MODAL -->
+
+<div class="modal" id="subsidiaryModal">
+
+    <div class="modal-content">
+
+        <div class="modal-header">
+            <h2>Nowa spółka córka</h2>
+            <button class="btn" onclick="closeModal('subsidiaryModal')">✕</button>
+        </div>
+
+        <div class="form-row">
+            <input id="subName" placeholder="np. NovaAI Labs">
+        </div>
+
+        <div class="form-row">
+            <select id="subParent"></select>
+        </div>
+
+        <div class="form-row">
+            <input
+                id="subCapital"
+                type="number"
+                value="250000"
+                placeholder="Kapitał początkowy">
+        </div>
+
+        <button class="btn btn-primary" onclick="createSubsidiary()">
+            Utwórz spółkę
+        </button>
+
+    </div>
+</div>
+
+
+<script>
+
+/* ============================================================
+   GAME STATE
+============================================================ */
+
+const state = {
+
+    company: {
+        id: 1,
+        name: "NovaTech Holdings",
+        cash: 2500000,
+        valuation: 8500000,
+        reputation: 78,
+        morale: 86,
+        marketShare: 12.4,
+        revenue: 186000,
+        costs: 92000,
+        users: 128000
+    },
+
+    year: 1,
+    month: 1,
+
+    employees: [
+        {
+            id: 1,
+            name: "Alex Kowalski",
+            department: "CEO / Product",
+            skill: 96,
+            salary: 0,
+            perks: ["Founder", "Visionary", "Negotiator", "Product Genius"]
+        },
+        {
+            id: 2,
+            name: "Maja Nowak",
+            department: "Engineering",
+            skill: 94,
+            salary: 18000,
+            perks: ["10x Engineer", "Cloud Expert", "Architect"]
+        },
+        {
+            id: 3,
+            name: "Jan Zieliński",
+            department: "AI Research",
+            skill: 91,
+            salary: 21000,
+            perks: ["AI Genius", "Researcher", "Patent Hunter"]
+        },
+        {
+            id: 4,
+            name: "Ola Wójcik",
+            department: "Sales",
+            skill: 87,
+            salary: 12000,
+            perks: ["Closer", "Enterprise Sales"]
+        }
+    ],
+
+    products: [
+        {
+            id: 1,
+            name: "NovaCloud",
+            category: "Cloud",
+            users: 76000,
+            revenue: 92000,
+            quality: 92,
+            progress: 100,
+            owner: 1
+        },
+        {
+            id: 2,
+            name: "NovaAI",
+            category: "Artificial Intelligence",
+            users: 42000,
+            revenue: 68000,
+            quality: 88,
+            progress: 84,
+            owner: 1
+        },
+        {
+            id: 3,
+            name: "NovaSecure",
+            category: "Cybersecurity",
+            users: 10000,
+            revenue: 26000,
+            quality: 81,
+            progress: 71,
+            owner: 1
+        }
+    ],
+
+    servers: [
+        {
+            id: 1,
+            name: "Warsaw Core",
+            location: "Warszawa",
+            level: 4,
+            cpu: 82,
+            ram: 76,
+            storage: 68,
+            uptime: 99.95,
+            capacity: 80000,
+            cost: 18000
+        },
+        {
+            id: 2,
+            name: "Frankfurt Edge",
+            location: "Frankfurt",
+            level: 3,
+            cpu: 65,
+            ram: 62,
+            storage: 55,
+            uptime: 99.91,
+            capacity: 55000,
+            cost: 13000
+        }
+    ],
+
+    offices: [
+        {
+            id: 1,
+            name: "NovaTech HQ",
+            city: "Warszawa",
+            level: 4,
+            capacity: 100,
+            employees: 14,
+            morale: 92,
+            cost: 22000
+        },
+        {
+            id: 2,
+            name: "AI Lab",
+            city: "Kraków",
+            level: 2,
+            capacity: 30,
+            employees: 4,
+            morale: 88,
+            cost: 9000
+        }
+    ],
+
+    subsidiaries: [
+        {
+            id: 1,
+            parent: null,
+            name: "NovaTech Holdings",
+            type: "Holding",
+            capital: 2500000,
             products: [],
-            subsidiaries: [],
-            tech: { ai: false, quantum: false },
-            branches: { silicon: 0 },
-            selectedProductForAssign: null
-        };
+            level: 0
+        }
+    ],
 
-        function startTheGame() {
-            const name = document.getElementById('setup-company-name').value;
-            if(name) gameState.companyName = name;
-            document.getElementById('header-company-title').childNodes[0].nodeValue = gameState.companyName + " ";
-            document.getElementById('start-screen').classList.add('hidden');
-            updateUI();
+    logs: [
+        "Firma NovaTech Holdings rozpoczęła działalność.",
+        "Uruchomiono NovaCloud.",
+        "Podpisano kontrakt enterprise.",
+        "Otwarto AI Lab w Krakowie.",
+        "NovaAI otrzymało pierwszych klientów."
+    ]
+};
+
+
+/* ============================================================
+   HELPERS
+============================================================ */
+
+function money(value) {
+    return "$" + Math.round(value).toLocaleString("en-US");
+}
+
+function compactMoney(value) {
+
+    if (Math.abs(value) >= 1000000000)
+        return "$" + (value / 1000000000).toFixed(2) + "B";
+
+    if (Math.abs(value) >= 1000000)
+        return "$" + (value / 1000000).toFixed(2) + "M";
+
+    if (Math.abs(value) >= 1000)
+        return "$" + (value / 1000).toFixed(0) + "K";
+
+    return money(value);
+}
+
+function log(message) {
+
+    state.logs.unshift(
+        `R${state.year} M${state.month}: ${message}`
+    );
+
+    state.logs = state.logs.slice(0, 100);
+
+    renderLogs();
+}
+
+
+/* ============================================================
+   NAVIGATION
+============================================================ */
+
+function showView(id, button) {
+
+    document.querySelectorAll(".view")
+        .forEach(v => v.classList.remove("active"));
+
+    document.getElementById(id)
+        .classList.add("active");
+
+    document.querySelectorAll(".nav button")
+        .forEach(b => b.classList.remove("active"));
+
+    if (button)
+        button.classList.add("active");
+
+    renderAll();
+}
+
+
+/* ============================================================
+   DASHBOARD
+============================================================ */
+
+function renderDashboard() {
+
+    const c = state.company;
+
+    document.getElementById("topCash").textContent =
+        compactMoney(c.cash);
+
+    document.getElementById("topValuation").textContent =
+        compactMoney(c.valuation);
+
+    document.getElementById("topEmployees").textContent =
+        state.employees.length;
+
+    document.getElementById("cashKpi").textContent =
+        compactMoney(c.cash);
+
+    document.getElementById("revenueKpi").textContent =
+        compactMoney(c.revenue);
+
+    document.getElementById("valuationKpi").textContent =
+        compactMoney(c.valuation);
+
+    document.getElementById("usersKpi").textContent =
+        c.users.toLocaleString();
+
+    document.getElementById("reputationText").textContent =
+        `${c.reputation} / 100`;
+
+    document.getElementById("reputationBar").style.width =
+        c.reputation + "%";
+
+    document.getElementById("moraleText").textContent =
+        `${c.morale} / 100`;
+
+    document.getElementById("moraleBar").style.width =
+        c.morale + "%";
+
+    document.getElementById("marketText").textContent =
+        c.marketShare.toFixed(1) + "%";
+
+    document.getElementById("marketBar").style.width =
+        Math.min(100, c.marketShare * 5) + "%";
+
+    document.getElementById("dateLabel").textContent =
+        `Rok ${state.year} • ${monthName()}`;
+
+    document.getElementById("dashboardLog").innerHTML =
+        state.logs.slice(0, 8)
+        .map(x => `<div class="log-item">${x}</div>`)
+        .join("");
+}
+
+function monthName() {
+
+    return [
+        "Styczeń",
+        "Luty",
+        "Marzec",
+        "Kwiecień",
+        "Maj",
+        "Czerwiec",
+        "Lipiec",
+        "Sierpień",
+        "Wrzesień",
+        "Październik",
+        "Listopad",
+        "Grudzień"
+    ][state.month - 1];
+}
+
+
+/* ============================================================
+   MONTH SIMULATION
+============================================================ */
+
+function advanceMonth() {
+
+    const c = state.company;
+
+    let revenueGrowth =
+        1 + (Math.random() * .12 - .03);
+
+    let employeeCost =
+        state.employees.reduce(
+            (sum, e) => sum + e.salary / 12,
+            0
+        );
+
+    let serverCost =
+        state.servers.reduce(
+            (sum, s) => sum + s.cost,
+            0
+        );
+
+    let officeCost =
+        state.offices.reduce(
+            (sum, o) => sum + o.cost,
+            0
+        );
+
+    c.revenue *= revenueGrowth;
+
+    const newUsers =
+        Math.round(c.users * (0.02 + Math.random() * .05));
+
+    c.users += newUsers;
+
+    const totalCosts =
+        employeeCost + serverCost + officeCost + 18000;
+
+    c.costs = totalCosts;
+
+    const profit =
+        c.revenue - totalCosts;
+
+    c.cash += profit;
+
+    c.valuation =
+        Math.max(
+            100000,
+            c.revenue * 12 * 3.8
+            + c.cash
+        );
+
+    c.marketShare +=
+        (Math.random() * 0.5) - 0.1;
+
+    c.marketShare =
+        Math.max(0.1, Math.min(100, c.marketShare));
+
+    state.products.forEach(product => {
+
+        if (product.progress < 100) {
+
+            product.progress +=
+                Math.floor(Math.random() * 6) + 2;
+
+            product.progress =
+                Math.min(100, product.progress);
         }
 
-        function setStartBonus(amount) {
-            gameState.money = amount;
-            document.getElementById('company-money').innerText = gameState.money.toLocaleString() + " zł";
-        }
+        const growth =
+            1 + Math.random() * .08;
 
-        function switchTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            document.getElementById('tab-' + tabId).classList.remove('hidden');
-        }
+        product.users =
+            Math.floor(product.users * growth);
 
-        function createNewProduct() {
-            const id = Date.now();
-            gameState.products.push({
-                id: id,
-                name: "System App #" + (gameState.products.length + 1),
-                income: Math.floor(Math.random() * 600) + 200,
-                assignedTo: null
-            });
-            updateUI();
-        }
+        product.revenue =
+            Math.floor(product.revenue * growth);
+    });
 
-        function buyServer(cap, cost, maintenanceCost) {
-            if (gameState.money >= cost) {
-                gameState.money -= cost;
-                gameState.serverCapacity += cap;
-                gameState.serverCosts += maintenanceCost;
-                updateUI();
-            }
-        }
+    state.month++;
 
-        function openCreateSubsidiaryModal() {
-            document.getElementById('modal-create-subsidiary').classList.remove('hidden');
-        }
+    if (state.month > 12) {
+        state.month = 1;
+        state.year++;
+    }
 
-        function closeModal(id) {
-            document.getElementById(id).classList.add('hidden');
-        }
+    log(
+        `Zakończono miesiąc. Zysk: ${money(profit)}. ` +
+        `Nowi użytkownicy: ${newUsers.toLocaleString()}.`
+    );
 
-        function confirmCreateSubsidiary() {
-            const name = document.getElementById('sub-name-input').value;
-            const capital = parseInt(document.getElementById('sub-capital-input').value);
+    renderAll();
+}
 
-            if (!name || isNaN(capital) || capital > gameState.money) {
-                alert("Niewystarczający kapitał lub błędne dane!");
-                return;
-            }
 
-            gameState.money -= capital;
-            gameState.subsidiaries.push({
-                id: Date.now(),
-                name: name,
-                capital: capital
-            });
+/* ============================================================
+   PRODUCTS
+============================================================ */
 
-            closeModal('modal-create-subsidiary');
-            updateUI();
-        }
+function renderProducts() {
 
-        function openAssignModal(productId) {
-            gameState.selectedProductForAssign = productId;
-            const select = document.getElementById('assign-subsidiary-select');
-            select.innerHTML = '';
+    const container =
+        document.getElementById("productList");
 
-            if (gameState.subsidiaries.length === 0) {
-                alert("Najpierw musisz założyć spółkę córkę!");
-                return;
-            }
+    container.innerHTML =
+        state.products.map(product => {
 
-            gameState.subsidiaries.forEach(sub => {
-                const opt = document.createElement('option');
-                opt.value = sub.id;
-                opt.innerText = sub.name;
-                select.appendChild(opt);
-            });
+            const owner =
+                state.subsidiaries.find(
+                    s => s.id === product.owner
+                );
 
-            document.getElementById('modal-assign-product').classList.remove('hidden');
-        }
+            return `
+                <div class="card">
 
-        function confirmAssignProduct() {
-            const subId = parseInt(document.getElementById('assign-subsidiary-select').value);
-            const product = gameState.products.find(p => p.id === gameState.selectedProductForAssign);
-            if (product) {
-                product.assignedTo = subId;
-            }
-            closeModal('modal-assign-product');
-            updateUI();
-        }
+                    <div class="product-card">
 
-        function researchTech(techKey, cost) {
-            if (gameState.money >= cost && !gameState.tech[techKey]) {
-                gameState.money -= cost;
-                gameState.tech[techKey] = true;
-                const btn = document.getElementById('tech-btn-' + techKey);
-                btn.innerText = "Odblokowano";
-                btn.disabled = true;
-                btn.classList.replace('bg-cyan-600', 'bg-slate-700');
-                updateUI();
-            }
-        }
+                        <div class="product-left">
 
-        function hireStaff(branchKey, cost) {
-            if (gameState.money >= cost && gameState.branches[branchKey] < 10) {
-                gameState.money -= cost;
-                gameState.branches[branchKey]++;
-                document.getElementById('staff-' + branchKey).innerText = gameState.branches[branchKey];
-                updateUI();
-            }
-        }
+                            <div class="product-name">
+                                🚀 ${product.name}
+                            </div>
 
-        function updateUI() {
-            document.getElementById('company-money').innerText = Math.floor(gameState.money).toLocaleString() + " zł";
-            document.getElementById('server-capacity').innerText = gameState.serverCapacity + " GB";
+                            <div class="product-meta">
+                                ${product.category}
+                                • właściciel:
+                                ${owner ? owner.name : "Holding"}
+                            </div>
 
-            const prodContainer = document.getElementById('product-list');
-            prodContainer.innerHTML = '';
-            gameState.products.forEach(p => {
-                const sub = gameState.subsidiaries.find(s => s.id === p.assignedTo);
-                const ownerText = sub ? `Właściciel: ${sub.name}` : "Właściciel: Holding Główny";
+                            <br>
 
-                prodContainer.innerHTML += `
-                    <div class="glass-card p-5 rounded-2xl flex flex-col justify-between space-y-3">
+                            <div class="grid grid-3">
+
+                                <div>
+                                    <small class="muted">
+                                        Użytkownicy
+                                    </small>
+                                    <b>
+                                        ${product.users.toLocaleString()}
+                                    </b>
+                                </div>
+
+                                <div>
+                                    <small class="muted">
+                                        Przychód
+                                    </small>
+                                    <b>
+                                        ${compactMoney(product.revenue)}
+                                    </b>
+                                </div>
+
+                                <div>
+                                    <small class="muted">
+                                        Quality
+                                    </small>
+                                    <b>
+                                        ${product.quality}/100
+                                    </b>
+                                </div>
+
+                            </div>
+
+                            <br>
+
+                            <small class="muted">
+                                Rozwój ${product.progress}%
+                            </small>
+
+                            <div class="progress">
+                                <div style="width:${product.progress}%"></div>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <br>
+
+                    <button
+                        class="btn"
+                        onclick="upgradeProduct(${product.id})">
+                        ⚙️ Rozwijaj
+                    </button>
+
+                    <button
+                        class="btn"
+                        onclick="assignProductPrompt(${product.id})">
+                        🏛️ Przenieś do spółki
+                    </button>
+
+                </div>
+            `;
+
+        }).join("");
+}
+
+function createProduct() {
+
+    const name =
+        prompt("Nazwa nowego produktu:");
+
+    if (!name)
+        return;
+
+    const categories = [
+        "AI",
+        "Cloud",
+        "Cybersecurity",
+        "SaaS",
+        "FinTech",
+        "Developer Tools",
+        "Robotics",
+        "Gaming"
+    ];
+
+    const category =
+        categories[
+            Math.floor(Math.random() * categories.length)
+        ];
+
+    const product = {
+
+        id: Date.now(),
+
+        name,
+
+        category,
+
+        users: 0,
+
+        revenue: 0,
+
+        quality: 55,
+
+        progress: 5,
+
+        owner: 1
+    };
+
+    state.products.push(product);
+
+    state.company.cash -= 25000;
+
+    log(
+        `Rozpoczęto budowę produktu ${name} (${category}).`
+    );
+
+    renderAll();
+}
+
+function upgradeProduct(id) {
+
+    const product =
+        state.products.find(p => p.id === id);
+
+    if (!product)
+        return;
+
+    const cost = 15000;
+
+    if (state.company.cash < cost) {
+
+        alert("Brak pieniędzy.");
+
+        return;
+    }
+
+    state.company.cash -= cost;
+
+    product.progress =
+        Math.min(
+            100,
+            product.progress + 10
+        );
+
+    product.quality =
+        Math.min(
+            100,
+            product.quality + 2
+        );
+
+    log(
+        `${product.name} ulepszono. ` +
+        `Postęp: ${product.progress}%.`
+    );
+
+    renderAll();
+}
+
+
+/* ============================================================
+   EMPLOYEES
+============================================================ */
+
+function renderEmployees() {
+
+    const table =
+        document.getElementById("employeeTable");
+
+    table.innerHTML =
+        state.employees.map(employee => {
+
+            return `
+                <tr>
+
+                    <td>
+                        <b>${employee.name}</b>
+                    </td>
+
+                    <td>
+                        <span class="badge">
+                            ${employee.department}
+                        </span>
+                    </td>
+
+                    <td>
+                        <b>${employee.skill}</b>/100
+                    </td>
+
+                    <td>
+                        ${employee.perks
+                            .map(
+                                p =>
+                                `<span class="badge green">
+                                    ${p}
+                                </span>`
+                            )
+                            .join(" ")
+                        }
+                    </td>
+
+                    <td>
+                        ${money(employee.salary)}
+                    </td>
+
+                    <td>
+                        <span class="badge green">
+                            AKTYWNY
+                        </span>
+                    </td>
+
+                    <td>
+                        ${
+                            employee.salary > 0
+                            ?
+                            `<button
+                                class="btn btn-red"
+                                onclick="fireEmployee(${employee.id})">
+                                Zwolnij
+                            </button>`
+                            :
+                            ""
+                        }
+                    </td>
+
+                </tr>
+            `;
+
+        }).join("");
+}
+
+function openHire() {
+
+    document
+        .getElementById("hireModal")
+        .classList.add("show");
+}
+
+function hireEmployee() {
+
+    const name =
+        document.getElementById("hireName").value
+        || "Nowy pracownik";
+
+    const department =
+        document.getElementById("hireDepartment").value;
+
+    const skill =
+        Number(
+            document.getElementById("hireLevel").value
+        );
+
+    const salary =
+        Math.round(
+            skill * 170
+        );
+
+    const perks = [];
+
+    if (skill >= 90)
+        perks.push("Elite");
+
+    if (department === "Engineering")
+        perks.push("10x Engineer");
+
+    if (department === "AI Research")
+        perks.push("AI Genius");
+
+    if (department === "Sales")
+        perks.push("Closer");
+
+    if (department === "Security")
+        perks.push("Security Expert");
+
+    if (skill >= 95)
+        perks.push("Legendary");
+
+    state.employees.push({
+
+        id: Date.now(),
+
+        name,
+
+        department,
+
+        skill,
+
+        salary,
+
+        perks
+
+    });
+
+    state.company.cash -= salary * .5;
+
+    log(
+        `Zatrudniono ${name} jako ${department}. ` +
+        `Skill ${skill}.`
+    );
+
+    closeModal("hireModal");
+
+    renderAll();
+}
+
+function fireEmployee(id) {
+
+    const employee =
+        state.employees.find(e => e.id === id);
+
+    if (!employee)
+        return;
+
+    if (
+        !confirm(
+            `Zwolnić ${employee.name}?`
+        )
+    )
+        return;
+
+    state.employees =
+        state.employees.filter(
+            e => e.id !== id
+        );
+
+    log(
+        `Zwolniono pracownika ${employee.name}.`
+    );
+
+    renderAll();
+}
+
+
+/* ============================================================
+   SERVERS
+============================================================ */
+
+function renderServers() {
+
+    const container =
+        document.getElementById("serverList");
+
+    container.innerHTML =
+        state.servers.map(server => {
+
+            const upgradeCost =
+                Math.round(
+                    25000 *
+                    Math.pow(1.55, server.level)
+                );
+
+            return `
+                <div class="card server">
+
+                    <div class="server-header">
+
                         <div>
-                            <h4 class="font-bold text-slate-100 text-sm">${p.name}</h4>
-                            <p class="text-xs text-slate-400 mt-1">${ownerText}</p>
-                            <p class="text-xs text-emerald-400 font-bold mt-2">+${p.income} zł/s</p>
-                        </div>
-                        <button onclick="openAssignModal(${p.id})" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-cyan-300 rounded-xl font-semibold text-xs border border-cyan-500/20">Transferuj Produkt</button>
-                    </div>
-                `;
-            });
+                            <div class="server-icon">
+                                🖥️
+                            </div>
 
-            const subContainer = document.getElementById('subsidiary-list');
-            subContainer.innerHTML = '';
-            gameState.subsidiaries.forEach(s => {
-                const count = gameState.products.filter(p => p.assignedTo === s.id).length;
-                subContainer.innerHTML += `
-                    <div class="glass-panel p-5 rounded-3xl border border-purple-500/20 space-y-3">
-                        <div class="flex justify-between items-center">
-                            <h4 class="font-bold text-purple-300 text-base">${s.name}</h4>
-                            <span class="text-xs bg-purple-500/20 text-purple-300 px-2 py-1 rounded-full">Kapitał: ${s.capital.toLocaleString()} zł</span>
+                            <h3>
+                                ${server.name}
+                            </h3>
+
+                            <small class="muted">
+                                ${server.location}
+                            </small>
                         </div>
-                        <p class="text-xs text-slate-400">Przypisane Produkty: ${count}</p>
+
+                        <span class="badge green">
+                            LVL ${server.level}
+                        </span>
+
                     </div>
-                `;
-            });
+
+                    <div class="server-specs">
+
+                        <div class="spec">
+                            <small>CPU</small>
+                            <b>${server.cpu}%</b>
+                        </div>
+
+                        <div class="spec">
+                            <small>RAM</small>
+                            <b>${server.ram}%</b>
+                        </div>
+
+                        <div class="spec">
+                            <small>Storage</small>
+                            <b>${server.storage}%</b>
+                        </div>
+
+                    </div>
+
+                    <div>
+                        <small class="muted">
+                            Uptime
+                        </small>
+
+                        <b>
+                            ${server.uptime.toFixed(2)}%
+                        </b>
+                    </div>
+
+                    <div>
+                        <small class="muted">
+                            Pojemność
+                        </small>
+
+                        <b>
+                            ${server.capacity.toLocaleString()}
+                            użytkowników
+                        </b>
+                    </div>
+
+                    <br>
+
+                    <button
+                        class="btn btn-primary"
+                        onclick="upgradeServer(${server.id})">
+                        ⬆️ Ulepsz
+                        ${money(upgradeCost)}
+                    </button>
+
+                </div>
+            `;
+
+        }).join("");
+}
+
+function buyServer() {
+
+    const locations = [
+        "Warszawa",
+        "Frankfurt",
+        "Londyn",
+        "Amsterdam",
+        "Singapur",
+        "Tokio",
+        "Nowy Jork",
+        "Helsinki"
+    ];
+
+    const location =
+        prompt(
+            "Lokalizacja serwera:\n" +
+            locations.join(", ")
+        );
+
+    if (!location)
+        return;
+
+    const cost = 100000;
+
+    if (state.company.cash < cost) {
+
+        alert("Brak środków.");
+
+        return;
+    }
+
+    state.company.cash -= cost;
+
+    state.servers.push({
+
+        id: Date.now(),
+
+        name:
+            `${location} Core ${state.servers.length + 1}`,
+
+        location,
+
+        level: 1,
+
+        cpu: 25,
+
+        ram: 25,
+
+        storage: 25,
+
+        uptime: 99.5,
+
+        capacity: 20000,
+
+        cost: 7000
+
+    });
+
+    log(
+        `Uruchomiono nowe centrum serwerowe w ${location}.`
+    );
+
+    renderAll();
+}
+
+function upgradeServer(id) {
+
+    const server =
+        state.servers.find(s => s.id === id);
+
+    if (!server)
+        return;
+
+    const cost =
+        Math.round(
+            25000 *
+            Math.pow(1.55, server.level)
+        );
+
+    if (state.company.cash < cost) {
+
+        alert(
+            `Potrzebujesz ${money(cost)}.`
+        );
+
+        return;
+    }
+
+    state.company.cash -= cost;
+
+    server.level++;
+
+    server.cpu =
+        Math.min(100, server.cpu + 12);
+
+    server.ram =
+        Math.min(100, server.ram + 12);
+
+    server.storage =
+        Math.min(100, server.storage + 14);
+
+    server.capacity =
+        Math.round(server.capacity * 1.45);
+
+    server.uptime =
+        Math.min(99.999, server.uptime + .03);
+
+    server.cost =
+        Math.round(server.cost * 1.15);
+
+    log(
+        `${server.name} ulepszony do poziomu ${server.level}.`
+    );
+
+    renderAll();
+}
+
+
+/* ============================================================
+   OFFICES
+============================================================ */
+
+function renderOffices() {
+
+    const container =
+        document.getElementById("officeList");
+
+    container.innerHTML =
+        state.offices.map(office => {
+
+            return `
+                <div class="card">
+
+                    <h2>🏢 ${office.name}</h2>
+
+                    <p class="muted">
+                        ${office.city}
+                    </p>
+
+                    <div class="grid grid-3">
+
+                        <div>
+                            <small class="muted">
+                                Poziom
+                            </small>
+                            <b>
+                                ${office.level}
+                            </b>
+                        </div>
+
+                        <div>
+                            <small class="muted">
+                                Pojemność
+                            </small>
+                            <b>
+                                ${office.capacity}
+                            </b>
+                        </div>
+
+                        <div>
+                            <small class="muted">
+                                Morale
+                            </small>
+                            <b>
+                                ${office.morale}
+                            </b>
+                        </div>
+
+                    </div>
+
+                    <br>
+
+                    <div class="progress">
+                        <div style="
+                            width:${Math.min(
+                                100,
+                                office.employees /
+                                office.capacity * 100
+                            )}%">
+                        </div>
+                    </div>
+
+                    <small class="muted">
+                        ${office.employees}/${office.capacity}
+                        stanowisk
+                    </small>
+
+                    <br><br>
+
+                    <button
+                        class="btn btn-primary"
+                        onclick="upgradeOffice(${office.id})">
+                        ⬆️ Rozbuduj
+                    </button>
+
+                </div>
+            `;
+
+        }).join("");
+}
+
+function buyOffice() {
+
+    const city =
+        prompt(
+            "Miasto nowego biura:"
+        );
+
+    if (!city)
+        return;
+
+    const cost = 180000;
+
+    if (state.company.cash < cost) {
+
+        alert("Brak pieniędzy.");
+
+        return;
+    }
+
+    state.company.cash -= cost;
+
+    state.offices.push({
+
+        id: Date.now(),
+
+        name:
+            `${state.company.name} ${city}`,
+
+        city,
+
+        level: 1,
+
+        capacity: 25,
+
+        employees: 0,
+
+        morale: 78,
+
+        cost: 7000
+
+    });
+
+    log(
+        `Otwarto nowe biuro w ${city}.`
+    );
+
+    renderAll();
+}
+
+function upgradeOffice(id) {
+
+    const office =
+        state.offices.find(o => o.id === id);
+
+    if (!office)
+        return;
+
+    const cost =
+        50000 * office.level;
+
+    if (state.company.cash < cost) {
+
+        alert(
+            `Koszt: ${money(cost)}`
+        );
+
+        return;
+    }
+
+    state.company.cash -= cost;
+
+    office.level++;
+
+    office.capacity += 25;
+
+    office.morale =
+        Math.min(
+            100,
+            office.morale + 3
+        );
+
+    office.cost =
+        Math.round(
+            office.cost * 1.15
+        );
+
+    log(
+        `Biuro ${office.name} rozbudowane do LVL ${office.level}.`
+    );
+
+    renderAll();
+}
+
+
+/* ============================================================
+   SUBSIDIARIES / HOLDING TREE
+============================================================ */
+
+function renderSubsidiaries() {
+
+    const tree =
+        document.getElementById("companyTree");
+
+    const root =
+        state.subsidiaries.find(
+            s => s.parent === null
+        );
+
+    tree.innerHTML =
+        renderCompanyNode(root);
+
+    renderSubsidiaryProducts();
+
+    const select =
+        document.getElementById("subParent");
+
+    select.innerHTML =
+        state.subsidiaries.map(s => {
+
+            return `
+                <option value="${s.id}">
+                    ${"— ".repeat(s.level)}
+                    ${s.name}
+                </option>
+            `;
+
+        }).join("");
+}
+
+function renderCompanyNode(company) {
+
+    if (!company)
+        return "";
+
+    const children =
+        state.subsidiaries.filter(
+            s => s.parent === company.id
+        );
+
+    const products =
+        state.products.filter(
+            p => p.owner === company.id
+        );
+
+    return `
+        <div class="tree-node">
+
+            <div class="tree-company">
+
+                <span>
+                    ${
+                        company.level === 0
+                        ? "🏛️"
+                        : "🏢"
+                    }
+                </span>
+
+                <div>
+                    <b>${company.name}</b>
+
+                    <div class="muted">
+                        ${company.type}
+                        • kapitał:
+                        ${compactMoney(company.capital)}
+                    </div>
+
+                    <div class="muted">
+                        Produkty:
+                        ${products.length}
+                    </div>
+                </div>
+
+            </div>
+
+            ${
+                products.length
+                ?
+                `<div style="margin-top:7px;">
+                    ${products.map(
+                        p =>
+                        `<span class="badge">
+                            🚀 ${p.name}
+                        </span>`
+                    ).join(" ")}
+                </div>`
+                :
+                ""
+            }
+
+            ${
+                children.length
+                ?
+                `<div class="tree-children">
+                    ${children.map(renderCompanyNode).join("")}
+                </div>`
+                :
+                ""
+            }
+
+        </div>
+    `;
+}
+
+function renderSubsidiaryProducts() {
+
+    const table =
+        document.getElementById(
+            "subsidiaryProducts"
+        );
+
+    table.innerHTML =
+        state.products.map(product => {
+
+            const owner =
+                state.subsidiaries.find(
+                    s => s.id === product.owner
+                );
+
+            return `
+                <tr>
+
+                    <td>
+                        🚀 ${product.name}
+                    </td>
+
+                    <td>
+                        <span class="badge">
+                            ${owner ? owner.name : "Holding"}
+                        </span>
+                    </td>
+
+                    <td>
+                        ${compactMoney(product.revenue)}
+                    </td>
+
+                    <td>
+                        ${product.users.toLocaleString()}
+                    </td>
+
+                </tr>
+            `;
+
+        }).join("");
+}
+
+function openSubsidiaryModal() {
+
+    renderSubsidiaries();
+
+    document
+        .getElementById("subsidiaryModal")
+        .classList.add("show");
+}
+
+function createSubsidiary() {
+
+    const name =
+        document
+            .getElementById("subName")
+            .value.trim();
+
+    const parent =
+        Number(
+            document
+                .getElementById("subParent")
+                .value
+        );
+
+    const capital =
+        Number(
+            document
+                .getElementById("subCapital")
+                .value
+        );
+
+    if (!name || capital <= 0)
+        return;
+
+    if (state.company.cash < capital) {
+
+        alert("Holding nie ma wystarczającej gotówki.");
+
+        return;
+    }
+
+    const parentCompany =
+        state.subsidiaries.find(
+            s => s.id === parent
+        );
+
+    const company = {
+
+        id: Date.now(),
+
+        parent,
+
+        name,
+
+        type: "Spółka zależna",
+
+        capital,
+
+        products: [],
+
+        level:
+            parentCompany
+            ? parentCompany.level + 1
+            : 1
+
+    };
+
+    state.company.cash -= capital;
+
+    state.subsidiaries.push(company);
+
+    log(
+        `Utworzono spółkę ${name} pod ${parentCompany.name}.`
+    );
+
+    closeModal("subsidiaryModal");
+
+    renderAll();
+}
+
+function assignProductPrompt(productId) {
+
+    const product =
+        state.products.find(
+            p => p.id === productId
+        );
+
+    const options =
+        state.subsidiaries
+            .map(
+                s =>
+                `${s.id}: ${s.name}`
+            )
+            .join("\n");
+
+    const answer =
+        prompt(
+            `Do której spółki przypisać ${product.name}?\n\n` +
+            options
+        );
+
+    if (!answer)
+        return;
+
+    const id =
+        Number(
+            answer.split(":")[0]
+        );
+
+    const company =
+        state.subsidiaries.find(
+            s => s.id === id
+        );
+
+    if (!company)
+        return;
+
+    product.owner = company.id;
+
+    log(
+        `Produkt ${product.name} przypisano do ${company.name}.`
+    );
+
+    renderAll();
+}
+
+
+/* ============================================================
+   FINANCE
+============================================================ */
+
+function renderFinance() {
+
+    document.getElementById(
+        "financeRevenue"
+    ).textContent =
+        compactMoney(state.company.revenue);
+
+    document.getElementById(
+        "financeCosts"
+    ).textContent =
+        compactMoney(state.company.costs);
+
+    document.getElementById(
+        "financeProfit"
+    ).textContent =
+        compactMoney(
+            state.company.revenue -
+            state.company.costs
+        );
+}
+
+function addMoney(amount) {
+
+    state.company.cash += amount;
+
+    state.company.valuation +=
+        amount * .6;
+
+    log(
+        `Wpłata kapitału: ${money(amount)}.`
+    );
+
+    renderAll();
+}
+
+function takeLoan() {
+
+    const amount =
+        Number(
+            prompt(
+                "Kwota kredytu:"
+            )
+        );
+
+    if (!amount || amount <= 0)
+        return;
+
+    state.company.cash += amount;
+
+    state.company.valuation -=
+        amount * .2;
+
+    log(
+        `Zaciągnięto kredyt ${money(amount)}.`
+    );
+
+    renderAll();
+}
+
+
+/* ============================================================
+   DEVELOPER CODES
+============================================================ */
+
+function useCode(code) {
+
+    switch(code) {
+
+        case "money100k":
+
+            addMoney(100000);
+
+            log(
+                "DEV CODE: money100k"
+            );
+
+            break;
+
+
+        case "money1m":
+
+            addMoney(1000000);
+
+            log(
+                "DEV CODE: money1m"
+            );
+
+            break;
+
+
+        case "money100m":
+
+            addMoney(100000000);
+
+            log(
+                "DEV CODE: money100m"
+            );
+
+            break;
+
+
+        case "godmode":
+
+            state.company.cash += 50000000;
+
+            state.company.reputation = 100;
+
+            state.company.morale = 100;
+
+            state.company.marketShare = 75;
+
+            state.company.valuation *= 5;
+
+            state.products.forEach(
+                p => {
+
+                    p.quality = 100;
+
+                    p.progress = 100;
+
+                    p.users *= 10;
+
+                    p.revenue *= 5;
+
+                }
+            );
+
+            log(
+                "DEV CODE: GODMODE aktywowany."
+            );
+
+            break;
+
+
+        case "bestemployees":
+
+            const eliteNames = [
+                "Elon-9",
+                "Ada Prime",
+                "Linus X",
+                "Grace AI",
+                "Alan Quantum",
+                "Ada Lovelace II",
+                "Satoshi Core",
+                "Steve Vision"
+            ];
+
+            eliteNames.forEach(
+                (name, index) => {
+
+                    state.employees.push({
+
+                        id: Date.now() + index,
+
+                        name,
+
+                        department:
+                            [
+                                "Engineering",
+                                "AI Research",
+                                "Security",
+                                "Product"
+                            ][index % 4],
+
+                        skill: 100,
+
+                        salary: 30000,
+
+                        perks: [
+                            "Legendary",
+                            "10x Engineer",
+                            "AI Genius",
+                            "Founder Mindset",
+                            "Cloud Expert",
+                            "Security Expert",
+                            "Visionary"
+                        ]
+
+                    });
+
+                }
+            );
+
+            log(
+                "DEV CODE: bestemployees — zatrudniono elitarny zespół."
+            );
+
+            break;
+
+
+        case "maxservers":
+
+            state.servers.forEach(
+                server => {
+
+                    server.level = 20;
+
+                    server.cpu = 100;
+
+                    server.ram = 100;
+
+                    server.storage = 100;
+
+                    server.uptime = 99.999;
+
+                    server.capacity =
+                        10000000;
+
+                }
+            );
+
+            log(
+                "DEV CODE: wszystkie serwery osiągnęły LVL 20."
+            );
+
+            break;
+
+
+        case "empire":
+
+            state.company.cash +=
+                100000000;
+
+            state.company.reputation = 100;
+
+            state.company.morale = 100;
+
+            state.company.marketShare = 80;
+
+            state.servers.forEach(
+                server => {
+
+                    server.level = 20;
+
+                    server.cpu = 100;
+
+                    server.ram = 100;
+
+                    server.storage = 100;
+
+                    server.capacity =
+                        10000000;
+
+                }
+            );
+
+            for(let i = 0; i < 5; i++) {
+
+                state.employees.push({
+
+                    id: Date.now() + i,
+
+                    name:
+                        `Empire Specialist ${i + 1}`,
+
+                    department:
+                        "Executive",
+
+                    skill: 100,
+
+                    salary: 0,
+
+                    perks: [
+                        "Legendary",
+                        "Genius",
+                        "Elite",
+                        "Loyal"
+                    ]
+
+                });
+
+            }
+
+            log(
+                "DEV CODE: EMPIRE — tryb potężnego imperium."
+            );
+
+            break;
+
+    }
+
+    renderAll();
+}
+
+
+/* ============================================================
+   RANDOM EVENTS
+============================================================ */
+
+function randomEvent() {
+
+    const events = [
+
+        () => {
+
+            const bonus = 250000;
+
+            state.company.cash += bonus;
+
+            state.company.reputation += 5;
+
+            log(
+                `Viralowy produkt! +${money(bonus)}.`
+            );
+
+        },
+
+        () => {
+
+            state.company.revenue *= 1.3;
+
+            log(
+                "Nowy kontrakt enterprise zwiększył przychody o 30%."
+            );
+
+        },
+
+        () => {
+
+            state.company.cash -= 120000;
+
+            state.company.reputation -= 4;
+
+            log(
+                "Incydent bezpieczeństwa kosztował firmę $120K."
+            );
+
+        },
+
+        () => {
+
+            state.company.users =
+                Math.round(
+                    state.company.users * 1.2
+                );
+
+            log(
+                "Produkt trafił na pierwszą stronę dużego portalu."
+            );
+
+        },
+
+        () => {
+
+            state.company.marketShare += 2;
+
+            log(
+                "Konkurent wycofał się z jednego segmentu rynku."
+            );
+
         }
 
-        // Pętla zysków i kosztów
-        setInterval(() => {
-            let directIncome = 0;
-            let subsidiaryIncome = 0;
+    ];
 
-            gameState.products.forEach(p => {
-                let inc = p.income;
-                if (gameState.tech.ai) inc *= 1.25;
+    events[
+        Math.floor(
+            Math.random() * events.length
+        )
+    ]();
 
-                if (p.assignedTo !== null) {
-                    subsidiaryIncome += inc;
-                } else {
-                    directIncome += inc;
-                }
-            });
+    renderAll();
+}
 
-            let finalCosts = gameState.serverCosts;
-            if (gameState.tech.quantum) finalCosts *= 0.8;
 
-            gameState.money += (directIncome + subsidiaryIncome - finalCosts);
-            
-            document.getElementById('company-money').innerText = Math.floor(gameState.money).toLocaleString() + " zł";
-            document.getElementById('stat-total-revenue').innerText = "+" + Math.floor(directIncome).toLocaleString() + " zł/s";
-            document.getElementById('stat-subsidiary-dividends').innerText = "+" + Math.floor(subsidiaryIncome).toLocaleString() + " zł/s";
-            document.getElementById('stat-total-costs').innerText = "-" + Math.floor(finalCosts).toLocaleString() + " zł/s";
-        }, 1000);
-    </script>
+/* ============================================================
+   MODALS
+============================================================ */
+
+function closeModal(id) {
+
+    document
+        .getElementById(id)
+        .classList.remove("show");
+}
+
+
+/* ============================================================
+   LOG
+============================================================ */
+
+function renderLogs() {
+
+    document.getElementById(
+        "fullLog"
+    ).innerHTML =
+        state.logs
+            .map(
+                x =>
+                `<div class="log-item">${x}</div>`
+            )
+            .join("");
+}
+
+
+/* ============================================================
+   SAVE / LOAD
+============================================================ */
+
+function saveGame() {
+
+    localStorage.setItem(
+        "techEmpireSave",
+        JSON.stringify(state)
+    );
+
+    alert("Gra została zapisana.");
+}
+
+function loadGame() {
+
+    const saved =
+        localStorage.getItem(
+            "techEmpireSave"
+        );
+
+    if (!saved) {
+
+        alert("Brak zapisu.");
+
+        return;
+    }
+
+    const data =
+        JSON.parse(saved);
+
+    Object.assign(state, data);
+
+    renderAll();
+
+    alert("Gra została wczytana.");
+}
+
+
+/* ============================================================
+   RENDER ALL
+============================================================ */
+
+function renderAll() {
+
+    renderDashboard();
+    renderProducts();
+    renderEmployees();
+    renderServers();
+    renderOffices();
+    renderSubsidiaries();
+    renderFinance();
+    renderLogs();
+}
+
+
+/* ============================================================
+   KEYBOARD DEV CONSOLE
+============================================================ */
+
+document.addEventListener(
+    "keydown",
+    event => {
+
+        if (
+            event.ctrlKey &&
+            event.shiftKey &&
+            event.key.toLowerCase() === "d"
+        ) {
+
+            showView("codes");
+
+            log(
+                "Otworzono Developer Console."
+            );
+
+        }
+
+    }
+);
+
+
+/* ============================================================
+   INITIALIZATION
+============================================================ */
+
+renderAll();
+
+</script>
+
 </body>
 </html>
+```
