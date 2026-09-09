@@ -959,6 +959,8 @@ th{
 
     .topbar{padding:0 12px}
 }
+
+.tech-tree{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin:12px 0}.tech-node{padding:12px;border:1px solid rgba(255,255,255,.12);border-radius:12px;background:rgba(255,255,255,.04);display:flex;flex-direction:column;gap:6px}.tech-node.locked{opacity:.55}.tech-node.owned{border-color:rgba(80,220,130,.45)}.tech-node small{opacity:.78}.tech-node button{margin-top:auto}
 </style>
 
 <style id="v10-top-status-layout">
@@ -1692,7 +1694,7 @@ th{
 </section>
 
 </div>
-</main>
+<section class="panel"><h2>🔬 Laboratorium technologii</h2><p>Rozwijaj R&D, odblokowuj nowe gałęzie i zwiększaj przychody całej grupy.</p><div id="technologyTree" class="tech-tree"></div></section></main>
 </div>
 
 
@@ -1725,7 +1727,7 @@ th{
 
 const state = {
 
-    cash:250000,
+    cash:100000,
 
     day:1,
 
@@ -1947,9 +1949,65 @@ const productTypes={
     security:{name:"Cyberbezpieczeństwo",icon:"🛡️",baseTime:175,baseCost:85000,revenue:4100},
     games:{name:"Platforma gier",icon:"🎮",baseTime:200,baseCost:95000,revenue:4800},
     smart:{name:"Inteligentny dom",icon:"🏠",baseTime:185,baseCost:105000,revenue:4500},
-    devtools:{name:"Narzędzia dla programistów",icon:"🧰",baseTime:140,baseCost:55000,revenue:2900}
-
+    devtools:{name:"Narzędzia dla programistów",icon:"🧰",baseTime:140,baseCost:55000,revenue:2900},
+    fintech:{name:"FinTech i płatności",icon:"💳",baseTime:190,baseCost:110000,revenue:5200},
+    robotics:{name:"Robotyka",icon:"🦾",baseTime:220,baseCost:140000,revenue:6500},
+    ar:{name:"Augmented Reality",icon:"🥽",baseTime:180,baseCost:120000,revenue:5600},
+    vr:{name:"Virtual Reality",icon:"🕶️",baseTime:230,baseCost:165000,revenue:7600},
+    biotech:{name:"BioTech",icon:"🧬",baseTime:260,baseCost:210000,revenue:9200},
+    quantum:{name:"Quantum Computing",icon:"⚛️",baseTime:320,baseCost:350000,revenue:14500},
+    energy:{name:"EnergyTech",icon:"🔋",baseTime:240,baseCost:180000,revenue:8200},
+    space:{name:"SpaceTech",icon:"🚀",baseTime:420,baseCost:600000,revenue:26000},
+    edtech:{name:"EdTech",icon:"🎓",baseTime:150,baseCost:70000,revenue:3400},
+    health:{name:"HealthTech",icon:"🩺",baseTime:280,baseCost:250000,revenue:11000},
+    mobility:{name:"MobilityTech",icon:"🚗",baseTime:250,baseCost:220000,revenue:9800},
+    chips:{name:"ChipTech",icon:"💾",baseTime:300,baseCost:320000,revenue:13500},
+    blockchain:{name:"Blockchain",icon:"⛓️",baseTime:210,baseCost:150000,revenue:7000},
+    climate:{name:"ClimateTech",icon:"🌱",baseTime:260,baseCost:230000,revenue:10500},
+    agents:{name:"AI Agents",icon:"🧠",baseTime:200,baseCost:190000,revenue:8800}
 };
+
+
+/* ==================== TECHNOLOGIE / R&D ==================== */
+const technologyTree={
+    agents:{name:"AI Agents",icon:"🧠",cost:80000,requires:[],bonus:.10},
+    security:{name:"Cyber Defense 2.0",icon:"🛡️",cost:60000,requires:[],bonus:.07},
+    chips:{name:"Zaawansowane chipy",icon:"💾",cost:150000,requires:["agents"],bonus:.12},
+    fintech:{name:"FinTech",icon:"💳",cost:100000,requires:["security"],bonus:.10},
+    robotics:{name:"Robotyka",icon:"🦾",cost:140000,requires:["agents"],bonus:.10},
+    ar:{name:"AR",icon:"🥽",cost:130000,requires:["agents"],bonus:.08},
+    vr:{name:"VR",icon:"🕶️",cost:180000,requires:["ar"],bonus:.10},
+    biotech:{name:"BioTech",icon:"🧬",cost:220000,requires:["agents"],bonus:.12},
+    health:{name:"HealthTech",icon:"🩺",cost:260000,requires:["biotech"],bonus:.14},
+    quantum:{name:"Quantum Computing",icon:"⚛️",cost:400000,requires:["chips"],bonus:.18},
+    energy:{name:"EnergyTech",icon:"🔋",cost:200000,requires:["security"],bonus:.10},
+    climate:{name:"ClimateTech",icon:"🌱",cost:280000,requires:["energy"],bonus:.12},
+    mobility:{name:"MobilityTech",icon:"🚗",cost:240000,requires:["robotics"],bonus:.12},
+    blockchain:{name:"Blockchain",icon:"⛓️",cost:170000,requires:["fintech"],bonus:.10},
+    edtech:{name:"EdTech",icon:"🎓",cost:90000,requires:["agents"],bonus:.08},
+    space:{name:"SpaceTech",icon:"🚀",cost:700000,requires:["quantum","energy"],bonus:.25}
+};
+function hasTech(id){return !!state.technologies?.[id]}
+function techUnlocked(id){const x=technologyTree[id];return !!x&&x.requires.every(hasTech)}
+function techMultiplier(){return 1+Object.keys(state.technologies||{}).reduce((a,id)=>a+(technologyTree[id]?.bonus||0),0)}
+function buyTechnology(id){
+    const x=technologyTree[id]; if(!x||hasTech(id))return;
+    if(!techUnlocked(id)){toast("Najpierw odblokuj wymagane technologie.","bad");return}
+    if(state.cash<x.cost){toast("Za mało gotówki na badania.","bad");return}
+    changeCash(-x.cost,"badania i technologia "+x.name);
+    state.technologies[id]=true;
+    state.reputation=clamp((state.reputation||0)+3,0,100);
+    logEvent(`🔬 Odblokowano technologię <b>${escapeHtml(x.name)}</b>.`);
+    saveGame(); renderAll();
+}
+function renderTechnologyTree(){
+    const el=document.getElementById("technologyTree"); if(!el)return;
+    el.innerHTML=Object.entries(technologyTree).map(([id,x])=>{
+        const owned=hasTech(id), open=techUnlocked(id);
+        const req=x.requires.length?x.requires.map(r=>technologyTree[r]?.name||r).join(", "):"brak";
+        return `<div class="tech-node ${owned?'owned':open?'':'locked'}"><b>${x.icon} ${x.name}</b><small>${owned?'✅ ODKRYTA':'💰 '+money(x.cost)+' • +'+Math.round(x.bonus*100)+'% przychodów'}</small><small>Wymaga: ${req}</small><button class="btn ${open&&!owned?'primary':''}" onclick="buyTechnology('${id}')" ${owned||!open||state.cash<x.cost?'disabled':''}>${owned?'Odblokowana':'🔬 Zbadaj'}</button></div>`
+    }).join('');
+}
 
 const roles={
 
@@ -4543,7 +4601,7 @@ function gameTick(){
             );
 
         let income=Math.floor(
-            p.revenuePerTick*efficiency
+            p.revenuePerTick*efficiency*techMultiplier()
         );
 
         if(p.ownerType&&p.ownerId){
@@ -4585,10 +4643,12 @@ function gameTick(){
 
                 if(sub){
 
-                    sub.totalRevenue+=income;
-                    sub.revenuePerTick+=income*.001;
-
-                    state.subsidiaryRevenue+=income;
+                    // Produkt spółki córki generuje realną gotówkę dla gracza.
+                    // Nie dopisujemy przychodu do revenuePerTick, aby nie tworzyć
+                    // sztucznego wzrostu przychodu z każdym kolejnym tickiem.
+                    sub.totalRevenue=(sub.totalRevenue||0)+income;
+                    sub.revenuePerTick=(sub.revenuePerTick||0);
+                    state.subsidiaryRevenue=(state.subsidiaryRevenue||0)+income;
 
                 }else{
 
@@ -4608,11 +4668,6 @@ function gameTick(){
 
     });
 
-    if(tickProductIncome>0){
-        changeCash(tickProductIncome,"przychód produktów");
-    }
-
-
     /* SUBSIDIARY REVENUE */
 
     state.subsidiaries.forEach(sub=>{
@@ -4622,13 +4677,18 @@ function gameTick(){
                 sub.revenuePerTick
             );
 
-        sub.totalRevenue+=subIncome;
-
-        state.subsidiaryRevenue+=subIncome;
-
-        income+=subIncome;
+        if(subIncome>0){
+            sub.totalRevenue=(sub.totalRevenue||0)+subIncome;
+            state.subsidiaryRevenue=(state.subsidiaryRevenue||0)+subIncome;
+            tickProductIncome+=subIncome;
+        }
 
     });
+
+    // Jeden zbiorczy wpływ gotówki z produktów centrali i spółek córek.
+    if(tickProductIncome>0){
+        changeCash(tickProductIncome,"przychód produktów i spółek córek");
+    }
 
 
     /* DIVIDENDS */
@@ -4660,7 +4720,7 @@ function gameTick(){
     /* EMPLOYEE SALARIES */
 
     const salaryPerTick=Math.floor(
-        (Number(state.employeeTotalSalary)||refreshEmployeeTotals().salary||0)/20
+        (Number(state.employeeTotalSalary)||refreshEmployeeTotals().salary||0)/30
     );
 
     if(salaryPerTick>0){
@@ -4682,8 +4742,8 @@ function gameTick(){
             state.servers.reduce(
                 (sum,s)=>{
                     return sum+
-                        serverTypes[s.type].price*
-                        .0006*
+                        (serverTypes[s.type]?.price||0)*
+                         .00035*
                         s.level;
                 },
                 0
@@ -4705,7 +4765,7 @@ function gameTick(){
     /* OFFICE COSTS */
     const officeCost=Math.floor(
         state.offices.reduce(
-            (sum,o)=>sum+officeTypes[o.type].price*.00025*o.level,
+            (sum,o)=>sum+(officeTypes[o.type]?.price||0)* .00015*o.level,
             0
         )
     );
@@ -5670,8 +5730,8 @@ function renderDashboardNumbers(){
             state.servers.reduce(
                 (sum,s)=>
                     sum+
-                    serverTypes[s.type].price*
-                    .0006*
+                    (serverTypes[s.type]?.price||0)*
+                     .00035*
                     s.level,
                 0
             )
@@ -5734,6 +5794,7 @@ function cleanupWithdrawnProducts(){
 }
 
 function renderAll(){
+    renderTechnologyTree();
     cleanupWithdrawnProducts();
 
     renderHeader();
@@ -5946,6 +6007,7 @@ function loadGame(){
         );
 
         if(!state.expenseBreakdown || typeof state.expenseBreakdown!=="object")state.expenseBreakdown={};
+        if(!state.technologies || typeof state.technologies!=="object")state.technologies={};
 
         state.market.forEach(c=>{
 
@@ -6060,15 +6122,51 @@ setInterval(
    START
 ============================================================ */
 
+/* ============================================================
+   CZYSTY START — WERSJA 2026-09-10
+   Ta wersja jednorazowo usuwa stary zapis, żeby rozpocząć grę
+   całkowicie od zera. Potem odświeżanie NIE resetuje postępu.
+============================================================ */
+
+const freshStartKey="techEmpireFreshStart_20260910";
+
+if(!localStorage.getItem(freshStartKey)){
+    localStorage.removeItem("techEmpireSave");
+    localStorage.removeItem("techEmpireSaveBackup");
+    localStorage.removeItem("techEmpireSaveTime");
+    localStorage.setItem(freshStartKey,"1");
+}
+
 const loadedExistingGame=loadGame();
 
-/* NOWA GRA: dokładnie 1 serwer startowy. Nie dodawaj go ponownie po odświeżeniu. */
+/* NOWA GRA: absolutnie nic nie jest dodawane automatycznie. */
 if(!loadedExistingGame){
-    state.servers=[{
-        id:uid("server"),
-        type:"basic",
-        level:1
-    }];
+    state.cash=100000;
+    state.day=1;
+    state.tick=0;
+    state.reputation=10;
+
+    state.employees=[];
+    state.employeeCandidates=[];
+    state.offices=[];
+    state.servers=[];
+    state.products=[];
+    state.subsidiaries=[];
+    state.companyPortfolio=[];
+    state.portfolio={};
+    state.portfolioHistory=[];
+    state.cashFlowHistory=[];
+    state.lastTickIncome=0;
+    state.lastTickExpense=0;
+    state.events=[];
+    state.productRevenue=0;
+    state.subsidiaryRevenue=0;
+    state.stockProfit=0;
+    state.totalRevenue=0;
+    state.totalExpenses=0;
+    state.expenseBreakdown={};
+    state.technologies={};
+
     saveGame();
 }
 
