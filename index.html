@@ -4175,20 +4175,43 @@ function withdrawSubsidiaryFromMarket(id){
 function mergeSubsidiary(id){
     const sub=state.subsidiaries.find(s=>s.id===id);
     if(!sub)return;
-    const target=(sub.parentType==="company")?`company:${sub.parentId}`:((sub.parentId&&sub.parentType==="subsidiary")?sub.parentId:null);
-    if(!confirm(`Połączyć "${sub.name}" z firmą nadrzędną? Produkty i podfirmy zostaną przeniesione.`))return;
-    state.products.forEach(p=>{ if(p.assignedTo===id)p.assignedTo=target; });
+
+    // POŁĄCZENIE = pełne przejęcie przez centralę.
+    // Produkty nie mogą zniknąć ani zostać przypisane do usuwanej spółki.
+    if(!confirm(`Połączyć "${sub.name}" z Twoją firmą? Wszystkie produkty spółki zostaną bezpiecznie przeniesione do centrali.`))return;
+
+    const productIds=new Set(Array.isArray(sub.products)?sub.products:[]);
+    let movedProducts=0;
+
+    state.products.forEach(p=>{
+        if(p.assignedTo===id || p.ownerType==="subsidiary" && (p.ownerId===id || productIds.has(p.id))){
+            p.assignedTo=null;
+            p.ownerType=null;
+            p.ownerId=null;
+            movedProducts++;
+        }
+    });
+
+    // Wyczyść listę produktów usuwanej spółki — produkty żyją teraz w centrali.
+    sub.products=[];
+
+    // Podfirmy zostają pod poprzednią nadrzędną strukturą, zamiast zostać osierocone.
     const children=state.subsidiaries.filter(s=>s.parentId===id && s.parentType==="subsidiary");
-    children.forEach(c=>{c.parentId=sub.parentId||"root";c.parentType=sub.parentType||"root";c.level=Math.max(1,(sub.level||1));});
-    if(target && target.startsWith("company:")){
-        const company=state.market.find(c=>c.id===sub.parentId);
-        if(company)company.managedRevenue=(company.managedRevenue||0)+(sub.totalRevenue||0);
-    }else{
-        state.productRevenue+=(sub.totalRevenue||0);
-    }
+    children.forEach(c=>{
+        c.parentId=sub.parentId||"root";
+        c.parentType=sub.parentType||"root";
+        c.level=Math.max(1,(sub.level||1));
+    });
+
+    // Przenosimy wynik finansowy do historii centrali, ale nie tworzymy dodatkowego
+    // przychodu — pieniądze zarobione przez produkty są już rozliczane w ticku.
+    state.productRevenue=(state.productRevenue||0)+(sub.totalRevenue||0);
+
     state.subsidiaries=state.subsidiaries.filter(s=>s.id!==id);
-    logEvent(`🔗 Połączono spółkę <b>${escapeHtml(sub.name)}</b> z firmą nadrzędną.`);
-    toast(`Połączono ${escapeHtml(sub.name)} z firmą nadrzędną.` ,"good");
+    saveGame();
+
+    logEvent(`🔗 Połączono spółkę <b>${escapeHtml(sub.name)}</b> z centralą. Przeniesiono ${movedProducts} produktów.`);
+    toast(`Połączono ${escapeHtml(sub.name)}. Produkty zostały przeniesione do Twojej firmy.`,"good");
     renderAll();
 }
 
@@ -4256,11 +4279,11 @@ function deleteSubsidiary(id){
     }
 
     state.products.forEach(p=>{
-
-        if(p.assignedTo && ids.includes(p.assignedTo)){
+        if((p.assignedTo && ids.includes(p.assignedTo)) || (p.ownerType==="subsidiary" && ids.includes(p.ownerId))){
             p.assignedTo=null;
+            p.ownerType=null;
+            p.ownerId=null;
         }
-
     });
 
     state.subsidiaries=
