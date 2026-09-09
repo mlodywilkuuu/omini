@@ -2556,13 +2556,15 @@ function releaseUpdate(productId){
    EMPLOYEES
 ============================================================ */
 
-function employeeCapacity(){
-
-    return state.offices.reduce(
-        (sum,o)=>sum+officeCapacity(o),
-        0
-    );
-
+function employeeCapacity(type="root",id="root"){
+    return state.offices.filter(o=>(o.ownerType||"root")===type && (o.ownerId||"root")===id).reduce((sum,o)=>sum+officeCapacity(o),0);
+}
+function companyEmployeeCount(type="root",id="root"){
+    return state.employees.filter(e=>(e.ownerType||"root")===type && (e.ownerId||"root")===id).length;
+}
+function officeOwnerLabel(o){
+    const type=o.ownerType||"root", id=o.ownerId||"root";
+    return type==="root" ? "NovaCore Technologies" : entityName(type,id);
 }
 
 function officeCapacity(o){
@@ -2605,14 +2607,15 @@ function ensureEmployeeCandidates(){
 }
 
 function hireCandidate(id){
-    if(state.employees.length>=employeeCapacity()){
-        toast("Brakuje miejsc w biurach. Ulepsz biuro.","bad");
+    const type="root", ownerId="root";
+    if(companyEmployeeCount(type,ownerId)>=employeeCapacity(type,ownerId)){
+        toast("Brakuje miejsc w Twoich biurach. Ulepsz swoje biuro.","bad");
         return;
     }
     const i=state.employeeCandidates.findIndex(e=>e.id===id);
     if(i<0)return;
     const c=state.employeeCandidates[i];
-    state.employees.push({id:uid("emp"),name:c.name,role:c.role,tags:[...c.tags],productivity:c.productivity,salary:c.salary,permissions:[...c.permissions]});
+    state.employees.push({id:uid("emp"),name:c.name,role:c.role,tags:[...c.tags],productivity:c.productivity,salary:c.salary,permissions:[...c.permissions],ownerType:type,ownerId:ownerId});
     state.employeeCandidates.splice(i,1);
     ensureEmployeeCandidates();
     saveGame();
@@ -2620,59 +2623,36 @@ function hireCandidate(id){
     renderAll();
 }
 
-function hireBestEmployee(){
-    const max=typeof employeeCapacity==="function" ? Math.max(0,Math.floor(employeeCapacity())) : 0;
+function hireBestEmployee(type="root",ownerId="root"){
+    const max=Math.max(0,Math.floor(employeeCapacity(type,ownerId)));
     if(!Array.isArray(state.employees))state.employees=[];
     if(!Array.isArray(state.employeeCandidates))state.employeeCandidates=[];
-
-    if(state.employees.length>=max){
-        toast(`Brakuje miejsc w biurach (${state.employees.length}/${max}). Ulepsz biuro.`,"bad");
-        return;
-    }
-
-    // Zapełnij wszystkie wolne miejsca najlepszymi możliwymi pracownikami.
+    if(companyEmployeeCount(type,ownerId)>=max)return 0;
+    let hired=0;
     const premiumTags=["ELITE","TOP PERFORMER","GENIUS","HYPER PRODUCTIVITY"];
-    while(state.employees.length<max){
-        if(typeof ensureEmployeeCandidates==="function")ensureEmployeeCandidates();
-
+    while(companyEmployeeCount(type,ownerId)<max){
+        ensureEmployeeCandidates();
         let candidates=state.employeeCandidates||[];
-        if(!candidates.length && typeof generateEmployeeCandidate==="function"){
-            candidates.push(generateEmployeeCandidate(true));
-        }
+        if(!candidates.length)candidates.push(generateEmployeeCandidate(true));
         if(!candidates.length)break;
-
-        candidates.sort((a,b)=>
-            (Number(b.score)||0)-(Number(a.score)||0) ||
-            (Number(b.productivity)||0)-(Number(a.productivity)||0)
-        );
-
-        const c=candidates[0];
-        const perks=Array.isArray(c.tags)?[...c.tags]:[];
+        candidates.sort((a,b)=>(Number(b.score)||0)-(Number(a.score)||0)||(Number(b.productivity)||0)-(Number(a.productivity)||0));
+        const c=candidates[0], perks=Array.isArray(c.tags)?[...c.tags]:[];
         premiumTags.forEach(x=>{if(!perks.includes(x))perks.push(x);});
-
-        state.employees.push({
-            id:uid("emp"),
-            name:c.name,
-            role:c.role,
-            tags:perks,
-            productivity:Math.max(Number(c.productivity)||0,25),
-            salary:Math.max(Number(c.salary)||0,500),
-            permissions:Array.isArray(c.permissions)?[...c.permissions]:[]
-        });
-        state.employeeCandidates=state.employeeCandidates.filter(x=>x.id!==c.id);
+        state.employees.push({id:uid("emp"),name:c.name,role:c.role,tags:perks,productivity:Math.max(Number(c.productivity)||0,25),salary:Math.max(Number(c.salary)||0,500),permissions:Array.isArray(c.permissions)?[...c.permissions]:[],ownerType:type,ownerId:ownerId});
+        state.employeeCandidates=state.employeeCandidates.filter(x=>x.id!==c.id); hired++;
     }
-
     ensureEmployeeCandidates();
-    logEvent(`🏆 <b>employee best</b>: zatrudniono najlepszych pracowników do pełnego limitu (${state.employees.length}/${max}).`);
-    saveGame();
-    renderAll();
+    return hired;
 }
-function hireEmployee(){
-    ensureEmployeeCandidates();
-    const best=state.employeeCandidates.reduce((a,b)=>!a||b.score>a.score?b:a,null);
-    if(best)hireCandidate(best.id);
+function hireBestEmployeesEverywhere(){
+    const entities=[{type:"root",id:"root"}];
+    managementCompanies().forEach(c=>entities.push({type:"company",id:c.id}));
+    allSubsidiaries().forEach(s=>entities.push({type:"subsidiary",id:s.id}));
+    let hired=0; entities.forEach(e=>hired+=hireBestEmployee(e.type,e.id));
+    saveGame(); renderAll();
+    logEvent(`🏆 <b>employee best</b>: uzupełniono miejsca we wszystkich własnych biurach (${hired} nowych pracowników).`);
+    return hired;
 }
-
 
 /* ============================================================
    SERVERS
@@ -2761,6 +2741,21 @@ function totalServerCapacity(){
    OFFICES
 ============================================================ */
 
+function assignOffice(officeId,value){
+    const o=state.offices.find(x=>x.id===officeId); if(!o)return;
+    if(value==="root"){o.ownerType="root";o.ownerId="root";}
+    else if(value.startsWith("company:")){const id=value.slice(8);if(!controlledCompanies().some(c=>c.id===id)){toast("Spółka musi być pod Twoją kontrolą (>50%).","bad");return;}o.ownerType="company";o.ownerId=id;}
+    else if(value.startsWith("sub:")){const id=value.slice(4);if(!state.subsidiaries.some(x=>x.id===id)){return;}o.ownerType="subsidiary";o.ownerId=id;}
+    saveGame();renderAll();
+}
+function officeAssignmentOptions(o){
+    const current=`${o.ownerType||"root"}:${o.ownerId||"root"}`;
+    const a=[`<option value="root" ${current==="root:root"?"selected":""}>🏢 NovaCore Technologies</option>`];
+    controlledCompanies().forEach(c=>a.push(`<option value="company:${c.id}" ${current===`company:${c.id}`?"selected":""}>📈 ${escapeHtml(c.name)}</option>`));
+    allSubsidiaries().forEach(s=>a.push(`<option value="sub:${s.id}" ${current===`subsidiary:${s.id}`?"selected":""}>🌳 ${escapeHtml(s.name)}</option>`));
+    return a.join("");
+}
+
 function manageOfficeType(type){
     const owned=state.offices.filter(o=>o.type===type);
     if(!owned.length){ buyOffice(type); return; }
@@ -2783,7 +2778,9 @@ function buyOffice(type){
     state.offices.push({
         id:uid("office"),
         type,
-        level:1
+        level:1,
+        ownerType:"root",
+        ownerId:"root"
     });
 
     logEvent(`🏢 Kupiono ${data.name}.`);
@@ -3878,6 +3875,12 @@ function ensureEntitySettings(e){
     if(typeof e.revenuePerTick!=="number")e.revenuePerTick=0;
 }
 
+function setEntityAutonomy(type,id,value){
+    const e=entityObject(type,id); if(!e)return; ensureEntitySettings(e);
+    e.autonomousProducts=value==="on"; saveGame(); renderAll();
+    toast(e.autonomousProducts?`${e.name} może produkować własne produkty.`:`${e.name} nie będzie produkować własnych produktów.`,"good");
+}
+
 function setEntityMarketing(type,id,value){
     const e=entityObject(type,id); if(!e)return;
     ensureEntitySettings(e); e.marketingMode=value;
@@ -4489,7 +4492,7 @@ function renderHeader(){
 
     const topEmployees=document.getElementById("topEmployees");
     if(topEmployees){
-        topEmployees.textContent=`${state.employees.length} / ${employeeCapacity()}`;
+        topEmployees.textContent=`${companyEmployeeCount("root","root")} / ${employeeCapacity("root","root")}`;
     }
 
     document.getElementById("dashCash")
@@ -4506,7 +4509,7 @@ function renderHeader(){
 
     document.getElementById("dashCapacity")
         .textContent=
-        `${state.employees.length} / ${employeeCapacity()} miejsc`;
+        `${companyEmployeeCount("root","root")} / ${employeeCapacity("root","root")} miejsc`;
 
     document.getElementById("sideDay")
         .textContent=state.day;
@@ -4746,25 +4749,23 @@ function renderEmployees(){
         `).join("");
     }
 
-    const totalProductivity=
-        state.employees.reduce(
-            (s,e)=>s+e.productivity,
-            0
-        );
+    const totalProductivity=state.employees
+        .filter(e=>(e.ownerType||"root")==="root" && (e.ownerId||"root")==="root")
+        .reduce((s,e)=>s+e.productivity,0);
 
     document.getElementById("employeeStats").innerHTML=`
 
         <div class="card stat">
             <div class="stat-label">Pracownicy</div>
             <div class="stat-value">
-                ${state.employees.length}
+                ${companyEmployeeCount("root","root")}
             </div>
         </div>
 
         <div class="card stat">
             <div class="stat-label">Miejsca</div>
             <div class="stat-value">
-                ${employeeCapacity()}
+                ${employeeCapacity("root","root")}
             </div>
         </div>
 
@@ -4784,6 +4785,7 @@ function renderEmployees(){
 
                 <td>
                     <b>${escapeHtml(e.name)}</b>
+                    <div class="muted" style="font-size:10px">🏢 ${escapeHtml(e.ownerType==="root"?"NovaCore Technologies":entityName(e.ownerType,e.ownerId))}</div>
                 </td>
 
                 <td>${roles[e.role].name}</td>
@@ -4924,6 +4926,7 @@ function renderOffices(){
                         👨‍💻 Maks. pracowników:
                         <b>${capacity}</b>
                     </div>
+                    <div class="muted" style="margin-top:6px">👥 Zatrudnionych: <b>${companyEmployeeCount(o.ownerType||"root",o.ownerId||"root")}</b> · właściciel: <b>${escapeHtml(officeOwnerLabel(o))}</b></div>
 
                 </div>
 
@@ -4949,6 +4952,10 @@ function renderOffices(){
 
                 </div>
 
+            </div>
+            <div class="row" style="margin-top:10px">
+                <label>Przypisz biuro do spółki</label>
+                <select onchange="assignOffice('${o.id}',this.value)">${officeAssignmentOptions(o)}</select>
             </div>
 
         </div>
@@ -5153,6 +5160,7 @@ function renderSubsidiaries(){
                     ${state.products.filter(p=>p.status==="released" && p.assignedTo!==s.id).map(p=>`<option value="${p.id}">${p.icon} ${escapeHtml(p.name)}</option>`).join("")}
                 </select>
             </div>
+            <div class="grid2" style="margin-top:10px"><div class="row"><label>Własne produkty</label><select onchange="setEntityAutonomy('subsidiary','${s.id}',this.value)"><option value="on" ${s.autonomousProducts?'selected':''}>✅ Tak</option><option value="off" ${!s.autonomousProducts?'selected':''}>⛔ Nie</option></select></div><div class="row"><label>Aktualizacje</label><select onchange="setEntityUpdateMode('subsidiary','${s.id}',this.value)"><option value="player" ${s.updateMode==='player'?'selected':''}>👤 Ja</option><option value="auto" ${s.updateMode==='auto'?'selected':''}>🤖 Spółka sama</option></select></div></div>
             <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
                 ${state.products.filter(p=>p.status!=="withdrawn" && p.assignedTo===s.id).map(p=>`
                     <span class="badge">${p.icon} ${escapeHtml(p.name)} <button class="btn" style="padding:2px 6px;margin-left:5px" onclick="assignProduct('${p.id}','root')">×</button></span>
@@ -5195,7 +5203,7 @@ function renderManagement(){
                 <div class="row"><label>Tryb marketingu</label><select onchange="setEntityMarketing('company','${c.id}',this.value)">${Object.entries(marketingModes).map(([k,v])=>`<option value="${k}" ${c.marketingMode===k?'selected':''}>${v.icon} ${v.name}</option>`).join('')}</select></div>
                 <div class="row"><label>Co rozwija firma?</label><select onchange="setEntityStrategy('company','${c.id}',this.value)">${Object.entries(companyStrategies).map(([k,v])=>`<option value="${k}" ${c.strategy===k?'selected':''}>${v.icon} ${v.name}</option>`).join('')}</select></div>
             </div>
-            <div class="row" style="margin-top:10px"><label>Aktualizacje produktów</label><select onchange="setEntityUpdateMode('company','${c.id}',this.value)"><option value="player" ${c.updateMode==='player'?'selected':''}>👤 Ja aktualizuję</option><option value="auto" ${c.updateMode==='auto'?'selected':''}>🤖 Firma aktualizuje sama</option></select></div>
+            <div class="grid2" style="margin-top:10px"><div class="row"><label>Własne produkty</label><select onchange="setEntityAutonomy('company','${c.id}',this.value)"><option value="on" ${c.autonomousProducts?'selected':''}>✅ Tak</option><option value="off" ${!c.autonomousProducts?'selected':''}>⛔ Nie</option></select></div><div class="row"><label>Aktualizacje</label><select onchange="setEntityUpdateMode('company','${c.id}',this.value)"><option value="player" ${c.updateMode==='player'?'selected':''}>👤 Ja</option><option value="auto" ${c.updateMode==='auto'?'selected':''}>🤖 Firma sama</option></select></div></div>
             <div style="margin-top:12px"><b>🚀 Produkty własne</b>${products.length?products.map(p=>`<div class="card" style="margin-top:8px"><div class="product-head"><div>${p.icon} <b>${escapeHtml(p.name)}</b><div class="muted">${p.rating.toFixed(1)}/10 · aktualizacji: ${p.updates||0}</div></div><div style="display:flex;gap:6px;flex-wrap:wrap">${c.updateMode==='player'?`<button class="btn" onclick="playerUpdateOwnedProduct('${p.id}')">🔄 Aktualizuj</button>`:`<span class="badge">🤖 Auto</span>`}<button class="btn danger" onclick="removeOwnedProduct('${p.id}')">🗑️ Usuń z rynku</button></div></div></div>`).join(''):`<div class="muted" style="margin-top:8px">Firma automatycznie może stworzyć własny produkt zgodnie ze strategią.</div>`}</div>
             <div style="margin-top:12px"><button class="btn primary" onclick="injectCompanyCash('${c.id}')">💰 Dokapitalizuj $100,000</button><button class="btn success" onclick="boostCompany('${c.id}')">🚀 Program rozwoju $75,000</button></div>
         </div>`;
@@ -5608,7 +5616,7 @@ function runCheat(){
 
     if(parts[0].toLowerCase()==="employee" && parts[1]?.toLowerCase()==="best"){
         // Jedno użycie kodu uzupełnia WSZYSTKIE wolne miejsca w biurach.
-        hireBestEmployee();
+        hireBestEmployeesEverywhere();
         closeModal();
         return;
     }
