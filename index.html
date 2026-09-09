@@ -936,6 +936,34 @@ th{
     .topbar{padding:0 12px}
 }
 </style>
+
+<style id="v10-top-status-layout">
+.top-timebox,
+.top-moneybox,
+.top-employeesbox,
+#topTime,
+#topCash,
+#topEmployees {
+  display: inline-flex;
+  align-items: center;
+}
+.top-status-row,
+.header-status-row {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  margin-right: auto !important;
+  margin-left: 0 !important;
+}
+</style>
+
+
+<style id="v11-header-fix">
+.topbar{display:flex!important;align-items:center!important;gap:14px!important;justify-content:flex-start!important}
+.top-status-row{display:flex!important;align-items:center!important;gap:10px!important;margin:0!important;flex:0 0 auto!important}
+.top-status-row .top-timebox,.top-status-row .cashbox,.top-status-row .employee-topbox{flex:0 0 auto!important}
+.top-title{order:10!important;margin-left:auto!important}
+</style>
 </head>
 
 <body>
@@ -1002,23 +1030,25 @@ th{
 
 <header class="topbar">
 
+    <div class="top-status-row">
+        <div class="top-timebox">
+            <div><small>DZIEŃ</small><strong id="topDay">1</strong></div>
+            <div><small>GODZINA</small><strong id="topClock">00:00</strong></div>
+        </div>
+
+        <div class="cashbox">
+            <small>GOTÓWKA FIRMY</small>
+            <div class="cash" id="cash">$250,000</div>
+        </div>
+
+        <div class="employee-topbox">
+            <small>PRACOWNICY</small>
+            <div class="employee-count" id="topEmployees">0 / 0</div>
+        </div>
+    </div>
+
     <div class="top-title" id="topTitle">
         Panel firmy
-    </div>
-
-    <div class="top-timebox">
-        <div><small>DZIEŃ</small><strong id="topDay">1</strong></div>
-        <div><small>GODZINA</small><strong id="topClock">00:00</strong></div>
-    </div>
-
-    <div class="cashbox">
-        <small>GOTÓWKA FIRMY</small>
-        <div class="cash" id="cash">$250,000</div>
-    </div>
-
-    <div class="employee-topbox">
-        <small>PRACOWNICY</small>
-        <div class="employee-count" id="topEmployees">0 / 0</div>
     </div>
 
 </header>
@@ -1929,7 +1959,24 @@ const officeTypes={
 
 };
 
-const languages=["PL","EN","DE","FR","ES","IT","JP","CN","KR","PT","RU"];
+const languages=["PL","EN","DE","FR","ES","IT","JP","CN","KR","PT","RU","NL","SV","NO","DA","FI","CS","SK","HU","TR","AR","HE","HI","ID","TH","VI","UK","RO"];
+
+const updateCategories=[
+    {id:"features",name:"✨ Nowe funkcje",icon:"✨"},
+    {id:"bugfix",name:"🐞 Poprawa błędów",icon:"🐞"},
+    {id:"performance",name:"⚡ Wydajność",icon:"⚡"},
+    {id:"security",name:"🛡️ Bezpieczeństwo",icon:"🛡️"},
+    {id:"design",name:"🎨 Interfejs i design",icon:"🎨"},
+    {id:"content",name:"📝 Nowa zawartość",icon:"📝"},
+    {id:"ai",name:"🤖 Ulepszenia AI",icon:"🤖"},
+    {id:"compatibility",name:"🔧 Kompatybilność",icon:"🔧"},
+    {id:"localization",name:"🌍 Lokalizacja",icon:"🌍"},
+    {id:"maintenance",name:"🔨 Konserwacja",icon:"🔨"}
+];
+
+function getUpdateCategory(id){
+    return updateCategories.find(c=>c.id===id)||updateCategories[0];
+}
 
 
 /* ============================================================
@@ -2348,6 +2395,15 @@ function openUpdateModal(productId){
                 </div>
 
                 <div class="row">
+                    <label>Kategoria aktualizacji</label>
+                    <select id="updateCategory">
+                        ${updateCategories.map(c=>`
+                            <option value="${c.id}">${c.icon} ${c.name.replace(/^\S+\s/,"")}</option>
+                        `).join("")}
+                    </select>
+                </div>
+
+                <div class="row">
 
                     <label>
                         Języki aktualizacji
@@ -2412,6 +2468,9 @@ function releaseUpdate(productId){
 
     const name=document.getElementById("updateName").value.trim()||"Duża aktualizacja";
 
+    const categoryId=document.getElementById("updateCategory")?.value||"features";
+    const category=getUpdateCategory(categoryId);
+
     const langs=[
         ...document.querySelectorAll("#updateLanguages .lang.selected")
     ].map(x=>x.dataset.lang);
@@ -2434,22 +2493,53 @@ function releaseUpdate(productId){
 
     p.languages=[...new Set([...p.languages,...langs])];
 
+    // Zapamiętujemy ostatnią kategorię aktualizacji, aby statystyki
+    // i historia mogły poprawnie pokazywać jej rodzaj.
+    p.lastUpdateCategory=categoryId;
+    p.lastUpdateCategoryName=category.name;
+
     const oldRating=p.rating;
 
+    const categoryRatingBonus={
+        features:.9,
+        bugfix:.45,
+        performance:.65,
+        security:.35,
+        design:.7,
+        content:.75,
+        ai:1.0,
+        compatibility:.4,
+        localization:.5,
+        maintenance:.3
+    }[categoryId]||.6;
+
     p.rating=clamp(
-        p.rating+(Math.random()*1.1),
+        p.rating+(Math.random()*.75)+categoryRatingBonus*.35,
         0,
         10
     );
 
+    const categoryRevenueBonus={
+        features:.065,
+        bugfix:.025,
+        performance:.05,
+        security:.02,
+        design:.055,
+        content:.06,
+        ai:.08,
+        compatibility:.03,
+        localization:.04,
+        maintenance:.015
+    }[categoryId]||.04;
+
     p.revenuePerTick=Math.floor(
-        p.revenuePerTick*(1.04+Math.random()*.08)
+        p.revenuePerTick*(1+categoryRevenueBonus+Math.random()*.06)
     );
 
     closeModal();
 
     logEvent(
-        `🔄 ${escapeHtml(p.name)} otrzymał aktualizację <b>${escapeHtml(name)}</b>.`
+        `🔄 ${escapeHtml(p.name)} otrzymał aktualizację <b>${escapeHtml(name)}</b> — ${category.icon} ${escapeHtml(category.name.replace(/^\S+\s/,""))}.`
     );
 
     toast(
@@ -3534,6 +3624,17 @@ function assignProduct(productId,targetId){
     product.assignedTo=
         targetId==="root"?null:targetId;
 
+    if(targetId.startsWith("company:")){
+        product.ownerType="company";
+        product.ownerId=targetId.slice(8);
+    }else if(targetId!=="root"){
+        product.ownerType="subsidiary";
+        product.ownerId=targetId;
+    }else{
+        product.ownerType=null;
+        product.ownerId=null;
+    }
+
     toast(
         targetId==="root"
         ?"Produkt wrócił do centrali."
@@ -3686,6 +3787,210 @@ function managementCompanies(){
         c=>c.playerShares>50
     );
 
+}
+
+
+/* ============================================================
+   CORPORATE CONTROL / AUTONOMY
+============================================================ */
+
+const marketingModes={
+    none:{name:"Bez marketingu",icon:"⏸️",bonus:0},
+    ai:{name:"Marketing AI",icon:"🤖",bonus:.18},
+    social:{name:"Social Media",icon:"📱",bonus:.12},
+    performance:{name:"Performance / reklamy",icon:"📣",bonus:.15},
+    premium:{name:"Marka premium",icon:"💎",bonus:.10},
+    viral:{name:"Viral / agresywny",icon:"🔥",bonus:.22}
+};
+
+const companyStrategies={
+    ai:{name:"AI",icon:"🤖",type:"ai"},
+    social:{name:"Social Media",icon:"📱",type:"social"},
+    cloud:{name:"Chmura",icon:"☁️",type:"cloud"},
+    security:{name:"Cyberbezpieczeństwo",icon:"🛡️",type:"xai"},
+    video:{name:"Wideo",icon:"▶️",type:"video"},
+    marketplace:{name:"Marketplace",icon:"🛒",type:"marketplace"},
+    browser:{name:"Przeglądarki",icon:"🌍",type:"browser"},
+    os:{name:"Systemy",icon:"💻",type:"os"}
+};
+
+function entityObject(type,id){
+    if(type==="company")return state.market.find(c=>c.id===id);
+    return state.subsidiaries.find(s=>s.id===id);
+}
+
+function entityName(type,id){
+    const e=entityObject(type,id);
+    return e?e.name:"Firma";
+}
+
+function ensureEntitySettings(e){
+    if(!e)return;
+    if(!e.marketingMode)e.marketingMode="none";
+    if(!e.strategy)e.strategy="ai";
+    if(!e.updateMode)e.updateMode="player";
+    if(typeof e.autonomousProducts!=="boolean")e.autonomousProducts=true;
+    if(typeof e.ownProductLimit!=="number")e.ownProductLimit=3;
+    if(!Array.isArray(e.products))e.products=[];
+    if(typeof e.managedRevenue!=="number")e.managedRevenue=0;
+    if(typeof e.revenuePerTick!=="number")e.revenuePerTick=0;
+}
+
+function setEntityMarketing(type,id,value){
+    const e=entityObject(type,id); if(!e)return;
+    ensureEntitySettings(e); e.marketingMode=value;
+    logEvent(`📣 ${escapeHtml(e.name)}: tryb marketingu → <b>${escapeHtml(marketingModes[value]?.name||value)}</b>.`);
+    renderAll();
+}
+
+function setEntityStrategy(type,id,value){
+    const e=entityObject(type,id); if(!e)return;
+    ensureEntitySettings(e); e.strategy=value;
+    logEvent(`🎯 ${escapeHtml(e.name)}: strategia → <b>${escapeHtml(companyStrategies[value]?.name||value)}</b>.`);
+    renderAll();
+}
+
+function setEntityUpdateMode(type,id,value){
+    const e=entityObject(type,id); if(!e)return;
+    ensureEntitySettings(e); e.updateMode=value;
+    toast(value==="auto"?`${e.name} będzie samodzielnie aktualizować produkty.`:`Ty decydujesz o aktualizacjach ${e.name}.`,"good");
+    renderAll();
+}
+
+function entityProducts(type,id){
+    const key=type+":"+id;
+    return state.products.filter(p=>p.status!=="withdrawn" && p.ownerType===type && p.ownerId===id && p.assignedTo===key);
+}
+
+function createAutonomousProduct(type,id){
+    const e=entityObject(type,id); if(!e)return false;
+    ensureEntitySettings(e);
+    if(!e.autonomousProducts)return false;
+    const owned=entityProducts(type,id);
+    if(owned.length>=e.ownProductLimit)return false;
+    const strategy=companyStrategies[e.strategy]||companyStrategies.ai;
+    const data=productTypes[strategy.type]||productTypes.ai;
+    const num=owned.length+1;
+    const product={
+        id:uid("ownedprod"),
+        name:`${e.name} ${strategy.name} ${num}`,
+        type:strategy.type,
+        typeName:data.name,
+        icon:data.icon,
+        rating:Math.round((6+Math.random()*3.5)*10)/10,
+        languages:["PL","EN"],
+        progress:100,
+        creationTime:data.baseTime,
+        remaining:0,
+        status:"released",
+        revenuePerTick:Math.floor(data.revenue*(.8+Math.random()*.45)),
+        totalRevenue:0,
+        assignedTo:type+":"+id,
+        ownerType:type,
+        ownerId:id,
+        autonomous:true,
+        updates:0,
+        lastUpdateCategory:"features",
+        lastUpdateCategoryName:"✨ Nowe funkcje",
+        createdDay:state.day
+    };
+    state.products.push(product);
+    e.products.push(product.id);
+    return true;
+}
+
+function autoUpdateOwnedProduct(product){
+    const categoryIds=typeof updateCategories!=="undefined"?updateCategories.map(x=>x.id):["features","bugfix","performance"];
+    const categoryId=categoryIds[random(0,categoryIds.length-1)];
+    const category=getUpdateCategory(categoryId);
+    product.updates=(product.updates||0)+1;
+    product.languages=[...new Set([...(product.languages||[]),"EN"])];
+    product.lastUpdateCategory=categoryId;
+    product.lastUpdateCategoryName=category.name;
+    const bonus={features:.065,bugfix:.025,performance:.05,security:.02,design:.055,content:.06,ai:.08,compatibility:.03,localization:.04,maintenance:.015}[categoryId]||.04;
+    product.rating=clamp((product.rating||5)+.15+Math.random()*.45,0,10);
+    product.revenuePerTick=Math.floor((product.revenuePerTick||1000)*(1+bonus));
+}
+
+function playerUpdateOwnedProduct(productId){
+    const p=state.products.find(x=>x.id===productId); if(!p)return;
+    releaseUpdate(productId);
+}
+
+function removeOwnedProduct(productId){
+    const i=state.products.findIndex(p=>p.id===productId); if(i<0)return;
+    const p=state.products[i];
+    const e=entityObject(p.ownerType,p.ownerId);
+    if(e&&Array.isArray(e.products))e.products=e.products.filter(id=>id!==productId);
+    state.products.splice(i,1);
+    saveGame();
+    logEvent(`🗑️ ${escapeHtml(p.name)} usunięto z rynku.`);
+    renderAll();
+}
+
+function openCorporateLink(id){
+    const sub=state.subsidiaries.find(s=>s.id===id); if(!sub)return;
+    const options=[`<option value="root">🏢 NovaCore Technologies</option>`];
+    managementCompanies().forEach(c=>{
+        options.push(`<option value="company:${c.id}" ${sub.parentType==="company"&&sub.parentId===c.id?"selected":""}>👔 ${escapeHtml(c.name)}</option>`);
+    });
+    state.subsidiaries.forEach(s=>{
+        if(s.id===id)return;
+        options.push(`<option value="sub:${s.id}" ${sub.parentType==="subsidiary"&&sub.parentId===s.id?"selected":""}>🌳 ${escapeHtml(s.name)}</option>`);
+    });
+    openModal(`🔗 Połącz ${escapeHtml(sub.name)}`,`<div class="row"><label>Firma nadrzędna</label><select id="corporateParent">${options.join("")}</select></div><button class="btn primary" style="width:100%" onclick="applyCorporateLink('${id}')">🔗 Zapisz połączenie</button>`);
+}
+
+function applyCorporateLink(id){
+    const sub=state.subsidiaries.find(s=>s.id===id); if(!sub)return;
+    const value=document.getElementById("corporateParent")?.value||"root";
+    let parentType="root",parentId="root";
+    if(value.startsWith("company:")){parentType="company";parentId=value.slice(8);}
+    else if(value.startsWith("sub:")){parentType="subsidiary";parentId=value.slice(4);}
+    if(parentType==="subsidiary"){
+        let cursor=parentId;
+        while(cursor){
+            if(cursor===id){toast("Nie można utworzyć zapętlenia struktury.","bad");return;}
+            const x=state.subsidiaries.find(s=>s.id===cursor);
+            if(!x||x.parentType!=="subsidiary")break;
+            cursor=x.parentId;
+        }
+    }
+    sub.parentType=parentType; sub.parentId=parentId;
+    recalcLevels();
+    saveGame();
+    closeModal();
+    logEvent(`🔗 ${escapeHtml(sub.name)} połączono z ${escapeHtml(parentType==="company"?entityName("company",parentId):parentType==="subsidiary"?entityName("subsidiary",parentId):"NovaCore Technologies")}.`);
+    renderAll();
+}
+
+function recalcLevels(){
+    const level=(s,seen=new Set())=>{
+        if(!s||seen.has(s.id))return 1;
+        seen.add(s.id);
+        if(s.parentType!=="subsidiary")return 1;
+        const p=state.subsidiaries.find(x=>x.id===s.parentId);
+        return p?level(p,seen)+1:1;
+    };
+    state.subsidiaries.forEach(s=>s.level=level(s));
+}
+
+function autonomousCompaniesTick(){
+    if(state.tick%30!==0)return;
+    managementCompanies().forEach(c=>{
+        ensureEntitySettings(c);
+        if(c.autonomousProducts)createAutonomousProduct("company",c.id);
+        entityProducts("company",c.id).forEach(p=>{
+            if(c.updateMode==="auto" && state.tick%60===0)autoUpdateOwnedProduct(p);
+        });
+    });
+    state.subsidiaries.forEach(s=>{
+        ensureEntitySettings(s);
+        if(s.autonomousProducts)createAutonomousProduct("subsidiary",s.id);
+        entityProducts("subsidiary",s.id).forEach(p=>{
+            if(s.updateMode==="auto" && state.tick%60===0)autoUpdateOwnedProduct(p);
+        });
+    });
 }
 
 function injectCompanyCash(id){
@@ -3856,9 +4161,18 @@ function gameTick(){
                 1.25
             );
 
-        const income=Math.floor(
+        let income=Math.floor(
             p.revenuePerTick*efficiency
         );
+
+        if(p.ownerType&&p.ownerId){
+            const owner=entityObject(p.ownerType,p.ownerId);
+            if(owner){
+                ensureEntitySettings(owner);
+                const mode=marketingModes[owner.marketingMode]||marketingModes.none;
+                income=Math.floor(income*(1+mode.bonus));
+            }
+        }
 
         p.totalRevenue+=income;
 
@@ -4067,6 +4381,10 @@ function gameTick(){
     });
 
 
+    /* WŁASNE PRODUKTY FIRM I SPÓŁEK CÓREK */
+    autonomousCompaniesTick();
+
+
     /* PORTFOLIO HISTORY */
 
     state.portfolioHistory.push(
@@ -4164,6 +4482,8 @@ function renderHeader(){
     document.getElementById("reputation")
         .textContent=state.reputation;
 
+
+    
 }
 
 
@@ -4348,6 +4668,7 @@ function renderProducts(){
 
             <div style="margin-top:10px;color:var(--muted);font-size:11px">
                 🌍 Języki: ${p.languages.join(", ")}
+                ${p.lastUpdateCategory ? `<br>📦 Ostatnia aktualizacja: ${getUpdateCategory(p.lastUpdateCategory).icon} ${escapeHtml(getUpdateCategory(p.lastUpdateCategory).name.replace(/^\S+\s/,""))}` : ""}
             </div>
 
         </div>
@@ -4711,9 +5032,18 @@ function renderSubsidiaries(){
                         ${state.products.filter(p=>p.status!=="withdrawn" && p.assignedTo===s.id).map(p=>`<span class="badge">${p.icon} ${escapeHtml(p.name)}</span>`).join("") || `<span class="muted">Brak przypisanych produktów</span>`}
                     </div>
                     <div style="margin-top:10px">
-                        <button class="btn" onclick="mergeSubsidiary('${s.id}')">🔗 Połącz z firmą nadrzędną</button>
-                        <button class="btn" onclick="withdrawSubsidiaryFromMarket('${s.id}')" ${s.offMarket?"disabled":""}>⛔ Wycofaj z rynku</button>
-                        <button class="btn danger" onclick="deleteSubsidiary('${s.id}')">🗑️ Usuń firmę</button>
+                        <button class="btn" onclick="openCorporateLink('${s.id}')">🔗 Zmień połączenie</button>
+                <button class="btn" onclick="mergeSubsidiary('${s.id}')">🤝 Połącz z nadrzędną</button>
+                <button class="btn" onclick="withdrawSubsidiaryFromMarket('${s.id}')" ${s.offMarket?"disabled":""}>⛔ Wycofaj z rynku</button>
+                <button class="btn danger" onclick="deleteSubsidiary('${s.id}')">🗑️ Usuń firmę</button>
+            </div>
+            <div class="grid2" style="margin-top:10px">
+                <div class="row"><label>Marketing</label><select onchange="setEntityMarketing('subsidiary','${s.id}',this.value)">${Object.entries(marketingModes).map(([k,v])=>`<option value="${k}" ${(s.marketingMode||'none')===k?'selected':''}>${v.icon} ${v.name}</option>`).join('')}</select></div>
+                <div class="row"><label>Strategia / produkt</label><select onchange="setEntityStrategy('subsidiary','${s.id}',this.value)">${Object.entries(companyStrategies).map(([k,v])=>`<option value="${k}" ${(s.strategy||'ai')===k?'selected':''}>${v.icon} ${v.name}</option>`).join('')}</select></div>
+            </div>
+            <div class="row" style="margin-top:10px"><label>Aktualizacje</label><select onchange="setEntityUpdateMode('subsidiary','${s.id}',this.value)"><option value="player" ${(s.updateMode||'player')==='player'?'selected':''}>👤 Ja aktualizuję</option><option value="auto" ${(s.updateMode||'player')==='auto'?'selected':''}>🤖 Spółka aktualizuje sama</option></select></div>
+            <div style="margin-top:10px"><b>🚀 Własne produkty</b> ${entityProducts('subsidiary',s.id).length}/${s.ownProductLimit||3}</div>
+            ${entityProducts('subsidiary',s.id).map(p=>`<div class="card" style="margin-top:7px"><div class="product-head"><div>${p.icon} <b>${escapeHtml(p.name)}</b><div class="muted">${p.rating.toFixed(1)}/10 · aktualizacji: ${p.updates||0}</div></div><div>${(s.updateMode||'player')==='player'?`<button class="btn" onclick="playerUpdateOwnedProduct('${p.id}')">🔄 Aktualizuj</button>`:`<span class="badge">🤖 Auto</span>`}<button class="btn danger" onclick="removeOwnedProduct('${p.id}')">🗑️ Usuń z rynku</button></div></div></div>`).join('')}
                     </div>
                 </div>
                 ${nodeHTML(s.id,"subsidiary")}
@@ -4801,115 +5131,33 @@ function renderSubsidiaries(){
 
 
 function renderManagement(){
-
     const box=document.getElementById("managementList");
-
     const companies=managementCompanies();
-
     if(!companies.length){
-
-        box.innerHTML=`
-            <div class="card">
-
-                <h3>🔒 Panel zablokowany</h3>
-
-                <p class="muted">
-                    Aby odblokować zarządzanie firmą,
-                    musisz posiadać więcej niż 50 ze 100 udziałów.
-                </p>
-
-                <button class="btn primary"
-                        onclick="showPage('stock')">
-
-                    📈 Przejdź na giełdę
-
-                </button>
-
-            </div>
-        `;
-
+        box.innerHTML=`<div class="card"><h3>🔒 Panel zablokowany</h3><p class="muted">Aby odblokować zarządzanie firmą, musisz posiadać więcej niż 50 ze 100 udziałów.</p><button class="btn primary" onclick="showPage('stock')">📈 Przejdź na giełdę</button></div>`;
         return;
-
     }
-
-    box.innerHTML=companies.map(c=>`
-
-        <div class="card">
-
-            <div class="product-head">
-
-                <div>
-                    <h3>👔 ${c.name}</h3>
-
-                    <span class="badge green">
-                        ${c.playerShares}% — KONTROLA
-                    </span>
-                </div>
-
-                <div class="stat-value">
-                    ${money(c.price)}
-                </div>
-
+    companies.forEach(ensureEntitySettings);
+    box.innerHTML=companies.map(c=>{
+        const products=entityProducts("company",c.id);
+        const m=marketingModes[c.marketingMode]||marketingModes.none;
+        const st=companyStrategies[c.strategy]||companyStrategies.ai;
+        return `<div class="card">
+            <div class="product-head"><div><h3>👔 ${escapeHtml(c.name)}</h3><span class="badge green">${c.playerShares}% — KONTROLA</span></div><div class="stat-value">${money(c.price)}</div></div>
+            <div class="grid3" style="margin-top:14px">
+                <div><span class="muted">Marketing</span><div class="big">${m.icon} ${m.name}</div></div>
+                <div><span class="muted">Strategia</span><div class="big">${st.icon} ${st.name}</div></div>
+                <div><span class="muted">Własne produkty</span><div class="big">${products.length} / ${c.ownProductLimit}</div></div>
             </div>
-
-            <br>
-
-            <div class="grid3">
-
-                <div>
-
-                    <span class="muted">Kapitał zarządzany</span>
-
-                    <div class="big">
-                        ${money(c.managedCash||0)}
-                    </div>
-
-                </div>
-
-                <div>
-
-                    <span class="muted">Dywidenda / udział</span>
-
-                    <div class="big green">
-                        $${c.dividends.toFixed(2)}
-                    </div>
-
-                </div>
-
-                <div>
-
-                    <span class="muted">Działy</span>
-
-                    <div class="big">
-                        ${c.departments.length}
-                    </div>
-
-                </div>
-
+            <div class="grid2" style="margin-top:12px">
+                <div class="row"><label>Tryb marketingu</label><select onchange="setEntityMarketing('company','${c.id}',this.value)">${Object.entries(marketingModes).map(([k,v])=>`<option value="${k}" ${c.marketingMode===k?'selected':''}>${v.icon} ${v.name}</option>`).join('')}</select></div>
+                <div class="row"><label>Co rozwija firma?</label><select onchange="setEntityStrategy('company','${c.id}',this.value)">${Object.entries(companyStrategies).map(([k,v])=>`<option value="${k}" ${c.strategy===k?'selected':''}>${v.icon} ${v.name}</option>`).join('')}</select></div>
             </div>
-
-            <br>
-
-            <button
-                class="btn primary"
-                onclick="injectCompanyCash('${c.id}')">
-
-                💰 Dokapitalizuj $100,000
-
-            </button>
-
-            <button
-                class="btn success"
-                onclick="boostCompany('${c.id}')">
-
-                🚀 Program rozwoju $75,000
-
-            </button>
-
-        </div>
-
-    `).join("");
-
+            <div class="row" style="margin-top:10px"><label>Aktualizacje produktów</label><select onchange="setEntityUpdateMode('company','${c.id}',this.value)"><option value="player" ${c.updateMode==='player'?'selected':''}>👤 Ja aktualizuję</option><option value="auto" ${c.updateMode==='auto'?'selected':''}>🤖 Firma aktualizuje sama</option></select></div>
+            <div style="margin-top:12px"><b>🚀 Produkty własne</b>${products.length?products.map(p=>`<div class="card" style="margin-top:8px"><div class="product-head"><div>${p.icon} <b>${escapeHtml(p.name)}</b><div class="muted">${p.rating.toFixed(1)}/10 · aktualizacji: ${p.updates||0}</div></div><div style="display:flex;gap:6px;flex-wrap:wrap">${c.updateMode==='player'?`<button class="btn" onclick="playerUpdateOwnedProduct('${p.id}')">🔄 Aktualizuj</button>`:`<span class="badge">🤖 Auto</span>`}<button class="btn danger" onclick="removeOwnedProduct('${p.id}')">🗑️ Usuń z rynku</button></div></div></div>`).join(''):`<div class="muted" style="margin-top:8px">Firma automatycznie może stworzyć własny produkt zgodnie ze strategią.</div>`}</div>
+            <div style="margin-top:12px"><button class="btn primary" onclick="injectCompanyCash('${c.id}')">💰 Dokapitalizuj $100,000</button><button class="btn success" onclick="boostCompany('${c.id}')">🚀 Program rozwoju $75,000</button></div>
+        </div>`;
+    }).join("");
 }
 
 
@@ -5387,6 +5635,7 @@ function loadGame(){
             if(typeof c.offMarket!=="boolean"){
                 c.offMarket=false;
             }
+            ensureEntitySettings(c);
 
         });
 
@@ -5428,7 +5677,15 @@ function loadGame(){
                 s.acquiredDepartments=[];
             }
             if(typeof s.offMarket!=="boolean")s.offMarket=false;
+            ensureEntitySettings(s);
 
+        });
+        recalcLevels();
+
+        state.products.forEach(p=>{
+            if(p&&p.assignedTo&&p.assignedTo.startsWith("company:")){p.ownerType="company";p.ownerId=p.assignedTo.slice(8);}
+            else if(p&&p.assignedTo){p.ownerType="subsidiary";p.ownerId=p.assignedTo;}
+            if(p&&typeof p.updates!=="number")p.updates=0;
         });
 
         ensureMarketCompanies();
