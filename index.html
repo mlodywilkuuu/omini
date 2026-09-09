@@ -2114,14 +2114,25 @@ function showPage(page){
 function openModal(title,html){
 
     document.getElementById("modalTitle").textContent=title;
+    const bg=document.getElementById("modalBg");
     document.getElementById("modalContent").innerHTML=html;
-    document.getElementById("modalBg").classList.add("show");
+    bg.style.display="";
+    bg.setAttribute("aria-hidden","false");
+    bg.classList.add("show");
 
 }
 
 function closeModal(){
 
-    document.getElementById("modalBg").classList.remove("show");
+    const bg=document.getElementById("modalBg");
+    const content=document.getElementById("modalContent");
+    if(!bg)return;
+
+    bg.classList.remove("show");
+    bg.style.display="none";
+    bg.setAttribute("aria-hidden","true");
+    if(content)content.innerHTML="";
+
 
 }
 
@@ -2556,6 +2567,19 @@ function releaseUpdate(productId){
    EMPLOYEES
 ============================================================ */
 
+function refreshEmployeeTotals(){
+    let productivity=0, salary=0;
+    if(Array.isArray(state.employees)){
+        for(const e of state.employees){
+            productivity += Number(e.productivity)||0;
+            salary += Number(e.salary)||0;
+        }
+    }
+    state.employeeTotalProductivity=productivity;
+    state.employeeTotalSalary=salary;
+    return {productivity,salary};
+}
+
 function employeeCapacity(type="root",id="root"){
     return state.offices.filter(o=>(o.ownerType||"root")===type && (o.ownerId||"root")===id).reduce((sum,o)=>sum+officeCapacity(o),0);
 }
@@ -2627,23 +2651,47 @@ function hireBestEmployee(type="root",ownerId="root"){
     const max=Math.max(0,Math.floor(employeeCapacity(type,ownerId)));
     if(!Array.isArray(state.employees))state.employees=[];
     if(!Array.isArray(state.employeeCandidates))state.employeeCandidates=[];
-    if(companyEmployeeCount(type,ownerId)>=max)return 0;
-    let hired=0;
-    const premiumTags=["ELITE","TOP PERFORMER","GENIUS","HYPER PRODUCTIVITY"];
-    while(companyEmployeeCount(type,ownerId)<max){
-        ensureEmployeeCandidates();
-        let candidates=state.employeeCandidates||[];
-        if(!candidates.length)candidates.push(generateEmployeeCandidate(true));
-        if(!candidates.length)break;
-        candidates.sort((a,b)=>(Number(b.score)||0)-(Number(a.score)||0)||(Number(b.productivity)||0)-(Number(a.productivity)||0));
-        const c=candidates[0], perks=Array.isArray(c.tags)?[...c.tags]:[];
-        premiumTags.forEach(x=>{if(!perks.includes(x))perks.push(x);});
-        state.employees.push({id:uid("emp"),name:c.name,role:c.role,tags:perks,productivity:Math.max(Number(c.productivity)||0,25),salary:Math.max(Number(c.salary)||0,500),permissions:Array.isArray(c.permissions)?[...c.permissions]:[],ownerType:type,ownerId:ownerId});
-        state.employeeCandidates=state.employeeCandidates.filter(x=>x.id!==c.id); hired++;
-    }
+    const current=companyEmployeeCount(type,ownerId);
+    if(current>=max)return 0;
+
+    // Nie generujemy kandydatów od nowa dla każdego pracownika.
+    // To było głównym źródłem przycięcia przy dużych limitach biur.
     ensureEmployeeCandidates();
+    let candidates=state.employeeCandidates||[];
+    candidates.sort((a,b)=>(Number(b.score)||0)-(Number(a.score)||0)||(Number(b.productivity)||0)-(Number(a.productivity)||0));
+    const base=candidates[0] || generateEmployeeCandidate(true);
+    const premiumTags=["ELITE","TOP PERFORMER","GENIUS","HYPER PRODUCTIVITY"];
+    const needed=max-current;
+    const batch=Math.min(needed,5000);
+    let hired=0;
+
+    for(let n=0;n<batch;n++){
+        const perks=Array.isArray(base.tags)?[...base.tags]:[];
+        premiumTags.forEach(x=>{if(!perks.includes(x))perks.push(x);});
+        const role=base.role;
+        const name=(n===0 && !state.employees.some(e=>e.name===base.name))
+            ? base.name
+            : `${base.name} #${state.employees.length+1}`;
+        state.employees.push({
+            id:uid("emp"),
+            name,
+            role,
+            tags:perks,
+            productivity:Math.max(Number(base.productivity)||0,25),
+            salary:Math.max(Number(base.salary)||0,500),
+            permissions:Array.isArray(base.permissions)?[...base.permissions]:[],
+            ownerType:type,
+            ownerId:ownerId
+        });
+        hired++;
+    }
+
+    state.employeeCandidates=state.employeeCandidates.filter(x=>x.id!==base.id);
+    ensureEmployeeCandidates();
+    refreshEmployeeTotals();
     return hired;
 }
+
 function hireBestEmployeesEverywhere(){
     const entities=[{type:"root",id:"root"}];
     managementCompanies().forEach(c=>entities.push({type:"company",id:c.id}));
@@ -4117,14 +4165,9 @@ function gameTick(){
 
     /* PRODUCT CREATION */
 
-    const productivity=
-        Math.max(
-            1,
-            state.employees.reduce(
-                (sum,e)=>sum+e.productivity,
-                0
-            )
-        );
+    const productivity=Math.max(1,
+        Number(state.employeeTotalProductivity)||refreshEmployeeTotals().productivity||0
+    );
 
     state.products.forEach(p=>{
 
@@ -4326,13 +4369,9 @@ function gameTick(){
 
     /* EMPLOYEE SALARIES */
 
-    const salaryPerTick=
-        Math.floor(
-            state.employees.reduce(
-                (sum,e)=>sum+e.salary,
-                0
-            )/20
-        );
+    const salaryPerTick=Math.floor(
+        (Number(state.employeeTotalSalary)||refreshEmployeeTotals().salary||0)/20
+    );
 
     if(salaryPerTick>0){
 
@@ -5410,10 +5449,7 @@ function renderDashboardNumbers(){
 
     const expense=
         Math.floor(
-            state.employees.reduce(
-                (sum,e)=>sum+e.salary,
-                0
-            )/20
+            (Number(state.employeeTotalSalary)||refreshEmployeeTotals().salary||0)/20
         )+
         Math.floor(
             state.servers.reduce(
@@ -5588,15 +5624,13 @@ function openCheatPanel(){
 
             input.focus();
 
-            input.addEventListener("keydown",e=>{
-
+            input.onkeydown=e=>{
                 if(e.key==="Enter"){
                     e.preventDefault();
                     e.stopPropagation();
                     runCheat();
                 }
-
-            });
+            };
 
         }
 
@@ -5653,9 +5687,8 @@ function runCheat(){
         `⌨️ Wykonano kod <b>money</b>: ${money(amount)}`
     );
 
-    closeModal();
-
     renderAll();
+    closeModal();
 
 }
 
@@ -5733,6 +5766,7 @@ function loadGame(){
         state.employees.forEach(e=>{
             if(!Array.isArray(e.tags))e.tags=[roles[e.role]?.name||e.role,...(e.permissions||[]).slice(0,3)];
         });
+        refreshEmployeeTotals();
         if(!Array.isArray(state.employeeCandidates))state.employeeCandidates=[];
         ensureEmployeeCandidates();
 
