@@ -2264,11 +2264,30 @@ const updateCategories=[
     {id:"ai",name:"🤖 Ulepszenia AI",icon:"🤖"},
     {id:"compatibility",name:"🔧 Kompatybilność",icon:"🔧"},
     {id:"localization",name:"🌍 Lokalizacja",icon:"🌍"},
-    {id:"maintenance",name:"🔨 Konserwacja",icon:"🔨"}
+    {id:"maintenance",name:"🔨 Konserwacja",icon:"🔨"},
+    {id:"newMovie",name:"🎬 Nowy film",icon:"🎬"},
+    {id:"newSeries",name:"📺 Nowy sezon serialu",icon:"📺"},
+    {id:"newAnime",name:"🍿 Nowa seria anime",icon:"🍿"},
+    {id:"newSports",name:"🏟️ Nowy pakiet sportowy",icon:"🏟️"},
+    {id:"newEpisodes",name:"🎞️ Nowe odcinki",icon:"🎞️"},
+    {id:"newCatalog",name:"📚 Powiększenie katalogu",icon:"📚"}
 ];
 
 function getUpdateCategory(id){
     return updateCategories.find(c=>c.id===id)||updateCategories[0];
+}
+
+function getProductUpdateCategories(type){
+    const special={
+        media:["newMovie","newSeries","newEpisodes","newCatalog","design","performance"],
+        animestream:["newAnime","newEpisodes","newCatalog","design","performance"],
+        streaming:["newSeries","newEpisodes","newCatalog","features","performance"],
+        sportsstream:["newSports","newEpisodes","newCatalog","features","performance"],
+        kidsstream:["newSeries","newEpisodes","newCatalog","design","features"]
+    };
+    const ids=special[type];
+    if(!ids)return updateCategories;
+    return ids.map(id=>getUpdateCategory(id)).filter(Boolean);
 }
 
 
@@ -2508,7 +2527,7 @@ function openProductCreator(type){
                 </div>
 
                 <div class="row">
-                    <label>Wersja produktu</label>
+                    <label>Wydanie produktu</label>
                     <input id="modalProductVersion" value="v1.0" placeholder="np. v1.0">
                     <small class="muted">Format: v1.0, v2.0, v2.1 lub maksymalnie 4 człony.</small>
                 </div>
@@ -2746,22 +2765,22 @@ function openUpdateModal(productId){
             <div>
 
                 <div class="row">
-                    <label>Nazwa aktualizacji</label>
+                    <label>Co dodajesz do produktu?</label>
                     <input id="updateName"
-                           placeholder="np. Summer Update">
+                           placeholder="np. Nowy film, sezon 2, 10 nowych odcinków">
                 </div>
 
                 <div class="row">
                     <label>Wersja produktu</label>
                     <div class="badge version" style="margin-bottom:7px">Obecna: ${escapeHtml(normalizeVersion(p.version)||"v1.0")}</div>
                     <input id="updateVersion" value="${escapeHtml(nextMajorVersion(p.version))}" placeholder="np. v2.0">
-                    <small class="muted">Wydanie aktualizacji może zmienić numer wersji.</small>
+                    <small class="muted">W przypadku filmów, seriali i anime możesz traktować to jako nowe wydanie/katalog, a nie zwykłą aktualizację techniczną.</small>
                 </div>
 
                 <div class="row">
-                    <label>Kategoria aktualizacji</label>
+                    <label>Rodzaj wydania</label>
                     <select id="updateCategory">
-                        ${updateCategories.map(c=>`
+                        ${getProductUpdateCategories(p.type).map(c=>`
                             <option value="${c.id}">${c.icon} ${c.name.replace(/^\S+\s/,"")}</option>
                         `).join("")}
                     </select>
@@ -2808,7 +2827,7 @@ function openUpdateModal(productId){
                         style="width:100%"
                         onclick="releaseUpdate('${p.id}')">
 
-                    🔄 Przygotuj i wydaj aktualizację
+                    🚀 Przygotuj i wydaj nowe wydanie
 
                 </button>
 
@@ -2880,7 +2899,13 @@ function releaseUpdate(productId){
         ai:1.0,
         compatibility:.4,
         localization:.5,
-        maintenance:.3
+        maintenance:.3,
+        newMovie:1.1,
+        newSeries:.95,
+        newAnime:1.0,
+        newSports:1.15,
+        newEpisodes:.85,
+        newCatalog:.8
     }[categoryId]||.6;
 
     p.rating=clamp(
@@ -2913,7 +2938,7 @@ function releaseUpdate(productId){
     );
 
     toast(
-        `Aktualizacja wydana. Ocena ${oldRating.toFixed(1)} → ${p.rating.toFixed(1)}`,
+        `Nowe wydanie gotowe. Ocena ${oldRating.toFixed(1)} → ${p.rating.toFixed(1)}`,
         "good"
     );
 
@@ -4514,7 +4539,8 @@ function createAutonomousProduct(type,id){
 }
 
 function autoUpdateOwnedProduct(product){
-    const categoryIds=typeof updateCategories!=="undefined"?updateCategories.map(x=>x.id):["features","bugfix","performance"];
+    const availableCategories=getProductUpdateCategories(product.type);
+    const categoryIds=availableCategories.map(x=>x.id);
     const categoryId=categoryIds[random(0,categoryIds.length-1)];
     const category=getUpdateCategory(categoryId);
     product.updates=(product.updates||0)+1;
@@ -4522,7 +4548,7 @@ function autoUpdateOwnedProduct(product){
     product.languages=[...new Set([...(product.languages||[]),"EN"])];
     product.lastUpdateCategory=categoryId;
     product.lastUpdateCategoryName=category.name;
-    const bonus={features:.065,bugfix:.025,performance:.05,security:.02,design:.055,content:.06,ai:.08,compatibility:.03,localization:.04,maintenance:.015}[categoryId]||.04;
+    const bonus={features:.065,bugfix:.025,performance:.05,security:.02,design:.055,content:.06,ai:.08,compatibility:.03,localization:.04,maintenance:.015,newMovie:.10,newSeries:.085,newAnime:.09,newSports:.11,newEpisodes:.075,newCatalog:.07}[categoryId]||.04;
     product.rating=clamp((product.rating||5)+.15+Math.random()*.45,0,10);
     product.revenuePerTick=Math.floor((product.revenuePerTick||1000)*(1+bonus));
 }
@@ -6194,17 +6220,20 @@ function runCheat(){
 ============================================================ */
 
 function saveGame(){
-
     try{
         const payload=JSON.stringify(state);
+        const previous=localStorage.getItem("techEmpireSave");
+        if(previous && previous!==payload){
+            localStorage.setItem("techEmpireSaveBackup",previous);
+        }
         localStorage.setItem("techEmpireSave",payload);
-        localStorage.setItem("techEmpireSaveBackup",payload);
         localStorage.setItem("techEmpireSaveTime",String(Date.now()));
+        localStorage.setItem("techEmpireSaveVersion","8");
         return true;
     }catch(e){
+        console.warn("Nie udało się zapisać gry.",e);
         return false;
     }
-
 }
 
 function loadGame(){
@@ -6266,6 +6295,7 @@ function loadGame(){
             state.subsidiaries=[];
         }
 
+        if(!Array.isArray(state.employees))state.employees=[];
         state.employees.forEach(e=>{
             if(!Array.isArray(e.tags))e.tags=[roles[e.role]?.name||e.role,...(e.permissions||[]).slice(0,3)];
         });
@@ -6341,21 +6371,6 @@ setInterval(
 /* ============================================================
    START
 ============================================================ */
-
-/* ============================================================
-   CZYSTY START — WERSJA 2026-09-10
-   Ta wersja jednorazowo usuwa stary zapis, żeby rozpocząć grę
-   całkowicie od zera. Potem odświeżanie NIE resetuje postępu.
-============================================================ */
-
-const freshStartKey="techEmpireFreshStart_20260910";
-
-if(!localStorage.getItem(freshStartKey)){
-    localStorage.removeItem("techEmpireSave");
-    localStorage.removeItem("techEmpireSaveBackup");
-    localStorage.removeItem("techEmpireSaveTime");
-    localStorage.setItem(freshStartKey,"1");
-}
 
 const loadedExistingGame=loadGame();
 
