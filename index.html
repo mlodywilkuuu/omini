@@ -508,6 +508,14 @@ th{
     border-color:rgba(255,200,87,.25);
 }
 
+.badge.version{
+    color:var(--cyan);
+    border-color:rgba(0,217,255,.28);
+    background:rgba(0,217,255,.07);
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+    font-weight:800;
+}
+
 /* PRODUCT TYPES */
 
 .product-type{
@@ -2198,6 +2206,12 @@ function openProductCreator(type){
                 </div>
 
                 <div class="row">
+                    <label>Wersja produktu</label>
+                    <input id="modalProductVersion" value="v1.0" placeholder="np. v1.0">
+                    <small class="muted">Format: v1.0, v2.0, v2.1 lub maksymalnie 4 człony.</small>
+                </div>
+
+                <div class="row">
 
                     <label>Języki — możesz wybrać więcej niż jeden</label>
 
@@ -2259,6 +2273,30 @@ function getModalLanguages(){
 
 }
 
+function normalizeVersion(value){
+    let v=String(value||"v1.0").trim();
+    if(!v)v="v1.0";
+    if(!/^v/i.test(v))v="v"+v;
+    const raw=v.slice(1);
+    if(!/^\d+(?:\.\d+){0,3}$/.test(raw))return null;
+    return "v"+raw;
+}
+
+function nextMajorVersion(value){
+    const v=normalizeVersion(value)||"v1.0";
+    const parts=v.slice(1).split(".").map(Number);
+    parts[0]++;
+    return "v"+parts[0]+".0";
+}
+
+function nextMinorVersion(value){
+    const v=normalizeVersion(value)||"v1.0";
+    const parts=v.slice(1).split(".").map(Number);
+    if(parts.length<2)parts.push(0);
+    parts[1]++;
+    return "v"+parts[0]+"."+parts[1];
+}
+
 function startProductCreation(){
 
     const name=document.getElementById("modalProductName").value.trim();
@@ -2269,6 +2307,12 @@ function startProductCreation(){
     }
 
     const data=productTypes[creatorType];
+
+    const version=normalizeVersion(document.getElementById("modalProductVersion")?.value||"v1.0");
+    if(!version){
+        toast("Nieprawidłowa wersja. Użyj np. v1.0 lub v2.1.","bad");
+        return;
+    }
 
     const langs=getModalLanguages();
 
@@ -2296,6 +2340,7 @@ function startProductCreation(){
     const product={
         id:uid("product"),
         name,
+        version,
         type:creatorType,
         typeName:data.name,
         icon:data.icon,
@@ -2406,6 +2451,13 @@ function openUpdateModal(productId){
                 </div>
 
                 <div class="row">
+                    <label>Wersja produktu</label>
+                    <div class="badge version" style="margin-bottom:7px">Obecna: ${escapeHtml(normalizeVersion(p.version)||"v1.0")}</div>
+                    <input id="updateVersion" value="${escapeHtml(nextMajorVersion(p.version))}" placeholder="np. v2.0">
+                    <small class="muted">Wydanie aktualizacji może zmienić numer wersji.</small>
+                </div>
+
+                <div class="row">
                     <label>Kategoria aktualizacji</label>
                     <select id="updateCategory">
                         ${updateCategories.map(c=>`
@@ -2478,6 +2530,11 @@ function releaseUpdate(productId){
     if(!p)return;
 
     const name=document.getElementById("updateName").value.trim()||"Duża aktualizacja";
+    const version=normalizeVersion(document.getElementById("updateVersion")?.value||nextMajorVersion(p.version));
+    if(!version){
+        toast("Nieprawidłowa wersja. Użyj np. v2.0 lub v2.1.","bad");
+        return;
+    }
 
     const categoryId=document.getElementById("updateCategory")?.value||"features";
     const category=getUpdateCategory(categoryId);
@@ -2501,6 +2558,7 @@ function releaseUpdate(productId){
     changeCash(-cost,`wydanie aktualizacji ${name}`);
 
     p.updates++;
+    p.version=version;
 
     p.languages=[...new Set([...p.languages,...langs])];
 
@@ -4012,6 +4070,7 @@ function createAutonomousProduct(type,id){
         ownerId:id,
         autonomous:true,
         updates:0,
+        version:"v1.0",
         lastUpdateCategory:"features",
         lastUpdateCategoryName:"✨ Nowe funkcje",
         createdDay:state.day
@@ -4026,6 +4085,7 @@ function autoUpdateOwnedProduct(product){
     const categoryId=categoryIds[random(0,categoryIds.length-1)];
     const category=getUpdateCategory(categoryId);
     product.updates=(product.updates||0)+1;
+    product.version=nextMinorVersion(product.version||"v1.0");
     product.languages=[...new Set([...(product.languages||[]),"EN"])];
     product.lastUpdateCategory=categoryId;
     product.lastUpdateCategoryName=category.name;
@@ -4682,6 +4742,7 @@ function renderProducts(){
                     <span class="badge">
                         ${escapeHtml(p.typeName)}
                     </span>
+                    <span class="badge version">${escapeHtml(normalizeVersion(p.version)||"v1.0")}</span>
 
                 </div>
 
@@ -4785,6 +4846,7 @@ function renderProducts(){
 
             <div style="margin-top:10px;color:var(--muted);font-size:11px">
                 🌍 Języki: ${p.languages.join(", ")}
+                <br>🔢 Wersja: <span class="badge version">${escapeHtml(normalizeVersion(p.version)||"v1.0")}</span>
                 ${p.lastUpdateCategory ? `<br>📦 Ostatnia aktualizacja: ${getUpdateCategory(p.lastUpdateCategory).icon} ${escapeHtml(getUpdateCategory(p.lastUpdateCategory).name.replace(/^\S+\s/,""))}` : ""}
             </div>
 
@@ -5836,6 +5898,9 @@ function loadGame(){
             if(p&&p.assignedTo&&p.assignedTo.startsWith("company:")){p.ownerType="company";p.ownerId=p.assignedTo.slice(8);}
             else if(p&&p.assignedTo){p.ownerType="subsidiary";p.ownerId=p.assignedTo;}
             if(p&&typeof p.updates!=="number")p.updates=0;
+            if(p){
+                p.version=normalizeVersion(p.version)||"v1.0";
+            }
         });
 
         ensureMarketCompanies();
