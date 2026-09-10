@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Studio Empire - Media Conglomerate Simulator</title>
+    <title>Studio Empire - Advanced Media Mogul</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
 
         :root {
             --bg-primary: #030712;
-            --glass-bg: rgba(17, 24, 39, 0.65);
+            --glass-bg: rgba(17, 24, 39, 0.7);
             --glass-border: rgba(255, 255, 255, 0.08);
             --glass-highlight: rgba(255, 255, 255, 0.15);
             --accent-primary: #6366f1;
@@ -34,7 +34,7 @@
             position: relative;
         }
 
-        /* Animowane tło z płynnymi gradientami */
+        /* Tło z płynnymi gradientami */
         .animated-bg {
             position: fixed;
             top: 0;
@@ -121,13 +121,14 @@
         .nav-tabs {
             display: flex;
             gap: 12px;
+            flex-wrap: wrap;
         }
 
         .tab-btn {
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid var(--glass-border);
             color: var(--text-muted);
-            padding: 12px 24px;
+            padding: 12px 20px;
             border-radius: 12px;
             font-weight: 600;
             cursor: pointer;
@@ -163,16 +164,6 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        .game-layout {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 24px;
-        }
-
-        @media (max-width: 1024px) {
-            .game-layout { grid-template-columns: 1fr; }
-        }
-
         .section-title {
             font-size: 18px;
             font-weight: 700;
@@ -184,10 +175,59 @@
 
         .panel-content { padding: 28px; }
 
-        .production-box {
+        .btn {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.8), rgba(79, 70, 229, 0.9));
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 14px 20px;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 24px rgba(99, 102, 241, 0.6);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        /* MODAL / OKNO PRODUKCJI */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(3, 7, 18, 0.8);
+            backdrop-filter: blur(8px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-overlay.open {
+            display: flex;
+            opacity: 1;
+        }
+
+        .modal-box {
+            width: 100%;
+            max-width: 550px;
+            padding: 32px;
             display: flex;
             flex-direction: column;
             gap: 16px;
+            transform: scale(0.95);
+            transition: transform 0.3s ease;
+        }
+
+        .modal-overlay.open .modal-box {
+            transform: scale(1);
         }
 
         .input-group {
@@ -216,22 +256,16 @@
 
         select option { background: #111827; }
 
-        .btn {
-            background: linear-gradient(135deg, rgba(99, 102, 241, 0.8), rgba(79, 70, 229, 0.9));
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: white;
-            padding: 14px 20px;
-            border-radius: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 10px;
         }
 
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 24px rgba(99, 102, 241, 0.6);
-            border-color: rgba(255, 255, 255, 0.4);
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
         }
 
         /* Rynek pracowników */
@@ -264,11 +298,7 @@
         .worker-header h4 { font-size: 15px; font-weight: 700; }
         .worker-header p { font-size: 12px; color: var(--text-muted); }
 
-        .worker-tags {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-        }
+        .worker-tags { display: flex; flex-wrap: wrap; gap: 6px; }
 
         .tag {
             background: rgba(99, 102, 241, 0.15);
@@ -291,41 +321,82 @@
 
         .worker-salary { font-size: 12px; color: #34d399; font-weight: 600; }
 
-        .btn-hire {
+        .btn-hire, .btn-buy {
             background: linear-gradient(135deg, rgba(16, 185, 129, 0.8), rgba(5, 150, 105, 0.9));
             box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);
             padding: 8px 14px;
             font-size: 12px;
+            border-radius: 10px;
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            cursor: pointer;
         }
 
-        /* Lista zwerbowanych pracowników */
-        .my-workers-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            max-height: 400px;
-            overflow-y: auto;
+        .btn-hire:disabled, .btn-buy:disabled, .btn-upgrade:disabled {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-muted);
+            box-shadow: none;
+            cursor: not-allowed;
+            border-color: transparent;
         }
 
-        .my-worker-item {
+        /* Drzewko ulepszeń */
+        .upgrades-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 16px;
+        }
+
+        .upgrade-card {
             background: rgba(255, 255, 255, 0.02);
             border: 1px solid var(--glass-border);
-            padding: 10px 14px;
-            border-radius: 10px;
+            border-radius: 14px;
+            padding: 20px;
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 13px;
+            flex-direction: column;
+            gap: 12px;
         }
 
-        /* Sekcja M&A (Przejęcia) */
+        .upgrade-card h4 { font-size: 16px; font-weight: 700; }
+        .upgrade-card p { font-size: 13px; color: var(--text-muted); }
+
+        .btn-upgrade {
+            margin-top: auto;
+            background: linear-gradient(135deg, rgba(236, 72, 153, 0.8), rgba(219, 39, 119, 0.9));
+            box-shadow: 0 4px 16px rgba(236, 72, 153, 0.3);
+            padding: 10px 16px;
+            font-size: 13px;
+            color: white;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            cursor: pointer;
+        }
+
+        /* Statystyki */
+        .stats-dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 16px;
+        }
+
+        .stat-box {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--glass-border);
+            padding: 20px;
+            border-radius: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .stat-box h3 { font-size: 13px; color: var(--text-muted); text-transform: uppercase; }
+        .stat-box span { font-size: 24px; font-weight: 800; }
+
+        /* Fuzje */
         .acquisition-list {
             display: flex;
             flex-direction: column;
             gap: 16px;
-            max-height: 480px;
-            overflow-y: auto;
-            padding-right: 4px;
         }
 
         .acquisition-card {
@@ -336,33 +407,12 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            transition: all 0.3s ease;
-        }
-
-        .acquisition-card:hover {
-            background: rgba(255, 255, 255, 0.05);
-            border-color: var(--glass-highlight);
         }
 
         .acq-info h4 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
         .acq-info p { font-size: 12px; color: var(--text-muted); }
 
-        .btn-buy {
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.8), rgba(5, 150, 105, 0.9));
-            box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);
-            padding: 10px 16px;
-            font-size: 13px;
-        }
-
-        .btn-buy:disabled, .btn-hire:disabled {
-            background: rgba(255, 255, 255, 0.05);
-            color: var(--text-muted);
-            box-shadow: none;
-            cursor: not-allowed;
-            border-color: transparent;
-        }
-
-        /* Dziennik wydarzeń / logi */
+        /* Dziennik logów */
         .log-panel { padding: 20px; margin-top: 10px; }
         .log-content {
             background: rgba(0, 0, 0, 0.4);
@@ -380,21 +430,15 @@
         }
 
         .log-item { animation: fadeIn 0.4s ease-out; }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(4px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.1); }
         ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.3); }
     </style>
 </head>
 <body>
 
-    <!-- Animowane tło gradientowe -->
     <div class="animated-bg">
         <div class="blob blob-1"></div>
         <div class="blob blob-2"></div>
@@ -402,7 +446,7 @@
     </div>
 
     <div class="container">
-        <!-- Górny panel statystyk -->
+        <!-- Górny panel statystyk ogólnych -->
         <header class="glass-panel">
             <div class="logo-area">
                 <h1>🎬 STUDIO EMPIRE</h1>
@@ -411,61 +455,42 @@
             <div class="stats-grid">
                 <div class="stat-card">
                     <span class="stat-label">Budżet</span>
-                    <span class="stat-value money" id="stat-money">$60.0M</span>
+                    <span class="stat-value money" id="stat-money">$75.0M</span>
                 </div>
                 <div class="stat-card">
                     <span class="stat-label">Udział w Rynku</span>
                     <span class="stat-value" id="stat-market">4.2%</span>
                 </div>
                 <div class="stat-card">
-                    <span class="stat-label">Zatrudnieni / Przejęcia</span>
-                    <span class="stat-value" id="stat-team">0 / 0</span>
+                    <span class="stat-label">Wydane Projekty</span>
+                    <span class="stat-value" id="stat-projects-count">0</span>
                 </div>
             </div>
         </header>
 
-        <!-- Pasek nawigacji (Zakładki) -->
+        <!-- Nawigacja zakładkami -->
         <div class="nav-tabs">
-            <button class="tab-btn active" onclick="switchTab('studio')">🏢 Studio Filmowe</button>
+            <button class="tab-btn active" onclick="switchTab('studio')">🏢 Studio i Produkcja</button>
             <button class="tab-btn" onclick="switchTab('workers')">👥 Rynek Pracowników</button>
-            <button class="tab-btn" onclick="switchTab('ma')">🤝 Fuzje i Przejęcia (M&A)</button>
+            <button class="tab-btn" onclick="switchTab('upgrades')">⚡ Drzewko Ulepszeń</button>
+            <button class="tab-btn" onclick="switchTab('stats')">📊 Statystyki</button>
+            <button class="tab-btn" onclick="switchTab('ma')">🤝 Fuzje i Przejęcia</button>
         </div>
 
         <!-- ZAKŁADKA 1: STUDIO -->
         <div class="tab-content active" id="tab-studio">
-            <div class="game-layout">
-                <div class="glass-panel panel-content">
-                    <div class="section-title">🚀 Nowa Produkcja</div>
-                    <div class="production-box">
-                        <div class="input-group">
-                            <label>Tytuł Projektu</label>
-                            <input type="text" id="project-title" value="Wielkie Otwarcie 3D">
-                        </div>
-                        <div class="input-group">
-                            <label>Format Medialny</label>
-                            <select id="project-type">
-                                <option value="movie">Film Kinowy (Wysokie ryzyko / Duży zysk)</option>
-                                <option value="series">Serial Streamingowy (Stały pasywny dochód)</option>
-                                <option value="animation">Animacja Rodzinna (Bonus do Merchandise)</option>
-                            </select>
-                        </div>
-                        <div class="input-group">
-                            <label>Budżet Produkcyjny ($)</label>
-                            <select id="project-budget">
-                                <option value="10">Niski ($10M)</option>
-                                <option value="25" selected>Średni ($25M)</option>
-                                <option value="60">Blockbuster ($60M)</option>
-                            </select>
-                        </div>
-                        <button class="btn" onclick="startProduction()">Rozpocznij Produkcję</button>
-                    </div>
+            <div class="glass-panel panel-content" style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h3 class="section-title" style="margin-bottom: 4px;">Zarządzanie Produkcją</h3>
+                    <p style="font-size: 13px; color: var(--text-muted);">Otwórz panel i rozpocznij tworzenie nowego filmu, serialu, anime lub gry!</p>
                 </div>
+                <button class="btn" onclick="openProductionModal()">+ Nowy Projekt</button>
+            </div>
 
-                <div class="glass-panel panel-content">
-                    <div class="section-title">⭐ Twój Zespół Kreatywny</div>
-                    <div class="my-workers-list" id="my-workers-list">
-                        <p style="color: var(--text-muted); font-size: 13px;">Brak zatrudnionych talentów. Odwiedź Rynek Pracowników, aby pozyskać reżyserów i scenarzystów!</p>
-                    </div>
+            <div class="glass-panel panel-content">
+                <h3 class="section-title">⭐ Aktywny Zespół Kreatywny</h3>
+                <div id="my-workers-list" style="display: flex; flex-direction: column; gap: 10px;">
+                    <p style="color: var(--text-muted); font-size: 13px;">Brak zatrudnionych ekspertów. Odwiedź Rynek Pracowników!</p>
                 </div>
             </div>
         </div>
@@ -473,94 +498,159 @@
         <!-- ZAKŁADKA 2: RYNEK PRACOWNIKÓW -->
         <div class="tab-content" id="tab-workers">
             <div class="glass-panel panel-content">
-                <div class="section-title">💼 Giełda Talentów i Twórców (Generowana na żywo)</div>
-                <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">Nowi kandydaci pojawiają się automatycznie w czasie rzeczywistym. Zatrudnij ich, aby podnieść jakość i zyski swoich produkcji!</p>
-                <div class="workers-grid" id="workers-market-grid">
-                    <!-- Dynamiczne kafle z pracownikami -->
+                <h3 class="section-title">💼 Giełda Talentów i Twórców</h3>
+                <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">Nowi kandydaci generują się automatycznie. Zatrudnij ich, aby podnieść zyski studiów!</p>
+                <div class="workers-grid" id="workers-market-grid"></div>
+            </div>
+        </div>
+
+        <!-- ZAKŁADKA 3: DRZEWKO ULEPSZEŃ -->
+        <div class="tab-content" id="tab-upgrades">
+            <div class="glass-panel panel-content">
+                <h3 class="section-title">⚡ Badania i Rozwój (Technologia)</h3>
+                <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">Odblokuj zaawansowane technologie produkcyjne i zwiększ wydajność swojego imperium.</p>
+                <div class="upgrades-grid" id="upgrades-grid">
+                    <!-- Generowane przez JS -->
                 </div>
             </div>
         </div>
 
-        <!-- ZAKŁADKA 3: FUZJE I PRZEJĘCIA -->
+        <!-- ZAKŁADKA 4: STATYSTYKI -->
+        <div class="tab-content" id="tab-stats">
+            <div class="glass-panel panel-content">
+                <h3 class="section-title">📊 Raport Finansowy i Sukcesy</h3>
+                <div class="stats-dashboard">
+                    <div class="stat-box">
+                        <h3>Całkowity Przychód</h3>
+                        <span id="stat-total-revenue" style="color: #34d399;">$0.0M</span>
+                    </div>
+                    <div class="stat-box">
+                        <h3>Wydane Filmy / Seriale</h3>
+                        <span id="stat-total-released">0</span>
+                    </div>
+                    <div class="stat-box">
+                        <h3>Największy Hit Box Office</h3>
+                        <span id="stat-best-hit" style="color: #6366f1;">Brak</span>
+                    </div>
+                    <div class="stat-box">
+                        <h3>Liczba Przejętych Firm</h3>
+                        <span id="stat-acquired-count">0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ZAKŁADKA 5: FUZJE I PRZEJĘCIA -->
         <div class="tab-content" id="tab-ma">
             <div class="glass-panel panel-content">
-                <div class="section-title">🏢 Przejęcia Innych Firm i Działów</div>
-                <div class="acquisition-list" id="acquisition-list">
-                    <!-- Generowane dynamicznie przez JS -->
-                </div>
+                <h3 class="section-title">🏢 Przejęcia Konkurencji (M&A)</h3>
+                <div class="acquisition-list" id="acquisition-list"></div>
             </div>
         </div>
 
-        <!-- Dziennik zdarzeń na dole -->
+        <!-- Dziennik zdarzeń -->
         <div class="glass-panel log-panel">
-            <div class="section-title" style="margin-bottom: 8px; font-size: 14px;">📋 Dziennik Korporacyjny</div>
+            <h3 class="section-title" style="margin-bottom: 8px; font-size: 14px;">📋 Dziennik Korporacyjny</h3>
             <div class="log-content" id="game-logs">
-                <div class="log-item">[System] Witaj w świecie Hollywood! Rynek pracowników jest aktywny — rekrutuj talenty i buduj imperium.</div>
+                <div class="log-item">[System] Witaj w świecie Hollywood! Imperium gotowe do rozbudowy.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL TWORZENIA PROJEKTU -->
+    <div class="modal-overlay" id="production-modal">
+        <div class="glass-panel modal-box">
+            <h3 class="section-title">🚀 Nowa Produkcja Medialna</h3>
+            <div class="input-group">
+                <label>Tytuł Projektu</label>
+                <input type="text" id="project-title" value="Cyber Chronicles 2077">
+            </div>
+            <div class="input-group">
+                <label>Format / Gatunek</label>
+                <select id="project-type">
+                    <option value="scifi">Film Sci-Fi (Wysokie ryzyko / Kosmiczny zysk)</option>
+                    <option value="anime">Anime Japońskie (Fenomen Kulturowy / Bonus merch)</option>
+                    <option value="action">Blockbuster Akcji (Standard kinowy)</option>
+                    <option value="series">Serial Streamingowy (Pasywny dochód)</option>
+                    <option value="animation">Animacja Rodzinna (Uniwersalny hit)</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label>Budżet Produkcyjny ($)</label>
+                <select id="project-budget">
+                    <option value="15">Niski ($15M)</option>
+                    <option value="35" selected>Średni ($35M)</option>
+                    <option value="80">Megaprodukcja ($80M)</option>
+                </select>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeProductionModal()">Anuluj</button>
+                <button class="btn" onclick="startProduction()">Zatwierdź i Produkuj</button>
             </div>
         </div>
     </div>
 
     <script>
         let gameState = {
-            money: 60.0,
+            money: 75.0,
             marketShare: 4.2,
+            projectsCount: 0,
+            totalRevenue: 0.0,
+            bestHit: "Brak",
+            bestHitAmount: 0,
             acquiredCount: 0
         };
 
-        // Tablice danych
         let marketWorkers = [];
         let myWorkers = [];
 
-        let targetCompanies = [
-            { id: 1, name: "PixelCraft Animation", type: "Studio Animacji", cost: 40.0, marketBoost: 2.5, acquired: false },
-            { id: 2, name: "CineSound VFX Labs", type: "Dział Efektów Specjalnych", cost: 65.0, marketBoost: 4.0, acquired: false },
-            { id: 3, name: "StreamWave TV Network", type: "Platforma Streamingowa", cost: 130.0, marketBoost: 8.5, acquired: false },
-            { id: 4, name: "Global Pictures 20th", type: "Klasyczne Studio Filmowe", cost: 260.0, marketBoost: 15.0, acquired: false }
+        let upgrades = [
+            { id: 1, name: "Cyfrowe Studia CGI", desc: "Zwiększa bazowe zyski wszystkich filmów Sci-Fi o 20%.", cost: 40.0, unlocked: false, effect: () => {} },
+            { id: 2, name: "Globalna Sieć Dystrybucji", desc: "Przyspiesza wzrost udziałów w rynku po premierze o +50%.", cost: 70.0, unlocked: false, effect: () => {} },
+            { id: 3, name: "Algorytmy Rekomendacji Anime", desc: "Zmniejsza koszty produkcji anime i podnosi ich popularność.", cost: 100.0, unlocked: false, effect: () => {} },
+            { id: 4, name: "Wrogie Przejęcia Premium", desc: "Obniża koszt zakupu zewnętrznych firm o 15%.", cost: 150.0, unlocked: false, effect: () => {} }
         ];
 
-        // Generator losowych pracowników
-        const firstNames = ["James", "Christopher", "Sophia", "Lucas", "Elena", "Marcus", "Chloe", "David", "Aria", "Nathan"];
-        const lastNames = ["Nolan", "Villar", "Kowalski", "Scorsese", "Bergman", "Zhao", "Cameron", "Tarantino", "Wajda", "Villeneuve"];
+        let targetCompanies = [
+            { id: 1, name: "PixelCraft Animation", type: "Studio Animacji", cost: 50.0, marketBoost: 3.0, acquired: false },
+            { id: 2, name: "CineSound VFX Labs", type: "Dział Efektów Specjalnych", cost: 80.0, marketBoost: 5.0, acquired: false },
+            { id: 3, name: "StreamWave TV Network", type: "Platforma Streamingowa", cost: 150.0, marketBoost: 9.0, acquired: false },
+            { id: 4, name: "Global Pictures 20th", type: "Klasyczne Studio Filmowe", cost: 300.0, marketBoost: 16.0, acquired: false }
+        ];
+
+        const firstNames = ["James", "Aria", "Kenji", "Elena", "Marcus", "Yuki", "Chloe", "Lucas"];
+        const lastNames = ["Nolan", "Tanaka", "Villar", "Scorsese", "Watanabe", "Cameron", "Tarantino", "Bergman"];
         const roles = [
-            { title: "Reżyser Wizjoner", tags: ["Blockbuster", "CGI", "Dramat"] },
-            { title: "Showrunner", tags: ["Netflix", "DługiFormat", "Scenariusz"] },
-            { title: "Specjalista CGI", tags: ["EfektySpecjalne", "Sci-Fi", "3D"] },
-            { title: "Wysokobudżetowy Producent", tags: ["Finanse", "Marketing", "Optymalizacja"] }
+            { title: "Reżyser Wizjoner", tags: ["Sci-Fi", "Blockbuster", "CGI"] },
+            { title: "Showrunner Anime", tags: ["Anime", "Fabula", "Japonia"] },
+            { title: "Specjalista Efektów", tags: ["Sci-Fi", "3D", "Akcja"] },
+            { title: "Producent Finansowy", tags: ["Optymalizacja", "Budżet"] }
         ];
 
         function generateRandomWorker() {
             const fName = firstNames[Math.floor(Math.random() * firstNames.length)];
             const lName = lastNames[Math.floor(Math.random() * lastNames.length)];
             const roleObj = roles[Math.floor(Math.random() * roles.length)];
-            
-            // Losowanie 2 unikalnych tagów
-            let shuffledTags = [...roleObj.tags].sort(() => 0.5 - Math.random());
-            let workerTags = shuffledTags.slice(0, 2);
+            let tags = [...roleObj.tags].sort(() => 0.5 - Math.random()).slice(0, 2);
 
             return {
-                id: Math.random().toString(36.substring(2, 9)),
+                id: Math.random().toString(36).substring(2, 9),
                 name: `${fName} ${lName}`,
                 role: roleObj.title,
-                tags: workerTags,
-                salary: parseFloat((Math.random() * 2.5 + 0.8).toFixed(1)), // od $0.8M do $3.3M
-                bonusMultiplier: parseFloat((Math.random() * 0.3 + 1.05).toFixed(2))
+                tags: tags,
+                salary: parseFloat((Math.random() * 2.0 + 1.0).toFixed(1)),
+                bonusMultiplier: parseFloat((Math.random() * 0.3 + 1.1).toFixed(2))
             };
         }
 
-        // Automatyczne generowanie nowego pracownika co 7 sekund
         setInterval(() => {
-            if (marketWorkers.length < 6) {
-                const newW = generateRandomWorker();
-                marketWorkers.push(newW);
+            if (marketWorkers.length < 5) {
+                marketWorkers.push(generateRandomWorker());
                 renderWorkersMarket();
-                addLog(`[Rynek Pracy] Nowy ekspert (${newW.name} - ${newW.role}) pojawił się na giełde ofert!`);
             }
-        }, 7000);
+        }, 8000);
 
-        // Inicjalizacja początkowych 4 pracowników na rynku
-        for(let i=0; i<4; i++) {
-            marketWorkers.push(generateRandomWorker());
-        }
+        for(let i=0; i<4; i++) marketWorkers.push(generateRandomWorker());
 
         function switchTab(tabId) {
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
@@ -570,13 +660,28 @@
             document.getElementById(`tab-${tabId}`).classList.add('active');
         }
 
+        function openProductionModal() {
+            document.getElementById('production-modal').classList.add('open');
+        }
+
+        function closeProductionModal() {
+            document.getElementById('production-modal').classList.remove('open');
+        }
+
         function updateUI() {
             document.getElementById('stat-money').innerText = `$${gameState.money.toFixed(1)}M`;
             document.getElementById('stat-market').innerText = `${gameState.marketShare.toFixed(1)}%`;
-            document.getElementById('stat-team').innerText = `${myWorkers.length} / ${gameState.acquiredCount}`;
-            renderAcquisitions();
+            document.getElementById('stat-projects-count').innerText = gameState.projectsCount;
+            
+            document.getElementById('stat-total-revenue').innerText = `$${gameState.totalRevenue.toFixed(1)}M`;
+            document.getElementById('stat-total-released').innerText = gameState.projectsCount;
+            document.getElementById('stat-best-hit').innerText = gameState.bestHit;
+            document.getElementById('stat-acquired-count').innerText = gameState.acquiredCount;
+
             renderWorkersMarket();
             renderMyWorkers();
+            renderUpgrades();
+            renderAcquisitions();
         }
 
         function addLog(message) {
@@ -590,12 +695,6 @@
         function renderWorkersMarket() {
             const grid = document.getElementById('workers-market-grid');
             grid.innerHTML = '';
-
-            if (marketWorkers.length === 0) {
-                grid.innerHTML = `<p style="color: var(--text-muted); font-size: 13px;">Brak dostępnych kandydatów. Czekaj na nowych...</p>`;
-                return;
-            }
-
             marketWorkers.forEach(w => {
                 const card = document.createElement('div');
                 card.className = 'worker-card';
@@ -608,8 +707,8 @@
                         ${w.tags.map(t => `<span class="tag">#${t}</span>`).join('')}
                     </div>
                     <div class="worker-footer">
-                        <span class="worker-salary">Wymagania: $${w.salary}M/proj</span>
-                        <button class="btn btn-hire" onclick="hireWorker('${w.id}')">Zatrudnij</button>
+                        <span class="worker-salary">Żądania: $${w.salary}M</span>
+                        <button class="btn-hire" onclick="hireWorker('${w.id}')">Zatrudnij</button>
                     </div>
                 `;
                 grid.appendChild(card);
@@ -619,18 +718,14 @@
         function renderMyWorkers() {
             const list = document.getElementById('my-workers-list');
             if (myWorkers.length === 0) {
-                list.innerHTML = `<p style="color: var(--text-muted); font-size: 13px;">Brak zatrudnionych talentów. Odwiedź Rynek Pracowników, aby pozyskać reżyserów i scenarzystów!</p>`;
+                list.innerHTML = `<p style="color: var(--text-muted); font-size: 13px;">Brak zatrudnionych ekspertów. Odwiedź Rynek Pracowników!</p>`;
                 return;
             }
-
             list.innerHTML = '';
             myWorkers.forEach(w => {
                 const item = document.createElement('div');
-                item.className = 'my-worker-item';
-                item.innerHTML = `
-                    <div><strong>${w.name}</strong> (${w.role})</div>
-                    <div style="color: #34d399; font-size: 12px;">Bonus: +${Math.round((w.bonusMultiplier - 1) * 100)}% zysków</div>
-                `;
+                item.style.cssText = "background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); padding: 10px 14px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; font-size: 13px;";
+                item.innerHTML = `<div><strong>${w.name}</strong> (${w.role})</div><div style="color: #34d399; font-size: 12px;">Bonus: +${Math.round((w.bonusMultiplier - 1)*100)}% zysków</div>`;
                 list.appendChild(item);
             });
         }
@@ -638,83 +733,115 @@
         function hireWorker(id) {
             const index = marketWorkers.findIndex(w => w.id === id);
             if (index === -1) return;
-
-            const worker = marketWorkers[index];
+            myWorkers.push(marketWorkers[index]);
             marketWorkers.splice(index, 1);
-            myWorkers.push(worker);
+            addLog(`Zatrudniono eksperta: ${myWorkers[myWorkers.length-1].name}`);
+            updateUI();
+        }
 
-            addLog(`Zatrudniono nowego pracownika: ${worker.name} (${worker.role}).`);
+        function renderUpgrades() {
+            const grid = document.getElementById('upgrades-grid');
+            grid.innerHTML = '';
+            upgrades.forEach(upg => {
+                const card = document.createElement('div');
+                card.className = 'upgrade-card';
+                card.innerHTML = `
+                    <h4>${upg.name}</h4>
+                    <p>${upg.desc}</p>
+                    <button class="btn-upgrade" ${upg.unlocked || gameState.money < upg.cost ? 'disabled' : ''} onclick="buyUpgrade(${upg.id})">
+                        ${upg.unlocked ? 'Odblokowane' : `Badaj ($${upg.cost}M)`}
+                    </button>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function buyUpgrade(id) {
+            const upg = upgrades.find(u => u.id === id);
+            if (!upg || upg.unlocked || gameState.money < upg.cost) return;
+
+            gameState.money -= upg.cost;
+            upg.unlocked = true;
+            addLog(`Zbadano technologię: ${upg.name}!`);
             updateUI();
         }
 
         function renderAcquisitions() {
-            const listEl = document.getElementById('acquisition-list');
-            listEl.innerHTML = '';
-
+            const list = document.getElementById('acquisition-list');
+            list.innerHTML = '';
             targetCompanies.forEach(comp => {
+                let finalCost = comp.cost;
+                if (upgrades.find(u => u.id === 4 && u.unlocked)) finalCost *= 0.85;
+
                 const card = document.createElement('div');
                 card.className = 'acquisition-card';
                 card.innerHTML = `
                     <div class="acq-info">
                         <h4>${comp.name}</h4>
-                        <p>${comp.type} • Koszt: $${comp.cost}M • Udział: +${comp.marketBoost}%</p>
+                        <p>${comp.type} • Koszt: $${finalCost.toFixed(1)}M • Udział: +${comp.marketBoost}%</p>
                     </div>
-                    <button class="btn btn-buy" ${comp.acquired || gameState.money < comp.cost ? 'disabled' : ''} onclick="buyCompany(${comp.id})">
+                    <button class="btn-buy" ${comp.acquired || gameState.money < finalCost ? 'disabled' : ''} onclick="buyCompany(${comp.id}, ${finalCost})">
                         ${comp.acquired ? 'Przejęto' : 'Kup Spółkę'}
                     </button>
                 `;
-                listEl.appendChild(card);
+                list.appendChild(card);
             });
         }
 
+        function buyCompany(id, cost) {
+            const comp = targetCompanies.find(c => c.id === id);
+            if (!comp || comp.acquired || gameState.money < cost) return;
+
+            gameState.money -= cost;
+            gameState.marketShare += comp.marketBoost;
+            gameState.acquiredCount++;
+            comp.acquired = true;
+
+            addLog(`Przejęto korporację: ${comp.name}! Udział wzrósł o +${comp.marketBoost}%`);
+            updateUI();
+        }
+
         function startProduction() {
-            const title = document.getElementById('project-title').value || "Nieznany Projekt";
+            const title = document.getElementById('project-title').value || "Hit Kinowy";
             const type = document.getElementById('project-type').value;
             const cost = parseFloat(document.getElementById('project-budget').value);
 
             if (gameState.money < cost) {
-                addLog(`Błąd: Zbyt mały budżet na produkcję "${title}"! Potrzebujesz $${cost}M.`);
+                addLog(`Błąd: Za mało środków na produkcję "${title}"!`);
                 return;
             }
 
             gameState.money -= cost;
+            closeProductionModal();
             updateUI();
-            addLog(`Rozpoczęto produkcję projektu: "${title}" (Budżet: $${cost}M). Twój zespół nad tym pracuje...`);
+            addLog(`Rozpoczęto produkcję (${type.toUpperCase()}): "${title}" za $${cost}M.`);
 
             setTimeout(() => {
                 let teamMultiplier = 1.0;
-                myWorkers.forEach(w => {
-                    teamMultiplier *= w.bonusMultiplier; // im lepszy zespół, tym większy mnożnik
-                });
+                myWorkers.forEach(w => teamMultiplier *= w.bonusMultiplier);
 
-                let baseMultiplier = 0.85 + Math.random() * 1.15;
-                let finalMultiplier = baseMultiplier * teamMultiplier;
-                
-                if (type === 'animation') finalMultiplier += 0.25;
+                let baseMultiplier = 0.9 + Math.random() * 1.3;
+                if (type === 'scifi' && upgrades.find(u => u.id === 1 && u.unlocked)) baseMultiplier += 0.25;
+                if (type === 'anime') baseMultiplier += 0.35; // anime generuje lojalnych fanów
 
-                let revenue = cost * finalMultiplier;
+                let revenue = cost * baseMultiplier * teamMultiplier;
                 let profit = revenue - cost;
                 gameState.money += revenue;
-                
-                let marketGain = (cost / 45) * (1 + myWorkers.length * 0.05);
+                gameState.totalRevenue += revenue;
+                gameState.projectsCount++;
+
+                let marketGainMult = upgrades.find(u => u.id === 2 && u.unlocked) ? 1.5 : 1.0;
+                let marketGain = (cost / 40) * marketGainMult;
                 gameState.marketShare += marketGain;
 
+                if (revenue > gameState.bestHitAmount) {
+                    gameState.bestHitAmount = revenue;
+                    gameState.bestHit = title;
+                }
+
                 updateUI();
-                addLog(`Premiera "${title}"! Przychód wyniósł $${revenue.toFixed(1)}M (Zysk: $${profit.toFixed(1)}M dzięki kadrze). Udział: +${marketGain.toFixed(1)}%.`);
+                addLog(`Premiera "${title}" odniosła sukces! Przychód: $${revenue.toFixed(1)}M (Zysk: $${profit.toFixed(1)}M).`);
             }, 4000);
-        }
-
-        function buyCompany(id) {
-            const company = targetCompanies.find(c => c.id === id);
-            if (!company || company.acquired || gameState.money < company.cost) return;
-
-            gameState.money -= company.cost;
-            gameState.marketShare += company.marketBoost;
-            gameState.acquiredCount++;
-            company.acquired = true;
-
-            updateUI();
-            addLog(`🎉 Sukces fuzji! Przejęto firmę/dział: ${company.name}. Udział w rynku skoczył o +${company.marketBoost}%!`);
         }
 
         updateUI();
