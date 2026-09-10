@@ -316,73 +316,55 @@ function startGameWorld(save){
 }
 async function loadRegionMap(key){
  const source=REGION_SOURCES[key];
- // Od razu pokazujemy prawdziwie wyglądającą sylwetkę kraju z podziałem na regiony,
- // a jeśli internet jest dostępny, po chwili zastępujemy ją dokładnymi danymi administracyjnymi.
- fallbackRegionMap(key,true);
- document.getElementById('mapLoading').style.display='none';
- if(!source)return;
+ const loading=document.getElementById('mapLoading');
+ const svg=d3.select('#mapSvg');
+ svg.selectAll('*').remove();
+ loading.style.display='flex';
+ loading.textContent='Ładowanie dokładnej mapy administracyjnej…';
+ if(!source){loading.textContent='Brak danych mapy dla tego państwa.';return;}
  try{
-   const topo=await fetch(source.url).then(r=>r.json());
-   let objectName=source.object||Object.keys(topo.objects||{})[0];
-   let collection=topojson.feature(topo,topo.objects[objectName]);
-   const features=collection.features||[];
-   if(features.length){regionFeatures=features;renderRegionMap(features,key);document.getElementById('mapLoading').style.display='none';}
- }catch(e){console.warn('Dokładny podział administracyjny niedostępny — używam mapy offline.',e)}
+   const topo=await fetch(source.url,{cache:'force-cache'}).then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.json()});
+   const objectName=source.object||Object.keys(topo.objects||{})[0];
+   if(!objectName||!topo.objects?.[objectName])throw new Error('Brak warstwy administracyjnej');
+   const obj=topo.objects[objectName];
+   const collection=topojson.feature(topo,obj);
+   const features=(collection.features||[]).filter(f=>f.geometry);
+   if(!features.length)throw new Error('Brak jednostek administracyjnych');
+   regionFeatures=features;
+   renderRegionMap(features,key,topo,obj);
+   loading.style.display='none';
+ }catch(e){
+   console.warn('Nie udało się pobrać dokładnych granic administracyjnych:',e);
+   loading.textContent='Nie udało się załadować dokładnych granic. Sprawdź połączenie z internetem.';
+ }
 }
-function renderRegionMap(features,key){
- const svg=d3.select('#mapSvg'),node=document.getElementById('mapSvg');const w=node.clientWidth||900,h=node.clientHeight||620;svg.attr('viewBox','0 0 '+w+' '+h);const fc={type:'FeatureCollection',features};mapProjection=d3.geoMercator().fitSize([w-50,h-50],fc);mapPath=d3.geoPath(mapProjection);const g=svg.append('g').attr('class','map-root');
- const paths=g.selectAll('.region-path').data(features).enter().append('path').attr('class','region-path').attr('d',mapPath).on('click',(event,d)=>selectMapRegion(event,d));
+function renderRegionMap(features,key,topo,obj){
+ const svg=d3.select('#mapSvg'),node=document.getElementById('mapSvg');
+ const w=node.clientWidth||900,h=node.clientHeight||620;
+ svg.attr('viewBox','0 0 '+w+' '+h).attr('preserveAspectRatio','xMidYMid meet').style('background','transparent');
+ const fc={type:'FeatureCollection',features};
+ mapProjection=d3.geoMercator().fitExtent([[24,24],[w-24,h-24]],fc);
+ mapPath=d3.geoPath(mapProjection);
+ const g=svg.append('g').attr('class','map-root');
+ const paths=g.selectAll('.region-path').data(features).enter().append('path')
+   .attr('class','region-path').attr('d',mapPath)
+   .on('click',(event,d)=>selectMapRegion(event,d));
  paths.append('title').text(d=>regionName(d));
- const outline=g.append('path').datum(fc).attr('class','country-outline').attr('d',mapPath);
- mapZoom=d3.zoom().scaleExtent([1,12]).on('zoom',e=>g.attr('transform',e.transform));svg.call(mapZoom).on('dblclick.zoom',null);resetMapZoom();
+ // Prawdziwy zewnętrzny kontur państwa z TopoJSON — bez sztucznej siatki/kafelków.
+ let outlineGeometry=null;
+ try{ outlineGeometry=topojson.mesh(topo,obj,(a,b)=>a===b); }catch(e){}
+ if(outlineGeometry)g.append('path').datum(outlineGeometry).attr('class','country-outline').attr('d',mapPath);
+ // Nazwy regionów umieszczamy w rzeczywistych środkach ich geometrii.
+ g.selectAll('.region-label').data(features).enter().append('text')
+   .attr('class','region-label')
+   .attr('x',d=>{const c=d3.geoCentroid(d);return mapProjection(c)[0]})
+   .attr('y',d=>{const c=d3.geoCentroid(d);return mapProjection(c)[1]})
+   .text(d=>regionName(d));
+ mapZoom=d3.zoom().scaleExtent([1,12]).on('zoom',e=>g.attr('transform',e.transform));
+ svg.call(mapZoom).on('dblclick.zoom',null);
+ resetMapZoom();
 }
 function regionName(d){return d.properties?.name||d.properties?.NAME_1||d.properties?.NAME_2||d.properties?.NAME||d.properties?.NAME_0||d.id||'Region'}
-const FALLBACK_MAP_SHAPES={
-  pl:[[120,150],[175,105],[270,92],[350,105],[430,88],[520,112],[610,104],[690,145],[675,215],[705,275],[650,340],[560,350],[505,395],[420,380],[350,410],[280,382],[205,400],[150,350],[112,292],[132,235]],
-  de:[[250,85],[335,72],[420,90],[495,82],[555,125],[605,190],[590,270],[625,330],[575,390],[505,402],[455,455],[370,440],[315,470],[240,430],[205,365],[150,330],[175,250],[145,185],[205,145]],
-  fr:[[155,120],[245,80],[335,92],[400,65],[490,105],[550,165],[535,245],[590,310],[540,390],[465,410],[420,480],[330,465],[275,420],[190,440],[125,375],[145,300],[95,245],[125,180]],
-  es:[[105,150],[185,110],[300,112],[400,88],[500,120],[585,175],[560,260],[605,315],[555,390],[460,405],[380,435],[275,420],[205,380],[115,385],[80,320],[100,250]],
-  it:[[315,80],[380,105],[405,170],[390,235],[430,285],[405,350],[440,415],[420,500],[365,465],[345,390],[305,335],[315,270],[270,225],[285,160]],
-  gb:[[265,55],[330,78],[310,135],[350,190],[320,250],[350,315],[315,375],[270,350],[245,285],[210,245],[225,180],[190,125],[220,85]],
-  us:[[65,165],[125,125],[205,112],[290,100],[380,115],[470,105],[555,135],[650,120],[745,150],[805,195],[780,250],[805,315],[760,365],[690,355],[630,395],[550,375],[485,405],[400,380],[315,395],[235,370],[155,355],[95,315],[70,255]],
-  ru:[[70,180],[120,130],[200,105],[285,118],[355,92],[440,115],[530,95],[620,125],[705,105],[790,145],[850,200],[820,255],[875,305],[820,345],[750,330],[700,375],[620,355],[555,395],[475,370],[410,410],[335,385],[270,410],[205,370],[150,390],[105,340],[125,285],[70,250]]
-};
-function fallbackRegionMap(key,instant=false){
- const svg=d3.select('#mapSvg');svg.selectAll('*').remove();
- const node=document.getElementById('mapSvg');const w=node.clientWidth||900,h=node.clientHeight||620;
- svg.attr('viewBox','0 0 '+w+' '+h);
- const base=FALLBACK_MAP_SHAPES[key]||FALLBACK_MAP_SHAPES.pl;
- const sx=w/900,sy=h/620;
- const pts=base.map(([x,y])=>[x*sx,y*sy]);
- const pathD='M'+pts.map(p=>p.join(',')).join('L')+'Z';
- const defs=svg.append('defs');
- defs.append('clipPath').attr('id','fallbackCountryClip').append('path').attr('d',pathD);
- const root=svg.append('g').attr('class','map-root fallback-root');
- root.append('path').attr('class','fallback-country-fill').attr('d',pathD);
- const names=FALLBACK_REGIONS[key]||[];
- // Nieregularna siatka Voronoi daje mapę przypominającą rzeczywisty podział administracyjny,
- // zamiast prostokątnych kafelków. Nazwy pozostają prawdziwymi nazwami jednostek kraju.
- const cols=Math.max(2,Math.ceil(Math.sqrt(names.length*1.15))),rows=Math.max(2,Math.ceil(names.length/cols));
- const seeds=[];
- for(let i=0;i<names.length;i++){
-   const col=i%cols,row=Math.floor(i/cols);
-   const jitterX=((i*37)%17)-8,jitterY=((i*53)%19)-9;
-   seeds.push([(130+(col+.5)*(640/cols)+jitterX)*sx,(95+(row+.5)*(340/rows)+jitterY)*sy]);
- }
- const delaunay=d3.Delaunay.from(seeds),vor=delaunay.voronoi([0,0,w,h]);
- const rg=root.append('g').attr('clip-path','url(#fallbackCountryClip)');
- regionFeatures=names.map((name,i)=>({properties:{name},__i:i,__seed:seeds[i]}));
- rg.selectAll('.region-path').data(regionFeatures).enter().append('path')
-   .attr('class','region-path fallback-region')
-   .attr('d',(d)=>vor.renderCell(d.__i))
-   .on('click',(e,d)=>selectMapRegion(e,d));
- rg.selectAll('.region-label').data(regionFeatures).enter().append('text')
-   .attr('class','region-label').attr('x',d=>d.__seed[0]).attr('y',d=>d.__seed[1])
-   .text(d=>d.properties.name);
- root.append('path').attr('class','country-outline').attr('d',pathD);
- mapZoom=d3.zoom().scaleExtent([1,12]).on('zoom',e=>root.attr('transform',e.transform));
- svg.call(mapZoom).on('dblclick.zoom',null);resetMapZoom();
-}
 function selectMapRegion(event,d){selectedRegion=regionName(d);currentGame.selectedRegion=selectedRegion;d3.selectAll('.region-path').classed('selected',false);if(event?.currentTarget)d3.select(event.currentTarget).classed('selected',true);document.getElementById('regionTitle').textContent=selectedRegion;document.getElementById('regionSubtitle').textContent='Zarządzaj rozwojem regionu i buduj infrastrukturę.';const box=document.getElementById('selectedRegionBox');box.style.display='block';box.innerHTML='<strong>📍 '+escapeHtml(selectedRegion)+'</strong><small>Budynki: '+(currentGame.regions[selectedRegion]?.buildings?.length||0)+' · Rozwój regionu: '+(currentGame.regions[selectedRegion]?.development||50)+'%</small>';renderBuildPanel();}
 function zoomMap(scale){if(mapZoom)d3.select('#mapSvg').transition().duration(300).call(mapZoom.scaleBy,scale)}
 function resetMapZoom(){if(mapZoom)d3.select('#mapSvg').transition().duration(300).call(mapZoom.transform,d3.zoomIdentity)}
