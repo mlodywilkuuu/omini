@@ -1,131 +1,2336 @@
+```html
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TikTok Live Game - Ranking Krajów</title>
-    <!-- Socket.io klienta -->
-    <script src="/socket.io/socket.io.js"></script>
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Millionaire City</title>
 
-        body {
-            background: transparent; /* Przezroczyste tło idealne pod OBS */
-            color: #fff;
-            padding: 20px;
-        }
+<style>
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+}
 
-        #scoreboard {
-            width: 350px;
-            background: rgba(0, 0, 0, 0.75);
-            border-radius: 12px;
-            padding: 15px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(5px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
+:root{
+    --bg:#07101f;
+    --panel:rgba(16,27,48,.78);
+    --panel2:rgba(20,35,61,.88);
+    --border:rgba(255,255,255,.10);
+    --text:#f5f7ff;
+    --muted:#91a0bb;
+    --accent:#7c5cff;
+    --accent2:#00d4ff;
+    --green:#27e58a;
+    --red:#ff5c75;
+    --gold:#ffc857;
+}
 
-        h2 {
-            text-align: center;
-            font-size: 20px;
-            margin-bottom: 15px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: #ff0050; /* TikTokowy różowy akcent */
-            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
-            padding-bottom: 8px;
-        }
+body{
+    min-height:100vh;
+    font-family:Inter,Segoe UI,Arial,sans-serif;
+    color:var(--text);
+    background:
+        radial-gradient(circle at 10% 10%,rgba(124,92,255,.22),transparent 28%),
+        radial-gradient(circle at 90% 20%,rgba(0,212,255,.15),transparent 28%),
+        radial-gradient(circle at 50% 100%,rgba(39,229,138,.08),transparent 30%),
+        var(--bg);
+    overflow-x:hidden;
+}
 
-        #team-list {
-            list-style: none;
-            max-height: 500px;
-            overflow-y: auto;
-        }
+body:before{
+    content:"";
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+    background:
+        linear-gradient(115deg,transparent 0%,rgba(255,255,255,.025) 50%,transparent 100%);
+    animation:bgMove 10s linear infinite;
+}
 
-        .team-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: rgba(255, 255, 255, 0.05);
-            margin-bottom: 8px;
-            padding: 10px 12px;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-            border-left: 4px solid #fe2c55;
-        }
+@keyframes bgMove{
+    from{transform:translateX(-20%)}
+    to{transform:translateX(20%)}
+}
 
-        .team-info {
-            display: flex;
-            flex-direction: column;
-        }
+button{
+    font-family:inherit;
+}
 
-        .team-name {
-            font-weight: bold;
-            font-size: 16px;
-        }
+.app{
+    display:flex;
+    min-height:100vh;
+}
 
-        .team-players {
-            font-size: 11px;
-            color: #aaa;
-        }
+/* SIDEBAR */
 
-        .team-points {
-            font-size: 18px;
-            font-weight: bold;
-            color: #00f2fe; /* Niebieski akcent TikTok Live */
-        }
+.sidebar{
+    width:245px;
+    padding:22px 16px;
+    background:rgba(5,12,25,.82);
+    border-right:1px solid var(--border);
+    backdrop-filter:blur(22px);
+    position:fixed;
+    left:0;
+    top:0;
+    bottom:0;
+    z-index:20;
+}
 
-        .empty-notice {
-            text-align: center;
-            color: #777;
-            font-style: italic;
-            padding: 20px 0;
-        }
-    </style>
+.logo{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:10px;
+    margin-bottom:28px;
+}
+
+.logo-icon{
+    width:45px;
+    height:45px;
+    border-radius:14px;
+    display:grid;
+    place-items:center;
+    font-size:23px;
+    background:linear-gradient(135deg,var(--accent),var(--accent2));
+    box-shadow:0 10px 35px rgba(124,92,255,.35);
+}
+
+.logo h1{
+    font-size:18px;
+}
+
+.logo span{
+    display:block;
+    color:var(--muted);
+    font-size:11px;
+    margin-top:3px;
+}
+
+.nav{
+    display:flex;
+    flex-direction:column;
+    gap:7px;
+}
+
+.nav button{
+    border:1px solid transparent;
+    color:#aab6ce;
+    background:transparent;
+    padding:13px 14px;
+    border-radius:13px;
+    text-align:left;
+    cursor:pointer;
+    font-size:14px;
+    transition:.2s;
+}
+
+.nav button:hover{
+    background:rgba(255,255,255,.05);
+    color:white;
+}
+
+.nav button.active{
+    color:white;
+    background:linear-gradient(135deg,rgba(124,92,255,.25),rgba(0,212,255,.08));
+    border-color:rgba(124,92,255,.28);
+}
+
+.sidebar-bottom{
+    position:absolute;
+    left:16px;
+    right:16px;
+    bottom:20px;
+}
+
+.reset-btn{
+    width:100%;
+    border:1px solid rgba(255,92,117,.2);
+    color:#ff8296;
+    background:rgba(255,92,117,.07);
+    padding:11px;
+    border-radius:11px;
+    cursor:pointer;
+}
+
+/* MAIN */
+
+.main{
+    margin-left:245px;
+    width:calc(100% - 245px);
+    padding:22px;
+}
+
+.topbar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:15px;
+    margin-bottom:20px;
+}
+
+.page-title h2{
+    font-size:27px;
+}
+
+.page-title p{
+    color:var(--muted);
+    font-size:13px;
+    margin-top:4px;
+}
+
+.resources{
+    display:flex;
+    gap:9px;
+    flex-wrap:wrap;
+    justify-content:flex-end;
+}
+
+.resource{
+    min-width:120px;
+    padding:11px 14px;
+    border:1px solid var(--border);
+    border-radius:14px;
+    background:var(--panel);
+    backdrop-filter:blur(18px);
+}
+
+.resource small{
+    color:var(--muted);
+    display:block;
+    font-size:10px;
+    margin-bottom:4px;
+}
+
+.resource strong{
+    font-size:15px;
+}
+
+/* DASHBOARD */
+
+.stats{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:14px;
+    margin-bottom:18px;
+}
+
+.card{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:18px;
+    padding:18px;
+    backdrop-filter:blur(18px);
+    box-shadow:0 15px 50px rgba(0,0,0,.15);
+}
+
+.stat{
+    position:relative;
+    overflow:hidden;
+}
+
+.stat:after{
+    content:"";
+    position:absolute;
+    width:80px;
+    height:80px;
+    right:-30px;
+    top:-30px;
+    border-radius:50%;
+    background:rgba(124,92,255,.15);
+}
+
+.stat-label{
+    color:var(--muted);
+    font-size:12px;
+}
+
+.stat-value{
+    font-size:24px;
+    font-weight:800;
+    margin-top:7px;
+}
+
+.stat-sub{
+    margin-top:7px;
+    font-size:11px;
+    color:var(--green);
+}
+
+.grid-layout{
+    display:grid;
+    grid-template-columns:1fr 340px;
+    gap:18px;
+}
+
+.city-panel{
+    min-height:650px;
+}
+
+.panel-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:15px;
+}
+
+.panel-header h3{
+    font-size:16px;
+}
+
+.panel-header span{
+    color:var(--muted);
+    font-size:11px;
+}
+
+.city-map{
+    position:relative;
+    min-height:570px;
+    padding:18px;
+    border-radius:20px;
+    overflow:hidden;
+    background:
+        linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),
+        linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px),
+        linear-gradient(145deg,#10223a,#0a1729);
+    background-size:40px 40px,40px 40px,100% 100%;
+    border:1px solid rgba(255,255,255,.08);
+}
+
+.city-map:before{
+    content:"";
+    position:absolute;
+    width:160%;
+    height:80px;
+    left:-30%;
+    top:45%;
+    background:rgba(75,90,110,.20);
+    transform:rotate(-9deg);
+    border-top:2px solid rgba(255,255,255,.04);
+    border-bottom:2px solid rgba(255,255,255,.04);
+}
+
+.city-map:after{
+    content:"";
+    position:absolute;
+    width:100px;
+    height:160%;
+    left:48%;
+    top:-30%;
+    background:rgba(75,90,110,.17);
+    transform:rotate(9deg);
+}
+
+.tiles{
+    position:relative;
+    z-index:2;
+    display:grid;
+    grid-template-columns:repeat(6,1fr);
+    gap:10px;
+}
+
+.tile{
+    aspect-ratio:1/1;
+    min-height:72px;
+    border:1px dashed rgba(255,255,255,.14);
+    border-radius:14px;
+    background:rgba(255,255,255,.025);
+    cursor:pointer;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    transition:.2s;
+    position:relative;
+}
+
+.tile:hover{
+    transform:translateY(-3px);
+    border-color:rgba(124,92,255,.6);
+    background:rgba(124,92,255,.08);
+}
+
+.tile.locked{
+    cursor:not-allowed;
+    opacity:.4;
+}
+
+.tile.locked:hover{
+    transform:none;
+    border-color:rgba(255,255,255,.14);
+}
+
+.tile.empty:after{
+    content:"+";
+    font-size:25px;
+    color:#61708c;
+}
+
+.building-icon{
+    font-size:30px;
+    filter:drop-shadow(0 5px 10px rgba(0,0,0,.35));
+}
+
+.building-name{
+    font-size:9px;
+    color:#d8deeb;
+    margin-top:5px;
+    text-align:center;
+    max-width:85px;
+}
+
+.building-level{
+    position:absolute;
+    right:5px;
+    top:5px;
+    background:rgba(0,0,0,.45);
+    border-radius:6px;
+    padding:2px 5px;
+    font-size:8px;
+}
+
+/* RIGHT PANEL */
+
+.side-column{
+    display:flex;
+    flex-direction:column;
+    gap:18px;
+}
+
+.build-list{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    max-height:430px;
+    overflow:auto;
+    padding-right:3px;
+}
+
+.build-item{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:11px;
+    border:1px solid var(--border);
+    border-radius:13px;
+    background:rgba(255,255,255,.025);
+}
+
+.build-item-icon{
+    width:38px;
+    height:38px;
+    display:grid;
+    place-items:center;
+    border-radius:10px;
+    background:rgba(255,255,255,.06);
+    font-size:21px;
+}
+
+.build-info{
+    flex:1;
+}
+
+.build-info strong{
+    display:block;
+    font-size:12px;
+}
+
+.build-info small{
+    color:var(--muted);
+    font-size:9px;
+}
+
+.build-btn{
+    border:0;
+    border-radius:9px;
+    padding:8px 9px;
+    color:white;
+    background:linear-gradient(135deg,var(--accent),#6245db);
+    cursor:pointer;
+    font-size:10px;
+    font-weight:700;
+}
+
+.build-btn:disabled{
+    opacity:.35;
+    cursor:not-allowed;
+}
+
+/* PROGRESS */
+
+.progress{
+    height:8px;
+    background:rgba(255,255,255,.07);
+    border-radius:99px;
+    overflow:hidden;
+    margin-top:9px;
+}
+
+.progress div{
+    height:100%;
+    width:0;
+    border-radius:99px;
+    background:linear-gradient(90deg,var(--accent),var(--accent2));
+    transition:.4s;
+}
+
+/* QUESTS */
+
+.quest{
+    padding:10px;
+    border-radius:12px;
+    background:rgba(255,255,255,.025);
+    border:1px solid var(--border);
+    margin-bottom:8px;
+}
+
+.quest-top{
+    display:flex;
+    justify-content:space-between;
+    font-size:11px;
+}
+
+.quest-top span{
+    color:var(--gold);
+}
+
+.quest small{
+    color:var(--muted);
+}
+
+/* EVENT */
+
+.event{
+    display:flex;
+    gap:10px;
+    align-items:center;
+}
+
+.event-icon{
+    font-size:27px;
+}
+
+.event-text strong{
+    font-size:12px;
+    display:block;
+}
+
+.event-text p{
+    color:var(--muted);
+    font-size:10px;
+    margin-top:3px;
+}
+
+/* MODAL */
+
+.modal{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.65);
+    backdrop-filter:blur(8px);
+    z-index:100;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+}
+
+.modal.show{
+    display:flex;
+}
+
+.modal-box{
+    width:min(560px,100%);
+    background:#101b30;
+    border:1px solid rgba(255,255,255,.12);
+    border-radius:22px;
+    padding:22px;
+    box-shadow:0 30px 100px rgba(0,0,0,.55);
+    animation:modalIn .2s ease;
+}
+
+@keyframes modalIn{
+    from{opacity:0;transform:translateY(15px) scale(.98)}
+    to{opacity:1;transform:none}
+}
+
+.modal-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:18px;
+}
+
+.close{
+    border:0;
+    background:rgba(255,255,255,.07);
+    color:white;
+    width:34px;
+    height:34px;
+    border-radius:10px;
+    cursor:pointer;
+}
+
+.build-options{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:10px;
+}
+
+.option{
+    padding:14px;
+    border:1px solid var(--border);
+    border-radius:14px;
+    background:rgba(255,255,255,.025);
+    cursor:pointer;
+    transition:.2s;
+}
+
+.option:hover{
+    border-color:var(--accent);
+    background:rgba(124,92,255,.08);
+}
+
+.option-icon{
+    font-size:27px;
+}
+
+.option strong{
+    display:block;
+    margin-top:7px;
+    font-size:12px;
+}
+
+.option small{
+    color:var(--muted);
+    font-size:9px;
+    display:block;
+    margin-top:4px;
+}
+
+.action-row{
+    display:flex;
+    gap:8px;
+    margin-top:18px;
+}
+
+.action{
+    flex:1;
+    padding:11px;
+    border:0;
+    border-radius:11px;
+    cursor:pointer;
+    color:white;
+    font-weight:700;
+}
+
+.primary{
+    background:linear-gradient(135deg,var(--accent),var(--accent2));
+}
+
+.secondary{
+    background:rgba(255,255,255,.08);
+}
+
+/* TOAST */
+
+.toast{
+    position:fixed;
+    right:22px;
+    bottom:22px;
+    background:#111d32;
+    border:1px solid var(--border);
+    border-radius:13px;
+    padding:13px 17px;
+    box-shadow:0 20px 50px rgba(0,0,0,.4);
+    transform:translateY(100px);
+    opacity:0;
+    transition:.3s;
+    z-index:200;
+    font-size:12px;
+}
+
+.toast.show{
+    transform:none;
+    opacity:1;
+}
+
+.money-float{
+    position:fixed;
+    pointer-events:none;
+    color:var(--green);
+    font-weight:800;
+    z-index:250;
+    animation:moneyUp 1.2s ease forwards;
+}
+
+@keyframes moneyUp{
+    from{opacity:1;transform:translateY(0)}
+    to{opacity:0;transform:translateY(-60px)}
+}
+
+/* RESPONSIVE */
+
+@media(max-width:1100px){
+    .stats{
+        grid-template-columns:repeat(2,1fr);
+    }
+
+    .grid-layout{
+        grid-template-columns:1fr;
+    }
+
+    .side-column{
+        display:grid;
+        grid-template-columns:1fr 1fr;
+    }
+}
+
+@media(max-width:760px){
+    .sidebar{
+        width:70px;
+        padding:15px 8px;
+    }
+
+    .logo{
+        justify-content:center;
+    }
+
+    .logo-text,
+    .nav button span,
+    .sidebar-bottom{
+        display:none;
+    }
+
+    .nav button{
+        text-align:center;
+        padding:13px 4px;
+        font-size:18px;
+    }
+
+    .main{
+        margin-left:70px;
+        width:calc(100% - 70px);
+        padding:12px;
+    }
+
+    .topbar{
+        align-items:flex-start;
+        flex-direction:column;
+    }
+
+    .resources{
+        justify-content:flex-start;
+    }
+
+    .stats{
+        grid-template-columns:1fr 1fr;
+    }
+
+    .side-column{
+        display:flex;
+    }
+
+    .tiles{
+        grid-template-columns:repeat(4,1fr);
+    }
+
+    .city-map{
+        padding:10px;
+    }
+}
+
+@media(max-width:480px){
+    .stats{
+        grid-template-columns:1fr;
+    }
+
+    .tiles{
+        grid-template-columns:repeat(3,1fr);
+    }
+
+    .build-options{
+        grid-template-columns:1fr;
+    }
+
+    .resource{
+        min-width:105px;
+    }
+}
+</style>
 </head>
+
 <body>
 
-    <div id="scoreboard">
-        <h2>Ranking Drużyn</h2>
-        <ul id="team-list">
-            <li class="empty-notice">Czekam na wpisy z czatu...</li>
-        </ul>
+<div class="app">
+
+<aside class="sidebar">
+
+    <div class="logo">
+        <div class="logo-icon">🏙️</div>
+        <div class="logo-text">
+            <h1>Millionaire City</h1>
+            <span>Build your empire</span>
+        </div>
     </div>
 
-    <script>
-        const socket = io();
-        const list = document.getElementById('team-list');
+    <nav class="nav">
+        <button class="active" onclick="showSection('city',this)">🏙️ <span>Miasto</span></button>
+        <button onclick="showSection('economy',this)">💰 <span>Ekonomia</span></button>
+        <button onclick="showSection('quests',this)">🎯 <span>Zadania</span></button>
+        <button onclick="showSection('events',this)">⚡ <span>Wydarzenia</span></button>
+    </nav>
 
-        socket.on('updateData', (teams) => {
-            list.innerHTML = '';
+    <div class="sidebar-bottom">
+        <button class="reset-btn" onclick="resetGame()">↻ Reset gry</button>
+    </div>
 
-            // Konwersja obiektu na tablicę i sortowanie malejąco po punktach
-            const sortedTeams = Object.entries(teams).sort((a, b) => b[1].points - a[1].points);
+</aside>
 
-            if (sortedTeams.length === 0) {
-                list.innerHTML = '<li class="empty-notice">Czekam na wpisy z czatu...</li>';
-                return;
-            }
+<main class="main">
 
-            sortedTeams.forEach(([teamName, data], index) => {
-                const li = document.createElement('li');
-                li.className = 'team-item';
-                
-                li.innerHTML = `
-                    <div class="team-info">
-                        <span class="team-name">${index + 1}. ${teamName}</span>
-                        <span class="team-players">Graczy: ${data.players.length}</span>
+<header class="topbar">
+
+    <div class="page-title">
+        <h2 id="pageTitle">Moje Miasto</h2>
+        <p>Rozbuduj małą osadę i zostań właścicielem wielkiej metropolii.</p>
+    </div>
+
+    <div class="resources">
+        <div class="resource">
+            <small>💵 GOTÓWKA</small>
+            <strong id="money">$25,000</strong>
+        </div>
+
+        <div class="resource">
+            <small>📈 DOCHÓD</small>
+            <strong id="income">$0/s</strong>
+        </div>
+
+        <div class="resource">
+            <small>👥 POPULACJA</small>
+            <strong id="population">0</strong>
+        </div>
+    </div>
+
+</header>
+
+<section id="citySection">
+
+<div class="stats">
+
+    <div class="card stat">
+        <div class="stat-label">Poziom miasta</div>
+        <div class="stat-value" id="level">1</div>
+        <div class="progress">
+            <div id="xpBar"></div>
+        </div>
+        <div class="stat-sub" id="xpText">0 / 100 XP</div>
+    </div>
+
+    <div class="card stat">
+        <div class="stat-label">Budynki</div>
+        <div class="stat-value" id="buildingCount">0</div>
+        <div class="stat-sub">maks. 30 działek</div>
+    </div>
+
+    <div class="card stat">
+        <div class="stat-label">Wartość miasta</div>
+        <div class="stat-value" id="cityValue">$0</div>
+        <div class="stat-sub">wartość nieruchomości</div>
+    </div>
+
+    <div class="card stat">
+        <div class="stat-label">Szczęście</div>
+        <div class="stat-value" id="happiness">100%</div>
+        <div class="stat-sub">zadowolenie mieszkańców</div>
+    </div>
+
+</div>
+
+<div class="grid-layout">
+
+<div class="card city-panel">
+
+    <div class="panel-header">
+        <h3>🗺️ Mapa miasta</h3>
+        <span id="cityRank">Mała osada</span>
+    </div>
+
+    <div class="city-map">
+        <div class="tiles" id="tiles"></div>
+    </div>
+
+</div>
+
+<div class="side-column">
+
+    <div class="card">
+
+        <div class="panel-header">
+            <h3>🏗️ Budowa</h3>
+            <span>kliknij działkę</span>
+        </div>
+
+        <div class="build-list" id="buildList"></div>
+
+    </div>
+
+    <div class="card">
+
+        <div class="panel-header">
+            <h3>🎯 Zadania</h3>
+        </div>
+
+        <div id="miniQuests"></div>
+
+    </div>
+
+    <div class="card">
+
+        <div class="panel-header">
+            <h3>⚡ Ostatnie wydarzenie</h3>
+        </div>
+
+        <div class="event">
+            <div class="event-icon" id="eventIcon">🌆</div>
+            <div class="event-text">
+                <strong id="eventTitle">Miasto właśnie powstało!</strong>
+                <p id="eventText">Czas zacząć budowę.</p>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+</div>
+
+</section>
+
+<section id="economySection" style="display:none">
+
+<div class="card">
+    <div class="panel-header">
+        <h3>💰 Ekonomia miasta</h3>
+    </div>
+
+    <div class="stats">
+        <div class="card stat">
+            <div class="stat-label">Dochód na sekundę</div>
+            <div class="stat-value" id="ecoIncome">$0</div>
+        </div>
+
+        <div class="card stat">
+            <div class="stat-label">Koszty na sekundę</div>
+            <div class="stat-value" id="ecoExpenses">$0</div>
+        </div>
+
+        <div class="card stat">
+            <div class="stat-label">Bilans</div>
+            <div class="stat-value" id="ecoBalance">$0</div>
+        </div>
+
+        <div class="card stat">
+            <div class="stat-label">Wartość miasta</div>
+            <div class="stat-value" id="ecoValue">$0</div>
+        </div>
+    </div>
+
+    <p style="color:var(--muted);font-size:13px;line-height:1.7">
+        Każdy budynek generuje własny dochód. Rozwijaj miasto, aby zwiększać
+        przychody i odblokowywać bardziej dochodowe inwestycje.
+    </p>
+</div>
+
+</section>
+
+<section id="questsSection" style="display:none">
+
+<div class="card">
+
+    <div class="panel-header">
+        <h3>🎯 Zadania miasta</h3>
+    </div>
+
+    <div id="allQuests"></div>
+
+</div>
+
+</section>
+
+<section id="eventsSection" style="display:none">
+
+<div class="card">
+
+    <div class="panel-header">
+        <h3>⚡ Wydarzenia</h3>
+    </div>
+
+    <div id="eventHistory"></div>
+
+</div>
+
+</section>
+
+</main>
+
+</div>
+
+<!-- BUILD MODAL -->
+
+<div class="modal" id="buildModal">
+
+<div class="modal-box">
+
+    <div class="modal-head">
+        <div>
+            <h3>🏗️ Zbuduj obiekt</h3>
+            <p style="color:var(--muted);font-size:11px;margin-top:4px">
+                Wybierz inwestycję dla tej działki.
+            </p>
+        </div>
+
+        <button class="close" onclick="closeModal()">×</button>
+    </div>
+
+    <div class="build-options" id="modalOptions"></div>
+
+</div>
+
+</div>
+
+<!-- BUILDING MODAL -->
+
+<div class="modal" id="buildingModal">
+
+<div class="modal-box">
+
+    <div class="modal-head">
+
+        <div>
+            <h3 id="selectedBuildingName">Budynek</h3>
+            <p id="selectedBuildingInfo" style="color:var(--muted);font-size:11px;margin-top:4px"></p>
+        </div>
+
+        <button class="close" onclick="closeBuildingModal()">×</button>
+
+    </div>
+
+    <div class="card">
+
+        <div style="display:flex;align-items:center;gap:15px">
+
+            <div id="selectedBuildingIcon" style="font-size:55px"></div>
+
+            <div>
+                <div style="color:var(--muted);font-size:11px">Poziom</div>
+                <div style="font-size:25px;font-weight:800" id="selectedLevel">1</div>
+                <div style="color:var(--green);font-size:11px" id="selectedIncome">$0/s</div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="action-row">
+
+        <button class="action primary" id="upgradeBtn">
+            ⬆️ Ulepsz
+        </button>
+
+        <button class="action secondary" id="sellBtn">
+            🗑️ Sprzedaj
+        </button>
+
+    </div>
+
+</div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+
+/* =========================================
+   DANE GRY
+========================================= */
+
+const BUILDINGS = {
+
+    house:{
+        name:"Dom",
+        icon:"🏠",
+        cost:1500,
+        income:35,
+        population:8,
+        xp:10,
+        value:1500,
+        category:"Mieszkalne"
+    },
+
+    apartment:{
+        name:"Apartamentowiec",
+        icon:"🏢",
+        cost:7000,
+        income:180,
+        population:40,
+        xp:35,
+        value:7000,
+        unlock:3,
+        category:"Mieszkalne"
+    },
+
+    office:{
+        name:"Biuro",
+        icon:"🏬",
+        cost:5000,
+        income:250,
+        population:15,
+        xp:30,
+        value:5000,
+        unlock:2,
+        category:"Biznes"
+    },
+
+    shop:{
+        name:"Sklep",
+        icon:"🛍️",
+        cost:3500,
+        income:150,
+        population:5,
+        xp:20,
+        value:3500,
+        unlock:2,
+        category:"Handel"
+    },
+
+    restaurant:{
+        name:"Restauracja",
+        icon:"🍔",
+        cost:4500,
+        income:210,
+        population:10,
+        xp:25,
+        value:4500,
+        unlock:2,
+        category:"Gastronomia"
+    },
+
+    hotel:{
+        name:"Hotel",
+        icon:"🏨",
+        cost:15000,
+        income:750,
+        population:50,
+        xp:70,
+        value:15000,
+        unlock:5,
+        category:"Turystyka"
+    },
+
+    factory:{
+        name:"Fabryka",
+        icon:"🏭",
+        cost:12000,
+        income:850,
+        population:20,
+        xp:80,
+        value:12000,
+        unlock:6,
+        category:"Przemysł"
+    },
+
+    park:{
+        name:"Park",
+        icon:"🌳",
+        cost:2000,
+        income:0,
+        population:0,
+        happiness:8,
+        xp:15,
+        value:2000,
+        unlock:2,
+        category:"Rekreacja"
+    },
+
+    hospital:{
+        name:"Szpital",
+        icon:"🏥",
+        cost:25000,
+        income:900,
+        population:100,
+        happiness:12,
+        xp:120,
+        value:25000,
+        unlock:10,
+        category:"Usługi"
+    },
+
+    stadium:{
+        name:"Stadion",
+        icon:"🏟️",
+        cost:50000,
+        income:2500,
+        population:150,
+        happiness:20,
+        xp:200,
+        value:50000,
+        unlock:15,
+        category:"Atrakcje"
+    },
+
+    mall:{
+        name:"Centrum handlowe",
+        icon:"🏬",
+        cost:40000,
+        income:2200,
+        population:80,
+        happiness:5,
+        xp:180,
+        value:40000,
+        unlock:12,
+        category:"Handel"
+    },
+
+    skyscraper:{
+        name:"Wieżowiec",
+        icon:"🏙️",
+        cost:100000,
+        income:6000,
+        population:300,
+        xp:350,
+        value:100000,
+        unlock:20,
+        category:"Biznes"
+    }
+
+};
+
+const QUESTS = [
+
+    {
+        id:"houses5",
+        title:"Pierwsza dzielnica",
+        text:"Wybuduj 5 domów.",
+        reward:5000,
+        xp:50,
+        check:()=>countType("house")>=5
+    },
+
+    {
+        id:"population100",
+        title:"Nowi mieszkańcy",
+        text:"Osiągnij 100 mieszkańców.",
+        reward:8000,
+        xp:80,
+        check:()=>state.population>=100
+    },
+
+    {
+        id:"income500",
+        title:"Pierwszy biznes",
+        text:"Osiągnij $500/s dochodu.",
+        reward:10000,
+        xp:100,
+        check:()=>getIncome()>=500
+    },
+
+    {
+        id:"level5",
+        title:"Rozwijające się miasto",
+        text:"Osiągnij poziom 5.",
+        reward:15000,
+        xp:150,
+        check:()=>state.level>=5
+    },
+
+    {
+        id:"build10",
+        title:"Miejski deweloper",
+        text:"Wybuduj 10 obiektów.",
+        reward:25000,
+        xp:200,
+        check:()=>state.buildings.length>=10
+    }
+
+];
+
+
+/* =========================================
+   STAN
+========================================= */
+
+let state = {
+
+    money:25000,
+    xp:0,
+    level:1,
+    buildings:[],
+    population:0,
+    happiness:100,
+    completedQuests:[],
+    events:[
+        {
+            icon:"🌆",
+            title:"Miasto właśnie powstało!",
+            text:"Czas zacząć budowę."
+        }
+    ]
+
+};
+
+let selectedTile = null;
+let selectedBuilding = null;
+
+
+/* =========================================
+   ZAPIS
+========================================= */
+
+function save(){
+
+    localStorage.setItem(
+        "millionaireCitySave",
+        JSON.stringify(state)
+    );
+
+}
+
+function load(){
+
+    const saved = localStorage.getItem("millionaireCitySave");
+
+    if(saved){
+
+        try{
+            state = JSON.parse(saved);
+        }catch(e){
+            console.log("Błąd zapisu");
+        }
+
+    }
+
+}
+
+
+/* =========================================
+   FORMATOWANIE
+========================================= */
+
+function money(n){
+
+    n = Math.floor(n);
+
+    if(n>=1000000000)
+        return "$"+(n/1000000000).toFixed(2)+"B";
+
+    if(n>=1000000)
+        return "$"+(n/1000000).toFixed(2)+"M";
+
+    if(n>=1000)
+        return "$"+(n/1000).toFixed(1)+"K";
+
+    return "$"+n.toLocaleString("pl-PL");
+
+}
+
+function number(n){
+
+    return Math.floor(n).toLocaleString("pl-PL");
+
+}
+
+
+/* =========================================
+   OBLICZENIA
+========================================= */
+
+function countType(type){
+
+    return state.buildings.filter(b=>b.type===type).length;
+
+}
+
+function getBuildingIncome(building){
+
+    const data = BUILDINGS[building.type];
+
+    return data.income * building.level;
+
+}
+
+function getIncome(){
+
+    return state.buildings.reduce(
+        (sum,b)=>sum+getBuildingIncome(b),
+        0
+    );
+
+}
+
+function getExpenses(){
+
+    return state.buildings.reduce(
+        (sum,b)=>{
+
+            const data = BUILDINGS[b.type];
+
+            return sum + Math.floor(data.cost*.015*b.level);
+
+        },
+        0
+    );
+
+}
+
+function getPopulation(){
+
+    return state.buildings.reduce(
+        (sum,b)=>{
+
+            const data = BUILDINGS[b.type];
+
+            return sum+(data.population*b.level);
+
+        },
+        0
+    );
+
+}
+
+function getValue(){
+
+    return state.buildings.reduce(
+        (sum,b)=>{
+
+            const data = BUILDINGS[b.type];
+
+            return sum+(data.value*b.level);
+
+        },
+        0
+    );
+
+}
+
+function getHappiness(){
+
+    let h = 100;
+
+    state.buildings.forEach(b=>{
+
+        const data = BUILDINGS[b.type];
+
+        if(data.happiness)
+            h += data.happiness*b.level;
+
+    });
+
+    return Math.min(100,Math.floor(h));
+
+}
+
+
+/* =========================================
+   POZIOM
+========================================= */
+
+function xpNeeded(){
+
+    return 100 + ((state.level-1)*100);
+
+}
+
+function addXP(amount){
+
+    state.xp += amount;
+
+    while(state.xp >= xpNeeded()){
+
+        state.xp -= xpNeeded();
+
+        state.level++;
+
+        toast("🎉 Awans! Miasto osiągnęło poziom "+state.level);
+
+        addEvent(
+            "⭐",
+            "Nowy poziom miasta",
+            "Twoje miasto osiągnęło poziom "+state.level+"."
+        );
+
+    }
+
+}
+
+
+/* =========================================
+   MAPA
+========================================= */
+
+function renderMap(){
+
+    const container = document.getElementById("tiles");
+
+    container.innerHTML="";
+
+    for(let i=0;i<30;i++){
+
+        const tile = document.createElement("div");
+
+        tile.className="tile";
+
+        const building = state.buildings.find(
+            b=>b.slot===i
+        );
+
+        if(building){
+
+            const data = BUILDINGS[building.type];
+
+            tile.innerHTML=`
+                <div class="building-icon">${data.icon}</div>
+                <div class="building-name">${data.name}</div>
+                <div class="building-level">Lv.${building.level}</div>
+            `;
+
+            tile.onclick=()=>openBuilding(building);
+
+        }else{
+
+            tile.classList.add("empty");
+
+            tile.onclick=()=>openBuildModal(i);
+
+        }
+
+        container.appendChild(tile);
+
+    }
+
+}
+
+
+/* =========================================
+   LISTA BUDYNKÓW
+========================================= */
+
+function renderBuildList(){
+
+    const list = document.getElementById("buildList");
+
+    list.innerHTML="";
+
+    Object.entries(BUILDINGS).forEach(([id,data])=>{
+
+        const unlocked = state.level >= (data.unlock || 1);
+
+        const affordable = state.money >= data.cost;
+
+        const item = document.createElement("div");
+
+        item.className="build-item";
+
+        item.innerHTML=`
+
+            <div class="build-item-icon">
+                ${data.icon}
+            </div>
+
+            <div class="build-info">
+
+                <strong>${data.name}</strong>
+
+                <small>
+                    ${unlocked
+                        ? money(data.cost)+" • +"+money(data.income)+"/s"
+                        : "🔒 Poziom "+data.unlock
+                    }
+                </small>
+
+            </div>
+
+            <button
+                class="build-btn"
+                ${!unlocked || !affordable ? "disabled":""}
+                onclick="quickBuild('${id}')"
+            >
+                ${unlocked ? "BUDUJ" : "🔒"}
+            </button>
+
+        `;
+
+        list.appendChild(item);
+
+    });
+
+}
+
+
+/* =========================================
+   MODAL BUDOWY
+========================================= */
+
+function openBuildModal(slot){
+
+    selectedTile = slot;
+
+    const modal = document.getElementById("buildModal");
+
+    const options = document.getElementById("modalOptions");
+
+    options.innerHTML="";
+
+    Object.entries(BUILDINGS).forEach(([id,data])=>{
+
+        const unlocked = state.level >= (data.unlock || 1);
+
+        const option = document.createElement("div");
+
+        option.className="option";
+
+        option.innerHTML=`
+
+            <div class="option-icon">${data.icon}</div>
+
+            <strong>${data.name}</strong>
+
+            <small>
+                ${
+                    unlocked
+                    ? money(data.cost)+" • +"+money(data.income)+"/s"
+                    : "🔒 Wymaga poziomu "+data.unlock
+                }
+            </small>
+
+        `;
+
+        if(unlocked){
+
+            option.onclick=()=>build(id);
+
+        }else{
+
+            option.style.opacity=".4";
+            option.style.cursor="not-allowed";
+
+        }
+
+        options.appendChild(option);
+
+    });
+
+    modal.classList.add("show");
+
+}
+
+function closeModal(){
+
+    document.getElementById("buildModal").classList.remove("show");
+
+}
+
+function quickBuild(type){
+
+    if(state.buildings.length>=30){
+
+        toast("❌ Brak wolnych działek");
+
+        return;
+
+    }
+
+    const free = [];
+
+    for(let i=0;i<30;i++){
+
+        if(!state.buildings.some(b=>b.slot===i))
+            free.push(i);
+
+    }
+
+    if(free.length)
+        openBuildModal(free[0]);
+
+}
+
+
+/* =========================================
+   BUDOWANIE
+========================================= */
+
+function build(type){
+
+    const data = BUILDINGS[type];
+
+    if(!data)
+        return;
+
+    if(state.money < data.cost){
+
+        toast("❌ Nie masz wystarczająco pieniędzy");
+
+        return;
+
+    }
+
+    if(state.level < (data.unlock || 1)){
+
+        toast("🔒 Odblokuj wyższy poziom");
+
+        return;
+
+    }
+
+    state.money -= data.cost;
+
+    const building = {
+
+        id:Date.now()+Math.random(),
+
+        type:type,
+
+        slot:selectedTile,
+
+        level:1
+
+    };
+
+    state.buildings.push(building);
+
+    addXP(data.xp);
+
+    state.population = getPopulation();
+
+    state.happiness = getHappiness();
+
+    save();
+
+    render();
+
+    closeModal();
+
+    toast("🏗️ Zbudowano: "+data.name);
+
+    addEvent(
+        data.icon,
+        "Nowy budynek",
+        "Wybudowano "+data.name+"."
+    );
+
+}
+
+
+/* =========================================
+   BUDYNEK
+========================================= */
+
+function openBuilding(building){
+
+    selectedBuilding = building;
+
+    const data = BUILDINGS[building.type];
+
+    document.getElementById("selectedBuildingName").textContent =
+        data.name;
+
+    document.getElementById("selectedBuildingInfo").textContent =
+        data.category;
+
+    document.getElementById("selectedBuildingIcon").textContent =
+        data.icon;
+
+    document.getElementById("selectedLevel").textContent =
+        building.level;
+
+    document.getElementById("selectedIncome").textContent =
+        money(getBuildingIncome(building))+"/s";
+
+    const upgradeCost =
+        Math.floor(data.cost * building.level * .8);
+
+    document.getElementById("upgradeBtn").textContent =
+        "⬆️ Ulepsz • "+money(upgradeCost);
+
+    document.getElementById("upgradeBtn").onclick =
+        upgradeSelected;
+
+    document.getElementById("sellBtn").onclick =
+        sellSelected;
+
+    document.getElementById("buildingModal").classList.add("show");
+
+}
+
+function closeBuildingModal(){
+
+    document
+        .getElementById("buildingModal")
+        .classList.remove("show");
+
+}
+
+function upgradeSelected(){
+
+    if(!selectedBuilding)
+        return;
+
+    const data = BUILDINGS[selectedBuilding.type];
+
+    const cost =
+        Math.floor(data.cost * selectedBuilding.level * .8);
+
+    if(state.money < cost){
+
+        toast("❌ Za mało pieniędzy");
+
+        return;
+
+    }
+
+    state.money -= cost;
+
+    selectedBuilding.level++;
+
+    addXP(Math.floor(data.xp*.5));
+
+    save();
+
+    render();
+
+    closeBuildingModal();
+
+    toast("⬆️ Budynek ulepszony!");
+
+}
+
+function sellSelected(){
+
+    if(!selectedBuilding)
+        return;
+
+    const data = BUILDINGS[selectedBuilding.type];
+
+    const value =
+        Math.floor(data.cost * selectedBuilding.level * .55);
+
+    state.money += value;
+
+    state.buildings =
+        state.buildings.filter(
+            b=>b.id!==selectedBuilding.id
+        );
+
+    save();
+
+    render();
+
+    closeBuildingModal();
+
+    toast("🗑️ Sprzedano za "+money(value));
+
+}
+
+
+/* =========================================
+   ZADANIA
+========================================= */
+
+function checkQuests(){
+
+    QUESTS.forEach(q=>{
+
+        if(
+            !state.completedQuests.includes(q.id) &&
+            q.check()
+        ){
+
+            state.completedQuests.push(q.id);
+
+            state.money += q.reward;
+
+            addXP(q.xp);
+
+            toast("🎯 Ukończono zadanie: "+q.title);
+
+            addEvent(
+                "🎯",
+                "Zadanie ukończone",
+                q.title+" • nagroda "+money(q.reward)
+            );
+
+        }
+
+    });
+
+}
+
+function renderQuests(){
+
+    const mini = document.getElementById("miniQuests");
+    const all = document.getElementById("allQuests");
+
+    mini.innerHTML="";
+    all.innerHTML="";
+
+    QUESTS.forEach(q=>{
+
+        const completed =
+            state.completedQuests.includes(q.id);
+
+        const progress =
+            q.id==="houses5"
+            ? Math.min(5,countType("house"))
+            : q.id==="population100"
+            ? Math.min(100,state.population)
+            : q.id==="income500"
+            ? Math.min(500,getIncome())
+            : q.id==="level5"
+            ? Math.min(5,state.level)
+            : Math.min(10,state.buildings.length);
+
+        const target =
+            q.id==="houses5"?5:
+            q.id==="population100"?100:
+            q.id==="income500"?500:
+            q.id==="level5"?5:10;
+
+        const html=`
+
+            <div class="quest">
+
+                <div class="quest-top">
+                    <strong>
+                        ${completed?"✅ ":""}${q.title}
+                    </strong>
+
+                    <span>
+                        ${completed?"DONE":"+"+money(q.reward)}
+                    </span>
+                </div>
+
+                <small>${q.text}</small>
+
+                <div class="progress">
+                    <div style="width:${completed?100:(progress/target*100)}%"></div>
+                </div>
+
+            </div>
+
+        `;
+
+        mini.innerHTML += html;
+        all.innerHTML += html;
+
+    });
+
+}
+
+
+/* =========================================
+   WYDARZENIA
+========================================= */
+
+function addEvent(icon,title,text){
+
+    state.events.unshift({
+        icon,
+        title,
+        text
+    });
+
+    state.events =
+        state.events.slice(0,15);
+
+    renderEvents();
+
+}
+
+function renderEvents(){
+
+    const container =
+        document.getElementById("eventHistory");
+
+    container.innerHTML="";
+
+    state.events.forEach(e=>{
+
+        container.innerHTML += `
+
+            <div class="quest">
+
+                <div style="display:flex;gap:10px">
+
+                    <div style="font-size:25px">${e.icon}</div>
+
+                    <div>
+                        <strong>${e.title}</strong>
+                        <div style="color:var(--muted);font-size:10px;margin-top:4px">
+                            ${e.text}
+                        </div>
                     </div>
-                    <span class="team-points">${data.points} pkt</span>
-                `;
-                list.appendChild(li);
-            });
-        });
-    </script>
+
+                </div>
+
+            </div>
+
+        `;
+
+    });
+
+}
+
+
+/* =========================================
+   WIDOKI
+========================================= */
+
+function showSection(section,button){
+
+    document
+        .getElementById("citySection")
+        .style.display =
+        section==="city" ? "block":"none";
+
+    document
+        .getElementById("economySection")
+        .style.display =
+        section==="economy" ? "block":"none";
+
+    document
+        .getElementById("questsSection")
+        .style.display =
+        section==="quests" ? "block":"none";
+
+    document
+        .getElementById("eventsSection")
+        .style.display =
+        section==="events" ? "block":"none";
+
+    document.querySelectorAll(".nav button")
+        .forEach(b=>b.classList.remove("active"));
+
+    button.classList.add("active");
+
+    const titles={
+        city:"Moje Miasto",
+        economy:"Ekonomia",
+        quests:"Zadania",
+        events:"Wydarzenia"
+    };
+
+    document.getElementById("pageTitle").textContent =
+        titles[section];
+
+}
+
+
+/* =========================================
+   RENDER
+========================================= */
+
+function render(){
+
+    state.population = getPopulation();
+    state.happiness = getHappiness();
+
+    document.getElementById("money").textContent =
+        money(state.money);
+
+    document.getElementById("income").textContent =
+        money(getIncome())+"/s";
+
+    document.getElementById("population").textContent =
+        number(state.population);
+
+    document.getElementById("level").textContent =
+        state.level;
+
+    document.getElementById("buildingCount").textContent =
+        state.buildings.length;
+
+    document.getElementById("cityValue").textContent =
+        money(getValue());
+
+    document.getElementById("happiness").textContent =
+        state.happiness+"%";
+
+    document.getElementById("ecoIncome").textContent =
+        money(getIncome());
+
+    document.getElementById("ecoExpenses").textContent =
+        money(getExpenses());
+
+    document.getElementById("ecoBalance").textContent =
+        money(getIncome()-getExpenses());
+
+    document.getElementById("ecoValue").textContent =
+        money(getValue());
+
+    document.getElementById("xpText").textContent =
+        state.xp+" / "+xpNeeded()+" XP";
+
+    document.getElementById("xpBar").style.width =
+        Math.min(100,state.xp/xpNeeded()*100)+"%";
+
+    document.getElementById("cityRank").textContent =
+        getRank();
+
+    renderMap();
+    renderBuildList();
+    renderQuests();
+    renderEvents();
+
+}
+
+
+/* =========================================
+   RANGA MIASTA
+========================================= */
+
+function getRank(){
+
+    if(state.level>=100)
+        return "🌎 Global City";
+
+    if(state.level>=75)
+        return "🏙️ Megapolis";
+
+    if(state.level>=50)
+        return "🌆 Wielka metropolia";
+
+    if(state.level>=25)
+        return "🏢 Metropolia";
+
+    if(state.level>=10)
+        return "🌇 Miasto";
+
+    if(state.level>=5)
+        return "🏘️ Miasteczko";
+
+    return "🏡 Mała osada";
+
+}
+
+
+/* =========================================
+   TOAST
+========================================= */
+
+let toastTimer;
+
+function toast(text){
+
+    const t =
+        document.getElementById("toast");
+
+    t.textContent=text;
+
+    t.classList.add("show");
+
+    clearTimeout(toastTimer);
+
+    toastTimer =
+        setTimeout(
+            ()=>t.classList.remove("show"),
+            2300
+        );
+
+}
+
+
+/* =========================================
+   PIENIĄDZE
+========================================= */
+
+function moneyAnimation(amount){
+
+    if(amount<=0)
+        return;
+
+    const el =
+        document.createElement("div");
+
+    el.className="money-float";
+
+    el.textContent =
+        "+"+money(amount);
+
+    el.style.right =
+        (100+Math.random()*150)+"px";
+
+    el.style.top =
+        (80+Math.random()*80)+"px";
+
+    document.body.appendChild(el);
+
+    setTimeout(
+        ()=>el.remove(),
+        1300
+    );
+
+}
+
+
+/* =========================================
+   TICK
+========================================= */
+
+setInterval(()=>{
+
+    const income = getIncome();
+    const expenses = getExpenses();
+
+    const balance =
+        income-expenses;
+
+    state.money += balance;
+
+    if(balance>0)
+        moneyAnimation(balance);
+
+    checkQuests();
+
+    save();
+
+    render();
+
+},1000);
+
+
+/* =========================================
+   LOSOWE WYDARZENIA
+========================================= */
+
+setInterval(()=>{
+
+    if(state.buildings.length===0)
+        return;
+
+    const events=[
+
+        {
+            icon:"📈",
+            title:"Boom gospodarczy",
+            text:"Popyt wzrósł! Otrzymujesz dodatkowe $2,000.",
+            money:2000
+        },
+
+        {
+            icon:"🎉",
+            title:"Festiwal miejski",
+            text:"Mieszkańcy świetnie się bawią.",
+            money:1500
+        },
+
+        {
+            icon:"🏢",
+            title:"Nowa inwestycja",
+            text:"Inwestorzy zauważyli rozwój twojego miasta.",
+            money:3000
+        },
+
+        {
+            icon:"🚗",
+            title:"Korek w centrum",
+            text:"Problemy komunikacyjne zmniejszyły dochód.",
+            money:-1000
+        }
+
+    ];
+
+    const event =
+        events[Math.floor(Math.random()*events.length)];
+
+    state.money += event.money;
+
+    addEvent(
+        event.icon,
+        event.title,
+        event.text
+    );
+
+    toast(
+        event.money>=0
+        ? "⚡ "+event.title+" +"+money(event.money)
+        : "⚡ "+event.title+" "+money(event.money)
+    );
+
+    save();
+    render();
+
+},45000);
+
+
+/* =========================================
+   RESET
+========================================= */
+
+function resetGame(){
+
+    if(
+        !confirm(
+            "Czy na pewno chcesz usunąć całe miasto i rozpocząć od początku?"
+        )
+    )
+        return;
+
+    localStorage.removeItem("millionaireCitySave");
+
+    state={
+
+        money:25000,
+        xp:0,
+        level:1,
+        buildings:[],
+        population:0,
+        happiness:100,
+        completedQuests:[],
+        events:[
+            {
+                icon:"🌆",
+                title:"Miasto właśnie powstało!",
+                text:"Czas zacząć budowę."
+            }
+        ]
+
+    };
+
+    render();
+
+    toast("↻ Rozpoczęto nową grę");
+
+}
+
+
+/* =========================================
+   KLAWIATURA
+========================================= */
+
+document.addEventListener("keydown",e=>{
+
+    if(e.key==="Escape"){
+
+        closeModal();
+        closeBuildingModal();
+
+    }
+
+});
+
+
+/* =========================================
+   START
+========================================= */
+
+load();
+render();
+
+</script>
+
 </body>
 </html>
+```
