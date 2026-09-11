@@ -4218,279 +4218,209 @@ function setHint(text){
 
 
 /* =========================================================
-   CAMERA
+   CAMERA + MOUSE — STABILNA OBSŁUGA
 ========================================================= */
 
-const game=
- document.getElementById("game");
+const game=document.getElementById("game");
 
 let mouse={
-
- down:false,
- button:0,
-
- x:0,
- y:0,
-
- lastX:0,
- lastY:0,
-
- moved:false
+  down:false,
+  button:-1,
+  pointerId:null,
+  startX:0,
+  startY:0,
+  lastX:0,
+  lastY:0,
+  moved:false
 };
 
-
-function screenToWorld(
- clientX,
- clientY
-){
-
- const rect=
-  game.getBoundingClientRect();
-
- return{
-
-  x:
-   (clientX-
-    rect.left-
-    state.camera.x)
-   /
-   state.camera.zoom,
-
-  y:
-   (clientY-
-    rect.top-
-    state.camera.y)
-   /
-   state.camera.zoom
- };
+function screenToWorld(clientX,clientY){
+  const rect=game.getBoundingClientRect();
+  return {
+    x:(clientX-rect.left-state.camera.x)/state.camera.zoom,
+    y:(clientY-rect.top-state.camera.y)/state.camera.zoom
+  };
 }
-
 
 function applyCamera(){
-
- document.getElementById(
-  "world"
- ).style.transform=
-  `translate(${state.camera.x}px,${state.camera.y}px) scale(${state.camera.zoom})`;
-
- drawMinimap();
+  const world=document.getElementById("world");
+  world.style.transform=
+    `translate3d(${state.camera.x}px,${state.camera.y}px,0) scale(${state.camera.zoom})`;
+  drawMinimap();
 }
 
+/* Zoom zawsze odbywa się pod kursorem. */
+game.addEventListener("wheel",e=>{
+  e.preventDefault();
 
-game.addEventListener(
- "wheel",
- e=>{
+  const rect=game.getBoundingClientRect();
+
+  /* Nie zoomujemy gdy kursor jest nad panelem UI. */
+  if(e.clientX<rect.left || e.clientY<rect.top) return;
+
+  const worldBefore=screenToWorld(e.clientX,e.clientY);
+
+  const factor=e.deltaY<0 ? 1.12 : 0.89;
+  const oldZoom=state.camera.zoom;
+  const newZoom=clamp(oldZoom*factor,.35,1.75);
+
+  if(newZoom===oldZoom) return;
+
+  state.camera.zoom=newZoom;
+
+  /*
+    Zachowaj ten sam punkt świata pod kursorem.
+    To eliminuje "skakanie" mapy podczas zoomowania.
+  */
+  state.camera.x=
+    (e.clientX-rect.left)-
+    worldBefore.x*newZoom;
+
+  state.camera.y=
+    (e.clientY-rect.top)-
+    worldBefore.y*newZoom;
+
+  applyCamera();
+},{passive:false});
+
+/* Wyłącz menu przeglądarki — PPM służy do przesuwania mapy. */
+game.addEventListener("contextmenu",e=>{
+  e.preventDefault();
+});
+
+/* Pointer Events działają stabilniej niż osobne mouse events. */
+game.addEventListener("pointerdown",e=>{
+  if(e.button!==0 && e.button!==1 && e.button!==2) return;
 
   e.preventDefault();
 
-  const before=
-   screenToWorld(
-    e.clientX,
-    e.clientY
-   );
-
-  const factor=
-   e.deltaY<0
-   ?1.12
-   :.89;
-
-  state.camera.zoom=
-   clamp(
-    state.camera.zoom*factor,
-    .38,
-    1.45
-   );
-
-  const after=
-   screenToWorld(
-    e.clientX,
-    e.clientY
-   );
-
-  state.camera.x+=
-   (after.x-before.x)*
-   state.camera.zoom;
-
-  state.camera.y+=
-   (after.y-before.y)*
-   state.camera.zoom;
-
-  applyCamera();
-
- },
- {passive:false}
-);
-
-
-/* =========================================================
-   MOUSE
-========================================================= */
-
-game.addEventListener(
- "mousedown",
- e=>{
-
-  if(
-   e.button!==0 &&
-   e.button!==1 &&
-   e.button!==2
-  )
-   return;
-
   mouse.down=true;
   mouse.button=e.button;
-
-  mouse.x=e.clientX;
-  mouse.y=e.clientY;
-
+  mouse.pointerId=e.pointerId;
+  mouse.startX=e.clientX;
+  mouse.startY=e.clientY;
   mouse.lastX=e.clientX;
   mouse.lastY=e.clientY;
-
   mouse.moved=false;
 
-  const p=
-   screenToWorld(
-    e.clientX,
-    e.clientY
-   );
+  try{
+    game.setPointerCapture(e.pointerId);
+  }catch(err){}
 
-  if(
-   e.button===0 &&
-   BUILDINGS[state.selectedTool]
-  ){
+  const p=screenToWorld(e.clientX,e.clientY);
 
-   startBuildingLine(
-    p.x,
-    p.y
-   );
+  /*
+    LPM + wybrany budynek:
+    rozpoczynamy tryb rysowania rzędu działek.
+  */
+  if(e.button===0 && BUILDINGS[state.selectedTool]){
+    startBuildingLine(p.x,p.y);
   }
 
- }
-);
+  /*
+    LPM + droga:
+    również można malować drogę przeciągnięciem.
+  */
+  if(e.button===0 && state.selectedTool==="road"){
+    addRoad(p.x,p.y);
+    renderRoads();
+    updateUI();
+  }
+});
 
+window.addEventListener("pointermove",e=>{
+  if(!mouse.down || e.pointerId!==mouse.pointerId) return;
 
-window.addEventListener(
- "mousemove",
- e=>{
+  const dx=e.clientX-mouse.startX;
+  const dy=e.clientY-mouse.startY;
 
-  if(!mouse.down)
-   return;
+  if(Math.abs(dx)>5 || Math.abs(dy)>5)
+    mouse.moved=true;
 
-  const dx=
-   e.clientX-mouse.x;
-
-  const dy=
-   e.clientY-mouse.y;
-
-  if(
-   Math.abs(dx)+
-   Math.abs(dy)>5
-  )
-   mouse.moved=true;
-
-
-  if(
-   mouse.button===0 &&
-   placement.active
-  ){
-
-   const p=
-    screenToWorld(
-     e.clientX,
-     e.clientY
-    );
-
-   getLinePreview(
-    p.x,
-    p.y
-   );
-
-   return;
+  /*
+    Budowanie rzędu — LPM nie przesuwa wtedy kamery.
+  */
+  if(mouse.button===0 && placement.active){
+    const p=screenToWorld(e.clientX,e.clientY);
+    getLinePreview(p.x,p.y);
+    return;
   }
 
+  /*
+    Malowanie drogi.
+  */
+  if(mouse.button===0 && state.selectedTool==="road"){
+    const p=screenToWorld(e.clientX,e.clientY);
+    if(addRoad(p.x,p.y)){
+      renderRoads();
+      updateUI();
+    }
+    mouse.lastX=e.clientX;
+    mouse.lastY=e.clientY;
+    return;
+  }
 
-  if(
-   mouse.button===1||
-   mouse.button===2
-  ){
+  /*
+    PPM lub środkowy przycisk = PAN.
+  */
+  if(mouse.button===1 || mouse.button===2){
+    state.camera.x += e.clientX-mouse.lastX;
+    state.camera.y += e.clientY-mouse.lastY;
 
-   state.camera.x+=
-    e.clientX-mouse.lastX;
-
-   state.camera.y+=
-    e.clientY-mouse.lastY;
-
-   applyCamera();
+    applyCamera();
   }
 
   mouse.lastX=e.clientX;
   mouse.lastY=e.clientY;
+});
 
- }
-);
+window.addEventListener("pointerup",e=>{
+  if(!mouse.down || e.pointerId!==mouse.pointerId) return;
 
-
-window.addEventListener(
- "mouseup",
- e=>{
-
-  if(!mouse.down)
-   return;
-
-  const button=
-   mouse.button;
+  const button=mouse.button;
+  const moved=mouse.moved;
+  const p=screenToWorld(e.clientX,e.clientY);
 
   mouse.down=false;
+  mouse.button=-1;
 
-  if(
-   button===0 &&
-   placement.active
-  ){
+  try{
+    game.releasePointerCapture(e.pointerId);
+  }catch(err){}
 
-   if(mouse.moved){
-
-    commitBuildingLine();
-
-   }else{
-
-    const p=
-     screenToWorld(
-      e.clientX,
-      e.clientY
-     );
-
-    cancelBuildingLine();
-
-    handleWorldClick(
-     p.x,
-     p.y
-    );
-   }
-
-   return;
+  /*
+    Koniec rzędu budynków.
+  */
+  if(button===0 && placement.active){
+    if(moved){
+      commitBuildingLine();
+    }else{
+      cancelBuildingLine();
+      handleWorldClick(p.x,p.y);
+    }
+    return;
   }
 
-
-  if(
-   button===0 &&
-   !mouse.moved
-  ){
-
-   const p=
-    screenToWorld(
-     e.clientX,
-     e.clientY
-    );
-
-   handleWorldClick(
-    p.x,
-    p.y
-   );
+  /*
+    Pojedynczy klik.
+  */
+  if(button===0 && !moved){
+    handleWorldClick(p.x,p.y);
   }
+});
 
- }
-);
+window.addEventListener("pointercancel",e=>{
+  if(e.pointerId!==mouse.pointerId) return;
 
+  mouse.down=false;
+  mouse.button=-1;
+  cancelBuildingLine();
+});
+
+/* Dwuklik nie zaznacza tekstu itd. */
+game.addEventListener("dblclick",e=>{
+  e.preventDefault();
+});
 
 /* =========================================================
    WORLD CLICK
