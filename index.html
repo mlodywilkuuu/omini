@@ -8162,6 +8162,77 @@ setInterval(()=>{
 })();
 </script>
 
+
+<script id="v17-reset-fix">
+(function(){
+  'use strict';
+  const FORCE_RESET_KEY='ai_empire_force_reset_v17';
+  const ALL_SAVE_KEYS=[
+    'ai_empire_save_v2',
+    'ai_empire_save_v1',
+    'AI_EMPIRE_SAVE_V1',
+    'AI_EMPIRE_SAVE_V2',
+    'ai_empire_backup_v2'
+  ];
+
+  function wipeAllSaves(){
+    try{
+      ALL_SAVE_KEYS.forEach(k=>localStorage.removeItem(k));
+      // Remove any legacy AI Empire slots that previous versions may have created.
+      for(let i=localStorage.length-1;i>=0;i--){
+        const k=localStorage.key(i);
+        if(k && /^ai[_-]?empire/i.test(k)) localStorage.removeItem(k);
+      }
+    }catch(e){ console.warn('Reset cleanup error',e); }
+  }
+
+  // A hard-reset marker is checked before the normal loader can restore an old save.
+  try{
+    if(localStorage.getItem(FORCE_RESET_KEY)==='1'){
+      wipeAllSaves();
+      localStorage.removeItem(FORCE_RESET_KEY);
+    }
+  }catch(e){}
+
+  window.aiEmpireHardReset=function(){
+    if(!confirm('Na pewno zresetować CAŁY postęp gry? Wszystkie modele, produkty, pracownicy, GPU, udziały i pieniądze zostaną usunięte.')) return;
+    try{
+      localStorage.setItem(FORCE_RESET_KEY,'1');
+      wipeAllSaves();
+    }catch(e){}
+    location.reload();
+  };
+
+  // Replace every visible reset path, including the cheat console.
+  window.resetGame=window.aiEmpireHardReset;
+
+  const oldCheat=window.runCheatV16;
+  if(typeof oldCheat==='function'){
+    window.runCheatV16=function(command){
+      const c=String(command||'').trim().toLowerCase().replace(/\s+/g,' ');
+      if(c==='reset'){
+        window.aiEmpireHardReset();
+        return true;
+      }
+      return oldCheat(command);
+    };
+  }
+
+  const oldExecute=window.executeCheat;
+  window.executeCheat=function(){
+    const input=document.getElementById('cheatInput');
+    const value=input?input.value:'';
+    if(String(value).trim().toLowerCase().replace(/\s+/g,' ')==='reset'){
+      window.aiEmpireHardReset();
+      return;
+    }
+    if(typeof oldExecute==='function') return oldExecute();
+  };
+
+  // Also expose a direct console command for testing/resetting.
+  window.cheatReset=window.aiEmpireHardReset;
+})();
+</script>
 </body>
 </html>
 <!-- V14 FINAL OWNERSHIP CONTROL PATCH -->
