@@ -1099,6 +1099,11 @@ button{
             <span>Pracownicy</span>
         </button>
 
+        <button data-page="office">
+            <span class="nav-icon">🏢</span>
+            <span>Biuro</span>
+        </button>
+
         <button data-page="gpu">
             <span class="nav-icon">🎮</span>
             <span>GPU & Data Center</span>
@@ -1437,6 +1442,111 @@ button{
             <div class="employee-grid" style="padding:15px" id="employeeGrid"></div>
         </div>
 
+    </div>
+
+</section>
+
+
+<!-- OFFICE -->
+<section id="page-office" class="page">
+
+    <div class="topbar">
+        <div class="page-title">
+            <h1>Biuro</h1>
+            <p>Rozbudowuj siedzibę i zwiększaj maksymalną liczbę pracowników.</p>
+        </div>
+
+        <button class="btn primary" onclick="upgradeOffice()">⬆ Ulepsz biuro</button>
+    </div>
+
+    <div class="cards">
+        <div class="card">
+            <div class="stat-label">Poziom biura</div>
+            <div class="stat-value purple" id="officePageLevel">1</div>
+            <div class="stat-sub">Maksymalnie 200 poziomów</div>
+        </div>
+
+        <div class="card">
+            <div class="stat-label">Miejsca dla pracowników</div>
+            <div class="stat-value blue" id="officeCapacity">10</div>
+            <div class="stat-sub">10 miejsc za każdy poziom</div>
+        </div>
+
+        <div class="card">
+            <div class="stat-label">Zajęte miejsca</div>
+            <div class="stat-value green" id="officeOccupied">0</div>
+            <div class="stat-sub">Aktualne zatrudnienie</div>
+        </div>
+
+        <div class="card">
+            <div class="stat-label">Koszt następnego poziomu</div>
+            <div class="stat-value yellow" id="officeCost">$25.0K</div>
+            <div class="stat-sub">Cena rośnie wraz z poziomem</div>
+        </div>
+    </div>
+
+    <div class="grid2">
+        <div class="panel">
+            <div class="panel-pad">
+                <div class="section-head">
+                    <h2>Rozbudowa siedziby</h2>
+                    <span>Poziom <b id="officeLevelBig">1</b> / 200</span>
+                </div>
+
+                <div style="font-size:56px;margin:20px 0">🏢</div>
+
+                <div style="color:#a0a8b9;font-size:12px;line-height:1.7">
+                    Każdy poziom biura zwiększa limit zatrudnienia o 10 osób.
+                    Przy pełnej rozbudowie możesz mieć do 2000 pracowników.
+                </div>
+
+                <div style="margin-top:18px">
+                    <div class="section-head">
+                        <span>Wykorzystanie powierzchni</span>
+                        <span id="officeUsage">0%</span>
+                    </div>
+                    <div class="progress">
+                        <div id="officeUsageBar" style="width:0%"></div>
+                    </div>
+                </div>
+
+                <button class="btn primary" style="margin-top:18px;width:100%" onclick="upgradeOffice()">
+                    ⬆ Rozbuduj do poziomu <span id="officeNextLevel">2</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-pad">
+                <div class="section-head">
+                    <h2>Korzyści</h2>
+                    <span>Automatyczne</span>
+                </div>
+            </div>
+            <div class="item-list">
+                <div class="list-item">
+                    <div class="item-icon">👥</div>
+                    <div class="item-main">
+                        <div class="item-title">+10 miejsc pracy</div>
+                        <div class="item-desc">Każdy poziom zwiększa pojemność zespołu.</div>
+                    </div>
+                </div>
+                <div class="list-item">
+                    <div class="item-icon">🧠</div>
+                    <div class="item-main">
+                        <div class="item-title">Większy potencjał R&D</div>
+                        <div class="item-desc">Większy zespół pozwala szybciej rozwijać AI.</div>
+                    </div>
+                </div>
+                <div class="list-item">
+                    <div class="item-icon">🚀</div>
+                    <div class="item-main">
+                        <div class="item-title">Skalowanie firmy</div>
+                        <div class="item-desc">Rozbudowuj firmę od startupu do ogromnej organizacji.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
 </section>
@@ -2075,9 +2185,9 @@ button{
    GAME ENGINE
 ========================================================= */
 
-const INITIAL_CASH = 500000;
+const INITIAL_CASH = 0;
 
-const SAVE_KEY = "ai_empire_save_v1";
+const SAVE_KEY = "ai_empire_save_v2";
 
 const modelTypes = {
     text:["💬","Text AI"],
@@ -2861,6 +2971,8 @@ function hireMaxStaff(){
 
 function officeUpgradeCost(){
 
+    if(game.officeLevel>=200) return 0;
+
     return Math.floor(
         25000*Math.pow(1.09,game.officeLevel-1)
     );
@@ -2868,6 +2980,13 @@ function officeUpgradeCost(){
 }
 
 function upgradeOffice(){
+
+    if(game.officeLevel>=200){
+
+        toast("🏢 Biuro ma już maksymalny poziom 200.");
+        return;
+
+    }
 
     const cost=officeUpgradeCost();
 
@@ -2892,6 +3011,7 @@ function upgradeOffice(){
     );
 
     renderAll();
+    saveGame();
 
 }
 
@@ -3935,6 +4055,8 @@ function renderAll(){
 
     renderEmployees();
 
+    renderOffice();
+
     renderGPU();
 
     renderResearch();
@@ -4472,6 +4594,31 @@ function renderEmployees(){
         `).join("");
 
     }
+
+}
+
+function renderOffice(){
+
+    const level=game.officeLevel||1;
+    const capacity=employeeCapacity();
+    const occupied=game.employees.length;
+    const usage=capacity?Math.min(100,occupied/capacity*100):0;
+
+    const set=(id,value)=>{
+        const el=document.getElementById(id);
+        if(el) el.textContent=value;
+    };
+
+    set("officePageLevel",level);
+    set("officeCapacity",capacity);
+    set("officeOccupied",occupied);
+    set("officeLevelBig",level);
+    set("officeUsage",Math.round(usage)+"%");
+    set("officeNextLevel",Math.min(200,level+1));
+    set("officeCost",level>=200?"MAX":money(officeUpgradeCost()));
+
+    const bar=document.getElementById("officeUsageBar");
+    if(bar) bar.style.width=usage+"%";
 
 }
 
