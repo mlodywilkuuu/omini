@@ -7471,5 +7471,165 @@ setInterval(()=>{
 })();
 </script>
 
+
+<script>
+/* =========================================================
+   V8 HOTFIX — authoritative operating costs + GPU inventory
+   Fixes:
+   - real wage drain every 5 seconds
+   - real GPU energy/maintenance drain every 5 seconds
+   - GPU count/compute always synchronized
+   - office/staff top counters synchronized
+   - prevents duplicate wage billing within the same period
+========================================================= */
+(function(){
+    let lastBilling = Number(game.__lastBilling)||Date.now();
+
+    function n(v, fallback=0){
+        v=Number(v);
+        return Number.isFinite(v)?v:fallback;
+    }
+
+    function capacity(){
+        const lvl=Math.min(200,Math.max(1,n(game.officeLevel,1)));
+        return lvl*10;
+    }
+
+    function set(id,value){
+        const el=document.getElementById(id);
+        if(el) el.textContent=value;
+    }
+
+    function syncCounters(){
+        game.gpu=n(game.gpu);
+        game.gpuCompute=n(game.gpuCompute);
+        game.dataCenterLevel=Math.max(1,n(game.dataCenterLevel,1));
+        game.officeLevel=Math.min(200,Math.max(1,n(game.officeLevel,1)));
+
+        set('cash',money(game.cash));
+        set('globalCash',money(game.cash));
+        set('gpuCount',game.gpu);
+        set('compute',game.gpuCompute);
+        set('gpuCapacity',gpuCapacity());
+        set('dcLevel','Poziom '+game.dataCenterLevel);
+        set('staff',game.employees.length+' / '+capacity());
+        set('staff2',game.employees.length+' / '+capacity());
+        set('officeLevel',game.officeLevel);
+        set('officeLevelBig',game.officeLevel);
+        set('officePageLevel',game.officeLevel);
+        set('officeCapacity',capacity());
+        set('officeOccupied',game.employees.length);
+
+        const usage=capacity()?Math.min(100,game.employees.length/capacity()*100):0;
+        set('officeUsage',Math.round(usage)+'%');
+        const officeBar=document.getElementById('officeUsageBar');
+        if(officeBar) officeBar.style.width=usage+'%';
+
+        const gpuUsage=game.gpuCapacity?0:0;
+        const gcap=game.dataCenterLevel*10;
+        const guse=gcap?Math.min(100,game.gpu/gcap*100):0;
+        set('gpuUsageText',Math.round(guse)+'%');
+        const gpuBar=document.getElementById('gpuUsageBar');
+        if(gpuBar) gpuBar.style.width=guse+'%';
+
+        if(typeof renderOffice==='function') renderOffice();
+        if(typeof renderGPU==='function') renderGPU();
+        if(typeof renderEmployees==='function') renderEmployees();
+        if(typeof renderTopStats==='function') renderTopStats();
+    }
+
+    function operatingCostPer5s(){
+        const wages=game.employees.reduce((sum,e)=>sum+n(e.salary),0);
+        const gpuEnergy=game.gpu*90;
+        const infra=Math.max(0,game.dataCenterLevel-1)*40;
+        return {wages,gpuEnergy,infra,total:wages+gpuEnergy+infra};
+    }
+
+    function billOperatingCosts(){
+        const now=Date.now();
+        if(now-lastBilling<5000) return;
+        lastBilling=now;
+        game.__lastBilling=now;
+
+        const costs=operatingCostPer5s();
+        if(costs.total<=0) return;
+
+        /* The main simulation already reports expenses. This hotfix makes the
+           operating-cost charge authoritative and visible even when an older
+           tick implementation failed to run. */
+        game.cash-=costs.total;
+        if(game.cash<0) game.cash=0;
+        game.totalExpenses=n(game.totalExpenses)+costs.total;
+
+        if(game.finances && game.finances.spending){
+            game.finances.spending.salaries=n(game.finances.spending.salaries)+costs.wages;
+            game.finances.spending.gpu=n(game.finances.spending.gpu)+costs.gpuEnergy;
+        }
+
+        if(Array.isArray(game.expenseHistory)){
+            game.expenseHistory.push(costs.total);
+            game.expenseHistory=game.expenseHistory.slice(-10);
+        }
+
+        showMoneyAnimation(-costs.total);
+        addActivity('💸','Koszty operacyjne: −'+money(costs.total));
+        saveGame();
+        syncCounters();
+    }
+
+    /* Replace GPU purchase globally with an authoritative inventory update. */
+    window.buyGPU=function(cost,compute){
+        cost=n(cost,15000);
+        compute=n(compute,10);
+
+        game.gpu=n(game.gpu);
+        game.gpuCompute=n(game.gpuCompute);
+        game.dataCenterLevel=Math.max(1,n(game.dataCenterLevel,1));
+
+        const capacity=game.dataCenterLevel*10;
+        if(game.gpu>=capacity){
+            toast('🏢 Brak miejsca na kolejne GPU. Rozbuduj Data Center.');
+            syncCounters();
+            return;
+        }
+        if(game.cash<cost){
+            toast('❌ Za mało pieniędzy na zakup GPU. Potrzebujesz '+money(cost)+'.');
+            syncCounters();
+            return;
+        }
+
+        game.cash-=cost;
+        game.gpu+=1;
+        game.gpuCompute+=compute;
+        game.totalExpenses=n(game.totalExpenses)+cost;
+        if(game.finances && game.finances.spending){
+            game.finances.spending.gpu=n(game.finances.spending.gpu)+cost;
+        }
+        if(Array.isArray(game.expenseHistory)){
+            game.expenseHistory.push(cost);
+            game.expenseHistory=game.expenseHistory.slice(-10);
+        }
+
+        showMoneyAnimation(-cost);
+        addActivity('🎮','Kupiono GPU #'+game.gpu+' ('+compute+' Compute)');
+        toast('🎮 GPU dodane — teraz posiadasz '+game.gpu+' GPU.');
+        saveGame();
+        syncCounters();
+        if(typeof renderAll==='function') renderAll();
+    };
+
+    /* Force the current capacity to remain correct after office upgrades. */
+    window.aiEmpireCapacity=function(){ return capacity(); };
+
+    /* Continuous authoritative sync. */
+    setInterval(function(){
+        billOperatingCosts();
+        syncCounters();
+    },1000);
+
+    syncCounters();
+})();
+</script>
+
 </body>
 </html>
