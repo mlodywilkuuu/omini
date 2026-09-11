@@ -1,83 +1,7966 @@
-const specs = {
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Metro Empire — Transit Tycoon</title>
 
-    standard:{
-        name:"Metro M1",
-        cost:300000,
-        seats:160,
-        upkeep:35,
-        speed:70
-    },
+<style>
+:root{
+    --bg:#05070d;
+    --panel:#0d1220;
+    --panel2:#12182a;
+    --border:rgba(255,255,255,.09);
+    --text:#f4f7ff;
+    --muted:#8e99ae;
+    --cyan:#37d7ff;
+    --blue:#5d8dff;
+    --violet:#9868ff;
+    --green:#33e58c;
+    --red:#ff5871;
+    --yellow:#ffd166;
+}
 
-    rapid:{
-        name:"Rapid R2",
-        cost:550000,
-        seats:220,
-        upkeep:48,
-        speed:95
-    },
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+}
 
-    premium:{
-        name:"Premium P4",
-        cost:900000,
-        seats:300,
-        upkeep:65,
-        speed:110
-    },
+html,
+body{
+    min-height:100%;
+    background:
+        radial-gradient(
+            circle at 8% 0%,
+            rgba(93,141,255,.14),
+            transparent 30%
+        ),
+        radial-gradient(
+            circle at 100% 10%,
+            rgba(55,215,255,.08),
+            transparent 25%
+        ),
+        radial-gradient(
+            circle at 60% 100%,
+            rgba(152,104,255,.08),
+            transparent 28%
+        ),
+        var(--bg);
+    color:var(--text);
+    font-family:Inter,Segoe UI,Arial,sans-serif;
+}
 
-    autonomous:{
-        name:"AutoRail X",
-        cost:1800000,
-        seats:360,
-        upkeep:80,
-        speed:125
-    },
+body{
+    overflow-x:hidden;
+}
 
-    double:{
-        name:"Metro M2 Double",
-        cost:2200000,
-        seats:500,
-        upkeep:110,
-        speed:85
-    },
+button,
+input,
+select,
+textarea{
+    font:inherit;
+}
 
-    maglev:{
-        name:"MagLev M7",
-        cost:4500000,
-        seats:620,
-        upkeep:170,
-        speed:160
-    },
+button{
+    cursor:pointer;
+}
 
-    hyperloop:{
-        name:"HyperRail H1",
-        cost:8500000,
-        seats:900,
-        upkeep:290,
-        speed:220
-    },
+.app{
+    display:flex;
+    min-height:100vh;
+}
 
-    quantum:{
-        name:"QuantumRail Q",
-        cost:15000000,
-        seats:1250,
-        upkeep:450,
-        speed:280
-    },
+/* SIDEBAR */
 
-    titan:{
-        name:"Titan Metro T9",
-        cost:30000000,
-        seats:1800,
-        upkeep:800,
-        speed:320
-    },
+.sidebar{
+    position:fixed;
+    left:0;
+    top:0;
+    bottom:0;
+    width:245px;
+    padding:20px 14px;
+    background:rgba(7,10,17,.82);
+    border-right:1px solid var(--border);
+    backdrop-filter:blur(25px);
+    z-index:50;
+}
 
-    orbital:{
-        name:"Orbital X",
-        cost:75000000,
-        seats:3000,
-        upkeep:1600,
-        speed:400
+.brand{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:4px 8px 22px;
+}
+
+.brand-icon{
+    width:44px;
+    height:44px;
+    border-radius:14px;
+    display:grid;
+    place-items:center;
+    font-size:22px;
+    background:
+        linear-gradient(
+            135deg,
+            var(--cyan),
+            var(--violet)
+        );
+    box-shadow:
+        0 0 20px rgba(55,215,255,.18),
+        0 0 30px rgba(152,104,255,.18);
+}
+
+.brand-title{
+    font-size:16px;
+    font-weight:800;
+}
+
+.brand-sub{
+    color:var(--muted);
+    font-size:10px;
+    margin-top:2px;
+}
+
+.nav-title{
+    color:#58647a;
+    font-size:9px;
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:1.4px;
+    padding:8px 10px;
+}
+
+.nav{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+}
+
+.nav button{
+    width:100%;
+    border:1px solid transparent;
+    border-radius:10px;
+    padding:11px 12px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    color:#98a3b8;
+    background:transparent;
+    text-align:left;
+    transition:.2s ease;
+}
+
+.nav button:hover{
+    background:rgba(255,255,255,.035);
+    color:#fff;
+}
+
+.nav button.active{
+    color:#fff;
+    border-color:rgba(255,255,255,.05);
+    background:
+        linear-gradient(
+            90deg,
+            rgba(55,215,255,.11),
+            rgba(152,104,255,.14)
+        );
+    box-shadow:inset 2px 0 0 var(--cyan);
+}
+
+.nav-icon{
+    width:22px;
+    text-align:center;
+}
+
+.sidebar-bottom{
+    position:absolute;
+    left:14px;
+    right:14px;
+    bottom:15px;
+}
+
+.save-box{
+    padding:10px 12px;
+    border-radius:11px;
+    border:1px solid var(--border);
+    background:rgba(255,255,255,.025);
+    color:var(--muted);
+    font-size:10px;
+}
+
+/* MAIN */
+
+.main{
+    margin-left:245px;
+    width:calc(100% - 245px);
+    padding:20px 28px 60px;
+}
+
+.top-cash{
+    position:sticky;
+    top:10px;
+    z-index:35;
+    margin-bottom:18px;
+    padding:11px 14px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:15px;
+    background:rgba(13,18,32,.76);
+    border:1px solid var(--border);
+    border-radius:14px;
+    backdrop-filter:blur(18px);
+    box-shadow:0 14px 45px rgba(0,0,0,.18);
+}
+
+.cash-small{
+    color:var(--muted);
+    font-size:9px;
+    text-transform:uppercase;
+    letter-spacing:.9px;
+}
+
+.cash-value{
+    margin-top:2px;
+    font-size:22px;
+    font-weight:900;
+}
+
+.top-actions{
+    display:flex;
+    gap:7px;
+}
+
+/* BUTTONS */
+
+.btn{
+    border:1px solid var(--border);
+    background:#171e30;
+    color:#fff;
+    padding:9px 12px;
+    border-radius:9px;
+    font-size:11px;
+    transition:.2s ease;
+}
+
+.btn:hover{
+    transform:translateY(-1px);
+    background:#202a42;
+}
+
+.btn-primary{
+    border-color:transparent;
+    background:
+        linear-gradient(
+            135deg,
+            #2482ef,
+            #8d61ff
+        );
+    box-shadow:
+        0 10px 24px rgba(91,109,255,.19);
+}
+
+.btn-green{
+    color:var(--green);
+    border-color:rgba(51,229,140,.20);
+    background:rgba(51,229,140,.08);
+}
+
+.btn-red{
+    color:#ff7e90;
+    border-color:rgba(255,88,113,.20);
+    background:rgba(255,88,113,.07);
+}
+
+/* PAGES */
+
+.page{
+    display:none;
+}
+
+.page.active{
+    display:block;
+}
+
+.page-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:15px;
+    margin-bottom:18px;
+}
+
+.page-head h1{
+    font-size:27px;
+    letter-spacing:-.7px;
+}
+
+.page-head p{
+    margin-top:5px;
+    color:var(--muted);
+    font-size:12px;
+}
+
+/* CARDS */
+
+.cards{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:12px;
+    margin-bottom:14px;
+}
+
+.card{
+    position:relative;
+    overflow:hidden;
+    padding:15px;
+    border:1px solid var(--border);
+    border-radius:15px;
+    background:
+        linear-gradient(
+            145deg,
+            rgba(19,25,42,.95),
+            rgba(9,13,22,.95)
+        );
+    box-shadow:0 15px 40px rgba(0,0,0,.12);
+}
+
+.card::after{
+    content:"";
+    position:absolute;
+    width:110px;
+    height:110px;
+    right:-55px;
+    bottom:-55px;
+    border-radius:50%;
+    background:rgba(152,104,255,.06);
+}
+
+.card-label{
+    color:var(--muted);
+    font-size:9px;
+    letter-spacing:.7px;
+    text-transform:uppercase;
+}
+
+.card-value{
+    margin-top:7px;
+    font-size:23px;
+    font-weight:900;
+}
+
+.card-sub{
+    margin-top:5px;
+    color:#637089;
+    font-size:10px;
+}
+
+.green{
+    color:var(--green);
+}
+
+.red{
+    color:var(--red);
+}
+
+.blue{
+    color:var(--cyan);
+}
+
+.purple{
+    color:#c9b8ff;
+}
+
+.yellow{
+    color:var(--yellow);
+}
+
+/* GRID */
+
+.grid2{
+    display:grid;
+    grid-template-columns:1.35fr 1fr;
+    gap:14px;
+}
+
+.grid3{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:12px;
+}
+
+/* PANELS */
+
+.panel{
+    overflow:hidden;
+    border:1px solid var(--border);
+    border-radius:15px;
+    background:
+        linear-gradient(
+            145deg,
+            rgba(15,20,34,.96),
+            rgba(8,12,20,.96)
+        );
+    box-shadow:0 15px 45px rgba(0,0,0,.1);
+}
+
+.pad{
+    padding:16px;
+}
+
+.head{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:11px;
+}
+
+.head h2{
+    font-size:15px;
+}
+
+.muted{
+    color:var(--muted);
+    font-size:10px;
+}
+
+/* LIST */
+
+.list{
+    display:flex;
+    flex-direction:column;
+}
+
+.row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:12px 15px;
+    border-bottom:1px solid rgba(255,255,255,.045);
+}
+
+.row:last-child{
+    border-bottom:0;
+}
+
+.row-icon{
+    width:38px;
+    height:38px;
+    border-radius:10px;
+    display:grid;
+    place-items:center;
+    background:
+        linear-gradient(
+            135deg,
+            rgba(55,215,255,.08),
+            rgba(152,104,255,.13)
+        );
+    font-size:17px;
+}
+
+.row-main{
+    flex:1;
+}
+
+.row-title{
+    font-size:12px;
+    font-weight:800;
+}
+
+.row-desc{
+    margin-top:3px;
+    color:var(--muted);
+    font-size:9px;
+}
+
+.row-actions{
+    display:flex;
+    gap:6px;
+}
+
+/* TAGS */
+
+.tag{
+    display:inline-block;
+    margin-left:5px;
+    padding:3px 6px;
+    border-radius:5px;
+    background:rgba(152,104,255,.13);
+    color:#c9bbff;
+    font-size:8px;
+}
+
+/* CHART */
+
+.chart{
+    height:235px;
+    padding:17px;
+    display:flex;
+    align-items:flex-end;
+    gap:9px;
+    position:relative;
+    overflow:hidden;
+}
+
+.chart-grid{
+    position:absolute;
+    inset:17px 17px 34px;
+    background:
+        repeating-linear-gradient(
+            to top,
+            transparent 0,
+            transparent 43px,
+            rgba(255,255,255,.05) 44px
+        );
+}
+
+.bar-group{
+    position:relative;
+    z-index:2;
+    flex:1;
+    height:100%;
+    display:flex;
+    justify-content:center;
+    align-items:flex-end;
+    gap:3px;
+}
+
+.bar{
+    width:13px;
+    border-radius:5px 5px 2px 2px;
+    transition:height .4s;
+}
+
+.bar.income{
+    background:
+        linear-gradient(
+            #55f5ad,
+            #13b86f
+        );
+}
+
+.bar.expense{
+    background:
+        linear-gradient(
+            #ff7183,
+            #d92e4a
+        );
+}
+
+.bar-label{
+    position:absolute;
+    bottom:-24px;
+    color:#5e6c84;
+    font-size:8px;
+    left:50%;
+    transform:translateX(-50%);
+}
+
+.legend{
+    display:flex;
+    gap:15px;
+    color:var(--muted);
+    font-size:10px;
+    padding:0 16px 13px;
+}
+
+.legend span{
+    display:flex;
+    align-items:center;
+    gap:5px;
+}
+
+.legend i{
+    display:block;
+    width:8px;
+    height:8px;
+    border-radius:3px;
+}
+
+/* TILES */
+
+.tile{
+    padding:13px;
+    border:1px solid var(--border);
+    border-radius:12px;
+    background:rgba(255,255,255,.025);
+}
+
+.tile-top{
+    display:flex;
+    align-items:center;
+    gap:9px;
+}
+
+.tile-icon{
+    width:39px;
+    height:39px;
+    border-radius:10px;
+    display:grid;
+    place-items:center;
+    background:#182238;
+}
+
+.tile h3{
+    font-size:12px;
+}
+
+.tile p{
+    margin-top:5px;
+    color:var(--muted);
+    font-size:9px;
+    line-height:1.5;
+}
+
+/* PROGRESS */
+
+.progress{
+    width:100%;
+    height:7px;
+    border-radius:99px;
+    overflow:hidden;
+    background:#1a2030;
+}
+
+.progress > div{
+    height:100%;
+    border-radius:inherit;
+    background:
+        linear-gradient(
+            90deg,
+            var(--cyan),
+            var(--violet)
+        );
+    transition:width .35s;
+}
+
+/* FORMS */
+
+.field{
+    margin-bottom:12px;
+}
+
+.field label{
+    display:block;
+    margin-bottom:6px;
+    color:#7a879e;
+    font-size:9px;
+}
+
+.field input,
+.field select,
+.field textarea{
+    width:100%;
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:9px 10px;
+    background:#141b2b;
+    color:#fff;
+    outline:none;
+}
+
+.field select option{
+    background:#fff;
+    color:#111;
+}
+
+.inline{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+}
+
+/* MODAL */
+
+.modal-bg{
+    position:fixed;
+    inset:0;
+    z-index:100;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    background:rgba(0,0,0,.72);
+    backdrop-filter:blur(8px);
+}
+
+.modal-bg.open{
+    display:flex;
+}
+
+.modal{
+    width:min(680px,calc(100% - 22px));
+    max-height:88vh;
+    overflow:auto;
+    border:1px solid rgba(255,255,255,.12);
+    border-radius:16px;
+    background:#0e1422;
+    box-shadow:0 35px 100px rgba(0,0,0,.55);
+}
+
+.modal-head{
+    padding:15px 17px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    border-bottom:1px solid var(--border);
+}
+
+.modal-head h2{
+    font-size:15px;
+}
+
+.close{
+    width:28px;
+    height:28px;
+    border:0;
+    border-radius:8px;
+    background:#171e2c;
+    color:#fff;
+}
+
+.modal-body{
+    padding:17px;
+}
+
+.modal-footer{
+    display:flex;
+    justify-content:flex-end;
+    gap:7px;
+    padding:13px 17px;
+    border-top:1px solid var(--border);
+}
+
+/* MONEY */
+
+.money-float{
+    position:fixed;
+    z-index:1000;
+    pointer-events:none;
+    font-size:22px;
+    font-weight:900;
+    animation:moneyFloat 1.4s ease-out forwards;
+}
+
+.money-float.plus{
+    color:var(--green);
+    text-shadow:0 0 14px rgba(51,229,140,.5);
+}
+
+.money-float.minus{
+    color:var(--red);
+    text-shadow:0 0 14px rgba(255,88,113,.5);
+}
+
+@keyframes moneyFloat{
+    0%{
+        opacity:0;
+        transform:translate(-50%,20px) scale(.7);
+    }
+    15%{
+        opacity:1;
+        transform:translate(-50%,0) scale(1.08);
+    }
+    100%{
+        opacity:0;
+        transform:translate(-50%,-110px);
+    }
+}
+
+/* TOAST */
+
+.toast-box{
+    position:fixed;
+    right:18px;
+    bottom:18px;
+    z-index:150;
+    display:flex;
+    flex-direction:column;
+    gap:7px;
+}
+
+.toast{
+    padding:11px 13px;
+    border:1px solid var(--border);
+    border-radius:10px;
+    background:#141b2a;
+    box-shadow:0 15px 45px rgba(0,0,0,.4);
+    font-size:11px;
+    animation:toastIn .25s;
+}
+
+@keyframes toastIn{
+    from{
+        opacity:0;
+        transform:translateX(30px);
+    }
+    to{
+        opacity:1;
+        transform:translateX(0);
+    }
+}
+
+/* RESPONSIVE */
+
+@media(max-width:1100px){
+    .cards{
+        grid-template-columns:repeat(2,1fr);
     }
 
-};
+    .grid2{
+        grid-template-columns:1fr;
+    }
+
+    .grid3{
+        grid-template-columns:repeat(2,1fr);
+    }
+}
+
+@media(max-width:760px){
+
+    .sidebar{
+        width:65px;
+        padding:10px 6px;
+    }
+
+    .brand{
+        justify-content:center;
+    }
+
+    .brand-text,
+    .nav-title,
+    .nav-text,
+    .sidebar-bottom{
+        display:none;
+    }
+
+    .nav button{
+        justify-content:center;
+        padding:12px 6px;
+    }
+
+    .main{
+        margin-left:65px;
+        width:calc(100% - 65px);
+        padding:15px 11px 35px;
+    }
+
+    .cards{
+        grid-template-columns:1fr 1fr;
+    }
+
+    .grid3{
+        grid-template-columns:1fr;
+    }
+
+    .inline{
+        grid-template-columns:1fr;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<aside class="sidebar">
+
+    <div class="brand">
+
+        <div class="brand-icon">
+            🚇
+        </div>
+
+        <div class="brand-text">
+
+            <div class="brand-title">
+                Metro Empire
+            </div>
+
+            <div class="brand-sub">
+                Transit Tycoon
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="nav-title">
+        Operacje
+    </div>
+
+
+    <div class="nav">
+
+        <button
+            class="active"
+            data-page="dashboard"
+        >
+            <span class="nav-icon">⌂</span>
+            <span class="nav-text">
+                Dashboard
+            </span>
+        </button>
+
+
+        <button data-page="lines">
+            <span class="nav-icon">🛤️</span>
+            <span class="nav-text">
+                Linie
+            </span>
+        </button>
+
+
+        <button data-page="stations">
+            <span class="nav-icon">🚉</span>
+            <span class="nav-text">
+                Stacje
+            </span>
+        </button>
+
+
+        <button data-page="trains">
+            <span class="nav-icon">🚆</span>
+            <span class="nav-text">
+                Flota
+            </span>
+        </button>
+
+
+        <button data-page="contracts">
+            <span class="nav-icon">📄</span>
+            <span class="nav-text">
+                Kontrakty
+            </span>
+        </button>
+
+
+        <button data-page="employees">
+            <span class="nav-icon">👷</span>
+            <span class="nav-text">
+                Pracownicy
+            </span>
+        </button>
+
+
+        <button data-page="pricing">
+            <span class="nav-icon">💳</span>
+            <span class="nav-text">
+                Ceny i mandaty
+            </span>
+        </button>
+
+    </div>
+
+
+    <div class="nav-title">
+        Rynek
+    </div>
+
+
+    <div class="nav">
+
+        <button data-page="competition">
+
+            <span class="nav-icon">
+                🏢
+            </span>
+
+            <span class="nav-text">
+                Konkurencja
+            </span>
+
+        </button>
+
+
+        <button data-page="economy">
+
+            <span class="nav-icon">
+                📊
+            </span>
+
+            <span class="nav-text">
+                Ekonomia
+            </span>
+
+        </button>
+
+    </div>
+
+
+    <div class="sidebar-bottom">
+
+        <div
+            class="save-box"
+            id="saveStatus"
+        >
+            💾 Automatyczny zapis
+        </div>
+
+    </div>
+
+</aside>
+
+
+<main class="main">
+
+    <div class="top-cash">
+
+        <div>
+
+            <div class="cash-small">
+                Kasa firmy
+            </div>
+
+            <div
+                class="cash-value"
+                id="topCash"
+            >
+                $1.00M
+            </div>
+
+        </div>
+
+
+        <div class="top-actions">
+
+            <button
+                class="btn"
+                onclick="openCheats()"
+            >
+                ⌘ Cheaty
+            </button>
+
+
+            <button
+                class="btn"
+                onclick="manualSave()"
+            >
+                💾 Zapisz
+            </button>
+
+        </div>
+
+    </div>
+
+
+<!-- =====================================================
+     DASHBOARD
+===================================================== -->
+
+<section
+    class="page active"
+    id="page-dashboard"
+>
+
+    <div class="page-head">
+
+        <div>
+
+            <h1>
+                Dashboard
+            </h1>
+
+            <p>
+                Zbuduj największą sieć transportową w mieście.
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <div class="cards">
+
+        <div class="card">
+
+            <div class="card-label">
+                Gotówka
+            </div>
+
+            <div
+                class="card-value"
+                id="dCash"
+            >
+                $1.00M
+            </div>
+
+            <div class="card-sub">
+                dostępny kapitał
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="card-label">
+                Przychód / s
+            </div>
+
+            <div
+                class="card-value green"
+                id="dIncome"
+            >
+                $0
+            </div>
+
+            <div class="card-sub">
+                bilety + mandaty + kontrakty
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="card-label">
+                Pasażerowie
+            </div>
+
+            <div
+                class="card-value blue"
+                id="dPassengers"
+            >
+                0
+            </div>
+
+            <div class="card-sub">
+                podróże / minutę
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="card-label">
+                Sieć
+            </div>
+
+            <div
+                class="card-value purple"
+                id="dNetwork"
+            >
+                0 km
+            </div>
+
+            <div class="card-sub">
+                Linie:
+                <span id="dLines">
+                    0
+                </span>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="grid2">
+
+        <div class="panel">
+
+            <div class="pad">
+
+                <div class="head">
+
+                    <h2>
+                        Zarobki vs wydatki
+                    </h2>
+
+                    <span class="muted">
+                        ostatnie okresy
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <div
+                class="chart"
+                id="dashboardChart"
+            >
+                <div class="chart-grid"></div>
+            </div>
+
+
+            <div class="legend">
+
+                <span>
+
+                    <i
+                        style="background:var(--green)"
+                    ></i>
+
+                    Zarobki
+
+                </span>
+
+
+                <span>
+
+                    <i
+                        style="background:var(--red)"
+                    ></i>
+
+                    Wydatki
+
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <div class="panel">
+
+            <div class="pad">
+
+                <div class="head">
+
+                    <h2>
+                        Stan sieci
+                    </h2>
+
+                    <span class="muted">
+                        LIVE
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <div
+                class="list"
+                id="dashboardNetwork"
+            ></div>
+
+        </div>
+
+    </div>
+
+
+    <div
+        class="panel"
+        style="margin-top:14px"
+    >
+
+        <div class="pad">
+
+            <div class="head">
+
+                <h2>
+                    Aktywność
+                </h2>
+
+                <span class="muted">
+                    Ostatnie zdarzenia
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <div
+            class="list"
+            id="activity"
+        ></div>
+
+    </div>
+
+</section>
+
+
+<!-- =====================================================
+     LINES
+===================================================== -->
+
+<section
+    class="page"
+    id="page-lines"
+>
+
+    <div class="page-head">
+
+        <div>
+
+            <h1>
+                Linie metra
+            </h1>
+
+            <p>
+                Buduj trasy i zwiększaj zasięg miasta.
+            </p>
+
+        </div>
+
+
+        <button
+            class="btn btn-primary"
+            onclick="openLineModal()"
+        >
+            ＋ Nowa linia
+        </button>
+
+    </div>
+
+
+    <div class="cards">
+
+        <div class="card">
+
+            <div class="card-label">
+                Linie
+            </div>
+
+            <div
+                class="card-value"
+                id="lineCount"
+            >
+                0
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="card-label">
+                Długość sieci
+            </div>
+
+            <div
+                class="card-value blue"
+                id="networkKm"
+            >
+                0 km
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="card-label">
+                Przepustowość
+            </div>
+
+            <div
+                class="card-value purple"
+                id="capacity"
+            >
+                0
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="card-label">
+                Utrzymanie
+            </div>
+
+            <div
+                class="card-value red"
+                id="lineCosts"
+            >
+                $0/s
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="panel">
+
+        <div
+            class="list"
+            id="lineList"
+        ></div>
+
+    </div>
+
+</section>
+
+
+<!-- =====================================================
+     STATIONS
+===================================================== -->
+
+<section
+    class="page"
+    id="page-stations"
+>
+
+    <div class="page-head">
+
+        <div>
+
+            <h1>
+                Stacje
+            </h1>
+
+            <p>
+                Buduj lokalne stacje oraz ogromne węzły.
+            </p>
+
+        </div>
+
+
+        <button
+            class="btn btn-primary"
+            onclick="openStationModal()"
+        >
+            ＋ Zbuduj stację
+        </button>
+
+    </div>
+
+
+    <div class="cards">
+
+        <div class="card">
+
+            <div class="card-label">
+                Stacje
+            </div>
+
+            <div
+                class="card-value"
+                id="stationCount"
+            >
+                0
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="card-label">
+                Atrakcyjność
+            </div>
+
+            <div
+                class="card-value yellow"
+                id="stationRating"
+            >
+                0.0
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="card-label">
+                Pasażerowie / min
+            </div>
+
+            <div
+                class="card-value blue"
+                id="stationPassengers"
+            >
+                0
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="card-label">
+                Utrzymanie
+            </div>
+
+            <div
+                class="card-value red"
+                id="stationCosts"
+            >
+                $0/s
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="panel">
+
+        <div
+            class="grid3"
+            id="stationGrid"
+        ></div>
+
+    </div>
+
+</section>
+
+
+<!-- =====================================================
+     TRAINS
+===================================================== -->
+
+<section
+    class="page"
+    id="page-trains"
+>
+
+    <div class="page-head">
+
+        <div>
+
+            <h1>
+                Flota
+            </h1>
+
+            <p>
+                Od zwykłych wagonów po eksperymentalne pociągi przyszłości.
+            </p>
+
+        </div>
+
+
+        <button
+            class="btn btn-primary"
+            onclick="openTrainModal()"
+        >
+            ＋ Kup pociąg
+        </button>
+
+    </div>
+
+
+    <div class="cards">
+
+        <div class="card">
+
+            <div class="card-label">
+                Pociągi
+            </div>
+
+            <div
+                class="card-value"
+                id="trainCount"
+            >
+                0
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="card-label">
+                Miejsca
+            </div>
+
+            <div
+                class="card-value blue"
+                id="trainSeats"
+            >
+                0
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="card-label">
+                W ruchu
+            </div>
+
+            <div
+                class="card-value green"
+                id="activeTrains"
+            >
+                0
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="card-label">
+                Utrzymanie
+            </div>
+
+            <div
+                class="card-value red"
+                id="trainCosts"
+            >
+                $0/s
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="panel">
+
+        <div
+            class="list"
+            id="trainList"
+        ></div>
+
+    </div>
+
+</section>
+
+
+<!-- =====================================================
+     CONTRACTS
+===================================================== -->
+
+<section
+    class="page"
+    id="page-contracts"
+>
+
+    <div class="page-head">
+
+        <div>
+
+            <h1>
+                Kontrakty
+            </h1>
+
+            <p>
+                Miasto stale publikuje nowe zlecenia.
+            </p>
+
+        </div>
+
+
+        <button
+            class="btn"
+            onclick="generateContracts(3)"
+        >
+            ↻ Odśwież pulę
+        </button>
+
+    </div>
+
+
+    <div class="cards">
+
+        <div class="card">
+
+            <div class="card-label">
+                Aktywne
+            </div>
+
+            <div
+                class="card-value"
+                id="contractCount"
+            >
+                0
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="card-label">
+                Potencjalna wartość
+            </div>
+
+            <div
+                class="card-value green"
+                id="contractValue"
+            >
+                $0
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="card-label">
+                Ukończone
+            </div>
+
+            <div
+                class="card-value purple"
+                id="completedContracts"
+            >
+                0
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="card-label">
+                Reputacja
+            </div>
+
+            <div
+                class="card-value yellow"
+                id="reputation"
+            >
+                50
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="panel">
+
+        <div
+            class="grid3"
+            id="contractGrid"
+        ></div>
+
+    </div>
+
+</section>
+
+
+<!-- =====================================================
+     EMPLOYEES
+===================================================== -->
+
+<section
+    class="page"
+    id="page-employees"
+>
+
+    <div class="page-head">
+
+        <div>
+
+            <h1>
+                Pracownicy
+            </h1>
+
+            <p>
+                Rekrutuj ludzi i rozwijaj zespół operatora.
+            </p>
+
+        </div>
+
+
+        <div>
+
+            <button
+                class="btn btn-green"
+                onclick="generateCandidates(5)"
+            >
+                ↻ Nowi kandydaci
+            </button>
+
+            <button
+                class="btn"
+                onclick="maxStaff()"
+            >
+                ⚡ MAX STAFF
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <div class="cards">
+
+        <div class="card">
+
+            <div class="card-label">
+                Zespół
+            </div>
+
+            <div
+                class="card-value"
+                id="empCount"
+            >
+                0
+            </div>
+
+            <div class="card-sub">
+                Limit:
+                <span id="empCap">
+                    10
+                </span>
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="card-label">
+                Płace / s
+            </div>
+
+            <div
+                class="card-value red"
+                id="wageCost"
+            >
+                $0
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="card-label">
+                Średni skill
+            </div>
+
+            <div
+                class="card-value purple"
+                id="empSkill"
+            >
+                0
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="card-label">
+                Kandydaci
+            </div>
+
+            <div
+                class="card-value green"
+                id="candidateCount"
+            >
+                0
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div
+        class="panel"
+        style="margin-bottom:14px"
+    >
+
+        <div class="pad">
+
+            <div class="head">
+
+                <h2>
+                    Kandydaci
+                </h2>
+
+                <span class="muted">
+                    Generują się automatycznie
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <div
+            class="grid3"
+            id="candidateGrid"
+        ></div>
+
+    </div>
+
+
+    <div class="panel">
+
+        <div class="pad">
+
+            <div class="head">
+
+                <h2>
+                    Twój zespół
+                </h2>
+
+                <span class="muted">
+                    zatrudnieni
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <div
+            class="grid3"
+            id="employeeGrid"
+        ></div>
+
+    </div>
+
+</section>
+
+
+<!-- =====================================================
+     PRICING
+===================================================== -->
+
+<section
+    class="page"
+    id="page-pricing"
+>
+
+    <div class="page-head">
+
+        <div>
+
+            <h1>
+                💳 Ceny i mandaty
+            </h1>
+
+            <p>
+                Ustal ceny biletów i politykę kontroli.
+                Decyzje wpływają na frekwencję i przychody.
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <div class="cards">
+
+        <div class="card">
+
+            <div class="card-label">
+                Cena biletu
+            </div>
+
+            <div
+                class="card-value green"
+                id="ticketPriceDisplay"
+            >
+                $3.00
+            </div>
+
+            <div class="card-sub">
+                za przejazd
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="card-label">
+                Mandat
+            </div>
+
+            <div
+                class="card-value yellow"
+                id="fineDisplay"
+            >
+                $50
+            </div>
+
+            <div class="card-sub">
+                za brak biletu
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="card-label">
+                Przychody z biletów
+            </div>
+
+            <div
+                class="card-value blue"
+                id="pricingTicketIncome"
+            >
+                $0
+            </div>
+
+            <div class="card-sub">
+                łącznie
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="card-label">
+                Przychody z mandatów
+            </div>
+
+            <div
+                class="card-value purple"
+                id="pricingFineIncome"
+            >
+                $0
+            </div>
+
+            <div class="card-sub">
+                łącznie
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="grid2">
+
+        <div class="panel">
+
+            <div class="pad">
+
+                <div class="head">
+
+                    <h2>
+                        🎫 Cena biletu
+                    </h2>
+
+                    <span class="muted">
+                        $1 — $20
+                    </span>
+
+                </div>
+
+
+                <div class="field">
+
+                    <label>
+                        Cena za przejazd
+                    </label>
+
+                    <input
+                        id="ticketPriceInput"
+                        type="number"
+                        min="1"
+                        max="20"
+                        step=".5"
+                        value="3"
+                        oninput="previewPricing()"
+                    >
+
+                </div>
+
+
+                <div class="tile">
+
+                    <div class="tile-top">
+
+                        <div class="tile-icon">
+                            👥
+                        </div>
+
+                        <div>
+
+                            <h3>
+                                Przewidywana frekwencja
+                            </h3>
+
+                            <span id="pricingDemand">
+                                100%
+                            </span>
+
+                        </div>
+
+                    </div>
+
+
+                    <div
+                        class="progress"
+                        style="margin-top:10px"
+                    >
+
+                        <div
+                            id="pricingDemandBar"
+                            style="width:100%"
+                        ></div>
+
+                    </div>
+
+                </div>
+
+
+                <button
+                    class="btn btn-primary"
+                    style="width:100%;margin-top:12px"
+                    onclick="setTicketPrice()"
+                >
+                    💰 Ustaw cenę biletu
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <div class="panel">
+
+            <div class="pad">
+
+                <div class="head">
+
+                    <h2>
+                        🚨 Kontrola i mandaty
+                    </h2>
+
+                    <span class="muted">
+                        polityka kontroli
+                    </span>
+
+                </div>
+
+
+                <div class="field">
+
+                    <label>
+                        Wysokość mandatu
+                    </label>
+
+                    <input
+                        id="fineInput"
+                        type="number"
+                        min="0"
+                        max="500"
+                        step="5"
+                        value="50"
+                    >
+
+                </div>
+
+
+                <div class="field">
+
+                    <label>
+                        Intensywność kontroli
+                    </label>
+
+                    <select
+                        id="inspectionLevel"
+                    >
+
+                        <option value="low">
+                            Niska
+                        </option>
+
+                        <option
+                            value="normal"
+                            selected
+                        >
+                            Normalna
+                        </option>
+
+                        <option value="high">
+                            Wysoka
+                        </option>
+
+                        <option value="maximum">
+                            Maksymalna
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <button
+                    class="btn btn-primary"
+                    style="width:100%"
+                    onclick="setFinePolicy()"
+                >
+                    🚨 Zastosuj politykę
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div
+        class="panel"
+        style="margin-top:14px"
+    >
+
+        <div class="pad">
+
+            <div class="head">
+
+                <h2>
+                    📊 Aktualna polityka
+                </h2>
+
+                <span
+                    class="muted"
+                    id="pricingStatus"
+                >
+                    Aktywna
+                </span>
+
+            </div>
+
+
+            <div class="grid3">
+
+                <div class="tile">
+
+                    <div class="tile-top">
+
+                        <div class="tile-icon">
+                            🎫
+                        </div>
+
+                        <div>
+
+                            <h3>
+                                Bilet
+                            </h3>
+
+                            <span
+                                class="tag"
+                                id="pricingTicketTag"
+                            >
+                                $3.00
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                    <p>
+                        Cena przejazdu wpływa
+                        na popyt.
+                    </p>
+
+                </div>
+
+
+                <div class="tile">
+
+                    <div class="tile-top">
+
+                        <div class="tile-icon">
+                            🚨
+                        </div>
+
+                        <div>
+
+                            <h3>
+                                Mandat
+                            </h3>
+
+                            <span
+                                class="tag"
+                                id="pricingFineTag"
+                            >
+                                $50
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                    <p>
+                        Dodatkowy przychód
+                        z kontroli.
+                    </p>
+
+                </div>
+
+
+                <div class="tile">
+
+                    <div class="tile-top">
+
+                        <div class="tile-icon">
+                            👮
+                        </div>
+
+                        <div>
+
+                            <h3>
+                                Kontrole
+                            </h3>
+
+                            <span
+                                class="tag"
+                                id="pricingInspectionTag"
+                            >
+                                NORMAL
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                    <p>
+                        Więcej kontroli oznacza
+                        więcej mandatów i kosztów.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- =====================================================
+     COMPETITION
+===================================================== -->
+
+<section
+    class="page"
+    id="page-competition"
+>
+
+    <div class="page-head">
+
+        <div>
+
+            <h1>
+                Konkurencja
+            </h1>
+
+            <p>
+                Rywale rozwijają swoje sieci równolegle.
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <div class="cards">
+
+        <div class="card">
+
+            <div class="card-label">
+                Pozycja
+            </div>
+
+            <div
+                class="card-value purple"
+                id="rank"
+            >
+                #8
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="card-label">
+                Udział rynku
+            </div>
+
+            <div
+                class="card-value green"
+                id="marketShare"
+            >
+                0%
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="card-label">
+                Najsilniejszy rywal
+            </div>
+
+            <div
+                class="card-value"
+                id="topCompetitor"
+            >
+                —
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="card-label">
+                Presja
+            </div>
+
+            <div
+                class="card-value red"
+                id="marketPressure"
+            >
+                0%
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="panel">
+
+        <div
+            class="list"
+            id="competitorList"
+        ></div>
+
+    </div>
+
+</section>
+
+
+<!-- =====================================================
+     ECONOMY
+===================================================== -->
+
+<section
+    class="page"
+    id="page-economy"
+>
+
+    <div class="page-head">
+
+        <div>
+
+            <h1>
+                Ekonomia
+            </h1>
+
+            <p>
+                Przychody, wydatki oraz kondycja finansowa.
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <div class="cards">
+
+        <div class="card">
+
+            <div class="card-label">
+                Łączne przychody
+            </div>
+
+            <div
+                class="card-value green"
+                id="totalIncome"
+            >
+                $0
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="card-label">
+                Łączne wydatki
+            </div>
+
+            <div
+                class="card-value red"
+                id="totalExpenses"
+            >
+                $0
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="card-label">
+                Zysk netto
+            </div>
+
+            <div
+                class="card-value purple"
+                id="netProfit"
+            >
+                $0
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="card-label">
+                Bilety
+            </div>
+
+            <div
+                class="card-value blue"
+                id="ticketIncome"
+            >
+                $0
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="grid2">
+
+        <div class="panel">
+
+            <div class="pad">
+
+                <div class="head">
+
+                    <h2>
+                        Wykres finansowy
+                    </h2>
+
+                    <span class="muted">
+                        zielony / czerwony
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <div
+                class="chart"
+                id="economyChart"
+            >
+                <div class="chart-grid"></div>
+            </div>
+
+
+            <div class="legend">
+
+                <span>
+
+                    <i
+                        style="background:var(--green)"
+                    ></i>
+
+                    Zarobki
+
+                </span>
+
+
+                <span>
+
+                    <i
+                        style="background:var(--red)"
+                    ></i>
+
+                    Wydatki
+
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <div class="panel">
+
+            <div class="pad">
+
+                <div class="head">
+
+                    <h2>
+                        Koszty operacyjne
+                    </h2>
+
+                </div>
+
+            </div>
+
+
+            <div
+                class="list"
+                id="expenseBreakdown"
+            ></div>
+
+        </div>
+
+    </div>
+
+</section>
+
+</main>
+</div>
+
+
+<!-- =====================================================
+     LINE MODAL
+===================================================== -->
+
+<div
+    class="modal-bg"
+    id="lineModal"
+>
+
+<div class="modal">
+
+    <div class="modal-head">
+
+        <h2>
+            🛤️ Budowa nowej linii
+        </h2>
+
+        <button
+            class="close"
+            onclick="closeModal('lineModal')"
+        >
+            ×
+        </button>
+
+    </div>
+
+
+    <div class="modal-body">
+
+        <div class="inline">
+
+            <div class="field">
+
+                <label>
+                    Nazwa
+                </label>
+
+                <input
+                    id="lineName"
+                    placeholder="Linia Centrum — Lotnisko"
+                >
+
+            </div>
+
+
+            <div class="field">
+
+                <label>
+                    Rodzaj
+                </label>
+
+                <select id="lineType">
+
+                    <option value="metro">
+                        Metro
+                    </option>
+
+                    <option value="express">
+                        Metro Express
+                    </option>
+
+                    <option value="orbital">
+                        Obwodowa
+                    </option>
+
+                </select>
+
+            </div>
+
+        </div>
+
+
+        <div class="field">
+
+            <label>
+                Liczba odcinków
+            </label>
+
+            <input
+                id="lineSegments"
+                type="number"
+                min="1"
+                max="25"
+                value="3"
+            >
+
+        </div>
+
+
+        <div class="muted">
+
+            Koszt:
+            $25K za odcinek +
+            $5K uruchomienia.
+
+        </div>
+
+    </div>
+
+
+    <div class="modal-footer">
+
+        <button
+            class="btn"
+            onclick="closeModal('lineModal')"
+        >
+            Anuluj
+        </button>
+
+
+        <button
+            class="btn btn-primary"
+            onclick="createLine()"
+        >
+            Zbuduj linię
+        </button>
+
+    </div>
+
+</div>
+
+</div>
+
+
+<!-- =====================================================
+     STATION MODAL
+===================================================== -->
+
+<div
+    class="modal-bg"
+    id="stationModal"
+>
+
+<div class="modal">
+
+    <div class="modal-head">
+
+        <h2>
+            🚉 Budowa stacji
+        </h2>
+
+        <button
+            class="close"
+            onclick="closeModal('stationModal')"
+        >
+            ×
+        </button>
+
+    </div>
+
+
+    <div class="modal-body">
+
+        <div class="inline">
+
+            <div class="field">
+
+                <label>
+                    Nazwa
+                </label>
+
+                <input
+                    id="stationName"
+                    placeholder="Centralna"
+                >
+
+            </div>
+
+
+            <div class="field">
+
+                <label>
+                    Typ
+                </label>
+
+                <select id="stationType">
+
+                    <option value="local">
+                        Lokalna — $80K
+                    </option>
+
+                    <option value="hub">
+                        Węzeł — $180K
+                    </option>
+
+                    <option value="central">
+                        Centralna — $350K
+                    </option>
+
+                    <option value="airport">
+                        Lotniskowa — $750K
+                    </option>
+
+                </select>
+
+            </div>
+
+        </div>
+
+
+        <div class="field">
+
+            <label>
+                Linia
+            </label>
+
+            <select
+                id="stationLine"
+            ></select>
+
+        </div>
+
+    </div>
+
+
+    <div class="modal-footer">
+
+        <button
+            class="btn"
+            onclick="closeModal('stationModal')"
+        >
+            Anuluj
+        </button>
+
+
+        <button
+            class="btn btn-primary"
+            onclick="createStation()"
+        >
+            Zbuduj stację
+        </button>
+
+    </div>
+
+</div>
+
+</div>
+
+
+<!-- =====================================================
+     TRAIN MODAL
+===================================================== -->
+
+<div
+    class="modal-bg"
+    id="trainModal"
+>
+
+<div class="modal">
+
+    <div class="modal-head">
+
+        <h2>
+            🚆 Zakup pociągu
+        </h2>
+
+        <button
+            class="close"
+            onclick="closeModal('trainModal')"
+        >
+            ×
+        </button>
+
+    </div>
+
+
+    <div class="modal-body">
+
+        <div class="field">
+
+            <label>
+                Model
+            </label>
+
+            <select
+                id="trainType"
+            >
+
+                <option value="standard">
+                    Metro M1 — $300K — 160
+                </option>
+
+                <option value="rapid">
+                    Rapid R2 — $550K — 220
+                </option>
+
+                <option value="premium">
+                    Premium P4 — $900K — 300
+                </option>
+
+                <option value="autonomous">
+                    AutoRail X — $1.8M — 360
+                </option>
+
+                <option value="double">
+                    Metro M2 Double — $2.2M — 500
+                </option>
+
+                <option value="maglev">
+                    MagLev M7 — $4.5M — 620
+                </option>
+
+                <option value="hyper">
+                    HyperRail H1 — $8.5M — 900
+                </option>
+
+                <option value="quantum">
+                    QuantumRail Q — $15M — 1250
+                </option>
+
+                <option value="titan">
+                    Titan Metro T9 — $30M — 1800
+                </option>
+
+                <option value="orbital">
+                    Orbital X — $75M — 3000
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <div class="field">
+
+            <label>
+                Linia
+            </label>
+
+            <select
+                id="trainLine"
+            ></select>
+
+        </div>
+
+    </div>
+
+
+    <div class="modal-footer">
+
+        <button
+            class="btn"
+            onclick="closeModal('trainModal')"
+        >
+            Anuluj
+        </button>
+
+
+        <button
+            class="btn btn-primary"
+            onclick="buyTrain()"
+        >
+            Kup pociąg
+        </button>
+
+    </div>
+
+</div>
+
+</div>
+
+
+<!-- =====================================================
+     CHEAT MODAL
+===================================================== -->
+
+<div
+    class="modal-bg"
+    id="cheatModal"
+>
+
+<div class="modal">
+
+    <div class="modal-head">
+
+        <h2>
+            ⌘ Konsola cheatów
+        </h2>
+
+        <button
+            class="close"
+            onclick="closeModal('cheatModal')"
+        >
+            ×
+        </button>
+
+    </div>
+
+
+    <div class="modal-body">
+
+        <div
+            class="muted"
+            style="
+                line-height:1.9;
+                margin-bottom:12px;
+            "
+        >
+
+            <b>
+                kasa 1000000
+            </b>
+            — dodaje pieniądze
+
+            <br>
+
+            <b>
+                max staff
+            </b>
+            — maksymalny personel z najlepszym skillem
+
+            <br>
+
+            <b>
+                metro
+            </b>
+            — duży pakiet rozwoju
+
+            <br>
+
+            <b>
+                reset
+            </b>
+            — usuwa zapis
+
+        </div>
+
+
+        <div class="field">
+
+            <label>
+                Komenda
+            </label>
+
+            <input
+                id="cheatInput"
+                placeholder="np. kasa 5000000"
+                autocomplete="off"
+            >
+
+        </div>
+
+    </div>
+
+
+    <div class="modal-footer">
+
+        <button
+            class="btn"
+            onclick="closeModal('cheatModal')"
+        >
+            Zamknij
+        </button>
+
+
+        <button
+            class="btn btn-primary"
+            onclick="executeCheat()"
+        >
+            Wykonaj
+        </button>
+
+    </div>
+
+</div>
+
+</div>
+
+
+<div
+    class="toast-box"
+    id="toastBox"
+></div>
+
+
+<script>
+
+/* =========================================================
+   METRO EMPIRE — CLEAN ENGINE
+========================================================= */
+
+const SAVE_KEY =
+    "metro_empire_v3";
+
+const INITIAL_CASH =
+    1000000;
+
+
+/* =========================================================
+   DATA
+========================================================= */
+
+const firstNames = [
+
+    "Adam",
+    "Julia",
+    "Maks",
+    "Anna",
+    "Olek",
+    "Mia",
+    "Lena",
+    "Igor",
+    "Kuba",
+    "Zofia",
+    "Ewa",
+    "Daniel",
+    "Nina",
+    "Leon",
+    "Sara",
+    "Tomek",
+    "Maja",
+    "Jan",
+    "Oskar",
+    "Laura"
+
+];
+
+const lastNames = [
+
+    "Kowalski",
+    "Nowak",
+    "Wiśniewski",
+    "Wójcik",
+    "Kaczmarek",
+    "Mazur",
+    "Król",
+    "Zając",
+    "Pawlak",
+    "Michalski",
+    "Wrona",
+    "Lis"
+
+];
+
+const roles = [
+
+    "Maszynista",
+    "Inżynier",
+    "Dyspozytor",
+    "Mechanik",
+    "Planista transportu",
+    "Menedżer stacji",
+    "Analityk ruchu",
+    "Specjalista bezpieczeństwa",
+    "Projektant infrastruktury",
+    "Kontroler ruchu",
+    "Konstruktor torów",
+    "Inżynier elektryczny"
+
+];
+
+const companyNames = [
+
+    "UrbanRail",
+    "CityMetro",
+    "TransitOne",
+    "NorthLine",
+    "RapidTransit",
+    "Capital Metro",
+    "SkyRail",
+    "MetroCore"
+
+];
+
+
+/* =========================================================
+   STATE
+========================================================= */
+
+function defaultState(){
+
+    return {
+
+        cash:
+            INITIAL_CASH,
+
+        lines:[],
+
+        stations:[],
+
+        trains:[],
+
+        employees:[],
+
+        candidates:[],
+
+        contracts:[],
+
+        competitors:[],
+
+        income:0,
+
+        expenses:0,
+
+        ticketIncome:0,
+
+        fineIncome:0,
+
+        contractIncome:0,
+
+        reputation:50,
+
+        passengers:0,
+
+        days:0,
+
+        seconds:0,
+
+        completedContracts:0,
+
+        ticketPrice:3,
+
+        fineAmount:50,
+
+        inspectionLevel:
+            "normal",
+
+        incomeHistory:
+            Array(10).fill(0),
+
+        expenseHistory:
+            Array(10).fill(0),
+
+        activities:[
+
+            {
+
+                icon:"🌱",
+
+                text:
+                    "Metro Empire rozpoczęło działalność.",
+
+                time:
+                    "Start"
+
+            }
+
+        ]
+
+    };
+
+}
+
+
+let game =
+    loadGame();
+
+
+/* =========================================================
+   SAVE / LOAD
+========================================================= */
+
+function loadGame(){
+
+    const raw =
+        localStorage.getItem(
+            SAVE_KEY
+        );
+
+    if(!raw){
+
+        return defaultState();
+
+    }
+
+    try{
+
+        return {
+            ...defaultState(),
+            ...JSON.parse(raw)
+        };
+
+    }catch(error){
+
+        console.error(error);
+
+        return defaultState();
+
+    }
+
+}
+
+
+function saveGame(){
+
+    localStorage.setItem(
+        SAVE_KEY,
+        JSON.stringify(game)
+    );
+
+    const status =
+        document.getElementById(
+            "saveStatus"
+        );
+
+    if(status){
+
+        status.textContent =
+            "💾 Zapisano przed chwilą";
+
+    }
+
+}
+
+
+function manualSave(){
+
+    saveGame();
+
+    toast(
+        "💾 Gra została zapisana."
+    );
+
+}
+
+
+/* =========================================================
+   HELPERS
+========================================================= */
+
+function money(value){
+
+    value =
+        Number(value) || 0;
+
+    const abs =
+        Math.abs(value);
+
+    if(
+        abs >=
+        1000000000
+    ){
+
+        return "$"+
+            (
+                value/
+                1000000000
+            ).toFixed(2)+
+            "B";
+
+    }
+
+    if(
+        abs >=
+        1000000
+    ){
+
+        return "$"+
+            (
+                value/
+                1000000
+            ).toFixed(2)+
+            "M";
+
+    }
+
+    if(
+        abs >=
+        1000
+    ){
+
+        return "$"+
+            (
+                value/
+                1000
+            ).toFixed(1)+
+            "K";
+
+    }
+
+    return "$"+
+        Math.round(value)
+        .toLocaleString(
+            "pl-PL"
+        );
+
+}
+
+
+function esc(value){
+
+    return String(value)
+        .replace(
+            /[&<>"']/g,
+            character=>({
+
+                "&":"&amp;",
+
+                "<":"&lt;",
+
+                ">":"&gt;",
+
+                '"':"&quot;",
+
+                "'":"&#39;"
+
+            }[character])
+        );
+
+}
+
+
+function toast(message){
+
+    const box =
+        document.getElementById(
+            "toastBox"
+        );
+
+    const item =
+        document.createElement(
+            "div"
+        );
+
+    item.className =
+        "toast";
+
+    item.innerHTML =
+        message;
+
+    box.appendChild(
+        item
+    );
+
+    setTimeout(
+        ()=>{
+            item.remove();
+        },
+        3000
+    );
+
+}
+
+
+function moneyAnimation(
+    amount
+){
+
+    const item =
+        document.createElement(
+            "div"
+        );
+
+    item.className =
+        "money-float "+
+        (
+            amount >= 0
+                ?"plus"
+                :"minus"
+        );
+
+    item.textContent =
+        (
+            amount >= 0
+                ?"+"
+                :"−"
+        )+
+        money(
+            Math.abs(amount)
+        );
+
+    item.style.left =
+        (
+            47+
+            Math.random()*10
+        )+
+        "%";
+
+    item.style.top =
+        (
+            34+
+            Math.random()*8
+        )+
+        "%";
+
+    document.body.appendChild(
+        item
+    );
+
+    setTimeout(
+        ()=>{
+            item.remove();
+        },
+        1450
+    );
+
+}
+
+
+function cashChange(
+    amount,
+    reason=""
+){
+
+    game.cash +=
+        amount;
+
+    if(amount>0){
+
+        game.income +=
+            amount;
+
+    }else{
+
+        game.expenses +=
+            Math.abs(amount);
+
+    }
+
+    moneyAnimation(
+        amount
+    );
+
+    if(reason){
+
+        addActivity(
+            amount>0
+                ?"💰"
+                :"💸",
+            reason+
+            " "+
+            (
+                amount>0
+                    ?"+"
+                    :"−"
+            )+
+            money(
+                Math.abs(amount)
+            )
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   NAVIGATION
+========================================================= */
+
+document
+.querySelectorAll(
+    ".nav button"
+)
+.forEach(
+    button=>{
+
+        button.addEventListener(
+            "click",
+            ()=>{
+
+                const page =
+                    button.dataset.page;
+
+                document
+                    .querySelectorAll(
+                        ".page"
+                    )
+                    .forEach(
+                        item=>
+                            item.classList
+                                .remove(
+                                    "active"
+                                )
+                    );
+
+                const target =
+                    document.getElementById(
+                        "page-"+page
+                    );
+
+                if(target){
+
+                    target.classList.add(
+                        "active"
+                    );
+
+                }
+
+                document
+                    .querySelectorAll(
+                        ".nav button"
+                    )
+                    .forEach(
+                        item=>
+                            item.classList
+                                .remove(
+                                    "active"
+                                )
+                    );
+
+                button.classList.add(
+                    "active"
+                );
+
+                renderAll();
+
+            }
+        );
+
+    }
+);
+
+
+/* =========================================================
+   ACTIVITY
+========================================================= */
+
+function addActivity(
+    icon,
+    text
+){
+
+    game.activities.unshift({
+
+        icon,
+
+        text,
+
+        time:"teraz"
+
+    });
+
+    game.activities =
+        game.activities.slice(
+            0,
+            20
+        );
+
+}
+
+
+/* =========================================================
+   EMPLOYEES
+========================================================= */
+
+function randomCandidate(){
+
+    return {
+
+        id:
+            Date.now()+
+            Math.random(),
+
+        name:
+            firstNames[
+                Math.floor(
+                    Math.random()*
+                    firstNames.length
+                )
+            ]+
+            " "+
+            lastNames[
+                Math.floor(
+                    Math.random()*
+                    lastNames.length
+                )
+            ],
+
+        role:
+            roles[
+                Math.floor(
+                    Math.random()*
+                    roles.length
+                )
+            ],
+
+        skill:
+            45+
+            Math.floor(
+                Math.random()*56
+            ),
+
+        salary:
+            90+
+            Math.floor(
+                Math.random()*260
+            ),
+
+        perk:[
+            "Ekspert infrastruktury",
+            "Szybka nauka",
+            "Optymalizator",
+            "Bezpieczeństwo",
+            "Lider zespołu",
+            "Ekonomiczny geniusz"
+        ][
+            Math.floor(
+                Math.random()*6
+            )
+        ],
+
+        avatar:[
+            "👨‍🔧",
+            "👩‍💼",
+            "🧑‍🔬",
+            "👨‍✈️"
+        ][
+            Math.floor(
+                Math.random()*4
+            )
+        ]
+
+    };
+
+}
+
+
+function generateCandidates(
+    count=1
+){
+
+    for(
+        let i=0;
+        i<count;
+        i++
+    ){
+
+        if(
+            game.candidates.length<
+            30
+        ){
+
+            game.candidates.push(
+                randomCandidate()
+            );
+
+        }
+
+    }
+
+    renderEmployees();
+
+}
+
+
+function employeeCapacity(){
+
+    return (
+        10+
+        game.lines.length*5+
+        game.stations.length*2
+    );
+
+}
+
+
+function hireCandidate(
+    id
+){
+
+    const candidate =
+        game.candidates.find(
+            item=>
+                item.id===
+                id
+        );
+
+    if(!candidate){
+
+        return;
+
+    }
+
+
+    if(
+        game.employees.length >=
+        employeeCapacity()
+    ){
+
+        toast(
+            "🏢 Osiągnięto limit personelu."
+        );
+
+        return;
+
+    }
+
+
+    const recruitmentFee =
+        15000+
+        candidate.skill*200;
+
+
+    if(
+        game.cash<
+        recruitmentFee
+    ){
+
+        toast(
+            "❌ Za mało pieniędzy."
+        );
+
+        return;
+
+    }
+
+
+    cashChange(
+        -recruitmentFee,
+        "Rekrutacja "+
+        candidate.name
+    );
+
+
+    game.employees.push(
+        candidate
+    );
+
+
+    game.candidates =
+        game.candidates.filter(
+            item=>
+                item.id!==
+                id
+        );
+
+
+    addActivity(
+        "👷",
+        "Zatrudniono "+
+        candidate.name
+    );
+
+
+    saveGame();
+
+    renderAll();
+
+}
+
+
+function maxStaff(){
+
+    while(
+        game.employees.length<
+        employeeCapacity()
+    ){
+
+        const candidate =
+            game.candidates.shift()
+            ||
+            randomCandidate();
+
+
+        game.employees.push({
+
+            ...candidate,
+
+            skill:100,
+
+            salary:0,
+
+            perk:"Elite"
+
+        });
+
+    }
+
+
+    addActivity(
+        "⚡",
+        "MAX STAFF — obsadzono wszystkie dostępne miejsca."
+    );
+
+
+    saveGame();
+
+    renderAll();
+
+    toast(
+        "⚡ MAX STAFF aktywowany."
+    );
+
+}
+
+
+/* =========================================================
+   LINES
+========================================================= */
+
+function openLineModal(){
+
+    document
+        .getElementById(
+            "lineModal"
+        )
+        .classList.add(
+            "open"
+        );
+
+}
+
+
+function createLine(){
+
+    const name =
+        document
+        .getElementById(
+            "lineName"
+        )
+        .value
+        .trim()
+        ||
+        "Linia "+
+        (
+            game.lines.length+
+            1
+        );
+
+
+    const type =
+        document
+        .getElementById(
+            "lineType"
+        )
+        .value;
+
+
+    const segments =
+        Math.max(
+            1,
+            Math.min(
+                25,
+                Number(
+                    document
+                    .getElementById(
+                        "lineSegments"
+                    )
+                    .value
+                )||3
+            )
+        );
+
+
+    const cost =
+        segments*
+        25000+
+        5000;
+
+
+    if(
+        game.cash<
+        cost
+    ){
+
+        toast(
+            "❌ Za mało pieniędzy."
+        );
+
+        return;
+
+    }
+
+
+    cashChange(
+        -cost,
+        "Budowa "+name
+    );
+
+
+    game.lines.push({
+
+        id:
+            "line_"+
+            Date.now()+
+            Math.random(),
+
+        name,
+
+        type,
+
+        segments,
+
+        km:
+            segments*
+            1.25,
+
+        frequency:
+            type===
+            "express"
+                ?4
+                :6,
+
+        level:1
+
+    });
+
+
+    addActivity(
+        "🛤️",
+        "Uruchomiono "+
+        name
+    );
+
+
+    closeModal(
+        "lineModal"
+    );
+
+    saveGame();
+
+    renderAll();
+
+}
+
+
+function upgradeLine(
+    id
+){
+
+    const line =
+        game.lines.find(
+            x=>x.id===
+            id
+        );
+
+    if(!line){
+
+        return;
+
+    }
+
+
+    const cost =
+        100000*
+        line.level;
+
+
+    if(
+        game.cash<
+        cost
+    ){
+
+        toast(
+            "❌ Za mało pieniędzy."
+        );
+
+        return;
+
+    }
+
+
+    cashChange(
+        -cost,
+        "Ulepszono "+
+        line.name
+    );
+
+
+    line.level++;
+
+    line.segments++;
+
+    line.km +=
+        1.25;
+
+    line.frequency =
+        Math.max(
+            2,
+            line.frequency-
+            .5
+        );
+
+
+    saveGame();
+
+    renderAll();
+
+}
+
+
+/* =========================================================
+   STATIONS
+========================================================= */
+
+function openStationModal(){
+
+    if(
+        !game.lines.length
+    ){
+
+        toast(
+            "🛤️ Najpierw zbuduj linię."
+        );
+
+        return;
+
+    }
+
+
+    const select =
+        document.getElementById(
+            "stationLine"
+        );
+
+
+    select.innerHTML =
+        game.lines
+        .map(
+            line=>`
+
+            <option
+                value="${line.id}"
+            >
+                ${esc(line.name)}
+            </option>
+
+            `
+        )
+        .join("");
+
+
+    document
+        .getElementById(
+            "stationModal"
+        )
+        .classList.add(
+            "open"
+        );
+
+}
+
+
+function createStation(){
+
+    const name =
+        document
+        .getElementById(
+            "stationName"
+        )
+        .value
+        .trim()
+        ||
+        "Stacja "+
+        (
+            game.stations.length+
+            1
+        );
+
+
+    const type =
+        document
+        .getElementById(
+            "stationType"
+        )
+        .value;
+
+
+    const lineId =
+        document
+        .getElementById(
+            "stationLine"
+        )
+        .value;
+
+
+    const costs={
+
+        local:
+            80000,
+
+        hub:
+            180000,
+
+        central:
+            350000,
+
+        airport:
+            750000
+
+    };
+
+
+    const ratings={
+
+        local:
+            1,
+
+        hub:
+            1.5,
+
+        central:
+            2.1,
+
+        airport:
+            2.8
+
+    };
+
+
+    const cost =
+        costs[type];
+
+
+    if(
+        game.cash<
+        cost
+    ){
+
+        toast(
+            "❌ Za mało pieniędzy."
+        );
+
+        return;
+
+    }
+
+
+    cashChange(
+        -cost,
+        "Budowa stacji "+
+        name
+    );
+
+
+    game.stations.push({
+
+        id:
+            "station_"+
+            Date.now()+
+            Math.random(),
+
+        name,
+
+        type,
+
+        lineId,
+
+        rating:
+            ratings[type],
+
+        passengers:0
+
+    });
+
+
+    addActivity(
+        "🚉",
+        "Zbudowano stację "+
+        name
+    );
+
+
+    closeModal(
+        "stationModal"
+    );
+
+    saveGame();
+
+    renderAll();
+
+}
+
+
+/* =========================================================
+   TRAINS
+========================================================= */
+
+function openTrainModal(){
+
+    if(
+        !game.lines.length
+    ){
+
+        toast(
+            "🛤️ Najpierw zbuduj linię."
+        );
+
+        return;
+
+    }
+
+
+    const select =
+        document.getElementById(
+            "trainLine"
+        );
+
+
+    select.innerHTML =
+        game.lines
+        .map(
+            line=>`
+
+            <option
+                value="${line.id}"
+            >
+                ${esc(line.name)}
+            </option>
+
+            `
+        )
+        .join("");
+
+
+    document
+        .getElementById(
+            "trainModal"
+        )
+        .classList.add(
+            "open"
+        );
+
+}
+
+
+function buyTrain(){
+
+    const type =
+        document
+        .getElementById(
+            "trainType"
+        )
+        .value;
+
+
+    const lineId =
+        document
+        .getElementById(
+            "trainLine"
+        )
+        .value;
+
+
+    const specs={
+
+        standard:{
+            name:
+                "Metro M1",
+            cost:
+                300000,
+            seats:
+                160,
+            upkeep:
+                35,
+            speed:
+                70
+        },
+
+        rapid:{
+            name:
+                "Rapid R2",
+            cost:
+                550000,
+            seats:
+                220,
+            upkeep:
+                48,
+            speed:
+                95
+        },
+
+        premium:{
+            name:
+                "Premium P4",
+            cost:
+                900000,
+            seats:
+                300,
+            upkeep:
+                65,
+            speed:
+                110
+        },
+
+        autonomous:{
+            name:
+                "AutoRail X",
+            cost:
+                1800000,
+            seats:
+                360,
+            upkeep:
+                80,
+            speed:
+                125
+        },
+
+        double:{
+            name:
+                "Metro M2 Double",
+            cost:
+                2200000,
+            seats:
+                500,
+            upkeep:
+                110,
+            speed:
+                85
+        },
+
+        maglev:{
+            name:
+                "MagLev M7",
+            cost:
+                4500000,
+            seats:
+                620,
+            upkeep:
+                170,
+            speed:
+                160
+        },
+
+        hyper:{
+            name:
+                "HyperRail H1",
+            cost:
+                8500000,
+            seats:
+                900,
+            upkeep:
+                290,
+            speed:
+                220
+        },
+
+        quantum:{
+            name:
+                "QuantumRail Q",
+            cost:
+                15000000,
+            seats:
+                1250,
+            upkeep:
+                450,
+            speed:
+                280
+        },
+
+        titan:{
+            name:
+                "Titan Metro T9",
+            cost:
+                30000000,
+            seats:
+                1800,
+            upkeep:
+                800,
+            speed:
+                320
+        },
+
+        orbital:{
+            name:
+                "Orbital X",
+            cost:
+                75000000,
+            seats:
+                3000,
+            upkeep:
+                1600,
+            speed:
+                400
+        }
+
+    };
+
+
+    const spec =
+        specs[type];
+
+
+    if(
+        game.cash<
+        spec.cost
+    ){
+
+        toast(
+            "❌ Za mało pieniędzy."
+        );
+
+        return;
+
+    }
+
+
+    cashChange(
+        -spec.cost,
+        "Zakupiono "+
+        spec.name
+    );
+
+
+    game.trains.push({
+
+        id:
+            "train_"+
+            Date.now()+
+            Math.random(),
+
+        type:
+            spec.name,
+
+        lineId,
+
+        seats:
+            spec.seats,
+
+        upkeep:
+            spec.upkeep,
+
+        speed:
+            spec.speed,
+
+        active:true
+
+    });
+
+
+    addActivity(
+        "🚆",
+        "Do floty dołączył "+
+        spec.name
+    );
+
+
+    closeModal(
+        "trainModal"
+    );
+
+    saveGame();
+
+    renderAll();
+
+}
+
+
+function toggleTrain(
+    id
+){
+
+    const train =
+        game.trains.find(
+            x=>x.id===
+            id
+        );
+
+    if(!train){
+
+        return;
+
+    }
+
+
+    train.active =
+        !train.active;
+
+
+    saveGame();
+
+    renderAll();
+
+}
+
+
+/* =========================================================
+   CONTRACTS
+========================================================= */
+
+const contractTemplates=[
+
+    {
+        title:
+            "Rozbudowa osiedla",
+        icon:
+            "🏘️",
+        reward:
+            180000,
+        reputation:
+            .8
+    },
+
+    {
+        title:
+            "Nowa stacja szkolna",
+        icon:
+            "🎓",
+        reward:
+            220000,
+        reputation:
+            .7
+    },
+
+    {
+        title:
+            "Połączenie biznesowe",
+        icon:
+            "🏢",
+        reward:
+            450000,
+        reputation:
+            1.1
+    },
+
+    {
+        title:
+            "Linia lotniskowa",
+        icon:
+            "✈️",
+        reward:
+            900000,
+        reputation:
+            1.7
+    },
+
+    {
+        title:
+            "Modernizacja torów",
+        icon:
+            "🔧",
+        reward:
+            330000,
+        reputation:
+            .9
+    },
+
+    {
+        title:
+            "Węzeł przesiadkowy",
+        icon:
+            "🔄",
+        reward:
+            600000,
+        reputation:
+            1.2
+    },
+
+    {
+        title:
+            "Metro uniwersyteckie",
+        icon:
+            "🎓",
+        reward:
+            520000,
+        reputation:
+            1.3
+    },
+
+    {
+        title:
+            "Połączenie szpitalne",
+        icon:
+            "🏥",
+        reward:
+            430000,
+        reputation:
+            1
+
+    }
+
+];
+
+
+function generateContract(){
+
+    const template =
+        contractTemplates[
+            Math.floor(
+                Math.random()*
+                contractTemplates.length
+            )
+        ];
+
+
+    return {
+
+        id:
+            "contract_"+
+            Date.now()+
+            Math.random(),
+
+        ...template,
+
+        progress:0
+
+    };
+
+}
+
+
+function generateContracts(
+    count=1
+){
+
+    while(
+        game.contracts.length<
+        12 &&
+        count>0
+    ){
+
+        game.contracts.push(
+            generateContract()
+        );
+
+        count--;
+
+    }
+
+    renderContracts();
+
+}
+
+
+/* =========================================================
+   COMPETITION
+========================================================= */
+
+function seedCompetitors(){
+
+    game.competitors =
+        companyNames.map(
+            (
+                name,
+                index
+            )=>({
+
+                id:
+                    "competitor_"+
+                    index,
+
+                name,
+
+                power:
+                    55+
+                    index*4,
+
+                share:
+                    6+
+                    index,
+
+                km:
+                    8+
+                    index*3,
+
+                passengers:
+                    400+
+                    index*120
+
+            })
+        );
+
+}
+
+
+function updateCompetition(){
+
+    game.competitors
+    .forEach(
+        company=>{
+
+            company.power =
+                Math.max(
+                    20,
+                    company.power+
+                    (
+                        Math.random()-
+                        .35
+                    )*
+                    1.7
+                );
+
+
+            company.km +=
+                Math.random()*
+                .25;
+
+
+            company.passengers =
+                Math.max(
+                    50,
+                    company.passengers*
+                    (
+                        1+
+                        .001+
+                        Math.random()*
+                        .004
+                    )
+                );
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   PRICING
+========================================================= */
+
+function ticketDemandMultiplier(){
+
+    const price =
+        Number(
+            game.ticketPrice
+        )||3;
+
+
+    let demand =
+        1-
+        Math.max(
+            0,
+            price-3
+        )*
+        .055;
+
+
+    if(
+        price<
+        3
+    ){
+
+        demand +=
+            (
+                3-
+                price
+            )*
+            .08;
+
+    }
+
+
+    return Math.max(
+        .1,
+        Math.min(
+            1.25,
+            demand
+        )
+    );
+
+}
+
+
+function previewPricing(){
+
+    const input =
+        document.getElementById(
+            "ticketPriceInput"
+        );
+
+
+    const price =
+        Math.max(
+            1,
+            Math.min(
+                20,
+                Number(
+                    input.value
+                )||3
+            )
+        );
+
+
+    let demand =
+        1-
+        Math.max(
+            0,
+            price-3
+        )*
+        .055;
+
+
+    if(
+        price<
+        3
+    ){
+
+        demand +=
+            (
+                3-
+                price
+            )*
+            .08;
+
+    }
+
+
+    demand =
+        Math.max(
+            .1,
+            Math.min(
+                1.25,
+                demand
+            )
+        );
+
+
+    const label =
+        document.getElementById(
+            "pricingDemand"
+        );
+
+
+    const bar =
+        document.getElementById(
+            "pricingDemandBar"
+        );
+
+
+    if(label){
+
+        label.textContent =
+            Math.round(
+                demand*100
+            )+
+            "%";
+
+    }
+
+
+    if(bar){
+
+        bar.style.width =
+            Math.min(
+                100,
+                demand*100
+            )+
+            "%";
+
+    }
+
+}
+
+
+function setTicketPrice(){
+
+    let price =
+        Number(
+            document.getElementById(
+                "ticketPriceInput"
+            ).value
+        );
+
+
+    if(
+        !Number.isFinite(price)
+    ){
+
+        price=3;
+
+    }
+
+
+    price =
+        Math.max(
+            1,
+            Math.min(
+                20,
+                price
+            )
+        );
+
+
+    game.ticketPrice =
+        Math.round(
+            price*2
+        )/
+        2;
+
+
+    if(
+        game.ticketPrice>=12
+    ){
+
+        game.reputation =
+            Math.max(
+                0,
+                game.reputation-
+                .5
+            );
+
+    }
+
+
+    addActivity(
+        "🎫",
+        "Ustalono cenę biletu: $"+
+        game.ticketPrice.toFixed(2)
+    );
+
+
+    saveGame();
+
+    renderAll();
+
+    toast(
+        "🎫 Cena biletu ustawiona."
+    );
+
+}
+
+
+function setFinePolicy(){
+
+    let fine =
+        Number(
+            document.getElementById(
+                "fineInput"
+            ).value
+        );
+
+
+    if(
+        !Number.isFinite(fine)
+    ){
+
+        fine=50;
+
+    }
+
+
+    fine =
+        Math.max(
+            0,
+            Math.min(
+                500,
+                fine
+            )
+        );
+
+
+    game.fineAmount =
+        Math.round(
+            fine/5
+        )*
+        5;
+
+
+    game.inspectionLevel =
+        document.getElementById(
+            "inspectionLevel"
+        ).value;
+
+
+    if(
+        game.inspectionLevel===
+        "maximum"
+    ){
+
+        game.reputation =
+            Math.max(
+                0,
+                game.reputation-
+                .2
+            );
+
+    }
+
+
+    addActivity(
+        "🚨",
+        "Zmieniono politykę kontroli."
+    );
+
+
+    saveGame();
+
+    renderAll();
+
+    toast(
+        "🚨 Polityka kontroli zastosowana."
+    );
+
+}
+
+
+/* =========================================================
+   ECONOMY
+========================================================= */
+
+function passengersPerMinute(){
+
+    const base =
+        game.stations.length*
+        85+
+
+        game.lines.length*
+        120+
+
+        game.trains.reduce(
+            (
+                sum,
+                train
+            )=>
+                sum+
+                (
+                    train.active
+                        ?train.seats*.35
+                        :0
+                ),
+            0
+        )+
+
+        game.reputation*
+        2;
+
+
+    return Math.max(
+        0,
+        Math.round(
+            base*
+            ticketDemandMultiplier()
+        )
+    );
+
+}
+
+
+function ticketIncomePerSecond(){
+
+    const passengers =
+        passengersPerMinute()/
+        60;
+
+
+    return Math.max(
+        0,
+        passengers*
+        game.ticketPrice*
+        .18
+    );
+
+}
+
+
+function fineIncomePerSecond(){
+
+    const policy={
+
+        low:
+            .003,
+
+        normal:
+            .008,
+
+        high:
+            .014,
+
+        maximum:
+            .022
+
+    };
+
+
+    const chance =
+        policy[
+            game.inspectionLevel
+        ]||
+        .008;
+
+
+    const passengers =
+        passengersPerMinute()/
+        60;
+
+
+    return Math.max(
+        0,
+        passengers*
+        chance*
+        game.fineAmount
+    );
+
+}
+
+
+function contractIncomePerSecond(){
+
+    return (
+        game.contracts.length*
+        .2
+    );
+
+}
+
+
+function incomePerSecond(){
+
+    return (
+
+        ticketIncomePerSecond()+
+
+        fineIncomePerSecond()+
+
+        contractIncomePerSecond()
+
+    );
+
+}
+
+
+function expensePerSecond(){
+
+    const wages =
+        game.employees.reduce(
+            (
+                sum,
+                employee
+            )=>
+                sum+
+                employee.salary*
+                .06,
+            0
+        );
+
+
+    const trains =
+        game.trains.reduce(
+            (
+                sum,
+                train
+            )=>
+                sum+
+                train.upkeep,
+            0
+        );
+
+
+    const lines =
+        game.lines.reduce(
+            (
+                sum,
+                line
+            )=>
+                sum+
+                line.level*
+                5,
+            0
+        );
+
+
+    const stations =
+        game.stations.reduce(
+            (
+                sum,
+                station
+            )=>
+                sum+
+                (
+                    {
+                        local:
+                            2,
+
+                        hub:
+                            6,
+
+                        central:
+                            10,
+
+                        airport:
+                            18
+
+                    }[
+                        station.type
+                    ]||
+                    2
+                ),
+            0
+        );
+
+
+    const controlCosts={
+
+        low:
+            1,
+
+        normal:
+            4,
+
+        high:
+            9,
+
+        maximum:
+            17
+
+    };
+
+
+    const controls =
+        controlCosts[
+            game.inspectionLevel
+        ]||
+        4;
+
+
+    return {
+
+        wages,
+
+        trains,
+
+        lines,
+
+        stations,
+
+        controls,
+
+        total:
+            wages+
+            trains+
+            lines+
+            stations+
+            controls
+
+    };
+
+}
+
+
+/* =========================================================
+   GAME TICK
+========================================================= */
+
+function tick(){
+
+    const income =
+        incomePerSecond();
+
+
+    const expenses =
+        expensePerSecond();
+
+
+    /*
+        PRAWDZIWA EKONOMIA
+    */
+
+    game.cash +=
+        income;
+
+
+    game.cash -=
+        expenses.total;
+
+
+    game.income +=
+        income;
+
+
+    game.expenses +=
+        expenses.total;
+
+
+    /*
+        PRZYCHODY
+    */
+
+    game.ticketIncome +=
+        ticketIncomePerSecond();
+
+
+    game.fineIncome +=
+        fineIncomePerSecond();
+
+
+    /*
+        PASAŻEROWIE
+    */
+
+    game.passengers =
+        passengersPerMinute();
+
+
+    /*
+        CZAS
+    */
+
+    game.seconds++;
+
+
+    if(
+        game.seconds%
+        60===
+        0
+    ){
+
+        game.days++;
+
+    }
+
+
+    /*
+        STACJE
+    */
+
+    game.stations.forEach(
+        station=>{
+
+            station.passengers +=
+                Math.floor(
+                    game.passengers/
+                    Math.max(
+                        1,
+                        game.stations.length
+                    )/
+                    60
+                );
+
+        }
+    );
+
+
+    /*
+        KONTRAKTY
+    */
+
+    game.contracts.forEach(
+        contract=>{
+
+            const speed =
+                1+
+
+                game.lines.length*
+                .03+
+
+                game.stations.length*
+                .015+
+
+                game.employees.length*
+                .02;
+
+
+            contract.progress =
+                Math.min(
+                    100,
+                    contract.progress+
+                    speed
+                );
+
+        }
+    );
+
+
+    const completed =
+        game.contracts.filter(
+            contract=>
+                contract.progress>=
+                100
+        );
+
+
+    completed.forEach(
+        contract=>{
+
+            cashChange(
+                contract.reward,
+                "Ukończono kontrakt "+
+                contract.title
+            );
+
+
+            game.contractIncome +=
+                contract.reward;
+
+
+            game.completedContracts++;
+
+
+            game.reputation =
+                Math.min(
+                    100,
+                    game.reputation+
+                    contract.reputation
+                );
+
+        }
+    );
+
+
+    game.contracts =
+        game.contracts.filter(
+            contract=>
+                contract.progress<
+                100
+        );
+
+
+    /*
+        WYKRES
+    */
+
+    if(
+        game.seconds%10===
+        0
+    ){
+
+        game.incomeHistory.push(
+            income*
+            10
+        );
+
+
+        game.expenseHistory.push(
+            expenses.total*
+            10
+        );
+
+
+        game.incomeHistory =
+            game.incomeHistory.slice(
+                -10
+            );
+
+
+        game.expenseHistory =
+            game.expenseHistory.slice(
+                -10
+            );
+
+    }
+
+
+    /*
+        KONKURENCJA
+    */
+
+    if(
+        game.seconds%30===
+        0
+    ){
+
+        updateCompetition();
+
+    }
+
+
+    /*
+        NOWI KANDYDACI + KONTRAKTY
+    */
+
+    if(
+        game.seconds%8===
+        0
+    ){
+
+        if(
+            game.candidates.length<
+            14
+        ){
+
+            generateCandidates(
+                2
+            );
+
+        }
+
+
+        if(
+            game.contracts.length<
+            8
+        ){
+
+            generateContracts(
+                2
+            );
+
+        }
+
+    }
+
+
+    /*
+        AUTO SAVE
+    */
+
+    if(
+        game.seconds%15===
+        0
+    ){
+
+        saveGame();
+
+    }
+
+
+    renderTop();
+
+    renderCharts();
+
+}
+
+
+/* =========================================================
+   TOP
+========================================================= */
+
+function renderTop(){
+
+    document
+        .getElementById(
+            "topCash"
+        )
+        .textContent =
+        money(
+            game.cash
+        );
+
+
+    document
+        .getElementById(
+            "dCash"
+        )
+        .textContent =
+        money(
+            game.cash
+        );
+
+
+    document
+        .getElementById(
+            "dIncome"
+        )
+        .textContent =
+        money(
+            incomePerSecond()
+        );
+
+
+    document
+        .getElementById(
+            "dPassengers"
+        )
+        .textContent =
+        game.passengers
+        .toLocaleString(
+            "pl-PL"
+        );
+
+
+    const network =
+        game.lines.reduce(
+            (
+                sum,
+                line
+            )=>
+                sum+
+                line.km,
+            0
+        );
+
+
+    document
+        .getElementById(
+            "dNetwork"
+        )
+        .textContent =
+        network.toFixed(
+            1
+        )+
+        " km";
+
+
+    document
+        .getElementById(
+            "dLines"
+        )
+        .textContent =
+        game.lines.length;
+
+}
+
+
+/* =========================================================
+   DASHBOARD
+========================================================= */
+
+function renderDashboard(){
+
+    const network =
+        document.getElementById(
+            "dashboardNetwork"
+        );
+
+
+    network.innerHTML = [
+
+        [
+            "🛤️",
+            "Linie",
+            game.lines.length+
+            " aktywnych"
+        ],
+
+        [
+            "🚉",
+            "Stacje",
+            game.stations.length+
+            " punktów"
+        ],
+
+        [
+            "🚆",
+            "Flota",
+            game.trains.length+
+            " pociągów"
+        ],
+
+        [
+            "👷",
+            "Personel",
+            game.employees.length+
+            " pracowników"
+        ],
+
+        [
+            "💳",
+            "Bilet",
+            "$"+
+            Number(
+                game.ticketPrice
+            ).toFixed(2)
+        ]
+
+    ]
+    .map(
+        item=>`
+
+        <div class="row">
+
+            <div class="row-icon">
+                ${item[0]}
+            </div>
+
+            <div class="row-main">
+
+                <div class="row-title">
+                    ${item[1]}
+                </div>
+
+                <div class="row-desc">
+                    ${item[2]}
+                </div>
+
+            </div>
+
+        </div>
+
+        `
+    )
+    .join("");
+
+
+    const activity =
+        document.getElementById(
+            "activity"
+        );
+
+
+    activity.innerHTML =
+        game.activities
+        .slice(
+            0,
+            8
+        )
+        .map(
+            event=>`
+
+            <div class="row">
+
+                <div class="row-icon">
+                    ${event.icon}
+                </div>
+
+                <div class="row-main">
+
+                    <div class="row-title">
+                        ${esc(
+                            event.text
+                        )}
+                    </div>
+
+                    <div class="row-desc">
+                        ${event.time}
+                    </div>
+
+                </div>
+
+            </div>
+
+            `
+        )
+        .join("");
+
+}
+
+
+/* =========================================================
+   LINES RENDER
+========================================================= */
+
+function renderLines(){
+
+    const km =
+        game.lines.reduce(
+            (
+                sum,
+                line
+            )=>
+                sum+
+                line.km,
+            0
+        );
+
+
+    const capacity =
+        game.trains.reduce(
+            (
+                sum,
+                train
+            )=>
+                sum+
+                (
+                    train.active
+                        ?train.seats
+                        :0
+                ),
+            0
+        );
+
+
+    const cost =
+        game.lines.reduce(
+            (
+                sum,
+                line
+            )=>
+                sum+
+                line.level*
+                5,
+            0
+        );
+
+
+    document
+        .getElementById(
+            "lineCount"
+        )
+        .textContent =
+        game.lines.length;
+
+
+    document
+        .getElementById(
+            "networkKm"
+        )
+        .textContent =
+        km.toFixed(1)+
+        " km";
+
+
+    document
+        .getElementById(
+            "capacity"
+        )
+        .textContent =
+        capacity;
+
+
+    document
+        .getElementById(
+            "lineCosts"
+        )
+        .textContent =
+        money(cost)+
+        "/s";
+
+
+    const list =
+        document.getElementById(
+            "lineList"
+        );
+
+
+    if(
+        !game.lines.length
+    ){
+
+        list.innerHTML = `
+            <div class="empty">
+                🚇 Nie masz jeszcze żadnej linii.
+            </div>
+        `;
+
+        return;
+
+    }
+
+
+    list.innerHTML =
+        game.lines
+        .map(
+            line=>`
+
+            <div class="row">
+
+                <div class="row-icon">
+                    🛤️
+                </div>
+
+                <div class="row-main">
+
+                    <div class="row-title">
+
+                        ${esc(
+                            line.name
+                        )}
+
+                        <span class="tag">
+                            LVL ${line.level}
+                        </span>
+
+                    </div>
+
+
+                    <div class="row-desc">
+
+                        ${line.km.toFixed(1)}
+                        km •
+
+                        ${line.frequency.toFixed(1)}
+                        min •
+
+                        ${line.segments}
+                        odc.
+
+                    </div>
+
+
+                    <div
+                        class="progress"
+                        style="margin-top:7px"
+                    >
+
+                        <div
+                            style="
+                                width:${
+                                    Math.min(
+                                        100,
+                                        line.level*
+                                        12
+                                    )
+                                }%
+                            "
+                        ></div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="row-actions">
+
+                    <button
+                        class="btn"
+                        onclick="upgradeLine('${line.id}')"
+                    >
+                        ⬆
+                        ${money(
+                            100000*
+                            line.level
+                        )}
+                    </button>
+
+                </div>
+
+            </div>
+
+            `
+        )
+        .join("");
+
+}
+
+
+/* =========================================================
+   STATIONS RENDER
+========================================================= */
+
+function renderStations(){
+
+    const rating =
+        game.stations.length
+            ?game.stations.reduce(
+                (
+                    sum,
+                    station
+                )=>
+                    sum+
+                    station.rating,
+                0
+            )/
+            game.stations.length
+            :0;
+
+
+    const passengers =
+        game.stations.length*
+        85;
+
+
+    const cost =
+        game.stations.reduce(
+            (
+                sum,
+                station
+            )=>
+                sum+
+                (
+                    {
+                        local:
+                            2,
+
+                        hub:
+                            6,
+
+                        central:
+                            10,
+
+                        airport:
+                            18
+
+                    }[
+                        station.type
+                    ]||
+                    2
+                ),
+            0
+        );
+
+
+    document
+        .getElementById(
+            "stationCount"
+        )
+        .textContent =
+        game.stations.length;
+
+
+    document
+        .getElementById(
+            "stationRating"
+        )
+        .textContent =
+        rating.toFixed(1);
+
+
+    document
+        .getElementById(
+            "stationPassengers"
+        )
+        .textContent =
+        Math.round(
+            passengers
+        );
+
+
+    document
+        .getElementById(
+            "stationCosts"
+        )
+        .textContent =
+        money(cost)+
+        "/s";
+
+
+    const grid =
+        document.getElementById(
+            "stationGrid"
+        );
+
+
+    if(
+        !game.stations.length
+    ){
+
+        grid.innerHTML = `
+            <div class="empty">
+                🚉 Brak stacji.
+            </div>
+        `;
+
+        return;
+
+    }
+
+
+    grid.innerHTML =
+        game.stations
+        .map(
+            station=>`
+
+            <div class="tile">
+
+                <div class="tile-top">
+
+                    <div class="tile-icon">
+                        🚉
+                    </div>
+
+                    <div>
+
+                        <h3>
+                            ${esc(
+                                station.name
+                            )}
+                        </h3>
+
+                        <span class="tag">
+                            ${esc(
+                                station.type
+                            )}
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <p>
+
+                    Atrakcyjność:
+                    ${station.rating.toFixed(1)}
+
+                </p>
+
+
+                <p>
+
+                    Pasażerowie:
+                    ${Math.round(
+                        station.passengers||
+                        0
+                    )}
+
+                </p>
+
+            </div>
+
+            `
+        )
+        .join("");
+
+}
+
+
+/* =========================================================
+   TRAINS RENDER
+========================================================= */
+
+function renderTrains(){
+
+    const seats =
+        game.trains.reduce(
+            (
+                sum,
+                train
+            )=>
+                sum+
+                train.seats,
+            0
+        );
+
+
+    const active =
+        game.trains.filter(
+            train=>
+                train.active
+        ).length;
+
+
+    const cost =
+        game.trains.reduce(
+            (
+                sum,
+                train
+            )=>
+                sum+
+                train.upkeep,
+            0
+        );
+
+
+    document
+        .getElementById(
+            "trainCount"
+        )
+        .textContent =
+        game.trains.length;
+
+
+    document
+        .getElementById(
+            "trainSeats"
+        )
+        .textContent =
+        seats;
+
+
+    document
+        .getElementById(
+            "activeTrains"
+        )
+        .textContent =
+        active;
+
+
+    document
+        .getElementById(
+            "trainCosts"
+        )
+        .textContent =
+        money(cost)+
+        "/s";
+
+
+    const list =
+        document.getElementById(
+            "trainList"
+        );
+
+
+    if(
+        !game.trains.length
+    ){
+
+        list.innerHTML = `
+            <div class="empty">
+                🚆 Flota jest pusta.
+            </div>
+        `;
+
+        return;
+
+    }
+
+
+    list.innerHTML =
+        game.trains
+        .map(
+            train=>`
+
+            <div class="row">
+
+                <div class="row-icon">
+                    🚆
+                </div>
+
+
+                <div class="row-main">
+
+                    <div class="row-title">
+
+                        ${esc(
+                            train.type
+                        )}
+
+                        <span class="tag">
+                            ${
+                                train.active
+                                    ?"W RUCHU"
+                                    :"POSTÓJ"
+                            }
+                        </span>
+
+                    </div>
+
+
+                    <div class="row-desc">
+
+                        ${train.seats}
+                        miejsc •
+
+                        utrzymanie
+                        $${train.upkeep}/s •
+
+                        ${train.speed}
+                        km/h
+
+                    </div>
+
+                </div>
+
+
+                <button
+                    class="btn ${
+                        train.active
+                            ?"btn-red"
+                            :"btn-green"
+                    }"
+                    onclick="toggleTrain('${train.id}')"
+                >
+
+                    ${
+                        train.active
+                            ?"Zatrzymaj"
+                            :"Uruchom"
+                    }
+
+                </button>
+
+            </div>
+
+            `
+        )
+        .join("");
+
+}
+
+
+/* =========================================================
+   CONTRACTS RENDER
+========================================================= */
+
+function renderContracts(){
+
+    document
+        .getElementById(
+            "contractCount"
+        )
+        .textContent =
+        game.contracts.length;
+
+
+    document
+        .getElementById(
+            "contractValue"
+        )
+        .textContent =
+        money(
+            game.contracts.reduce(
+                (
+                    sum,
+                    contract
+                )=>
+                    sum+
+                    contract.reward,
+                0
+            )
+        );
+
+
+    document
+        .getElementById(
+            "completedContracts"
+        )
+        .textContent =
+        game.completedContracts;
+
+
+    document
+        .getElementById(
+            "reputation"
+        )
+        .textContent =
+        Math.round(
+            game.reputation
+        );
+
+
+    const grid =
+        document.getElementById(
+            "contractGrid"
+        );
+
+
+    if(
+        !game.contracts.length
+    ){
+
+        grid.innerHTML = `
+            <div class="empty">
+                📄 Brak aktywnych kontraktów.
+            </div>
+        `;
+
+        return;
+
+    }
+
+
+    grid.innerHTML =
+        game.contracts
+        .map(
+            contract=>`
+
+            <div class="tile">
+
+                <div class="tile-top">
+
+                    <div class="tile-icon">
+                        ${contract.icon}
+                    </div>
+
+                    <div>
+
+                        <h3>
+                            ${esc(
+                                contract.title
+                            )}
+                        </h3>
+
+                        <span class="tag">
+                            ${money(
+                                contract.reward
+                            )}
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <p>
+
+                    Postęp:
+                    ${Math.floor(
+                        contract.progress
+                    )}%
+
+                </p>
+
+
+                <div
+                    class="progress"
+                    style="margin-top:8px"
+                >
+
+                    <div
+                        style="
+                            width:
+                            ${contract.progress}%
+                        "
+                    ></div>
+
+                </div>
+
+
+                <p>
+
+                    +${contract.reputation.toFixed(1)}
+                    reputacji
+
+                </p>
+
+            </div>
+
+            `
+        )
+        .join("");
+
+}
+
+
+/* =========================================================
+   EMPLOYEES RENDER
+========================================================= */
+
+function renderEmployees(){
+
+    const wages =
+        game.employees.reduce(
+            (
+                sum,
+                employee
+            )=>
+                sum+
+                employee.salary*
+                .06,
+            0
+        );
+
+
+    const avg =
+        game.employees.length
+            ?Math.round(
+                game.employees.reduce(
+                    (
+                        sum,
+                        employee
+                    )=>
+                        sum+
+                        employee.skill,
+                    0
+                )/
+                game.employees.length
+            )
+            :0;
+
+
+    document
+        .getElementById(
+            "empCount"
+        )
+        .textContent =
+        game.employees.length;
+
+
+    document
+        .getElementById(
+            "empCap"
+        )
+        .textContent =
+        employeeCapacity();
+
+
+    document
+        .getElementById(
+            "wageCost"
+        )
+        .textContent =
+        money(wages)+
+        "/s";
+
+
+    document
+        .getElementById(
+            "empSkill"
+        )
+        .textContent =
+        avg;
+
+
+    document
+        .getElementById(
+            "candidateCount"
+        )
+        .textContent =
+        game.candidates.length;
+
+
+    const candidateGrid =
+        document.getElementById(
+            "candidateGrid"
+        );
+
+
+    if(
+        !game.candidates.length
+    ){
+
+        candidateGrid.innerHTML = `
+            <div class="empty">
+                Brak kandydatów.
+            </div>
+        `;
+
+    }else{
+
+        candidateGrid.innerHTML =
+            game.candidates
+            .slice(
+                0,
+                12
+            )
+            .map(
+                candidate=>`
+
+                <div class="tile">
+
+                    <div class="tile-top">
+
+                        <div class="tile-icon">
+
+                            ${candidate.avatar}
+
+                        </div>
+
+                        <div>
+
+                            <h3>
+                                ${esc(
+                                    candidate.name
+                                )}
+                            </h3>
+
+                            <div class="muted">
+
+                                ${esc(
+                                    candidate.role
+                                )}
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <p>
+
+                        Skill:
+                        <b>
+                            ${candidate.skill}
+                        </b>
+
+                        •
+                        pensja
+                        ${candidate.salary}
+
+                    </p>
+
+
+                    <div
+                        class="progress"
+                    >
+
+                        <div
+                            style="
+                                width:${candidate.skill}%
+                            "
+                        ></div>
+
+                    </div>
+
+
+                    <p
+                        style="
+                            color:var(--yellow)
+                        "
+                    >
+
+                        ✨
+                        ${esc(
+                            candidate.perk
+                        )}
+
+                    </p>
+
+
+                    <button
+                        class="btn btn-green"
+                        style="width:100%"
+                        onclick="hireCandidate(${candidate.id})"
+                    >
+
+                        Zatrudnij
+
+                    </button>
+
+                </div>
+
+                `
+            )
+            .join("");
+
+    }
+
+
+    const employeeGrid =
+        document.getElementById(
+            "employeeGrid"
+        );
+
+
+    if(
+        !game.employees.length
+    ){
+
+        employeeGrid.innerHTML = `
+            <div class="empty">
+                👷 Nie masz jeszcze pracowników.
+            </div>
+        `;
+
+        return;
+
+    }
+
+
+    employeeGrid.innerHTML =
+        game.employees
+        .slice(
+            0,
+            90
+        )
+        .map(
+            employee=>`
+
+            <div class="tile">
+
+                <div class="tile-top">
+
+                    <div class="tile-icon">
+                        ${employee.avatar}
+                    </div>
+
+                    <div>
+
+                        <h3>
+                            ${esc(
+                                employee.name
+                            )}
+                        </h3>
+
+                        <div class="muted">
+                            ${esc(
+                                employee.role
+                            )}
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <p>
+
+                    Skill:
+                    <b>
+                        ${employee.skill}
+                    </b>
+
+                    • pensja:
+                    ${employee.salary}
+
+                </p>
+
+
+                <span class="tag">
+
+                    ${esc(
+                        employee.perk
+                    )}
+
+                </span>
+
+            </div>
+
+            `
+        )
+        .join("");
+
+}
+
+
+/* =========================================================
+   PRICING RENDER
+========================================================= */
+
+function renderPricing(){
+
+    const ticket =
+        Number(
+            game.ticketPrice
+        )||
+        3;
+
+
+    const fine =
+        Number(
+            game.fineAmount
+        )||
+        50;
+
+
+    document
+        .getElementById(
+            "ticketPriceDisplay"
+        )
+        .textContent =
+        "$"+
+        ticket.toFixed(2);
+
+
+    document
+        .getElementById(
+            "fineDisplay"
+        )
+        .textContent =
+        "$"+
+        Math.round(fine);
+
+
+    document
+        .getElementById(
+            "pricingTicketIncome"
+        )
+        .textContent =
+        money(
+            game.ticketIncome
+        );
+
+
+    document
+        .getElementById(
+            "pricingFineIncome"
+        )
+        .textContent =
+        money(
+            game.fineIncome
+        );
+
+
+    document
+        .getElementById(
+            "pricingTicketTag"
+        )
+        .textContent =
+        "$"+
+        ticket.toFixed(2);
+
+
+    document
+        .getElementById(
+            "pricingFineTag"
+        )
+        .textContent =
+        "$"+
+        Math.round(
+            fine
+        );
+
+
+    document
+        .getElementById(
+            "pricingInspectionTag"
+        )
+        .textContent =
+        String(
+            game.inspectionLevel
+        ).toUpperCase();
+
+
+    document
+        .getElementById(
+            "ticketPriceInput"
+        )
+        .value =
+        ticket;
+
+
+    document
+        .getElementById(
+            "fineInput"
+        )
+        .value =
+        fine;
+
+
+    document
+        .getElementById(
+            "inspectionLevel"
+        )
+        .value =
+        game.inspectionLevel;
+
+
+    previewPricing();
+
+}
+
+
+/* =========================================================
+   COMPETITION RENDER
+========================================================= */
+
+function renderCompetition(){
+
+    const ownPower =
+        game.lines.length*
+        12+
+
+        game.stations.length*
+        8+
+
+        game.trains.reduce(
+            (
+                sum,
+                train
+            )=>
+                sum+
+                train.seats/
+                15,
+            0
+        )+
+
+        game.reputation+
+
+        game.employees.length*
+        1.5;
+
+
+    const all = [
+
+        ...game.competitors,
+
+        {
+
+            name:
+                "Metro Empire",
+
+            power:
+                ownPower,
+
+            share:
+                Math.max(
+                    .2,
+                    ownPower/
+                    18
+                ),
+
+            km:
+                game.lines.reduce(
+                    (
+                        sum,
+                        line
+                    )=>
+                        sum+
+                        line.km,
+                    0
+                ),
+
+            passengers:
+                game.passengers
+
+        }
+
+    ];
+
+
+    all.sort(
+        (
+            a,
+            b
+        )=>
+            b.power-
+            a.power
+    );
+
+
+    const rank =
+        all.findIndex(
+            company=>
+                company.name===
+                "Metro Empire"
+        )+
+        1;
+
+
+    document
+        .getElementById(
+            "rank"
+        )
+        .textContent =
+        "#"+
+        rank;
+
+
+    document
+        .getElementById(
+            "marketShare"
+        )
+        .textContent =
+        Math.max(
+            .2,
+            ownPower/
+            18
+        ).toFixed(2)+
+        "%";
+
+
+    const strongest =
+        all.find(
+            company=>
+                company.name!==
+                "Metro Empire"
+        );
+
+
+    document
+        .getElementById(
+            "topCompetitor"
+        )
+        .textContent =
+        strongest
+            ?strongest.name
+            :"—";
+
+
+    document
+        .getElementById(
+            "marketPressure"
+        )
+        .textContent =
+        Math.min(
+            99,
+            Math.max(
+                0,
+                100-
+                ownPower/
+                2
+            )
+        ).toFixed(0)+
+        "%";
+
+
+    document
+        .getElementById(
+            "competitorList"
+        )
+        .innerHTML =
+        all
+        .map(
+            (
+                company,
+                index
+            )=>`
+
+            <div class="row">
+
+                <div class="row-icon">
+
+                    ${
+                        company.name===
+                        "Metro Empire"
+                            ?"🚇"
+                            :"🏢"
+                    }
+
+                </div>
+
+
+                <div class="row-main">
+
+                    <div class="row-title">
+
+                        #${index+1}
+                        ${esc(
+                            company.name
+                        )}
+
+                        ${
+                            company.name===
+                            "Metro Empire"
+                                ?`
+                                    <span class="tag">
+                                        TY
+                                    </span>
+                                  `
+                                :""
+                        }
+
+                    </div>
+
+
+                    <div class="row-desc">
+
+                        Power:
+                        ${company.power.toFixed(0)}
+
+                        •
+
+                        ${company.km.toFixed(1)}
+                        km
+
+                        •
+
+                        ${Math.round(
+                            company.passengers
+                        ).toLocaleString(
+                            "pl-PL"
+                        )}
+                        pasażerów
+
+                    </div>
+
+                </div>
+
+
+                <div style="width:90px">
+
+                    <div class="progress">
+
+                        <div
+                            style="
+                                width:
+                                ${Math.min(
+                                    100,
+                                    company.power
+                                )}%
+                            "
+                        ></div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            `
+        )
+        .join("");
+
+}
+
+
+/* =========================================================
+   ECONOMY RENDER
+========================================================= */
+
+function renderEconomy(){
+
+    const expenses =
+        expensePerSecond();
+
+
+    document
+        .getElementById(
+            "totalIncome"
+        )
+        .textContent =
+        money(
+            game.income
+        );
+
+
+    document
+        .getElementById(
+            "totalExpenses"
+        )
+        .textContent =
+        money(
+            game.expenses
+        );
+
+
+    document
+        .getElementById(
+            "netProfit"
+        )
+        .textContent =
+        money(
+            game.income-
+            game.expenses
+        );
+
+
+    document
+        .getElementById(
+            "ticketIncome"
+        )
+        .textContent =
+        money(
+            game.ticketIncome
+        );
+
+
+    document
+        .getElementById(
+            "expenseBreakdown"
+        )
+        .innerHTML = [
+
+            [
+                "👷",
+                "Pracownicy",
+                expenses.wages
+            ],
+
+            [
+                "🚆",
+                "Pociągi",
+                expenses.trains
+            ],
+
+            [
+                "🛤️",
+                "Linie",
+                expenses.lines
+            ],
+
+            [
+                "🚉",
+                "Stacje",
+                expenses.stations
+            ],
+
+            [
+                "👮",
+                "Kontrole",
+                expenses.controls
+            ]
+
+        ]
+        .map(
+            item=>`
+
+            <div class="row">
+
+                <div class="row-icon">
+                    ${item[0]}
+                </div>
+
+                <div class="row-main">
+
+                    <div class="row-title">
+                        ${item[1]}
+                    </div>
+
+                    <div class="row-desc">
+                        ${money(
+                            item[2]
+                        )}/s
+                    </div>
+
+                </div>
+
+            </div>
+
+            `
+        )
+        .join("");
+
+}
+
+
+/* =========================================================
+   CHARTS
+========================================================= */
+
+function renderChart(
+    element
+){
+
+    if(!element){
+
+        return;
+
+    }
+
+
+    const income =
+        game.incomeHistory;
+
+
+    const expense =
+        game.expenseHistory;
+
+
+    const max =
+        Math.max(
+            1,
+            ...income,
+            ...expense
+        );
+
+
+    element.innerHTML =
+        '<div class="chart-grid"></div>'+
+        income
+        .map(
+            (
+                value,
+                index
+            )=>{
+
+                const out =
+                    expense[
+                        index
+                    ]||
+                    0;
+
+
+                const incomeHeight =
+                    value>0
+                        ?Math.max(
+                            3,
+                            value/
+                            max*
+                            165
+                        )
+                        :0;
+
+
+                const expenseHeight =
+                    out>0
+                        ?Math.max(
+                            3,
+                            out/
+                            max*
+                            165
+                        )
+                        :0;
+
+
+                return `
+
+                <div class="bar-group">
+
+                    <div
+                        class="bar income"
+                        style="
+                            height:${incomeHeight}px
+                        "
+                        title="
+                            Zarobki
+                            ${money(value)}
+                        "
+                    ></div>
+
+
+                    <div
+                        class="bar expense"
+                        style="
+                            height:${expenseHeight}px
+                        "
+                        title="
+                            Wydatki
+                            ${money(out)}
+                        "
+                    ></div>
+
+
+                    <div class="bar-label">
+
+                        ${index+1}
+
+                    </div>
+
+                </div>
+
+                `;
+
+            }
+        )
+        .join("");
+
+}
+
+
+function renderCharts(){
+
+    renderChart(
+        document.getElementById(
+            "dashboardChart"
+        )
+    );
+
+
+    renderChart(
+        document.getElementById(
+            "economyChart"
+        )
+    );
+
+}
+
+
+/* =========================================================
+   RENDER ALL
+========================================================= */
+
+function renderAll(){
+
+    renderTop();
+
+    renderDashboard();
+
+    renderLines();
+
+    renderStations();
+
+    renderTrains();
+
+    renderContracts();
+
+    renderEmployees();
+
+    renderPricing();
+
+    renderCompetition();
+
+    renderEconomy();
+
+    renderCharts();
+
+}
+
+
+/* =========================================================
+   MODALS
+========================================================= */
+
+function closeModal(
+    id
+){
+
+    const modal =
+        document.getElementById(
+            id
+        );
+
+
+    if(modal){
+
+        modal.classList.remove(
+            "open"
+        );
+
+    }
+
+}
+
+
+document
+.querySelectorAll(
+    ".modal-bg"
+)
+.forEach(
+    modal=>{
+
+        modal.addEventListener(
+            "click",
+            event=>{
+
+                if(
+                    event.target===
+                    modal
+                ){
+
+                    modal.classList.remove(
+                        "open"
+                    );
+
+                }
+
+            }
+        );
+
+    }
+);
+
+
+/* =========================================================
+   CHEATS
+========================================================= */
+
+function openCheats(){
+
+    document
+        .getElementById(
+            "cheatInput"
+        )
+        .value =
+        "";
+
+
+    document
+        .getElementById(
+            "cheatModal"
+        )
+        .classList.add(
+            "open"
+        );
+
+
+    setTimeout(
+        ()=>{
+
+            document
+                .getElementById(
+                    "cheatInput"
+                )
+                .focus();
+
+        },
+        80
+    );
+
+}
+
+
+function executeCheat(){
+
+    const raw =
+        document
+        .getElementById(
+            "cheatInput"
+        )
+        .value
+        .trim();
+
+
+    const command =
+        raw
+        .toLowerCase()
+        .replace(
+            /\s+/g,
+            " "
+        );
+
+
+    if(
+        command===
+        "kasa"
+    ){
+
+        toast(
+            "💰 Obecna kasa: "+
+            money(
+                game.cash
+            )
+        );
+
+        return;
+
+    }
+
+
+    if(
+        command.startsWith(
+            "kasa "
+        )
+    ){
+
+        const amount =
+            Number(
+                raw
+                .slice(5)
+                .replace(
+                    /[,$\s]/g,
+                    ""
+                )
+            );
+
+
+        if(
+            !Number.isFinite(
+                amount
+            )||
+            amount<=0
+        ){
+
+            toast(
+                "❌ Użycie: kasa 1000000"
+            );
+
+            return;
+
+        }
+
+
+        cashChange(
+            amount,
+            "Cheat: kasa"
+        );
+
+
+        saveGame();
+
+        renderAll();
+
+
+        toast(
+            "💰 Dodano "+
+            money(amount)
+        );
+
+
+        return;
+
+    }
+
+
+    if(
+        command===
+        "max staff"
+    ){
+
+        maxStaff();
+
+        return;
+
+    }
+
+
+    if(
+        command===
+        "metro"
+    ){
+
+        cashChange(
+            10000000,
+            "Cheat: pakiet Metro"
+        );
+
+
+        for(
+            let i=0;
+            i<3;
+            i++
+        ){
+
+            game.lines.push({
+
+                id:
+                    "cheat_line_"+
+                    Date.now()+
+                    Math.random(),
+
+                name:
+                    "Linia "+
+                    (
+                        game.lines.length+
+                        1
+                    ),
+
+                type:
+                    "express",
+
+                segments:
+                    5,
+
+                km:
+                    6.25,
+
+                frequency:
+                    4,
+
+                level:
+                    3
+
+            });
+
+        }
+
+
+        for(
+            let i=0;
+            i<8;
+            i++
+        ){
+
+            game.stations.push({
+
+                id:
+                    "cheat_station_"+
+                    Date.now()+
+                    Math.random(),
+
+                name:
+                    "Stacja "+
+                    (
+                        game.stations.length+
+                        1
+                    ),
+
+                type:
+                    "hub",
+
+                lineId:
+                    game.lines[0].id,
+
+                rating:
+                    1.5,
+
+                passengers:
+                    0
+
+            });
+
+        }
+
+
+        for(
+            let i=0;
+            i<4;
+            i++
+        ){
+
+            game.trains.push({
+
+                id:
+                    "cheat_train_"+
+                    Date.now()+
+                    Math.random(),
+
+                type:
+                    "Rapid R2",
+
+                lineId:
+                    game.lines[0].id,
+
+                seats:
+                    220,
+
+                upkeep:
+                    48,
+
+                speed:
+                    95,
+
+                active:
+                    true
+
+            });
+
+        }
+
+
+        generateCandidates(
+            12
+        );
+
+
+        generateContracts(
+            8
+        );
+
+
+        maxStaff();
+
+
+        saveGame();
+
+        renderAll();
+
+
+        toast(
+            "🚇 Pakiet Metro aktywowany."
+        );
+
+
+        return;
+
+    }
+
+
+    if(
+        command===
+        "reset"
+    ){
+
+        if(
+            confirm(
+                "Usunąć cały zapis Metro Empire?"
+            )
+        ){
+
+            localStorage.removeItem(
+                SAVE_KEY
+            );
+
+
+            game =
+                defaultState();
+
+
+            seedCompetitors();
+
+            generateCandidates(
+                8
+            );
+
+            generateContracts(
+                5
+            );
+
+
+            saveGame();
+
+
+            closeModal(
+                "cheatModal"
+            );
+
+
+            renderAll();
+
+
+            toast(
+                "🔄 Gra została zresetowana."
+            );
+
+        }
+
+        return;
+
+    }
+
+
+    toast(
+        "❌ Nieznana komenda."
+    );
+
+}
+
+
+document
+.getElementById(
+    "cheatInput"
+)
+.addEventListener(
+    "keydown",
+    event=>{
+
+        if(
+            event.key===
+            "Enter"
+        ){
+
+            executeCheat();
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   KEYBOARD
+========================================================= */
+
+document.addEventListener(
+    "keydown",
+    event=>{
+
+        if(
+            event.key===
+            "~"||
+            event.key===
+            "`"
+        ){
+
+            event.preventDefault();
+
+            openCheats();
+
+        }
+
+
+        if(
+            event.key===
+            "Escape"
+        ){
+
+            document
+                .querySelectorAll(
+                    ".modal-bg.open"
+                )
+                .forEach(
+                    modal=>
+                        modal.classList.remove(
+                            "open"
+                        )
+                );
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   START
+========================================================= */
+
+if(
+    !game.competitors.length
+){
+
+    seedCompetitors();
+
+}
+
+
+if(
+    !game.candidates.length
+){
+
+    generateCandidates(
+        8
+    );
+
+}
+
+
+if(
+    !game.contracts.length
+){
+
+    generateContracts(
+        5
+    );
+
+}
+
+
+renderAll();
+
+
+/* =========================================================
+   LOOPS
+========================================================= */
+
+setInterval(
+    tick,
+    1000
+);
+
+
+setInterval(
+    ()=>{
+
+        if(
+            game.candidates.length<
+            14
+        ){
+
+            generateCandidates(
+                1
+            );
+
+        }
+
+    },
+    6500
+);
+
+
+setInterval(
+    ()=>{
+
+        if(
+            game.contracts.length<
+            10
+        ){
+
+            generateContracts(
+                1
+            );
+
+        }
+
+    },
+    9000
+);
+
+
+setInterval(
+    saveGame,
+    15000
+);
+
+</script>
+
+</body>
+</html>
