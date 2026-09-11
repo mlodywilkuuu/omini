@@ -8603,3 +8603,305 @@ setInterval(function(){
 
 })();
 </script>
+
+<!-- AI EMPIRE v18 — HARD RESET + OWNED COMPANY MANAGEMENT -->
+<style id="v18-owned-style">
+.v18-owned-section{margin-top:15px}
+.v18-owned-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.v18-company-tile{padding:16px;border:1px solid rgba(255,255,255,.08);border-radius:15px;background:linear-gradient(145deg,rgba(17,22,37,.95),rgba(8,11,19,.97));cursor:pointer;transition:.2s;position:relative;overflow:hidden}
+.v18-company-tile:hover{transform:translateY(-2px);border-color:rgba(139,92,246,.45);box-shadow:0 15px 45px rgba(0,0,0,.25)}
+.v18-company-top{display:flex;align-items:center;gap:10px}
+.v18-company-icon{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;background:linear-gradient(135deg,rgba(139,92,246,.25),rgba(78,161,255,.12));font-size:21px}
+.v18-company-name{font-size:13px;font-weight:900}
+.v18-company-sector{color:#7f8aa0;font-size:9px;margin-top:3px}
+.v18-badge{margin-left:auto;padding:4px 7px;border-radius:999px;font-size:8px;font-weight:900}
+.v18-badge.control{background:rgba(40,233,139,.1);color:#71efae;border:1px solid rgba(40,233,139,.2)}
+.v18-badge.investor{background:rgba(139,92,246,.1);color:#c7adff;border:1px solid rgba(139,92,246,.2)}
+.v18-company-price{font-size:22px;font-weight:900;margin-top:14px}
+.v18-company-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-top:12px}
+.v18-company-stat{padding:8px;border-radius:9px;background:rgba(255,255,255,.025)}
+.v18-company-stat span{display:block;color:#697388;font-size:8px}
+.v18-company-stat b{display:block;margin-top:3px;font-size:10px}
+.v18-company-actions{display:flex;gap:6px;margin-top:12px}
+.v18-company-actions .btn{flex:1}
+.v18-management-header{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:15px;border-radius:13px;background:linear-gradient(135deg,rgba(139,92,246,.13),rgba(57,217,255,.05));border:1px solid rgba(139,92,246,.2);margin-bottom:12px}
+.v18-modal-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.v18-manage-card{padding:13px;border-radius:11px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.07)}
+.v18-manage-card strong{display:block;font-size:11px}
+.v18-manage-card span{display:block;color:#7f8aa0;font-size:9px;margin-top:4px;line-height:1.45}
+.v18-company-control{margin-top:13px;padding:12px;border-radius:11px;background:rgba(40,233,139,.06);border:1px solid rgba(40,233,139,.18)}
+.v18-control-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.v18-control-grid .btn{width:100%}
+@media(max-width:950px){.v18-owned-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:650px){.v18-owned-grid,.v18-modal-grid,.v18-control-grid{grid-template-columns:1fr}}
+</style>
+<script id="v18-authoritative-fixes">
+(function(){
+  'use strict';
+
+  const V18_RESET_MARK='ai_empire_v18_reset';
+  const V18_SAVE_KEYS=[
+    'ai_empire_save_v2','ai_empire_save_v1','AI_EMPIRE_SAVE_V1','AI_EMPIRE_SAVE_V2','ai_empire_backup_v2'
+  ];
+
+  function num(v,d=0){const n=Number(v);return Number.isFinite(n)?n:d;}
+  function notify(m){try{if(typeof toast==='function')toast(m);}catch(e){}}
+  function persist(){try{if(typeof saveGame==='function')saveGame();else localStorage.setItem('ai_empire_save_v2',JSON.stringify(game));}catch(e){}}
+  function render(){try{if(typeof renderAll==='function')renderAll();}catch(e){} try{renderOwnedCompanies();}catch(e){} try{renderOwnedCompanyManagement();}catch(e){}}
+
+  /* ---------- HARD RESET: remove ALL progression ---------- */
+  function deleteAllGameStorage(){
+    try{
+      V18_SAVE_KEYS.forEach(k=>localStorage.removeItem(k));
+      for(let i=localStorage.length-1;i>=0;i--){
+        const k=localStorage.key(i);
+        if(k && (/^ai[_-]?empire/i.test(k) || /^AI[_-]?EMPIRE/i.test(k))) localStorage.removeItem(k);
+      }
+      sessionStorage.clear();
+    }catch(e){console.warn('V18 storage reset',e)}
+  }
+
+  function hardResetV18(){
+    if(!confirm('Zresetować CAŁĄ grę? Zostaną usunięte pieniądze, pracownicy, biuro, GPU, modele AI, produkty, R&D, technologie, udziały, inwestycje, firmy przejęte i wszystkie ulepszenia.')) return;
+    try{localStorage.setItem(V18_RESET_MARK,'1');}catch(e){}
+    deleteAllGameStorage();
+    try{game=typeof defaultState==='function'?defaultState():game;}
+    catch(e){}
+    try{if(Array.isArray(game.candidates))game.candidates=[]; if(typeof generateCandidates==='function')generateCandidates(8);}catch(e){}
+    location.reload();
+  }
+  window.resetGame=hardResetV18;
+  window.aiEmpireHardReset=hardResetV18;
+
+  function resetMarkerBootstrap(){
+    let marker='0';
+    try{marker=localStorage.getItem(V18_RESET_MARK)||'0';}catch(e){}
+    if(marker==='1'){
+      deleteAllGameStorage();
+      try{localStorage.removeItem(V18_RESET_MARK);}catch(e){}
+      /* Make absolutely sure runtime is a fresh default state even before any interval. */
+      try{game=defaultState(); if(typeof generateCandidates==='function')generateCandidates(8);}catch(e){}
+    }
+  }
+  resetMarkerBootstrap();
+
+  /* ---------- OWNED COMPANIES ---------- */
+  function ensureOwnedState(){
+    if(!Array.isArray(game.marketCompanies))game.marketCompanies=[];
+    if(!Array.isArray(game.portfolio))game.portfolio=[];
+    game.marketCompanies.forEach((c,i)=>{
+      c.id=c.id||('mc_v18_'+i);
+      c.name=c.name||('AI Company '+(i+1));
+      c.icon=c.icon||'🏢';
+      c.sector=c.sector||'Technology';
+      c.price=Math.max(1,num(c.price,25));
+      c.shares=Math.max(1,Math.floor(num(c.shares,100)));
+      c.available=Math.max(0,Math.min(c.shares,Math.floor(num(c.available,c.shares))));
+      c.valuation=Math.max(c.price*c.shares,num(c.valuation,c.price*c.shares));
+      c.level=Math.max(1,Math.floor(num(c.level,1)));
+      c.users=Math.max(0,Math.floor(num(c.users,10000)));
+      c.revenue=Math.max(0,num(c.revenue,0));
+      c.strategy=c.strategy||'balanced';
+      c.ceo=c.ceo||'Founder / CEO';
+      c.researchLevel=Math.max(0,Math.floor(num(c.researchLevel,0)));
+      c.marketingLevel=Math.max(0,Math.floor(num(c.marketingLevel,0)));
+      c.infrastructureLevel=Math.max(0,Math.floor(num(c.infrastructureLevel,0)));
+      c.securityLevel=Math.max(0,Math.floor(num(c.securityLevel,0)));
+      c.lastManagement=Number(c.lastManagement)||0;
+    });
+    game.portfolio=game.portfolio.filter(h=>h && num(h.shares)>0 && game.marketCompanies.some(c=>c.id===h.companyId));
+    game.portfolio.forEach(h=>{
+      h.shares=Math.max(0,Math.floor(num(h.shares)));
+      if(!h.management)h.management={strategy:'balanced',budget:25,research:0,marketing:0,security:0};
+    });
+  }
+
+  function holdingOf(id){return game.portfolio.find(h=>h.companyId===id)||null;}
+  function ownedShares(id){return num(holdingOf(id)?.shares,0);}
+  function ownershipPercent(id){
+    const c=game.marketCompanies.find(x=>x.id===id); if(!c)return 0;
+    return c.shares?ownedShares(id)/c.shares*100:0;
+  }
+  function hasCompanyControl(id){return ownershipPercent(id)>50;}
+
+  /* initialize company management fields without touching existing ownership */
+  ensureOwnedState();
+
+  function ensureOwnedUI(){
+    const page=document.getElementById('page-management');
+    if(!page)return;
+    let section=document.getElementById('v18OwnedCompanies');
+    if(!section){
+      section=document.createElement('div');
+      section.id='v18OwnedCompanies';
+      section.className='v18-owned-section';
+      section.innerHTML='<div class="section-head"><h2>🏦 Spółki, w których masz udziały</h2><span id="v18OwnedCount">0</span></div><div id="v18OwnedGrid" class="v18-owned-grid"></div>';
+      page.appendChild(section);
+    }
+  }
+
+  window.renderOwnedCompanies=function(){
+    ensureOwnedState();
+    ensureOwnedUI();
+    const grid=document.getElementById('v18OwnedGrid');
+    const count=document.getElementById('v18OwnedCount');
+    if(!grid)return;
+    const owned=game.portfolio.filter(h=>num(h.shares)>0 && game.marketCompanies.some(c=>c.id===h.companyId));
+    if(count)count.textContent=owned.length+' spółek';
+    if(!owned.length){
+      grid.innerHTML='<div style="grid-column:1/-1;padding:28px;text-align:center;color:#697388;border:1px dashed rgba(255,255,255,.08);border-radius:14px">Nie posiadasz jeszcze udziałów w żadnej zewnętrznej spółce.</div>';
+      return;
+    }
+    grid.innerHTML=owned.map(h=>{
+      const c=game.marketCompanies.find(x=>x.id===h.companyId); if(!c)return '';
+      const own=ownershipPercent(c.id), value=ownedShares(c.id)*c.price;
+      const change=num(c.change);
+      return `<div class="v18-company-tile" onclick="openOwnedCompany('${c.id}')">
+        <div class="v18-company-top">
+          <div class="v18-company-icon">${c.icon}</div>
+          <div><div class="v18-company-name">${escapeHtml(c.name)}</div><div class="v18-company-sector">${escapeHtml(c.sector)} • poziom ${c.level}</div></div>
+          <span class="v18-badge ${hasCompanyControl(c.id)?'control':'investor'}">${hasCompanyControl(c.id)?'KONTROLA':'INWESTOR'}</span>
+        </div>
+        <div class="v18-company-price">${money(c.price)}</div>
+        <div class="v18-company-stats">
+          <div class="v18-company-stat"><span>Twoje udziały</span><b>${ownedShares(c.id)} / ${c.shares}</b></div>
+          <div class="v18-company-stat"><span>Własność</span><b>${own.toFixed(1)}%</b></div>
+          <div class="v18-company-stat"><span>Wartość</span><b>${money(value)}</b></div>
+        </div>
+        <div class="v18-company-actions" onclick="event.stopPropagation()">
+          <button class="btn green-btn" onclick="quickBuyOwned('${c.id}',1)">＋1</button>
+          <button class="btn red-btn" onclick="quickSellOwned('${c.id}',1)">−1</button>
+          <button class="btn primary" onclick="openOwnedCompany('${c.id}')">Zarządzaj</button>
+        </div>
+      </div>`;
+    }).join('');
+  };
+
+  window.quickBuyOwned=function(id,qty=1){
+    ensureOwnedState(); const c=game.marketCompanies.find(x=>x.id===id);
+    if(!c||c.available<qty){notify('❌ Brak tylu dostępnych udziałów.');return;}
+    const cost=qty*c.price; if(num(game.cash)<cost){notify('❌ Za mało pieniędzy.');return;}
+    changeCash(-cost,'Dokupiono '+qty+' udziałów '+c.name);
+    let h=holdingOf(id); if(!h){h={companyId:id,shares:0};game.portfolio.push(h);} h.shares+=qty; c.available-=qty;
+    addStockHistory?.('📈','Dokupiono '+qty+' udziałów '+c.name+' za '+money(cost)+'.'); persist(); render();
+  };
+  window.quickSellOwned=function(id,qty=1){
+    ensureOwnedState(); const c=game.marketCompanies.find(x=>x.id===id),h=holdingOf(id);
+    if(!c||!h||h.shares<qty){notify('❌ Nie posiadasz tylu udziałów.');return;}
+    const proceeds=qty*c.price; h.shares-=qty; c.available=Math.min(c.shares,c.available+qty);
+    changeCash(proceeds,'Sprzedano '+qty+' udziałów '+c.name);
+    addStockHistory?.('💵','Sprzedano '+qty+' udziałów '+c.name+' za '+money(proceeds)+'.');
+    game.portfolio=game.portfolio.filter(x=>x.shares>0); persist(); render();
+  };
+
+  let v18Target=null;
+  function ensureCompanyModal(){
+    let bg=document.getElementById('v18CompanyModal');
+    if(bg)return bg;
+    bg=document.createElement('div'); bg.id='v18CompanyModal'; bg.className='modal-bg';
+    bg.innerHTML=`<div class="modal" style="width:min(780px,calc(100% - 25px))">
+      <div class="modal-head"><h2 id="v18CompanyModalTitle">🏢 Spółka</h2><button class="close" onclick="closeModal('v18CompanyModal')">×</button></div>
+      <div class="modal-body" id="v18CompanyModalBody"></div>
+      <div class="modal-footer"><button class="btn" onclick="closeModal('v18CompanyModal')">Zamknij</button></div>
+    </div>`;
+    document.body.appendChild(bg);
+    return bg;
+  }
+
+  window.openOwnedCompany=function(id){
+    ensureOwnedState(); const c=game.marketCompanies.find(x=>x.id===id); if(!c)return;
+    v18Target=id; ensureCompanyModal(); renderOwnedCompanyManagement(); openModal('v18CompanyModal');
+  };
+
+  function companyMgmtHTML(c){
+    const own=ownershipPercent(c.id), shares=ownedShares(c.id), value=shares*c.price, control=hasCompanyControl(c.id), h=holdingOf(c.id);
+    const m=h?.management||{};
+    const totalRevenue=num(c.revenue)+num(c.users)*0.2+num(c.level)*500;
+    return `<div class="v18-management-header"><div><div style="font-size:15px;font-weight:900">${c.icon} ${escapeHtml(c.name)}</div><div style="color:#7f8aa0;font-size:10px;margin-top:4px">${escapeHtml(c.sector)} • poziom ${c.level} • ${c.shares} udziałów</div></div><div style="text-align:right"><div style="font-size:22px;font-weight:900">${own.toFixed(1)}%</div><div style="color:#7f8aa0;font-size:9px">Twoja własność</div></div></div>
+      <div class="v18-modal-grid">
+        <div class="v18-manage-card"><strong>📈 Kurs</strong><span>${money(c.price)} • zmiana ${c.change>=0?'+':''}${num(c.change).toFixed(2)}</span></div>
+        <div class="v18-manage-card"><strong>💼 Wartość inwestycji</strong><span>${money(value)} • ${shares} udziałów</span></div>
+        <div class="v18-manage-card"><strong>👥 Użytkownicy</strong><span>${Math.floor(num(c.users)).toLocaleString()}</span></div>
+        <div class="v18-manage-card"><strong>💰 Przychód spółki</strong><span>${money(totalRevenue)} • strategia: ${escapeHtml(c.strategy||m.strategy||'balanced')}</span></div>
+        <div class="v18-manage-card"><strong>🔬 R&D</strong><span>Poziom ${c.researchLevel} • inwestycje technologiczne</span></div>
+        <div class="v18-manage-card"><strong>📣 Marketing</strong><span>Poziom ${c.marketingLevel} • baza klientów</span></div>
+      </div>
+      ${control?`<div class="v18-company-control"><strong>🔓 Masz kontrolę nad tą spółką</strong><div style="color:#7f8aa0;font-size:9px;margin-top:4px">Możesz podejmować decyzje strategiczne, inwestować w rozwój i zmieniać kierunek firmy.</div><div class="v18-control-grid"><button class="btn primary" onclick="companyActionV18('${c.id}','strategy')">👔 Strategia</button><button class="btn" onclick="companyActionV18('${c.id}','rnd')">🔬 + R&D</button><button class="btn" onclick="companyActionV18('${c.id}','marketing')">📣 + Marketing</button><button class="btn" onclick="companyActionV18('${c.id}','infra')">🏢 + Infrastruktura</button><button class="btn" onclick="companyActionV18('${c.id}','security')">🛡️ + Bezpieczeństwo</button><button class="btn green-btn" onclick="companyActionV18('${c.id}','dividend')">💵 Dywidenda</button></div></div>`:`<div class="v18-company-control" style="background:rgba(139,92,246,.05);border-color:rgba(139,92,246,.15)"><strong>🔒 Brak kontroli zarządczej</strong><div style="color:#7f8aa0;font-size:9px;margin-top:4px">Potrzebujesz ponad 50% udziałów tej spółki, aby nią zarządzać. Możesz nadal dokupować lub sprzedawać udziały.</div><div class="v18-control-grid"><button class="btn primary" onclick="quickBuyOwned('${c.id}',1);renderOwnedCompanyManagement()">＋ Dokup udział</button><button class="btn red-btn" onclick="quickSellOwned('${c.id}',1);renderOwnedCompanyManagement()">− Sprzedaj</button></div></div>`}
+      <div style="margin-top:12px" class="field"><label>Dokup / sprzedaj większy pakiet</label><div style="display:flex;gap:7px"><button class="btn" onclick="quickBuyOwned('${c.id}',5);renderOwnedCompanyManagement()">＋5</button><button class="btn" onclick="quickBuyOwned('${c.id}',10);renderOwnedCompanyManagement()">＋10</button><button class="btn red-btn" onclick="quickSellOwned('${c.id}',5);renderOwnedCompanyManagement()">−5</button><button class="btn red-btn" onclick="quickSellOwned('${c.id}',10);renderOwnedCompanyManagement()">−10</button></div></div>`;
+  }
+
+  window.renderOwnedCompanyManagement=function(){
+    if(!v18Target)return; const c=game.marketCompanies.find(x=>x.id===v18Target); if(!c)return;
+    const title=document.getElementById('v18CompanyModalTitle'),body=document.getElementById('v18CompanyModalBody');
+    if(title)title.textContent=c.icon+' '+c.name+' — panel spółki';
+    if(body)body.innerHTML=companyMgmtHTML(c);
+  };
+
+  window.companyActionV18=function(id,action){
+    ensureOwnedState(); const c=game.marketCompanies.find(x=>x.id===id); if(!c||!hasCompanyControl(id)){notify('🔒 Potrzebujesz ponad 50% udziałów tej spółki.');return;}
+    let h=holdingOf(id); if(!h){h={companyId:id,shares:0};game.portfolio.push(h);} if(!h.management)h.management={};
+    const costs={rnd:250000,marketing:180000,infra:300000,security:150000};
+    if(action==='strategy'){
+      const strategies=[['growth','🚀 Aggressive Growth'],['balanced','⚖️ Balanced'],['profit','💰 Profit First'],['research','🧠 Research First']];
+      const current=c.strategy||'balanced'; const idx=Math.max(0,strategies.findIndex(x=>x[0]===current)); const next=strategies[(idx+1)%strategies.length]; c.strategy=next[0]; h.management.strategy=next[0];
+      addActivity('👔',c.name+' zmieniło strategię na '+next[1]); notify('👔 Strategia: '+next[1]);
+    }else if(action==='rnd' || action==='marketing' || action==='infra' || action==='security'){
+      const cost=costs[action]; if(num(game.cash)<cost){notify('❌ Za mało pieniędzy. Potrzebujesz '+money(cost)+'.');return;}
+      changeCash(-cost,'Inwestycja w '+c.name);
+      if(action==='rnd')c.researchLevel++;
+      if(action==='marketing'){c.marketingLevel++;c.users=Math.floor(num(c.users)*1.08+100);}
+      if(action==='infra'){c.infrastructureLevel++;c.level++;c.valuation+=cost*2;}
+      if(action==='security'){c.securityLevel++;game.reputation=Math.min(100,num(game.reputation)+1);}
+      addActivity('🏢','Rozbudowano '+c.name+' — '+action);
+      notify('✅ '+c.name+' została rozbudowana.');
+    }else if(action==='dividend'){
+      const dividend=Math.max(0,Math.floor(num(c.revenue)*0.02 + c.level*200));
+      const payout=Math.min(dividend,Math.max(0,Math.floor(dividend*owningFraction(id))));
+      if(payout<=0){notify('ℹ️ Ta spółka nie wygenerowała jeszcze dywidendy.');return;}
+      changeCash(payout,'Dywidenda z '+c.name);
+      addActivity('💵','Otrzymano dywidendę z '+c.name+': '+money(payout));
+      notify('💵 Otrzymano '+money(payout));
+    }
+    persist(); render(); renderOwnedCompanyManagement();
+  };
+  function owningFraction(id){return Math.min(1,ownershipPercent(id)/100);}
+
+  /* Upgrade old market company data gradually, and update them economically. */
+  setInterval(()=>{
+    try{
+      ensureOwnedState();
+      game.marketCompanies.forEach(c=>{
+        const growth=(Math.random()-.44)*0.05;
+        c.price=Math.max(1,Math.round(c.price*(1+growth)*100)/100);
+        c.change=c.price/(1+growth)-c.price;
+        c.valuation=Math.max(c.price*c.shares,c.valuation*(1+growth*.7));
+        c.users=Math.max(0,Math.floor(c.users*(1+Math.max(-.01,growth*.7))));
+        c.revenue=Math.max(0,c.revenue+c.users*.01);
+      });
+      renderOwnedCompanies();
+      renderOwnedCompanyManagement();
+      persist();
+    }catch(e){console.error('V18 company tick',e)}
+  },7000);
+
+  /* reset console command wins over every previous implementation */
+  const oldV16=window.runCheatV16;
+  window.runCheatV18=function(command){
+    const c=String(command||'').trim().toLowerCase().replace(/\s+/g,' ');
+    if(c==='reset'){hardResetV18();return true;}
+    if(typeof oldV16==='function')return oldV16(command);
+    return false;
+  };
+  window.executeCheat=function(){
+    const input=document.getElementById('cheatInput');
+    const value=input?input.value:'';
+    window.runCheatV18(value);
+  };
+
+  ensureOwnedUI(); renderOwnedCompanies();
+  if(document.getElementById('v18CompanyModal'))renderOwnedCompanyManagement();
+
+  /* synchronize with stock and management pages */
+  setInterval(()=>{try{ensureOwnedState();renderOwnedCompanies();}catch(e){}},1000);
+})();
+</script>
