@@ -6533,5 +6533,137 @@ setInterval(()=>{
 })();
 </script>
 
+<script>
+/* AI Empire V4 patch */
+(function(){
+  try{
+    if(!Array.isArray(game.productProjects)) game.productProjects=[];
+    if(!Array.isArray(game.products)) game.products=[];
+
+    const esc=window.escapeHtml || (s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;'));
+
+    function migrateProducts(){
+      game.productProjects=game.productProjects.filter(Boolean).map(p=>({
+        id:p.id||('prod_'+Date.now()+'_'+Math.random().toString(36).slice(2)),
+        name:p.name||'AI Product', type:p.type||'assistant', modelId:p.modelId,
+        modelName:p.modelName||'AI Model', progress:Math.min(100,Math.max(0,Number(p.progress)||0)),
+        duration:Math.max(10,Number(p.duration)||20), users:Math.max(100,Number(p.users)||100),
+        rating:Math.min(5,Math.max(1,Number(p.rating)||3.5)), version:p.version||'v1.0'
+      }));
+      game.products=game.products.filter(Boolean).map(p=>({
+        id:p.id||('prod_'+Date.now()+'_'+Math.random().toString(36).slice(2)),
+        name:p.name||'AI Product', type:p.type||'assistant', modelId:p.modelId,
+        modelName:p.modelName||'AI Model', version:p.version||'v1.0',
+        users:Math.max(0,Number(p.users)||0), rating:Math.min(5,Math.max(1,Number(p.rating)||3.5)),
+        revenue:Math.max(0,Number(p.revenue)||0), updates:Math.max(0,Number(p.updates)||0)
+      }));
+    }
+    migrateProducts();
+
+    window.createProduct=function(){
+      const name=(document.getElementById('productName')?.value||'').trim();
+      const type=document.getElementById('productType')?.value||'assistant';
+      const modelId=document.getElementById('productModel')?.value;
+      const model=game.models.find(m=>String(m.id)===String(modelId));
+      if(!name||!model){toast('❌ Podaj nazwę produktu i wybierz model AI.');return;}
+      const cost=75000;
+      if(game.cash<cost){toast('❌ Za mało pieniędzy. Potrzebujesz '+money(cost)+'.');return;}
+      const prodType=(productTypes[type]||['🚀','AI Product'])[1];
+      changeCash(-cost,'Rozpoczęto produkcję '+name);
+      game.productProjects.push({
+        id:'prod_'+Date.now()+'_'+Math.random().toString(36).slice(2),
+        name,type,modelId:model.id,modelName:model.name,progress:0,duration:20,
+        users:Math.max(100,Math.floor(100+model.quality*20+game.reputation*10)),
+        rating:Math.min(5,Math.max(2.5,2.5+model.quality/45+game.researched.length*.08+Math.random()*.5)),version:'v1.0'
+      });
+      addActivity('🛠️','Rozpoczęto produkcję '+name+' — '+prodType);
+      closeModal('productModal');
+      saveGame();renderAll();
+    };
+
+    window.updateProductProjects=function(){
+      if(!Array.isArray(game.productProjects)) game.productProjects=[];
+      const speed=Math.max(1.2,1.2+game.employees.length*.045+game.gpu*.03+game.dataCenterLevel*.08+game.researched.length*.035);
+      const finished=[];
+      for(const p of game.productProjects){
+        p.progress=Math.min(100,Number(p.progress||0)+speed);
+        if(p.progress>=100){
+          if(!game.products.some(x=>String(x.id)===String(p.id))){
+            game.products.push({id:p.id,name:p.name,type:p.type,modelId:p.modelId,modelName:p.modelName,version:'v1.0',users:p.users,rating:p.rating,revenue:0,updates:0});
+            addActivity('🚀','Produkt '+p.name+' został wydany jako v1.0');
+            toast('🚀 '+p.name+' gotowy — v1.0');
+          }
+          finished.push(p.id);
+        }
+      }
+      if(finished.length) game.productProjects=game.productProjects.filter(p=>!finished.includes(p.id));
+    };
+
+    const oldRenderProducts=window.renderProducts;
+    window.renderProducts=function(){
+      migrateProducts();
+      const projects=document.getElementById('productProjectsList');
+      if(projects){
+        projects.innerHTML=game.productProjects.length?game.productProjects.map(p=>`<div class="list-item"><div class="item-icon">🛠️</div><div class="item-main"><div class="item-title">${esc(p.name)} <span class="tag">PRODUKCJA</span></div><div class="item-desc">${esc(p.modelName)} • wersja v1.0</div><div class="progress" style="margin-top:7px"><div style="width:${Math.floor(p.progress)}%"></div></div></div><div style="font-weight:800;min-width:50px;text-align:right">${Math.floor(p.progress)}%</div></div>`).join(''):`<div style="padding:22px;color:#697388;text-align:center;font-size:11px">Brak produktów w produkcji.</div>`;
+      }
+      if(typeof oldRenderProducts==='function') oldRenderProducts();
+      const list=document.getElementById('productList');
+      if(list && !game.products.length) list.innerHTML=`<div style="padding:45px;text-align:center;color:#697388">🚀 Brak wydanych produktów.<br><span style="font-size:10px">Produkty pojawią się tutaj po ukończeniu produkcji.</span></div>`;
+      if(list && game.products.length){
+        list.innerHTML=game.products.map(p=>{const t=productTypes[p.type]||['🚀','Produkt']; const cost=50000+Number(p.updates||0)*50000; return `<div class="list-item"><div class="item-icon">${t[0]}</div><div class="item-main"><div class="item-title">${esc(p.name)} <span class="tag">${esc(p.version||'v1.0')}</span></div><div class="item-desc">${esc(p.modelName||'AI Model')} • ${t[1]} • ⭐ ${Number(p.rating||0).toFixed(1)} • 👥 ${Math.floor(p.users||0).toLocaleString()}</div></div><div class="item-actions"><button class="btn" onclick="updateProduct(${JSON.stringify(p.id)})">🔄 ${money(cost)}</button></div></div>`;}).join('');
+      }
+      const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+      set('productCount',game.products.length); set('users',Math.floor(game.products.reduce((s,p)=>s+(Number(p.users)||0),0)).toLocaleString()); set('productIncome',money(game.products.reduce((s,p)=>s+(Number(p.revenue)||0),0))); set('rating',(game.products.length?game.products.reduce((s,p)=>s+(Number(p.rating)||0),0)/game.products.length:0).toFixed(1));
+    };
+
+    /* SHARES: exact unit transfer, no proportional normalization after trade. */
+    function repairBook(){
+      if(!Array.isArray(game.investors)||!game.investors.length){game.investors=[{id:'player',name:'Ty — NovaMind AI',percent:100,isPlayer:true,type:'founder'}];return;}
+      game.investors.forEach((i,n)=>{if(!i.id)i.id='sh_'+n+'_'+Math.random().toString(36).slice(2);i.percent=Number(i.percent)||0;});
+      let p=game.investors.find(i=>i.isPlayer)||game.investors.find(i=>i.type==='founder'||i.name==='Founder Capital');
+      if(!p){p={id:'player',name:'Ty — NovaMind AI',percent:0,isPlayer:true,type:'founder'};game.investors.unshift(p);} p.isPlayer=true;p.name='Ty — NovaMind AI';p.type='founder';
+      const total=game.investors.reduce((s,i)=>s+i.percent,0); if(total<=0){p.percent=100;game.investors.forEach(i=>{if(i!==p)i.percent=0;});return;} const f=100/total; game.investors.forEach(i=>i.percent*=f);
+      let delta=100-game.investors.reduce((s,i)=>s+i.percent,0); const q=game.investors.find(i=>!i.isPlayer&&i.percent>0)||p; q.percent+=delta;
+    }
+    repairBook();
+    window.normalizeInvestorBook=repairBook;
+
+    window.buyInvestorShares=function(id){
+      repairBook(); const seller=game.investors.find(i=>i.id===id); const buyer=game.investors.find(i=>i.isPlayer);
+      if(!seller||seller.isPlayer||!buyer||seller.percent<=0){toast('❌ Ten inwestor nie ma dostępnych udziałów.');return;}
+      const raw=prompt('Ile udziałów chcesz kupić od '+seller.name+'? Dostępne: '+seller.percent.toFixed(1)+'%','1'); if(raw===null)return;
+      const qty=Math.round(Number(raw)*10)/10; if(!Number.isFinite(qty)||qty<=0||qty>seller.percent+1e-9){toast('❌ Nieprawidłowa liczba udziałów.');return;}
+      const total=qty*stockSharePrice(); if(game.cash<total){toast('❌ Za mało pieniędzy: '+money(total));return;}
+      changeCash(-total,'Kupiono '+qty.toFixed(1)+'% udziałów od '+seller.name); seller.percent-=qty; buyer.percent+=qty; if(seller.percent<.000001)seller.percent=0; repairBook(); addStockHistory('📈','Kupiono '+qty.toFixed(1)+'% udziałów od '+seller.name+' za '+money(total)+'.'); saveGame(); renderAll();
+    };
+
+    window.submitBuyoutOffer=function(){
+      if(!selectedInvestor){toast('❌ Wybierz inwestora.');return;} repairBook(); const seller=game.investors.find(i=>i.id===selectedInvestor.id); const buyer=game.investors.find(i=>i.isPlayer);
+      if(!seller||seller.isPlayer||!buyer){toast('❌ Nieprawidłowy inwestor.');return;}
+      const qty=Math.round(Number(document.getElementById('buyShares').value)*10)/10; const price=Number(document.getElementById('buyPrice').value); if(!Number.isFinite(qty)||qty<=0||qty>seller.percent+1e-9){toast('❌ Nieprawidłowa liczba udziałów.');return;} if(!Number.isFinite(price)||price<=0){toast('❌ Nieprawidłowa cena.');return;}
+      const total=qty*price; if(game.cash<total){toast('❌ Za mało pieniędzy.');return;} const market=stockSharePrice(); const premium=price/market;
+      if(premium<1 && Math.random()>Math.max(.15,premium)){closeModal('investorModal');toast('❌ Inwestor odrzucił zbyt niską ofertę.');return;}
+      closeModal('investorModal'); changeCash(-total,'Wykup '+qty.toFixed(1)+'% udziałów od '+seller.name); seller.percent-=qty; buyer.percent+=qty; if(seller.percent<.000001)seller.percent=0; repairBook(); addStockHistory('🤝','Wykupiono '+qty.toFixed(1)+'% udziałów od '+seller.name+' za '+money(total)+'.');
+      if(buyer.percent>50 && buyer.percent<100) toast('🔓 Większość! Masz '+buyer.percent.toFixed(1)+'% udziałów.'); if(buyer.percent>=99.999){buyer.percent=100;game.investors.forEach(i=>{if(!i.isPlayer)i.percent=0;});toast('🏆 100% udziałów należy do Ciebie!');}
+      saveGame();renderAll(); if(typeof renderManagement==='function')renderManagement();
+    };
+
+    /* Replace stock rows with working buttons. */
+    const oldStock=window.renderStock;
+    window.renderStock=function(){
+      repairBook(); if(typeof oldStock==='function')oldStock(); const list=document.getElementById('investorList'); if(!list)return;
+      game.investors.filter(i=>i.percent>0).forEach(i=>{ if(i.isPlayer)return; const rows=[...list.querySelectorAll('.stock-row')]; const row=rows.find(r=>r.textContent.includes(i.name)); if(row && row.lastElementChild){row.lastElementChild.innerHTML=`<div style="display:flex;gap:5px;justify-content:flex-end;flex-wrap:wrap"><button class="btn btn-small primary" onclick="buyInvestorShares('${i.id}')">💵 Kup</button><button class="btn btn-small" onclick="openInvestor('${i.id}')">🤝 Oferta</button></div>`;}});
+      const p=game.investors.find(i=>i.isPlayer); const control=document.getElementById('yourControl'); if(control&&p)control.textContent=p.percent.toFixed(1)+'%';
+    };
+
+    /* Periodic independent product/update sync. */
+    setInterval(()=>{try{updateProductProjects();renderProducts();saveGame();}catch(e){console.error(e);}},1000);
+    setInterval(()=>{try{repairBook();renderStock();}catch(e){}},1500);
+
+    saveGame();renderAll();
+  }catch(e){console.error('AI Empire V4 patch:',e);}
+})();
+</script>
+
 </body>
 </html>
