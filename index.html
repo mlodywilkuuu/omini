@@ -5790,5 +5790,225 @@ setInterval(()=>{
 })();
 </script>
 
+
+
+<script>
+/* =========================================================
+   FINAL STABILITY PATCH
+   - authoritative office capacity
+   - instant UI synchronization
+   - reliable office upgrade
+   - reliable GPU upgrade
+   - reliable MAX STAFF cheat
+   - repair old saves
+========================================================= */
+(function(){
+    function ensureNumbers(){
+        game.officeLevel = Math.min(200, Math.max(1, Number(game.officeLevel)||1));
+        game.gpu = Math.max(0, Number(game.gpu)||0);
+        game.gpuCompute = Math.max(0, Number(game.gpuCompute)||0);
+        game.dataCenterLevel = Math.max(1, Number(game.dataCenterLevel)||1);
+        game.cash = Math.max(0, Number(game.cash)||0);
+        if(!Array.isArray(game.employees)) game.employees=[];
+        if(!Array.isArray(game.candidates)) game.candidates=[];
+        if(!Array.isArray(game.models)) game.models=[];
+        if(!Array.isArray(game.products)) game.products=[];
+    }
+
+    window.aiEmpireCapacity = function(){
+        ensureNumbers();
+        return game.officeLevel * 10;
+    };
+
+    function setText(id,value){
+        const el=document.getElementById(id);
+        if(el) el.textContent=value;
+    }
+
+    function syncOffice(){
+        ensureNumbers();
+        const level=game.officeLevel;
+        const capacity=window.aiEmpireCapacity();
+        const occupied=game.employees.length;
+        const cost=level>=200 ? 0 : Math.floor(25000*Math.pow(1.09,level-1));
+        const usage=capacity ? Math.min(100,occupied/capacity*100) : 0;
+
+        setText('officeLevel',level);
+        setText('officeLevelBig',level);
+        setText('officePageLevel',level);
+        setText('officeCapacity',capacity);
+        setText('officeOccupied',occupied);
+        setText('officeUsage',Math.round(usage)+'%');
+        setText('officeNextLevel',level>=200 ? 200 : level+1);
+        setText('officeCost',level>=200 ? 'MAX' : money(cost));
+        setText('officeCostButton',level>=200 ? 'MAX' : money(cost));
+        setText('staff',occupied+' / '+capacity);
+        setText('staff2',occupied+' / '+capacity);
+        setText('globalStaff',occupied+' / '+capacity);
+
+        const bar=document.getElementById('officeUsageBar');
+        if(bar) bar.style.width=usage+'%';
+
+        const btn=document.getElementById('officeUpgradeButton');
+        if(btn){
+            btn.disabled=level>=200 || game.cash<cost;
+            btn.innerHTML=level>=200
+                ? '✓ Biuro osiągnęło maksymalny poziom 200'
+                : '⬆ Rozbuduj do poziomu '+(level+1)+' • '+money(cost);
+        }
+
+        const headerBtn=document.querySelector('#page-office .topbar .btn.primary');
+        if(headerBtn){
+            headerBtn.disabled=level>=200 || game.cash<cost;
+            headerBtn.textContent=level>=200 ? '✓ MAX 200' : '⬆ Ulepsz biuro • '+money(cost);
+        }
+    }
+
+    function syncGPU(){
+        ensureNumbers();
+        const capacity=game.dataCenterLevel*10;
+        const usage=capacity ? Math.min(100,game.gpu/capacity*100) : 0;
+        const energy=game.gpu*18;
+
+        setText('gpuCount',game.gpu);
+        setText('compute',game.gpuCompute);
+        setText('gpuCapacity',capacity);
+        setText('dcLevel','Poziom '+game.dataCenterLevel);
+        setText('energyCost',money(energy)+'/s');
+        setText('gpuUsageText',Math.round(usage)+'%');
+
+        const bar=document.getElementById('gpuUsageBar');
+        if(bar) bar.style.width=usage+'%';
+    }
+
+    function syncMoney(){
+        ensureNumbers();
+        setText('globalCash',money(game.cash));
+        setText('globalValuation',money(companyValuation()));
+        setText('cash',money(game.cash));
+    }
+
+    function syncAll(){
+        try{ ensureNumbers(); syncOffice(); syncGPU(); syncMoney(); }
+        catch(err){ console.warn('AI Empire UI sync:',err); }
+    }
+
+    /* Replace office upgrade with a single reliable implementation. */
+    window.upgradeOffice=function(){
+        ensureNumbers();
+        const level=game.officeLevel;
+        if(level>=200){
+            toast('🏢 Biuro ma już maksymalny poziom 200.');
+            syncAll();
+            return;
+        }
+        const cost=Math.floor(25000*Math.pow(1.09,level-1));
+        if(game.cash<cost){
+            toast('❌ Za mało pieniędzy. Potrzebujesz '+money(cost)+'.');
+            syncAll();
+            return;
+        }
+        game.cash-=cost;
+        game.officeLevel=level+1;
+        addActivity('🏢','Biuro osiągnęło poziom '+game.officeLevel);
+        showMoneyAnimation(-cost);
+        saveGame();
+        syncAll();
+        if(typeof renderEmployees==='function') renderEmployees();
+        if(typeof renderOffice==='function') renderOffice();
+        if(typeof renderTopStats==='function') renderTopStats();
+    };
+
+    /* Replace GPU buying so every GPU button stays functional. */
+    window.buyGPU=function(cost=15000,compute=10){
+        ensureNumbers();
+        const capacity=game.dataCenterLevel*10;
+        if(game.gpu>=capacity){
+            toast('🏢 Brak miejsca w Data Center. Rozbuduj centrum danych.');
+            syncGPU();
+            return;
+        }
+        cost=Number(cost)||15000;
+        compute=Number(compute)||10;
+        if(game.cash<cost){
+            toast('❌ Za mało pieniędzy na GPU.');
+            syncAll();
+            return;
+        }
+        game.cash-=cost;
+        game.gpu+=1;
+        game.gpuCompute+=compute;
+        addActivity('🎮','Kupiono akcelerator GPU');
+        showMoneyAnimation(-cost);
+        saveGame();
+        syncAll();
+        if(typeof renderGPU==='function') renderGPU();
+        if(typeof renderTopStats==='function') renderTopStats();
+    };
+
+    /* Reliable Data Center upgrade. */
+    window.upgradeDC=function(){
+        ensureNumbers();
+        const cost=Math.floor(100000*Math.pow(1.45,game.dataCenterLevel-1));
+        if(game.cash<cost){
+            toast('❌ Za mało pieniędzy na Data Center.');
+            return;
+        }
+        game.cash-=cost;
+        game.dataCenterLevel+=1;
+        addActivity('🏢','Data Center poziom '+game.dataCenterLevel);
+        showMoneyAnimation(-cost);
+        saveGame();
+        syncAll();
+        if(typeof renderGPU==='function') renderGPU();
+    };
+
+    /* Max staff always fills the CURRENT office capacity. */
+    window.hireMaxStaff=function(){
+        ensureNumbers();
+        const target=window.aiEmpireCapacity();
+        let added=0;
+
+        while(game.employees.length<target){
+            const c=(typeof generateCandidate==='function') ? generateCandidate() : {
+                id:Date.now()+Math.random(),
+                name:'AI Employee '+(game.employees.length+1),
+                role:'AI Engineer',
+                skill:100,
+                salary:0,
+                perk:{name:'AI Genius',icon:'🧠',bonus:30},
+                avatar:'🧑‍💻'
+            };
+
+            game.employees.push({
+                id:Date.now()+Math.random(),
+                name:c.name,
+                role:c.role,
+                skill:100,
+                salary:0,
+                perk:{name:'AI Genius',icon:'🧠',bonus:30},
+                avatar:c.avatar
+            });
+            added++;
+        }
+
+        game.candidates=game.candidates.slice(0,30);
+        addActivity('⚡','MAX STAFF — '+added+' nowych pracowników, każdy z AI Genius.');
+        toast('⚡ MAX STAFF<br>'+game.employees.length+' / '+target+' pracowników');
+        saveGame();
+        syncAll();
+        if(typeof renderEmployees==='function') renderEmployees();
+    };
+
+    /* Keep the displayed capacity synchronized even when another old function changes state. */
+    setInterval(syncAll,250);
+
+    /* Repair old/incomplete saves once. */
+    ensureNumbers();
+    syncAll();
+    saveGame();
+})();
+</script>
+
 </body>
 </html>
