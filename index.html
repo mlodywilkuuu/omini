@@ -1635,7 +1635,7 @@ button{
             <p>Bez infrastruktury nie zbudujesz potężnej AI.</p>
         </div>
 
-        <button class="btn primary" onclick="buyGPU()">＋ Kup GPU</button>
+        <button id="mainBuyGPUButton" class="btn primary" onclick="aiPurchaseGPU(15000,10)">＋ Kup GPU • $15K</button>
     </div>
 
     <div class="cards">
@@ -1713,7 +1713,7 @@ button{
                         <div class="item-title">AI Accelerator A100</div>
                         <div class="item-desc">10 compute / GPU</div>
                     </div>
-                    <button class="btn" onclick="buyGPU()">Kup $15K</button>
+                    <button class="btn" onclick="aiPurchaseGPU(15000,10)">Kup $15K</button>
                 </div>
 
                 <div class="list-item">
@@ -1722,7 +1722,7 @@ button{
                         <div class="item-title">AI Accelerator H100</div>
                         <div class="item-desc">25 compute / GPU</div>
                     </div>
-                    <button class="btn" onclick="buyGPU(25000,25)">Kup $25K</button>
+                    <button class="btn" onclick="aiPurchaseGPU(25000,25)">Kup $25K</button>
                 </div>
 
                 <div class="list-item">
@@ -1731,7 +1731,7 @@ button{
                         <div class="item-title">AI Accelerator X200</div>
                         <div class="item-desc">60 compute / GPU</div>
                     </div>
-                    <button class="btn" onclick="buyGPU(60000,60)">Kup $60K</button>
+                    <button class="btn" onclick="aiPurchaseGPU(60000,60)">Kup $60K</button>
                 </div>
 
             </div>
@@ -7628,6 +7628,194 @@ setInterval(()=>{
     },1000);
 
     syncCounters();
+})();
+</script>
+
+
+
+<script>
+/* =========================================================
+   V10 GPU AUTHORITATIVE PATCH
+   One source of truth for GPU inventory.
+========================================================= */
+(function(){
+    function num(v, d=0){
+        const x=Number(v);
+        return Number.isFinite(x)?x:d;
+    }
+
+    function ensureGPUState(){
+        if(typeof game!=='object' || !game) return;
+        game.gpu=Math.max(0,Math.floor(num(game.gpu,0)));
+        game.dataCenterLevel=Math.max(1,Math.floor(num(game.dataCenterLevel,1)));
+        game.gpuCompute=Math.max(0,num(game.gpuCompute,0));
+        if(game.gpu>0 && game.gpuCompute<=0){
+            game.gpuCompute=game.gpu*10;
+        }
+    }
+
+    function refreshGPUUI(){
+        ensureGPUState();
+        const count=game.gpu;
+        const compute=game.gpuCompute;
+        const cap=game.dataCenterLevel*10;
+        const usage=cap?Math.min(100,count/cap*100):0;
+        const energy=count*18;
+
+        const values={
+            gpuCount:count,
+            compute:compute,
+            gpuCapacity:cap,
+            dcLevel:'Poziom '+game.dataCenterLevel,
+            energyCost:money(energy)+'/s',
+            gpuUsageText:Math.round(usage)+'%'
+        };
+        Object.keys(values).forEach(id=>{
+            const el=document.getElementById(id);
+            if(el) el.textContent=values[id];
+        });
+
+        const bar=document.getElementById('gpuUsageBar');
+        if(bar) bar.style.width=usage+'%';
+
+        const main=document.getElementById('mainBuyGPUButton');
+        if(main){
+            main.disabled=count>=cap;
+            main.textContent=count>=cap
+                ? '🏢 Brak miejsca na GPU'
+                : '＋ Kup GPU • $15K';
+        }
+
+        // Keep the dashboard/top counters synchronized too.
+        ['cash','globalCash'].forEach(id=>{
+            const el=document.getElementById(id);
+            if(el) el.textContent=money(game.cash);
+        });
+    }
+
+    window.aiPurchaseGPU=function(cost=15000, compute=10){
+        ensureGPUState();
+        cost=num(cost,15000);
+        compute=num(compute,10);
+        const capacity=game.dataCenterLevel*10;
+
+        if(game.gpu>=capacity){
+            toast('🏢 Osiągnięto pojemność Data Center. Najpierw rozbuduj Data Center.');
+            refreshGPUUI();
+            return;
+        }
+
+        if(game.cash<cost){
+            toast('❌ Za mało pieniędzy. Potrzebujesz '+money(cost)+'.');
+            refreshGPUUI();
+            return;
+        }
+
+        game.cash-=cost;
+        game.gpu+=1;
+        game.gpuCompute+=compute;
+        game.totalExpenses=num(game.totalExpenses)+cost;
+
+        if(game.finances && game.finances.spending){
+            game.finances.spending.gpu=num(game.finances.spending.gpu)+cost;
+        }
+
+        if(Array.isArray(game.expenseHistory)){
+            game.expenseHistory.push(cost);
+            game.expenseHistory=game.expenseHistory.slice(-10);
+        }
+
+        if(typeof showMoneyAnimation==='function') showMoneyAnimation(-cost);
+        if(typeof addActivity==='function'){
+            addActivity('🎮','Kupiono GPU #'+game.gpu+' • +'+compute+' Compute');
+        }
+        if(typeof toast==='function'){
+            toast('🎮 Kupiono GPU. Posiadasz teraz <b>'+game.gpu+'</b> GPU.');
+        }
+
+        saveGame();
+        refreshGPUUI();
+
+        // Re-render only the GPU section/counters. Never overwrite game.gpu.
+        try{ if(typeof renderGPU==='function') renderGPU(); }catch(e){ console.warn(e); }
+        try{ if(typeof renderTopStats==='function') renderTopStats(); }catch(e){ console.warn(e); }
+    };
+
+    // Make every existing GPU purchase handler use the authoritative function.
+    window.buyGPU=function(cost=15000,compute=10){
+        aiPurchaseGPU(cost,compute);
+    };
+
+    // Keep the displayed inventory synchronized every 250 ms so old render loops
+    // cannot leave a stale GPU counter on screen.
+    setInterval(refreshGPUUI,250);
+
+    // Repair and display any existing saved inventory immediately.
+    ensureGPUState();
+    refreshGPUUI();
+})();
+</script>
+
+
+<script>
+/* FINAL MANAGEMENT ACCESS FIX v11 */
+(function(){
+  function toastSafe(msg){ try{ if(typeof toast==='function') toast(msg); else if(typeof toast2==='function') toast2(msg); }catch(e){} }
+  function getPlayer(){
+    if(!Array.isArray(game.investors)) game.investors=[];
+    let p=game.investors.find(i=>i && i.isPlayer===true);
+    if(!p) p=game.investors.find(i=>i && (i.id==='player' || i.type==='founder' || /Ty|NovaMind|Founder Capital/i.test(String(i.name||''))));
+    if(p){ p.isPlayer=true; p.name='Ty — NovaMind AI'; p.type='founder'; if(!Number.isFinite(Number(p.percent))) p.percent=0; return p; }
+    p={id:'player',name:'Ty — NovaMind AI',percent:0,isPlayer:true,type:'founder'};
+    game.investors.unshift(p);
+    return p;
+  }
+  function control(){ return Math.max(0,Math.min(100,Number(getPlayer().percent)||0)); }
+  function update(){
+    const pct=control(), access=pct>50;
+    const nav=document.getElementById('managementNav');
+    if(nav){ nav.style.display='flex'; nav.style.opacity=access?'1':'.55'; nav.classList.toggle('active', document.getElementById('page-management')?.classList.contains('active')); nav.title=access?'Zarządzanie firmą':'Potrzebujesz ponad 50% udziałów'; }
+    const locked=document.getElementById('managementLocked');
+    const unlocked=document.getElementById('managementUnlocked');
+    if(locked) locked.style.display=access?'none':'block';
+    if(unlocked) unlocked.style.display=access?'block':'none';
+    const pill=document.getElementById('managementAccessPill');
+    if(pill) pill.innerHTML=access?'<span class="company-dot"></span><span>KONTROLA FIRMY</span>':'<span style="width:8px;height:8px;border-radius:50%;background:#ff4d67;display:inline-block"></span><span>BRAK KONTROLI</span>';
+    const mc=document.getElementById('mgmtControl'); if(mc) mc.textContent=pct.toFixed(1)+'%';
+    return access;
+  }
+  window.hasMajorityControl=function(){ return control()>50; };
+  window.getPlayerShare=function(){ return control(); };
+  const originalGo=window.goPage;
+  if(originalGo && !window.__managementAccessV11){
+    window.goPage=function(page){
+      if(page==='management' && !update()){
+        toastSafe('🔒 Panel zarządzania wymaga ponad 50% udziałów. Masz obecnie '+control().toFixed(1)+'%.');
+        return;
+      }
+      return originalGo(page);
+    };
+    window.__managementAccessV11=true;
+  }
+  /* Make the management page open even when another old wrapper exists. */
+  document.addEventListener('click',function(e){
+    const nav=e.target.closest && e.target.closest('#managementNav');
+    if(!nav) return;
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    if(!update()){
+      toastSafe('🔒 Potrzebujesz ponad 50% udziałów. Masz obecnie '+control().toFixed(1)+'%.');
+      return;
+    }
+    document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+    const page=document.getElementById('page-management'); if(page) page.classList.add('active');
+    document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));
+    nav.classList.add('active');
+    const title=document.getElementById('topTitle'); if(title) title.textContent='Zarządzanie firmą';
+    if(typeof renderManagement==='function') renderManagement();
+  },true);
+  setInterval(update,250);
+  update();
 })();
 </script>
 
