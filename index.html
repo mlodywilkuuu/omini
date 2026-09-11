@@ -6665,5 +6665,811 @@ setInterval(()=>{
 })();
 </script>
 
+
+<script>
+/* FINAL FIX v5 — investors, management access, products */
+(function(){
+  function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');}
+  function toast2(msg){if(typeof toast==='function') toast(msg);}
+  function valCompany(){return typeof companyValuation==='function'?companyValuation():Math.max(100000,game.cash||0);}
+
+  /* ---------------- INVESTOR BOOK ---------------- */
+  function ensureInvestors(){
+    if(!Array.isArray(game.investors)) game.investors=[];
+    game.investors.forEach((i,n)=>{
+      if(!i.id) i.id='inv_'+n+'_'+Math.random().toString(36).slice(2);
+      i.percent=Number(i.percent)||0;
+      i.percent=Math.max(0,i.percent);
+      if(i.isPlayer) {i.name='Ty — NovaMind AI';i.type='founder';}
+    });
+    let player=game.investors.find(i=>i.isPlayer);
+    if(!player){
+      const founder=game.investors.find(i=>i.type==='founder'||i.name==='Founder Capital');
+      if(founder){founder.isPlayer=true;founder.name='Ty — NovaMind AI';founder.type='founder';player=founder;}
+    }
+    if(!player){
+      player={id:'player',name:'Ty — NovaMind AI',percent:40,isPlayer:true,type:'founder'};
+      game.investors.unshift(player);
+    }
+    let total=game.investors.reduce((a,i)=>a+i.percent,0);
+    if(total<=0){game.investors.forEach(i=>i.percent=0);player.percent=100;total=100;}
+    /* Preserve player's exact stake; only adjust the non-player pool. */
+    const playerPct=Math.min(100,player.percent);
+    const others=game.investors.filter(i=>!i.isPlayer);
+    const otherTotal=others.reduce((a,i)=>a+i.percent,0);
+    const targetOther=Math.max(0,100-playerPct);
+    if(others.length){
+      if(otherTotal<=0){others.forEach((i,idx)=>i.percent=idx===0?targetOther:0);}
+      else others.forEach(i=>i.percent=i.percent*targetOther/otherTotal);
+    } else if(playerPct<100){
+      game.investors.push({id:'market_pool',name:'Rynek publiczny',percent:100-playerPct,type:'retail'});
+    }
+    /* Re-read after adding market pool and remove floating error from the largest non-player holder. */
+    const sum=game.investors.reduce((a,i)=>a+i.percent,0);
+    const delta=100-sum;
+    if(Math.abs(delta)>1e-9){
+      const target=game.investors.find(i=>!i.isPlayer&&i.percent>0)||player;
+      target.percent+=delta;
+    }
+    return player;
+  }
+
+  function addMissingInvestors(){
+    const p=ensureInvestors();
+    const wanted=[
+      ['Aurora Ventures','fund'],['Horizon Capital','fund'],['Future Fund','fund'],
+      ['Tech Holdings','fund'],['Atlas Partners','strategic'],['Global AI Fund','fund'],
+      ['Retail Investors','retail'],['Pension Capital','institutional'],['Quantum Ventures','fund']
+    ];
+    const existing=game.investors.map(i=>i.name);
+    let missing=wanted.filter(x=>!existing.includes(x[0]));
+    /* Add zero-seat investors first; allocate from non-player pool. */
+    missing.forEach(x=>game.investors.push({id:'inv_'+Math.random().toString(36).slice(2),name:x[0],type:x[1],percent:0}));
+    const others=game.investors.filter(i=>!i.isPlayer);
+    const pool=others.reduce((a,i)=>a+i.percent,0);
+    if(pool>0){
+      const n=others.length;
+      const base=Math.min(1.5,pool/Math.max(n,1));
+      /* Give new holders a small slice and take it from the biggest non-player holder. */
+      const zeros=others.filter(i=>i.percent===0);
+      if(zeros.length){
+        const giver=others.filter(i=>i.percent>base).sort((a,b)=>b.percent-a.percent)[0];
+        const allocate=Math.min(pool*.18, base*zeros.length, giver?giver.percent:0);
+        if(giver && allocate>0){
+          giver.percent-=allocate;
+          const each=allocate/zeros.length;
+          zeros.forEach(i=>i.percent=each);
+        }
+      }
+    }
+    ensureInvestors();
+  }
+
+  addMissingInvestors();
+
+  function player(){return ensureInvestors();}
+  function control(){return player().percent;}
+  function hasControl(){return control()>50;}
+  window.hasCompanyControl=hasControl;
+
+  /* Stable investor movements: never touch player's package. */
+  window.moveInvestorShares=function(){
+    ensureInvestors();
+    const candidates=game.investors.filter(i=>!i.isPlayer && i.percent>=1);
+    if(candidates.length<2) return;
+    const from=candidates[Math.floor(Math.random()*candidates.length)];
+    const targets=candidates.filter(i=>i!==from);
+    const to=targets[Math.floor(Math.random()*targets.length)];
+    const qty=Math.min(Math.round((0.15+Math.random()*0.55)*10)/10,Math.max(0,from.percent-0.05));
+    if(qty<=0)return;
+    from.percent-=qty;to.percent+=qty;
+    ensureInvestors();
+  };
+
+  /* Replace buyout action with exact transfer and no proportional rescaling. */
+  window.openInvestor=function(id){
+    ensureInvestors();
+    const inv=game.investors.find(i=>String(i.id)===String(id));
+    const p=player();
+    if(!inv || inv.isPlayer || inv.percent<=0){toast2('❌ Ten udziałowiec nie ma dostępnych udziałów.');return;}
+    selectedInvestor=inv;
+    const market=Math.max(100,valCompany()/100);
+    const modal=document.getElementById('investorModal');
+    if(!modal){toast2('❌ Brak okna oferty.');return;}
+    const info=document.getElementById('investorInfo');
+    if(info) info.innerHTML=`<b>${esc(inv.name)}</b><br>Posiada: <b>${inv.percent.toFixed(1)}%</b><br>Wartość pakietu: <b>${money(valCompany()*inv.percent/100)}</b><br>Kurs referencyjny: <b>${money(market)}</b> za 1%`;
+    const qty=document.getElementById('buyShares');
+    if(qty){qty.max=inv.percent;qty.value=Math.min(1,Math.max(.1,inv.percent));}
+    const price=document.getElementById('buyPrice');
+    if(price){price.value=Math.ceil(market*1.1);}
+    if(typeof updateOfferPreview==='function') updateOfferPreview();
+    modal.classList.add('open');
+  };
+
+  window.submitBuyoutOffer=function(){
+    ensureInvestors();
+    const p=player();
+    if(!selectedInvestor){toast2('❌ Wybierz inwestora.');return;}
+    const inv=game.investors.find(i=>String(i.id)===String(selectedInvestor.id));
+    if(!inv || inv.isPlayer){toast2('❌ Nieprawidłowy inwestor.');return;}
+    let qty=Number(document.getElementById('buyShares')?.value);
+    const price=Number(document.getElementById('buyPrice')?.value);
+    qty=Math.round(qty*10)/10;
+    if(!Number.isFinite(qty)||qty<=0||qty>inv.percent+1e-9){toast2('❌ Nieprawidłowa liczba udziałów.');return;}
+    if(!Number.isFinite(price)||price<=0){toast2('❌ Nieprawidłowa cena.');return;}
+    const total=qty*price;
+    if(game.cash<total){toast2('❌ Za mało pieniędzy na ofertę.');return;}
+    const market=Math.max(100,valCompany()/100);
+    const premium=price/market-1;
+    let chance=48+Math.max(-20,Math.min(45,premium*100));
+    if(qty>=inv.percent*.75) chance+=8;
+    chance=Math.max(5,Math.min(97,chance));
+    closeModal('investorModal');
+    if(Math.random()*100>chance){
+      if(typeof addStockHistory==='function') addStockHistory('❌',`${inv.name} odrzucił ofertę ${qty.toFixed(1)}% po ${money(price)}.`);
+      toast2(`❌ ${inv.name} odrzucił ofertę.`);
+      return;
+    }
+    changeCash(-total,'Wykupiono '+qty.toFixed(1)+'% udziałów od '+inv.name);
+    inv.percent-=qty;
+    p.percent+=qty;
+    if(inv.percent<1e-8) inv.percent=0;
+    /* Do not normalize proportionally after a successful trade. */
+    const sum=game.investors.reduce((a,i)=>a+i.percent,0);
+    const fix=100-sum;
+    const receiver=game.investors.find(i=>!i.isPlayer&&i.percent>0) || p;
+    if(Math.abs(fix)>1e-8) receiver.percent+=fix;
+    if(typeof addStockHistory==='function') addStockHistory('🤝',`Wykupiono ${qty.toFixed(1)}% od ${inv.name} za ${money(total)}.`);
+    if(p.percent>50 && p.percent<100) toast2(`🔓 Masz większość: ${p.percent.toFixed(1)}%. Panel zarządzania odblokowany.`);
+    if(p.percent>=99.999){p.percent=100;game.investors.forEach(i=>{if(!i.isPlayer)i.percent=0;});toast2('🏆 Masz 100% udziałów NovaMind AI!');}
+    saveGame();renderAll();renderManagement();
+  };
+
+  /* Visible manual buy/sell controls. Buying takes shares from the selected investor. */
+  window.buyInvestorShares=function(id){
+    ensureInvestors();
+    const inv=game.investors.find(i=>String(i.id)===String(id));
+    const p=player();
+    if(!inv||inv.isPlayer||inv.percent<=0){toast2('❌ Brak udziałów do kupienia.');return;}
+    const raw=prompt(`Ile udziałów chcesz kupić od ${inv.name}?\nDostępne: ${inv.percent.toFixed(1)}%`,'1');
+    if(raw===null)return;
+    const qty=Math.round(Number(raw)*10)/10;
+    if(!Number.isFinite(qty)||qty<=0||qty>inv.percent){toast2('❌ Nieprawidłowa liczba udziałów.');return;}
+    const price=Math.max(100,valCompany()/100);
+    const total=qty*price;
+    if(game.cash<total){toast2('❌ Za mało pieniędzy.');return;}
+    changeCash(-total,'Kupiono '+qty.toFixed(1)+'% udziałów od '+inv.name);
+    inv.percent-=qty;p.percent+=qty;
+    if(inv.percent<1e-8)inv.percent=0;
+    const sum=game.investors.reduce((a,i)=>a+i.percent,0),fix=100-sum;
+    const receiver=game.investors.find(i=>!i.isPlayer&&i.percent>0)||p;
+    if(Math.abs(fix)>1e-8)receiver.percent+=fix;
+    if(typeof addStockHistory==='function')addStockHistory('📈',`Kupiono ${qty.toFixed(1)}% od ${inv.name} za ${money(total)}.`);
+    if(p.percent>50)toast2(`🔓 Większość: ${p.percent.toFixed(1)}%`);
+    saveGame();renderAll();renderManagement();
+  };
+
+  window.sellOwnShares=function(){
+    const p=player();
+    if(p.percent<=0){toast2('❌ Nie posiadasz udziałów.');return;}
+    const raw=prompt(`Ile udziałów sprzedać?\nMasz: ${p.percent.toFixed(1)}%`,'1');
+    if(raw===null)return;
+    const qty=Math.round(Number(raw)*10)/10;
+    if(!Number.isFinite(qty)||qty<=0||qty>p.percent){toast2('❌ Nieprawidłowa liczba.');return;}
+    let buyers=game.investors.filter(i=>!i.isPlayer);
+    if(!buyers.length)return;
+    buyers.sort((a,b)=>a.percent-b.percent);
+    const buyer=buyers[0];
+    const price=Math.max(100,valCompany()/100)*.96;
+    const total=qty*price;
+    p.percent-=qty;buyer.percent+=qty;
+    changeCash(total,'Sprzedano '+qty.toFixed(1)+'% udziałów');
+    ensureInvestors();
+    if(typeof addStockHistory==='function')addStockHistory('💵',`Sprzedano ${qty.toFixed(1)}% udziałów do ${buyer.name} za ${money(total)}.`);
+    saveGame();renderAll();renderManagement();
+  };
+
+  /* ---------------- MANAGEMENT ACCESS ---------------- */
+  function syncManagementAccess(){
+    const p=player();
+    const access=p.percent>50;
+    const nav=document.getElementById('managementNav');
+    if(nav){
+      nav.style.display='flex';
+      nav.style.opacity=access?'1':'.55';
+      nav.title=access?'Otwórz panel zarządzania':'Zdobądź ponad 50% udziałów';
+    }
+    const locked=document.getElementById('managementLocked');
+    const unlocked=document.getElementById('managementUnlocked');
+    if(locked)locked.style.display=access?'none':'block';
+    if(unlocked)unlocked.style.display=access?'block':'none';
+    const pill=document.getElementById('managementAccessPill');
+    if(pill)pill.innerHTML=access?'<span class="company-dot"></span><span>KONTROLA FIRMY</span>':'<span style="width:8px;height:8px;border-radius:50%;background:#ff4d67;display:inline-block"></span><span>BRAK KONTROLI</span>';
+    const mc=document.getElementById('mgmtControl');if(mc)mc.textContent=p.percent.toFixed(1)+'%';
+    return access;
+  }
+  const realGoPage=window.goPage;
+  window.goPage=function(page){
+    if(page==='management' && !syncManagementAccess()){toast2('🔒 Panel zarządzania wymaga ponad 50% udziałów.');return;}
+    return realGoPage(page);
+  };
+
+  /* ---------------- PRODUCT FLOW ---------------- */
+  function normalizeProducts(){
+    if(!Array.isArray(game.productProjects))game.productProjects=[];
+    if(!Array.isArray(game.products))game.products=[];
+  }
+  normalizeProducts();
+
+  window.createProduct=function(){
+    normalizeProducts();
+    const name=(document.getElementById('productName')?.value||'').trim();
+    const type=document.getElementById('productType')?.value||'assistant';
+    const modelId=document.getElementById('productModel')?.value;
+    const model=game.models.find(m=>String(m.id)===String(modelId));
+    if(!name||!model){toast2('❌ Wybierz model AI i nazwę produktu.');return;}
+    const cost=75000;
+    if(game.cash<cost){toast2('❌ Za mało pieniędzy.');return;}
+    changeCash(-cost,'Uruchomiono produkcję '+name);
+    const [icon,label]=productTypes[type]||['🚀','Produkt AI'];
+    game.productProjects.push({
+      id:'prod_'+Date.now()+'_'+Math.random().toString(36).slice(2),
+      name,type,modelId:model.id,modelName:model.name,icon,label,
+      progress:0,duration:Math.max(10,25-model.quality*.05-game.employees.length*.08-game.gpu*.04),
+      users:Math.floor(100+model.quality*20),rating:Math.min(5,Math.max(2.5,2.5+model.quality/50+Math.random()*.4))
+    });
+    addActivity('🛠️','Rozpoczęto produkcję '+name);
+    closeModal('productModal');saveGame();renderAll();
+  };
+
+  window.updateProductProjects=function(){
+    normalizeProducts();
+    const speed=0.9+game.employees.length*.045+game.gpu*.035+game.dataCenterLevel*.08+game.researched.length*.025;
+    const finished=[];
+    game.productProjects.forEach(p=>{
+      p.progress=Math.min(100,(Number(p.progress)||0)+speed);
+      if(p.progress>=100){
+        if(!game.products.some(x=>String(x.id)===String(p.id))){
+          game.products.push({id:p.id,name:p.name,type:p.type,modelId:p.modelId,modelName:p.modelName,version:'v1.0',users:p.users,rating:p.rating,revenue:0,updates:0});
+        }
+        finished.push(p.id);
+      }
+    });
+    if(finished.length){
+      finished.forEach(id=>{const p=game.products.find(x=>String(x.id)===String(id));if(p)addActivity('🚀','Produkt '+p.name+' został wydany jako v1.0');});
+      game.productProjects=game.productProjects.filter(p=>!finished.includes(p.id));
+      saveGame();
+    }
+  };
+
+  const prevRenderProducts=window.renderProducts;
+  window.renderProducts=function(){
+    normalizeProducts();
+    const projects=document.getElementById('productProjectsList');
+    if(projects){
+      projects.innerHTML=game.productProjects.length?game.productProjects.map(p=>`<div class="list-item"><div class="item-icon">${p.icon||'🛠️'}</div><div class="item-main"><div class="item-title">${esc(p.name)} <span class="tag">PRODUKCJA</span></div><div class="item-desc">${esc(p.modelName||'AI Model')} • planowana wersja v1.0</div><div class="progress" style="margin-top:7px"><div style="width:${Math.max(0,Math.min(100,p.progress||0))}%"></div></div></div><div style="font-weight:800;min-width:50px;text-align:right">${Math.floor(p.progress||0)}%</div></div>`).join(''):`<div style="padding:22px;color:#697388;text-align:center;font-size:11px">Brak produktów w produkcji.</div>`;
+    }
+    if(typeof prevRenderProducts==='function')prevRenderProducts();
+  };
+
+  /* Keep everything synchronized and generate fresh shareholders. */
+  setInterval(()=>{
+    try{
+      ensureInvestors();
+      moveInvestorShares();
+      if(game.seconds%20===0 && game.investors.length<11) addMissingInvestors();
+      if(typeof updateProductProjects==='function')updateProductProjects();
+      syncManagementAccess();
+      renderStock();
+      renderProducts();
+      if(hasControl() && typeof renderManagement==='function')renderManagement();
+      saveGame();
+    }catch(e){console.error('V5 sync',e);}
+  },1200);
+
+  ensureInvestors();
+  syncManagementAccess();
+  if(typeof renderManagement==='function')renderManagement();
+  if(typeof renderStock==='function')renderStock();
+  if(typeof renderProducts==='function')renderProducts();
+})();
+</script>
+
+
+<style id="v6-fixes-style">
+/* V6: model production + advanced updates + share sale visuals */
+.v6-production-panel{margin-bottom:14px}
+.v6-project{padding:14px;border:1px solid rgba(255,255,255,.07);border-radius:12px;background:rgba(255,255,255,.025);margin-bottom:9px}
+.v6-project:last-child{margin-bottom:0}
+.v6-project-head{display:flex;justify-content:space-between;gap:12px;align-items:center}
+.v6-project-title{font-size:13px;font-weight:800}
+.v6-project-sub{font-size:10px;color:#7f8aa0;margin-top:3px}
+.v6-project-meta{font-size:10px;color:#8a95aa;margin-top:9px;display:flex;gap:12px;flex-wrap:wrap}
+.v6-progress{height:8px;background:#171d2c;border-radius:99px;overflow:hidden;margin-top:9px}
+.v6-progress>div{height:100%;background:linear-gradient(90deg,#7650f2,#d56bff);transition:width .4s}
+.v6-update-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}
+.v6-update-option{padding:12px;border:1px solid rgba(255,255,255,.08);border-radius:11px;background:rgba(255,255,255,.025);cursor:pointer}
+.v6-update-option.active{border-color:rgba(139,92,246,.65);background:rgba(139,92,246,.10)}
+.v6-update-option strong{font-size:11px}
+.v6-update-option small{display:block;color:#7d879b;font-size:9px;margin-top:4px;line-height:1.45}
+.v6-changelog{padding:12px;border-radius:11px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.07);margin-top:12px}
+.v6-changelog-row{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.045);font-size:10px}
+.v6-changelog-row:last-child{border-bottom:0}
+.v6-history-tag{color:#baa3ff}
+@media(max-width:700px){.v6-update-grid{grid-template-columns:1fr}}
+</style>
+
+<script id="v6-fixes-script">
+(function(){
+  'use strict';
+
+  const OLD_CREATE_MODEL = window.createModel;
+  const OLD_RENDER_MODELS = window.renderModels;
+  const OLD_RENDER_PRODUCTS = window.renderProducts;
+  const OLD_RENDER_STOCK = window.renderStock;
+
+  if(!Array.isArray(game.modelProjects)) game.modelProjects=[];
+  if(!Array.isArray(game.modelReleaseHistory)) game.modelReleaseHistory=[];
+
+  function safeNumber(v,d=0){ const n=Number(v); return Number.isFinite(n)?n:d; }
+  function rid(prefix='id'){ return prefix+'_'+Date.now()+'_'+Math.random().toString(36).slice(2); }
+
+  function ensureModelProjectUI(){
+    const grid=document.getElementById('modelGrid');
+    if(!grid) return null;
+    let panel=document.getElementById('modelProjectsPanel');
+    if(!panel){
+      panel=document.createElement('div');
+      panel.id='modelProjectsPanel';
+      panel.className='panel v6-production-panel';
+      grid.parentElement.insertBefore(panel,grid);
+      panel.innerHTML='<div class="panel-pad"><div class="section-head"><h2>🛠️ Modele w produkcji</h2><span id="modelProjectsCount">0 projektów</span></div><div id="modelProjectsList"></div></div>';
+    }
+    return panel;
+  }
+
+  function modelSpeed(){
+    const skill=game.employees.reduce((s,e)=>s+safeNumber(e.skill)+safeNumber(e.perk?.bonus),0);
+    return Math.max(.35,
+      .35+
+      game.employees.length*.09+
+      skill*.008+
+      game.gpu*.025+
+      game.dataCenterLevel*.06+
+      game.researched.length*.035
+    );
+  }
+
+  function modelCost(scale){
+    return {
+      small:100000,
+      medium:300000,
+      large:750000,
+      xlarge:2000000,
+      frontier:10000000
+    }[scale] || 100000;
+  }
+
+  window.createModel=function(){
+    const name=(document.getElementById('modelName')?.value||'').trim();
+    const type=document.getElementById('modelType')?.value||'text';
+    const scale=document.getElementById('modelScale')?.value||'small';
+    if(!name){toast('❌ Wpisz nazwę modelu.');return;}
+    const baseCost=modelCost(scale);
+    const gpuNeed={small:1,medium:2,large:4,xlarge:8,frontier:15}[scale]||1;
+    if(game.cash<baseCost){toast('❌ Potrzebujesz '+money(baseCost)+'.');return;}
+    if(game.gpu<gpuNeed){toast('❌ Potrzebujesz przynajmniej '+gpuNeed+' GPU.');return;}
+    changeCash(-baseCost,'Rozpoczęto trening modelu '+name);
+    const typeInfo=modelTypes[type]||['🧠','AI'];
+    const researchBonus=game.researched.reduce((s,id)=>{const t=technologies.find(x=>x.id===id);return s+(t?t.bonus:0)},0);
+    const staffPower=game.employees.reduce((s,e)=>s+safeNumber(e.skill)+safeNumber(e.perk?.bonus),0);
+    const quality=Math.min(100,Math.round(20+staffPower*.18+researchBonus+game.gpu*1.6+game.dataCenterLevel*3+({small:0,medium:7,large:16,xlarge:30,frontier:48}[scale]||0)));
+    game.modelProjects.push({
+      id:rid('modelproj'),name,type,scale,icon:typeInfo[0],typeName:typeInfo[1],quality,
+      progress:0,duration:Math.max(18,({small:26,medium:38,large:56,xlarge:85,frontier:150}[scale]||26)),
+      startedAt:Date.now(),version:'v1.0',status:'training'
+    });
+    addActivity('🧠','Rozpoczęto trening modelu '+name);
+    toast('🧠 '+name+' jest teraz w treningu.');
+    closeModal('modelModal');
+    saveGame();
+    renderAll();
+  };
+
+  window.updateModelProjects=function(){
+    if(!Array.isArray(game.modelProjects)) game.modelProjects=[];
+    if(!game.modelProjects.length) return;
+    const speed=modelSpeed();
+    const finished=[];
+    game.modelProjects.forEach(p=>{
+      if(p.status!=='training') return;
+      p.progress=Math.min(100,safeNumber(p.progress)+speed);
+      if(p.progress>=100) finished.push(p);
+    });
+    if(!finished.length) return;
+    finished.forEach(p=>{
+      if(game.models.some(m=>String(m.id)===String(p.id))) return;
+      game.models.push({
+        id:p.id,name:p.name,type:p.type,scale:p.scale,quality:p.quality,version:'v1.0',users:0,created:Date.now(),updates:0,
+        status:'released',updateHistory:[],description:p.typeName
+      });
+      game.modelReleaseHistory.unshift({id:p.id,name:p.name,version:'v1.0',day:game.days||0});
+      addActivity('🚀','Model '+p.name+' ukończony i wydany jako v1.0');
+      toast('🚀 '+p.name+' ukończony — v1.0');
+    });
+    game.modelProjects=game.modelProjects.filter(p=>!finished.includes(p));
+    saveGame();
+  };
+
+  function renderModelProjects(){
+    const panel=ensureModelProjectUI();
+    if(!panel) return;
+    const list=document.getElementById('modelProjectsList');
+    const count=document.getElementById('modelProjectsCount');
+    const projects=game.modelProjects||[];
+    if(count) count.textContent=projects.length+' projektów';
+    if(!list) return;
+    if(!projects.length){
+      list.innerHTML='<div style="padding:12px;color:#697388;font-size:11px">Brak modeli w produkcji. Nowy model po uruchomieniu treningu pojawi się tutaj.</div>';
+      return;
+    }
+    list.innerHTML=projects.map(p=>{
+      const rem=Math.max(0,Math.ceil((100-safeNumber(p.progress))/Math.max(.01,modelSpeed())));
+      return `<div class="v6-project">
+        <div class="v6-project-head"><div><div class="v6-project-title">${p.icon||'🧠'} ${escapeHtml(p.name)}</div><div class="v6-project-sub">${escapeHtml(p.typeName||p.type||'AI')} • ${escapeHtml(p.scale||'small')} • planowana wersja v1.0</div></div><span class="tag">TRENING</span></div>
+        <div class="v6-progress"><div style="width:${Math.min(100,safeNumber(p.progress))}%"></div></div>
+        <div class="v6-project-meta"><span>Postęp ${Math.floor(safeNumber(p.progress))}%</span><span>Jakość ${safeNumber(p.quality)}</span><span>~${rem}s do końca</span><span>👥 ${game.employees.length} prac.</span><span>🎮 ${game.gpu} GPU</span></div>
+      </div>`;
+    }).join('');
+  }
+
+  window.renderModels=function(){
+    if(typeof OLD_RENDER_MODELS==='function') OLD_RENDER_MODELS();
+    renderModelProjects();
+    const grid=document.getElementById('modelGrid');
+    if(grid && game.models.length){
+      grid.querySelectorAll('.model-card').forEach(card=>{
+        const btn=card.querySelector('button');
+        if(btn && !btn.nextElementSibling?.classList.contains('v6-update-link')){
+          const heading=card.querySelector('h3');
+          const model=game.models.find(m=>heading && heading.textContent.includes(m.name));
+          if(model){
+            const wrap=document.createElement('div');
+            wrap.style.marginTop='7px';
+            wrap.innerHTML=`<button class="btn v6-update-link" onclick="openAdvancedUpdate('model','${model.id}')">🛠️ Rozbudowana aktualizacja</button>`;
+            card.appendChild(wrap);
+          }
+        }
+      });
+    }
+  };
+
+  /* Advanced update system */
+  function ensureUpdateModal(){
+    let bg=document.getElementById('v6UpdateModal');
+    if(bg) return bg;
+    bg=document.createElement('div'); bg.id='v6UpdateModal'; bg.className='modal-bg';
+    bg.innerHTML=`<div class="modal" style="width:min(680px,calc(100% - 30px))">
+      <div class="modal-head"><h2>🛠️ Rozbudowana aktualizacja</h2><button class="close" onclick="closeModal('v6UpdateModal')">×</button></div>
+      <div class="modal-body"><div id="v6UpdateHeader"></div><div class="v6-update-grid" id="v6UpdateOptions"></div><div class="field" style="margin-top:14px"><label>Opis zmian / changelog</label><input id="v6UpdateNote" placeholder="np. nowe reasoning, szybsza odpowiedź, poprawki bezpieczeństwa"></div><div class="offer-preview" id="v6UpdatePreview"></div></div>
+      <div class="modal-footer"><button class="btn" onclick="closeModal('v6UpdateModal')">Anuluj</button><button class="btn primary" onclick="performAdvancedUpdate()">🚀 Wydaj aktualizację</button></div>
+    </div>`;
+    document.body.appendChild(bg);
+    bg.addEventListener('click',e=>{if(e.target===bg)closeModal('v6UpdateModal')});
+    return bg;
+  }
+
+  let updateTarget={kind:null,id:null,choices:new Set()};
+  const updateOptions=[
+    ['features','✨ Nowe funkcje','Dodaj nowe możliwości i popraw funkcjonalność.',35000,0.5],
+    ['performance','⚡ Wydajność','Szybsze działanie, mniejsze zużycie compute.',30000,0.4],
+    ['reasoning','🧠 Reasoning','Lepsze rozumowanie i wieloetapowe zadania.',65000,1],
+    ['safety','🛡️ Safety','Lepsza zgodność, bezpieczeństwo i kontrola.',45000,0.6],
+    ['multimodal','🌈 Multimodal','Tekst, obrazy, audio i video.',70000,1.2],
+    ['data','📚 Knowledge','Lepsze dane, RAG i dokładność odpowiedzi.',50000,0.8],
+    ['ui','🎨 UX','Lepsze doświadczenie użytkownika.',25000,0.35],
+    ['scale','🌌 Scale','Większa skala i obsługa większego ruchu.',90000,1.35]
+  ];
+
+  window.openAdvancedUpdate=function(kind,id){
+    const obj=kind==='model'?game.models.find(m=>String(m.id)===String(id)):game.products.find(p=>String(p.id)===String(id));
+    if(!obj){toast('❌ Nie znaleziono obiektu.');return;}
+    updateTarget={kind,id,choices:new Set()};
+    ensureUpdateModal();
+    document.getElementById('v6UpdateHeader').innerHTML=`<div class="v6-changelog"><b>${escapeHtml(obj.name)}</b><div style="color:#7d879b;font-size:10px;margin-top:4px">Obecna wersja: <strong class="v6-history-tag">${escapeHtml(obj.version)}</strong> • ${kind==='model'?'model AI':'produkt'}</div></div>`;
+    document.getElementById('v6UpdateNote').value='';
+    document.getElementById('v6UpdateOptions').innerHTML=updateOptions.map(o=>`<div class="v6-update-option" data-update="${o[0]}" onclick="toggleAdvancedUpdate('${o[0]}')"><strong>${o[1]}</strong><small>${o[2]}<br>Koszt bazowy ${money(o[3])}</small></div>`).join('');
+    updateAdvancedPreview();
+    openModal('v6UpdateModal');
+  };
+  window.toggleAdvancedUpdate=function(type){
+    if(updateTarget.choices.has(type)) updateTarget.choices.delete(type); else updateTarget.choices.add(type);
+    document.querySelectorAll('.v6-update-option').forEach(el=>el.classList.toggle('active',updateTarget.choices.has(el.dataset.update)));
+    updateAdvancedPreview();
+  };
+  function updateAdvancedPreview(){
+    const arr=[...updateTarget.choices];
+    const cost=arr.reduce((s,t)=>s+(updateOptions.find(o=>o[0]===t)?.[3]||0),0);
+    const ratingGain=arr.reduce((s,t)=>s+(updateOptions.find(o=>o[0]===t)?.[4]||0),0);
+    const obj=updateTarget.kind==='model'?game.models.find(m=>String(m.id)===String(updateTarget.id)):game.products.find(p=>String(p.id)===String(updateTarget.id));
+    if(!obj) return;
+    const [maj,min]=String(obj.version||'v1.0').replace(/^v/,'').split('.').map(Number);
+    const major=arr.some(x=>['reasoning','multimodal','scale'].includes(x));
+    const next=major?`v${maj+1}.0`:`v${maj}.${min+1}`;
+    document.getElementById('v6UpdatePreview').innerHTML=`<div><span>Koszt</span><strong>${money(cost)}</strong></div><div><span>Nowa wersja</span><strong>${next}</strong></div><div><span>Bonus</span><strong>+${ratingGain.toFixed(1)}</strong></div>`;
+  }
+  window.performAdvancedUpdate=function(){
+    const obj=updateTarget.kind==='model'?game.models.find(m=>String(m.id)===String(updateTarget.id)):game.products.find(p=>String(p.id)===String(updateTarget.id));
+    const arr=[...updateTarget.choices];
+    if(!obj){toast('❌ Obiekt nie istnieje.');return;}
+    if(!arr.length){toast('❌ Wybierz zakres aktualizacji.');return;}
+    const cost=arr.reduce((s,t)=>s+(updateOptions.find(o=>o[0]===t)?.[3]||0),0);
+    if(game.cash<cost){toast('❌ Za mało pieniędzy. Potrzebujesz '+money(cost)+'.');return;}
+    changeCash(-cost,'Aktualizacja '+obj.name);
+    let gain=0;
+    arr.forEach(t=>gain+=(updateOptions.find(o=>o[0]===t)?.[4]||0));
+    const old=obj.version||'v1.0';
+    const [maj,min]=String(old).replace(/^v/,'').split('.').map(Number);
+    const major=arr.some(x=>['reasoning','multimodal','scale'].includes(x));
+    obj.version=major?`v${maj+1}.0`:`v${maj}.${min+1}`;
+    obj.updates=(safeNumber(obj.updates)+1);
+    obj.updateHistory=Array.isArray(obj.updateHistory)?obj.updateHistory:[];
+    obj.updateHistory.unshift({version:obj.version,from:old,changes:arr,note:(document.getElementById('v6UpdateNote')?.value||'').trim(),cost,day:game.days||0});
+    if(updateTarget.kind==='model') obj.quality=Math.min(100,Math.round(safeNumber(obj.quality)+gain));
+    else { obj.rating=Math.min(5,safeNumber(obj.rating,3)+gain*.02); obj.users=Math.floor(safeNumber(obj.users)*(1+Math.min(.5,gain*.03))); }
+    addActivity('🔄',obj.name+' zaktualizowany do '+obj.version);
+    toast('🔄 '+obj.name+' → '+obj.version);
+    closeModal('v6UpdateModal'); saveGame(); renderAll();
+  };
+
+  /* Products: add advanced update entry point to visible cards/rows */
+  window.renderProducts=function(){
+    if(typeof OLD_RENDER_PRODUCTS==='function') OLD_RENDER_PRODUCTS();
+    const list=document.getElementById('productList');
+    if(!list) return;
+    list.querySelectorAll('.list-item').forEach(row=>{
+      const title=row.querySelector('.item-title');
+      if(!title) return;
+      const name=[...game.products].map(p=>p.name).find(n=>title.textContent.includes(n));
+      if(!name) return;
+      const p=game.products.find(x=>x.name===name);
+      if(!p) return;
+      const actions=row.querySelector('.item-actions');
+      if(actions && !actions.querySelector('.v6-product-update')){
+        const b=document.createElement('button'); b.className='btn v6-product-update'; b.textContent='🛠️'; b.title='Rozbudowana aktualizacja'; b.onclick=()=>openAdvancedUpdate('product',p.id); actions.appendChild(b);
+      }
+    });
+  };
+
+  /* Fix own-share selling: money is paid immediately and goes into game.cash. */
+  window.sellOwnShares=function(){
+    ensureInvestors();
+    const p=game.investors.find(i=>i.isPlayer);
+    if(!p||p.percent<=0){toast('❌ Nie posiadasz udziałów.');return;}
+    const raw=prompt(`Ile udziałów sprzedać?\nMasz ${p.percent.toFixed(1)}% udziałów.`,'1');
+    if(raw===null)return;
+    const qty=Math.round(Number(raw)*10)/10;
+    if(!Number.isFinite(qty)||qty<=0||qty>p.percent){toast('❌ Nieprawidłowa liczba udziałów.');return;}
+    const buyers=game.investors.filter(i=>!i.isPlayer&&i.percent>0);
+    if(!buyers.length){toast('❌ Brak inwestora po drugiej stronie transakcji.');return;}
+    buyers.sort((a,b)=>a.percent-b.percent);
+    const buyer=buyers[0];
+    const unit=Math.max(100,valCompany()/100);
+    const proceeds=qty*unit*.98;
+    p.percent-=qty; buyer.percent+=qty;
+    game.cash+=proceeds;
+    showMoneyAnimation(proceeds);
+    addStockHistory('💵',`Sprzedano ${qty.toFixed(1)}% udziałów do ${buyer.name} za ${money(proceeds)}.`);
+    addManagementHistory('Sprzedano '+qty.toFixed(1)+'% udziałów. Otrzymano '+money(proceeds)+'.');
+    toast('💵 Otrzymano '+money(proceeds)+' za sprzedaż udziałów.');
+    exactBook(); saveGame(); renderAll(); renderManagement();
+  };
+
+  /* Make model production advance independently of render intervals. */
+  setInterval(()=>{ try{ window.updateModelProjects(); }catch(e){ console.error('V6 model tick',e); } },1000);
+  setInterval(()=>{ try{ renderModelProjects(); }catch(e){} },1200);
+
+  /* Add production state immediately for any old model created by previous version. */
+  if(Array.isArray(game.models)) game.models.forEach(m=>{if(!m.status)m.status='released';if(!Array.isArray(m.updateHistory))m.updateHistory=[];});
+  if(Array.isArray(game.products)) game.products.forEach(p=>{if(!Array.isArray(p.updateHistory))p.updateHistory=[];});
+
+  saveGame();
+  setTimeout(()=>{renderAll();renderModelProjects();},50);
+})();
+</script>
+
+<style>
+/* v7 finance visibility */
+.live-finance-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:15px}
+.live-finance-card{padding:13px;border:1px solid var(--border);border-radius:12px;background:rgba(255,255,255,.025)}
+.live-finance-card span{display:block;color:var(--muted);font-size:9px;text-transform:uppercase;letter-spacing:.6px}
+.live-finance-card b{display:block;font-size:16px;margin-top:5px}
+.product-live-revenue{color:var(--green);font-weight:800;font-size:11px}
+@media(max-width:760px){.live-finance-strip{grid-template-columns:1fr}}
+</style>
+<script>
+/* =========================================================
+   AI EMPIRE V7 — AUTHORITATIVE FINANCE / DIVIDEND PATCH
+   Fixes:
+   - product revenue is paid into cash every second
+   - product revenue is visible immediately
+   - share holdings generate dividend income
+   - finance charts update from real transaction totals
+   - all manual purchases remain expenses and appear on charts
+========================================================= */
+(function(){
+    if(window.__AI_EMPIRE_V7__) return;
+    window.__AI_EMPIRE_V7__=true;
+
+    if(!Number.isFinite(game.totalIncome)) game.totalIncome=0;
+    if(!Number.isFinite(game.totalExpenses)) game.totalExpenses=0;
+    if(!Array.isArray(game.incomeHistory)) game.incomeHistory=[];
+    if(!Array.isArray(game.expenseHistory)) game.expenseHistory=[];
+    if(!Array.isArray(game.portfolio)) game.portfolio=[];
+    if(!Number.isFinite(game.dividendTotal)) game.dividendTotal=0;
+    if(!game.financeTracker) game.financeTracker={income:game.totalIncome,expenses:game.totalExpenses};
+
+    function ensurePortfolio(){
+        if(!Array.isArray(game.portfolio)) game.portfolio=[];
+        if(!Array.isArray(game.marketCompanies)) game.marketCompanies=[];
+    }
+
+    function recalcProductRevenue(){
+        let income=0;
+        game.products.forEach(p=>{
+            const model=game.models.find(m=>String(m.id)===String(p.modelId));
+            const quality=model?Number(model.quality||50):50;
+            const users=Math.max(0,Number(p.users||0));
+            const rating=Math.max(0,Number(p.rating||0));
+            /* visible and meaningful monetization */
+            income += users*(0.045 + quality*0.00045 + rating*0.006);
+        });
+        return Math.max(0,income);
+    }
+
+    function payProductRevenue(){
+        const income=recalcProductRevenue();
+        if(income<=0) return 0;
+        game.products.forEach(p=>{
+            const model=game.models.find(m=>String(m.id)===String(p.modelId));
+            const quality=model?Number(model.quality||50):50;
+            const users=Math.max(0,Number(p.users||0));
+            const rating=Math.max(0,Number(p.rating||0));
+            const pIncome=users*(0.045 + quality*0.00045 + rating*0.006);
+            p.revenue=(Number(p.revenue)||0)+pIncome;
+        });
+        game.cash += income;
+        game.totalIncome += income;
+        return income;
+    }
+
+    function payDividends(){
+        ensurePortfolio();
+        if(!game.portfolio.length) return 0;
+        let paid=0;
+        game.portfolio.forEach(h=>{
+            const company=game.marketCompanies.find(c=>c.id===h.companyId);
+            const shares=Math.max(0,Number(h.shares||0));
+            if(!company || shares<=0) return;
+            /* 0.30% of current position value every 30 seconds */
+            const dividend=Math.max(0,company.price*shares*0.003);
+            paid += dividend;
+        });
+        if(paid>0){
+            game.cash += paid;
+            game.totalIncome += paid;
+            game.dividendTotal += paid;
+            showMoneyAnimation(paid);
+            addActivity('💵','Otrzymano dywidendy z inwestycji: '+money(paid));
+            if(typeof addStockHistory==='function') addStockHistory('💵','Wypłacono dywidendy: '+money(paid)+'.');
+        }
+        return paid;
+    }
+
+    function recordFinanceSnapshot(){
+        const incomeDelta=Math.max(0,Number(game.totalIncome)-Number(game.financeTracker.income||0));
+        const expenseDelta=Math.max(0,Number(game.totalExpenses)-Number(game.financeTracker.expenses||0));
+        if(incomeDelta>0 || expenseDelta>0){
+            game.incomeHistory.push(incomeDelta);
+            game.expenseHistory.push(expenseDelta);
+            game.incomeHistory=game.incomeHistory.slice(-10);
+            game.expenseHistory=game.expenseHistory.slice(-10);
+            game.financeTracker.income=game.totalIncome;
+            game.financeTracker.expenses=game.totalExpenses;
+        }
+    }
+
+    function ensureFinancePanel(){
+        const stats=document.getElementById('page-stats');
+        if(!stats) return;
+        let strip=document.getElementById('liveFinanceStrip');
+        if(!strip){
+            strip=document.createElement('div');
+            strip.id='liveFinanceStrip';
+            strip.className='live-finance-strip';
+            stats.prepend(strip);
+        }
+        const product=game.products.reduce((s,p)=>s+(Number(p.revenue)||0),0);
+        strip.innerHTML=`
+            <div class="live-finance-card"><span>Przychód z produktów</span><b class="green">${money(product)}</b></div>
+            <div class="live-finance-card"><span>Dywidendy</span><b class="green">${money(game.dividendTotal||0)}</b></div>
+            <div class="live-finance-card"><span>Cash flow teraz</span><b class="${(recalcProductRevenue()-calculateExpenses().total)>=0?'green':'red'}">${(recalcProductRevenue()-calculateExpenses().total)>=0?'+':'−'}${money(Math.abs(recalcProductRevenue()-calculateExpenses().total))}/s</b></div>`;
+    }
+
+    /* Replace the old game tick without removing the existing UI. */
+    const oldTick=window.gameTick;
+    if(typeof oldTick==='function'){
+        window.gameTick=function(){
+            /* let the original engine handle production/research/events */
+            oldTick();
+            /* product income is paid directly, once per second */
+            payProductRevenue();
+            /* dividends every 30 ticks */
+            if(Number(game.seconds||0)%30===0) payDividends();
+            recordFinanceSnapshot();
+            ensureFinancePanel();
+            saveGame();
+            renderTopStats();
+            renderStats();
+        };
+        /* existing interval calls the global gameTick binding */
+        try{ gameTick=window.gameTick; }catch(e){}
+    }
+
+    /* Make the existing financial chart responsive to transaction totals. */
+    const oldRenderChart=window.renderChart;
+    if(typeof oldRenderChart==='function'){
+        window.renderChart=function(container){
+            if(!container) return;
+            if(!game.incomeHistory.length && !game.expenseHistory.length){
+                oldRenderChart(container); return;
+            }
+            const incomes=game.incomeHistory.length?game.incomeHistory:Array(10).fill(0);
+            const expenses=game.expenseHistory.length?game.expenseHistory:Array(10).fill(0);
+            const max=Math.max(1,...incomes,...expenses);
+            container.innerHTML='<div class="chart-grid"></div>'+incomes.map((v,i)=>{
+                const e=expenses[i]||0;
+                const ih=Math.max(v?3:0,v/max*160);
+                const eh=Math.max(e?3:0,e/max*160);
+                return `<div class="bar-group"><div class="bar income" title="Zarobki ${money(v)}" style="height:${ih}px"></div><div class="bar expense" title="Wydatki ${money(e)}" style="height:${eh}px"></div><div class="bar-label" style="left:50%">${i+1}</div></div>`;
+            }).join('');
+        };
+    }
+
+    /* Override product renderer only to show current live income. */
+    const oldRenderProducts=window.renderProducts;
+    if(typeof oldRenderProducts==='function'){
+        window.renderProducts=function(){
+            oldRenderProducts();
+            document.querySelectorAll('#productList .list-item').forEach(row=>{
+                const title=row.querySelector('.item-title');
+                if(!title || row.querySelector('.product-live-revenue')) return;
+                const text=row.querySelector('.item-desc');
+                const pName=(text?.textContent||'').split('•')[0].trim();
+                const p=game.products.find(x=>x.name===pName);
+                if(p){
+                    const span=document.createElement('span');
+                    span.className='product-live-revenue';
+                    span.textContent='  •  zarabia: '+money((Number(p.revenue)||0));
+                    title.appendChild(span);
+                }
+            });
+        };
+    }
+
+    setInterval(()=>{
+        recordFinanceSnapshot();
+        ensureFinancePanel();
+        if(typeof renderStats==='function') renderStats();
+    },1000);
+
+    setTimeout(()=>{
+        ensureFinancePanel();
+        recordFinanceSnapshot();
+        renderAll();
+    },300);
+})();
+</script>
+
 </body>
 </html>
