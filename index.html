@@ -1023,6 +1023,9 @@ button{
 .ownership-legend{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 18px;margin-top:14px}.ownership-key{display:flex;align-items:center;gap:7px;font-size:10px;color:#aab2c4}.ownership-key strong{margin-left:auto;color:#fff}.ownership-dot{width:8px;height:8px;border-radius:50%;flex:none}.player-row{background:rgba(139,92,246,.055)}.player-investor{color:#fff!important}.market-box{display:flex;align-items:center;justify-content:space-between;gap:18px}.big-market-price{font-size:31px;font-weight:900;color:var(--green);margin-top:5px}.market-copy{max-width:260px;color:var(--muted);font-size:11px;line-height:1.55;text-align:right}.buyout-row-btn{margin:0;padding:7px 10px}.offer-preview{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:15px}.offer-preview>div{padding:10px;border-radius:10px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.07)}.offer-preview span{display:block;font-size:9px;color:#717c91}.offer-preview strong{display:block;margin-top:5px;font-size:14px}.offer-note{margin-top:12px;padding:11px;border-radius:10px;background:rgba(57,217,255,.04);border:1px solid rgba(57,217,255,.11);color:#7e8aa0;font-size:10px;line-height:1.55}
 @media(max-width:760px){.ownership-legend{grid-template-columns:1fr}.offer-preview{grid-template-columns:1fr}.market-box{flex-direction:column;align-items:flex-start}.market-copy{text-align:left;max-width:none}}
 
+/* MANAGEMENT */
+.management-option-list{display:grid;grid-template-columns:1fr 1fr;gap:8px}.management-option{padding:12px;text-align:left;border-radius:11px;border:1px solid var(--border);background:rgba(255,255,255,.025);color:#fff}.management-option:hover,.management-action:hover{border-color:rgba(139,92,246,.35);background:rgba(139,92,246,.06)}.management-option strong{display:block;font-size:11px}.management-option span{display:block;color:var(--muted);font-size:9px;margin-top:4px}.management-slider{margin:12px 0}.management-slider>div{display:flex;justify-content:space-between;font-size:10px;color:#8b94a8;margin-bottom:6px}.management-slider input{width:100%;accent-color:#8b5cf6}.management-action{width:100%;text-align:left;padding:12px;margin-bottom:7px;border-radius:11px;border:1px solid var(--border);background:rgba(255,255,255,.025);color:#fff}.management-action b{display:block;font-size:11px}.management-action span{display:block;color:var(--muted);font-size:9px;margin-top:4px}.management-units{display:grid;grid-template-columns:1fr 1fr;gap:9px}.management-unit{padding:12px;border:1px solid var(--border);border-radius:11px;background:rgba(255,255,255,.025);display:grid;grid-template-columns:1fr auto;gap:5px 10px;align-items:center}.management-unit strong{font-size:11px}.management-unit span{font-size:9px;color:var(--muted)}.management-unit .btn{grid-column:2;grid-row:1/3}.
+
 /* RESPONSIVE */
 
 @media(max-width:1100px){
@@ -1167,6 +1170,11 @@ button{
         <button data-page="stock">
             <span class="nav-icon">📈</span>
             <span>Giełda</span>
+        </button>
+
+        <button data-page="management" id="managementNav">
+            <span class="nav-icon">🏢</span>
+            <span>Zarządzanie firmą</span>
         </button>
 
         <button data-page="events">
@@ -1882,6 +1890,162 @@ button{
     <div class="panel" style="margin-top:15px">
         <div class="panel-pad"><div class="section-head"><h2>Historia transakcji</h2><span>Ostatnie operacje</span></div></div>
         <div class="activity" id="stockHistory"></div>
+    </div>
+
+</section>
+
+
+<!-- MANAGEMENT -->
+<section id="page-management" class="page">
+
+    <div class="topbar">
+        <div class="page-title">
+            <h1>Panel zarządzania firmą</h1>
+            <p id="managementSubtitle">Panel zarządu odblokowuje się po zdobyciu ponad 50% udziałów.</p>
+        </div>
+        <div class="company-pill" id="managementAccessPill">
+            <span class="company-dot"></span>
+            <span>Sprawdzanie kontroli...</span>
+        </div>
+    </div>
+
+    <div id="managementLocked" class="panel" style="margin-bottom:15px">
+        <div class="panel-pad" style="text-align:center;padding:40px 25px">
+            <div style="font-size:48px">🔒</div>
+            <h2 style="margin-top:12px">Kontrola jeszcze niedostępna</h2>
+            <p style="max-width:650px;margin:8px auto;color:var(--muted);font-size:11px;line-height:1.6">
+                Aby przejąć zarządzanie NovaMind AI, zdobądź ponad 50% udziałów.
+                Po uzyskaniu większości otrzymasz dostęp do budżetów, zarządu, strategii,
+                rozwoju produktów, R&D, zatrudnienia i polityki dywidend.
+            </p>
+        </div>
+    </div>
+
+    <div id="managementUnlocked" style="display:none">
+
+        <div class="cards">
+            <div class="card">
+                <div class="stat-label">Kontrola</div>
+                <div class="stat-value purple" id="mgmtControl">0%</div>
+                <div class="stat-sub">Twój pakiet głosów</div>
+            </div>
+            <div class="card">
+                <div class="stat-label">Budżet firmy</div>
+                <div class="stat-value green" id="mgmtBudget">$0</div>
+                <div class="stat-sub">Dostępny kapitał</div>
+            </div>
+            <div class="card">
+                <div class="stat-label">Poziom zarządzania</div>
+                <div class="stat-value blue" id="mgmtLevel">1</div>
+                <div class="stat-sub">Rośnie wraz z kontrolą i wyceną</div>
+            </div>
+            <div class="card">
+                <div class="stat-label">Sentiment zarządu</div>
+                <div class="stat-value yellow" id="mgmtSentiment">50</div>
+                <div class="stat-sub">Wpływa na wydarzenia i rynek</div>
+            </div>
+        </div>
+
+        <div class="grid2">
+
+            <div class="panel">
+                <div class="panel-pad">
+                    <div class="section-head"><h2>👔 Strategia zarządu</h2><span>Aktywna strategia</span></div>
+                    <div class="management-option-list">
+                        <button class="management-option" onclick="setCompanyStrategy('growth')">
+                            <strong>🚀 Aggressive Growth</strong>
+                            <span>+przychody, +wydatki, szybszy wzrost</span>
+                        </button>
+                        <button class="management-option" onclick="setCompanyStrategy('balanced')">
+                            <strong>⚖️ Balanced</strong>
+                            <span>równowaga między wzrostem i rentownością</span>
+                        </button>
+                        <button class="management-option" onclick="setCompanyStrategy('profit')">
+                            <strong>💰 Profit First</strong>
+                            <span>większy zysk, mniejsze tempo ekspansji</span>
+                        </button>
+                        <button class="management-option" onclick="setCompanyStrategy('research')">
+                            <strong>🧠 Research First</strong>
+                            <span>większy R&D i przewaga technologiczna</span>
+                        </button>
+                    </div>
+                    <div class="offer-note" id="strategyStatus">Strategia: Balanced</div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-pad">
+                    <div class="section-head"><h2>💼 Budżety działów</h2><span>Priorytety</span></div>
+                    <div class="management-slider">
+                        <div><span>R&D</span><b id="budgetRndValue">25%</b></div>
+                        <input id="budgetRnd" type="range" min="0" max="60" value="25" oninput="updateMgmtBudgetLabels()">
+                    </div>
+                    <div class="management-slider">
+                        <div><span>Marketing</span><b id="budgetMarketingValue">25%</b></div>
+                        <input id="budgetMarketing" type="range" min="0" max="60" value="25" oninput="updateMgmtBudgetLabels()">
+                    </div>
+                    <div class="management-slider">
+                        <div><span>Infrastruktura</span><b id="budgetInfraValue">25%</b></div>
+                        <input id="budgetInfra" type="range" min="0" max="60" value="25" oninput="updateMgmtBudgetLabels()">
+                    </div>
+                    <div class="management-slider">
+                        <div><span>Ludzie</span><b id="budgetPeopleValue">25%</b></div>
+                        <input id="budgetPeople" type="range" min="0" max="60" value="25" oninput="updateMgmtBudgetLabels()">
+                    </div>
+                    <button class="btn primary" style="margin-top:12px;width:100%" onclick="applyDepartmentBudgets()">Zapisz budżety</button>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="grid3" style="margin-top:15px">
+
+            <div class="panel"><div class="panel-pad">
+                <div class="section-head"><h2>👨‍💼 Zarząd</h2><span>Decyzje personalne</span></div>
+                <div class="list-item"><div class="item-icon">👑</div><div class="item-main"><div class="item-title">CEO</div><div class="item-desc">Założyciel / główny decydent</div></div><span class="tag">TY</span></div>
+                <div class="list-item"><div class="item-icon">💰</div><div class="item-main"><div class="item-title">CFO</div><div class="item-desc">Finanse i kapitał</div></div><button class="btn btn-small" onclick="hireExecutive('CFO')">Zatrudnij</button></div>
+                <div class="list-item"><div class="item-icon">🧠</div><div class="item-main"><div class="item-title">CTO</div><div class="item-desc">Technologia i modele AI</div></div><button class="btn btn-small" onclick="hireExecutive('CTO')">Zatrudnij</button></div>
+                <div class="list-item"><div class="item-icon">📣</div><div class="item-main"><div class="item-title">CMO</div><div class="item-desc">Marka i marketing</div></div><button class="btn btn-small" onclick="hireExecutive('CMO')">Zatrudnij</button></div>
+            </div></div>
+
+            <div class="panel"><div class="panel-pad">
+                <div class="section-head"><h2>📦 Produkt & rynek</h2><span>Polityka firmy</span></div>
+                <button class="management-action" onclick="managementAction('price')"><b>💲 Zmień politykę cenową</b><span>Wybierz premium, mass-market lub enterprise.</span></button>
+                <button class="management-action" onclick="managementAction('launch')"><b>🚀 Przyspiesz premiery</b><span>Koszt +10%, ale produkty zdobywają użytkowników szybciej.</span></button>
+                <button class="management-action" onclick="managementAction('security')"><b>🛡️ Program bezpieczeństwa</b><span>Jednorazowa inwestycja zwiększająca reputację.</span></button>
+            </div></div>
+
+            <div class="panel"><div class="panel-pad">
+                <div class="section-head"><h2>💸 Dywidenda</h2><span>Wypłata właścicielom</span></div>
+                <p style="color:var(--muted);font-size:10px;line-height:1.5;margin-bottom:12px">Ustal procent gotówki firmy wypłacany udziałowcom. Twoja część wraca do Ciebie.</p>
+                <div class="management-slider">
+                    <div><span>Dywidenda</span><b id="dividendValue">0%</b></div>
+                    <input id="dividendRate" type="range" min="0" max="20" value="0" oninput="document.getElementById('dividendValue').textContent=this.value+'%'">
+                </div>
+                <button class="btn primary" style="width:100%;margin-top:12px" onclick="payDividend()">Wypłać dywidendę</button>
+            </div></div>
+
+        </div>
+
+        <div class="panel" style="margin-top:15px">
+            <div class="panel-pad">
+                <div class="section-head"><h2>🏢 Jednostki firmy</h2><span>Rozbudowa imperium</span></div>
+                <div class="management-units">
+                    <div class="management-unit"><strong>🧠 AI Research Lab</strong><span>Wydajność R&D +15%</span><button class="btn btn-small" onclick="upgradeBusinessUnit('lab')">Rozbuduj</button></div>
+                    <div class="management-unit"><strong>☁️ Cloud Platform</strong><span>Przychód produktów +10%</span><button class="btn btn-small" onclick="upgradeBusinessUnit('cloud')">Rozbuduj</button></div>
+                    <div class="management-unit"><strong>🛡️ AI Safety Division</strong><span>Reputacja +5%</span><button class="btn btn-small" onclick="upgradeBusinessUnit('safety')">Rozbuduj</button></div>
+                    <div class="management-unit"><strong>🌍 Global Expansion</strong><span>Użytkownicy +12%</span><button class="btn btn-small" onclick="upgradeBusinessUnit('global')">Rozbuduj</button></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel" style="margin-top:15px">
+            <div class="panel-pad">
+                <div class="section-head"><h2>📜 Dziennik zarządu</h2><span>Decyzje</span></div>
+                <div class="activity" id="managementHistory"></div>
+            </div>
+        </div>
+
     </div>
 
 </section>
@@ -6032,6 +6196,340 @@ setInterval(()=>{
     ensureNumbers();
     syncAll();
     saveGame();
+})();
+</script>
+<script>
+/* =========================================================
+   OWNERSHIP + MANAGEMENT PATCH
+   - udziały 100/100 i realny transfer
+   - sprzedaż własnych udziałów
+   - panel zarządzania po >50%
+   - działania zarządcze mające realny wpływ na grę
+========================================================= */
+(function(){
+    const BASE_INVESTOR_NAMES = ["Global Ventures","Future Capital","Tech Holdings","Retail Investors","Strategic Partners"];
+
+    function ensureMgmtState(){
+        if(!game.management) game.management={
+            strategy:"balanced",
+            budgets:{rnd:25,marketing:25,infra:25,people:25},
+            executives:{CFO:false,CTO:false,CMO:false},
+            dividend:0,
+            units:{lab:0,cloud:0,safety:0,global:0},
+            history:[],
+            sentiment:50
+        };
+        if(!game.management.budgets) game.management.budgets={rnd:25,marketing:25,infra:25,people:25};
+        if(!game.management.executives) game.management.executives={CFO:false,CTO:false,CMO:false};
+        if(!game.management.units) game.management.units={lab:0,cloud:0,safety:0,global:0};
+        if(!Array.isArray(game.management.history)) game.management.history=[];
+        if(typeof game.management.sentiment!=='number') game.management.sentiment=50;
+    }
+
+    function exactBook(){
+        ensureInvestorBook();
+        game.investors.forEach(i=>{
+            i.percent=Number(i.percent);
+            if(!Number.isFinite(i.percent)||i.percent<0)i.percent=0;
+            if(!i.id)i.id='inv_'+Math.random().toString(36).slice(2);
+        });
+        let total=game.investors.reduce((s,i)=>s+i.percent,0);
+        if(total<=0){
+            game.investors=[{id:'player',name:'Ty — NovaMind AI',percent:100,isPlayer:true,type:'founder'}];
+            return;
+        }
+        if(Math.abs(total-100)>0.00001){
+            const delta=100-total;
+            const nonPlayer=game.investors.filter(i=>!i.isPlayer&&i.percent>0);
+            const target=nonPlayer.sort((a,b)=>b.percent-a.percent)[0] || game.investors[0];
+            target.percent=Math.max(0,target.percent+delta);
+        }
+    }
+    window.normalizeInvestorBook=exactBook;
+
+    function player(){ exactBook(); return game.investors.find(i=>i.isPlayer); }
+    function companyControl(){ const p=player(); return p?p.percent:0; }
+    function hasControl(){ return companyControl()>50; }
+
+    function stockPrice(){ return Math.max(100,companyValuation()/100); }
+
+    function transferShares(from,to,qty){
+        qty=Math.round(qty*10)/10;
+        if(qty<=0 || from.percent+1e-9<qty) return false;
+        from.percent-=qty;
+        to.percent+=qty;
+        exactBook();
+        return true;
+    }
+
+    window.sellOwnShares=function(){
+        const p=player();
+        if(!p || p.percent<=0){toast('❌ Nie posiadasz udziałów.');return;}
+        const raw=prompt('Ile udziałów chcesz sprzedać?\nMasz '+p.percent.toFixed(1)+' udziałów.','1');
+        if(raw===null)return;
+        const qty=Math.round(Number(raw)*10)/10;
+        if(!Number.isFinite(qty)||qty<=0||qty>p.percent){toast('❌ Nieprawidłowa liczba udziałów.');return;}
+        const publicInvestor=game.investors.find(i=>!i.isPlayer&&/Retail|Public/i.test(i.name)) || game.investors.find(i=>!i.isPlayer&&i.percent>0);
+        if(!publicInvestor){toast('❌ Brak kupującego na rynku.');return;}
+        const proceeds=qty*stockPrice()*.96;
+        if(!transferShares(p,publicInvestor,qty))return;
+        changeCash(proceeds,'Sprzedano '+qty.toFixed(1)+' udziałów');
+        addStockHistory('💵','Sprzedano '+qty.toFixed(1)+' udziałów za '+money(proceeds)+'.');
+        addManagementHistory('Sprzedano '+qty.toFixed(1)+' udziałów. Nowy pakiet: '+p.percent.toFixed(1)+'%.');
+        saveGame();
+        renderAll();
+        renderManagement();
+    };
+
+    /* Override buyout to avoid renormalizing packages away. */
+    window.submitBuyoutOffer=function(){
+        if(!selectedInvestor)return;
+        exactBook();
+        const investor=game.investors.find(i=>i.id===selectedInvestor.id);
+        const p=player();
+        if(!investor||investor.isPlayer||!p){toast('❌ Nieprawidłowy inwestor.');return;}
+        let qty=Math.round(Number(document.getElementById('buyShares').value)*10)/10;
+        let price=Number(document.getElementById('buyPrice').value);
+        if(!Number.isFinite(qty)||qty<=0||qty>investor.percent+1e-9){toast('❌ Możesz kupić maksymalnie tyle, ile posiada inwestor.');return;}
+        if(!Number.isFinite(price)||price<=0){toast('❌ Podaj poprawną cenę.');return;}
+        const total=qty*price;
+        if(game.cash<total){toast('❌ Za mało pieniędzy.');return;}
+        const market=stockPrice();
+        const premium=price/market-1;
+        let chance=45+Math.max(0,premium)*120+(qty<=2?5:0)+(qty>=investor.percent*.75?7:0);
+        chance=Math.max(5,Math.min(98,Math.round(chance)));
+        closeModal('investorModal');
+        if(Math.random()*100>chance){
+            addStockHistory('❌',investor.name+' odrzucił ofertę '+qty.toFixed(1)+' udziałów.');
+            toast('❌ '+investor.name+' odrzucił ofertę.');
+            saveGame(); renderAll(); return;
+        }
+        changeCash(-total,'Wykupiono '+qty.toFixed(1)+' udziałów od '+investor.name);
+        transferShares(investor,p,qty);
+        addStockHistory('🤝','Wykupiono '+qty.toFixed(1)+' udziałów od '+investor.name+' za '+money(total)+'.');
+        addManagementHistory('Wykupiono '+qty.toFixed(1)+' udziałów od '+investor.name+'.');
+        if(p.percent>50 && p.percent<100) toast('🔓 Osiągnąłeś większość: '+p.percent.toFixed(1)+'%. Panel zarządzania odblokowany!');
+        if(p.percent>=99.999){p.percent=100;game.investors.forEach(i=>{if(!i.isPlayer)i.percent=0;});toast('🏆 Przejąłeś 100% NovaMind AI!');}
+        exactBook(); saveGame(); renderAll(); renderManagement();
+    };
+
+    function addManagementHistory(text){
+        ensureMgmtState();
+        game.management.history.unshift({text,time:new Date().toLocaleTimeString('pl-PL',{hour:'2-digit',minute:'2-digit'})});
+        game.management.history=game.management.history.slice(0,20);
+    }
+    window.addManagementHistory=addManagementHistory;
+
+    window.setCompanyStrategy=function(strategy){
+        if(!hasControl()){toast('🔒 Potrzebujesz ponad 50% udziałów.');return;}
+        ensureMgmtState();
+        game.management.strategy=strategy;
+        const names={growth:'Aggressive Growth',balanced:'Balanced',profit:'Profit First',research:'Research First'};
+        game.management.sentiment=Math.max(0,Math.min(100,game.management.sentiment+(strategy==='growth'?3:strategy==='profit'?2:-1)));
+        addManagementHistory('Zmieniono strategię firmy na '+names[strategy]+'.');
+        toast('🏢 Strategia: '+names[strategy]);
+        saveGame(); renderManagement(); renderAll();
+    };
+
+    window.updateMgmtBudgetLabels=function(){
+        const ids=['budgetRnd','budgetMarketing','budgetInfra','budgetPeople'];
+        const out=['budgetRndValue','budgetMarketingValue','budgetInfraValue','budgetPeopleValue'];
+        ids.forEach((id,i)=>{const el=document.getElementById(id);const o=document.getElementById(out[i]);if(el&&o)o.textContent=el.value+'%';});
+    };
+
+    window.applyDepartmentBudgets=function(){
+        if(!hasControl()){toast('🔒 Potrzebujesz ponad 50% udziałów.');return;}
+        ensureMgmtState();
+        const v=['budgetRnd','budgetMarketing','budgetInfra','budgetPeople'].map(id=>Number(document.getElementById(id).value));
+        const sum=v.reduce((a,b)=>a+b,0);
+        if(sum!==100){toast('❌ Budżety muszą razem wynosić dokładnie 100%.');return;}
+        [game.management.budgets.rnd,game.management.budgets.marketing,game.management.budgets.infra,game.management.budgets.people]=v;
+        addManagementHistory('Zapisano nowe budżety działów: R&D '+v[0]+'%, marketing '+v[1]+'%, infrastruktura '+v[2]+'%, ludzie '+v[3]+'%.');
+        toast('💼 Budżety działów zapisane.');saveGame();renderManagement();
+    };
+
+    window.hireExecutive=function(role){
+        if(!hasControl()){toast('🔒 Panel zarządu wymaga większości udziałów.');return;}
+        ensureMgmtState();
+        if(game.management.executives[role]){toast('Ten członek zarządu już pracuje.');return;}
+        const costs={CFO:250000,CTO:350000,CMO:180000};
+        const cost=costs[role];
+        if(game.cash<cost){toast('❌ Potrzebujesz '+money(cost)+'.');return;}
+        changeCash(-cost,'Zatrudniono '+role);
+        game.management.executives[role]=true;
+        game.management.sentiment=Math.min(100,game.management.sentiment+4);
+        addManagementHistory('Zatrudniono '+role+' za '+money(cost)+'.');
+        toast('👔 '+role+' dołączył do zarządu.');saveGame();renderManagement();renderAll();
+    };
+
+    window.managementAction=function(action){
+        if(!hasControl()){toast('🔒 Potrzebujesz ponad 50% udziałów.');return;}
+        ensureMgmtState();
+        if(action==='price'){
+            const option=prompt('Polityka cenowa: wpisz premium, mass lub enterprise.','enterprise');
+            if(option===null)return;
+            game.management.pricing=option;
+            addManagementHistory('Zmieniono politykę cenową na '+option+'.');
+            toast('💲 Polityka cenowa zmieniona.');
+        }
+        if(action==='launch'){
+            const cost=Math.max(50000,game.products.length*25000);
+            if(game.cash<cost){toast('❌ Za mało pieniędzy.');return;}
+            changeCash(-cost,'Przyspieszenie premier produktów');
+            game.products.forEach(p=>{p.users=Math.floor(p.users*1.15);p.rating=Math.min(5,p.rating+.05);});
+            addManagementHistory('Przyspieszono premiery produktów.');
+            toast('🚀 Produkty dostały przyspieszenie.');
+        }
+        if(action==='security'){
+            const cost=150000;
+            if(game.cash<cost){toast('❌ Za mało pieniędzy.');return;}
+            changeCash(-cost,'Program bezpieczeństwa AI');
+            game.reputation=Math.min(100,game.reputation+8);
+            game.management.sentiment=Math.min(100,game.management.sentiment+5);
+            addManagementHistory('Uruchomiono program bezpieczeństwa AI.');
+            toast('🛡️ Program bezpieczeństwa wdrożony.');
+        }
+        saveGame();renderManagement();renderAll();
+    };
+
+    window.payDividend=function(){
+        if(!hasControl()){toast('🔒 Potrzebujesz ponad 50% udziałów.');return;}
+        ensureMgmtState();
+        const rate=Math.max(0,Math.min(20,Number(document.getElementById('dividendRate').value)||0)); game.management.dividend=rate;
+        const cash=Math.floor(game.cash*rate/100);
+        if(cash<=0){toast('Nie ma czego wypłacać.');return;}
+        changeCash(-cash,'Wypłata dywidendy');
+        const p=player();
+        const founderPart=cash*p.percent/100;
+        changeCash(founderPart,'Dywidenda dla założyciela');
+        addManagementHistory('Wypłacono '+money(cash)+' dywidendy. Twoja część: '+money(founderPart)+'.');
+        toast('💸 Wypłacono dywidendę '+money(cash)+'.');
+        saveGame();renderManagement();renderAll();
+    };
+
+    window.upgradeBusinessUnit=function(unit){
+        if(!hasControl()){toast('🔒 Potrzebujesz ponad 50% udziałów.');return;}
+        ensureMgmtState();
+        const lvl=game.management.units[unit]||0;
+        const cost=Math.floor(250000*Math.pow(1.55,lvl));
+        if(game.cash<cost){toast('❌ Potrzebujesz '+money(cost)+'.');return;}
+        changeCash(-cost,'Rozbudowa jednostki firmy');
+        game.management.units[unit]=lvl+1;
+        game.management.sentiment=Math.min(100,game.management.sentiment+2);
+        addManagementHistory('Rozbudowano jednostkę '+unit+' do poziomu '+(lvl+1)+'.');
+        toast('🏢 Jednostka rozbudowana.');saveGame();renderManagement();renderAll();
+    };
+
+    function renderManagement(){
+        ensureMgmtState();
+        exactBook();
+        const p=player(), control=companyControl();
+        const locked=document.getElementById('managementLocked'), unlocked=document.getElementById('managementUnlocked');
+        const pill=document.getElementById('managementAccessPill');
+        if(!locked||!unlocked)return;
+        const access=control>50;
+        locked.style.display=access?'none':'block';
+        unlocked.style.display=access?'block':'none';
+        if(pill){
+            pill.innerHTML=access?'<span class="company-dot"></span><span>KONTROLA FIRMY</span>':'<span style="width:8px;height:8px;border-radius:50%;background:#ff4d67;display:inline-block"></span><span>BRAK KONTROLI</span>';
+        }
+        const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+        set('mgmtControl',(p?p.percent:0).toFixed(1)+'%');
+        set('mgmtBudget',money(game.cash));
+        set('mgmtLevel',Math.max(1,Math.floor(control/10)+Math.floor(companyValuation()/10000000)+1));
+        set('mgmtSentiment',Math.round(game.management.sentiment));
+        const names={growth:'Aggressive Growth',balanced:'Balanced',profit:'Profit First',research:'Research First'};
+        set('strategyStatus','Strategia: '+(names[game.management.strategy]||'Balanced'));
+        ['rnd','marketing','infra','people'].forEach((k)=>{
+            const e=document.getElementById('budget'+k.charAt(0).toUpperCase()+k.slice(1));
+            if(e)e.value=game.management.budgets[k];
+        });
+        updateMgmtBudgetLabels();
+        const d=document.getElementById('dividendRate');
+        if(d)d.value=game.management.dividend||0;
+        const dv=document.getElementById('dividendValue');
+        if(dv)dv.textContent=(game.management.dividend||0)+'%';
+        const hist=document.getElementById('managementHistory');
+        if(hist)hist.innerHTML=game.management.history.slice(0,12).map(h=>`<div class="activity-row"><div class="activity-icon">🏢</div><div class="activity-text">${escapeHtml(h.text)}<div class="activity-time">${h.time}</div></div></div>`).join('')||'<div style="padding:25px;color:#697388;text-align:center">Brak decyzji zarządu.</div>';
+        ['CFO','CTO','CMO'].forEach(role=>{
+            document.querySelectorAll('.management-option').forEach(()=>{});
+        });
+    }
+    window.renderManagement=renderManagement;
+
+    /* Keep investor and management state synchronized often. */
+    ensureMgmtState();
+    exactBook();
+    setInterval(()=>{ exactBook(); renderStock(); renderManagement(); saveGame(); },1200);
+    setTimeout(()=>{renderManagement();renderStock();},50);
+})();
+</script>
+
+
+<script>
+/* FINAL UI POLISH */
+(function(){
+  const originalRenderStock = window.renderStock;
+  window.renderStock = function(){
+    if(typeof originalRenderStock==='function') originalRenderStock();
+    const list=document.getElementById('investorList');
+    const p=typeof getPlayerInvestor==='function' ? getPlayerInvestor() : game.investors.find(i=>i.isPlayer);
+    if(!list || !p) return;
+    const rows=list.querySelectorAll('.stock-row');
+    const active=[...game.investors].filter(i=>i.percent>0);
+    const idx=active.findIndex(i=>i.isPlayer);
+    if(idx>=0 && rows[idx]){
+      const status=rows[idx].lastElementChild;
+      if(status){
+        status.innerHTML='<span class="tag">WŁAŚCICIEL</span> <button class="btn btn-small" onclick="sellOwnShares()">💵 Sprzedaj</button>';
+      }
+    }
+  };
+  window.syncManagementAccess=function(){
+    const p=game.investors.find(i=>i.isPlayer);
+    const access=p && p.percent>50;
+    const nav=document.getElementById('managementNav');
+    if(nav){
+      nav.style.opacity=access?'1':'.72';
+      nav.title=access?'Panel zarządzania jest dostępny':'Najpierw zdobądź ponad 50% udziałów';
+    }
+  };
+  const oldGoPage=window.goPage;
+  window.goPage=function(page){
+    if(page==='management'){
+      const p=game.investors.find(i=>i.isPlayer);
+      if(!p || p.percent<=50){
+        toast('🔒 Panel zarządzania wymaga ponad 50% udziałów.');
+        return;
+      }
+    }
+    return oldGoPage(page);
+  };
+  const oldHireExecutive=window.hireExecutive;
+  window.hireExecutive=function(role){
+    ensureMgmtState();
+    if(game.management.executives[role]){ toast('👔 '+role+' już pracuje.'); return; }
+    oldHireExecutive(role);
+    renderManagement();
+  };
+  const oldRenderManagement=window.renderManagement;
+  window.renderManagement=function(){
+    if(typeof oldRenderManagement==='function') oldRenderManagement();
+    ensureMgmtState();
+    ['CFO','CTO','CMO'].forEach(role=>{
+      const buttons=[...document.querySelectorAll('.management-unit, #managementUnlocked .panel')];
+    });
+    syncManagementAccess();
+  };
+  ensureMgmtState();
+  syncManagementAccess();
+  const originalSet=window.setCompanyStrategy;
+  if(originalSet){
+    window.setCompanyStrategy=function(strategy){ originalSet(strategy); renderManagement(); };
+  }
+  setInterval(()=>{
+    try{ normalizeInvestorBook(); syncManagementAccess(); renderStock(); renderManagement(); }catch(e){}
+  },1000);
 })();
 </script>
 
