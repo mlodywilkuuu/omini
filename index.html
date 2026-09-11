@@ -130,6 +130,155 @@ function addWarsawNetwork(){
  if(!m2){m2={id:'warsaw-m2',name:'M2',type:'metro',segments:17,km:18.8,level:1,stopIds:[],stationIds:[]};game.lines.push(m2);activity('🚇','Dodano M2 — Warszawa')}
  [...new Set([...m1Names,...m2Names])].forEach(name=>{let ids=[];if(m1Names.includes(name))ids.push(m1.id);if(m2Names.includes(name))ids.push(m2.id);let st=game.stations.find(x=>x.name===name);if(!st){st={id:'st-'+btoa(unescape(encodeURIComponent(name))).replace(/=/g,''),name,type:ids.length>1?'hub':'local',lineIds:[],passengers:0};game.stations.push(st)}ids.forEach(id=>{if(!st.lineIds.includes(id))st.lineIds.push(id);let l=game.lines.find(x=>x.id===id);if(l&&!l.stationIds.includes(st.id))l.stationIds.push(st.id)});if(name==='Centrum')st.type='central';if(['Świętokrzyska','Rondo Daszyńskiego','Rondo ONZ','Dworzec Gdański','Dworzec Wileński'].includes(name))st.type='hub';let stop=game.stops.find(x=>x.name==='Metro '+name);if(!stop){stop={id:'stop-'+Date.now()+Math.random(),name:'Metro '+name,type:ids.length>1?'hub':'standard',lineIds:[...ids],passengers:0};game.stops.push(stop)}ids.forEach(id=>{if(!stop.lineIds.includes(id))stop.lineIds.push(id);let l=game.lines.find(x=>x.id===id);if(l&&!l.stopIds.includes(stop.id))l.stopIds.push(stop.id)})});
 }
+
+/* =========================================================
+   ROZSZERZONA SIEĆ WARSZAWY
+   - przystanki = tylko naziemne (autobus/tramwaj)
+   - stacje = metro
+   - M3/M4 = planowane, ale gotowe jako obiekty sieci gry
+   - migracja jest dodatnia: istniejący zapis zostaje
+========================================================= */
+function ensureLine(name,type,segments,km){
+ let line=game.lines.find(x=>x.name===name&&x.type===type);
+ if(!line){
+  line={id:'seed-'+type+'-'+name+'-'+Math.random().toString(36).slice(2),name,type,segments,km,level:1,stopIds:[],stationIds:[]};
+  game.lines.push(line);
+ }
+ if(!Array.isArray(line.stopIds))line.stopIds=[];
+ if(!Array.isArray(line.stationIds))line.stationIds=[];
+ return line;
+}
+function ensureGroundStop(name,lineIds,type='standard'){
+ let stop=game.stops.find(x=>x.name===name);
+ if(!stop){
+  stop={id:'ground-stop-'+slugify(name),name,type,lineIds:[],passengers:0};
+  game.stops.push(stop);
+ }
+ if(!Array.isArray(stop.lineIds))stop.lineIds=[];
+ lineIds.forEach(id=>{if(!stop.lineIds.includes(id))stop.lineIds.push(id)});
+ lineIds.forEach(id=>{let l=game.lines.find(x=>x.id===id);if(l&&!l.stopIds.includes(stop.id))l.stopIds.push(stop.id)});
+ return stop;
+}
+function ensureMetroStation(name,lineIds,type='local'){
+ let st=game.stations.find(x=>x.name===name);
+ if(!st){st={id:'metro-station-'+slugify(name),name,type,lineIds:[],passengers:0};game.stations.push(st)}
+ if(!Array.isArray(st.lineIds))st.lineIds=[];
+ lineIds.forEach(id=>{if(!st.lineIds.includes(id))st.lineIds.push(id)});
+ lineIds.forEach(id=>{let l=game.lines.find(x=>x.id===id);if(l&&!l.stationIds.includes(st.id))l.stationIds.push(st.id)});
+ if(lineIds.length>1)st.type='hub';
+ return st;
+}
+function slugify(v){return String(v).normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9]+/g,'_').replace(/^_+|_+$/g,'').toLowerCase()}
+
+function removeMetroStopsFromStopsList(){
+ const metroIds=new Set(game.lines.filter(l=>l.type==='metro').map(l=>l.id));
+ const surfaceIds=new Set(game.lines.filter(l=>l.type!=='metro').map(l=>l.id));
+ const removedIds=new Set();
+ game.stops=game.stops.filter(stop=>{
+  const ids=Array.isArray(stop.lineIds)?stop.lineIds:[];
+  const groundIds=ids.filter(id=>surfaceIds.has(id));
+  const metroOnly=ids.length>0 && groundIds.length===0 && ids.some(id=>metroIds.has(id));
+  const looksLikeMetro=String(stop.name||'').toLowerCase().startsWith('metro ');
+  if(metroOnly||looksLikeMetro){removedIds.add(stop.id);return false}
+  stop.lineIds=groundIds.length?groundIds:ids.filter(id=>!metroIds.has(id));
+  return true;
+ });
+ game.lines.forEach(line=>{
+  line.stopIds=(line.stopIds||[]).filter(id=>!removedIds.has(id));
+ });
+}
+
+function addPlannedMetro(){
+ const m3=ensureLine('M3','metro',8,9.1);
+ const m4=ensureLine('M4','metro',23,26.3);
+ const m3Stations=[
+  'Stadion Narodowy','Dw. Wschodni','Mińska','Rondo Wiatraczna',
+  'Ostrobramska','Jana Nowaka-Jeziorańskiego','Gocław','Gościniec'
+ ];
+ const m4Stations=[
+  'Myśliborska','Obrazkowa','Płochocińska','Ruda','Marymont','Rydygiera',
+  'Rondo Radosława','Cm. Żydowski','Okopowa','Rondo Daszyńskiego','Pl. Zawiszy',
+  'Pl. Narutowicza','Bitwy Warszawskiej 1920','Wiślicka','Żwirki i Wigury',
+  'Służewiec','Rondo Unii Europejskiej','Smoluchowskiego','Wilanowska',
+  'Dolina Służewiecka','Patkowskiego','Sobieskiego','Wilanów'
+ ];
+ m3Stations.forEach((n,i)=>ensureMetroStation(n,[m3.id],i===1?'hub':'local'));
+ m4Stations.forEach((n,i)=>ensureMetroStation(n,[m4.id],i===4||i===8||i===9||i===18?'hub':'local'));
+ [['Stadion Narodowy',m3.id,'warsaw'],['Dw. Wschodni',m3.id,'warsaw'],['Rondo Daszyńskiego',m4.id,'warsaw']].forEach(([name,id])=>ensureMetroStation(name,[id],'hub'));
+ /* połączenia z istniejącymi węzłami M1/M2 */
+ ensureMetroStation('Świętokrzyska',[m3.id],'hub');
+ ensureMetroStation('Rondo Daszyńskiego',[m4.id],'hub');
+ ensureMetroStation('Wilanowska',[m4.id],'hub');
+ activity('🚇','Dodano planowane linie M3 i M4 jako gotowe elementy sieci gry.');
+}
+
+/* Szybki katalog naziemnych linii startowych.
+   Rozszerza grę bez tworzenia fałszywych stacji metra w zakładce Przystanki. */
+const surfaceSeed=[
+ ['1','tram',['Żerań Wschodni','Faradaya','Odlewnicza','Inowłodzka','Toruńska','Metro Bródno','Rembielińska','Rondo Żaba','Rondo Starzyńskiego','Dw. Gdański','Most Gdański','Park Traugutta','Okopowa','Rondo Daszyńskiego','Pl. Zawiszy','Pl. Narutowicza','Wawelska','Och-Teatr','Banacha']],
+ ['4','tram',['Żerań Wschodni','Rondo Żaba','Dw. Gdański','Metro Ratusz Arsenał','Metro Świętokrzyska','Centrum','Pl. Zawiszy','Pl. Narutowicza','Banacha']],
+ ['9','tram',['Gocławek','Rondo Wiatraczna','Dw. Wschodni','Rondo Starzyńskiego','Metro Ratusz Arsenał','Metro Świętokrzyska','Centrum','Pl. Zawiszy','Banacha','P+R Al. Krakowska']],
+ ['17','tram',['Służewiec','Wilanowska','Metro Wilanowska','Racławicka','Pole Mokotowskie','Centrum','Metro Świętokrzyska','Rondo ONZ','Dw. Gdański','Plac Wilsona']],
+ ['18','tram',['Żerań Wschodni','Rondo Starzyńskiego','Dw. Gdański','Rondo ONZ','Centrum','Pl. Zawiszy','Pl. Narutowicza','Och-Teatr']],
+ ['22','tram',['Piaski','Marymont','Plac Wilsona','Dw. Gdański','Rondo ONZ','Rondo Daszyńskiego','Plac Zawiszy','Banacha']],
+ ['24','tram',['Gocławek','Rondo Wiatraczna','Dw. Wschodni','Rondo Starzyńskiego','Dw. Gdański','Rondo ONZ','Rondo Daszyńskiego','Pl. Zawiszy','Ochota-Ratusz']],
+ ['25','tram',['Annopol','Rembielińska','Rondo Żaba','Dw. Gdański','Rondo ONZ','Rondo Daszyńskiego','Pl. Zawiszy','Banacha','Ochota-Ratusz']],
+ ['102','bus',['Młynów','Rondo Daszyńskiego','Centrum','Nowy Świat','Stadion Narodowy']],
+ ['105','bus',['Os. Górczewska','Rondo Daszyńskiego','Centrum','Pl. Trzech Krzyży','Gocław']],
+ ['111','bus',['Gocław','Rondo Waszyngtona','Nowy Świat','Centrum','Dw. Gdański','Żoliborz']],
+ ['116','bus',['Wilanów','Śródmieście','Nowy Świat','Pl. Wilsona']],
+ ['120','bus',['Targówek','Rondo Żaba','Dw. Gdański','Metro Ratusz Arsenał','Centrum']],
+ ['125','bus',['Gocław','Rondo Wiatraczna','Dw. Wschodni','Centrum']],
+ ['127','bus',['Tarchomin','Żerań','Rondo Starzyńskiego','Dw. Gdański','Centrum']],
+ ['128','bus',['Siekierki','Rondo Wiatraczna','Centrum','Ochota']],
+ ['136','bus',['Młociny','Marymont','Centrum','Mokotów','Wilanowska']],
+ ['141','bus',['P+R Metro Wilanowska','Służewiec','Ochota','Dw. Zachodni','Młynów']],
+ ['145','bus',['Ursus','Reduta','Ochota','Centrum']],
+ ['147','bus',['Gocław','Rondo Waszyngtona','Centrum Nauki Kopernik','Centrum']],
+ ['158','bus',['Wawer','Gocław','Rondo Waszyngtona','Centrum']],
+ ['162','bus',['Targówek','Praga','Centrum','Siekierki']],
+ ['166','bus',['Kabaty','Ursynów','Mokotów','Centrum']],
+ ['167','bus',['Służewiec','Mokotów','Centrum','Rondo Daszyńskiego','Wola']],
+ ['169','bus',['Marysin','Targówek','Dw. Wileński','Rondo Starzyńskiego','Centrum']],
+ ['174','bus',['Mokotów','Centrum','Rondo Daszyńskiego','Wola','Bemowo']],
+ ['175','bus',['Lotnisko Chopina','Żwirki i Wigury','Pl. Zawiszy','Centrum','Nowy Świat']],
+ ['178','bus',['Ursus','Wola','Rondo Daszyńskiego','Centrum','Powisle']],
+ ['180','bus',['Wilanów','Mokotów','Centrum','Żoliborz','Chomiczówka']],
+ ['181','bus',['Wilanów','Sielce','Centrum','Pl. Wilsona','Żoliborz']],
+ ['182','bus',['Wawer','Rondo Wiatraczna','Dw. Wschodni','Centrum']],
+ ['190','bus',['Ursus','Wola','Rondo Daszyńskiego','Centrum','Targówek']],
+ ['195','bus',['Ursynów','Służew','Wilanowska','Centrum']],
+ ['202','bus',['Tarchomin','Białołęka','Metro Bródno','Targówek']],
+ ['209','bus',['Żerań','Tarchomin','Nowodwory']],
+ ['401','bus',['Ursynów','Mokotów','Centrum','Wola']],
+ ['402','bus',['Ursus','Wola','Centrum','Praga']],
+ ['411','bus',['Bródno','Dw. Wileński','Centrum','Mokotów']],
+ ['509','bus',['Gocław','Rondo Wiatraczna','Centrum','Młociny']],
+ ['517','bus',['Ursus','Ochota','Centrum','Targówek']],
+ ['521','bus',['Falenica','Wawer','Centrum']],
+ ['523','bus',['Nowodwory','Tarchomin','Centrum','Gocław']],
+ ['525','bus',['Międzylesie','Gocław','Centrum']],
+ ['709','bus',['Piaseczno','Kabaty','Ursynów','Mokotów']]
+];
+function addSurfaceNetwork(){
+ surfaceSeed.forEach(([number,type,stops])=>{
+  const segments=Math.max(1,stops.length-1);
+  const line=ensureLine(number,type,segments,Number((segments*(type==='tram'?.9:.7)).toFixed(1)));
+  stops.forEach((name,i)=>ensureGroundStop(name,[line.id],i===Math.floor(stops.length/2)?'hub':'standard'));
+ });
+}
+
+function migrateTransitStructure(){
+ /* Najpierw usuwamy metro-stacje z listy przystanków. */
+ removeMetroStopsFromStopsList();
+ /* Dodajemy M3/M4 jako planowane linie metra i komplet stacji. */
+ addPlannedMetro();
+ /* Dodajemy gotowe linie naziemne i ich przystanki. */
+ addSurfaceNetwork();
+ /* Po dopisaniu linii jeszcze raz czyścimy ewentualne stare „Metro ...” stop-y. */
+ removeMetroStopsFromStopsList();
+}
+
 function seedCompetitors(){if(game.competitors.length) return;game.competitors=competitorsNames.map((name,i)=>({id:'c'+i,name,power:60+i*4,passengers:500+i*150,km:10+i*3}))}
 
 /* Lines/stops/stations */
@@ -325,7 +474,7 @@ function renderCharts(){drawChart(document.getElementById('dashboardChart'));dra
 function renderAll(){renderTop();renderDashboard();renderLines();renderStops();renderStations();renderTrains();renderVehicles();renderContracts();renderEmployees();renderPricing();renderCompetition();renderEconomy();renderCharts()}
 
 /* Safe startup migration. */
-seedCompetitors();addWarsawNetwork();if(!game.candidates.length)generateCandidates(8);if(!game.contracts.length)generateContracts(5);saveGame();renderAll();
+seedCompetitors();addWarsawNetwork();migrateTransitStructure();if(!game.candidates.length)generateCandidates(8);if(!game.contracts.length)generateContracts(5);saveGame();renderAll();
 setInterval(tick,1000);setInterval(()=>{if(game.candidates.length<14)generateCandidates(1)},6500);setInterval(()=>{if(game.contracts.length<10)generateContracts(1)},9000);setInterval(saveGame,15000);
 </script>
 </body>
