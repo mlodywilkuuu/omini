@@ -7819,5 +7819,249 @@ setInterval(()=>{
 })();
 </script>
 
+
+<script>
+/* FINAL MAJORITY CONTROL PATCH v12 */
+(function(){
+  function safeToast(msg){try{if(typeof toast==='function')toast(msg);else if(typeof toast2==='function')toast2(msg);}catch(e){}}
+  function num(v){v=Number(v);return Number.isFinite(v)?v:0;}
+  function getPlayerInvestor(){
+    if(!Array.isArray(game.investors)) game.investors=[];
+    let p=game.investors.find(i=>i && i.isPlayer===true);
+    if(!p) p=game.investors.find(i=>i && (i.id==='player'||i.type==='founder'||String(i.name||'').toLowerCase().includes('founder capital')||String(i.name||'').toLowerCase().includes('nova')));
+    if(!p){
+      p={id:'player',name:'Ty — NovaMind AI',type:'founder',isPlayer:true,percent:0};
+      game.investors.unshift(p);
+    }
+    p.isPlayer=true; p.type='founder'; p.name='Ty — NovaMind AI'; p.percent=Math.max(0,Math.min(100,num(p.percent)));
+    return p;
+  }
+  function total(){return game.investors.reduce((s,i)=>s+Math.max(0,num(i.percent)),0);}
+  function fixBook(){
+    getPlayerInvestor();
+    game.investors.forEach((i,idx)=>{ if(!i.id)i.id='inv_'+idx+'_'+Math.random().toString(36).slice(2); i.percent=Math.max(0,num(i.percent)); });
+    const t=total();
+    if(t<=0){game.investors.forEach(i=>i.percent=0);getPlayerInvestor().percent=100;return;}
+    const delta=100-t;
+    if(Math.abs(delta)>0.00001){
+      const p=getPlayerInvestor();
+      if(delta>0)p.percent+=delta;
+      else{
+        let remaining=-delta;
+        const others=game.investors.filter(i=>!i.isPlayer&&i.percent>0).sort((a,b)=>b.percent-a.percent);
+        for(const i of others){const take=Math.min(i.percent,remaining);i.percent-=take;remaining-=take;if(remaining<=0.000001)break;}
+      }
+    }
+  }
+  function control(){fixBook();return getPlayerInvestor().percent;}
+  function hasMajority(){return control()>50;}
+
+  function updateManagementUI(){
+    const pct=control(), access=pct>50;
+    const nav=document.getElementById('managementNav');
+    if(nav){
+      nav.style.display='flex';
+      nav.style.opacity=access?'1':'0.55';
+      nav.title=access?'Zarządzanie firmą':'Potrzebujesz ponad 50% udziałów';
+      nav.classList.toggle('active',document.getElementById('page-management')?.classList.contains('active'));
+    }
+    const locked=document.getElementById('managementLocked');
+    const unlocked=document.getElementById('managementUnlocked');
+    if(locked)locked.style.display=access?'none':'block';
+    if(unlocked)unlocked.style.display=access?'block':'none';
+    const pill=document.getElementById('managementAccessPill');
+    if(pill) pill.innerHTML=access?'<span class="company-dot"></span><span>KONTROLA FIRMY</span>':'<span style="width:8px;height:8px;border-radius:50%;background:#ff4d67;display:inline-block"></span><span>BRAK KONTROLI</span>';
+    const c=document.getElementById('mgmtControl'); if(c)c.textContent=pct.toFixed(1)+'%';
+    const stock=document.getElementById('yourControl'); if(stock)stock.textContent=pct.toFixed(1)+'%';
+  }
+
+  window.hasMajorityControl=hasMajority;
+  window.getPlayerShare=control;
+  window.syncManagementAccess=updateManagementUI;
+
+  /* Make the management button directly open the page. */
+  document.addEventListener('click',function(e){
+    const btn=e.target.closest && e.target.closest('#managementNav');
+    if(!btn)return;
+    e.preventDefault(); e.stopPropagation();
+    if(!hasMajority()){
+      updateManagementUI();
+      safeToast('🔒 Potrzebujesz ponad 50% udziałów. Masz obecnie '+control().toFixed(1)+'%.');
+      return;
+    }
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    const page=document.getElementById('page-management'); if(page)page.classList.add('active');
+    document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    const title=document.getElementById('pageTitle'); if(title)title.textContent='Zarządzanie firmą';
+    const sub=document.getElementById('pageSubtitle'); if(sub)sub.textContent='Pełna kontrola nad NovaMind AI.';
+    updateManagementUI();
+    if(typeof renderManagement==='function')renderManagement();
+  },true);
+
+  /* Automatically unlock/open after the player first crosses 50%. */
+  let wasLocked=!hasMajority();
+  setInterval(function(){
+    const access=hasMajority();
+    updateManagementUI();
+    if(access && wasLocked){
+      wasLocked=false;
+      const nav=document.getElementById('managementNav');
+      if(nav)nav.animate([{transform:'scale(1)'},{transform:'scale(1.04)'},{transform:'scale(1)'}],{duration:450});
+      safeToast('🔓 MASZ WIĘKSZOŚĆ! Panel zarządzania firmą został odblokowany.');
+    }
+    if(!access)wasLocked=true;
+    try{saveGame();}catch(e){}
+  },500);
+
+  updateManagementUI();
+})();
+</script>
+
+
+<script>
+/* =========================================================
+   AI EMPIRE v13 — FINAL GPU INVENTORY REPAIR
+   One authoritative GPU state + UI renderer.
+========================================================= */
+(function(){
+    'use strict';
+
+    const N=v=>{
+        const x=Number(v);
+        return Number.isFinite(x)?x:0;
+    };
+
+    function repairGPUState(){
+        if(!window.game || typeof game!=='object') return;
+
+        let gpu=N(game.gpu);
+        let compute=N(game.gpuCompute);
+
+        /* Recover old saves where the purchased GPU count was stored under
+           another field or only compute was persisted. */
+        const legacyCandidates=[
+            game.gpuCount,
+            game.gpus,
+            game.gpuLevel,
+            game.gpuPurchased,
+            game.gpuInventory
+        ];
+
+        for(const candidate of legacyCandidates){
+            const v=N(candidate);
+            if(v>gpu) gpu=v;
+        }
+
+        /* If an old save contains compute but lost the count, reconstruct the
+           minimum number of GPU units instead of displaying zero. */
+        if(gpu<=0 && compute>0){
+            gpu=Math.ceil(compute/10);
+        }
+
+        gpu=Math.max(0,Math.floor(gpu));
+
+        if(compute<=0 && gpu>0){
+            compute=gpu*10;
+        }
+
+        game.gpu=gpu;
+        game.gpuCompute=compute;
+        game.dataCenterLevel=Math.max(1,Math.floor(N(game.dataCenterLevel)||1));
+    }
+
+    function cap(){
+        return game.dataCenterLevel*10;
+    }
+
+    function setText(id,value){
+        const el=document.getElementById(id);
+        if(el) el.textContent=value;
+    }
+
+    function refreshGPU(){
+        repairGPUState();
+
+        const count=game.gpu;
+        const compute=game.gpuCompute;
+        const capacity=cap();
+        const usage=capacity?Math.min(100,count/capacity*100):0;
+        const energy=count*18;
+
+        setText('gpuCount',count);
+        setText('compute',compute);
+        setText('gpuCapacity',capacity);
+        setText('dcLevel','Poziom '+game.dataCenterLevel);
+        setText('energyCost',money(energy)+'/s');
+        setText('gpuUsageText',Math.round(usage)+'%');
+
+        const bar=document.getElementById('gpuUsageBar');
+        if(bar) bar.style.width=usage+'%';
+
+        /* Keep top cash synchronized without forcing a full page render. */
+        setText('cash',money(game.cash));
+        setText('globalCash',money(game.cash));
+
+        /* Save a repaired inventory so the fix survives reload. */
+        localStorage.setItem(SAVE_KEY,JSON.stringify(game));
+    }
+
+    /* Replace the UI renderer as well as the purchase operation. */
+    window.renderGPU=function(){ refreshGPU(); };
+
+    window.buyGPU=function(cost=15000,compute=10){
+        repairGPUState();
+
+        cost=N(cost)||15000;
+        compute=N(compute)||10;
+
+        if(game.gpu>=cap()){
+            toast('🏢 Brak miejsca na kolejne GPU. Rozbuduj Data Center.');
+            refreshGPU();
+            return;
+        }
+
+        if(game.cash<cost){
+            toast('❌ Za mało pieniędzy. Potrzebujesz '+money(cost)+'.');
+            refreshGPU();
+            return;
+        }
+
+        game.cash-=cost;
+        game.gpu+=1;
+        game.gpuCompute+=compute;
+        game.totalExpenses=N(game.totalExpenses)+cost;
+
+        if(game.finances && game.finances.spending){
+            game.finances.spending.gpu=N(game.finances.spending.gpu)+cost;
+        }
+
+        if(Array.isArray(game.expenseHistory)){
+            game.expenseHistory.push(cost);
+            game.expenseHistory=game.expenseHistory.slice(-10);
+        }
+
+        if(typeof showMoneyAnimation==='function') showMoneyAnimation(-cost);
+        if(typeof addActivity==='function'){
+            addActivity('🎮','Kupiono GPU #'+game.gpu+' • +'+compute+' Compute');
+        }
+
+        toast('🎮 Kupiono GPU — posiadasz teraz <b>'+game.gpu+'</b> GPU.');
+
+        localStorage.setItem(SAVE_KEY,JSON.stringify(game));
+        refreshGPU();
+
+        try{ if(typeof renderTopStats==='function') renderTopStats(); }catch(e){}
+    };
+
+    /* Re-assert the saved inventory continuously. This prevents older render
+       patches in the file from leaving a stale 0 on screen. */
+    setInterval(refreshGPU,500);
+
+    repairGPUState();
+    refreshGPU();
+})();
+</script>
+
 </body>
 </html>
