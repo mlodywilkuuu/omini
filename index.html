@@ -1054,6 +1054,10 @@ button{
         display:none;
     }
 }
+
+/* DYNAMIC MARKET / FIXES */
+.market-company-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:15px}.market-company{padding:14px;border:1px solid rgba(255,255,255,.08);border-radius:13px;background:rgba(255,255,255,.025)}.market-company-head{display:flex;justify-content:space-between;align-items:center;gap:10px}.market-company-price{font-size:18px;font-weight:800;margin-top:8px}.market-company-sub{font-size:10px;color:#8d96aa;margin-top:4px}.market-company-actions{display:flex;justify-content:space-between;align-items:center;margin-top:12px;gap:8px}.ownership-chip{padding:4px 7px;border-radius:6px;background:rgba(78,161,255,.10);color:#73b8ff;font-size:9px}.
+
 </style>
 </head>
 
@@ -5278,6 +5282,292 @@ setInterval(()=>{
 
 },15000);
 
+</script>
+
+
+<script>
+/* =========================================================
+   LIVE SYSTEM FIXES
+   - kandydaci generują się niezależnie od głównej pętli
+   - firmy AI konkurencji generują się dynamicznie
+   - inwestorzy własnej firmy zachowują dokładne pakiety
+   - giełda dostaje osobną listę spółek
+   - zakupione udziały spółek naprawdę znikają ze sprzedaży
+========================================================= */
+
+(function(){
+    const MARKET_KEY = "ai_empire_market_v2";
+
+    const companyNames = [
+        ["SynapseX", "🧠"], ["VectorMind", "🔷"], ["CortexOne", "🟣"],
+        ["DeepForge", "⚙️"], ["NeuralWorks", "🧬"], ["AetherAI", "🌐"],
+        ["Quantum Labs", "⚛️"], ["VisionCore", "👁️"], ["OmniCompute", "🚀"],
+        ["BrainGrid", "🔬"], ["HyperMind", "⚡"], ["FutureNeuron", "🤖"]
+    ];
+
+    function ensureFixState(){
+        if(!Array.isArray(game.candidates)) game.candidates=[];
+        if(!Array.isArray(game.employees)) game.employees=[];
+        if(!Array.isArray(game.aiCompetitors)) game.aiCompetitors=[];
+        if(!Array.isArray(game.marketCompanies)) game.marketCompanies=[];
+        if(!Array.isArray(game.portfolio)) game.portfolio=[];
+        if(!Array.isArray(game.stockHistory)) game.stockHistory=[];
+        ensureInvestorBook();
+        ensureMarketSeed();
+        normalizeInvestorBookExact();
+    }
+
+    /* --- WYJĄTKOWO WAŻNE: normalizacja bez skalowania wszystkich udziałów --- */
+    window.normalizeInvestorBookExact = function(){
+        if(!Array.isArray(game.investors) || !game.investors.length) return;
+        game.investors.forEach(i=>{
+            i.percent=Number(i.percent)||0;
+            if(i.percent<0)i.percent=0;
+        });
+        let total=game.investors.reduce((s,i)=>s+i.percent,0);
+        if(total<=0){
+            game.investors=[{id:"player",name:"Ty — NovaMind AI",percent:100,isPlayer:true,type:"founder"}];
+            return;
+        }
+        /* lekkie korekty tylko błędu zaokrągleń */
+        const delta=100-total;
+        if(Math.abs(delta)>0.000001){
+            const target=game.investors.find(i=>!i.isPlayer && i.percent>0) || game.investors.find(i=>i.isPlayer) || game.investors[0];
+            target.percent=Math.max(0,target.percent+delta);
+        }
+    };
+
+    /* Nadpisujemy funkcję tak, aby stare wywołania też używały bezpiecznej wersji. */
+    window.normalizeInvestorBook = function(){ normalizeInvestorBookExact(); };
+
+    /* --- KANDYDACI --- */
+    function spawnCandidates(){
+        ensureFixState();
+        while(game.candidates.length<10){
+            game.candidates.push(generateCandidate());
+        }
+        renderEmployees();
+    }
+
+    /* osobny timer, niezależny od gameTick */
+    setInterval(()=>{
+        ensureFixState();
+        if(game.candidates.length<12) game.candidates.push(generateCandidate());
+        if(game.candidates.length>30) game.candidates=game.candidates.slice(-30);
+        renderEmployees();
+        saveGame();
+    },3500);
+
+    /* --- KONKURENCJA AI --- */
+    function spawnAICompany(){
+        ensureFixState();
+        const used=new Set([
+            ...competitors.map(c=>c.name),
+            ...game.aiCompetitors.map(c=>c.name)
+        ]);
+        const free=companyNames.filter(x=>!used.has(x[0]));
+        if(!free.length) return;
+        const pick=free[Math.floor(Math.random()*free.length)];
+        game.aiCompetitors.push({
+            id:"ai_"+Date.now()+Math.random(),
+            name:pick[0],
+            icon:pick[1],
+            power:Math.round(35+Math.random()*85),
+            share:Number((2+Math.random()*7).toFixed(2)),
+            valuation:Math.round((2+Math.random()*18)*1000000),
+            level:Math.round(4+Math.random()*20),
+            users:Math.round(50000+Math.random()*1200000),
+            age:1
+        });
+        const c=game.aiCompetitors[game.aiCompetitors.length-1];
+        addActivity("⚔️", "Nowa firma AI: "+c.name);
+        toast("⚔️ Na rynku pojawiła się firma "+c.name+"!");
+        renderCompetition();
+        renderMarketCompanies();
+        saveGame();
+    }
+
+    function updateAICompanies(){
+        ensureFixState();
+        game.aiCompetitors.forEach(c=>{
+            const growth=0.002+Math.random()*0.015;
+            c.power=Math.max(1,c.power*(1+growth));
+            c.valuation=Math.max(500000,c.valuation*(1+growth*(0.7+Math.random())));
+            c.users=Math.max(1000,c.users*(1+growth*2));
+            c.share=Math.max(.3,Math.min(15,c.share+(Math.random()-.45)*.12));
+            c.level+=Math.random()<.12?1:0;
+        });
+    }
+
+    setInterval(()=>{
+        updateAICompanies();
+        if(game.aiCompetitors.length<8 && Math.random()<.7) spawnAICompany();
+        renderCompetition();
+        saveGame();
+    },12000);
+
+    /* --- GIEŁDA SPÓŁEK --- */
+    function ensureMarketSeed(){
+        if(game.marketCompanies.length) return;
+        const seeds=[
+            ["PixelForge","🎨"], ["CloudMatrix","☁️"], ["RoboDynamics","🦾"],
+            ["DataPulse","📊"], ["SecureNet","🛡️"], ["VisionWorks","👁️"]
+        ];
+        seeds.forEach((s,i)=>{
+            game.marketCompanies.push({
+                id:"mc_"+i,
+                name:s[0],
+                icon:s[1],
+                price:Math.round(18+Math.random()*140),
+                shares:100,
+                available:100,
+                change:0,
+                sector:["AI","Cloud","Robotics","Data","Security","Vision"][i]
+            });
+        });
+    }
+
+    window.buyMarketShare = function(id){
+        ensureFixState();
+        const company=game.marketCompanies.find(c=>c.id===id);
+        if(!company || company.available<=0){ toast("❌ Brak dostępnych udziałów."); return; }
+        if(game.cash<company.price){ toast("❌ Za mało pieniędzy."); return; }
+        changeCash(-company.price,"Zakup udziału "+company.name);
+        let holding=game.portfolio.find(x=>x.companyId===id);
+        if(!holding){
+            holding={companyId:id,shares:0};
+            game.portfolio.push(holding);
+        }
+        holding.shares++;
+        company.available--;
+        addStockHistory("📈",`Kupiono 1 udział ${company.name} za ${money(company.price)}.`);
+        saveGame();
+        renderMarketCompanies();
+    };
+
+    window.sellMarketShare = function(id){
+        ensureFixState();
+        const company=game.marketCompanies.find(c=>c.id===id);
+        const holding=game.portfolio.find(x=>x.companyId===id);
+        if(!company || !holding || holding.shares<=0){ toast("❌ Nie posiadasz tego udziału."); return; }
+        changeCash(company.price,"Sprzedano udział "+company.name);
+        holding.shares--;
+        company.available++;
+        addStockHistory("💵",`Sprzedano 1 udział ${company.name} za ${money(company.price)}.`);
+        game.portfolio=game.portfolio.filter(x=>x.shares>0);
+        saveGame();
+        renderMarketCompanies();
+    };
+
+    function updateMarketCompanies(){
+        game.marketCompanies.forEach(c=>{
+            const old=c.price;
+            c.price=Math.max(1,Math.round(c.price*(1+(Math.random()-.47)*.06)*100)/100);
+            c.change=c.price-old;
+        });
+    }
+
+    window.renderMarketCompanies = function(){
+        let page=document.getElementById("page-stock");
+        if(!page) return;
+        let panel=document.getElementById("dynamicMarketCompanies");
+        if(!panel){
+            panel=document.createElement("div");
+            panel.id="dynamicMarketCompanies";
+            panel.className="panel";
+            panel.style.marginTop="15px";
+            page.appendChild(panel);
+        }
+        panel.innerHTML=`
+            <div class="panel-pad">
+                <div class="section-head">
+                    <h2>🏦 Notowane spółki</h2>
+                    <span>100 udziałów każdej firmy</span>
+                </div>
+            </div>
+            <div class="market-company-grid">
+                ${game.marketCompanies.map(c=>{
+                    const holding=game.portfolio.find(x=>x.companyId===c.id);
+                    const owned=holding?holding.shares:0;
+                    const ch=c.change||0;
+                    return `
+                    <div class="market-company">
+                        <div class="market-company-head">
+                            <div>
+                                <strong>${escapeHtml(c.icon+" "+c.name)}</strong>
+                                <div class="market-company-sub">${escapeHtml(c.sector)} • 100 udziałów</div>
+                            </div>
+                            <span class="tag ${ch>=0?'green':''}">${ch>=0?'+':''}${ch.toFixed(2)}</span>
+                        </div>
+                        <div class="market-company-price">${money(c.price)}</div>
+                        <div class="market-company-sub">Dostępne: ${c.available} • Twoje: ${owned}</div>
+                        <div class="market-company-actions">
+                            <span class="ownership-chip">${owned}%</span>
+                            <div style="display:flex;gap:5px">
+                                <button class="btn btn-small" onclick="buyMarketShare('${c.id}')">Kup</button>
+                                <button class="btn btn-small" onclick="sellMarketShare('${c.id}')">Sprzedaj</button>
+                            </div>
+                        </div>
+                    </div>`;
+                }).join("")}
+            </div>`;
+    };
+
+    setInterval(()=>{
+        ensureFixState();
+        updateMarketCompanies();
+        renderMarketCompanies();
+        saveGame();
+    },7000);
+
+    /* --- RENDER KONKURENCJI: statyczni + nowi AI --- */
+    window.renderCompetition = function(){
+        ensureFixState();
+        const all=competitors
+            .filter(c=>c.name!=="NovaMind AI")
+            .map(c=>({...c}));
+        game.aiCompetitors.forEach(c=>all.push({...c}));
+        const ourPower=
+            game.models.reduce((s,m)=>s+m.quality,0)+
+            game.researched.length*25+
+            game.employees.length*2+
+            game.gpuCompute/5;
+        all.push({name:"NovaMind AI",icon:"🧠",power:Math.round(ourPower),share:game.marketShare});
+        all.sort((a,b)=>(b.power||0)-(a.power||0));
+        let rank=all.findIndex(c=>c.name==="NovaMind AI")+1;
+        if(!rank) rank=all.length;
+        const mp=document.getElementById("marketPosition");
+        const ms=document.getElementById("marketShare");
+        const pr=document.getElementById("marketPressure");
+        const gr=document.getElementById("globalRank");
+        if(mp)mp.textContent="#"+rank;
+        if(ms)ms.textContent=(game.marketShare||0).toFixed(2)+"%";
+        if(pr)pr.textContent=Math.round(Math.max(0,Math.min(100,rank*5-game.reputation*.5)))+"%";
+        if(gr)gr.textContent=rank;
+        const list=document.getElementById("competitorList");
+        if(!list)return;
+        list.innerHTML=all.map((c,i)=>`
+            <div class="list-item">
+                <div class="item-icon">${c.icon||"🤖"}</div>
+                <div class="item-main">
+                    <div class="item-title">#${i+1} ${escapeHtml(c.name)} ${c.name==="NovaMind AI"?'<span class="tag">TY</span>':''}</div>
+                    <div class="item-desc">AI Power: ${Math.round(c.power||0)} • Udział: ${(c.share||0).toFixed(2)}%</div>
+                </div>
+                <div style="width:90px">
+                    <div class="progress"><div style="width:${Math.min(100,Math.max(0,c.power||0))}%"></div></div>
+                </div>
+            </div>`).join("");
+    };
+
+    /* --- START --- */
+    ensureFixState();
+    if(game.candidates.length<8) spawnCandidates();
+    if(game.aiCompetitors.length<3){ spawnAICompany(); spawnAICompany(); spawnAICompany(); }
+    renderMarketCompanies();
+    renderCompetition();
+    renderEmployees();
+    saveGame();
+})();
 </script>
 
 </body>
