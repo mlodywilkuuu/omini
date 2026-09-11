@@ -974,6 +974,12 @@ button{
     font-family:Consolas,monospace;
 }
 
+/* ENHANCED STOCK MARKET */
+.ownership-bar{display:flex;width:100%;height:18px;overflow:hidden;border-radius:999px;background:#141a28;border:1px solid rgba(255,255,255,.08);box-shadow:inset 0 1px 4px rgba(0,0,0,.35)}
+.ownership-segment{min-width:1px;height:100%;transition:width .45s ease}.ownership-segment.player{box-shadow:0 0 18px rgba(192,132,252,.35)}
+.ownership-legend{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 18px;margin-top:14px}.ownership-key{display:flex;align-items:center;gap:7px;font-size:10px;color:#aab2c4}.ownership-key strong{margin-left:auto;color:#fff}.ownership-dot{width:8px;height:8px;border-radius:50%;flex:none}.player-row{background:rgba(139,92,246,.055)}.player-investor{color:#fff!important}.market-box{display:flex;align-items:center;justify-content:space-between;gap:18px}.big-market-price{font-size:31px;font-weight:900;color:var(--green);margin-top:5px}.market-copy{max-width:260px;color:var(--muted);font-size:11px;line-height:1.55;text-align:right}.buyout-row-btn{margin:0;padding:7px 10px}.offer-preview{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:15px}.offer-preview>div{padding:10px;border-radius:10px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.07)}.offer-preview span{display:block;font-size:9px;color:#717c91}.offer-preview strong{display:block;margin-top:5px;font-size:14px}.offer-note{margin-top:12px;padding:11px;border-radius:10px;background:rgba(57,217,255,.04);border:1px solid rgba(57,217,255,.11);color:#7e8aa0;font-size:10px;line-height:1.55}
+@media(max-width:760px){.ownership-legend{grid-template-columns:1fr}.offer-preview{grid-template-columns:1fr}.market-box{flex-direction:column;align-items:flex-start}.market-copy{text-align:left;max-width:none}}
+
 /* RESPONSIVE */
 
 @media(max-width:1100px){
@@ -1656,53 +1662,46 @@ button{
     <div class="topbar">
         <div class="page-title">
             <h1>Giełda</h1>
-            <p>Inwestorzy posiadają łącznie dokładnie 100% firmy.</p>
+            <p>100 udziałów firmy. Udziały mają konkretnego właściciela i nie znikają podczas transakcji.</p>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+            <span class="tag" id="marketOwnershipCheck">100 / 100</span>
+            <button class="btn" onclick="rebalanceInvestorBook(true)">↻ Sprawdź udziały</button>
         </div>
     </div>
 
     <div class="cards">
-
-        <div class="card">
-            <div class="stat-label">Cena akcji</div>
-            <div class="stat-value green" id="stockPrice">$10.00</div>
-        </div>
-
-        <div class="card">
-            <div class="stat-label">Wycena</div>
-            <div class="stat-value purple" id="stockValuation">$0</div>
-        </div>
-
-        <div class="card">
-            <div class="stat-label">Twoja kontrola</div>
-            <div class="stat-value blue" id="yourControl">0%</div>
-        </div>
-
-        <div class="card">
-            <div class="stat-label">Akcje</div>
-            <div class="stat-value yellow">100%</div>
-            <div class="stat-sub">Łącznie</div>
-        </div>
-
+        <div class="card"><div class="stat-label">Cena 1 udziału</div><div class="stat-value green" id="stockPrice">$0</div><div class="stat-sub">1 udział = 1% firmy</div></div>
+        <div class="card"><div class="stat-label">Wycena firmy</div><div class="stat-value purple" id="stockValuation">$0</div><div class="stat-sub">wartość 100 udziałów</div></div>
+        <div class="card"><div class="stat-label">Twoje udziały</div><div class="stat-value blue" id="yourControl">0%</div><div class="stat-sub" id="yourShareValue">Wartość: $0</div></div>
+        <div class="card"><div class="stat-label">Kontrola</div><div class="stat-value yellow" id="controlStatus">Brak</div><div class="stat-sub" id="controlHint">Potrzeba więcej niż 50%</div></div>
     </div>
 
-    <div class="panel">
+    <div class="grid2">
+        <div class="panel"><div class="panel-pad">
+            <div class="section-head"><h2>Struktura własności</h2><span id="ownershipSummary">100 udziałów</span></div>
+            <div id="ownershipBar" class="ownership-bar"></div>
+            <div id="ownershipLegend" class="ownership-legend"></div>
+        </div></div>
 
-        <div class="panel-pad">
-            <div class="section-head">
-                <h2>Akcjonariusze</h2>
-                <span>Kliknij inwestora, aby złożyć propozycję odkupu</span>
+        <div class="panel"><div class="panel-pad">
+            <div class="section-head"><h2>Rynek udziałów</h2><span>Oferta odkupu</span></div>
+            <div class="market-box">
+                <div><div class="stat-label">Cena rynkowa</div><div class="big-market-price" id="marketSharePrice">$0</div></div>
+                <div class="market-copy" id="buyoutAdvice">Kliknij inwestora poniżej, aby zaproponować odkupienie jego udziałów.</div>
             </div>
-        </div>
+        </div></div>
+    </div>
 
-        <div class="stock-row stock-head">
-            <div>Inwestor</div>
-            <div>Udział</div>
-            <div>Wartość</div>
-            <div>Status</div>
-        </div>
-
+    <div class="panel" style="margin-top:15px">
+        <div class="panel-pad"><div class="section-head"><h2>Akcjonariusze</h2><span>Kliknij inwestora, aby złożyć ofertę</span></div></div>
+        <div class="stock-row stock-head"><div>Inwestor</div><div>Udziały</div><div>Wartość</div><div>Status</div></div>
         <div id="investorList"></div>
+    </div>
 
+    <div class="panel" style="margin-top:15px">
+        <div class="panel-pad"><div class="section-head"><h2>Historia transakcji</h2><span>Ostatnie operacje</span></div></div>
+        <div class="activity" id="stockHistory"></div>
     </div>
 
 </section>
@@ -1992,41 +1991,19 @@ button{
 
 
 <!-- INVESTOR MODAL -->
-
 <div class="modal-bg" id="investorModal">
-
 <div class="modal">
-
-    <div class="modal-head">
-        <h2>📈 Oferta odkupu udziałów</h2>
-        <button class="close" onclick="closeModal('investorModal')">×</button>
-    </div>
-
+    <div class="modal-head"><h2>🤝 Oferta odkupu udziałów</h2><button class="close" onclick="closeModal('investorModal')">×</button></div>
     <div class="modal-body">
-
         <div id="investorInfo" class="cheat-info"></div>
-
-        <div class="field">
-            <label>Procent udziałów do odkupienia</label>
-            <input id="buyPercent" type="number" min="0.1" step="0.1" value="1">
-        </div>
-
-        <div class="field">
-            <label>Oferta za udział</label>
-            <input id="offerMultiplier" type="number" min="0.5" step="0.1" value="1.1">
-        </div>
-
+        <div class="field"><label>Liczba udziałów do wykupu</label><input id="buyShares" type="number" min="1" step="1" value="1"></div>
+        <div class="field"><label>Twoja oferta za 1 udział</label><input id="buyPrice" type="number" min="1" step="1" value="1"></div>
+        <div class="offer-preview"><div><span>Łączna oferta</span><strong id="offerTotal">$0</strong></div><div><span>Premia względem kursu</span><strong id="offerPremium">0%</strong></div><div><span>Szansa akceptacji</span><strong id="offerChance">0%</strong></div></div>
+        <div class="offer-note">Inwestor nie może sprzedać więcej udziałów niż faktycznie posiada. Po udanej transakcji jego pakiet maleje dokładnie o kupioną liczbę udziałów, a Twój rośnie o tę samą liczbę.</div>
     </div>
-
-    <div class="modal-footer">
-        <button class="btn" onclick="closeModal('investorModal')">Anuluj</button>
-        <button class="btn primary" onclick="makeBuyout()">Złóż ofertę</button>
-    </div>
-
+    <div class="modal-footer"><button class="btn" onclick="closeModal('investorModal')">Anuluj</button><button class="btn primary" onclick="submitBuyoutOffer()">🤝 Złóż ofertę</button></div>
 </div>
-
 </div>
-
 
 <!-- CHEAT MODAL -->
 
@@ -2097,8 +2074,6 @@ button{
 const INITIAL_CASH = 500000;
 
 const SAVE_KEY = "ai_empire_save_v1";
-
-let selectedInvestor = null;
 
 const modelTypes = {
     text:["💬","Text AI"],
@@ -3459,186 +3434,120 @@ function researchTechnology(id){
 
 
 /* =========================================================
-   STOCK / INVESTORS
+   STOCK / INVESTORS — STABILNY SYSTEM 100 UDZIAŁÓW
 ========================================================= */
 
-function totalInvestorPercent(){
+let selectedInvestor = null;
 
-    return game.investors
-        .reduce((sum,i)=>sum+i.percent,0);
-
+function shareholderTotal(){ return game.investors.reduce((sum,i)=>sum+Number(i.percent||0),0); }
+function getPlayerInvestor(){
+    let p=game.investors.find(i=>i.isPlayer);
+    if(!p){ p=game.investors.find(i=>i.type==="founder"||i.name==="Founder Capital"); if(p)p.isPlayer=true; }
+    return p||null;
 }
-
-function normalizeInvestors(){
-
-    const total=totalInvestorPercent();
-
-    if(Math.abs(total-100)<0.01) return;
-
-    game.investors.forEach(i=>{
-        i.percent=i.percent/total*100;
-    });
-
-}
-
-function companyValuation(){
-
-    const modelValue=
-        game.models.reduce(
-            (sum,m)=>sum+m.quality*100000,
-            0
-        );
-
-    const productValue=
-        game.products.reduce(
-            (sum,p)=>sum+p.users*4,
-            0
-        );
-
-    const gpuValue=
-        game.gpu*15000;
-
-    const reputationValue=
-        game.reputation*10000;
-
-    return Math.max(
-        100000,
-        modelValue+
-        productValue+
-        gpuValue+
-        reputationValue+
-        game.cash
-    );
-
-}
-
-function openInvestor(name){
-
-    const investor=
-        game.investors.find(x=>x.name===name);
-
-    if(!investor || investor.percent<=0){
-
-        toast("Brak udziałów do odkupienia.");
-
-        return;
-
+function investorLabel(i){ return i.isPlayer ? "Ty — NovaMind AI" : i.name; }
+function ensureInvestorBook(){
+    if(!Array.isArray(game.investors)||!game.investors.length){
+        game.investors=[
+            {id:"player",name:"Ty — NovaMind AI",percent:40,isPlayer:true,type:"founder"},
+            {id:"gv",name:"Global Ventures",percent:20,type:"fund"},
+            {id:"fc",name:"Future Capital",percent:15,type:"fund"},
+            {id:"th",name:"Tech Holdings",percent:10,type:"fund"},
+            {id:"ri",name:"Retail Investors",percent:8,type:"retail"},
+            {id:"sp",name:"Strategic Partners",percent:7,type:"strategic"}
+        ];
     }
-
+    let p=game.investors.find(i=>i.isPlayer)||game.investors.find(i=>i.name==="Founder Capital");
+    if(p){p.isPlayer=true;p.name="Ty — NovaMind AI";p.type="founder";}
+    game.investors.forEach((i,idx)=>{if(!i.id)i.id="inv_"+idx+"_"+Math.random().toString(36).slice(2); if(typeof i.percent!=="number"||!Number.isFinite(i.percent))i.percent=0;});
+    normalizeInvestorBook();
+}
+function normalizeInvestorBook(){
+    const total=shareholderTotal();
+    if(total<=0){game.investors=[{id:"player",name:"Ty — NovaMind AI",percent:100,isPlayer:true,type:"founder"}];return;}
+    const factor=100/total;
+    game.investors.forEach(i=>i.percent*=factor);
+    game.investors.forEach(i=>{if(Math.abs(i.percent)<0.000001)i.percent=0;});
+    const delta=100-shareholderTotal();
+    if(Math.abs(delta)>0.000001){
+        const target=game.investors.find(i=>!i.isPlayer&&i.percent>0)||game.investors[0];
+        target.percent+=delta;
+    }
+}
+function rebalanceInvestorBook(showToast=false){normalizeInvestorBook();saveGame();renderStock();if(showToast)toast("✓ Struktura udziałów jest poprawna: dokładnie 100/100.");}
+function stockSharePrice(){return Math.max(100,companyValuation()/100);}
+function offerChance(multiplier,qty,held){
+    const premium=Math.max(0,multiplier-1);
+    let chance=45+premium*120;
+    if(premium<0)chance-=25;
+    if(qty>=held*.75)chance+=7;
+    if(qty<=2)chance+=5;
+    return Math.max(5,Math.min(98,Math.round(chance)));
+}
+function openInvestor(investorId){
+    ensureInvestorBook();
+    const investor=game.investors.find(i=>i.id===investorId), player=getPlayerInvestor();
+    if(!investor||investor.isPlayer||investor.percent<=0||!player){toast("Nie można złożyć oferty temu inwestorowi.");return;}
     selectedInvestor=investor;
-
-    document.getElementById("investorInfo")
-        .innerHTML=`
-
-        <strong>${investor.name}</strong><br>
-        Obecny udział: <strong>${investor.percent.toFixed(1)}%</strong><br>
-        Wartość udziałów: <strong>
-        ${money(companyValuation()*investor.percent/100)}
-        </strong>
-
-    `;
-
-    document.getElementById("buyPercent")
-        .value=Math.min(
-            1,
-            investor.percent
-        );
-
-    document.getElementById("investorModal")
-        .classList.add("open");
-
+    const price=stockSharePrice(), max=Math.floor(investor.percent*10)/10;
+    document.getElementById("investorInfo").innerHTML=`<strong>${escapeHtml(investor.name)}</strong><br>Posiadany pakiet: <strong>${investor.percent.toFixed(1)}%</strong><br>Wartość pakietu: <strong>${money(investor.percent/100*companyValuation())}</strong><br>Kurs rynkowy: <strong>${money(price)}</strong> / udział`;
+    document.getElementById("buyShares").max=max;
+    document.getElementById("buyShares").value=Math.max(1,Math.min(max,1));
+    document.getElementById("buyPrice").value=Math.ceil(price*1.10);
+    updateOfferPreview();
+    document.getElementById("investorModal").classList.add("open");
 }
-
-function makeBuyout(){
-
-    if(!selectedInvestor) return;
-
-    const percent=
-        Number(
-            document.getElementById("buyPercent").value
-        );
-
-    const multiplier=
-        Number(
-            document.getElementById("offerMultiplier").value
-        );
-
-    if(
-        !Number.isFinite(percent)||
-        percent<=0||
-        percent>selectedInvestor.percent
-    ){
-
-        toast("❌ Nieprawidłowy procent.");
-
-        return;
-
-    }
-
-    const price=
-        companyValuation()*
-        percent/100*
-        multiplier;
-
-    if(game.cash<price){
-
-        toast(
-            "❌ Potrzebujesz "+money(price)
-        );
-
-        return;
-
-    }
-
-    changeCash(
-        -price,
-        "Odkupiono "+percent.toFixed(1)+"% udziałów od "+selectedInvestor.name
-    );
-
-    selectedInvestor.percent-=percent;
-
-    if(selectedInvestor.percent<0.01){
-
-        selectedInvestor.percent=0;
-
-    }
-
-    let founder=
-        game.investors.find(
-            x=>x.type==="founder"
-        );
-
-    if(!founder){
-
-        founder={
-            name:"Founder Capital",
-            percent:0,
-            type:"founder"
-        };
-
-        game.investors.push(founder);
-
-    }
-
-    founder.percent+=percent;
-
-    normalizeInvestors();
-
-    addActivity(
-        "📈",
-        "Odkupiono "+percent.toFixed(1)+"% firmy."
-    );
-
-    toast(
-        "📈 Odkupiono "+percent.toFixed(1)+"% udziałów!"
-    );
-
+function updateOfferPreview(){
+    if(!selectedInvestor)return;
+    const qty=Math.max(0,Number(document.getElementById("buyShares")?.value||0));
+    const price=Math.max(0,Number(document.getElementById("buyPrice")?.value||0));
+    const market=stockSharePrice(), total=qty*price, premium=market>0?(price/market-1)*100:0, chance=offerChance(market>0?price/market:1,qty,selectedInvestor.percent);
+    document.getElementById("offerTotal").textContent=money(total);
+    document.getElementById("offerPremium").textContent=(premium>=0?"+":"")+premium.toFixed(1)+"%";
+    document.getElementById("offerChance").textContent=chance+"%";
+}
+document.addEventListener("input",e=>{if(e.target&&(e.target.id==="buyShares"||e.target.id==="buyPrice"))updateOfferPreview();});
+function submitBuyoutOffer(){
+    if(!selectedInvestor)return;
+    ensureInvestorBook();
+    const investor=game.investors.find(i=>i.id===selectedInvestor.id),player=getPlayerInvestor();
+    if(!investor||investor.isPlayer||!player){toast("❌ Nieprawidłowy inwestor.");return;}
+    let qty=Number(document.getElementById("buyShares").value),price=Number(document.getElementById("buyPrice").value);
+    if(!Number.isFinite(qty)||qty<=0||qty>investor.percent){toast("❌ Możesz kupić maksymalnie tyle udziałów, ile posiada inwestor.");return;}
+    if(!Number.isFinite(price)||price<=0){toast("❌ Podaj poprawną cenę za udział.");return;}
+    qty=Math.floor(qty*10)/10;
+    const total=qty*price,market=stockSharePrice(),chance=offerChance(price/market,qty,investor.percent);
+    if(game.cash<total){toast("❌ Za mało pieniędzy na tę ofertę.");return;}
     closeModal("investorModal");
-
-    renderAll();
-
+    if(Math.random()*100>chance){
+        addStockHistory("❌",`${investor.name} odrzucił ofertę ${qty.toFixed(1)} udziałów po ${money(price)}.`);
+        toast(`❌ ${investor.name} odrzucił ofertę. Spróbuj z wyższą ceną.`);
+        saveGame();renderAll();return;
+    }
+    changeCash(-total,`wykup ${qty.toFixed(1)} udziałów od ${investor.name}`);
+    investor.percent-=qty;
+    player.percent+=qty;
+    if(investor.percent<0.000001)investor.percent=0;
+    normalizeInvestorBook();
+    addStockHistory("🤝",`Wykupiono ${qty.toFixed(1)} udziałów od ${investor.name} za ${money(total)}.`);
+    if(player.percent>=99.999){player.percent=100;game.investors.forEach(i=>{if(!i.isPlayer)i.percent=0;});toast("🏆 Przejąłeś 100% NovaMind AI!");addStockHistory("🏆","NovaMind AI jest w 100% własnością założyciela.");}
+    else if(player.percent>50){toast(`🔓 Zdobyłeś większość — ${player.percent.toFixed(1)}%.`);addStockHistory("🔓",`Uzyskano kontrolę większościową: ${player.percent.toFixed(1)}%.`);}
+    else toast(`🤝 Transakcja zaakceptowana: +${qty.toFixed(1)}%.`);
+    saveGame();renderAll();
 }
-
+function tradeInvestorMovement(){
+    ensureInvestorBook();
+    const movable=game.investors.filter(i=>!i.isPlayer&&i.percent>1),targets=game.investors.filter(i=>!i.isPlayer&&i.percent>=0.1);
+    if(movable.length<2)return;
+    const from=movable[Math.floor(Math.random()*movable.length)],possible=targets.filter(i=>i!==from);if(!possible.length)return;
+    const to=possible[Math.floor(Math.random()*possible.length)],move=Math.min(Math.round((0.1+Math.random()*.8)*10)/10,from.percent-0.1);if(move<=0)return;
+    from.percent-=move;to.percent+=move;normalizeInvestorBook();
+}
+function addStockHistory(icon,text){
+    if(!Array.isArray(game.stockHistory))game.stockHistory=[];
+    game.stockHistory.unshift({icon,text,time:new Date().toLocaleTimeString("pl-PL",{hour:"2-digit",minute:"2-digit",second:"2-digit"})});
+    game.stockHistory=game.stockHistory.slice(0,30);
+}
 
 /* =========================================================
    EVENTS
@@ -4848,73 +4757,35 @@ function renderCompetition(){
 }
 
 function renderStock(){
-
-    normalizeInvestors();
-
-    const valuation=
-        companyValuation();
-
-    document.getElementById("stockPrice")
-        .textContent=
-        money(game.stockPrice);
-
-    document.getElementById("stockValuation")
-        .textContent=
-        money(valuation);
-
-    const founder=
-        game.investors.find(
-            x=>x.type==="founder"
-        );
-
-    document.getElementById("yourControl")
-        .textContent=
-        (founder?founder.percent:0)
-        .toFixed(1)+"%";
-
-    const list=
-        document.getElementById("investorList");
-
-    list.innerHTML=
-        game.investors.map(i=>`
-
-        <div class="stock-row">
-
-            <div>
-
-                <span
-                    class="investor"
-                    onclick="openInvestor('${escapeHtml(i.name)}')"
-                >
-                    ${i.name}
-                </span>
-
-            </div>
-
-            <div class="percent">
-                ${i.percent.toFixed(1)}%
-            </div>
-
-            <div>
-                ${money(
-                    valuation*i.percent/100
-                )}
-            </div>
-
-            <div>
-
-                ${
-                    i.percent>0
-                    ?'<span class="tag">AKTYWNY</span>'
-                    :'<span class="tag">0%</span>'
-                }
-
-            </div>
-
-        </div>
-
-    `).join("");
-
+    ensureInvestorBook();
+    const valuation=companyValuation(),sharePrice=stockSharePrice(),player=getPlayerInvestor(),total=shareholderTotal();
+    document.getElementById("stockPrice").textContent=money(sharePrice);
+    document.getElementById("marketSharePrice").textContent=money(sharePrice);
+    document.getElementById("stockValuation").textContent=money(valuation);
+    const pp=player?player.percent:0;
+    document.getElementById("yourControl").textContent=pp.toFixed(1)+"%";
+    document.getElementById("yourShareValue").textContent="Wartość: "+money(valuation*pp/100);
+    const cs=document.getElementById("controlStatus");
+    if(pp>=99.999){cs.textContent="100%";document.getElementById("controlHint").textContent="Pełna własność";}
+    else if(pp>50){cs.textContent="KONTROLA";document.getElementById("controlHint").textContent="Większość głosów";}
+    else if(pp>0){cs.textContent="Mniejszość";document.getElementById("controlHint").textContent="Potrzeba >50%";}
+    else{cs.textContent="Brak";document.getElementById("controlHint").textContent="Potrzeba >50%";}
+    document.getElementById("marketOwnershipCheck").textContent=(Math.abs(total-100)<0.0001?"100 / 100":total.toFixed(2)+" / 100");
+    document.getElementById("ownershipSummary").textContent="100 udziałów • "+game.investors.filter(i=>i.percent>0).length+" właścicieli";
+    const colors=["#8b5cf6","#4ea1ff","#28e98b","#ffc857","#ff4d67","#39d9ff","#c084fc","#f97316"];
+    const active=game.investors.filter(i=>i.percent>0).sort((a,b)=>b.percent-a.percent);
+    document.getElementById("ownershipBar").innerHTML=active.map((i,index)=>`<div class="ownership-segment ${i.isPlayer?"player":""}" style="width:${i.percent}%;background:${i.isPlayer?"linear-gradient(90deg,#7650f2,#c084fc)":colors[index%colors.length]}" title="${escapeHtml(investorLabel(i))}: ${i.percent.toFixed(1)}%"></div>`).join("");
+    document.getElementById("ownershipLegend").innerHTML=active.map((i,index)=>`<div class="ownership-key"><span class="ownership-dot" style="background:${i.isPlayer?"#c084fc":colors[index%colors.length]}"></span><span>${escapeHtml(investorLabel(i))}</span><strong>${i.percent.toFixed(1)}%</strong></div>`).join("");
+    document.getElementById("investorList").innerHTML=active.map(i=>{
+        const value=valuation*i.percent/100;
+        return `<div class="stock-row ${i.isPlayer?"player-row":""}"><div><span class="investor ${i.isPlayer?"player-investor":""}" ${i.isPlayer?"":"onclick=\"openInvestor('"+escapeHtml(i.id)+"')\""}>${escapeHtml(investorLabel(i))}</span> ${i.isPlayer?'<span class="tag">TWOJE</span>':''}</div><div class="percent">${i.percent.toFixed(1)}%</div><div>${money(value)}</div><div>${i.isPlayer?'<span class="tag">WŁAŚCICIEL</span>':`<button class="btn primary buyout-row-btn" onclick="openInvestor('${escapeHtml(i.id)}')">🤝 Odkup</button>`}</div></div>`;
+    }).join("");
+    const advice=document.getElementById("buyoutAdvice"),sellers=active.filter(i=>!i.isPlayer&&i.percent>0);
+    if(pp>=99.999)advice.textContent="Posiadasz wszystkie 100 udziałów. Na rynku nie ma już sprzedających.";
+    else if(sellers.length){const biggest=sellers[0];advice.textContent=`Największy dostępny pakiet: ${biggest.name} — ${biggest.percent.toFixed(1)}%. Kliknij inwestora i negocjuj cenę.`;}
+    else advice.textContent="Brak dostępnych inwestorów.";
+    const hist=document.getElementById("stockHistory");
+    hist.innerHTML=(game.stockHistory||[]).slice(0,12).map(h=>`<div class="activity-row"><div class="activity-icon">${h.icon}</div><div class="activity-text">${escapeHtml(h.text)}<div class="activity-time">${h.time}</div></div></div>`).join("")||`<div style="padding:30px;text-align:center;color:#697388">Brak transakcji.</div>`;
 }
 
 function renderEvents(){
@@ -5344,10 +5215,11 @@ document.addEventListener("keydown",e=>{
    INITIALIZATION
 ========================================================= */
 
+ensureInvestorBook();
+if(!Array.isArray(game.stockHistory)) game.stockHistory=[];
+
 if(game.candidates.length===0){
-
     generateCandidates(8);
-
 }
 
 renderAll();
@@ -5394,45 +5266,8 @@ setInterval(()=>{
 },7000);
 
 
-/* RANDOM INVESTOR MOVEMENT */
-
-setInterval(()=>{
-
-    if(game.investors.length<2) return;
-
-    const from=
-        game.investors[
-            Math.floor(
-                Math.random()*game.investors.length
-            )
-        ];
-
-    const targets=
-        game.investors.filter(
-            x=>x!==from && x.percent>0.5
-        );
-
-    if(!targets.length) return;
-
-    const to=
-        targets[
-            Math.floor(
-                Math.random()*targets.length
-            )
-        ];
-
-    const movement=
-        Math.min(
-            .3+Math.random()*.7,
-            from.percent
-        );
-
-    from.percent-=movement;
-    to.percent+=movement;
-
-    normalizeInvestors();
-
-},12000);
+/* STABILNE ZMIANY MIĘDZY INWESTORAMI — udział gracza nigdy nie jest ruszany automatycznie */
+setInterval(()=>{tradeInvestorMovement();saveGame();renderStock();},12000);
 
 
 /* AUTO SAVE */
