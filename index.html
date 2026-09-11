@@ -8319,3 +8319,216 @@ setInterval(function(){
 
 })();
 </script>
+
+
+<!-- V16 AUTHORITATIVE OWNERSHIP + CHEAT PATCH -->
+<style>
+#managementNav.majority-ready{opacity:1!important;color:#fff!important;background:linear-gradient(90deg,rgba(139,92,246,.30),rgba(192,132,252,.13))!important;box-shadow:inset 3px 0 0 #8b5cf6,0 0 0 1px rgba(139,92,246,.2)!important}
+#managementNav.locked{opacity:.62!important}
+.v16-majority-indicator{display:inline-flex!important;align-items:center;gap:7px;margin-left:8px;padding:4px 8px;border-radius:999px;background:rgba(40,233,139,.09);border:1px solid rgba(40,233,139,.2);color:#7af2b2;font-size:9px;font-weight:800}
+</style>
+<script>
+(function(){
+'use strict';
+
+function N(v,d=0){ const x=Number(v); return Number.isFinite(x)?x:d; }
+function pct(v){ return Math.max(0,Math.min(100,N(v))); }
+function save(){ try{ if(typeof saveGame==='function') saveGame(); else localStorage.setItem(SAVE_KEY,JSON.stringify(game)); }catch(e){} }
+function toastSafe(m){ try{ if(typeof toast==='function') toast(m); }catch(e){} }
+
+/* ---------- AUTHORITATIVE PLAYER OWNERSHIP ---------- */
+function playerInvestor(){
+    if(!Array.isArray(game.investors)) game.investors=[];
+    let p=game.investors.find(i=>i && i.isPlayer===true);
+    if(!p) p=game.investors.find(i=>i && (i.type==='founder'||i.type==='player'));
+    if(!p) p=game.investors.find(i=>i && /Founder Capital|Ty\s*[—-]\s*NovaMind|NovaMind AI/i.test(String(i.name||'')));
+    if(!p){
+        p={id:'player',name:'Ty — NovaMind AI',percent:0,isPlayer:true,type:'founder'};
+        game.investors.unshift(p);
+    }
+    p.isPlayer=true;
+    p.type='founder';
+    p.name='Ty — NovaMind AI';
+    if(!Number.isFinite(N(p.percent))) p.percent=0;
+    if(N(p.percent)===0 && N(p.shares)>0) p.percent=N(p.shares);
+    return p;
+}
+
+function authoritativePlayerPercent(){
+    const p=playerInvestor();
+    let v=N(p.percent);
+    if(v<=0 && N(game.playerShares)>0) v=N(game.playerShares);
+    if(v<=0 && N(game.ownedShares)>0) v=N(game.ownedShares);
+    if(v<=0 && N(game.founderShares)>0) v=N(game.founderShares);
+    return pct(v);
+}
+
+function majority(){ return authoritativePlayerPercent()>=50.01; }
+window.aiEmpirePlayerPercent=authoritativePlayerPercent;
+window.aiEmpireHasMajority=majority;
+
+function activateManagementV16(){
+    if(!majority()){
+        toastSafe('🔒 Potrzebujesz ponad 50% udziałów. Obecnie masz '+authoritativePlayerPercent().toFixed(1)+'%.');
+        return false;
+    }
+    const page=document.getElementById('page-management');
+    if(!page){ toastSafe('❌ Brak panelu zarządzania w tej wersji.'); return false; }
+    document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+    page.classList.add('active');
+    const nav=document.getElementById('managementNav');
+    document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));
+    if(nav) nav.classList.add('active','majority-ready');
+    const title=document.getElementById('pageTitle');
+    const subtitle=document.getElementById('pageSubtitle');
+    if(title) title.textContent='Zarządzanie firmą';
+    if(subtitle) subtitle.textContent='Panel właściciela większościowego • kontrola: '+authoritativePlayerPercent().toFixed(1)+'%';
+    try{ if(typeof renderManagement==='function') renderManagement(); }catch(e){}
+    return true;
+}
+window.openMajorityManagement=activateManagementV16;
+
+/* Capture before older goPage wrappers. */
+document.addEventListener('click',function(e){
+    const nav=e.target.closest && e.target.closest('#managementNav');
+    if(!nav) return;
+    e.preventDefault();
+    e.stopPropagation();
+    if(e.stopImmediatePropagation) e.stopImmediatePropagation();
+    activateManagementV16();
+},true);
+
+function syncManagementV16(){
+    const p=authoritativePlayerPercent();
+    const access=p>50;
+    const nav=document.getElementById('managementNav');
+    if(nav){
+        nav.style.display='flex';
+        nav.classList.toggle('majority-ready',access);
+        nav.classList.toggle('locked',!access);
+        nav.title=access?'Otwórz panel zarządzania • '+p.toFixed(1)+'%':'Potrzebujesz ponad 50% udziałów • masz '+p.toFixed(1)+'%';
+        let badge=nav.querySelector('.v16-majority-indicator');
+        if(access){
+            if(!badge){ badge=document.createElement('span'); badge.className='v16-majority-indicator'; nav.appendChild(badge); }
+            badge.textContent='✓ '+p.toFixed(1)+'%';
+        }else if(badge) badge.remove();
+    }
+    const mc=document.getElementById('mgmtControl'); if(mc) mc.textContent=p.toFixed(1)+'%';
+    const pill=document.getElementById('managementAccessPill');
+    if(pill) pill.innerHTML=access?'<span class="company-dot"></span><span>KONTROLA FIRMY • '+p.toFixed(1)+'%</span>':'<span style="width:8px;height:8px;border-radius:50%;background:#ff4d67;display:inline-block"></span><span>BRAK KONTROLI • '+p.toFixed(1)+'%</span>';
+    const locked=document.getElementById('managementLocked'); if(locked) locked.style.display=access?'none':'block';
+    const unlocked=document.getElementById('managementUnlocked'); if(unlocked) unlocked.style.display=access?'block':'none';
+    return access;
+}
+window.syncManagementV16=syncManagementV16;
+
+/* Do not proportionally rescale the player's stake. Keep 100% total with only floating-point correction. */
+function repairOwnershipExact(){
+    const p=playerInvestor();
+    game.investors.forEach((i,idx)=>{
+        if(!i.id) i.id='inv_v16_'+idx+'_'+Math.random().toString(36).slice(2);
+        i.percent=pct(i.percent);
+    });
+    const total=game.investors.reduce((s,i)=>s+N(i.percent),0);
+    if(total<=0){ p.percent=100; game.investors.filter(i=>i!==p).forEach(i=>i.percent=0); return; }
+    const delta=100-total;
+    const target=game.investors.find(i=>!i.isPlayer && i.percent>0) || p;
+    if(Math.abs(delta)>1e-8) target.percent=pct(target.percent+delta);
+}
+
+/* ---------- AUTHORITATIVE CHEAT CONSOLE ---------- */
+function runCheatV16(command){
+    const raw=String(command||'').trim();
+    const lower=raw.toLowerCase().replace(/\s+/g,' ');
+    if(!lower) return false;
+
+    if(lower==='kasa'){
+        toastSafe('💰 Aktualna kasa: '+(typeof exactMoney==='function'?exactMoney(game.cash):money(game.cash)));
+        return true;
+    }
+
+    if(lower.startsWith('kasa ')){
+        const value=raw.slice(5).replace(/[,$\s]/g,'');
+        const amount=N(value,NaN);
+        if(!Number.isFinite(amount)||amount<=0){
+            toastSafe('❌ Użyj: <b>kasa 1000000</b>');
+            return true;
+        }
+        game.cash=N(game.cash)+amount;
+        game.totalIncome=N(game.totalIncome)+amount;
+        try{ if(Array.isArray(game.incomeHistory)){ game.incomeHistory.push(amount); game.incomeHistory=game.incomeHistory.slice(-10); } }catch(e){}
+        try{ showMoneyAnimation(amount); }catch(e){}
+        try{ addActivity('💰','Cheat: dodano '+money(amount)); }catch(e){}
+        save();
+        try{ if(typeof renderAll==='function') renderAll(); }catch(e){}
+        toastSafe('💰 Dodano '+(typeof exactMoney==='function'?exactMoney(amount):money(amount)));
+        return true;
+    }
+
+    if(lower==='max staff' || lower==='maxstaff'){
+        const cap=Math.max(1,Math.min(2000,typeof capacity==='function'?N(capacity(),1):Math.max(1,N(game.officeLevel,1)*10)));
+        if(!Array.isArray(game.employees)) game.employees=[];
+        const best={name:'AI Genius',icon:'🧠',bonus:30};
+        while(game.employees.length<cap){
+            let c;
+            try{ c=typeof generateCandidate==='function'?generateCandidate():null; }catch(e){c=null;}
+            if(!c) c={id:Date.now()+Math.random(),name:'AI Specialist '+(game.employees.length+1),role:'AI Researcher',salary:0,skill:100,perk:best,avatar:'🧠'};
+            game.employees.push({id:Date.now()+Math.random(),name:c.name,role:c.role,skill:100,salary:0,perk:best,avatar:c.avatar||'🧠'});
+        }
+        try{ addActivity('⚡','Cheat MAX STAFF: '+game.employees.length+' pracowników z najlepszymi perkami'); }catch(e){}
+        save();
+        try{ if(typeof renderAll==='function') renderAll(); }catch(e){}
+        toastSafe('⚡ MAX STAFF — '+game.employees.length+' / '+cap+' pracowników');
+        return true;
+    }
+
+    if(lower==='reset'){
+        if(confirm('Resetować całą grę? Ten zapis zostanie usunięty.')){
+            try{ localStorage.removeItem(SAVE_KEY); }catch(e){}
+            location.reload();
+        }
+        return true;
+    }
+    return false;
+}
+window.runCheatV16=runCheatV16;
+
+/* Override the visible executeCheat so ~ always uses this implementation. */
+window.executeCheat=function(){
+    const el=document.getElementById('cheatInput');
+    runCheatV16(el?el.value:'');
+};
+
+/* ~ opens the console; Enter executes it. Capture prevents multiple older listeners from interfering. */
+document.addEventListener('keydown',function(e){
+    if((e.key==='~' || e.key==='`') && !e.ctrlKey && !e.altKey){
+        e.preventDefault();
+        e.stopPropagation();
+        if(e.stopImmediatePropagation) e.stopImmediatePropagation();
+        try{ openCheats(); }catch(err){ const m=document.getElementById('cheatModal'); if(m)m.classList.add('open'); }
+    }
+    if(e.key==='Enter'){
+        const input=document.getElementById('cheatInput');
+        const modal=document.getElementById('cheatModal');
+        if(input && modal && modal.classList.contains('open')){
+            e.preventDefault();
+            e.stopPropagation();
+            if(e.stopImmediatePropagation) e.stopImmediatePropagation();
+            runCheatV16(input.value);
+        }
+    }
+},true);
+
+/* Initial + continuous majority synchronization, without changing save data. */
+repairOwnershipExact();
+syncManagementV16();
+if(majority()) activateManagementV16();
+setInterval(function(){
+    try{
+        repairOwnershipExact();
+        syncManagementV16();
+    }catch(e){}
+},500);
+
+})();
+</script>
