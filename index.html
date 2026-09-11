@@ -21,6 +21,7 @@
 <button data-page="stops"><span class="ico">🚏</span><span>Przystanki</span></button>
 <button data-page="stations"><span class="ico">🚉</span><span>Stacje</span></button>
 <button data-page="trains"><span class="ico">🚆</span><span>Pociągi</span></button>
+<button data-page="vehicles"><span class="ico">🚌</span><span>Autobusy i tramwaje</span></button>
 <button data-page="contracts"><span class="ico">📄</span><span>Kontrakty</span></button>
 <button data-page="employees"><span class="ico">👷</span><span>Pracownicy</span></button>
 <button data-page="pricing"><span class="ico">💳</span><span>Bilety i mandaty</span></button>
@@ -28,7 +29,6 @@
 <button data-page="competition"><span class="ico">🏢</span><span>Konkurencja</span></button>
 <button data-page="economy"><span class="ico">📊</span><span>Ekonomia</span></button>
 </div>
-<div class="savebox" style="position:absolute;bottom:14px;left:12px;right:12px">💾 Zapis automatyczny</div>
 </aside>
 <main class="main">
 <div class="top"><div class="cash"><small>Kasa firmy</small><strong id="topCash">$0</strong></div><div class="actions"><button class="btn" onclick="openCheats()">⌘ Cheaty</button><button class="btn" onclick="saveGame();toast('💾 Zapisano grę.')">💾 Zapisz</button></div></div>
@@ -50,6 +50,20 @@
 <section class="page" id="page-stations"><div class="head"><div><h1>Stacje</h1><p>Stacje i węzły przesiadkowe.</p></div><button class="btn primary" onclick="openStationModal()">＋ Zbuduj stację</button></div><div class="cards"><div class="card"><div class="label">Stacje</div><div class="val" id="stationCount">0</div></div><div class="card"><div class="label">Węzły</div><div class="val purple" id="multiStations">0</div></div><div class="card"><div class="label">Pasażerowie</div><div class="val blue" id="stationPax">0</div></div><div class="card"><div class="label">Utrzymanie</div><div class="val red" id="stationCosts">$0</div></div></div><div class="panel"><div class="grid3" id="stationGrid"></div></div></section>
 
 <section class="page" id="page-trains"><div class="head"><div><h1>Pociągi</h1><p>Flota na liniach metra.</p></div><button class="btn primary" onclick="openTrainModal()">＋ Kup pociąg</button></div><div class="cards"><div class="card"><div class="label">Pociągi</div><div class="val" id="trainCount">0</div></div><div class="card"><div class="label">Miejsca</div><div class="val blue" id="trainSeats">0</div></div><div class="card"><div class="label">W ruchu</div><div class="val green" id="activeTrains">0</div></div><div class="card"><div class="label">Utrzymanie</div><div class="val red" id="trainCosts">$0</div></div></div><div class="panel"><div class="list" id="trainList"></div></div></section>
+
+<section class="page" id="page-vehicles">
+<div class="head"><div><h1>🚌 Autobusy i 🚋 tramwaje</h1><p>Kupuj dowolną liczbę autobusów i tramwajów oraz przypisuj je do swoich linii.</p></div><div class="actions"><button class="btn primary" onclick="openVehicleModal('bus')">＋ Kup autobus</button><button class="btn primary" onclick="openVehicleModal('tram')">＋ Kup tramwaj</button></div></div>
+<div class="cards">
+<div class="card"><div class="label">Autobusy</div><div class="val green" id="busCountFleet">0</div><div class="sub">cała flota</div></div>
+<div class="card"><div class="label">Tramwaje</div><div class="val purple" id="tramCountFleet">0</div><div class="sub">cała flota</div></div>
+<div class="card"><div class="label">W ruchu</div><div class="val blue" id="surfaceActive">0</div><div class="sub">autobusy + tramwaje</div></div>
+<div class="card"><div class="label">Utrzymanie</div><div class="val red" id="surfaceCosts">$0/s</div><div class="sub">koszt taboru</div></div>
+</div>
+<div class="grid2">
+<div class="panel"><div class="pad"><div class="head"><h2>🚌 Flota autobusowa</h2><span class="muted">wiele pojazdów</span></div></div><div class="list" id="busFleetList"></div></div>
+<div class="panel"><div class="pad"><div class="head"><h2>🚋 Flota tramwajowa</h2><span class="muted">wiele pojazdów</span></div></div><div class="list" id="tramFleetList"></div></div>
+</div>
+</section>
 
 <section class="page" id="page-contracts"><div class="head"><div><h1>Kontrakty</h1><p>Nowe kontrakty pojawiają się automatycznie.</p></div><button class="btn" onclick="generateContracts(3)">↻ Nowe</button></div><div class="cards"><div class="card"><div class="label">Aktywne</div><div class="val" id="contractCount">0</div></div><div class="card"><div class="label">Wartość</div><div class="val green" id="contractValue">$0</div></div><div class="card"><div class="label">Ukończone</div><div class="val purple" id="doneContracts">0</div></div><div class="card"><div class="label">Reputacja</div><div class="val yellow" id="reputation">50</div></div></div><div class="panel"><div class="grid3" id="contractGrid"></div></div></section>
 
@@ -74,6 +88,7 @@
 <div class="modalbg" id="stopModal"><div class="modal"><div class="mh"><h2>🚏 Nowy przystanek</h2><button class="close" onclick="closeModal('stopModal')">×</button></div><div class="mb"><div class="inline"><div class="field"><label>Nazwa</label><input id="stopName"></div><div class="field"><label>Typ</label><select id="stopType"><option value="standard">Zwykły</option><option value="hub">Węzeł</option></select></div></div><div class="field"><label>Linie — możesz zaznaczyć wiele</label><div class="chips" id="stopChooser"></div></div></div><div class="mf"><button class="btn" onclick="closeModal('stopModal')">Anuluj</button><button class="btn primary" onclick="createStop()">Utwórz</button></div></div></div>
 <div class="modalbg" id="stationModal"><div class="modal"><div class="mh"><h2>🚉 Nowa stacja</h2><button class="close" onclick="closeModal('stationModal')">×</button></div><div class="mb"><div class="inline"><div class="field"><label>Nazwa</label><input id="stationName"></div><div class="field"><label>Typ</label><select id="stationType"><option value="local">Lokalna — $150K</option><option value="hub">Węzeł — $350K</option><option value="central">Centralna — $700K</option><option value="airport">Lotniskowa — $1.2M</option></select></div></div><div class="field"><label>Linie — możesz zaznaczyć wiele</label><div class="chips" id="stationChooser"></div></div></div><div class="mf"><button class="btn" onclick="closeModal('stationModal')">Anuluj</button><button class="btn primary" onclick="createStation()">Zbuduj</button></div></div></div>
 <div class="modalbg" id="trainModal"><div class="modal"><div class="mh"><h2>🚆 Kup pociąg</h2><button class="close" onclick="closeModal('trainModal')">×</button></div><div class="mb"><div class="field"><label>Model</label><select id="trainType"><option value="standard">Metro M1 — $300K — 160</option><option value="rapid">Rapid R2 — $550K — 220</option><option value="premium">Premium P4 — $900K — 300</option><option value="double">Metro M2 Double — $2.2M — 500</option><option value="maglev">MagLev M7 — $4.5M — 620</option><option value="hyper">HyperRail H1 — $8.5M — 900</option><option value="quantum">QuantumRail Q — $15M — 1250</option><option value="titan">Titan T9 — $30M — 1800</option></select></div><div class="field"><label>Linia metra</label><select id="trainLine"></select></div></div><div class="mf"><button class="btn" onclick="closeModal('trainModal')">Anuluj</button><button class="btn primary" onclick="buyTrain()">Kup</button></div></div></div>
+<div class="modalbg" id="vehicleModal"><div class="modal"><div class="mh"><h2 id="vehicleModalTitle">🚌 Kup autobus</h2><button class="close" onclick="closeModal('vehicleModal')">×</button></div><div class="mb"><div class="field"><label>Model pojazdu</label><select id="vehicleType"></select></div><div class="field"><label>Linia</label><select id="vehicleLine"></select></div><div id="vehicleInfo" class="muted" style="line-height:1.7"></div></div><div class="mf"><button class="btn" onclick="closeModal('vehicleModal')">Anuluj</button><button class="btn primary" onclick="buyVehicle()">Kup pojazd</button></div></div></div>
 <div class="modalbg" id="cheatModal"><div class="modal"><div class="mh"><h2>⌘ Cheaty</h2><button class="close" onclick="closeModal('cheatModal')">×</button></div><div class="mb"><div class="muted" style="line-height:1.9;margin-bottom:10px"><b>kasa 1000000</b> — dodaj kasę<br><b>max staff</b> — maksymalny zespół<br><b>metro</b> — dopisz M1/M2 i flotę, bez kasowania zapisu<br><b>reset</b> — jedyna komenda kasująca zapis</div><div class="field"><label>Komenda</label><input id="cheatInput" placeholder="kasa 5000000"></div></div><div class="mf"><button class="btn" onclick="closeModal('cheatModal')">Zamknij</button><button class="btn primary" onclick="executeCheat()">Wykonaj</button></div></div></div>
 <div class="toastbox" id="toastbox"></div>
 <div id="moneybox"></div>
@@ -87,10 +102,12 @@ const fn=['Adam','Julia','Maks','Anna','Olek','Mia','Lena','Igor','Kuba','Zofia'
 const ln=['Kowalski','Nowak','Wiśniewski','Wójcik','Kaczmarek','Mazur','Król','Zając','Pawlak','Michalski','Wrona','Lis'];
 const contractTemplates=[['Rozbudowa osiedla','🏘️',180000,.8],['Nowa linia autobusowa','🚌',420000,1],['Nowa linia tramwajowa','🚋',650000,1.5],['Nowa stacja metra','🚇',800000,1.4],['Węzeł przesiadkowy','🔄',600000,1.2],['Połączenie lotniskowe','✈️',900000,1.7]];
 
-function fresh(){return{cash:1000000,lines:[],stops:[],stations:[],trains:[],employees:[],candidates:[],contracts:[],competitors:[],reputation:50,passengers:0,seconds:0,days:1,income:0,expenses:0,ticketIncome:0,fineIncome:0,contractIncome:0,completedContracts:0,currentDayIncome:0,currentDayExpenses:0,dailyStats:[],ticketPrices:{reduced:1.5,normal:3,weeklyReduced:12,weeklyNormal:18,monthlyReduced:38,monthlyNormal:55},ticketSales:{reduced:0,normal:0,weeklyReduced:0,weeklyNormal:0,monthlyReduced:0,monthlyNormal:0},fineAmount:50,inspectionLevel:'normal',activities:[{icon:'🌱',text:'Metro Empire rozpoczęło działalność.',time:'Start'}]}}
-function norm(s){let b=fresh(),g=Object.assign(b,s||{});g.ticketPrices=Object.assign(b.ticketPrices,s?.ticketPrices||{});g.ticketSales=Object.assign(b.ticketSales,s?.ticketSales||{});['lines','stops','stations','trains','employees','candidates','contracts','competitors','dailyStats','activities'].forEach(k=>{if(!Array.isArray(g[k]))g[k]=[]});g.lines.forEach(l=>{if(!Array.isArray(l.stopIds))l.stopIds=[];if(!Array.isArray(l.stationIds))l.stationIds=[];if(!l.type)l.type='metro'});g.stops.forEach(x=>{if(!Array.isArray(x.lineIds))x.lineIds=x.lineId?[x.lineId]:[]});g.stations.forEach(x=>{if(!Array.isArray(x.lineIds))x.lineIds=x.lineId?[x.lineId]:[]});return g}
+function fresh(){return{cash:1000000,lines:[],stops:[],stations:[],trains:[],buses:[],trams:[],employees:[],candidates:[],contracts:[],competitors:[],reputation:50,passengers:0,seconds:0,days:1,income:0,expenses:0,ticketIncome:0,fineIncome:0,contractIncome:0,completedContracts:0,currentDayIncome:0,currentDayExpenses:0,dailyStats:[],ticketPrices:{reduced:1.5,normal:3,weeklyReduced:12,weeklyNormal:18,monthlyReduced:38,monthlyNormal:55},ticketSales:{reduced:0,normal:0,weeklyReduced:0,weeklyNormal:0,monthlyReduced:0,monthlyNormal:0},fineAmount:50,inspectionLevel:'normal',activities:[{icon:'🌱',text:'Metro Empire rozpoczęło działalność.',time:'Start'}]}}
+function norm(s){let b=fresh(),g=Object.assign(b,s||{});g.ticketPrices=Object.assign(b.ticketPrices,s?.ticketPrices||{});g.ticketSales=Object.assign(b.ticketSales,s?.ticketSales||{});['lines','stops','stations','trains','buses','trams','employees','candidates','contracts','competitors','dailyStats','activities'].forEach(k=>{if(!Array.isArray(g[k]))g[k]=[]});g.lines.forEach(l=>{if(!Array.isArray(l.stopIds))l.stopIds=[];if(!Array.isArray(l.stationIds))l.stationIds=[];if(!l.type)l.type='metro'});g.stops.forEach(x=>{if(!Array.isArray(x.lineIds))x.lineIds=x.lineId?[x.lineId]:[]});g.stations.forEach(x=>{if(!Array.isArray(x.lineIds))x.lineIds=x.lineId?[x.lineId]:[]});return g}
 function load(){for(const key of [SAVE_KEY,'metro_empire_multiline_v1','metro_empire_v1','metroEmpireSave']){let r=localStorage.getItem(key);if(r)try{return norm(JSON.parse(r))}catch(e){}}return fresh()}
 let game=load();
+if(!Array.isArray(game.buses))game.buses=[];
+if(!Array.isArray(game.trams))game.trams=[];
 function saveGame(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(game))}catch(e){console.error(e)}}
 function money(v){v=Number(v)||0;let a=Math.abs(v);if(a>=1e9)return'$'+(v/1e9).toFixed(2)+'B';if(a>=1e6)return'$'+(v/1e6).toFixed(2)+'M';if(a>=1e3)return'$'+(v/1e3).toFixed(1)+'K';return'$'+Math.round(v).toLocaleString('pl-PL')}
 function esc(s){return String(s).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
@@ -128,6 +145,83 @@ function openTrainModal(){let ml=game.lines.filter(l=>l.type==='metro');if(!ml.l
 function buyTrain(){let type=document.getElementById('trainType').value,lineId=document.getElementById('trainLine').value,s={standard:['Metro M1',300000,160,35,70],rapid:['Rapid R2',550000,220,48,95],premium:['Premium P4',900000,300,65,110],double:['Metro M2 Double',2200000,500,110,85],maglev:['MagLev M7',4500000,620,170,160],hyper:['HyperRail H1',8500000,900,290,220],quantum:['QuantumRail Q',15000000,1250,450,280],titan:['Titan T9',30000000,1800,800,320]}[type];if(game.cash<s[1])return toast('❌ Za mało pieniędzy');cashChange(-s[1],'Zakupiono '+s[0]);game.trains.push({id:'tr-'+Date.now()+Math.random(),type:s[0],lineId,seats:s[2],upkeep:s[3],speed:s[4],active:true});closeModal('trainModal');saveGame();renderAll()}
 function toggleTrain(id){let t=game.trains.find(x=>x.id===id);if(!t)return;t.active=!t.active;saveGame();renderAll()}
 
+/* Autobusy i tramwaje */
+const vehicleCatalog={
+ bus:{
+  icon:'🚌',label:'autobus',
+  models:{
+   city:['CityBus 12',180000,80,60,22],
+   articulated:['Articulated X18',320000,150,55,38],
+   electric:['E-Bus 24',520000,110,65,26],
+   double:['DoubleDeck D2',780000,190,58,44],
+   autonomous:['AutoBus A9',1500000,170,75,55],
+   hydrogen:['HydroBus H2',2200000,210,80,70]
+  }
+ },
+ tram:{
+  icon:'🚋',label:'tramwaj',
+  models:{
+   classic:['Tram T1',350000,140,65,30],
+   lowfloor:['LowFloor T4',650000,220,70,42],
+   articulated:['Articulated T8',950000,300,72,58],
+   duo:['DuoTram D12',1600000,420,78,82],
+   next:['Tram NX',2800000,560,85,120],
+   ultra:['UltraTram U20',5500000,760,100,220]
+  }
+ }
+};
+let vehicleKind='bus';
+function openVehicleModal(kind){
+ vehicleKind=kind;
+ const meta=vehicleCatalog[kind];
+ const title=document.getElementById('vehicleModalTitle');
+ title.textContent=meta.icon+' Kup '+meta.label;
+ const type=document.getElementById('vehicleType');
+ type.innerHTML=Object.entries(meta.models).map(([k,m])=>`<option value="${k}">${m[0]} — ${money(m[1])} — ${m[2]} miejsc</option>`).join('');
+ const lines=game.lines.filter(l=>l.type===kind);
+ if(!lines.length){toast('❌ Najpierw utwórz linię '+meta.label+'.');return}
+ document.getElementById('vehicleLine').innerHTML=lines.map(l=>`<option value="${l.id}">${esc(l.name)}</option>`).join('');
+ type.onchange=renderVehicleModalInfo;
+ renderVehicleModalInfo();
+ document.getElementById('vehicleModal').classList.add('open');
+}
+function renderVehicleModalInfo(){
+ const m=vehicleCatalog[vehicleKind].models[document.getElementById('vehicleType').value];
+ if(!m)return;
+ document.getElementById('vehicleInfo').textContent=vehicleCatalog[vehicleKind].icon+' '+m[0]+' • '+m[2]+' miejsc • '+m[3]+' km/h • utrzymanie '+money(m[4])+'/s';
+}
+function buyVehicle(){
+ const key=document.getElementById('vehicleType').value;
+ const lineId=document.getElementById('vehicleLine').value;
+ const m=vehicleCatalog[vehicleKind].models[key];
+ if(!m||!lineId)return;
+ if(game.cash<m[1]){toast('❌ Za mało pieniędzy.');return}
+ cashChange(-m[1],'Kupiono '+m[0]);
+ const v={id:'surface-'+vehicleKind+'-'+Date.now()+'-'+Math.random(),type:key,name:m[0],lineId,seats:m[2],speed:m[3],upkeep:m[4],active:true};
+ if(vehicleKind==='bus')game.buses.push(v);else game.trams.push(v);
+ const line=game.lines.find(l=>l.id===lineId);
+ activity(vehicleCatalog[vehicleKind].icon,'Dodano '+m[0]+' na linię '+(line?line.name:'?'));
+ closeModal('vehicleModal');saveGame();renderAll();
+}
+function toggleVehicle(kind,id){
+ const arr=kind==='bus'?game.buses:game.trams;
+ const v=arr.find(x=>x.id===id);if(!v)return;
+ v.active=!v.active;saveGame();renderAll();
+}
+function renderVehicles(){
+ if(!game.buses)game.buses=[]; if(!game.trams)game.trams=[];
+ document.getElementById('busCountFleet').textContent=game.buses.length;
+ document.getElementById('tramCountFleet').textContent=game.trams.length;
+ document.getElementById('surfaceActive').textContent=game.buses.filter(v=>v.active).length+game.trams.filter(v=>v.active).length;
+ document.getElementById('surfaceCosts').textContent=money(game.buses.reduce((s,v)=>s+v.upkeep,0)+game.trams.reduce((s,v)=>s+v.upkeep,0))+'/s';
+ const render=(arr,id,kind)=>{
+  const box=document.getElementById(id);
+  if(!arr.length){box.innerHTML=`<div class="empty">${kind==='bus'?'🚌':'🚋'} Brak pojazdów. Kup pierwszy pojazd.</div>`;return}
+  box.innerHTML=arr.map(v=>{const l=game.lines.find(x=>x.id===v.lineId);return`<div class="row"><div class="ico">${kind==='bus'?'🚌':'🚋'}</div><div class="grow"><div class="title">${esc(v.name)} <span class="tag">${v.active?'W RUCHU':'POSTÓJ'}</span></div><div class="muted">${v.seats} miejsc • ${v.speed} km/h • linia ${l?esc(l.name):'—'} • ${money(v.upkeep)}/s</div></div><button class="btn ${v.active?'r':'g'}" onclick="toggleVehicle('${kind}','${v.id}')">${v.active?'Zatrzymaj':'Uruchom'}</button></div>`}).join('');
+ };
+ render(game.buses,'busFleetList','bus');render(game.trams,'tramFleetList','tram');
+}
+
 /* Employees */
 function candidate(){return{id:Date.now()+Math.random(),name:fn[Math.floor(Math.random()*fn.length)]+' '+ln[Math.floor(Math.random()*ln.length)],role:roles[Math.floor(Math.random()*roles.length)],skill:45+Math.floor(Math.random()*56),salary:90+Math.floor(Math.random()*260),perk:['Ekspert infrastruktury','Szybka nauka','Optymalizator','Bezpieczeństwo','Lider zespołu'][Math.floor(Math.random()*5)],avatar:['👨‍🔧','👩‍💼','🧑‍🔬','👨‍✈️'][Math.floor(Math.random()*4)]}}
 function generateCandidates(n=1){while(n-->0&&game.candidates.length<30)game.candidates.push(candidate());renderEmployees()}
@@ -141,10 +235,10 @@ function generateContracts(n=1){while(n-->0&&game.contracts.length<12)game.contr
 
 /* Economy */
 function demand(){let p=Number(game.ticketPrices.normal)||3,d=1-Math.max(0,p-3)*.055;if(p<3)d+=(3-p)*.08;return Math.max(.1,Math.min(1.25,d))}
-function paxMin(){let metro=game.trains.reduce((s,t)=>s+(t.active?t.seats*.45:0),0),surface=game.lines.reduce((s,l)=>s+(l.type==='bus'?(l.stopIds.length+l.stationIds.length)*42:l.type==='tram'?(l.stopIds.length+l.stationIds.length)*55:0),0),inter=game.stops.filter(x=>x.lineIds.length>1).length*35+game.stations.filter(x=>x.lineIds.length>1).length*70;return Math.round((metro+surface+inter+game.reputation*2)*demand())}
+function paxMin(){let metro=game.trains.reduce((s,t)=>s+(t.active?t.seats*.45:0),0),busVehicles=(game.buses||[]).reduce((s,v)=>s+(v.active?v.seats*.28:0),0),tramVehicles=(game.trams||[]).reduce((s,v)=>s+(v.active?v.seats*.38:0),0),surface=game.lines.reduce((s,l)=>s+(l.type==='bus'?(l.stopIds.length+l.stationIds.length)*42:l.type==='tram'?(l.stopIds.length+l.stationIds.length)*55:0),0),inter=game.stops.filter(x=>x.lineIds.length>1).length*35+game.stations.filter(x=>x.lineIds.length>1).length*70;return Math.round((metro+busVehicles+tramVehicles+surface+inter+game.reputation*2)*demand())}
 function incomePerSec(){let p=paxMin()/60,x=game.ticketPrices,m={reduced:.25,normal:.35,weeklyReduced:.12,weeklyNormal:.13,monthlyReduced:.06,monthlyNormal:.09};return p*m.reduced*x.reduced*.18+p*m.normal*x.normal*.18+p*m.weeklyReduced*x.weeklyReduced*.045+p*m.weeklyNormal*x.weeklyNormal*.045+p*m.monthlyReduced*x.monthlyReduced*.025+p*m.monthlyNormal*x.monthlyNormal*.025}
 function finePerSec(){let c={low:.003,normal:.008,high:.014,maximum:.022}[game.inspectionLevel]||.008;return paxMin()/60*c*game.fineAmount}
-function expenses(){let wages=game.employees.reduce((s,e)=>s+Number(e.salary||0)*.06,0),tr=game.trains.reduce((s,t)=>s+t.upkeep,0),li=game.lines.reduce((s,l)=>s+(l.type==='metro'?l.level*5:l.type==='tram'?l.level*3:l.level*2),0),st=game.stations.reduce((s,x)=>s+({local:3,hub:8,central:15,airport:25}[x.type]||3),0),sp=game.stops.length*.7,ct={low:1,normal:4,high:9,maximum:17}[game.inspectionLevel]||4;return{wages,trains:tr,lines:li,stations:st,stops:sp,controls:ct,total:wages+tr+li+st+sp+ct}}
+function expenses(){let wages=game.employees.reduce((s,e)=>s+Number(e.salary||0)*.06,0),tr=game.trains.reduce((s,t)=>s+t.upkeep,0),bus=(game.buses||[]).reduce((s,v)=>s+v.upkeep,0),tram=(game.trams||[]).reduce((s,v)=>s+v.upkeep,0),li=game.lines.reduce((s,l)=>s+(l.type==='metro'?l.level*5:l.type==='tram'?l.level*3:l.level*2),0),st=game.stations.reduce((s,x)=>s+({local:3,hub:8,central:15,airport:25}[x.type]||3),0),sp=game.stops.length*.7,ct={low:1,normal:4,high:9,maximum:17}[game.inspectionLevel]||4;return{wages,trains:tr,buses:bus,trams:tram,lines:li,stations:st,stops:sp,controls:ct,total:wages+tr+bus+tram+li+st+sp+ct}}
 function tick(){let inc=incomePerSec(),ex=expenses();game.cash+=inc-ex.total;game.income+=inc;game.expenses+=ex.total;game.currentDayIncome+=inc;game.currentDayExpenses+=ex.total;game.ticketIncome+=incomePerSec();game.fineIncome+=finePerSec();game.passengers=paxMin();let mix={reduced:.25,normal:.35,weeklyReduced:.12,weeklyNormal:.13,monthlyReduced:.06,monthlyNormal:.09};Object.keys(mix).forEach(k=>game.ticketSales[k]+=game.passengers/60*mix[k]);game.stops.forEach(s=>s.passengers+=Math.floor(game.passengers/Math.max(1,game.stops.length)/60));game.stations.forEach(s=>s.passengers+=Math.floor(game.passengers/Math.max(1,game.stations.length)/60));game.contracts.forEach(c=>c.progress=Math.min(100,c.progress+1+game.lines.length*.03+game.employees.length*.02));let done=game.contracts.filter(c=>c.progress>=100);done.forEach(c=>{cashChange(c.reward,'Ukończono '+c.title);game.contractIncome+=c.reward;game.completedContracts++;game.reputation=Math.min(100,game.reputation+c.reputation)});game.contracts=game.contracts.filter(c=>c.progress<100);game.seconds++;if(game.seconds%60===0){game.dailyStats.push({day:game.days,income:game.currentDayIncome,expenses:game.currentDayExpenses});game.dailyStats=game.dailyStats.slice(-365);game.currentDayIncome=0;game.currentDayExpenses=0;game.days++;activity('🌅','Rozpoczął się dzień '+game.days)}if(game.seconds%30===0)game.competitors.forEach(c=>{c.power=Math.max(20,c.power+(Math.random()-.4)*2);c.km+=Math.random()*.3;c.passengers*=1.003});if(game.seconds%7===0&&game.candidates.length<14)generateCandidates(2);if(game.seconds%9===0&&game.contracts.length<8)generateContracts(2);if(game.seconds%15===0)saveGame();renderTop();renderEconomy();renderCharts()}
 
 /* Pricing */
@@ -167,10 +261,10 @@ function renderContracts(){document.getElementById('contractCount').textContent=
 function renderEmployees(){let w=game.employees.reduce((s,e)=>s+Number(e.salary||0)*.06,0);let a=game.employees.length?Math.round(game.employees.reduce((s,e)=>s+e.skill,0)/game.employees.length):0;document.getElementById('empCount').textContent=game.employees.length;document.getElementById('empCap').textContent=employeeCap();document.getElementById('wages').textContent=money(w)+'/s';document.getElementById('avgSkill').textContent=a;document.getElementById('candCount').textContent=game.candidates.length;document.getElementById('candidateGrid').innerHTML=game.candidates.slice(0,12).map(c=>`<div class="tile"><div class="tiletop"><div class="ico">${c.avatar}</div><div><h3>${esc(c.name)}</h3><div class="muted">${esc(c.role)}</div></div></div><p class="desc">Skill ${c.skill} • płaca ${c.salary}</p><p class="yellow">✨ ${esc(c.perk)}</p><button class="btn g" style="width:100%" onclick="hireCandidate(${c.id})">Zatrudnij</button></div>`).join('')||'<div class="empty">Brak kandydatów.</div>';document.getElementById('employeeGrid').innerHTML=game.employees.slice(0,90).map(e=>`<div class="tile"><div class="tiletop"><div class="ico">${e.avatar}</div><div><h3>${esc(e.name)}</h3><div class="muted">${esc(e.role)}</div></div></div><p class="desc">Skill ${e.skill} • płaca ${e.salary}</p><span class="tag">${esc(e.perk)}</span></div>`).join('')||'<div class="empty">Brak pracowników.</div>'}
 function renderPricing(){let p=game.ticketPrices;document.getElementById('pReduced').textContent='$'+p.reduced.toFixed(2);document.getElementById('pNormal').textContent='$'+p.normal.toFixed(2);document.getElementById('pWeek').textContent='$'+p.weeklyNormal.toFixed(2)+' / $'+p.weeklyReduced.toFixed(2);document.getElementById('pMonth').textContent='$'+p.monthlyNormal.toFixed(2)+' / $'+p.monthlyReduced.toFixed(2);document.getElementById('pr').textContent='$'+p.reduced.toFixed(2);document.getElementById('pn').textContent='$'+p.normal.toFixed(2);document.getElementById('pwr').textContent='$'+p.weeklyReduced.toFixed(2);document.getElementById('pwn').textContent='$'+p.weeklyNormal.toFixed(2);document.getElementById('pmr').textContent='$'+p.monthlyReduced.toFixed(2);document.getElementById('pmn').textContent='$'+p.monthlyNormal.toFixed(2);document.getElementById('fine').value=game.fineAmount;document.getElementById('inspect').value=game.inspectionLevel;document.getElementById('fineIncome').textContent=money(game.fineIncome)}
 function renderCompetition(){let own=game.lines.length*15+game.stops.length*5+game.stations.length*10+game.trains.reduce((s,t)=>s+t.seats/15,0)+game.employees.length*1.5+game.reputation,all=[...game.competitors,{name:'Metro Empire',power:own,km:game.lines.reduce((s,l)=>s+l.km,0),passengers:game.passengers}].sort((a,b)=>b.power-a.power),r=all.findIndex(x=>x.name==='Metro Empire')+1;document.getElementById('rank').textContent='#'+r;document.getElementById('share').textContent=Math.max(.2,own/18).toFixed(2)+'%';document.getElementById('strongest').textContent=all.find(x=>x.name!=='Metro Empire')?.name||'—';document.getElementById('pressure').textContent=Math.min(99,Math.max(0,100-own/2)).toFixed(0)+'%';document.getElementById('competitors').innerHTML=all.map((x,i)=>`<div class="row"><div class="ico">${x.name==='Metro Empire'?'🚇':'🏢'}</div><div class="grow"><div class="title">#${i+1} ${esc(x.name)}</div><div class="muted">Power ${x.power.toFixed(0)} • ${x.km.toFixed(1)} km • ${Math.round(x.passengers).toLocaleString('pl-PL')} pasażerów</div></div></div>`).join('')}
-function renderEconomy(){let e=expenses();document.getElementById('totalIncome').textContent=money(game.income);document.getElementById('totalExpenses').textContent=money(game.expenses);document.getElementById('profit').textContent=money(game.income-game.expenses);document.getElementById('eDay').textContent=game.days;document.getElementById('todayI').textContent=money(game.currentDayIncome);document.getElementById('todayE').textContent=money(game.currentDayExpenses);document.getElementById('costs').innerHTML=[['👷','Pracownicy',e.wages],['🚆','Pociągi',e.trains],['🛤️','Linie',e.lines],['🚉','Stacje',e.stations],['🚏','Przystanki',e.stops],['👮','Kontrole',e.controls]].map(x=>`<div class="row"><div class="ico">${x[0]}</div><div class="grow"><div class="title">${x[1]}</div><div class="muted">${money(x[2])}/s</div></div></div>`).join('')}
+function renderEconomy(){let e=expenses();document.getElementById('totalIncome').textContent=money(game.income);document.getElementById('totalExpenses').textContent=money(game.expenses);document.getElementById('profit').textContent=money(game.income-game.expenses);document.getElementById('eDay').textContent=game.days;document.getElementById('todayI').textContent=money(game.currentDayIncome);document.getElementById('todayE').textContent=money(game.currentDayExpenses);document.getElementById('costs').innerHTML=[['👷','Pracownicy',e.wages],['🚆','Pociągi',e.trains],['🚌','Autobusy',e.buses],['🚋','Tramwaje',e.trams],['🛤️','Linie',e.lines],['🚉','Stacje',e.stations],['🚏','Przystanki',e.stops],['👮','Kontrole',e.controls]].map(x=>`<div class="row"><div class="ico">${x[0]}</div><div class="grow"><div class="title">${x[1]}</div><div class="muted">${money(x[2])}/s</div></div></div>`).join('')}
 function drawChart(el){let st=game.dailyStats.slice(-13),inc=st.map(x=>x.income).concat([game.currentDayIncome]),ex=st.map(x=>x.expenses).concat([game.currentDayExpenses]),ds=st.map(x=>x.day).concat([game.days]),mx=Math.max(1,...inc,...ex);el.innerHTML='<div class="gridlines"></div>'+inc.map((v,i)=>`<div class="bg"><div class="b bi" style="height:${Math.max(2,v/mx*175)}px"></div><div class="b be" style="height:${Math.max(2,(ex[i]||0)/mx*175)}px"></div><div class="bl">${ds[i]}</div></div>`).join('')}
 function renderCharts(){drawChart(document.getElementById('dashboardChart'));drawChart(document.getElementById('economyChart'))}
-function renderAll(){renderTop();renderDashboard();renderLines();renderStops();renderStations();renderTrains();renderContracts();renderEmployees();renderPricing();renderCompetition();renderEconomy();renderCharts()}
+function renderAll(){renderTop();renderDashboard();renderLines();renderStops();renderStations();renderTrains();renderVehicles();renderContracts();renderEmployees();renderPricing();renderCompetition();renderEconomy();renderCharts()}
 
 /* Safe startup migration. */
 seedCompetitors();addWarsawNetwork();if(!game.candidates.length)generateCandidates(8);if(!game.contracts.length)generateContracts(5);saveGame();renderAll();
