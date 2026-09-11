@@ -2417,7 +2417,17 @@ button{
 
 const INITIAL_CASH = 0;
 
+/* IMPORTANT: keep the existing save key so progress is never reset just because
+   a newer HTML build is opened. We also keep a list of older keys for migration. */
 const SAVE_KEY = "ai_empire_save_v2";
+const SAVE_KEYS = [
+    "ai_empire_save_v2",
+    "ai_empire_save_v1",
+    "AI_EMPIRE_SAVE_V1",
+    "AI_EMPIRE_SAVE_V2"
+];
+const SAVE_BACKUP_KEY = "ai_empire_save_backup";
+const SAVE_SCHEMA = 15;
 
 const modelTypes = {
     text:["💬","Text AI"],
@@ -2715,48 +2725,136 @@ function defaultState(){
 
 let game = loadGame();
 if(!Array.isArray(game.productProjects)) game.productProjects=[];
+if(!Number.isFinite(game.schema)) game.schema=SAVE_SCHEMA;
+/* Save immediately only after a successful load/normalization; never reset loaded data. */
+saveGame();
 
 
 /* =========================================================
    SAVE / LOAD
 ========================================================= */
 
+function progressScore(data){
+
+    if(!data || typeof data!=="object") return -1;
+
+    let score=0;
+
+    score += Number(data.cash||0) / 1000000;
+    score += (Array.isArray(data.employees)?data.employees.length:0) * 10;
+    score += (Array.isArray(data.models)?data.models.length:0) * 20;
+    score += (Array.isArray(data.products)?data.products.length:0) * 30;
+    score += (Array.isArray(data.researched)?data.researched.length:0) * 5;
+    score += Number(data.gpu||0) * 5;
+    score += Number(data.officeLevel||1) * 2;
+    score += Number(data.dataCenterLevel||1) * 2;
+    score += Number(data.days||0);
+
+    return score;
+}
+
+function normalizeLoadedGame(data){
+
+    const base=defaultState();
+    const merged=Object.assign(base,data||{});
+
+    if(!Array.isArray(merged.employees)) merged.employees=[];
+    if(!Array.isArray(merged.candidates)) merged.candidates=[];
+    if(!Array.isArray(merged.models)) merged.models=[];
+    if(!Array.isArray(merged.products)) merged.products=[];
+    if(!Array.isArray(merged.productProjects)) merged.productProjects=[];
+    if(!Array.isArray(merged.researched)) merged.researched=[];
+    if(!Array.isArray(merged.incomeHistory)) merged.incomeHistory=base.incomeHistory.slice();
+    if(!Array.isArray(merged.expenseHistory)) merged.expenseHistory=base.expenseHistory.slice();
+    if(!Array.isArray(merged.investors) || !merged.investors.length) merged.investors=base.investors.slice();
+    if(!Array.isArray(merged.activities)) merged.activities=base.activities.slice();
+    if(!Array.isArray(merged.eventHistory)) merged.eventHistory=[];
+
+    merged.officeLevel=Math.max(1,Math.min(200,Number(merged.officeLevel)||1));
+    merged.dataCenterLevel=Math.max(1,Number(merged.dataCenterLevel)||1);
+    merged.gpu=Math.max(0,Number(merged.gpu)||0);
+    merged.gpuCompute=Math.max(0,Number(merged.gpuCompute)||0);
+    merged.cash=Math.max(0,Number(merged.cash)||0);
+    merged.totalIncome=Math.max(0,Number(merged.totalIncome)||0);
+    merged.totalExpenses=Math.max(0,Number(merged.totalExpenses)||0);
+    merged.schema=SAVE_SCHEMA;
+
+    return merged;
+}
+
 function loadGame(){
 
-    try{
+    let best=null;
+    let bestScore=-1;
 
-        const saved = localStorage.getItem(SAVE_KEY);
+    /* Check every historical key, but never delete any of them. */
+    for(const key of SAVE_KEYS){
 
-        if(saved){
+        try{
 
-            const data = JSON.parse(saved);
+            const raw=localStorage.getItem(key);
 
-            return Object.assign(defaultState(),data);
+            if(!raw) continue;
 
+            const data=JSON.parse(raw);
+            const score=progressScore(data);
+
+            if(score>bestScore){
+                best=data;
+                bestScore=score;
+            }
+
+        }catch(e){
+            console.warn("Nie można odczytać zapisu:",key,e);
         }
-
-    }catch(e){
-
-        console.error(e);
 
     }
 
-    return defaultState();
+    /* Also try the backup created by the current build. */
+    if(!best){
 
+        try{
+            const backup=localStorage.getItem(SAVE_BACKUP_KEY);
+            if(backup){
+                best=JSON.parse(backup);
+            }
+        }catch(e){
+            console.warn("Nie można odczytać kopii zapasowej",e);
+        }
+
+    }
+
+    if(best){
+        return normalizeLoadedGame(best);
+    }
+
+    return defaultState();
 }
 
 function saveGame(){
 
-    game.lastSave = Date.now();
+    game.lastSave=Date.now();
+    game.schema=SAVE_SCHEMA;
 
-    localStorage.setItem(SAVE_KEY,JSON.stringify(game));
+    try{
+        const serialized=JSON.stringify(game);
 
-    const status = document.querySelector(".save-status");
+        /* Keep a backup before replacing the main slot. */
+        const previous=localStorage.getItem(SAVE_KEY);
+        if(previous){
+            localStorage.setItem(SAVE_BACKUP_KEY,previous);
+        }
+
+        localStorage.setItem(SAVE_KEY,serialized);
+
+    }catch(e){
+        console.error("Błąd zapisu gry:",e);
+    }
+
+    const status=document.querySelector(".save-status");
 
     if(status){
-
-        status.innerHTML = "💾 Zapisano przed chwilą";
-
+        status.innerHTML="💾 Zapisano przed chwilą";
     }
 
 }
@@ -2765,7 +2863,8 @@ function resetGame(){
 
     if(!confirm("Na pewno rozpocząć nową grę? Cały zapis zostanie usunięty.")) return;
 
-    localStorage.removeItem(SAVE_KEY);
+    SAVE_KEYS.forEach(key=>localStorage.removeItem(key));
+    localStorage.removeItem(SAVE_BACKUP_KEY);
 
     game = defaultState();
 
@@ -8065,3 +8164,158 @@ setInterval(()=>{
 
 </body>
 </html>
+<!-- V14 FINAL OWNERSHIP CONTROL PATCH -->
+<style>
+#majorityManagementButton{
+    display:none;
+    margin-top:12px;
+    width:100%;
+    padding:15px 18px;
+    border-radius:14px;
+    border:1px solid rgba(139,92,246,.38);
+    color:#fff;
+    background:linear-gradient(135deg,rgba(139,92,246,.25),rgba(192,132,252,.12));
+    box-shadow:0 12px 35px rgba(139,92,246,.14);
+    text-align:left;
+    font-weight:800;
+}
+#majorityManagementButton:hover{transform:translateY(-1px);background:linear-gradient(135deg,rgba(139,92,246,.34),rgba(192,132,252,.17));}
+#managementNav.majority-ready{opacity:1!important;color:#fff!important;background:linear-gradient(90deg,rgba(139,92,246,.28),rgba(139,92,246,.10));box-shadow:inset 2px 0 0 var(--purple),0 0 0 1px rgba(139,92,246,.14);}
+#managementNav.locked{opacity:.65!important;}
+.majority-banner{display:none;margin-top:12px;padding:14px 16px;border:1px solid rgba(40,233,139,.22);background:rgba(40,233,139,.06);border-radius:13px;}
+.majority-banner strong{font-size:13px}.majority-banner span{display:block;color:var(--muted);font-size:10px;margin-top:4px}
+</style>
+<script>
+(function(){
+'use strict';
+
+function finite(n){ n=Number(n); return Number.isFinite(n)?n:0; }
+
+function resolvePlayerInvestor(){
+    const investors=Array.isArray(game.investors)?game.investors:[];
+    let p=investors.find(i=>i && i.isPlayer===true);
+    if(!p) p=investors.find(i=>i && (i.type==='founder'||i.type==='player'));
+    if(!p) p=investors.find(i=>i && /ty\s*—?\s*novamind|novamind ai|founder capital/i.test(String(i.name||'')));
+    if(!p && typeof game.playerShares==='number'){
+        p={id:'virtual-player',name:'Ty — NovaMind AI',percent:finite(game.playerShares),isPlayer:true,type:'founder'};
+        investors.unshift(p);
+        game.investors=investors;
+    }
+    if(p){p.isPlayer=true; if(!p.name) p.name='Ty — NovaMind AI';}
+    return p||null;
+}
+
+function playerPercent(){
+    const p=resolvePlayerInvestor();
+    if(p){
+        let v=finite(p.percent);
+        if(v===0 && finite(p.shares)>0) v=finite(p.shares);
+        return Math.max(0,Math.min(100,v));
+    }
+    return Math.max(0,Math.min(100,finite(game.playerShares)));
+}
+
+function hasMajority(){ return playerPercent()>50; }
+window.aiEmpirePlayerPercent=playerPercent;
+window.aiEmpireHasMajority=hasMajority;
+
+function activateManagement(){
+    const page=document.getElementById('page-management');
+    const nav=document.getElementById('managementNav');
+    if(!page || !hasMajority()) return false;
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    page.classList.add('active');
+    document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('active'));
+    if(nav) nav.classList.add('active','majority-ready');
+    const title=document.getElementById('pageTitle');
+    const subtitle=document.getElementById('pageSubtitle');
+    if(title) title.textContent='Zarządzanie firmą';
+    if(subtitle) subtitle.textContent='Panel właściciela większościowego — pełna kontrola nad NovaMind AI.';
+    window.scrollTo({top:0,behavior:'smooth'});
+    if(typeof renderManagement==='function') renderManagement();
+    return true;
+}
+window.openMajorityManagement=activateManagement;
+
+function syncMajorityUI(){
+    const p=playerPercent();
+    const access=p>50;
+    const nav=document.getElementById('managementNav');
+    if(nav){
+        nav.classList.toggle('majority-ready',access);
+        nav.classList.toggle('locked',!access);
+        nav.setAttribute('aria-disabled',String(!access));
+        nav.title=access?'Otwórz panel zarządzania firmą':'Zdobądź ponad 50% udziałów, aby odblokować panel';
+        nav.style.display='flex';
+    }
+    const btn=document.getElementById('majorityManagementButton');
+    if(btn) btn.style.display=access?'block':'none';
+    const banner=document.getElementById('majorityBanner');
+    if(banner){ banner.style.display=access?'block':'none'; const txt=banner.querySelector('span'); if(txt) txt.textContent='Posiadasz '+p.toFixed(1)+'% udziałów i możesz podejmować decyzje zarządcze.'; }
+    const accessPill=document.getElementById('managementAccessPill');
+    if(accessPill){ accessPill.innerHTML=access?'<span class="company-dot"></span><span>KONTROLA FIRMY • '+p.toFixed(1)+'%</span>':'<span style="width:8px;height:8px;border-radius:50%;background:#ff4d67;display:inline-block"></span><span>BRAK KONTROLI • '+p.toFixed(1)+'%</span>'; }
+    const locked=document.getElementById('managementLocked');
+    const unlocked=document.getElementById('managementUnlocked');
+    if(locked) locked.style.display=access?'none':'block';
+    if(unlocked) unlocked.style.display=access?'block':'none';
+    const control=document.getElementById('mgmtControl');
+    if(control) control.textContent=p.toFixed(1)+'%';
+}
+window.syncMajorityUI=syncMajorityUI;
+
+/* Capture the click before old goPage handlers can veto it. */
+document.addEventListener('click',function(e){
+    const nav=e.target.closest && e.target.closest('#managementNav');
+    if(nav){
+        e.preventDefault();
+        e.stopPropagation();
+        if(e.stopImmediatePropagation) e.stopImmediatePropagation();
+        if(hasMajority()) activateManagement();
+        else if(typeof toast==='function') toast('🔒 Panel zarządzania wymaga ponad 50% udziałów.');
+    }
+},true);
+
+/* Add a large direct button to the stock page. */
+function ensureMajorityButton(){
+    let btn=document.getElementById('majorityManagementButton');
+    if(btn) return btn;
+    const stockPage=document.getElementById('page-stock');
+    if(!stockPage) return null;
+    btn=document.createElement('button');
+    btn.id='majorityManagementButton';
+    btn.innerHTML='🏢 Otwórz rozbudowany panel zarządzania <span style="display:block;font-size:10px;font-weight:500;color:#b9bfd0;margin-top:4px">Strategia • budżety • zarząd • polityka cenowa • R&D • ekspansja • dywidendy</span>';
+    btn.onclick=function(){ if(hasMajority()) activateManagement(); else toast('🔒 Potrzebujesz ponad 50% udziałów.'); };
+    const firstPanel=stockPage.querySelector('.panel');
+    if(firstPanel && firstPanel.parentNode) firstPanel.parentNode.insertBefore(btn,firstPanel);
+    else stockPage.insertBefore(btn,stockPage.firstChild);
+    return btn;
+}
+
+function ensureMajorityBanner(){
+    if(document.getElementById('majorityBanner')) return;
+    const page=document.getElementById('page-management');
+    if(!page) return;
+    const top=page.querySelector('.topbar');
+    if(!top) return;
+    const b=document.createElement('div');
+    b.id='majorityBanner';
+    b.className='majority-banner';
+    b.innerHTML='<strong>🔓 Kontrola większościowa aktywna</strong><span>Posiadasz ponad 50% udziałów.</span>';
+    top.parentNode.insertBefore(b,top.nextSibling);
+}
+
+ensureMajorityButton();
+ensureMajorityBanner();
+syncMajorityUI();
+if(hasMajority() && typeof renderManagement==='function') renderManagement();
+
+setInterval(function(){
+    try{
+        ensureMajorityButton();
+        ensureMajorityBanner();
+        syncMajorityUI();
+    }catch(err){ console.error('V14 majority sync',err); }
+},500);
+
+})();
+</script>
