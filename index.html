@@ -1420,6 +1420,18 @@ button{
 
     </div>
 
+    <div class="panel" style="margin-bottom:15px">
+
+        <div class="panel-pad">
+            <div class="section-head">
+                <h2>🛠️ Produkty w produkcji</h2>
+                <span>Postęp na żywo</span>
+            </div>
+            <div class="item-list" id="productProjectsList"></div>
+        </div>
+
+    </div>
+
     <div class="panel">
 
         <div class="panel-pad">
@@ -2475,6 +2487,8 @@ function defaultState(){
 
         products:[],
 
+        productProjects:[],
+
         researched:[],
 
         researchPoints:0,
@@ -2536,6 +2550,7 @@ function defaultState(){
 }
 
 let game = loadGame();
+if(!Array.isArray(game.productProjects)) game.productProjects=[];
 
 
 /* =========================================================
@@ -2628,31 +2643,28 @@ function exactMoney(n){
 
 }
 
-function changeCash(amount,reason=""){
+function changeCash(amount,reason="",silent=false){
 
+    amount=Number(amount)||0;
     if(!amount) return;
 
     game.cash += amount;
 
     if(amount > 0){
-
         game.totalIncome += amount;
-
     }else{
-
         game.totalExpenses += Math.abs(amount);
-
     }
 
-    showMoneyAnimation(amount);
+    if(!silent){
+        showMoneyAnimation(amount);
 
-    if(reason){
-
-        addActivity(
-            amount > 0 ? "💰":"💸",
-            reason+" "+(amount>0?"+":"")+money(amount)
-        );
-
+        if(reason){
+            addActivity(
+                amount > 0 ? "💰":"💸",
+                reason+" "+(amount>0?"+":"−")+money(Math.abs(amount))
+            );
+        }
     }
 
 }
@@ -2910,6 +2922,14 @@ function hireCandidate(id){
     if(index<0) return;
 
     const c=game.candidates[index];
+
+    const hiringFee=Math.max(250,Math.round(c.salary*1.5));
+    if(game.cash<hiringFee){
+        toast("❌ Potrzebujesz "+money(hiringFee)+" na zatrudnienie "+escapeHtml(c.name)+".");
+        return;
+    }
+
+    changeCash(-hiringFee,"Koszt zatrudnienia "+c.name);
 
     game.employees.push({
 
@@ -3384,96 +3404,51 @@ function updateModel(id){
 
 function createProduct(){
 
-    const name=
-        document.getElementById("productName")
-        .value.trim();
-
-    const type=
-        document.getElementById("productType")
-        .value;
-
-    const modelId=
-        document.getElementById("productModel")
-        .value;
-
-    const model=
-        game.models.find(x=>x.id==modelId);
+    const name=document.getElementById("productName").value.trim();
+    const type=document.getElementById("productType").value;
+    const modelId=document.getElementById("productModel").value;
+    const model=game.models.find(x=>x.id==modelId);
 
     if(!name || !model){
-
         toast("❌ Uzupełnij dane produktu.");
-
         return;
-
     }
 
     const cost=75000;
 
     if(game.cash<cost){
-
         toast("❌ Za mało pieniędzy.");
-
         return;
-
     }
 
-    changeCash(
-        -cost,
-        "Uruchomiono produkt "+name
-    );
+    const baseUsers=Math.floor(100+model.quality*20+game.reputation*10);
+    const rating=Math.min(5,Math.max(2.5,2.5+model.quality/45+game.researched.length*.08+Math.random()*.5));
 
-    const baseUsers=
-        Math.floor(
-            100+
-            model.quality*20+
-            game.reputation*10
-        );
+    changeCash(-cost,"Rozpoczęto produkcję "+name);
 
-    const rating=
-        Math.min(
-            5,
-            Math.max(
-                2.5,
-                2.5+
-                model.quality/45+
-                game.researched.length*.08+
-                Math.random()*.5
-            )
-        );
-
-    game.products.push({
-
+    const project={
         id:Date.now()+Math.random(),
-
         name,
-
         type,
-
         modelId:model.id,
-
         modelName:model.name,
-
+        progress:0,
+        duration:Math.max(12,Math.round(20-(game.employees.length*.18+game.researched.length*.25))),
+        startedAt:Date.now(),
         version:"v1.0",
-
         users:baseUsers,
-
-        rating:rating,
-
+        rating,
         revenue:0,
-
         updates:0
+    };
 
-    });
+    game.productProjects.push(project);
 
-    addActivity(
-        "🚀",
-        "Uruchomiono produkt "+name
-    );
-
-    toast("🚀 Produkt wystartował!");
+    addActivity("🛠️","Rozpoczęto produkcję produktu "+name);
+    toast("🛠️ "+name+" jest w produkcji — zobacz zakładkę Produkty.");
 
     closeModal("productModal");
-
+    saveGame();
     renderAll();
 
 }
@@ -3905,28 +3880,57 @@ function acceptEvent(){
    GAME ECONOMY
 ========================================================= */
 
+function updateProductProjects(){
+
+    if(!Array.isArray(game.productProjects)) game.productProjects=[];
+    if(!game.productProjects.length) return;
+
+    const finished=[];
+
+    game.productProjects.forEach(project=>{
+
+        const speed = 1 +
+            game.employees.length*0.035 +
+            game.researched.length*0.018 +
+            game.dataCenterLevel*0.025 +
+            Math.min(1.5, game.gpu*0.01);
+
+        project.progress = Math.min(100, Number(project.progress||0) + speed);
+
+        if(project.progress>=100){
+
+            game.products.push({
+                id:project.id,
+                name:project.name,
+                type:project.type,
+                modelId:project.modelId,
+                modelName:project.modelName,
+                version:"v1.0",
+                users:project.users,
+                rating:project.rating,
+                revenue:0,
+                updates:0
+            });
+
+            finished.push(project.id);
+
+            addActivity("🚀","Produkt "+project.name+" został wydany jako v1.0");
+            toast("🚀 "+project.name+" gotowy — wersja v1.0");
+        }
+    });
+
+    game.productProjects = game.productProjects.filter(p=>!finished.includes(p.id));
+}
+
 function calculateIncome(){
 
     let income=0;
 
     game.products.forEach(p=>{
 
-        const model=
-            game.models.find(
-                m=>m.id===p.modelId
-            );
-
-        const quality=
-            model?model.quality:50;
-
-        const productIncome=
-            p.users*
-            (0.015+
-             quality*.0002+
-             p.rating*.002);
-
-        p.revenue+=productIncome;
-
+        const model=game.models.find(m=>m.id===p.modelId);
+        const quality=model?model.quality:50;
+        const productIncome=p.users*(0.015+quality*0.0002+p.rating*0.002);
         income+=productIncome;
 
     });
@@ -3975,24 +3979,26 @@ function calculateExpenses(){
 
 function gameTick(){
 
+    updateProductProjects();
+
     const income=calculateIncome();
 
     const expenses=calculateExpenses();
 
+    game.products.forEach(p=>{
+        const model=game.models.find(m=>m.id===p.modelId);
+        const quality=model?model.quality:50;
+        p.revenue += p.users*(0.015+quality*0.0002+p.rating*0.002);
+    });
+
     const net=income-expenses.total;
 
-    game.cash+=net;
-
     if(income>0){
-
-        game.totalIncome+=income;
-
+        changeCash(income,"Przychód z produktów",true);
     }
 
     if(expenses.total>0){
-
-        game.totalExpenses+=expenses.total;
-
+        changeCash(-expenses.total,"Koszty operacyjne",true);
     }
 
     game.researchPoints+=
@@ -4168,7 +4174,7 @@ function renderDashboard(){
 
     document.getElementById("dashProducts")
         .textContent=
-        game.products.length+
+        (game.products.length+game.productProjects.length)+
         " produktów";
 
     document.getElementById("dashGpu")
@@ -4359,6 +4365,25 @@ function renderModels(){
 }
 
 function renderProducts(){
+
+    const projectsEl=document.getElementById("productProjectsList");
+    if(projectsEl){
+        if(!game.productProjects.length){
+            projectsEl.innerHTML=`<div style="padding:22px;color:#697388;text-align:center;font-size:11px">Brak produktów w produkcji.</div>`;
+        }else{
+            projectsEl.innerHTML=game.productProjects.map(p=>`
+                <div class="list-item">
+                    <div class="item-icon">🛠️</div>
+                    <div class="item-main">
+                        <div class="item-title">${escapeHtml(p.name)} <span class="tag">PRODUKCJA</span></div>
+                        <div class="item-desc">${escapeHtml(p.modelName)} • planowana wersja v1.0</div>
+                        <div class="progress" style="margin-top:7px"><div style="width:${p.progress}%"></div></div>
+                    </div>
+                    <div style="font-weight:800;font-size:12px;min-width:50px;text-align:right">${Math.floor(p.progress)}%</div>
+                </div>
+            `).join("");
+        }
+    }
 
     document.getElementById("productCount")
         .textContent=game.products.length;
