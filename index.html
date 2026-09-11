@@ -1,12 +1,25 @@
-```html
 <!DOCTYPE html>
 <html lang="pl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Island Empire 3D</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Construction Empire</title>
 
 <style>
+:root{
+    --bg:#070b14;
+    --panel:rgba(16,22,38,.72);
+    --panel2:rgba(25,33,55,.62);
+    --border:rgba(255,255,255,.10);
+    --text:#f4f7ff;
+    --muted:#8d98ad;
+    --green:#39e58c;
+    --blue:#5c8dff;
+    --orange:#ffad42;
+    --red:#ff5570;
+    --purple:#9c6cff;
+}
+
 *{
     box-sizing:border-box;
     margin:0;
@@ -15,207 +28,991 @@
 
 html,body{
     width:100%;
-    height:100%;
-    overflow:hidden;
-    font-family:Inter,Arial,sans-serif;
-    background:#081018;
-    color:white;
+    min-height:100%;
 }
 
-#game{
+body{
+    font-family:Inter,Segoe UI,Arial,sans-serif;
+    background:
+        radial-gradient(circle at 10% 10%,rgba(92,141,255,.18),transparent 28%),
+        radial-gradient(circle at 90% 15%,rgba(156,108,255,.15),transparent 30%),
+        radial-gradient(circle at 50% 100%,rgba(57,229,140,.08),transparent 35%),
+        var(--bg);
+    color:var(--text);
+    overflow-x:hidden;
+}
+
+/* Animated background */
+body::before{
+    content:"";
     position:fixed;
-    inset:0;
-}
-
-canvas{
-    display:block;
-    width:100%;
-    height:100%;
-}
-
-.ui{
-    position:fixed;
-    inset:0;
+    width:650px;
+    height:650px;
+    left:-250px;
+    top:20%;
+    border-radius:50%;
+    background:linear-gradient(135deg,#4c6fff,#a855f7);
+    filter:blur(150px);
+    opacity:.12;
+    animation:float1 15s infinite alternate ease-in-out;
     pointer-events:none;
 }
 
-.topbar{
-    position:absolute;
-    top:16px;
-    left:50%;
-    transform:translateX(-50%);
+body::after{
+    content:"";
+    position:fixed;
+    width:500px;
+    height:500px;
+    right:-200px;
+    bottom:-100px;
+    border-radius:50%;
+    background:linear-gradient(135deg,#19e69c,#3b82f6);
+    filter:blur(130px);
+    opacity:.10;
+    animation:float2 18s infinite alternate ease-in-out;
+    pointer-events:none;
+}
+
+@keyframes float1{
+    from{transform:translate(0,0)}
+    to{transform:translate(180px,-100px)}
+}
+
+@keyframes float2{
+    from{transform:translate(0,0)}
+    to{transform:translate(-150px,-100px)}
+}
+
+/* APP */
+
+.app{
+    min-height:100vh;
     display:flex;
-    gap:10px;
-    padding:10px 14px;
-    border:1px solid rgba(255,255,255,.14);
-    border-radius:18px;
-    background:rgba(9,17,25,.78);
-    backdrop-filter:blur(18px);
-    box-shadow:0 15px 45px rgba(0,0,0,.35);
+    position:relative;
+    z-index:1;
 }
 
-.resource{
-    min-width:110px;
-    padding:8px 12px;
-    border-radius:12px;
-    background:rgba(255,255,255,.06);
-}
-
-.resource small{
-    display:block;
-    color:#91a3b5;
-    font-size:11px;
-    margin-bottom:3px;
-}
-
-.resource b{
-    font-size:16px;
-}
+/* SIDEBAR */
 
 .sidebar{
-    position:absolute;
-    left:18px;
-    top:90px;
-    width:235px;
-    padding:14px;
-    border:1px solid rgba(255,255,255,.13);
-    border-radius:20px;
-    background:rgba(7,15,23,.78);
-    backdrop-filter:blur(18px);
-    box-shadow:0 20px 60px rgba(0,0,0,.4);
-    pointer-events:auto;
-}
-
-.sidebar h2{
-    font-size:21px;
-    margin-bottom:3px;
-}
-
-.sidebar .subtitle{
-    color:#8497a8;
-    font-size:12px;
-    margin-bottom:15px;
-}
-
-.section{
-    margin-top:12px;
-}
-
-.section-title{
-    color:#8497a8;
-    text-transform:uppercase;
-    letter-spacing:1px;
-    font-size:10px;
-    margin-bottom:7px;
-}
-
-button{
-    width:100%;
-    border:1px solid rgba(255,255,255,.1);
-    background:rgba(255,255,255,.06);
-    color:white;
-    padding:10px;
-    border-radius:11px;
-    margin-bottom:7px;
-    cursor:pointer;
-    text-align:left;
-    transition:.15s;
-}
-
-button:hover{
-    background:rgba(255,255,255,.13);
-    transform:translateY(-1px);
-}
-
-button.active{
-    background:rgba(75,160,110,.35);
-    border-color:rgba(100,220,140,.55);
-}
-
-.info{
-    position:absolute;
-    right:18px;
-    top:90px;
-    width:260px;
-    padding:16px;
-    border:1px solid rgba(255,255,255,.13);
-    border-radius:20px;
-    background:rgba(7,15,23,.78);
-    backdrop-filter:blur(18px);
-    pointer-events:auto;
-}
-
-.info h3{
-    margin-bottom:10px;
-}
-
-.stat{
-    display:flex;
-    justify-content:space-between;
-    padding:7px 0;
-    border-bottom:1px solid rgba(255,255,255,.06);
-    color:#b8c6d2;
-}
-
-.stat b{
-    color:white;
-}
-
-.bottom{
-    position:absolute;
-    left:50%;
-    bottom:18px;
-    transform:translateX(-50%);
-    padding:10px 14px;
-    border-radius:15px;
-    background:rgba(7,15,23,.78);
-    border:1px solid rgba(255,255,255,.12);
-    backdrop-filter:blur(15px);
-    color:#aebdca;
-    font-size:12px;
-}
-
-.toast{
-    position:absolute;
-    left:50%;
-    top:75px;
-    transform:translateX(-50%) translateY(-20px);
-    opacity:0;
-    padding:10px 18px;
-    border-radius:12px;
-    background:rgba(8,15,22,.9);
-    border:1px solid rgba(255,255,255,.15);
-    transition:.25s;
-}
-
-.toast.show{
-    opacity:1;
-    transform:translateX(-50%) translateY(0);
-}
-
-#loading{
+    width:250px;
+    min-height:100vh;
+    padding:22px 16px;
+    background:rgba(7,11,20,.70);
+    backdrop-filter:blur(25px);
+    -webkit-backdrop-filter:blur(25px);
+    border-right:1px solid var(--border);
     position:fixed;
-    inset:0;
+    left:0;
+    top:0;
+    bottom:0;
+    z-index:20;
+}
+
+.logo{
     display:flex;
     align-items:center;
-    justify-content:center;
-    background:#071019;
-    z-index:10;
+    gap:12px;
+    margin-bottom:32px;
+    padding:4px 8px;
+}
+
+.logoIcon{
+    width:43px;
+    height:43px;
+    border-radius:14px;
+    display:grid;
+    place-items:center;
+    font-size:22px;
+    background:linear-gradient(135deg,#5c8dff,#9c6cff);
+    box-shadow:0 10px 35px rgba(92,141,255,.35);
+}
+
+.logoText strong{
+    display:block;
+    font-size:16px;
+    letter-spacing:.3px;
+}
+
+.logoText span{
+    display:block;
+    font-size:11px;
+    color:var(--muted);
+    margin-top:3px;
+}
+
+.navTitle{
+    color:#626d82;
+    font-size:10px;
+    font-weight:700;
+    letter-spacing:1.5px;
+    margin:18px 10px 9px;
+}
+
+.nav{
+    display:flex;
+    flex-direction:column;
+    gap:5px;
+}
+
+.nav button{
+    border:1px solid transparent;
+    background:transparent;
+    color:#9ca7ba;
+    width:100%;
+    text-align:left;
+    padding:12px 13px;
+    border-radius:12px;
+    cursor:pointer;
+    font-size:13px;
+    transition:.2s;
+}
+
+.nav button:hover{
+    background:rgba(255,255,255,.05);
+    color:#fff;
+}
+
+.nav button.active{
+    background:linear-gradient(100deg,rgba(92,141,255,.18),rgba(156,108,255,.10));
+    border-color:rgba(92,141,255,.22);
+    color:white;
+    box-shadow:inset 3px 0 0 #6c91ff;
+}
+
+.navIcon{
+    width:25px;
+    display:inline-block;
+}
+
+/* MAIN */
+
+.main{
+    margin-left:250px;
+    width:calc(100% - 250px);
+    min-height:100vh;
+}
+
+.topbar{
+    height:78px;
+    padding:15px 28px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    position:sticky;
+    top:0;
+    z-index:15;
+    background:rgba(7,11,20,.52);
+    backdrop-filter:blur(20px);
+    border-bottom:1px solid rgba(255,255,255,.06);
+}
+
+.pageTitle h1{
     font-size:22px;
 }
 
-@media(max-width:1000px){
-    .sidebar{
-        width:200px;
+.pageTitle p{
+    color:var(--muted);
+    font-size:12px;
+    margin-top:4px;
+}
+
+.topStats{
+    display:flex;
+    align-items:center;
+    gap:10px;
+}
+
+.moneyBox,
+.dateBox{
+    background:rgba(255,255,255,.055);
+    border:1px solid var(--border);
+    border-radius:13px;
+    padding:10px 14px;
+    backdrop-filter:blur(15px);
+}
+
+.moneyBox{
+    min-width:145px;
+}
+
+.moneyBox small,
+.dateBox small{
+    display:block;
+    color:var(--muted);
+    font-size:9px;
+    text-transform:uppercase;
+    letter-spacing:1px;
+}
+
+.money{
+    color:#fff;
+    font-weight:800;
+    font-size:15px;
+    margin-top:2px;
+}
+
+/* CONTENT */
+
+.content{
+    padding:25px 28px 50px;
+}
+
+.page{
+    display:none;
+    animation:pageIn .25s ease;
+}
+
+.page.active{
+    display:block;
+}
+
+@keyframes pageIn{
+    from{opacity:0;transform:translateY(7px)}
+    to{opacity:1;transform:none}
+}
+
+/* GLASS */
+
+.glass{
+    background:
+        linear-gradient(145deg,rgba(255,255,255,.075),rgba(255,255,255,.025));
+    border:1px solid var(--border);
+    box-shadow:
+        0 20px 60px rgba(0,0,0,.22),
+        inset 0 1px 0 rgba(255,255,255,.035);
+    backdrop-filter:blur(22px);
+    -webkit-backdrop-filter:blur(22px);
+    border-radius:20px;
+}
+
+/* DASHBOARD */
+
+.hero{
+    padding:28px;
+    min-height:180px;
+    position:relative;
+    overflow:hidden;
+    background:
+        linear-gradient(120deg,rgba(92,141,255,.17),rgba(156,108,255,.10),rgba(57,229,140,.07));
+}
+
+.hero::after{
+    content:"";
+    position:absolute;
+    width:300px;
+    height:300px;
+    right:-100px;
+    top:-130px;
+    border-radius:50%;
+    background:linear-gradient(135deg,#5c8dff,#9c6cff);
+    filter:blur(80px);
+    opacity:.25;
+}
+
+.heroContent{
+    position:relative;
+    z-index:2;
+    max-width:650px;
+}
+
+.badge{
+    display:inline-flex;
+    align-items:center;
+    gap:7px;
+    background:rgba(255,255,255,.07);
+    border:1px solid rgba(255,255,255,.10);
+    padding:6px 10px;
+    border-radius:999px;
+    font-size:10px;
+    color:#aab6ca;
+    margin-bottom:13px;
+}
+
+.dot{
+    width:6px;
+    height:6px;
+    background:var(--green);
+    border-radius:50%;
+    box-shadow:0 0 12px var(--green);
+}
+
+.hero h2{
+    font-size:30px;
+    line-height:1.1;
+    margin-bottom:10px;
+}
+
+.gradientText{
+    background:linear-gradient(90deg,#75a2ff,#a878ff,#52e69a);
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+}
+
+.hero p{
+    color:#9ba6ba;
+    font-size:13px;
+    line-height:1.6;
+}
+
+/* CARDS */
+
+.statsGrid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:14px;
+    margin-top:16px;
+}
+
+.stat{
+    padding:18px;
+    min-height:105px;
+    position:relative;
+    overflow:hidden;
+}
+
+.stat::before{
+    content:"";
+    position:absolute;
+    width:90px;
+    height:90px;
+    right:-35px;
+    top:-35px;
+    border-radius:50%;
+    background:var(--accent,#5c8dff);
+    filter:blur(35px);
+    opacity:.17;
+}
+
+.statTop{
+    display:flex;
+    justify-content:space-between;
+    color:var(--muted);
+    font-size:11px;
+}
+
+.statIcon{
+    font-size:19px;
+}
+
+.statValue{
+    font-size:23px;
+    font-weight:800;
+    margin-top:13px;
+}
+
+.statChange{
+    color:var(--green);
+    font-size:10px;
+    margin-top:4px;
+}
+
+/* GRID */
+
+.twoCol{
+    display:grid;
+    grid-template-columns:1.35fr .85fr;
+    gap:16px;
+    margin-top:16px;
+}
+
+.section{
+    padding:20px;
+}
+
+.sectionHeader{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:16px;
+}
+
+.sectionHeader h3{
+    font-size:14px;
+}
+
+.sectionHeader span{
+    color:var(--muted);
+    font-size:10px;
+}
+
+/* MAP */
+
+.map{
+    position:relative;
+    min-height:430px;
+    overflow:hidden;
+    background:
+        linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),
+        linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px),
+        linear-gradient(145deg,#172033,#101726);
+    background-size:42px 42px,42px 42px,100% 100%;
+}
+
+.map::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    opacity:.65;
+    background:
+        linear-gradient(22deg,transparent 47%,rgba(255,255,255,.08) 48%,rgba(255,255,255,.08) 51%,transparent 52%),
+        linear-gradient(157deg,transparent 42%,rgba(255,255,255,.06) 43%,rgba(255,255,255,.06) 46%,transparent 47%);
+}
+
+.road{
+    position:absolute;
+    background:#242e42;
+    box-shadow:inset 0 1px rgba(255,255,255,.04);
+}
+
+.road.h{
+    height:27px;
+    left:-20px;
+    right:-20px;
+}
+
+.road.v{
+    width:27px;
+    top:-20px;
+    bottom:-20px;
+}
+
+.road.one{top:35%;}
+.road.two{top:69%;}
+.road.three{left:32%;}
+.road.four{left:72%;}
+
+.road::after{
+    content:"";
+    position:absolute;
+    background:repeating-linear-gradient(
+        90deg,
+        transparent 0 20px,
+        rgba(255,210,90,.7) 20px 32px,
+        transparent 32px 52px
+    );
+    left:0;
+    right:0;
+    height:2px;
+    top:12px;
+}
+
+.road.v::after{
+    top:0;
+    bottom:0;
+    left:12px;
+    width:2px;
+    height:auto;
+    background:repeating-linear-gradient(
+        0deg,
+        transparent 0 20px,
+        rgba(255,210,90,.7) 20px 32px,
+        transparent 32px 52px
+    );
+}
+
+.plot{
+    position:absolute;
+    border:1px solid rgba(130,160,200,.20);
+    background:rgba(73,96,120,.14);
+    border-radius:7px;
+    cursor:pointer;
+    transition:.2s;
+}
+
+.plot:hover{
+    transform:scale(1.03);
+    border-color:rgba(92,141,255,.7);
+    background:rgba(92,141,255,.14);
+}
+
+.plot.building{
+    background:linear-gradient(145deg,rgba(92,141,255,.32),rgba(156,108,255,.15));
+    border-color:rgba(110,150,255,.45);
+}
+
+.plot.complete{
+    background:linear-gradient(145deg,rgba(57,229,140,.28),rgba(42,120,100,.16));
+    border-color:rgba(57,229,140,.42);
+}
+
+.plotIcon{
+    position:absolute;
+    inset:0;
+    display:grid;
+    place-items:center;
+    font-size:22px;
+    filter:drop-shadow(0 4px 10px rgba(0,0,0,.4));
+}
+
+.plotName{
+    position:absolute;
+    bottom:5px;
+    left:5px;
+    right:5px;
+    text-align:center;
+    font-size:8px;
+    color:#d7deec;
+    white-space:nowrap;
+    overflow:hidden;
+}
+
+/* CONTRACTS */
+
+.contract{
+    padding:14px;
+    border:1px solid rgba(255,255,255,.07);
+    border-radius:14px;
+    background:rgba(255,255,255,.025);
+    margin-bottom:9px;
+    transition:.2s;
+}
+
+.contract:hover{
+    background:rgba(255,255,255,.05);
+    transform:translateX(2px);
+}
+
+.contractTop{
+    display:flex;
+    justify-content:space-between;
+}
+
+.contractName{
+    font-weight:700;
+    font-size:12px;
+}
+
+.contractReward{
+    color:var(--green);
+    font-weight:800;
+    font-size:11px;
+}
+
+.contractInfo{
+    color:var(--muted);
+    font-size:10px;
+    margin:7px 0;
+}
+
+.progress{
+    height:5px;
+    border-radius:10px;
+    background:rgba(255,255,255,.07);
+    overflow:hidden;
+}
+
+.progress span{
+    display:block;
+    height:100%;
+    background:linear-gradient(90deg,#5c8dff,#9c6cff);
+    border-radius:10px;
+}
+
+/* BUTTONS */
+
+button.action{
+    border:none;
+    border-radius:10px;
+    padding:9px 13px;
+    color:white;
+    font-weight:700;
+    font-size:11px;
+    cursor:pointer;
+    background:linear-gradient(135deg,#557fff,#825eea);
+    box-shadow:0 7px 22px rgba(92,141,255,.18);
+    transition:.18s;
+}
+
+button.action:hover{
+    transform:translateY(-1px);
+    box-shadow:0 10px 28px rgba(92,141,255,.3);
+}
+
+button.action.green{
+    background:linear-gradient(135deg,#27c97b,#3de19b);
+    color:#07130d;
+}
+
+button.action.orange{
+    background:linear-gradient(135deg,#ff9e35,#ffca55);
+    color:#1d1304;
+}
+
+button.action.red{
+    background:linear-gradient(135deg,#e84162,#ff657c);
+}
+
+button.action.ghost{
+    background:rgba(255,255,255,.055);
+    border:1px solid rgba(255,255,255,.08);
+    box-shadow:none;
+}
+
+button.action:disabled{
+    opacity:.45;
+    cursor:not-allowed;
+    transform:none;
+}
+
+/* LIST */
+
+.list{
+    display:grid;
+    gap:10px;
+}
+
+.listItem{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:12px;
+    padding:13px;
+    border-radius:13px;
+    background:rgba(255,255,255,.025);
+    border:1px solid rgba(255,255,255,.06);
+}
+
+.itemLeft{
+    display:flex;
+    align-items:center;
+    gap:12px;
+}
+
+.itemIcon{
+    width:42px;
+    height:42px;
+    border-radius:12px;
+    display:grid;
+    place-items:center;
+    font-size:19px;
+    background:linear-gradient(135deg,rgba(92,141,255,.18),rgba(156,108,255,.12));
+    border:1px solid rgba(255,255,255,.08);
+}
+
+.itemName{
+    font-size:12px;
+    font-weight:700;
+}
+
+.itemSub{
+    color:var(--muted);
+    font-size:10px;
+    margin-top:3px;
+}
+
+/* PAGE TITLE */
+
+.pageHead{
+    margin-bottom:18px;
+}
+
+.pageHead h2{
+    font-size:25px;
+}
+
+.pageHead p{
+    color:var(--muted);
+    font-size:12px;
+    margin-top:5px;
+}
+
+/* CONTRACT GRID */
+
+.contractGrid,
+.machineGrid,
+.employeeGrid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:14px;
+}
+
+.bigCard{
+    padding:19px;
+}
+
+.bigIcon{
+    width:48px;
+    height:48px;
+    display:grid;
+    place-items:center;
+    border-radius:15px;
+    font-size:23px;
+    background:linear-gradient(135deg,rgba(92,141,255,.2),rgba(156,108,255,.12));
+    border:1px solid rgba(255,255,255,.08);
+    margin-bottom:14px;
+}
+
+.bigCard h3{
+    font-size:14px;
+}
+
+.bigCard p{
+    color:var(--muted);
+    font-size:10px;
+    line-height:1.6;
+    margin:7px 0 15px;
+}
+
+.price{
+    font-size:16px;
+    font-weight:800;
+    margin-bottom:11px;
+}
+
+/* TABLE */
+
+.table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+.table th{
+    color:#6f7a90;
+    text-align:left;
+    font-size:9px;
+    text-transform:uppercase;
+    letter-spacing:1px;
+    padding:11px;
+    border-bottom:1px solid rgba(255,255,255,.07);
+}
+
+.table td{
+    padding:13px 11px;
+    border-bottom:1px solid rgba(255,255,255,.045);
+    font-size:11px;
+}
+
+.status{
+    padding:5px 8px;
+    border-radius:999px;
+    font-size:9px;
+    background:rgba(57,229,140,.1);
+    color:var(--green);
+}
+
+.status.orange{
+    color:var(--orange);
+    background:rgba(255,173,66,.1);
+}
+
+/* FINANCE */
+
+.financeCards{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:14px;
+    margin-bottom:16px;
+}
+
+.financeValue{
+    font-size:22px;
+    font-weight:800;
+    margin-top:8px;
+}
+
+.chart{
+    height:300px;
+    display:flex;
+    align-items:flex-end;
+    gap:12px;
+    padding:20px 10px 35px;
+}
+
+.barGroup{
+    height:100%;
+    flex:1;
+    display:flex;
+    align-items:flex-end;
+    justify-content:center;
+    gap:4px;
+    position:relative;
+}
+
+.bar{
+    width:16px;
+    border-radius:5px 5px 2px 2px;
+    min-height:3px;
+}
+
+.bar.income{
+    background:linear-gradient(#42e69b,#218f68);
+}
+
+.bar.expense{
+    background:linear-gradient(#ff6c82,#a92e45);
+}
+
+.barLabel{
+    position:absolute;
+    bottom:-23px;
+    font-size:9px;
+    color:#69758a;
+}
+
+/* NOTIFICATION */
+
+.toast{
+    position:fixed;
+    right:25px;
+    bottom:25px;
+    z-index:100;
+    padding:13px 17px;
+    border-radius:14px;
+    background:rgba(16,23,39,.86);
+    backdrop-filter:blur(18px);
+    border:1px solid rgba(255,255,255,.12);
+    box-shadow:0 20px 50px rgba(0,0,0,.35);
+    transform:translateY(120px);
+    opacity:0;
+    transition:.3s;
+    font-size:11px;
+}
+
+.toast.show{
+    transform:translateY(0);
+    opacity:1;
+}
+
+/* MODAL */
+
+.modalOverlay{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.55);
+    backdrop-filter:blur(8px);
+    z-index:90;
+    display:none;
+    place-items:center;
+    padding:20px;
+}
+
+.modalOverlay.show{
+    display:grid;
+}
+
+.modal{
+    width:min(500px,100%);
+    padding:23px;
+    border-radius:20px;
+    background:rgba(15,21,36,.91);
+    border:1px solid rgba(255,255,255,.12);
+    box-shadow:0 30px 100px rgba(0,0,0,.55);
+}
+
+.modalHeader{
+    display:flex;
+    justify-content:space-between;
+    margin-bottom:18px;
+}
+
+.close{
+    border:0;
+    background:rgba(255,255,255,.06);
+    color:#fff;
+    width:30px;
+    height:30px;
+    border-radius:9px;
+    cursor:pointer;
+}
+
+.modal h2{
+    font-size:19px;
+}
+
+.modal p{
+    color:var(--muted);
+    font-size:11px;
+    line-height:1.6;
+    margin-bottom:18px;
+}
+
+.modalActions{
+    display:flex;
+    justify-content:flex-end;
+    gap:8px;
+}
+
+/* MOBILE */
+
+.mobileMenu{
+    display:none;
+}
+
+@media(max-width:1050px){
+    .statsGrid{
+        grid-template-columns:repeat(2,1fr);
     }
 
-    .info{
-        display:none;
+    .twoCol{
+        grid-template-columns:1fr;
+    }
+
+    .contractGrid,
+    .machineGrid,
+    .employeeGrid{
+        grid-template-columns:repeat(2,1fr);
+    }
+}
+
+@media(max-width:760px){
+    .sidebar{
+        transform:translateX(-100%);
+        transition:.25s;
+    }
+
+    .sidebar.open{
+        transform:translateX(0);
+    }
+
+    .main{
+        margin-left:0;
+        width:100%;
+    }
+
+    .mobileMenu{
+        display:grid;
+        place-items:center;
+        width:38px;
+        height:38px;
+        border-radius:11px;
+        background:rgba(255,255,255,.06);
+        border:1px solid var(--border);
+        color:white;
+        cursor:pointer;
     }
 
     .topbar{
-        transform:translateX(-50%) scale(.85);
-        transform-origin:top center;
+        padding:12px 15px;
+    }
+
+    .content{
+        padding:18px 15px 40px;
+    }
+
+    .topStats .dateBox{
+        display:none;
+    }
+
+    .hero{
+        padding:22px;
+    }
+
+    .hero h2{
+        font-size:23px;
+    }
+
+    .statsGrid,
+    .contractGrid,
+    .machineGrid,
+    .employeeGrid,
+    .financeCards{
+        grid-template-columns:1fr;
+    }
+
+    .map{
+        min-height:360px;
     }
 }
 </style>
@@ -223,2236 +1020,1867 @@ button.active{
 
 <body>
 
-<div id="loading">Generowanie wyspy...</div>
+<div class="app">
 
-<div id="game"></div>
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
 
-<div class="ui">
-
-    <div class="topbar">
-
-        <div class="resource">
-            <small>💰 ZŁOTO</small>
-            <b id="gold">500</b>
+        <div class="logo">
+            <div class="logoIcon">🏗️</div>
+            <div class="logoText">
+                <strong>Construction Empire</strong>
+                <span>BUILD YOUR FUTURE</span>
+            </div>
         </div>
 
-        <div class="resource">
-            <small>🌲 DREWNO</small>
-            <b id="wood">250</b>
-        </div>
+        <div class="navTitle">ZARZĄDZANIE</div>
 
-        <div class="resource">
-            <small>🪨 KAMIEŃ</small>
-            <b id="stone">150</b>
-        </div>
+        <nav class="nav">
 
-        <div class="resource">
-            <small>🌾 ŻYWNOŚĆ</small>
-            <b id="food">200</b>
-        </div>
-
-        <div class="resource">
-            <small>👥 LUDNOŚĆ</small>
-            <b id="population">8 / 20</b>
-        </div>
-
-        <div class="resource">
-            <small>📅 DZIEŃ</small>
-            <b id="day">1</b>
-        </div>
-
-    </div>
-
-
-    <div class="sidebar">
-
-        <h2>🏝️ Island Empire</h2>
-        <div class="subtitle">Twoje nowe królestwo</div>
-
-        <div class="section">
-
-            <div class="section-title">Budowanie</div>
-
-            <button data-build="house">
-                🏠 Dom
-                <small> 50 drewna</small>
+            <button class="active" data-page="dashboard">
+                <span class="navIcon">◈</span> Dashboard
             </button>
 
-            <button data-build="farm">
-                🌾 Farma
-                <small> 70 drewna</small>
+            <button data-page="map">
+                <span class="navIcon">🗺️</span> Mapa miasta
             </button>
 
-            <button data-build="woodcutter">
-                🌲 Leśniczówka
-                <small> 60 drewna</small>
+            <button data-page="contracts">
+                <span class="navIcon">🚧</span> Kontrakty
             </button>
 
-            <button data-build="quarry">
-                ⛏️ Kamieniołom
-                <small> 80 drewna</small>
+            <button data-page="machines">
+                <span class="navIcon">🚜</span> Maszyny
             </button>
 
-            <button data-build="market">
-                🏪 Rynek
-                <small> 100 drewna / 50 kamienia</small>
+            <button data-page="employees">
+                <span class="navIcon">👷</span> Pracownicy
             </button>
 
-            <button data-build="port">
-                ⚓ Port
-                <small> 150 drewna / 80 kamienia</small>
+        </nav>
+
+        <div class="navTitle">FIRMA</div>
+
+        <nav class="nav">
+
+            <button data-page="company">
+                <span class="navIcon">🏢</span> Firma
+            </button>
+
+            <button data-page="finance">
+                <span class="navIcon">📊</span> Finanse
+            </button>
+
+        </nav>
+
+        <div style="position:absolute;bottom:20px;left:16px;right:16px">
+
+            <button class="action ghost" style="width:100%" onclick="saveGame()">
+                💾 Zapisz grę
+            </button>
+
+            <button class="action ghost" style="width:100%;margin-top:7px" onclick="resetGame()">
+                ↻ Nowa gra
             </button>
 
         </div>
 
-        <div class="section">
+    </aside>
 
-            <div class="section-title">Gra</div>
+    <!-- MAIN -->
+    <main class="main">
 
-            <button id="save">💾 Zapisz grę</button>
-            <button id="load">📂 Wczytaj grę</button>
-            <button id="pause">⏸️ Pauza</button>
+        <header class="topbar">
+
+            <div style="display:flex;align-items:center;gap:12px">
+
+                <button class="mobileMenu" onclick="toggleSidebar()">☰</button>
+
+                <div class="pageTitle">
+                    <h1 id="pageTitle">Dashboard</h1>
+                    <p>Centrum dowodzenia Twoim przedsiębiorstwem</p>
+                </div>
+
+            </div>
+
+            <div class="topStats">
+
+                <div class="moneyBox">
+                    <small>Saldo firmy</small>
+                    <div class="money" id="topMoney">$0</div>
+                </div>
+
+                <div class="dateBox">
+                    <small>Dzień</small>
+                    <div class="money" id="gameDate">Dzień 1</div>
+                </div>
+
+            </div>
+
+        </header>
+
+        <div class="content">
+
+            <!-- DASHBOARD -->
+            <section class="page active" id="page-dashboard">
+
+                <div class="glass hero">
+
+                    <div class="heroContent">
+
+                        <div class="badge">
+                            <span class="dot"></span>
+                            FIRMA AKTYWNA
+                        </div>
+
+                        <h2>
+                            Zbuduj swoje
+                            <span class="gradientText">budowlane imperium.</span>
+                        </h2>
+
+                        <p>
+                            Rozpocznij od małych kontraktów, rozwijaj flotę,
+                            zatrudniaj najlepszych pracowników i przejmuj coraz
+                            większe projekty w całym mieście.
+                        </p>
+
+                    </div>
+
+                </div>
+
+                <div class="statsGrid">
+
+                    <div class="glass stat" style="--accent:#5c8dff">
+                        <div class="statTop">
+                            <span>GOTÓWKA</span>
+                            <span class="statIcon">💰</span>
+                        </div>
+                        <div class="statValue" id="cashStat">$0</div>
+                        <div class="statChange">+ przychody z kontraktów</div>
+                    </div>
+
+                    <div class="glass stat" style="--accent:#39e58c">
+                        <div class="statTop">
+                            <span>AKTYWNE BUDOWY</span>
+                            <span class="statIcon">🚧</span>
+                        </div>
+                        <div class="statValue" id="activeBuilds">0</div>
+                        <div class="statChange">place budowy</div>
+                    </div>
+
+                    <div class="glass stat" style="--accent:#ffad42">
+                        <div class="statTop">
+                            <span>PRACOWNICY</span>
+                            <span class="statIcon">👷</span>
+                        </div>
+                        <div class="statValue" id="employeeStat">0 / 5</div>
+                        <div class="statChange">dostępna kadra</div>
+                    </div>
+
+                    <div class="glass stat" style="--accent:#9c6cff">
+                        <div class="statTop">
+                            <span>REPUTACJA</span>
+                            <span class="statIcon">⭐</span>
+                        </div>
+                        <div class="statValue" id="repStat">10</div>
+                        <div class="statChange">poziom firmy</div>
+                    </div>
+
+                </div>
+
+                <div class="twoCol">
+
+                    <div class="glass section">
+
+                        <div class="sectionHeader">
+                            <h3>🏙️ Twoje miasto</h3>
+                            <span>LIVE MAP</span>
+                        </div>
+
+                        <div class="map" id="dashboardMap"></div>
+
+                    </div>
+
+                    <div class="glass section">
+
+                        <div class="sectionHeader">
+                            <h3>📋 Dostępne kontrakty</h3>
+                            <span>NOWE</span>
+                        </div>
+
+                        <div id="dashboardContracts"></div>
+
+                        <button class="action ghost" style="width:100%" onclick="openPage('contracts')">
+                            Zobacz wszystkie kontrakty →
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- MAP -->
+            <section class="page" id="page-map">
+
+                <div class="pageHead">
+                    <h2>🗺️ Mapa miasta</h2>
+                    <p>Wybierz działkę i rozpocznij nową inwestycję.</p>
+                </div>
+
+                <div class="glass section">
+                    <div class="map" id="mainMap" style="min-height:650px"></div>
+                </div>
+
+            </section>
+
+
+            <!-- CONTRACTS -->
+            <section class="page" id="page-contracts">
+
+                <div class="pageHead">
+                    <h2>🚧 Kontrakty budowlane</h2>
+                    <p>Wybieraj zlecenia, buduj reputację i zwiększaj przychody.</p>
+                </div>
+
+                <div class="contractGrid" id="contractsGrid"></div>
+
+            </section>
+
+
+            <!-- MACHINES -->
+            <section class="page" id="page-machines">
+
+                <div class="pageHead">
+                    <h2>🚜 Flota maszyn</h2>
+                    <p>Rozbuduj sprzęt swojej firmy.</p>
+                </div>
+
+                <div class="machineGrid" id="machineGrid"></div>
+
+            </section>
+
+
+            <!-- EMPLOYEES -->
+            <section class="page" id="page-employees">
+
+                <div class="pageHead">
+                    <h2>👷 Pracownicy</h2>
+                    <p>Zbuduj profesjonalne ekipy budowlane.</p>
+                </div>
+
+                <div class="employeeGrid" id="employeeGrid"></div>
+
+            </section>
+
+
+            <!-- COMPANY -->
+            <section class="page" id="page-company">
+
+                <div class="pageHead">
+                    <h2>🏢 Twoja firma</h2>
+                    <p>Rozwijaj przedsiębiorstwo i zwiększaj jego wartość.</p>
+                </div>
+
+                <div class="twoCol">
+
+                    <div class="glass section">
+
+                        <div class="sectionHeader">
+                            <h3>Informacje o firmie</h3>
+                        </div>
+
+                        <div class="list">
+
+                            <div class="listItem">
+                                <div class="itemLeft">
+                                    <div class="itemIcon">🏗️</div>
+                                    <div>
+                                        <div class="itemName">Construction Empire</div>
+                                        <div class="itemSub">Główna siedziba</div>
+                                    </div>
+                                </div>
+                                <span class="status">AKTYWNA</span>
+                            </div>
+
+                            <div class="listItem">
+                                <div class="itemLeft">
+                                    <div class="itemIcon">⭐</div>
+                                    <div>
+                                        <div class="itemName">Reputacja</div>
+                                        <div class="itemSub">Opinie klientów</div>
+                                    </div>
+                                </div>
+                                <strong id="companyRep">10</strong>
+                            </div>
+
+                            <div class="listItem">
+                                <div class="itemLeft">
+                                    <div class="itemIcon">🚧</div>
+                                    <div>
+                                        <div class="itemName">Ukończone budowy</div>
+                                        <div class="itemSub">Historia firmy</div>
+                                    </div>
+                                </div>
+                                <strong id="completedStat">0</strong>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <div class="glass section">
+
+                        <div class="sectionHeader">
+                            <h3>🏢 Rozwój biura</h3>
+                        </div>
+
+                        <div class="bigIcon">🏢</div>
+
+                        <h3>Biuro poziom <span id="officeLevel">1</span></h3>
+
+                        <p style="color:var(--muted);font-size:11px;line-height:1.6;margin:8px 0 15px">
+                            Większe biuro pozwala zatrudniać więcej osób
+                            i obsługiwać większe kontrakty.
+                        </p>
+
+                        <div class="price" id="officePrice">$5,000</div>
+
+                        <button class="action" onclick="upgradeOffice()">
+                            Ulepsz biuro
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- FINANCE -->
+            <section class="page" id="page-finance">
+
+                <div class="pageHead">
+                    <h2>📊 Finanse</h2>
+                    <p>Kontroluj przychody i wydatki przedsiębiorstwa.</p>
+                </div>
+
+                <div class="financeCards">
+
+                    <div class="glass section">
+                        <span style="color:var(--muted);font-size:10px">PRZYCHODY</span>
+                        <div class="financeValue" style="color:var(--green)" id="incomeValue">$0</div>
+                    </div>
+
+                    <div class="glass section">
+                        <span style="color:var(--muted);font-size:10px">WYDATKI</span>
+                        <div class="financeValue" style="color:var(--red)" id="expenseValue">$0</div>
+                    </div>
+
+                    <div class="glass section">
+                        <span style="color:var(--muted);font-size:10px">ZYSK</span>
+                        <div class="financeValue" id="profitValue">$0</div>
+                    </div>
+
+                </div>
+
+                <div class="glass section">
+
+                    <div class="sectionHeader">
+                        <h3>Przepływ gotówki</h3>
+                        <span>OSTATNIE 7 DNI</span>
+                    </div>
+
+                    <div class="chart" id="financeChart"></div>
+
+                </div>
+
+                <div class="glass section" style="margin-top:16px">
+
+                    <div class="sectionHeader">
+                        <h3>Ostatnie operacje</h3>
+                    </div>
+
+                    <table class="table">
+
+                        <thead>
+                            <tr>
+                                <th>Operacja</th>
+                                <th>Typ</th>
+                                <th>Kwota</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="transactions"></tbody>
+
+                    </table>
+
+                </div>
+
+            </section>
 
         </div>
 
-    </div>
-
-
-    <div class="info">
-
-        <h3>Informacje o wyspie</h3>
-
-        <div class="stat">
-            <span>Powierzchnia</span>
-            <b id="islandSize">Duża</b>
-        </div>
-
-        <div class="stat">
-            <span>Osada</span>
-            <b id="settlement">Obóz</b>
-        </div>
-
-        <div class="stat">
-            <span>Szczęście</span>
-            <b id="happiness">82%</b>
-        </div>
-
-        <div class="stat">
-            <span>Zwierzęta</span>
-            <b id="animals">24</b>
-        </div>
-
-        <div class="stat">
-            <span>Budynki</span>
-            <b id="buildings">0</b>
-        </div>
-
-        <div class="stat">
-            <span>Rok</span>
-            <b id="year">1</b>
-        </div>
-
-    </div>
-
-
-    <div class="bottom">
-        LPM — wybór / budowanie &nbsp; • &nbsp;
-        PPM — obrót kamery &nbsp; • &nbsp;
-        Kółko — zoom &nbsp; • &nbsp;
-        WASD — przesuwanie kamery
-    </div>
-
-    <div id="toast" class="toast"></div>
+    </main>
 
 </div>
 
 
-<script type="module">
+<!-- MODAL -->
 
-import * as THREE from
-"https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js";
+<div class="modalOverlay" id="modalOverlay">
 
-import {OrbitControls} from
-"https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/controls/OrbitControls.js";
+    <div class="modal">
 
+        <div class="modalHeader">
 
-/* =========================================================
-   GŁÓWNA SCENA
-========================================================= */
+            <h2 id="modalTitle">Budowa</h2>
 
-const container=document.getElementById("game");
+            <button class="close" onclick="closeModal()">×</button>
 
-const scene=new THREE.Scene();
+        </div>
 
-scene.background=new THREE.Color(0x8eb9cf);
+        <div id="modalContent"></div>
 
-scene.fog=new THREE.FogExp2(
-    0x9cc4d3,
-    0.0025
-);
+        <div class="modalActions" id="modalActions"></div>
+
+    </div>
+
+</div>
 
 
-const camera=new THREE.PerspectiveCamera(
-    55,
-    innerWidth/innerHeight,
-    .1,
-    3000
-);
-
-camera.position.set(
-    100,
-    105,
-    130
-);
+<div class="toast" id="toast"></div>
 
 
-const renderer=new THREE.WebGLRenderer({
-    antialias:true
-});
-
-renderer.setSize(
-    innerWidth,
-    innerHeight
-);
-
-renderer.setPixelRatio(
-    Math.min(devicePixelRatio,2)
-);
-
-renderer.shadowMap.enabled=true;
-
-renderer.shadowMap.type=
-THREE.PCFSoftShadowMap;
-
-renderer.outputColorSpace=
-THREE.SRGBColorSpace;
-
-container.appendChild(renderer.domElement);
-
+<script>
 
 /* =========================================================
-   KAMERA
+   GAME STATE
 ========================================================= */
 
-const controls=new OrbitControls(
-    camera,
-    renderer.domElement
-);
-
-controls.target.set(0,0,0);
-
-controls.enableDamping=true;
-
-controls.dampingFactor=.06;
-
-controls.maxPolarAngle=Math.PI*.46;
-
-controls.minDistance=35;
-
-controls.maxDistance=400;
-
-controls.mouseButtons.LEFT=
-THREE.MOUSE.PAN;
-
-controls.mouseButtons.RIGHT=
-THREE.MOUSE.ROTATE;
-
-controls.touches.ONE=
-THREE.TOUCH.PAN;
-
-controls.touches.TWO=
-THREE.TOUCH.DOLLY_ROTATE;
-
-
-/* =========================================================
-   ŚWIATŁO
-========================================================= */
-
-const hemi=new THREE.HemisphereLight(
-    0xbfe9ff,
-    0x53604c,
-    2
-);
-
-scene.add(hemi);
-
-
-const sun=new THREE.DirectionalLight(
-    0xffe3ad,
-    4
-);
-
-sun.position.set(
-    -100,
-    180,
-    -80
-);
-
-sun.castShadow=true;
-
-sun.shadow.mapSize.width=2048;
-sun.shadow.mapSize.height=2048;
-
-sun.shadow.camera.left=-180;
-sun.shadow.camera.right=180;
-sun.shadow.camera.top=180;
-sun.shadow.camera.bottom=-180;
-
-sun.shadow.bias=-.0002;
-
-scene.add(sun);
-
-
-/* =========================================================
-   STAN GRY
-========================================================= */
-
-const state={
-
-    gold:500,
-    wood:250,
-    stone:150,
-    food:200,
-
-    population:8,
-    capacity:20,
-
-    day:1,
-    year:1,
-
-    happiness:82,
-
-    paused:false,
-
-    selectedBuild:null,
-
-    animals:24,
-
-    buildings:[],
-
-    villagers:[],
-
-    trees:[],
-
-    rocks:[],
-
-    animals3d:[]
-
+const defaultState = {
+    cash: 100000,
+    reputation: 10,
+    day: 1,
+    employees: [],
+    machines: [],
+    builds: [],
+    completed: 0,
+    officeLevel: 1,
+    totalIncome: 0,
+    totalExpenses: 0,
+    transactions: [],
+    history: [
+        {income:0,expense:0},
+        {income:0,expense:0},
+        {income:0,expense:0},
+        {income:0,expense:0},
+        {income:0,expense:0},
+        {income:0,expense:0},
+        {income:0,expense:0}
+    ]
 };
 
-
-/* =========================================================
-   TEREN
-========================================================= */
-
-const terrainSize=360;
-
-const segments=180;
-
-const geometry=new THREE.PlaneGeometry(
-    terrainSize,
-    terrainSize,
-    segments,
-    segments
-);
-
-geometry.rotateX(-Math.PI/2);
-
-const position=
-geometry.attributes.position;
-
-
-function heightAt(x,z){
-
-    const d=Math.sqrt(
-        x*x+z*z
-    );
-
-    let h=0;
-
-    h+=
-        Math.sin(x*.035)*
-        Math.cos(z*.041)*
-        3;
-
-    h+=
-        Math.sin(x*.09+z*.04)*
-        1.5;
-
-    h+=
-        Math.cos(z*.07-x*.025)*
-        2;
-
-    h+=
-        Math.sin(x*.018)*
-        Math.sin(z*.024)*
-        5;
-
-    if(d>155){
-        h-=Math.pow(
-            (d-155)/25,
-            2
-        )*7;
-    }
-
-    return Math.max(
-        0,
-        h
-    );
-}
-
-
-for(
-    let i=0;
-    i<position.count;
-    i++
-){
-
-    const x=
-        position.getX(i);
-
-    const z=
-        position.getZ(i);
-
-    position.setY(
-        i,
-        heightAt(x,z)
-    );
-}
-
-geometry.computeVertexNormals();
-
-
-const terrainMaterial=
-new THREE.MeshStandardMaterial({
-
-    color:0x628b4b,
-
-    roughness:.95,
-
-    metalness:0
-
-});
-
-
-const terrain=
-new THREE.Mesh(
-    geometry,
-    terrainMaterial
-);
-
-terrain.receiveShadow=true;
-
-scene.add(terrain);
-
-
-/* =========================================================
-   PLAŻA
-========================================================= */
-
-const beachGeo=
-new THREE.RingGeometry(
-    130,
-    175,
-    128
-);
-
-beachGeo.rotateX(-Math.PI/2);
-
-const beach=
-new THREE.Mesh(
-    beachGeo,
-    new THREE.MeshStandardMaterial({
-        color:0xd8c58a,
-        roughness:1
-    })
-);
-
-beach.position.y=-.15;
-
-scene.add(beach);
-
-
-/* =========================================================
-   OCEAN
-========================================================= */
-
-const oceanGeo=
-new THREE.PlaneGeometry(
-    1000,
-    1000
-);
-
-oceanGeo.rotateX(-Math.PI/2);
-
-const oceanMat=
-new THREE.MeshPhysicalMaterial({
-
-    color:0x247ca2,
-
-    roughness:.22,
-
-    metalness:.05,
-
-    transparent:true,
-
-    opacity:.9
-
-});
-
-const ocean=
-new THREE.Mesh(
-    oceanGeo,
-    oceanMat
-);
-
-ocean.position.y=-1.2;
-
-scene.add(ocean);
-
-
-/* =========================================================
-   WODA — DELIKATNE FALE
-========================================================= */
-
-const waveGeo=
-new THREE.PlaneGeometry(
-    1000,
-    1000,
-    60,
-    60
-);
-
-waveGeo.rotateX(-Math.PI/2);
-
-const wavePos=
-waveGeo.attributes.position;
-
-const waveMat=
-new THREE.MeshStandardMaterial({
-    color:0x2d89a9,
-    transparent:true,
-    opacity:.32,
-    roughness:.3
-});
-
-const waves=
-new THREE.Mesh(
-    waveGeo,
-    waveMat
-);
-
-waves.position.y=-.85;
-
-scene.add(waves);
-
-
-/* =========================================================
-   DRZEWA
-========================================================= */
-
-function createTree(x,z){
-
-    const group=
-    new THREE.Group();
-
-    const y=
-        heightAt(x,z);
-
-    group.position.set(
-        x,
-        y,
-        z
-    );
-
-
-    const trunk=
-    new THREE.Mesh(
-
-        new THREE.CylinderGeometry(
-            .55,
-            .8,
-            5,
-            7
-        ),
-
-        new THREE.MeshStandardMaterial({
-            color:0x69452d,
-            roughness:1
-        })
-
-    );
-
-    trunk.position.y=2.5;
-
-    trunk.castShadow=true;
-
-    group.add(trunk);
-
-
-    for(let i=0;i<3;i++){
-
-        const crown=
-        new THREE.Mesh(
-
-            new THREE.ConeGeometry(
-                4.5-i*.7,
-                8,
-                8
-            ),
-
-            new THREE.MeshStandardMaterial({
-                color:
-                    i===0?
-                    0x2f5d35:
-                    i===1?
-                    0x3e7440:
-                    0x52844b,
-
-                roughness:1
-            })
-
-        );
-
-        crown.position.y=
-            6+i*2.8;
-
-        crown.rotation.y=
-            Math.random();
-
-        crown.castShadow=true;
-
-        group.add(crown);
-    }
-
-
-    scene.add(group);
-
-    state.trees.push(group);
-}
-
-
-for(let i=0;i<230;i++){
-
-    const a=
-        Math.random()*Math.PI*2;
-
-    const r=
-        55+
-        Math.random()*80;
-
-    const x=
-        Math.cos(a)*r;
-
-    const z=
-        Math.sin(a)*r;
-
-    if(Math.sqrt(x*x+z*z)>145)
-        continue;
-
-    if(Math.random()<.6)
-        createTree(x,z);
-}
-
-
-/* =========================================================
-   SKAŁY
-========================================================= */
-
-function createRock(x,z){
-
-    const rock=
-    new THREE.Mesh(
-
-        new THREE.DodecahedronGeometry(
-            2+Math.random()*2,
-            1
-        ),
-
-        new THREE.MeshStandardMaterial({
-            color:0x77766d,
-            roughness:1
-        })
-
-    );
-
-    rock.position.set(
-        x,
-        heightAt(x,z)+1,
-        z
-    );
-
-    rock.scale.y=
-        .55+Math.random()*.5;
-
-    rock.rotation.set(
-        Math.random(),
-        Math.random(),
-        Math.random()
-    );
-
-    rock.castShadow=true;
-
-    scene.add(rock);
-
-    state.rocks.push(rock);
-}
-
-
-for(let i=0;i<55;i++){
-
-    const a=
-        Math.random()*Math.PI*2;
-
-    const r=
-        35+Math.random()*105;
-
-    const x=Math.cos(a)*r;
-    const z=Math.sin(a)*r;
-
-    if(r<145)
-        createRock(x,z);
-}
-
-
-/* =========================================================
-   ZWIERZĘTA
-========================================================= */
-
-function createAnimal(type,x,z){
-
-    const group=
-    new THREE.Group();
-
-    const y=
-        heightAt(x,z)+.5;
-
-    group.position.set(
-        x,
-        y,
-        z
-    );
-
-
-    let color=
-        type==="deer"?
-        0x8b633c:
-        type==="boar"?
-        0x3d3028:
-        0x77736b;
-
-
-    const body=
-    new THREE.Mesh(
-
-        new THREE.SphereGeometry(
-            type==="deer"?1.6:1.45,
-            10,
-            8
-        ),
-
-        new THREE.MeshStandardMaterial({
-            color,
-            roughness:1
-        })
-
-    );
-
-    body.scale.z=1.45;
-
-    body.castShadow=true;
-
-    group.add(body);
-
-
-    const head=
-    new THREE.Mesh(
-
-        new THREE.SphereGeometry(
-            .8,
-            8,
-            8
-        ),
-
-        new THREE.MeshStandardMaterial({
-            color,
-            roughness:1
-        })
-
-    );
-
-    head.position.z=
-        type==="deer"?
-        -2:
-        -1.6;
-
-    head.position.y=.35;
-
-    head.castShadow=true;
-
-    group.add(head);
-
-
-    if(type==="deer"){
-
-        for(const side of[-1,1]){
-
-            const antler=
-            new THREE.Mesh(
-
-                new THREE.CylinderGeometry(
-                    .08,
-                    .13,
-                    1.7,
-                    5
-                ),
-
-                new THREE.MeshStandardMaterial({
-                    color:0x5a3925
-                })
-
-            );
-
-            antler.position.set(
-                side*.42,
-                1.15,
-                -2
-            );
-
-            antler.rotation.z=
-                side*.35;
-
-            group.add(antler);
-        }
-
-    }
-
-
-    scene.add(group);
-
-    state.animals3d.push({
-
-        mesh:group,
-
-        type,
-
-        target:null,
-
-        timer:0
-
-    });
-
-}
-
-
-for(let i=0;i<18;i++){
-
-    const a=Math.random()*Math.PI*2;
-
-    const r=45+Math.random()*85;
-
-    createAnimal(
-        "deer",
-        Math.cos(a)*r,
-        Math.sin(a)*r
-    );
-}
-
-
-for(let i=0;i<5;i++){
-
-    const a=Math.random()*Math.PI*2;
-
-    const r=60+Math.random()*70;
-
-    createAnimal(
-        "boar",
-        Math.cos(a)*r,
-        Math.sin(a)*r
-    );
-}
-
-
-for(let i=0;i<3;i++){
-
-    const a=Math.random()*Math.PI*2;
-
-    const r=80+Math.random()*55;
-
-    createAnimal(
-        "wolf",
-        Math.cos(a)*r,
-        Math.sin(a)*r
-    );
-}
-
-
-/* =========================================================
-   BUDYNKI
-========================================================= */
-
-const BUILDINGS={
-
-    house:{
-        name:"Dom",
-        cost:50,
-        wood:50,
-        stone:0,
-        capacity:5,
-        color:0x9d6b42
+let state = loadGame();
+
+let contracts = [
+    {
+        id:1,
+        name:"Dom jednorodzinny",
+        icon:"🏠",
+        description:"Nowoczesny dom jednorodzinny dla prywatnego klienta.",
+        reward:30000,
+        cost:18000,
+        days:3,
+        employees:2,
+        type:"Dom"
     },
-
-    farm:{
-        name:"Farma",
-        cost:70,
-        wood:70,
-        stone:0,
-        capacity:4,
-        color:0x98733e
+    {
+        id:2,
+        name:"Mały blok mieszkalny",
+        icon:"🏢",
+        description:"Budowa niewielkiego budynku mieszkalnego.",
+        reward:95000,
+        cost:60000,
+        days:6,
+        employees:4,
+        type:"Blok"
     },
-
-    woodcutter:{
-        name:"Leśniczówka",
-        cost:60,
-        wood:60,
-        stone:0,
-        capacity:3,
-        color:0x765136
+    {
+        id:3,
+        name:"Hala magazynowa",
+        icon:"🏭",
+        description:"Duża hala dla lokalnej firmy logistycznej.",
+        reward:145000,
+        cost:93000,
+        days:8,
+        employees:5,
+        type:"Hala"
     },
-
-    quarry:{
-        name:"Kamieniołom",
-        cost:80,
-        wood:80,
-        stone:0,
-        capacity:4,
-        color:0x77766d
+    {
+        id:4,
+        name:"Sklep miejski",
+        icon:"🏬",
+        description:"Nowy lokal handlowy przy głównej ulicy.",
+        reward:65000,
+        cost:41000,
+        days:5,
+        employees:3,
+        type:"Sklep"
     },
-
-    market:{
-        name:"Rynek",
-        cost:100,
-        wood:100,
-        stone:50,
-        capacity:2,
-        color:0xa27443
+    {
+        id:5,
+        name:"Hotel Premium",
+        icon:"🏨",
+        description:"Ekskluzywny hotel w centrum miasta.",
+        reward:380000,
+        cost:260000,
+        days:14,
+        employees:12,
+        type:"Hotel"
     },
-
-    port:{
-        name:"Port",
-        cost:150,
-        wood:150,
-        stone:80,
-        capacity:3,
-        color:0x765b40
+    {
+        id:6,
+        name:"Wieżowiec",
+        icon:"🏙️",
+        description:"Pierwszy duży projekt wysokościowy.",
+        reward:900000,
+        cost:620000,
+        days:25,
+        employees:20,
+        type:"Wieżowiec"
     }
+];
 
-};
-
-
-function createBuildingMesh(type){
-
-    const data=
-        BUILDINGS[type];
-
-    const group=
-        new THREE.Group();
-
-
-    const base=
-    new THREE.Mesh(
-
-        new THREE.BoxGeometry(
-            8,
-            4,
-            8
-        ),
-
-        new THREE.MeshStandardMaterial({
-            color:data.color,
-            roughness:.9
-        })
-
-    );
-
-    base.position.y=2;
-
-    base.castShadow=true;
-
-    base.receiveShadow=true;
-
-    group.add(base);
-
-
-    const roof=
-    new THREE.Mesh(
-
-        new THREE.ConeGeometry(
-            6.3,
-            4.5,
-            4
-        ),
-
-        new THREE.MeshStandardMaterial({
-            color:
-                type==="port"?
-                0x5d5145:
-                0x583b2d,
-
-            roughness:1
-        })
-
-    );
-
-    roof.position.y=6;
-
-    roof.rotation.y=
-        Math.PI/4;
-
-    roof.castShadow=true;
-
-    group.add(roof);
-
-
-    if(type==="house"){
-
-        const door=
-        new THREE.Mesh(
-
-            new THREE.BoxGeometry(
-                1.3,
-                2.3,
-                .15
-            ),
-
-            new THREE.MeshStandardMaterial({
-                color:0x35271f
-            })
-
-        );
-
-        door.position.set(
-            0,
-            1.15,
-            -4.05
-        );
-
-        group.add(door);
-
-
-        for(const x of[-2.3,2.3]){
-
-            const window=
-            new THREE.Mesh(
-
-                new THREE.BoxGeometry(
-                    1.3,
-                    1.2,
-                    .12
-                ),
-
-                new THREE.MeshStandardMaterial({
-                    color:0x8cc7d9,
-                    emissive:0x173d48,
-                    emissiveIntensity:.3
-                })
-
-            );
-
-            window.position.set(
-                x,
-                2.3,
-                -4.05
-            );
-
-            group.add(window);
-        }
+const machineTypes = [
+    {
+        id:"excavator",
+        name:"Koparka",
+        icon:"🚜",
+        price:35000,
+        power:20,
+        description:"Podstawowa maszyna ziemna."
+    },
+    {
+        id:"truck",
+        name:"Ciężarówka",
+        icon:"🚚",
+        price:28000,
+        power:15,
+        description:"Transport materiałów budowlanych."
+    },
+    {
+        id:"loader",
+        name:"Ładowarka",
+        icon:"🚧",
+        price:45000,
+        power:25,
+        description:"Szybkie przygotowanie terenu."
+    },
+    {
+        id:"crane",
+        name:"Żuraw wieżowy",
+        icon:"🏗️",
+        price:130000,
+        power:70,
+        description:"Niezbędny przy wysokich budynkach."
+    },
+    {
+        id:"bulldozer",
+        name:"Spycharka",
+        icon:"🚜",
+        price:65000,
+        power:40,
+        description:"Ciężkie prace ziemne."
+    },
+    {
+        id:"roller",
+        name:"Walec drogowy",
+        icon:"🛣️",
+        price:52000,
+        power:35,
+        description:"Budowa i wykańczanie dróg."
     }
+];
 
-
-    if(type==="farm"){
-
-        const field=
-        new THREE.Mesh(
-
-            new THREE.BoxGeometry(
-                16,
-                .15,
-                12
-            ),
-
-            new THREE.MeshStandardMaterial({
-                color:0x806334,
-                roughness:1
-            })
-
-        );
-
-        field.position.set(
-            11,
-            .08,
-            0
-        );
-
-        field.receiveShadow=true;
-
-        group.add(field);
+const employeeTypes = [
+    {
+        role:"Budowlaniec",
+        icon:"👷",
+        salary:1800,
+        skill:10
+    },
+    {
+        role:"Murarz",
+        icon:"🧱",
+        salary:2200,
+        skill:14
+    },
+    {
+        role:"Elektryk",
+        icon:"⚡",
+        salary:2500,
+        skill:16
+    },
+    {
+        role:"Hydraulik",
+        icon:"🔧",
+        salary:2300,
+        skill:15
+    },
+    {
+        role:"Operator maszyn",
+        icon:"🚜",
+        salary:2800,
+        skill:19
+    },
+    {
+        role:"Kierownik budowy",
+        icon:"📐",
+        salary:4200,
+        skill:28
     }
-
-
-    if(type==="port"){
-
-        const dock=
-        new THREE.Mesh(
-
-            new THREE.BoxGeometry(
-                20,
-                .6,
-                5
-            ),
-
-            new THREE.MeshStandardMaterial({
-                color:0x704d2e,
-                roughness:1
-            })
-
-        );
-
-        dock.position.set(
-            9,
-            .2,
-            0
-        );
-
-        dock.rotation.y=
-            Math.PI/2;
-
-        dock.castShadow=true;
-
-        group.add(dock);
-    }
-
-
-    return group;
-}
-
+];
 
 /* =========================================================
-   BUDOWANIE
-========================================================= */
-
-const raycaster=
-new THREE.Raycaster();
-
-const mouse=
-new THREE.Vector2();
-
-
-function getGroundPoint(event){
-
-    const rect=
-        renderer.domElement
-        .getBoundingClientRect();
-
-    mouse.x=
-        ((event.clientX-rect.left)/
-        rect.width)*2-1;
-
-    mouse.y=
-        -((event.clientY-rect.top)/
-        rect.height)*2+1;
-
-    raycaster.setFromCamera(
-        mouse,
-        camera
-    );
-
-    const hits=
-        raycaster.intersectObject(
-            terrain
-        );
-
-    if(!hits.length)
-        return null;
-
-    return hits[0].point;
-}
-
-
-function showToast(text){
-
-    const el=
-        document.getElementById("toast");
-
-    el.textContent=text;
-
-    el.classList.add("show");
-
-    clearTimeout(
-        showToast.timer
-    );
-
-    showToast.timer=
-        setTimeout(()=>{
-            el.classList.remove("show");
-        },2200);
-}
-
-
-function canBuild(type){
-
-    const d=
-        BUILDINGS[type];
-
-    if(state.gold<d.cost){
-        showToast("Brakuje złota.");
-        return false;
-    }
-
-    if(state.wood<d.wood){
-        showToast("Brakuje drewna.");
-        return false;
-    }
-
-    if(state.stone<d.stone){
-        showToast("Brakuje kamienia.");
-        return false;
-    }
-
-    return true;
-}
-
-
-function placeBuilding(type,point){
-
-    if(!canBuild(type))
-        return;
-
-
-    const data=
-        BUILDINGS[type];
-
-
-    const mesh=
-        createBuildingMesh(type);
-
-
-    mesh.position.set(
-        point.x,
-        heightAt(
-            point.x,
-            point.z
-        ),
-        point.z
-    );
-
-
-    mesh.rotation.y=
-        Math.random()*Math.PI*2;
-
-
-    scene.add(mesh);
-
-
-    state.gold-=data.cost;
-    state.wood-=data.wood;
-    state.stone-=data.stone;
-
-    state.capacity+=
-        data.capacity||0;
-
-
-    state.buildings.push({
-
-        type,
-
-        mesh,
-
-        workers:0,
-
-        maxWorkers:data.capacity||0,
-
-        x:point.x,
-
-        z:point.z
-
-    });
-
-
-    showToast(
-        data.name+
-        " został zbudowany."
-    );
-
-    updateUI();
-}
-
-
-/* =========================================================
-   KLIKANIE
-========================================================= */
-
-renderer.domElement.addEventListener(
-    "pointerdown",
-    e=>{
-
-        if(e.button!==0)
-            return;
-
-        if(!state.selectedBuild)
-            return;
-
-        const p=
-            getGroundPoint(e);
-
-        if(!p)
-            return;
-
-        if(
-            Math.sqrt(
-                p.x*p.x+
-                p.z*p.z
-            )>150
-        ){
-
-            showToast(
-                "Nie możesz budować poza wyspą."
-            );
-
-            return;
-        }
-
-        placeBuilding(
-            state.selectedBuild,
-            p
-        );
-
-    }
-);
-
-
-/* =========================================================
-   PRZYCISKI
-========================================================= */
-
-document.querySelectorAll(
-    "[data-build]"
-).forEach(btn=>{
-
-    btn.addEventListener(
-        "click",
-        ()=>{
-
-            document
-                .querySelectorAll(
-                    "[data-build]"
-                )
-                .forEach(
-                    b=>b.classList.remove(
-                        "active"
-                    )
-                );
-
-            btn.classList.add("active");
-
-            state.selectedBuild=
-                btn.dataset.build;
-
-            showToast(
-                "Kliknij na mapę, aby zbudować."
-            );
-        }
-    );
-
-});
-
-
-document.getElementById(
-    "pause"
-).onclick=()=>{
-
-    state.paused=
-        !state.paused;
-
-    document.getElementById(
-        "pause"
-    ).textContent=
-        state.paused?
-        "▶️ Wznów":
-        "⏸️ Pauza";
-
-};
-
-
-/* =========================================================
-   EKONOMIA
-========================================================= */
-
-let economyTimer=0;
-
-function economyTick(){
-
-    if(state.paused)
-        return;
-
-
-    state.food-=
-        Math.max(
-            1,
-            Math.floor(
-                state.population*.15
-            )
-        );
-
-
-    if(state.food<0){
-
-        state.food=0;
-
-        state.happiness=
-            Math.max(
-                20,
-                state.happiness-3
-            );
-
-    }
-
-
-    state.buildings.forEach(b=>{
-
-        if(!b.workers)
-            return;
-
-
-        if(b.type==="farm"){
-
-            state.food+=
-                b.workers*2;
-
-        }
-
-        if(b.type==="woodcutter"){
-
-            state.wood+=
-                b.workers*2;
-
-        }
-
-        if(b.type==="quarry"){
-
-            state.stone+=
-                b.workers*1;
-
-        }
-
-        if(b.type==="market"){
-
-            state.gold+=
-                b.workers*2;
-
-        }
-
-    });
-
-
-    state.day++;
-
-    if(state.day>30){
-
-        state.day=1;
-
-        state.year++;
-
-        state.happiness=
-            Math.min(
-                100,
-                state.happiness+1
-            );
-    }
-
-
-    updateUI();
-
-}
-
-
-setInterval(
-    economyTick,
-    2500
-);
-
-
-/* =========================================================
-   AUTOMATYCZNI MIESZKAŃCY
-========================================================= */
-
-function createVillager(){
-
-    const group=
-        new THREE.Group();
-
-    const body=
-    new THREE.Mesh(
-
-        new THREE.CapsuleGeometry(
-            .35,
-            1,
-            4,
-            8
-        ),
-
-        new THREE.MeshStandardMaterial({
-            color:
-                Math.random()>.5?
-                0x79513b:
-                0x52677a
-        })
-
-    );
-
-    body.position.y=.9;
-
-    body.castShadow=true;
-
-    group.add(body);
-
-
-    const head=
-    new THREE.Mesh(
-
-        new THREE.SphereGeometry(
-            .32,
-            8,
-            8
-        ),
-
-        new THREE.MeshStandardMaterial({
-            color:0xc9926a
-        })
-
-    );
-
-    head.position.y=1.75;
-
-    head.castShadow=true;
-
-    group.add(head);
-
-
-    const x=
-        -15+
-        Math.random()*30;
-
-    const z=
-        -15+
-        Math.random()*30;
-
-
-    group.position.set(
-        x,
-        heightAt(x,z),
-        z
-    );
-
-
-    scene.add(group);
-
-    state.villagers.push({
-
-        mesh:group,
-
-        target:new THREE.Vector3(
-            x,
-            0,
-            z
-        ),
-
-        speed:
-            .8+
-            Math.random()*.6
-
-    });
-
-}
-
-
-for(let i=0;i<8;i++)
-    createVillager();
-
-
-function updateVillagers(dt){
-
-    state.villagers.forEach(v=>{
-
-        const p=
-            v.mesh.position;
-
-        const t=
-            v.target;
-
-
-        const dx=t.x-p.x;
-        const dz=t.z-p.z;
-
-        const dist=
-            Math.sqrt(
-                dx*dx+dz*dz
-            );
-
-
-        if(dist<1){
-
-            t.x=
-                -65+
-                Math.random()*130;
-
-            t.z=
-                -65+
-                Math.random()*130;
-
-            return;
-        }
-
-
-        const step=
-            v.speed*dt;
-
-        p.x+=
-            dx/dist*step;
-
-        p.z+=
-            dz/dist*step;
-
-        p.y=
-            heightAt(
-                p.x,
-                p.z
-            );
-
-
-        v.mesh.rotation.y=
-            Math.atan2(
-                dx,
-                dz
-            );
-
-    });
-
-}
-
-
-/* =========================================================
-   ZWIERZĘTA — RUCH
-========================================================= */
-
-function updateAnimals(dt){
-
-    state.animals3d.forEach(a=>{
-
-        const p=
-            a.mesh.position;
-
-
-        if(
-            !a.target ||
-            p.distanceTo(
-                a.target
-            )<2
-        ){
-
-            const ang=
-                Math.random()*
-                Math.PI*2;
-
-            const r=
-                20+
-                Math.random()*60;
-
-            a.target=
-                new THREE.Vector3(
-                    Math.cos(ang)*r,
-                    0,
-                    Math.sin(ang)*r
-                );
-        }
-
-
-        const dx=
-            a.target.x-p.x;
-
-        const dz=
-            a.target.z-p.z;
-
-        const dist=
-            Math.sqrt(
-                dx*dx+
-                dz*dz
-            );
-
-
-        const speed=
-            a.type==="wolf"?
-            2:
-            1;
-
-
-        p.x+=
-            dx/dist*
-            speed*
-            dt;
-
-        p.z+=
-            dz/dist*
-            speed*
-            dt;
-
-        p.y=
-            heightAt(
-                p.x,
-                p.z
-            )+.5;
-
-        a.mesh.rotation.y=
-            Math.atan2(
-                dx,
-                dz
-            );
-
-    });
-
-}
-
-
-/* =========================================================
-   UI
-========================================================= */
-
-function updateUI(){
-
-    document.getElementById(
-        "gold"
-    ).textContent=
-        Math.floor(state.gold);
-
-    document.getElementById(
-        "wood"
-    ).textContent=
-        Math.floor(state.wood);
-
-    document.getElementById(
-        "stone"
-    ).textContent=
-        Math.floor(state.stone);
-
-    document.getElementById(
-        "food"
-    ).textContent=
-        Math.floor(state.food);
-
-    document.getElementById(
-        "population"
-    ).textContent=
-        state.population+
-        " / "+
-        state.capacity;
-
-    document.getElementById(
-        "day"
-    ).textContent=
-        state.day;
-
-    document.getElementById(
-        "year"
-    ).textContent=
-        state.year;
-
-    document.getElementById(
-        "happiness"
-    ).textContent=
-        Math.floor(
-            state.happiness
-        )+"%";
-
-    document.getElementById(
-        "animals"
-    ).textContent=
-        state.animals;
-
-    document.getElementById(
-        "buildings"
-    ).textContent=
-        state.buildings.length;
-
-
-    let level=
-        "Obóz";
-
-    if(state.buildings.length>=3)
-        level="Osada";
-
-    if(state.buildings.length>=7)
-        level="Wioska";
-
-    if(state.buildings.length>=12)
-        level="Miasteczko";
-
-    if(state.buildings.length>=20)
-        level="Miasto";
-
-
-    document.getElementById(
-        "settlement"
-    ).textContent=
-        level;
-
-}
-
-
-/* =========================================================
-   ZAPIS
-========================================================= */
-
-function saveGame(){
-
-    const data={
-
-        gold:state.gold,
-        wood:state.wood,
-        stone:state.stone,
-        food:state.food,
-
-        population:state.population,
-        capacity:state.capacity,
-
-        day:state.day,
-        year:state.year,
-
-        happiness:state.happiness,
-
-        buildings:
-            state.buildings.map(b=>({
-
-                type:b.type,
-
-                x:b.mesh.position.x,
-
-                y:b.mesh.position.y,
-
-                z:b.mesh.position.z,
-
-                rotation:
-                    b.mesh.rotation.y,
-
-                workers:b.workers
-
-            }))
-
-    };
-
-
-    localStorage.setItem(
-        "island_empire_3d",
-        JSON.stringify(data)
-    );
-
-    showToast(
-        "Gra została zapisana."
-    );
-}
-
-
-document.getElementById(
-    "save"
-).onclick=
-    saveGame;
-
-
-/* =========================================================
-   WCZYTYWANIE
+   STORAGE
 ========================================================= */
 
 function loadGame(){
 
-    const raw=
-        localStorage.getItem(
-            "island_empire_3d"
-        );
+    try{
 
-    if(!raw){
+        const saved = localStorage.getItem("constructionEmpireSave");
 
-        showToast(
-            "Nie znaleziono zapisu."
-        );
+        if(saved){
 
+            const parsed = JSON.parse(saved);
+
+            return {
+                ...defaultState,
+                ...parsed
+            };
+
+        }
+
+    }catch(e){
+        console.error(e);
+    }
+
+    return structuredClone(defaultState);
+}
+
+function saveGame(){
+
+    localStorage.setItem(
+        "constructionEmpireSave",
+        JSON.stringify(state)
+    );
+
+    showToast("💾 Gra została zapisana");
+
+}
+
+function resetGame(){
+
+    if(!confirm("Czy na pewno rozpocząć nową grę? Cały obecny postęp zostanie usunięty.")){
         return;
     }
 
+    state = structuredClone(defaultState);
 
-    const data=
-        JSON.parse(raw);
+    saveGame();
 
+    renderAll();
 
-    state.gold=data.gold;
-    state.wood=data.wood;
-    state.stone=data.stone;
-    state.food=data.food;
+    showToast("↻ Rozpoczęto nową grę");
 
-    state.population=data.population;
-    state.capacity=data.capacity;
+}
 
-    state.day=data.day;
-    state.year=data.year;
+/* =========================================================
+   MONEY
+========================================================= */
 
-    state.happiness=data.happiness;
+function formatMoney(value){
 
+    return "$" + Math.round(value).toLocaleString("en-US");
 
-    state.buildings.forEach(
-        b=>scene.remove(
-            b.mesh
-        )
-    );
+}
 
-    state.buildings=[];
+function changeMoney(amount, reason="Operacja"){
 
+    state.cash += amount;
 
-    data.buildings.forEach(b=>{
+    if(amount > 0){
 
-        const mesh=
-            createBuildingMesh(
-                b.type
-            );
+        state.totalIncome += amount;
 
-        mesh.position.set(
-            b.x,
-            b.y,
-            b.z
-        );
-
-        mesh.rotation.y=
-            b.rotation;
-
-        scene.add(mesh);
-
-        state.buildings.push({
-
-            type:b.type,
-
-            mesh,
-
-            workers:b.workers||0,
-
-            maxWorkers:
-                BUILDINGS[b.type]
-                .capacity,
-
-            x:b.x,
-
-            z:b.z
-
+        state.transactions.unshift({
+            name:reason,
+            type:"income",
+            amount:amount
         });
+
+    }else{
+
+        state.totalExpenses += Math.abs(amount);
+
+        state.transactions.unshift({
+            name:reason,
+            type:"expense",
+            amount:Math.abs(amount)
+        });
+
+    }
+
+    state.transactions = state.transactions.slice(0,20);
+
+    updateMoneyDisplay();
+
+}
+
+function updateMoneyDisplay(){
+
+    document.getElementById("topMoney").textContent =
+        formatMoney(state.cash);
+
+    document.getElementById("cashStat").textContent =
+        formatMoney(state.cash);
+
+}
+
+/* =========================================================
+   NAVIGATION
+========================================================= */
+
+const pageNames = {
+    dashboard:"Dashboard",
+    map:"Mapa miasta",
+    contracts:"Kontrakty",
+    machines:"Maszyny",
+    employees:"Pracownicy",
+    company:"Firma",
+    finance:"Finanse"
+};
+
+document.querySelectorAll(".nav button").forEach(button=>{
+
+    button.addEventListener("click",()=>{
+
+        openPage(button.dataset.page);
 
     });
 
+});
 
-    updateUI();
+function openPage(page){
+
+    document.querySelectorAll(".page").forEach(p=>{
+        p.classList.remove("active");
+    });
+
+    document.querySelectorAll(".nav button").forEach(b=>{
+        b.classList.remove("active");
+    });
+
+    const pageElement =
+        document.getElementById("page-"+page);
+
+    if(pageElement){
+        pageElement.classList.add("active");
+    }
+
+    const button =
+        document.querySelector(`.nav button[data-page="${page}"]`);
+
+    if(button){
+        button.classList.add("active");
+    }
+
+    document.getElementById("pageTitle").textContent =
+        pageNames[page] || "Construction Empire";
+
+    document.getElementById("sidebar").classList.remove("open");
+
+    if(page === "map"){
+        renderMap("mainMap");
+    }
+
+}
+
+function toggleSidebar(){
+
+    document.getElementById("sidebar")
+        .classList.toggle("open");
+
+}
+
+/* =========================================================
+   MAP
+========================================================= */
+
+const plotPositions = [
+    [7,10,15,17],
+    [27,8,18,20],
+    [51,10,16,16],
+    [78,8,15,20],
+
+    [5,46,18,15],
+    [28,44,18,18],
+    [52,45,15,17],
+    [77,45,18,17],
+
+    [7,78,17,15],
+    [29,76,16,17],
+    [52,78,17,15],
+    [76,76,17,16]
+];
+
+const buildingNames = [
+    "Działka A1",
+    "Działka A2",
+    "Działka A3",
+    "Działka A4",
+    "Działka B1",
+    "Działka B2",
+    "Działka B3",
+    "Działka B4",
+    "Działka C1",
+    "Działka C2",
+    "Działka C3",
+    "Działka C4"
+];
+
+function renderMap(elementId){
+
+    const map =
+        document.getElementById(elementId);
+
+    if(!map) return;
+
+    map.innerHTML = "";
+
+    // roads
+    ["one","two"].forEach(cls=>{
+
+        const road = document.createElement("div");
+
+        road.className = "road h "+cls;
+
+        map.appendChild(road);
+
+    });
+
+    ["three","four"].forEach(cls=>{
+
+        const road = document.createElement("div");
+
+        road.className = "road v "+cls;
+
+        map.appendChild(road);
+
+    });
+
+    plotPositions.forEach((pos,index)=>{
+
+        const plot = document.createElement("div");
+
+        plot.className = "plot";
+
+        plot.style.left = pos[0]+"%";
+        plot.style.top = pos[1]+"%";
+        plot.style.width = pos[2]+"%";
+        plot.style.height = pos[3]+"%";
+
+        const build =
+            state.builds.find(b=>b.plot===index);
+
+        if(build){
+
+            if(build.progress >= 100){
+
+                plot.classList.add("complete");
+
+            }else{
+
+                plot.classList.add("building");
+
+            }
+
+            plot.innerHTML = `
+                <div class="plotIcon">${build.icon}</div>
+                <div class="plotName">${build.name}</div>
+            `;
+
+        }else{
+
+            plot.innerHTML = `
+                <div class="plotIcon" style="font-size:15px;opacity:.55">＋</div>
+                <div class="plotName">${buildingNames[index]}</div>
+            `;
+
+        }
+
+        plot.onclick = ()=>selectPlot(index);
+
+        map.appendChild(plot);
+
+    });
+
+}
+
+function selectPlot(index){
+
+    const existing =
+        state.builds.find(b=>b.plot===index);
+
+    if(existing){
+
+        showBuildDetails(existing);
+
+        return;
+
+    }
+
+    openContractForPlot(index);
+
+}
+
+function openContractForPlot(plot){
+
+    document.getElementById("modalTitle").textContent =
+        "Nowa inwestycja";
+
+    document.getElementById("modalContent").innerHTML = `
+        <p>
+            Działka <strong>${buildingNames[plot]}</strong> jest wolna.
+            Wybierz kontrakt, który chcesz rozpocząć.
+        </p>
+
+        <div class="list">
+
+            ${contracts.map(c=>`
+
+                <div class="listItem">
+
+                    <div class="itemLeft">
+
+                        <div class="itemIcon">${c.icon}</div>
+
+                        <div>
+                            <div class="itemName">${c.name}</div>
+                            <div class="itemSub">
+                                ${c.days} dni • ${c.employees} pracowników
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <button class="action"
+                        onclick="startBuild(${c.id},${plot})">
+                        ${formatMoney(c.reward)}
+                    </button>
+
+                </div>
+
+            `).join("")}
+
+        </div>
+    `;
+
+    document.getElementById("modalActions").innerHTML = `
+        <button class="action ghost" onclick="closeModal()">Anuluj</button>
+    `;
+
+    document.getElementById("modalOverlay").classList.add("show");
+
+}
+
+/* =========================================================
+   BUILDINGS
+========================================================= */
+
+function startBuild(contractId,plot){
+
+    const contract =
+        contracts.find(c=>c.id===contractId);
+
+    if(!contract) return;
+
+    if(state.builds.some(b=>b.plot===plot)){
+
+        showToast("Ta działka jest już zajęta.");
+
+        return;
+
+    }
+
+    const employeesAvailable =
+        state.employees.length;
+
+    if(employeesAvailable < contract.employees){
+
+        showToast(
+            `Potrzebujesz ${contract.employees} pracowników.`
+        );
+
+        return;
+
+    }
+
+    if(state.cash < contract.cost){
+
+        showToast("Za mało pieniędzy na rozpoczęcie budowy.");
+
+        return;
+
+    }
+
+    changeMoney(
+        -contract.cost,
+        "Koszt rozpoczęcia budowy: "+contract.name
+    );
+
+    state.builds.push({
+
+        id:Date.now(),
+
+        plot:plot,
+
+        contractId:contract.id,
+
+        name:contract.name,
+
+        icon:contract.icon,
+
+        reward:contract.reward,
+
+        cost:contract.cost,
+
+        days:contract.days,
+
+        progress:0,
+
+        remaining:contract.days
+
+    });
+
+    closeModal();
+
+    renderAll();
+
+    saveGame();
+
+    showToast("🚧 Rozpoczęto budowę: "+contract.name);
+
+}
+
+function showBuildDetails(build){
+
+    document.getElementById("modalTitle").textContent =
+        build.name;
+
+    document.getElementById("modalContent").innerHTML = `
+
+        <p>
+            Projekt znajduje się obecnie na poziomie
+            <strong>${Math.round(build.progress)}%</strong>.
+        </p>
+
+        <div class="progress" style="height:8px;margin-bottom:16px">
+            <span style="width:${build.progress}%"></span>
+        </div>
+
+        <div class="list">
+
+            <div class="listItem">
+                <span>Postęp</span>
+                <strong>${Math.round(build.progress)}%</strong>
+            </div>
+
+            <div class="listItem">
+                <span>Pozostało dni</span>
+                <strong>${build.remaining}</strong>
+            </div>
+
+            <div class="listItem">
+                <span>Wypłata po ukończeniu</span>
+                <strong style="color:var(--green)">
+                    ${formatMoney(build.reward)}
+                </strong>
+            </div>
+
+        </div>
+    `;
+
+    document.getElementById("modalActions").innerHTML = `
+
+        <button class="action ghost" onclick="closeModal()">
+            Zamknij
+        </button>
+
+        <button class="action red" onclick="cancelBuild(${build.id})">
+            Anuluj budowę
+        </button>
+
+    `;
+
+    document.getElementById("modalOverlay").classList.add("show");
+
+}
+
+function cancelBuild(id){
+
+    const index =
+        state.builds.findIndex(b=>b.id===id);
+
+    if(index===-1) return;
+
+    const build = state.builds[index];
+
+    const refund =
+        Math.floor(build.cost * .65);
+
+    changeMoney(
+        refund,
+        "Zwrot za anulowanie budowy"
+    );
+
+    state.builds.splice(index,1);
+
+    closeModal();
+
+    renderAll();
+
+    saveGame();
+
+    showToast("Budowa anulowana. Zwrot: "+formatMoney(refund));
+
+}
+
+/* =========================================================
+   CONTRACTS
+========================================================= */
+
+function renderContracts(){
+
+    const grid =
+        document.getElementById("contractsGrid");
+
+    grid.innerHTML = contracts.map(c=>{
+
+        const canAfford = state.cash >= c.cost;
+        const canStaff = state.employees.length >= c.employees;
+
+        return `
+
+        <div class="glass bigCard">
+
+            <div class="bigIcon">${c.icon}</div>
+
+            <h3>${c.name}</h3>
+
+            <p>${c.description}</p>
+
+            <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px">
+
+                <span class="status">
+                    ${c.days} dni
+                </span>
+
+                <span class="status orange">
+                    ${c.employees} 👷
+                </span>
+
+            </div>
+
+            <div style="color:var(--muted);font-size:9px">
+                KOSZT
+            </div>
+
+            <div class="price">
+                ${formatMoney(c.cost)}
+            </div>
+
+            <div style="color:var(--muted);font-size:9px">
+                WYPŁATA
+            </div>
+
+            <div class="price" style="color:var(--green)">
+                ${formatMoney(c.reward)}
+            </div>
+
+            <button
+                class="action"
+                style="width:100%"
+                ${(!canAfford || !canStaff)?"disabled":""}
+                onclick="quickStartBuild(${c.id})">
+
+                ${!canAfford
+                    ? "Za mało pieniędzy"
+                    : !canStaff
+                    ? "Za mało pracowników"
+                    : "Rozpocznij kontrakt"}
+
+            </button>
+
+        </div>
+
+        `;
+
+    }).join("");
+
+}
+
+function quickStartBuild(contractId){
+
+    const freePlot =
+        plotPositions.findIndex(
+            (_,i)=>!state.builds.some(b=>b.plot===i)
+        );
+
+    if(freePlot===-1){
+
+        showToast("Brak wolnych działek.");
+
+        return;
+
+    }
+
+    startBuild(contractId,freePlot);
+
+}
+
+/* =========================================================
+   MACHINES
+========================================================= */
+
+function renderMachines(){
+
+    const grid =
+        document.getElementById("machineGrid");
+
+    grid.innerHTML = machineTypes.map(machine=>{
+
+        const owned =
+            state.machines.filter(
+                m=>m.type===machine.id
+            ).length;
+
+        return `
+
+        <div class="glass bigCard">
+
+            <div class="bigIcon">${machine.icon}</div>
+
+            <h3>${machine.name}</h3>
+
+            <p>${machine.description}</p>
+
+            <div style="display:flex;gap:7px;margin-bottom:13px">
+
+                <span class="status">
+                    Moc ${machine.power}
+                </span>
+
+                <span class="status orange">
+                    Posiadasz: ${owned}
+                </span>
+
+            </div>
+
+            <div class="price">
+                ${formatMoney(machine.price)}
+            </div>
+
+            <button
+                class="action"
+                style="width:100%"
+                ${state.cash < machine.price ? "disabled":""}
+                onclick="buyMachine('${machine.id}')">
+
+                Kup maszynę
+
+            </button>
+
+        </div>
+
+        `;
+
+    }).join("");
+
+}
+
+function buyMachine(id){
+
+    const machine =
+        machineTypes.find(m=>m.id===id);
+
+    if(!machine) return;
+
+    if(state.cash < machine.price){
+
+        showToast("Za mało pieniędzy.");
+
+        return;
+
+    }
+
+    changeMoney(
+        -machine.price,
+        "Zakup: "+machine.name
+    );
+
+    state.machines.push({
+        id:Date.now(),
+        type:machine.id,
+        name:machine.name,
+        power:machine.power
+    });
+
+    renderAll();
+
+    saveGame();
+
+    showToast("🚜 Kupiono: "+machine.name);
+
+}
+
+/* =========================================================
+   EMPLOYEES
+========================================================= */
+
+function employeeCapacity(){
+
+    return 5 + ((state.officeLevel-1)*5);
+
+}
+
+function renderEmployees(){
+
+    const grid =
+        document.getElementById("employeeGrid");
+
+    grid.innerHTML = employeeTypes.map(employee=>{
+
+        const already =
+            state.employees.filter(
+                e=>e.role===employee.role
+            ).length;
+
+        return `
+
+        <div class="glass bigCard">
+
+            <div class="bigIcon">${employee.icon}</div>
+
+            <h3>${employee.role}</h3>
+
+            <p>
+                Umiejętności: ${employee.skill}/100<br>
+                Pensja: ${formatMoney(employee.salary)} / dzień
+            </p>
+
+            <div style="display:flex;gap:7px;margin-bottom:13px">
+
+                <span class="status">
+                    Skill ${employee.skill}
+                </span>
+
+                <span class="status orange">
+                    ${already} zatrudnionych
+                </span>
+
+            </div>
+
+            <div class="price">
+                ${formatMoney(employee.salary)}
+                <span style="font-size:9px;color:var(--muted)">
+                    / dzień
+                </span>
+            </div>
+
+            <button
+                class="action green"
+                style="width:100%"
+                ${state.employees.length >= employeeCapacity() ? "disabled":""}
+                onclick="hireEmployee('${employee.role}')">
+
+                ${state.employees.length >= employeeCapacity()
+                    ? "Brak miejsc"
+                    : "Zatrudnij"}
+
+            </button>
+
+        </div>
+
+        `;
+
+    }).join("");
+
+}
+
+function hireEmployee(role){
+
+    const employee =
+        employeeTypes.find(e=>e.role===role);
+
+    if(!employee) return;
+
+    if(state.employees.length >= employeeCapacity()){
+
+        showToast("Brak wolnych miejsc w biurze.");
+
+        return;
+
+    }
+
+    state.employees.push({
+        id:Date.now()+Math.random(),
+        role:employee.role,
+        salary:employee.salary,
+        skill:employee.skill
+    });
+
+    renderAll();
+
+    saveGame();
+
+    showToast("👷 Zatrudniono: "+role);
+
+}
+
+/* =========================================================
+   OFFICE
+========================================================= */
+
+function officePrice(){
+
+    return Math.floor(
+        5000 * Math.pow(1.65,state.officeLevel-1)
+    );
+
+}
+
+function upgradeOffice(){
+
+    const price = officePrice();
+
+    if(state.cash < price){
+
+        showToast("Za mało pieniędzy na ulepszenie.");
+
+        return;
+
+    }
+
+    changeMoney(
+        -price,
+        "Ulepszenie biura"
+    );
+
+    state.officeLevel++;
+
+    renderAll();
+
+    saveGame();
 
     showToast(
-        "Gra została wczytana."
+        "🏢 Biuro ulepszone do poziomu "+
+        state.officeLevel
     );
 
 }
 
-
-document.getElementById(
-    "load"
-).onclick=
-    loadGame;
-
-
 /* =========================================================
-   KAMERA WASD
+   GAME TIME
 ========================================================= */
 
-const keys={};
+function nextDay(){
 
-window.addEventListener(
-    "keydown",
-    e=>{
-        keys[e.key.toLowerCase()]=true;
-    }
-);
+    state.day++;
 
-window.addEventListener(
-    "keyup",
-    e=>{
-        keys[e.key.toLowerCase()]=false;
-    }
-);
+    // wages
+    if(state.employees.length > 0){
 
+        const salaries =
+            state.employees.reduce(
+                (sum,e)=>sum+e.salary,
+                0
+            );
 
-function updateCamera(dt){
-
-    const dir=
-        new THREE.Vector3();
-
-    camera.getWorldDirection(dir);
-
-    dir.y=0;
-
-    dir.normalize();
-
-
-    const right=
-        new THREE.Vector3();
-
-    right.crossVectors(
-        dir,
-        camera.up
-    ).normalize();
-
-
-    const move=
-        new THREE.Vector3();
-
-
-    if(keys.w)
-        move.add(dir);
-
-    if(keys.s)
-        move.sub(dir);
-
-    if(keys.d)
-        move.add(right);
-
-    if(keys.a)
-        move.sub(right);
-
-
-    if(move.length()>0){
-
-        move.normalize();
-
-        move.multiplyScalar(
-            50*dt
+        changeMoney(
+            -salaries,
+            "Wynagrodzenia pracowników"
         );
 
-        camera.position.add(
-            move
-        );
-
-        controls.target.add(
-            move
-        );
     }
+
+    // build progress
+    [...state.builds].forEach(build=>{
+
+        const progressPerDay =
+            100 / build.days;
+
+        const staffBonus =
+            Math.min(
+                1.4,
+                1 + (state.employees.length / 30)
+            );
+
+        build.progress +=
+            progressPerDay * staffBonus;
+
+        build.remaining =
+            Math.max(
+                0,
+                build.remaining-1
+            );
+
+        if(build.progress >= 100){
+
+            completeBuild(build.id);
+
+        }
+
+    });
+
+    // history
+    state.history.push({
+        income:state.totalIncome -
+            state.history.reduce((a,b)=>a+b.income,0),
+        expense:state.totalExpenses -
+            state.history.reduce((a,b)=>a+b.expense,0)
+    });
+
+    state.history =
+        state.history.slice(-7);
+
+    renderAll();
+
+    saveGame();
 
 }
 
+function completeBuild(id){
 
-/* =========================================================
-   DZIEŃ / NOC
-========================================================= */
+    const index =
+        state.builds.findIndex(b=>b.id===id);
 
-let worldTime=0;
+    if(index===-1) return;
 
+    const build =
+        state.builds[index];
 
-function updateDayNight(dt){
-
-    worldTime+=dt*.12;
-
-    const angle=
-        worldTime%(Math.PI*2);
-
-
-    sun.position.x=
-        Math.cos(angle)*150;
-
-    sun.position.z=
-        Math.sin(angle)*150;
-
-    sun.position.y=
-        Math.max(
-            15,
-            Math.sin(angle)*180
-        );
-
-
-    const daylight=
-        Math.max(
-            .15,
-            Math.sin(angle)*.5+.5
-        );
-
-
-    sun.intensity=
-        .8+
-        daylight*3;
-
-
-    hemi.intensity=
-        .6+
-        daylight*1.5;
-
-
-    scene.background=
-        new THREE.Color(
-            0x668da1
-        ).lerp(
-            new THREE.Color(
-                0x09121b
-            ),
-            1-daylight
-        );
-
-
-    scene.fog.color=
-        scene.background;
-}
-
-
-/* =========================================================
-   ANIMACJA WODY
-========================================================= */
-
-let elapsed=0;
-
-function updateWater(){
-
-    const p=
-        waveGeo.attributes.position;
-
-    for(
-        let i=0;
-        i<p.count;
-        i++
-    ){
-
-        const x=
-            p.getX(i);
-
-        const z=
-            p.getZ(i);
-
-        p.setY(
-            i,
-            Math.sin(
-                elapsed*1.5+
-                x*.03+
-                z*.02
-            )*.25
-        );
-    }
-
-    p.needsUpdate=true;
-}
-
-
-/* =========================================================
-   START
-========================================================= */
-
-updateUI();
-
-
-setTimeout(()=>{
-
-    document.getElementById(
-        "loading"
-    ).style.display="none";
-
-},500);
-
-
-/* =========================================================
-   PĘTLA GRY
-========================================================= */
-
-let last=
-    performance.now();
-
-
-function animate(){
-
-    requestAnimationFrame(
-        animate
+    changeMoney(
+        build.reward,
+        "Ukończono: "+build.name
     );
 
+    state.completed++;
 
-    const now=
-        performance.now();
+    state.reputation += Math.max(
+        1,
+        Math.floor(build.reward/100000)
+    );
 
-    const dt=
-        Math.min(
-            .05,
-            (now-last)/1000
-        );
+    state.builds.splice(index,1);
 
-    last=now;
-
-    elapsed+=dt;
-
-
-    if(!state.paused){
-
-        updateVillagers(dt);
-
-        updateAnimals(dt);
-
-        updateDayNight(dt);
-
-        updateWater();
-
-        updateCamera(dt);
-
-    }
-
-
-    controls.update();
-
-    renderer.render(
-        scene,
-        camera
+    showToast(
+        "🎉 Ukończono budowę! +"+
+        formatMoney(build.reward)
     );
 
 }
 
-
-animate();
-
-
 /* =========================================================
-   RESIZE
+   DASHBOARD
 ========================================================= */
 
-window.addEventListener(
-    "resize",
-    ()=>{
+function renderDashboardContracts(){
 
-        camera.aspect=
-            innerWidth/
-            innerHeight;
+    const container =
+        document.getElementById("dashboardContracts");
 
-        camera.updateProjectionMatrix();
+    const available =
+        contracts.slice(0,4);
 
-        renderer.setSize(
-            innerWidth,
-            innerHeight
-        );
+    container.innerHTML =
+        available.map(c=>`
+
+        <div class="contract">
+
+            <div class="contractTop">
+
+                <span class="contractName">
+                    ${c.icon} ${c.name}
+                </span>
+
+                <span class="contractReward">
+                    +${formatMoney(c.reward)}
+                </span>
+
+            </div>
+
+            <div class="contractInfo">
+                ${c.days} dni •
+                ${c.employees} pracowników •
+                koszt ${formatMoney(c.cost)}
+            </div>
+
+            <div class="progress">
+                <span style="width:${Math.min(
+                    100,
+                    (state.cash/c.cost)*100
+                )}%"></span>
+            </div>
+
+        </div>
+
+    `).join("");
+
+}
+
+/* =========================================================
+   FINANCES
+========================================================= */
+
+function renderFinance(){
+
+    document.getElementById("incomeValue").textContent =
+        formatMoney(state.totalIncome);
+
+    document.getElementById("expenseValue").textContent =
+        formatMoney(state.totalExpenses);
+
+    const profit =
+        state.totalIncome-state.totalExpenses;
+
+    document.getElementById("profitValue").textContent =
+        formatMoney(profit);
+
+    const chart =
+        document.getElementById("financeChart");
+
+    chart.innerHTML =
+        state.history.map((day,i)=>{
+
+            const max =
+                Math.max(
+                    ...state.history.map(
+                        x=>Math.max(x.income,x.expense)
+                    ),
+                    1
+                );
+
+            const incomeHeight =
+                (day.income/max)*220;
+
+            const expenseHeight =
+                (day.expense/max)*220;
+
+            return `
+
+            <div class="barGroup">
+
+                <div
+                    class="bar income"
+                    style="height:${incomeHeight}px"
+                    title="Przychód ${formatMoney(day.income)}">
+                </div>
+
+                <div
+                    class="bar expense"
+                    style="height:${expenseHeight}px"
+                    title="Wydatek ${formatMoney(day.expense)}">
+                </div>
+
+                <div class="barLabel">
+                    D${i+1}
+                </div>
+
+            </div>
+
+            `;
+
+        }).join("");
+
+    const transactions =
+        document.getElementById("transactions");
+
+    if(state.transactions.length===0){
+
+        transactions.innerHTML = `
+            <tr>
+                <td colspan="3" style="color:var(--muted)">
+                    Brak operacji.
+                </td>
+            </tr>
+        `;
+
+    }else{
+
+        transactions.innerHTML =
+            state.transactions.map(t=>`
+
+            <tr>
+
+                <td>${t.name}</td>
+
+                <td>
+                    <span class="${t.type==="income"
+                        ?"status"
+                        :"status orange"}">
+                        ${t.type==="income"
+                            ?"PRZYCHÓD"
+                            :"WYDATEK"}
+                    </span>
+                </td>
+
+                <td style="color:${t.type==="income"
+                    ?"var(--green)"
+                    :"var(--red)"}">
+
+                    ${t.type==="income"?"+":"-"}
+                    ${formatMoney(t.amount)}
+
+                </td>
+
+            </tr>
+
+        `).join("");
 
     }
-);
 
+}
+
+/* =========================================================
+   GENERAL RENDER
+========================================================= */
+
+function renderAll(){
+
+    updateMoneyDisplay();
+
+    document.getElementById("gameDate").textContent =
+        "Dzień "+state.day;
+
+    document.getElementById("activeBuilds").textContent =
+        state.builds.length;
+
+    document.getElementById("employeeStat").textContent =
+        `${state.employees.length} / ${employeeCapacity()}`;
+
+    document.getElementById("repStat").textContent =
+        state.reputation;
+
+    document.getElementById("companyRep").textContent =
+        state.reputation;
+
+    document.getElementById("completedStat").textContent =
+        state.completed;
+
+    document.getElementById("officeLevel").textContent =
+        state.officeLevel;
+
+    document.getElementById("officePrice").textContent =
+        formatMoney(officePrice());
+
+    renderMap("dashboardMap");
+    renderMap("mainMap");
+
+    renderDashboardContracts();
+    renderContracts();
+    renderMachines();
+    renderEmployees();
+    renderFinance();
+
+}
+
+/* =========================================================
+   MODAL
+========================================================= */
+
+function closeModal(){
+
+    document.getElementById("modalOverlay")
+        .classList.remove("show");
+
+}
+
+document.getElementById("modalOverlay")
+.addEventListener("click",function(e){
+
+    if(e.target===this){
+        closeModal();
+    }
+
+});
+
+/* =========================================================
+   TOAST
+========================================================= */
+
+let toastTimer;
+
+function showToast(message){
+
+    const toast =
+        document.getElementById("toast");
+
+    toast.textContent = message;
+
+    toast.classList.add("show");
+
+    clearTimeout(toastTimer);
+
+    toastTimer =
+        setTimeout(()=>{
+            toast.classList.remove("show");
+        },3000);
+
+}
+
+/* =========================================================
+   KEYBOARD
+========================================================= */
+
+document.addEventListener("keydown",e=>{
+
+    if(e.key==="Escape"){
+        closeModal();
+    }
+
+});
 
 /* =========================================================
    AUTOSAVE
 ========================================================= */
 
-setInterval(
-    saveGame,
-    30000
-);
+setInterval(()=>{
+
+    saveGame();
+
+},30000);
+
+/* =========================================================
+   GAME LOOP
+========================================================= */
+
+setInterval(()=>{
+
+    nextDay();
+
+},20000);
+
+/* =========================================================
+   START
+========================================================= */
+
+renderAll();
 
 </script>
 
 </body>
 </html>
-```
