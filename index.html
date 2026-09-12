@@ -87,22 +87,38 @@ function migrate(s){
 }
 function normalize(c){
  if(!c)return;
+ // Akcjonariat jest twardą pulą 100 udziałów. Ta funkcja NIGDY nie tworzy nowych udziałów.
+ // Usuwa tylko właścicieli z zerem i naprawia zapis, jeśli stary save był uszkodzony.
  const map=new Map();
- (Array.isArray(c.holders)?c.holders:[]).forEach(h=>{if(!Array.isArray(h)||!h[0])return;const n=String(h[0]),v=Math.max(0,Number(h[1])||0);if(v>0)map.set(n,(map.get(n)||0)+v)});
+ (Array.isArray(c.holders)?c.holders:[]).forEach(h=>{
+   if(!Array.isArray(h)||!h[0])return;
+   const n=String(h[0]);
+   const v=Math.max(0,Math.floor(Number(h[1])||0));
+   if(v>0)map.set(n,(map.get(n)||0)+v);
+ });
  c.holders=[...map.entries()].map(([n,v])=>[n,v]);
  let total=c.holders.reduce((a,h)=>a+h[1],0);
- if(total<=0)c.holders=[['Public Investors',100]];
- else if(Math.abs(total-100)>0.000001){
-   const pub=c.holders.find(h=>h[0]==='Public Investors');
-   if(total<100){if(pub)pub[1]+=100-total;else c.holders.push(['Public Investors',100-total]);}
-   else if(pub&&pub[1]>=total-100){pub[1]-=(total-100)}
-   else {const factor=100/total;c.holders.forEach(h=>h[1]=+(h[1]*factor).toFixed(4));}
+ if(total===0){ c.holders=[['Public Investors',100]]; total=100; }
+ // Stare/zepsute zapisy mogą nie sumować się do 100. Naprawiamy je jednorazowo,
+ // ale nie zmieniamy poprawnych transakcji i nigdy nie dodajemy udziałów sprzedającemu.
+ if(total!==100){
+   let pub=c.holders.find(h=>h[0]==='Public Investors');
+   if(!pub){pub=['Public Investors',0];c.holders.push(pub);}
+   pub[1]+=100-total;
+   if(pub[1]<0){
+     // Jeśli stary save miał za dużo udziałów, skalujemy tylko uszkodzony zapis.
+     const factor=100/total;
+     c.holders.forEach(h=>h[1]=Math.floor(h[1]*factor));
+     let fixed=c.holders.reduce((a,h)=>a+h[1],0);
+     if(fixed<100){
+       pub=c.holders.find(h=>h[0]==='Public Investors')||['Public Investors',0];
+       if(!c.holders.includes(pub))c.holders.push(pub);
+       pub[1]+=100-fixed;
+     }
+   }
  }
- c.holders=c.holders.filter(h=>h[1]>0.000001);
- let fixed=c.holders.reduce((a,h)=>a+h[1],0);
- if(Math.abs(fixed-100)>0.0001){const pub=c.holders.find(h=>h[0]==='Public Investors');if(pub)pub[1]+=100-fixed;else c.holders.push(['Public Investors',100-fixed]);}
- c.holders=c.holders.filter(h=>h[1]>0.000001);
- c.owned=playerShares(c);c.controlled=c.owned>=51;c.shares=100;
+ c.holders=c.holders.filter(h=>Number(h[1])>0);
+ c.owned=playerShares(c); c.controlled=c.owned>=51; c.shares=100;
 }
 function playerShares(c){const h=(c?.holders||[]).find(x=>x[0]==='NEXORA');return h?Number(h[1])||0:0}
 function shareholderCount(c){normalize(c);return c.holders.length}
@@ -130,35 +146,36 @@ function generateMarketCompany(){
  normalize(c);c.history=[c.price];S.companies.push(c);return c;
 }
 function marketDynamics(){
- // Dynamiczny rynek: NEXORA nie jest automatycznie kupującym ani sprzedającym.
- // Zmieniamy wyłącznie pozostałych inwestorów, zawsze zachowując dokładnie 100 udziałów.
+ // Rynek wtórny: inwestorzy mogą tylko PRZENOSIĆ istniejące udziały.
+ // Nigdy nie są tworzone nowe akcje. Suma zawsze pozostaje równa 100.
  S.companies.forEach(c=>{
    if(!c||c.acquired||c.merged)return;
    normalize(c);
-   for(let trade=0;trade<2+Math.floor(Math.random()*4);trade++){
-     const outsiders=c.holders.filter(h=>h[0]!=='NEXORA'&&Number(h[1])>=2);
-     if(!outsiders.length)break;
-     const seller=outsiders[Math.floor(Math.random()*outsiders.length)];
-     const maxSell=Math.max(1,Math.min(10,Math.floor(Number(seller[1])-1)));
+   for(let trade=0;trade<1+Math.floor(Math.random()*3);trade++){
+     const sellers=c.holders.filter(h=>h[0]!=='NEXORA'&&Number(h[1])>=2);
+     if(!sellers.length)break;
+     const seller=sellers[Math.floor(Math.random()*sellers.length)];
+     const maxSell=Math.min(8,Math.floor(seller[1]));
      const qty=1+Math.floor(Math.random()*maxSell);
-     let buyers=c.holders.filter(h=>h[0]!=='NEXORA'&&h[0]!==seller[0]&&Number(h[1])>0);
+     const existingBuyers=c.holders.filter(h=>h[0]!=='NEXORA'&&h[0]!==seller[0]&&Number(h[1])>0);
      let buyer=null;
-     if((Math.random()<.30 && buyers.length<8)||buyers.length===0){
+     // Nowy inwestor dostaje udziały wyłącznie od istniejącego sprzedającego.
+     if(Math.random()<0.22){
        const name=randomInvestor(c.holders.map(h=>h[0]));
-       if(name){buyer=[name,0];c.holders.push(buyer);buyers.push(buyer)}
+       if(name){buyer=[name,0];c.holders.push(buyer);}
      }
-     if(!buyer)buyer=buyers[Math.floor(Math.random()*buyers.length)];
+     if(!buyer)buyer=existingBuyers[Math.floor(Math.random()*existingBuyers.length)];
      if(!buyer)break;
-     seller[1]-=qty;buyer[1]+=qty;
+     seller[1]-=qty;
+     buyer[1]+=qty;
+     // Po transakcji suma nie może się zmienić.
      normalize(c);
    }
-   // Kurs również porusza się między dniami.
    c.prev=Number(c.price)||1;
    const drift=(Math.random()-.48)*.035;
    c.price=Math.max(1,Math.round(c.price*(1+drift)*100)/100);
    c.history=Array.isArray(c.history)?c.history:[];
-   c.history.push(c.price);c.history=c.history.slice(-40);
-   normalize(c);
+   c.history.push(c.price); c.history=c.history.slice(-40);
  });
 }
 
@@ -418,21 +435,45 @@ function openBuySharesById(companyId,sellerName){
 function updateBuyTotal(companyId,sellerName,value){const c=S.companies.find(x=>x.id===companyId);if(!c)return;const rawName=String(sellerName).replace(/&amp;/g,'&').replace(/&quot;/g,'"').replace(/&#92;/g,'\\');const h=c.holders.find(x=>x[0]===rawName)||c.holders.find(x=>escapeHtml(x[0])===sellerName);const q=Math.max(0,Math.floor(Number(value)||0));const total=document.getElementById('buyTotal');if(total)total.textContent=money(q*c.price);const av=document.getElementById('buyAvailable');if(av&&h)av.textContent=num(h[1])}
 function confirmBuyShares(ci,hi){const c=S.companies[ci];if(!c)return;normalize(c);const h=c.holders[hi];if(!h)return;confirmBuySharesById(c.id,h[0])}
 function confirmBuySharesById(companyId,sellerName){
- const c=S.companies.find(x=>x.id===companyId);if(!c)return toast('Firma nie jest już na giełdzie');normalize(c);
- const h=c.holders.find(x=>x[0]===sellerName);if(!h||sellerName==='NEXORA'||h[1]<=0)return toast('Ten inwestor nie ma już udziałów');
- const q=Math.max(1,Math.min(h[1],Math.floor(Number(document.getElementById('buyQty')?.value)||1)));const cost=Math.round(q*c.price*100)/100;
+ const c=S.companies.find(x=>x.id===companyId);
+ if(!c)return toast('Firma nie jest już na giełdzie');
+ normalize(c);
+ const h=c.holders.find(x=>x[0]===sellerName);
+ if(!h||sellerName==='NEXORA'||h[1]<=0)return toast('Ten inwestor nie ma już udziałów');
+ const input=document.getElementById('buyQty');
+ const q=Math.max(1,Math.min(Math.floor(h[1]),Math.floor(Number(input?.value)||1)));
+ const cost=Math.round(q*c.price*100)/100;
  if(!spend(cost,'zakup udziałów'))return;
- let ph=c.holders.find(x=>x[0]==='NEXORA');if(!ph){ph=['NEXORA',0];c.holders.push(ph)}
- h[1]-=q;ph[1]+=q;normalize(c);save();closeModal();render();openCompanyById(c.id);toast(`Kupiono ${q} udziałów ${c.ticker} od ${sellerName}`);
+ let ph=c.holders.find(x=>x[0]==='NEXORA');
+ if(!ph){ph=['NEXORA',0];c.holders.push(ph);}
+ // To jest transfer 1:1: sprzedający -q, NEXORA +q. Żadnych nowych udziałów.
+ h[1]-=q; ph[1]+=q;
+ normalize(c);
+ save();
+ closeModal();
+ render();
+ openCompanyById(c.id);
+ toast(`Kupiono ${q} udziałów ${c.ticker} od ${sellerName}`);
 }
+
 function sellShares(i){const c=S.companies[i];if(c)sellSharesById(c.id)}
 function sellSharesById(companyId){
- const c=S.companies.find(x=>x.id===companyId);if(!c)return toast('Firma nie jest już na giełdzie');normalize(c);
- const q=Math.min(Number(document.getElementById('sellQty')?.value)||0,playerShares(c));if(q<=0)return toast('Podaj liczbę udziałów');
- const ph=c.holders.find(x=>x[0]==='NEXORA');if(!ph)return toast('NEXORA nie ma udziałów');
- let pub=c.holders.find(x=>x[0]==='Public Investors');if(!pub){pub=['Public Investors',0];c.holders.push(pub)}
- earn(q*c.price,'sprzedaż udziałów');ph[1]-=q;pub[1]+=q;normalize(c);save();render();openCompanyById(c.id);toast(`Sprzedano ${q} udziałów ${c.ticker}`);
+ const c=S.companies.find(x=>x.id===companyId);
+ if(!c)return toast('Firma nie jest już na giełdzie');
+ normalize(c);
+ const q=Math.min(Math.floor(Number(document.getElementById('sellQty')?.value)||0),Math.floor(playerShares(c)));
+ if(q<=0)return toast('Podaj liczbę udziałów');
+ const ph=c.holders.find(x=>x[0]==='NEXORA');
+ if(!ph)return toast('NEXORA nie ma udziałów');
+ let pub=c.holders.find(x=>x[0]==='Public Investors');
+ if(!pub){pub=['Public Investors',0];c.holders.push(pub);}
+ earn(q*c.price,'sprzedaż udziałów');
+ ph[1]-=q; pub[1]+=q;
+ normalize(c);
+ save(); render(); openCompanyById(c.id);
+ toast(`Sprzedano ${q} udziałów ${c.ticker}`);
 }
+
 function buyout(i){const c=S.companies[i];if(c)buyoutById(c.id)}
 function buyoutById(companyId){
  syncMarketCompanies();const c=S.companies.find(x=>x.id===companyId);if(!c)return toast('Firma nie jest już na giełdzie');normalize(c);
