@@ -40,8 +40,8 @@ button,input,select{font:inherit}button{border:0;cursor:pointer;color:#fff;backg
   <div class="actions">
     <button class="small" onclick="runCheat('money 10000000')">+$10M</button>
     <button class="small" onclick="runCheat('users 1000000')">+1M users</button>
-    <button class="small" onclick="runCheat('gpu 100')">+100 GPU</button>
-    <button class="small" onclick="runCheat('employees 10')">+10 prac.</button>
+    <button class="small" onclick="runCheat('gpu 100')">+100 GPU</button><button class="small good" onclick="runCheat('maxgpu')">MAX GPU</button>
+    <button class="small" onclick="runCheat('employees 10')">+10 prac.</button><button class="small good" onclick="runCheat('maxemployees')">MAX pracownicy</button>
     <button class="small" onclick="runCheat('rp 5000')">+5000 RP</button>
     <button class="small" onclick="runCheat('unlockall')">Odblokuj wszystko</button>
   </div>
@@ -75,7 +75,7 @@ function uid(){return Math.random().toString(36).slice(2,10)}
 function defaultState(){
  return {
   version:4,companyName:"NEXORA",day:1,year:2026,month:1,cash:2500000,users:1200,reputation:72,
-  employees:[],candidate:null,office:{level:1},products:[],gpu:10,gpuUsed:0,servers:[{id:uid(),name:"NEXORA Core-01",level:1,load:18}],
+  employees:[],candidate:null,office:{level:1},products:[],gpu:10,gpuUsed:0,gpuLevel:1,servers:[{id:uid(),name:"NEXORA Core-01",level:1,load:18}],
   models:[],subsidiaries:[],researchPoints:100,technologies:[],events:["Założono NEXORA — czas zbudować imperium."],
   incomeHistory:[],expenseHistory:[],profitHistory:[],userHistory:[1200],
   regions:{USA:false,Polska:true,Niemcy:false,UK:false,Japonia:false,Indie:false,Kanada:false,Australia:false,Brazylia:false},
@@ -92,7 +92,7 @@ let S=load(),page="dashboard",selectedCompany=null;
 function load(){try{let x=JSON.parse(localStorage.getItem(KEY));return x?migrate(x):defaultState()}catch(e){return defaultState()}}
 function migrate(s){
  let d=defaultState(); s={...d,...s}; s.office={...d.office,...(s.office||{})}; s.regions={...d.regions,...(s.regions||{})};
- s.employees=Array.isArray(s.employees)?s.employees:[];s.products=Array.isArray(s.products)?s.products:[];s.products.forEach(p=>{p.status=p.status||"AKTYWNY";p.version=p.version||"v1.0";p.market=p.market||"Polska";p.value=p.value||100000;p.revenueDay=p.revenueDay||0});s.companies=Array.isArray(s.companies)&&s.companies.length?s.companies:d.companies;
+ s.gpuLevel=Number(s.gpuLevel)||1; s.employees=Array.isArray(s.employees)?s.employees:[];s.products=Array.isArray(s.products)?s.products:[];s.products.forEach(p=>{p.status=p.status||"AKTYWNY";p.version=p.version||"v1.0";p.market=p.market||"Polska";p.value=p.value||100000;p.revenueDay=p.revenueDay||0});s.companies=Array.isArray(s.companies)&&s.companies.length?s.companies:d.companies;
  s.companies.forEach(c=>{c.shares=100;c.holders=Array.isArray(c.holders)?c.holders:[];if(!c.holders.length)c.holders=[["Public Investors",100]]; normalize(c); c.history=c.history||[c.price]});
  return s
 }
@@ -201,7 +201,7 @@ const pages={
   let last=S.profitHistory.at(-1)||0;
   return `<div class="hero"><h2>${S.companyName} — dzień ${S.day}, ${S.month}/${S.year}</h2><p>Od małego startupu do globalnego imperium. Rozwijaj produkty, buduj AI, przejmuj firmy i kontroluj rynki.</p></div>
   <div class="grid section">
-   ${stat("Gotówka",money(S.cash),last>=0?"+ "+money(last)+" / dzień":"− "+money(-last),last>=0)}
+   
    ${stat("Wycena",money(valuation()),"Reputacja "+S.reputation+"/100",true)}
    ${stat("Użytkownicy",num(S.users),"wzrost organiczny",true)}
    ${stat("Pracownicy",S.employees.length+" / "+officeCapacity(),"HQ lvl "+S.office.level,true)}
@@ -217,14 +217,14 @@ const pages={
   </div>`
  },
  products(){
-  return `<div class="hero"><h2>🚀 Produkty NEXORA</h2><p>Każdy produkt ma własny rynek, użytkowników, ocenę, wersję i przychód. Kliknij kartę produktu, aby otworzyć pełne centrum zarządzania.</p></div><div class="sectionTitle section"><h2>Ekosystem produktów · ${S.products.length}</h2><button onclick="createProduct()">＋ Nowy produkt</button></div>
+  return `<div class="sectionTitle"><div><h2>🚀 Centrum produkcji</h2><p class="muted">Zarządzaj całym portfolio, rozwojem, marketingiem i przychodami produktów.</p></div><button onclick="createProduct()">＋ Utwórz produkt</button></div><div class="grid section"><div class="card stat"><div class="label">Produkty</div><div class="value">${S.products.length}</div><div class="delta goodtxt">aktywnych usług</div></div><div class="card stat"><div class="label">Użytkownicy produktów</div><div class="value">${num(S.products.reduce((a,p)=>a+p.users,0))}</div><div class="delta goodtxt">łączny zasięg</div></div><div class="card stat"><div class="label">Przychód produktów</div><div class="value">${money(S.products.reduce((a,p)=>a+(p.revenueDay||0),0))}</div><div class="delta goodtxt">na dzień</div></div><div class="card stat"><div class="label">Wartość portfolio</div><div class="value">${money(S.products.reduce((a,p)=>a+(p.value||0),0))}</div><div class="delta">wartość rynkowa</div></div></div><div class="sectionTitle section"><h2>Portfolio · ${S.products.length}</h2></div>
   ${S.products.length?`<div class="productGrid">${S.products.map((p,i)=>productCard(p,i)).join("")}</div>`:`<div class="empty">Nie masz jeszcze produktów. Stwórz pierwszy produkt i zacznij generować przychód.</div>`}`
  },
  ai(){
   return `<div class="two"><div class="card"><div class="sectionTitle"><h2>🧠 Modele AI</h2><button onclick="trainAI()">Trenuj model</button></div>
   <p class="muted">GPU pozostają sprzętem. Trening wykorzystuje je czasowo, ale ich liczba nigdy nie maleje.</p>
   ${S.models.length?`<div class="list">${S.models.map(m=>`<div class="row"><div><strong>${m.name}</strong><small>${m.params}B parametrów · jakość ${m.quality}/100</small></div><span class="pill">${m.status}</span></div>`).join("")}</div>`:`<div class="empty">Brak modeli.</div>`}</div>
-  <div class="card"><h2>GPU</h2><div class="metric">${S.gpu}</div><p class="muted">${S.gpuUsed} używanych · ${S.gpu-S.gpuUsed} wolnych</p><div class="progress"><i style="width:${Math.min(100,S.gpuUsed/S.gpu*100)}%"></i></div><div class="actions"><button onclick="buyGPU()">Kup GPU — $35k</button></div><div class="miniGrid"><div class="mini"><span>Koszt dzienny</span><b>${money(S.gpu*35)}</b></div><div class="mini"><span>Modele</span><b>${S.models.length}</b></div></div></div></div>`
+  <div class="card"><h2>GPU</h2><div class="metric">${S.gpu}</div><p class="muted">${S.gpuUsed} używanych · ${S.gpu-S.gpuUsed} wolnych</p><div class="progress"><i style="width:${Math.min(100,S.gpuUsed/S.gpu*100)}%"></i></div><div class="actions"><button onclick="buyGPU()">＋ Kup GPU — $35k</button><button class="secondary" onclick="upgradeGPU()">⚡ Ulepsz GPU — $60k</button></div><div class="miniGrid"><div class="mini"><span>Łącznie GPU</span><b>${S.gpu}</b></div><div class="mini"><span>Koszt dzienny</span><b>${money(S.gpu*35)}</b></div><div class="mini"><span>Poziom sprzętu</span><b>${S.gpuLevel||1}</b></div><div class="mini"><span>Modele</span><b>${S.models.length}</b></div></div></div></div>`
  },
  employees(){
   let filled=S.employees.length/officeCapacity()*100;
@@ -285,10 +285,28 @@ function upgradeOffice(){if(S.office.level>=100)return toast("HQ ma maksymalny p
 function generateCandidate(){if(S.employees.length>=officeCapacity())return toast("Brak miejsca w biurze");let r=roles[Math.floor(Math.random()*roles.length)];S.candidate={name:["Adam","Maja","Oskar","Julia","Kacper","Zofia","Leon","Lena","Maks","Nina"][Math.floor(Math.random()*10)]+" "+["Kowalski","Nowak","Wójcik","Mazur","Lis","Kaczmarek"][Math.floor(Math.random()*6)],role:r[0],salary:r[1]+Math.floor(Math.random()*600-300),department:r[2],level:1+Math.floor(Math.random()*8),productivity:70+Math.floor(Math.random()*31)};save();render()}
 function hireCandidate(){if(!S.candidate)return;if(S.employees.length>=officeCapacity())return toast("Brak miejsca");S.employees.push({...S.candidate,id:uid()});S.candidate=null;save();render();toast("👨‍💻 Pracownik zatrudniony")}
 function fire(i){if(confirm("Zwolnić tego pracownika?")){S.employees.splice(i,1);save();render()}}
-function createProduct(){if(!S.employees.length)return toast("Najpierw zatrudnij przynajmniej jednego pracownika");let name=prompt("Nazwa produktu:");if(!name)return;let type=prompt("Typ: "+productTypes.join(", "), "AI");if(!productTypes.includes(type))type="AI";let cost=25000+S.employees.length*2500;if(!spend(cost))return;let p={id:uid(),name,type,rating:60+Math.floor(Math.random()*40),users:300+Math.floor(Math.random()*3000),value:100000,revenueDay:0,version:"v1.0",status:"AKTYWNY",market:"Polska"};S.products.push(p);save();render();toast("🚀 Produkt "+name+" uruchomiony")}
+function createProduct(){
+ if(!S.employees.length)return toast("Najpierw zatrudnij przynajmniej jednego pracownika");
+ openModal(`<div class="modalHead"><div><h2>🚀 Utwórz nowy produkt</h2><p class="muted">Zaprojektuj kolejną usługę NEXORA.</p></div><button class="close" onclick="closeModal()">×</button></div>
+ <div class="form">
+  <label>Nazwa produktu<input id="newProductName" placeholder="np. NEXORA Search"></label>
+  <label>Typ<select id="newProductType">${productTypes.map(t=>`<option value="${t}">${t}</option>`).join("")}</select></label>
+  <label>Rynek<select id="newProductMarket">${Object.keys(S.regions).filter(r=>S.regions[r]).map(r=>`<option value="${r}">${r}</option>`).join("")}</select></label>
+  <div class="card"><h3>💰 Koszt uruchomienia</h3><div class="metric">${money(25000+S.employees.length*2500)}</div><p class="muted">Koszt zależy od wielkości zespołu.</p></div>
+  <button onclick="confirmCreateProduct()">🚀 Uruchom produkt</button>
+ </div>`);
+}
+function confirmCreateProduct(){
+ let name=document.getElementById("newProductName").value.trim(); let type=document.getElementById("newProductType").value; let market=document.getElementById("newProductMarket").value;
+ if(!name)return toast("Podaj nazwę produktu");
+ let cost=25000+S.employees.length*2500; if(!spend(cost,"uruchomienie produktu"))return;
+ let p={id:uid(),name,type,rating:60+Math.floor(Math.random()*40),users:300+Math.floor(Math.random()*3000),value:100000,revenueDay:0,version:"v1.0",status:"AKTYWNY",market,development:100,marketing:0,updates:0};
+ S.products.push(p); save(); closeModal(); render(); toast("🚀 Produkt "+name+" uruchomiony");
+}
 function updateProduct(i){let p=S.products[i],cost=25000+p.rating*400;if(!spend(cost))return;p.rating=Math.min(100,p.rating+1+Math.floor(Math.random()*4));p.version="v"+(parseInt(String(p.version||"v1.0").replace("v",""))||1)+1+".0";p.status="AKTYWNY";p.value+=cost*8;save();render();toast("🔄 "+p.name+" otrzymał aktualizację")}
 function removeProduct(i){if(confirm("Wycofać produkt z rynku?")){S.products.splice(i,1);save();render();toast("Produkt wycofany")}}
 function buyGPU(){if(spend(35000)){S.gpu++;save();render();toast("🧩 Kupiono GPU")}}
+function upgradeGPU(){let cost=60000*(S.gpuLevel||1);if(spend(cost,"ulepszenie GPU")){S.gpuLevel=(S.gpuLevel||1)+1;S.gpu+=5;S.models.forEach(m=>m.quality=Math.min(100,(m.quality||70)+1));save();render();toast(`⚡ GPU ulepszone do poziomu ${S.gpuLevel} (+5 GPU)`);}}
 function trainAI(){if(S.gpu-S.gpuUsed<5)return toast("Potrzebujesz 5 wolnych GPU");if(!spend(25000))return;S.gpuUsed+=5;let m={id:uid(),name:"NEXORA Neural "+(S.models.length+1),params:4+Math.floor(Math.random()*22),quality:70+Math.floor(Math.random()*30),status:"TRENING"};S.models.push(m);save();render();setTimeout(()=>{S.gpuUsed=Math.max(0,S.gpuUsed-5);m.status="GOTOWY";m.quality=Math.min(100,m.quality+2);save();render();toast("🧠 Model zakończył trening")},3500)}
 function buyServer(){let cost=150000+S.servers.length*50000;if(spend(cost)){S.servers.push({id:uid(),name:"NEXORA Core-"+String(S.servers.length+1).padStart(2,"0"),level:1,load:10+Math.floor(Math.random()*25)});save();render()}}
 function upgradeServer(i){let s=S.servers[i],cost=80000*s.level;if(spend(cost)){s.level++;s.load=Math.max(5,s.load-4);save();render();toast("☁️ Serwer ulepszony")}}
@@ -315,7 +333,7 @@ document.getElementById("modal").addEventListener("click",e=>{if(e.target.id==="
 
 function toggleCheats(){let c=document.getElementById("cheat");c.classList.toggle("open");if(c.classList.contains("open"))setTimeout(()=>document.getElementById("cheatInput").focus(),50)}
 function runCheat(cmd){document.getElementById("cheatInput").value=cmd;executeCheat()}
-function executeCheat(){let x=document.getElementById("cheatInput").value.trim().split(/\s+/),cmd=x[0]?.toLowerCase(),v=Number(x[1]);let msg="Nieznana komenda";if(cmd==="money"){changeCash(v,"cheat");msg="Dodano "+money(v)}else if(cmd==="users"){S.users+=v;msg="Dodano "+num(v)+" użytkowników"}else if(cmd==="gpu"){S.gpu+=v;msg="Dodano "+v+" GPU"}else if(cmd==="employees"){for(let i=0;i<v;i++){let r=roles[i%roles.length];S.employees.push({id:uid(),name:"Cheat Employee "+(S.employees.length+1),role:r[0],salary:1,department:r[2],level:10,productivity:100})}msg="Dodano "+v+" pracowników"}else if(cmd==="rp"){S.researchPoints+=v;msg="Dodano "+v+" RP"}else if(cmd==="day"){S.day=Math.max(1,Math.floor(v)||1);msg="Dzień ustawiony"}else if(cmd==="office"){S.office.level=Math.max(1,Math.min(100,Math.floor(v)||1));msg="HQ ustawione na poziom "+S.office.level}else if(cmd==="rich"){changeCash(100000000,"cheat RICH");S.users+=10000000;S.gpu+=500;msg="Tryb RICH"}else if(cmd==="unlockall"){S.technologies=techs.map(t=>t[0]);S.regions=Object.fromEntries(Object.keys(S.regions).map(k=>[k,true]));S.reputation=100;S.office.level=100;msg="Odblokowano wszystko"}document.getElementById("consoleLog").textContent="> "+(document.getElementById("cheatInput").value)+"\n"+msg;save();render();toast(msg)}
+function executeCheat(){let x=document.getElementById("cheatInput").value.trim().split(/\s+/),cmd=x[0]?.toLowerCase(),v=Number(x[1]);let msg="Nieznana komenda";if(cmd==="money"){changeCash(v,"cheat");msg="Dodano "+money(v)}else if(cmd==="users"){S.users+=v;msg="Dodano "+num(v)+" użytkowników"}else if(cmd==="gpu"){S.gpu+=Math.max(0,v);msg="Dodano "+v+" GPU"}else if(cmd==="maxgpu"){S.gpu=10000;S.gpuLevel=100;S.gpuUsed=0;msg="GPU ustawione na MAX"}else if(cmd==="employees"){for(let i=0;i<v;i++){let r=roles[i%roles.length];S.employees.push({id:uid(),name:"Cheat Employee "+(S.employees.length+1),role:r[0],salary:1,department:r[2],level:10,productivity:100})}msg="Dodano "+v+" pracowników"}else if(cmd==="maxemployees"||cmd==="maxworkers"){S.office.level=100;let max=officeCapacity();while(S.employees.length<max){let r=roles[S.employees.length%roles.length];S.employees.push({id:uid(),name:"NEXORA Elite "+(S.employees.length+1),role:r[0],salary:1,department:r[2],level:100,productivity:100,morale:100,experience:100,skill:100})}msg="Maksymalna liczba pracowników: "+max+" | wszyscy mają maksymalne perki"}else if(cmd==="rp"){S.researchPoints+=v;msg="Dodano "+v+" RP"}else if(cmd==="day"){S.day=Math.max(1,Math.floor(v)||1);msg="Dzień ustawiony"}else if(cmd==="office"){S.office.level=Math.max(1,Math.min(100,Math.floor(v)||1));msg="HQ ustawione na poziom "+S.office.level}else if(cmd==="rich"){changeCash(100000000,"cheat RICH");S.users+=10000000;S.gpu+=500;msg="Tryb RICH"}else if(cmd==="unlockall"){S.technologies=techs.map(t=>t[0]);S.regions=Object.fromEntries(Object.keys(S.regions).map(k=>[k,true]));S.reputation=100;S.office.level=100;msg="Odblokowano wszystko"}document.getElementById("consoleLog").textContent="> "+(document.getElementById("cheatInput").value)+"\n"+msg;save();render();toast(msg)}
 document.getElementById("cheatInput").addEventListener("keydown",e=>{if(e.key==="Enter")executeCheat();if(e.key==="Escape")toggleCheats()});
 document.addEventListener("keydown",e=>{if(e.key==="F2"){e.preventDefault();toggleCheats()}if(e.key==="Escape"){closeModal();document.getElementById("cheat").classList.remove("open")}});
 
