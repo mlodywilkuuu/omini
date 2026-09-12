@@ -106,6 +106,56 @@ function normalize(c){
 }
 function playerShares(c){const h=(c?.holders||[]).find(x=>x[0]==='NEXORA');return h?Number(h[1])||0:0}
 function shareholderCount(c){normalize(c);return c.holders.length}
+
+const INVESTOR_NAMES=['Atlas Capital','Northstar Ventures','Global Bank','Vertex Fund','Public Investors','Aurora Capital','Redwood Partners','Summit Ventures','BluePeak Fund','Horizon Capital','Silver Oak Partners','Crown Investments','Pioneer Fund','Meridian Capital','Apex Ventures','Ironwood Holdings','Stellar Capital','Granite Partners','Oakmont Fund','Vanguard Growth','Falcon Investments','Evergreen Capital','Quantum Ventures','Orion Fund','Vertex Partners','Nova Capital','Blackstone Growth','Lighthouse Ventures','Cedar Capital','Polaris Fund','Zenith Investments','Titan Holdings'];
+const COMPANY_NAMES=[
+ ['Aether Dynamics','AET','AI'],['BrightCore','BCR','Software'],['Cobalt Cloud','CBL','Cloud'],['DeepVision','DPV','AI'],['Echo Networks','ECH','Social'],['Flux Systems','FLX','Hardware'],['Helix Media','HLX','Media'],['Ionix Labs','ION','Robotics'],['Lumina Search','LMS','Search'],['Orbit Systems','ORB','Software'],['Prism Digital','PRM','Media'],['Vertex AI','VAI','AI'],['WaveCloud','WVC','Cloud'],['Zenith Devices','ZDV','Hardware'],['Astra Interactive','AST','Gaming'],['Nexa Payments','NXP','Fintech'],['Pulse Mobile','PLS','Software'],['Terra Maps','TRM','Maps'],['Vector Security','VCS','Cybersecurity'],['Nimbus Works','NMB','Workspace']
+];
+function randomInvestor(exclude=[]){const pool=INVESTOR_NAMES.filter(n=>!exclude.includes(n)&&n!=='NEXORA');return pool.length?pool[Math.floor(Math.random()*pool.length)]:('Investor '+Math.floor(100+Math.random()*900));}
+function randomHolders(count){
+ count=Math.max(3,Math.min(8,count));
+ const names=[];while(names.length<count)names.push(randomInvestor(names));
+ const vals=[];let remaining=100;
+ for(let i=0;i<count-1;i++){const min=1,max=remaining-(count-i-1);const v=Math.floor(Math.random()*(max-min+1))+min;vals.push(v);remaining-=v}
+ vals.push(remaining);
+ return names.map((n,i)=>[n,vals[i]]);
+}
+function generateMarketCompany(){
+ const used=new Set(S.companies.map(c=>c.ticker).concat(S.acquiredCompanies.map(c=>c.ticker)));
+ const available=COMPANY_NAMES.filter(x=>!used.has(x[1]));
+ if(!available.length)return null;
+ const [name,ticker,type]=available[Math.floor(Math.random()*available.length)];
+ const price=Math.round((18+Math.random()*170)*100)/100;
+ const c=company(name,ticker,type,price,randomHolders(3+Math.floor(Math.random()*6)));
+ normalize(c);c.history=[c.price];S.companies.push(c);return c;
+}
+function marketDynamics(){
+ // NEXORA nie bierze udziału w automatycznych transakcjach — jej pakiet pozostaje stabilny.
+ S.companies.forEach(c=>{
+   normalize(c);
+   for(let trade=0;trade<1+Math.floor(Math.random()*3);trade++){
+     const outsiders=c.holders.filter(h=>h[0]!=='NEXORA'&&h[1]>=2);
+     if(!outsiders.length)break;
+     const seller=outsiders[Math.floor(Math.random()*outsiders.length)];
+     const maxSell=Math.min(8,Math.max(1,Math.floor(seller[1]-1)));
+     const qty=1+Math.floor(Math.random()*maxSell);
+     let buyers=c.holders.filter(h=>h[0]!=='NEXORA'&&h[0]!==seller[0]&&h[1]>0);
+     let buyer;
+     // Czasami na rynek wchodzi nowy inwestor, przez co liczba udziałowców również się zmienia.
+     if((Math.random()<.22 && buyers.length<7) || buyers.length===0){
+       const name=randomInvestor(c.holders.map(h=>h[0]));
+       buyer=[name,0];c.holders.push(buyer);buyers.push(buyer);
+     }else buyer=buyers[Math.floor(Math.random()*buyers.length)];
+     seller[1]-=qty;buyer[1]+=qty;
+     normalize(c);
+   }
+ });
+ // Co 7 dni do giełdy trafia nowa firma z nowym, losowym akcjonariatem.
+ if(S.day>0 && S.day%7===0){
+   const c=generateMarketCompany();
+   if(c)S.events.unshift(`📈 Nowa spółka na giełdzie: ${c.name} (${c.ticker}) — ${c.holders.length} udziałowców.`);
+ }
+}
 function syncMarketCompanies(state=S){
  if(!Array.isArray(state.companies))state.companies=[];
  if(!Array.isArray(state.acquiredCompanies))state.acquiredCompanies=[];
@@ -137,10 +187,95 @@ function officeCost(){return Math.round(75000*Math.pow(S.office.level,1.28))}
 function gpuUpgradeCost(){return 60000*(S.gpuLevel||1)}
 function serverUpgradeCost(s){return 80000*s.level}
 function techBonus(){return S.technologies.reduce((a,id)=>{const t=TECHS.find(x=>x[0]===id);return a+(t?t[3]:0)},0)}
-function sharesDailyIncome(){return S.companies.reduce((a,c)=>a+playerShares(c)*c.price*.012,0)}
+function sharesDailyIncome(){
+ let income=0;
+ S.companies.forEach(c=>{normalize(c);income+=playerShares(c)*Number(c.price||0)*0.012});
+ S.acquiredCompanies.forEach(c=>{income+=100*Number(c.price||0)*0.012});
+ return Math.round(income*100)/100;
+}
 function valuation(){const p=S.products.reduce((a,x)=>a+x.value,0),subs=S.subsidiaries.reduce((a,x)=>a+x.value,0),stocks=S.companies.reduce((a,c)=>a+playerShares(c)*c.price,0);return Math.max(2500000,S.cash*2+p*3+subs+stocks+S.users*1.7+S.reputation*10000)}
-function dailyCalc(){let income=0,expense=0;const prodBonus=1+techBonus()/2;S.products.forEach(p=>{const growth=Math.max(1,Math.round(p.users*(.012+(p.rating-60)/5000)));p.users+=growth;p.value=Math.max(p.value,p.users*p.rating*4);let r=Math.round(p.users*(.12+p.rating/700)*prodBonus);if(p.type==='AI')r=Math.round(r*1.35);if(p.markets?.length)r=Math.round(r*(1+Math.min(.5,p.markets.length*.015)));if(p.languages?.length)r=Math.round(r*(1+Math.min(.35,p.languages.length*.006)));p.revenueDay=r;income+=r});S.subsidiaries.forEach(c=>{let r=Math.round((c.revenueDay||5000)*(c.strategy==='Zysk'?1.15:c.strategy==='Innowacje'?1.10:1.05));c.revenueDay=r;income+=r});income+=Math.round(S.users*(.025+S.reputation/10000)*(S.products.length?1:.35));income+=Math.round(sharesDailyIncome());expense+=S.employees.reduce((a,e)=>a+(Number(e.salary)||0),0);expense+=S.servers.reduce((a,s)=>a+2500+s.level*900,0);expense+=S.gpu*35;expense+=S.office.level*750;const profit=income-expense;if(income)earn(income,'przychód dnia');if(expense)changeCash(-expense,'pensje + infrastruktura');S.users=Math.round(S.users*(1.012+S.reputation/50000));S.researchPoints+=10;S.incomeHistory.push(income);S.expenseHistory.push(expense);S.profitHistory.push(profit);S.userHistory.push(S.users);S.incomeHistory=S.incomeHistory.slice(-40);S.expenseHistory=S.expenseHistory.slice(-40);S.profitHistory=S.profitHistory.slice(-40);S.userHistory=S.userHistory.slice(-40);S.stats={day:S.day,income,expense,profit,payroll:S.employees.reduce((a,e)=>a+(Number(e.salary)||0),0),products:S.products.length,productUsers:S.products.reduce((a,p)=>a+p.users,0),productRevenue:S.products.reduce((a,p)=>a+(p.revenueDay||0),0),subsidiaryRevenue:S.subsidiaries.reduce((a,c)=>a+(c.revenueDay||0),0),gpu:S.gpu,gpuLevel:S.gpuLevel,servers:S.servers.length,employees:S.employees.length,models:S.models.length,valuation:valuation()};S.companies.forEach(c=>{c.prev=c.price;c.price=Math.max(1,Math.round(c.price*(1+(Math.random()-.45)*.08+(c.controlled?.012:0))*100)/100);c.history.push(c.price);c.history=c.history.slice(-40);normalize(c)});return{income,expense,profit}}
-function nextDay(auto=false){const r=dailyCalc();S.day++;if(S.day>30){S.day=1;S.month++;if(S.month>12){S.month=1;S.year++}}if(Math.random()<.18)randomEvent();save();render();if(!auto)toast(`Dzień ${S.day}: ${r.profit>=0?'zysk ':'strata '}${money(Math.abs(r.profit))}`)}
+function dailyCalc(){
+ let income=0,expense=0;
+ const prodBonus=1+techBonus()/2;
+ 
+ // PRODUKTY — każdy aktywny produkt generuje własny przychód.
+ S.products.forEach(p=>{
+   if(p.status==='WYCOFANY')return;
+   const growth=Math.max(1,Math.round((Number(p.users)||0)*(.012+((Number(p.rating)||60)-60)/5000)));
+   p.users=(Number(p.users)||0)+growth;
+   p.value=Math.max(Number(p.value)||100000,p.users*(Number(p.rating)||60)*4);
+   let r=Math.round(p.users*(.12+(Number(p.rating)||60)/700)*prodBonus);
+   if(p.type==='AI')r=Math.round(r*1.35);
+   if(p.markets?.length)r=Math.round(r*(1+Math.min(.5,p.markets.length*.015)));
+   if(p.languages?.length)r=Math.round(r*(1+Math.min(.35,p.languages.length*.006)));
+   p.revenueDay=r;
+   income+=r;
+ });
+ 
+ // SPÓŁKI CÓRKI — ich przychód trafia do NEXORA.
+ S.subsidiaries.forEach(c=>{
+   let r=Math.round((Number(c.revenueDay)||5000)*(c.strategy==='Zysk'?1.15:c.strategy==='Innowacje'?1.10:1.05));
+   c.revenueDay=r;
+   income+=r;
+ });
+ 
+ // BAZOWY PRZYCHÓD FIRMY.
+ income+=Math.round(S.users*(.025+S.reputation/10000)*(S.products.length?.1:.35));
+ 
+ // DYWIDENDY Z UDZIAŁÓW — wypłata każdego dnia.
+ const shareIncome=sharesDailyIncome();
+ income+=shareIncome;
+ 
+ // KOSZTY — pensje są osobnym, rzeczywistym kosztem każdego dnia.
+ const payroll=S.employees.reduce((a,e)=>a+Math.max(0,Number(e.salary)||0),0);
+ const serverCost=S.servers.reduce((a,s)=>a+2500+(Number(s.level)||1)*900,0);
+ const gpuCost=Math.max(0,Number(S.gpu)||0)*35;
+ const officeCostDaily=Math.max(1,Number(S.office.level)||1)*750;
+ const infrastructure=serverCost+gpuCost+officeCostDaily;
+ expense=payroll+infrastructure;
+ const profit=income-expense;
+ 
+ // Najpierw wpływy, potem osobno pensje i infrastruktura — dzięki temu widać każdy koszt.
+ if(income>0)earn(income,'przychód dnia');
+ if(payroll>0)changeCash(-payroll,'pensje pracowników');
+ if(infrastructure>0)changeCash(-infrastructure,'infrastruktura');
+ 
+ S.users=Math.round(S.users*(1.012+S.reputation/50000));
+ S.researchPoints+=10;
+ S.incomeHistory.push(income);
+ S.expenseHistory.push(expense);
+ S.profitHistory.push(profit);
+ S.userHistory.push(S.users);
+ S.incomeHistory=S.incomeHistory.slice(-40);
+ S.expenseHistory=S.expenseHistory.slice(-40);
+ S.profitHistory=S.profitHistory.slice(-40);
+ S.userHistory=S.userHistory.slice(-40);
+ S.stats={
+   day:S.day,income,expense,profit,payroll,
+   shareIncome,products:S.products.length,
+   productUsers:S.products.reduce((a,p)=>a+(Number(p.users)||0),0),
+   productRevenue:S.products.reduce((a,p)=>a+(Number(p.revenueDay)||0),0),
+   subsidiaryRevenue:S.subsidiaries.reduce((a,c)=>a+(Number(c.revenueDay)||0),0),
+   gpu:S.gpu,gpuLevel:S.gpuLevel,servers:S.servers.length,
+   serverCost,gpuCost,officeCost:officeCostDaily,employees:S.employees.length,
+   models:S.models.length,valuation:valuation()
+ };
+ 
+ // Kurs zmienia się, ale liczba udziałów/właściciele nie zmieniają się automatycznie.
+ S.companies.forEach(c=>{
+   c.prev=c.price;
+   c.price=Math.max(1,Math.round(c.price*(1+(Math.random()-.45)*.08+(c.controlled?.012:0))*100)/100);
+   c.history.push(c.price);
+   c.history=c.history.slice(-40);
+   normalize(c);
+ });
+
+ // Automatyczny obrót akcjonariatem oraz nowe spółki na rynku.
+ marketDynamics();
+
+ return{income,expense,profit,payroll,shareIncome};
+}
+function nextDay(auto=false){const r=dailyCalc();S.day++;if(S.day>30){S.day=1;S.month++;if(S.month>12){S.month=1;S.year++}}if(Math.random()<.18)randomEvent();save();render();if(!auto)toast(`Dzień ${S.day}: ${r.profit>=0?'zysk ':'strata '}${money(Math.abs(r.profit))} · pensje ${money(r.payroll)} · dywidendy ${money(r.shareIncome)}`)}
 function tickTime(){if(S.paused)return;S.timeTick++;if(S.timeTick>=Math.max(1,Math.round(30/S.timeSpeed))){S.timeTick=0;nextDay(true)}else{refreshTopCash()}}
 setInterval(tickTime,1000);setInterval(()=>save(),5000);
 function setSpeed(v){S.timeSpeed=v;S.paused=false;save();render();toast(`⏱ Czas: ${v===.5?'wolno':v===1?'normalnie':v===2?'szybko':'bardzo szybko'}`)}
@@ -164,10 +299,10 @@ const pages={
  companies(){const roots=S.subsidiaries.filter(c=>!c.parentId);return`<div class="sectionTitle"><h2>Struktura korporacyjna</h2><button onclick="createSubsidiary()">＋ Utwórz spółkę</button></div><div class="three section">${roots.map(c=>subsidiaryCard(c,S.subsidiaries.indexOf(c))).join('')||'<div class="empty">Nie masz spółek zależnych.</div>'}</div><div class="card section"><h2>📦 Wszystkie produkty i właściciele</h2><table class="table"><tr><th>Produkt</th><th>Typ</th><th>Właściciel</th><th>Rynki</th><th>Języki</th></tr>${S.products.map(p=>`<tr><td><b>${escapeHtml(p.name)}</b></td><td>${p.type}</td><td>${escapeHtml(ownerName(p.ownerId))}</td><td>${(p.markets||[]).length}</td><td>${(p.languages||[]).length}</td></tr>`).join('')||'<tr><td colspan="5">Brak produktów</td></tr>'}</table></div><div class="card section"><h2>📈 Spółki giełdowe</h2><table class="table"><tr><th>Firma</th><th>Branża</th><th>NEXORA</th><th>Kontrola</th><th></th></tr>${S.companies.map((c,i)=>`<tr><td><b>${escapeHtml(c.name)}</b><br><small>${c.ticker}</small></td><td>${c.type}</td><td>${playerShares(c)}/100</td><td>${c.controlled?'<span class="goodtxt">51%+ KONTROLA</span>':'Brak'}</td><td><button class="small" onclick="openCompanyById('${c.id}')">Otwórz inwestorów</button></td></tr>`).join('')}</table></div>`},
  stocks(){
  syncMarketCompanies();
- return`<div class="card"><div class="sectionTitle"><h2>📈 Giełda NEXORA</h2><span class="pill">100 udziałów / firma</span></div><p class="muted">Każda firma ma dokładnie 100 udziałów. Zakup lub sprzedaż natychmiast zmienia właścicieli i liczbę udziałowców. Firma przejęta w 100% albo połączona z NEXORA jest usuwana z giełdy na stałe.</p><div class="three">${S.companies.map(c=>{normalize(c);return`<div class="card clickable" onclick="openCompanyById('${c.id}')"><div class="productTop"><h3>${escapeHtml(c.name)}</h3><span class="pill">${c.ticker}</span></div><div class="metric">${money(c.price)}</div><p class="muted">NEXORA: ${playerShares(c)}/100 · ${c.controlled?'KONTROLA':'mniejszość'} · <b>${shareholderCount(c)} udziałowców</b></p><div class="list">${c.holders.map(h=>`<div class="row"><span>${escapeHtml(h[0])}</span><b>${num(h[1])}%</b></div>`).join('')}</div><button class="small" onclick="event.stopPropagation();openCompanyById('${c.id}')">Zobacz / kup udziały</button></div>`}).join('')||'<div class="empty">Brak firm na giełdzie.</div>'}</div></div>${S.acquiredCompanies.length?`<div class="card section"><div class="sectionTitle"><h2>🏢 Przejęte firmy</h2><span class="pill">${S.acquiredCompanies.length}</span></div><div class="three">${S.acquiredCompanies.map(c=>`<div class="card"><div class="productTop"><h3>${escapeHtml(c.name)}</h3><span class="pill">${c.ticker}</span></div><p class="muted">100% własności NEXORA · ${escapeHtml(c.type)} · ${c.merged?'połączona':'przejęta'}</p><div class="metric">${money(c.price)}</div><small>Nie jest już notowana na giełdzie.</small></div>`).join('')}</div></div>`:''}`
+ return`<div class="card"><div class="sectionTitle"><h2>📈 Giełda NEXORA</h2><span class="pill">100 udziałów / firma</span></div><p class="muted">Każda firma ma dokładnie 100 udziałów. Zakup lub sprzedaż natychmiast zmienia właścicieli i liczbę udziałowców. Pozostali inwestorzy handlują automatycznie przy każdym dniu, więc ich pakiety i liczba udziałowców mogą się zmieniać. Co 7 dni może wejść nowa firma z nowym akcjonariatem. Firma przejęta w 100% albo połączona z NEXORA jest usuwana z giełdy na stałe.</p><div class="three">${S.companies.map(c=>{normalize(c);return`<div class="card clickable" onclick="openCompanyById('${c.id}')"><div class="productTop"><h3>${escapeHtml(c.name)}</h3><span class="pill">${c.ticker}</span></div><div class="metric">${money(c.price)}</div><p class="muted">NEXORA: ${playerShares(c)}/100 · ${c.controlled?'KONTROLA':'mniejszość'} · <b>${shareholderCount(c)} udziałowców</b></p><div class="list">${c.holders.map(h=>`<div class="row"><span>${escapeHtml(h[0])}</span><b>${num(h[1])}%</b></div>`).join('')}</div><button class="small" onclick="event.stopPropagation();openCompanyById('${c.id}')">Zobacz / kup udziały</button></div>`}).join('')||'<div class="empty">Brak firm na giełdzie.</div>'}</div></div>${S.acquiredCompanies.length?`<div class="card section"><div class="sectionTitle"><h2>🏢 Przejęte firmy</h2><span class="pill">${S.acquiredCompanies.length}</span></div><div class="three">${S.acquiredCompanies.map(c=>`<div class="card"><div class="productTop"><h3>${escapeHtml(c.name)}</h3><span class="pill">${c.ticker}</span></div><p class="muted">100% własności NEXORA · ${escapeHtml(c.type)} · ${c.merged?'połączona':'przejęta'}</p><div class="metric">${money(c.price)}</div><small>Nie jest już notowana na giełdzie.</small></div>`).join('')}</div></div>`:''}`
 }, world(){const active=Object.values(S.regions).filter(Boolean).length;return`<div class="two"><div class="card"><h2>🌍 Globalna ekspansja</h2><div class="map">${COUNTRIES.slice(0,35).map((r,i)=>`<div class="city" style="left:${5+(i*17)%88}%;top:${8+(i*29)%82}%">${S.regions[r]?'●':'○'} <b>${escapeHtml(r)}</b></div>`).join('')}</div><p class="muted">Aktywne rynki: ${active}/${COUNTRIES.length}</p></div><div class="card"><div class="sectionTitle"><h2>Wszystkie kraje</h2><input id="countrySearch" oninput="filterCountries()" placeholder="Szukaj kraju..." style="max-width:200px"></div><div class="list" id="countryList">${COUNTRIES.map(r=>`<div class="row countryRow"><div><strong>${escapeHtml(r)}</strong><small>${S.regions[r]?'Rynek aktywny':'Rynek zamknięty'}</small></div>${S.regions[r]?'<span class="pill goodtxt">AKTYWNY</span>':`<button class="small" onclick="expandCountry('${escapeHtml(r)}')">Otwórz</button>`}</div>`).join('')}</div></div></div>`},
  rnd(){return`<div class="two"><div class="card"><h2>🔬 Technologie</h2>${TECHS.map(t=>`<div class="row"><div><strong>${t[0]}</strong><small>${t[2]}</small></div><button class="small" ${S.technologies.includes(t[0])?'disabled':''} onclick="research('${t[0]}',${t[1]})">${S.technologies.includes(t[0])?'ODBLOCKOWANA':t[1]+' RP'}</button></div>`).join('')}</div><div class="card"><h2>Postęp R&D</h2><div class="metric">${S.researchPoints} RP</div><p class="muted">Odblokowano ${S.technologies.length}/${TECHS.length}</p><div class="progress"><i style="width:${S.technologies.length/TECHS.length*100}%"></i></div></div></div>`},
- stats(){const productUsers=S.products.reduce((a,p)=>a+p.users,0),prodRev=S.products.reduce((a,p)=>a+(p.revenueDay||0),0),subRev=S.subsidiaries.reduce((a,c)=>a+(c.revenueDay||0),0),pay=S.employees.reduce((a,e)=>a+(Number(e.salary)||0),0),srv=S.servers.reduce((a,s)=>a+2500+s.level*900,0),gpuCost=S.gpu*35;return`<div class="grid">${stat('Wycena',money(valuation()),'aktualizowana na żywo')}${stat('Produktów',S.products.length,`${num(productUsers)} użytkowników`)}${stat('Modeli AI',S.models.length,`GPU ${num(S.gpu)} / lvl ${S.gpuLevel}`)}${stat('Spółek',S.subsidiaries.length,`${S.subsidiaries.filter(c=>c.parentId).length} podspółek`)}</div><div class="three section">${stat('Przychód produktów',money(prodRev),'/ dzień')}${stat('Przychód spółek',money(subRev),'/ dzień')}${stat('Pensje',money(pay),'/ dzień',false)}${stat('Serwery',S.servers.length,`koszt ${money(srv)}/d`)}${stat('GPU',S.gpu,`koszt ${money(gpuCost)}/d`)}${stat('Udziały',money(S.companies.reduce((a,c)=>a+playerShares(c)*c.price,0)),'wartość portfela')}</div><div class="two section"><div class="card"><h2>📊 Przychody vs wydatki</h2>${cashFlowChart()}</div><div class="card"><h2>👥 Użytkownicy</h2>${chart(S.userHistory)}</div></div>`},
+ stats(){const productUsers=S.products.reduce((a,p)=>a+p.users,0),prodRev=S.products.reduce((a,p)=>a+(p.revenueDay||0),0),subRev=S.subsidiaries.reduce((a,c)=>a+(c.revenueDay||0),0),pay=S.employees.reduce((a,e)=>a+(Number(e.salary)||0),0),srv=S.servers.reduce((a,s)=>a+2500+s.level*900,0),gpuCost=S.gpu*35;return`<div class="grid">${stat('Wycena',money(valuation()),'aktualizowana na żywo')}${stat('Produktów',S.products.length,`${num(productUsers)} użytkowników`)}${stat('Modeli AI',S.models.length,`GPU ${num(S.gpu)} / lvl ${S.gpuLevel}`)}${stat('Spółek',S.subsidiaries.length,`${S.subsidiaries.filter(c=>c.parentId).length} podspółek`)}</div><div class="three section">${stat('Przychód produktów',money(prodRev),'/ dzień')}${stat('Przychód spółek',money(subRev),'/ dzień')}${stat('Pensje',money(pay),'/ dzień',false)}${stat('Serwery',S.servers.length,`koszt ${money(srv)}/d`)}${stat('GPU',S.gpu,`koszt ${money(gpuCost)}/d`)}${stat('Udziały',money(S.companies.reduce((a,c)=>a+playerShares(c)*c.price,0)),'wartość portfela')}${stat('Dywidendy',money(sharesDailyIncome()),'/ dzień')}</div><div class="two section"><div class="card"><h2>📊 Przychody vs wydatki</h2>${cashFlowChart()}</div><div class="card"><h2>👥 Użytkownicy</h2>${chart(S.userHistory)}</div></div>`},
  finance(){const inc=S.incomeHistory.at(-1)||0,exp=S.expenseHistory.at(-1)||0,profit=S.profitHistory.at(-1)||0;return`<div class="grid">${stat('Przychód/d',money(inc),'ostatni dzień')}${stat('Wydatki/d',money(exp),'ostatni dzień',false)}${stat('Zysk/d',money(profit),profit>=0?'dodatni':'ujemny',profit>=0)}${stat('Gotówka',money(S.cash),'saldo')}</div><div class="two section"><div class="card"><h2>Wynik dzienny</h2>${chart(S.profitHistory)}</div><div class="card"><h2>Struktura kosztów</h2>${costBars()}</div></div>`},
  events(){return`<div class="card"><h2>📰 Historia</h2><div class="timeline">${S.events.map(e=>`<div class="event"><strong>${escapeHtml(e)}</strong><div class="muted">Dzień ${S.day}</div></div>`).join('')}</div></div>`},
  settings(){return`<div class="three"><div class="card"><h2>⏱ Czas</h2><p class="muted">Aktualnie: ${S.paused?'zatrzymany':S.timeSpeed+'×'}</p><div class="actions"><button onclick="togglePause()">${S.paused?'▶ Wznów':'⏸ Zatrzymaj'}</button><button onclick="setSpeed(.5)">0.5×</button><button onclick="setSpeed(1)">1×</button><button onclick="setSpeed(2)">2×</button><button onclick="setSpeed(4)">4×</button></div></div><div class="card"><h2>💾 Zapis</h2><button onclick="save(true)">Zapisz teraz</button></div><div class="card"><h2>🔄 Nowa gra</h2><button class="danger" onclick="resetGame()">Reset gry</button></div></div>`}
