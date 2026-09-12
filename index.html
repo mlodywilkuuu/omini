@@ -616,6 +616,18 @@ function executeCheat(){
 }
 document.getElementById('cheatInput').addEventListener('keydown',e=>{if(e.key==='Enter')executeCheat();if(e.key==='Escape')toggleCheats()});document.addEventListener('keydown',e=>{if(e.key==='F2'){e.preventDefault();toggleCheats()}if(e.key==='Escape'){closeModal();document.getElementById('cheatOverlay').classList.remove('open')}});
 render();
+
+/* NEXORA SAVE ENGINE v13 */
+const NEXORA_IDB='NEXORA_SAVE_DB_V13';
+function nexoraIDB(){return new Promise((resolve,reject)=>{try{const r=indexedDB.open(NEXORA_IDB,1);r.onupgradeneeded=()=>{if(!r.result.objectStoreNames.contains('save'))r.result.createObjectStore('save')};r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)}catch(e){reject(e)}})}
+async function nexoraIDBWrite(snapshot){try{const db=await nexoraIDB();await new Promise((res,rej)=>{const tx=db.transaction('save','readwrite');tx.objectStore('save').put(snapshot,'current');tx.oncomplete=res;tx.onerror=()=>rej(tx.error)});db.close()}catch(e){console.warn(e)}}
+async function nexoraIDBRead(){try{const db=await nexoraIDB();const raw=await new Promise((res,rej)=>{const tx=db.transaction('save','readonly');const q=tx.objectStore('save').get('current');q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)});db.close();return raw}catch(e){return null}}
+async function nexoraRecover(){const raw=await nexoraIDBRead();if(!raw)return;try{const x=JSON.parse(raw);if(x&&Number(x._savedAt||0)>Number(S._savedAt||0)){S=migrate(x);try{localStorage.setItem(KEY,raw);localStorage.setItem(BACKUP_KEY,raw)}catch(e){}render();toast('♻️ Przywrócono najnowszy zapis z kopii trwałej')}}catch(e){console.warn(e)}}
+/* Override save so every action is written to both localStorage and IndexedDB. */
+function save(show=false){try{repairProductOwnership(S);S._savedAt=Date.now();const snapshot=JSON.stringify(S);localStorage.setItem(KEY,snapshot);localStorage.setItem(BACKUP_KEY,snapshot);nexoraIDBWrite(snapshot);if(show)toast('💾 Gra zapisana')}catch(e){console.error('NEXORA save failed',e);if(show)toast('⚠️ Błąd zapisu')}}
+window.addEventListener('beforeunload',()=>{try{save(false)}catch(e){}});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')try{save(false)}catch(e){}});
+setTimeout(()=>nexoraRecover(),150);
 </script>
 </body>
 </html>
