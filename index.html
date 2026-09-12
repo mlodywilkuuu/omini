@@ -41,9 +41,9 @@ button,input,select{font:inherit}button{border:0;cursor:pointer;color:#fff;backg
     <button class="small" onclick="executeCheatText('money 10000000')">+$10M</button>
     <button class="small" onclick="executeCheatText('users 1000000')">+1M users</button>
     <button class="small" onclick="executeCheatText('gpu 100')">+100 GPU</button><button class="small good" onclick="executeCheatText('maxgpu')">MAX GPU</button>
-    <button class="small" onclick="executeCheatText('employees 10')">+10 prac.</button><button class="small good" onclick="executeCheatText('maxemployees')">MAX pracownicy</button>
+    <button class="small" onclick="cheatAddEmployees(10)">+10 prac.</button><button class="small good" onclick="cheatMaxEmployees()">MAX pracownicy</button>
     <button class="small" onclick="executeCheatText('rp 5000')">+5000 RP</button>
-    <button class="small" onclick="executeCheatText('unlockall')">Odblokuj wszystko</button>
+    <button class="small" onclick="cheatSetOffice(100)">MAX HQ</button><button class="small" onclick="executeCheatText('unlockall')">Odblokuj wszystko</button>
   </div>
   <div class="code" id="consoleLog">NEXORA console ready.</div>
 </div>
@@ -130,31 +130,50 @@ function generateMarketCompany(){
  normalize(c);c.history=[c.price];S.companies.push(c);return c;
 }
 function marketDynamics(){
- // NEXORA nie bierze udziału w automatycznych transakcjach — jej pakiet pozostaje stabilny.
+ // Dynamiczny rynek: NEXORA nie jest automatycznie kupującym ani sprzedającym.
+ // Zmieniamy wyłącznie pozostałych inwestorów, zawsze zachowując dokładnie 100 udziałów.
  S.companies.forEach(c=>{
+   if(!c||c.acquired||c.merged)return;
    normalize(c);
-   for(let trade=0;trade<1+Math.floor(Math.random()*3);trade++){
-     const outsiders=c.holders.filter(h=>h[0]!=='NEXORA'&&h[1]>=2);
+   for(let trade=0;trade<2+Math.floor(Math.random()*4);trade++){
+     const outsiders=c.holders.filter(h=>h[0]!=='NEXORA'&&Number(h[1])>=2);
      if(!outsiders.length)break;
      const seller=outsiders[Math.floor(Math.random()*outsiders.length)];
-     const maxSell=Math.min(8,Math.max(1,Math.floor(seller[1]-1)));
+     const maxSell=Math.max(1,Math.min(10,Math.floor(Number(seller[1])-1)));
      const qty=1+Math.floor(Math.random()*maxSell);
-     let buyers=c.holders.filter(h=>h[0]!=='NEXORA'&&h[0]!==seller[0]&&h[1]>0);
-     let buyer;
-     // Czasami na rynek wchodzi nowy inwestor, przez co liczba udziałowców również się zmienia.
-     if((Math.random()<.22 && buyers.length<7) || buyers.length===0){
+     let buyers=c.holders.filter(h=>h[0]!=='NEXORA'&&h[0]!==seller[0]&&Number(h[1])>0);
+     let buyer=null;
+     if((Math.random()<.30 && buyers.length<8)||buyers.length===0){
        const name=randomInvestor(c.holders.map(h=>h[0]));
-       buyer=[name,0];c.holders.push(buyer);buyers.push(buyer);
-     }else buyer=buyers[Math.floor(Math.random()*buyers.length)];
+       if(name){buyer=[name,0];c.holders.push(buyer);buyers.push(buyer)}
+     }
+     if(!buyer)buyer=buyers[Math.floor(Math.random()*buyers.length)];
+     if(!buyer)break;
      seller[1]-=qty;buyer[1]+=qty;
      normalize(c);
    }
+   // Kurs również porusza się między dniami.
+   c.prev=Number(c.price)||1;
+   const drift=(Math.random()-.48)*.035;
+   c.price=Math.max(1,Math.round(c.price*(1+drift)*100)/100);
+   c.history=Array.isArray(c.history)?c.history:[];
+   c.history.push(c.price);c.history=c.history.slice(-40);
+   normalize(c);
  });
- // Co 7 dni do giełdy trafia nowa firma z nowym, losowym akcjonariatem.
- if(S.day>0 && S.day%7===0){
+}
+
+let marketTick=0;
+function realtimeMarketTick(){
+ if(S.paused)return;
+ marketTick++;
+ marketDynamics();
+ // Nowa spółka pojawia się również podczas normalnej gry, a nie tylko po ręcznym wejściu na giełdę.
+ if(marketTick%6===0){
    const c=generateMarketCompany();
-   if(c)S.events.unshift(`📈 Nowa spółka na giełdzie: ${c.name} (${c.ticker}) — ${c.holders.length} udziałowców.`);
+   if(c)S.events.unshift(`📈 Nowa spółka: ${c.name} (${c.ticker}) — ${c.holders.length} udziałowców.`);
  }
+ save();
+ if(page==='stocks')render(); else refreshTopCash();
 }
 function syncMarketCompanies(state=S){
  if(!Array.isArray(state.companies))state.companies=[];
@@ -270,14 +289,14 @@ function dailyCalc(){
    normalize(c);
  });
 
- // Automatyczny obrót akcjonariatem oraz nowe spółki na rynku.
+ // Obrót rynku odbywa się również w czasie rzeczywistym przez realtimeMarketTick().
  marketDynamics();
 
  return{income,expense,profit,payroll,shareIncome};
 }
 function nextDay(auto=false){const r=dailyCalc();S.day++;if(S.day>30){S.day=1;S.month++;if(S.month>12){S.month=1;S.year++}}if(Math.random()<.18)randomEvent();save();render();if(!auto)toast(`Dzień ${S.day}: ${r.profit>=0?'zysk ':'strata '}${money(Math.abs(r.profit))} · pensje ${money(r.payroll)} · dywidendy ${money(r.shareIncome)}`)}
 function tickTime(){if(S.paused)return;S.timeTick++;if(S.timeTick>=Math.max(1,Math.round(30/S.timeSpeed))){S.timeTick=0;nextDay(true)}else{refreshTopCash()}}
-setInterval(tickTime,1000);setInterval(()=>save(),5000);
+setInterval(tickTime,1000);setInterval(realtimeMarketTick,5000);setInterval(()=>save(),5000);
 function setSpeed(v){S.timeSpeed=v;S.paused=false;save();render();toast(`⏱ Czas: ${v===.5?'wolno':v===1?'normalnie':v===2?'szybko':'bardzo szybko'}`)}
 function togglePause(){S.paused=!S.paused;save();render()}
 function randomEvent(){const e=[['🚀 Viral produktu','Reputacja +3',()=>S.reputation=Math.min(100,S.reputation+3)],['📉 Rynek zwalnia','Reputacja -2',()=>S.reputation=Math.max(0,S.reputation-2)],['☁️ Boom na cloud','Użytkownicy +1.5%',()=>S.users=Math.round(S.users*1.015)],['⚖️ Regulator','Koszt 25k',()=>changeCash(-Math.min(S.cash,25000),'kara regulatora')]][Math.floor(Math.random()*4)];e[2]();S.events.unshift(`${e[0]} — ${e[1]}`);S.events=S.events.slice(0,50)}
@@ -314,7 +333,47 @@ function costBars(){const total=Math.max(1,S.expenseHistory.at(-1)||1),a=S.emplo
 function openModal(html){document.getElementById('modalBox').innerHTML=html;document.getElementById('modal').classList.add('open')}
 function closeModal(){document.getElementById('modal').classList.remove('open')}
 document.getElementById('modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal()});
-function upgradeOffice(){if(S.office.level>=100)return toast('HQ ma maksymalny poziom');if(spend(officeCost(),'ulepszenie HQ')){S.office.level++;save();render();toast('🏢 HQ ulepszone do poziomu '+S.office.level)}}
+function upgradeOffice(){
+ S.office=S.office||{level:1};
+ S.office.level=Math.max(1,Math.min(100,Number(S.office.level)||1));
+ if(S.office.level>=100)return toast('HQ ma maksymalny poziom');
+ const cost=Math.max(1,Math.round(officeCost()));
+ if(!spend(cost,'ulepszenie HQ'))return;
+ S.office.level++;
+ save();render();
+ toast('🏢 HQ ulepszone do poziomu '+S.office.level+' · pojemność '+officeCapacity());
+}
+function cheatAddEmployees(amount){
+ const n=Math.max(0,Math.floor(Number(amount)||0));
+ if(!n)return toast('Podaj liczbę pracowników');
+ S.office=S.office||{level:1};
+ S.office.level=Math.max(1,Math.min(100,Number(S.office.level)||1));
+ let added=0;
+ for(let i=0;i<n;i++){
+   if(S.employees.length>=officeCapacity())break;
+   const r=ROLES[S.employees.length%ROLES.length];
+   S.employees.push({id:uid(),name:'Cheat Employee '+(S.employees.length+1),role:r[0],salary:1,department:r[2],level:100,productivity:100});
+   added++;
+ }
+ save();render();toast('👨‍💻 Dodano '+added+' pracowników · razem '+S.employees.length);
+}
+function cheatMaxEmployees(){
+ S.office=S.office||{level:1};
+ S.office.level=100;
+ const max=officeCapacity();
+ let added=0;
+ while(S.employees.length<max){
+   const r=ROLES[S.employees.length%ROLES.length];
+   S.employees.push({id:uid(),name:'NEXORA Elite '+(S.employees.length+1),role:r[0],salary:1,department:r[2],level:100,productivity:100});
+   added++;
+ }
+ save();render();toast('🔥 MAX pracownicy: '+S.employees.length+'/'+max+' · dodano '+added);
+}
+function cheatSetOffice(level){
+ S.office=S.office||{level:1};
+ S.office.level=Math.max(1,Math.min(100,Math.floor(Number(level)||1)));
+ save();render();toast('🏢 HQ ustawione na poziom '+S.office.level+' · pojemność '+officeCapacity());
+}
 function generateCandidate(){if(S.employees.length>=officeCapacity())return toast('Brak miejsca w biurze');const r=ROLES[Math.floor(Math.random()*ROLES.length)];S.candidate={name:['Adam','Maja','Oskar','Julia','Kacper','Zofia','Leon','Lena','Maks','Nina'][Math.floor(Math.random()*10)]+' '+['Kowalski','Nowak','Wójcik','Mazur','Lis','Kaczmarek'][Math.floor(Math.random()*6)],role:r[0],salary:r[1]+Math.floor(Math.random()*600-300),department:r[2],level:1+Math.floor(Math.random()*8),productivity:70+Math.floor(Math.random()*31)};save();render()}
 function hireCandidate(){if(!S.candidate)return;if(S.employees.length>=officeCapacity())return toast('Brak miejsca');S.employees.push({...S.candidate,id:uid()});S.candidate=null;save();render();toast('👨‍💻 Zatrudniono pracownika')}
 function fire(i){if(confirm('Zwolnić pracownika?')){S.employees.splice(i,1);save();render()}}
@@ -414,11 +473,12 @@ function executeCheat(){
  else if(cmd==='users'&&Number.isFinite(v)){S.users=Math.max(0,S.users+v);msg='Dodano '+num(v)}
  else if(cmd==='gpu'&&Number.isFinite(v)){S.gpu=Math.max(0,S.gpu+v);msg='Dodano '+v+' GPU'}
  else if(cmd==='maxgpu'){S.gpu=10000;S.gpuLevel=100;msg='MAX GPU: 10 000 / lvl 100'}
- else if(cmd==='employees'&&Number.isFinite(v)){for(let i=0;i<Math.max(0,Math.floor(v))&&S.employees.length<officeCapacity();i++){const r=ROLES[S.employees.length%ROLES.length];S.employees.push({id:uid(),name:'Cheat Employee '+(S.employees.length+1),role:r[0],salary:1,department:r[2],level:100,productivity:100})}msg='Pracownicy: '+S.employees.length}
- else if(cmd==='maxemployees'||cmd==='maxworkers'){S.office.level=100;const max=officeCapacity();while(S.employees.length<max){const r=ROLES[S.employees.length%ROLES.length];S.employees.push({id:uid(),name:'NEXORA Elite '+(S.employees.length+1),role:r[0],salary:1,department:r[2],level:100,productivity:100})}msg='MAX pracownicy: '+S.employees.length}
+ else if(cmd==='employees'&&Number.isFinite(v)){cheatAddEmployees(v);msg='Pracownicy: '+S.employees.length}
+ else if(cmd==='maxemployees'||cmd==='maxworkers'){cheatMaxEmployees();msg='MAX pracownicy: '+S.employees.length}
+
  else if(cmd==='rp'&&Number.isFinite(v)){S.researchPoints+=v;msg='Dodano '+v+' RP'}
  else if(cmd==='day'&&Number.isFinite(v)){S.day=Math.max(1,Math.floor(v));msg='Dzień ustawiony na '+S.day}
- else if(cmd==='office'&&Number.isFinite(v)){S.office.level=Math.max(1,Math.min(100,Math.floor(v)));msg='HQ ustawione na lvl '+S.office.level}
+ else if(cmd==='office'&&Number.isFinite(v)){cheatSetOffice(v);msg='HQ ustawione na lvl '+S.office.level}
  else if(cmd==='rich'){S.cash+=100000000;S.users+=10000000;S.gpu+=500;msg='RICH: +$100M, +10M users, +500 GPU'}
  else if(cmd==='unlockall'){S.technologies=TECHS.map(t=>t[0]);COUNTRIES.forEach(c=>S.regions[c]=true);S.reputation=100;S.office.level=100;msg='Odblokowano wszystko'}
  document.getElementById('consoleLog').textContent='> '+raw+'\n'+msg;
