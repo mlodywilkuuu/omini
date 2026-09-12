@@ -51,6 +51,8 @@ button,input,select{font:inherit}button{border:0;cursor:pointer;color:#fff;backg
 
 <script>
 const KEY="nexora-tech-empire";
+const BACKUP_KEY="nexora-tech-empire-backup";
+const SAVE_VERSION=11;
 const LEGACY_KEYS=["nexora-tech-empire-v9","nexora-tech-empire-v8","nexora-tech-empire-v7"];
 const NAV=[['dashboard','⌂','Dashboard'],['products','◈','Produkty'],['engines','⚙','Silniki'],['ai','◉','AI Lab'],['employees','♙','Pracownicy'],['servers','▣','Data Center'],['companies','◆','Firmy'],['stocks','◌','Giełda'],['rnd','✦','R&D'],['stats','▤','Statystyki'],['finance','$','Finanse'],['events','!','Wydarzenia'],['settings','⚙','Ustawienia']];
 const COUNTRIES=["Afganistan","Albania","Algieria","Andora","Angola","Antigua i Barbuda","Argentyna","Armenia","Australia","Austria","Azerbejdżan","Bahamy","Bahrajn","Bangladesz","Barbados","Białoruś","Belgia","Belize","Benin","Bhutan","Boliwia","Bośnia i Hercegowina","Botswana","Brazylia","Brunei","Bułgaria","Burkina Faso","Burundi","Chile","Chiny","Chorwacja","Cypr","Czad","Czarnogóra","Czechy","Dania","Demokratyczna Republika Konga","Dominika","Dominikana","Dżibuti","Egipt","Ekwador","Erytrea","Estonia","Eswatini","Etiopia","Fidżi","Filipiny","Finlandia","Francja","Gabon","Gambia","Ghana","Grecja","Grenada","Gruzja","Gujana","Gwatemala","Gwinea","Gwinea Bissau","Gwinea Równikowa","Haiti","Hiszpania","Holandia","Honduras","Indie","Indonezja","Irak","Iran","Irlandia","Islandia","Izrael","Jamajka","Japonia","Jemen","Jordania","Kambodża","Kamerun","Kanada","Katar","Kazachstan","Kenia","Kirgistan","Kiribati","Kolumbia","Komory","Kongo","Korea Południowa","Korea Północna","Kostaryka","Kuba","Kuwejt","Laos","Lesotho","Liban","Liberia","Libia","Liechtenstein","Litwa","Luksemburg","Łotwa","Madagaskar","Malawi","Malezja","Malediwy","Mali","Malta","Maroko","Mauretania","Mauritius","Meksyk","Mikronezja","Mjanma","Mołdawia","Monako","Mongolia","Mozambik","Namibia","Nauru","Nepal","Niemcy","Niger","Nigeria","Nikaragua","Norwegia","Nowa Zelandia","Oman","Pakistan","Palau","Panama","Papua-Nowa Gwinea","Paragwaj","Peru","Polska","Portugalia","Republika Południowej Afryki","Republika Środkowoafrykańska","Rosja","Rumunia","Rwanda","Saint Kitts i Nevis","Saint Lucia","Saint Vincent i Grenadyny","Salwador","Samoa","San Marino","Senegal","Serbia","Seszele","Sierra Leone","Singapur","Słowacja","Słowenia","Somalia","Sri Lanka","Stany Zjednoczone","Sudan","Sudan Południowy","Surinam","Syria","Szwajcaria","Szwecja","Tadżykistan","Tajlandia","Tanzania","Timor Wschodni","Togo","Tonga","Trynidad i Tobago","Tunezja","Turcja","Tuvalu","Uganda","Ukraina","Urugwaj","Vanuatu","Watykan","Wenezuela","Węgry","Wielka Brytania","Wietnam","Włochy","Wybrzeże Kości Słoniowej","Wyspy Marshalla","Wyspy Salomona","Zambia","Zimbabwe","Zjednoczone Emiraty Arabskie"];
@@ -64,17 +66,21 @@ function uid(){return Math.random().toString(36).slice(2,10)}
 function company(name,ticker,type,price,holders){return{id:uid(),name,ticker,type,price,prev:price,shares:100,holders,owned:0,controlled:false,strategy:'Wzrost',capital:0,history:[price]}}
 function defaultState(){return{version:8,companyName:'NEXORA',day:1,year:2026,month:1,cash:2500000,users:1200,reputation:72,timeSpeed:1,paused:false,timeTick:0,serverSerial:2,employees:[],candidate:null,office:{level:1},products:[],gpu:10,gpuUsed:0,gpuLevel:1,servers:[{id:uid(),name:'NEXORA Core-01',level:1,load:18}],models:[],engines:[],subsidiaries:[],researchPoints:100,technologies:[],events:['Założono NEXORA — czas zbudować imperium.'],acquiredCompanies:[],incomeHistory:[],expenseHistory:[],profitHistory:[],userHistory:[1200],stats:{},cashLog:[],regions:Object.fromEntries(COUNTRIES.map(c=>[c,c==='Polska'])),companies:[company('Quantum Labs','QTL','AI',42,[['Alex Morgan',34],['Atlas Capital',22],['Northstar Ventures',16],['Global Bank',10],['Public Investors',18]]),company('CloudForge','CFG','Cloud',28,[['Daniel Reed',31],['Vertex Fund',24],['Atlas Capital',18],['Global Bank',9],['Public Investors',18]]),company('PixelStream','PXS','Media',64,[['Maya Chen',38],['Media Growth Fund',20],['Northstar Ventures',15],['Global Bank',7],['Public Investors',20]]),company('Nova Systems','NVS','Software',91,[['Ethan Cole',29],['Atlas Capital',25],['Vertex Fund',19],['Global Bank',8],['Public Investors',19]]),company('Orbital AI','OAI','AI',117,[['Sarah Kim',27],['Northstar Ventures',23],['Atlas Capital',21],['Global Bank',9],['Public Investors',20]])]}}
 let S=load(),page='dashboard',selectedCompany=null;
+try{localStorage.setItem(KEY,JSON.stringify(S));localStorage.setItem(BACKUP_KEY,JSON.stringify(S))}catch(e){console.warn('NEXORA initial save:',e)}
 function load(){
  try{
-  let raw=localStorage.getItem(KEY);
-  if(!raw){for(const k of LEGACY_KEYS){const old=localStorage.getItem(k);if(old){raw=old;break}}}
+  let raw=null;
+  const candidates=[KEY,BACKUP_KEY,...LEGACY_KEYS];
+  for(const k of candidates){
+   try{const v=localStorage.getItem(k);if(v){raw=v;break}}catch(e){}
+  }
   const x=raw?JSON.parse(raw):null;
   return x?migrate(x):defaultState();
  }catch(e){console.warn('NEXORA load:',e);return defaultState()}
 }
 function migrate(s){
  const d=defaultState();
- s={...d,...s};s.version=10;
+ s={...d,...s};s.version=SAVE_VERSION;
  s.office={...d.office,...(s.office||{})};s.regions={...d.regions,...(s.regions||{})};
  COUNTRIES.forEach(c=>{if(!(c in s.regions))s.regions[c]=false});s.regions.Polska=true;
  s.timeSpeed=1;s.paused=false;s.timeTick=Number(s.timeTick)||0;s.serverSerial=Math.max(Number(s.serverSerial)||1,(Array.isArray(s.servers)?s.servers.length+1:2));
@@ -219,7 +225,15 @@ function syncMarketCompanies(state=S){
  const seen=new Set();
  state.acquiredCompanies=state.acquiredCompanies.filter(c=>c&&c.id&&!seen.has(c.id)&&(seen.add(c.id),true)).map(c=>{c.holders=[['NEXORA',100]];c.owned=100;c.controlled=true;c.acquired=true;return c});
 }
-function save(show=false){localStorage.setItem(KEY,JSON.stringify(S));if(show)toast('💾 Gra zapisana')}
+function save(show=false){
+ try{
+  repairProductOwnership(S);
+  const snapshot=JSON.stringify(S);
+  localStorage.setItem(KEY,snapshot);
+  localStorage.setItem(BACKUP_KEY,snapshot);
+  if(show)toast('💾 Gra zapisana');
+ }catch(e){console.error('NEXORA save:',e);if(show)toast('⚠️ Nie udało się zapisać gry')}
+}
 function money(n){return '$'+Math.round(n).toLocaleString('en-US')}
 function num(n){return Math.round(n||0).toLocaleString('pl-PL')}
 function escapeHtml(x){return String(x??'').replace(/[&<>\"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\\':'&#92;'}[m]))}
@@ -258,10 +272,11 @@ function setProductOwner(productId,ownerId){
  if(!p)return false;
  const target=ownerId==='NEXORA'?null:S.subsidiaries.find(c=>c.id===ownerId);
  if(ownerId!=='NEXORA'&&!target)return false;
- p.ownerId=ownerId;
- S.subsidiaries.forEach(c=>{c.products=(c.products||[]).filter(id=>id!==productId)});
- if(target){target.products=target.products||[];if(!target.products.includes(productId))target.products.push(productId)}
- return true;
+ S.subsidiaries.forEach(c=>{c.products=Array.isArray(c.products)?c.products.filter(id=>String(id)!==String(productId)):[]});
+ p.ownerId=ownerId==='NEXORA'?'NEXORA':target.id;
+ if(target){target.products=Array.isArray(target.products)?target.products:[];if(!target.products.some(id=>String(id)===String(productId)))target.products.push(productId)}
+ repairProductOwnership(S);
+ return p.ownerId===ownerId;
 }
 function autonomousSubsidiaryProducts(){
  if(!Array.isArray(S.subsidiaries)||!S.subsidiaries.length)return;
@@ -479,8 +494,8 @@ function confirmCreateProduct(){const name=document.getElementById('newProductNa
 function openProduct(i){const p=S.products[i];openModal(`<div class="modalHead"><div><h2>📦 ${escapeHtml(p.name)}</h2><p class="muted">${p.type} · ${p.version} · ${escapeHtml(ownerName(p.ownerId))}</p></div><button class="close" onclick="closeModal()">×</button></div><div class="grid">${stat('Użytkownicy',num(p.users),'aktywni')}${stat('Ocena',p.rating+'/100','jakość')}${stat('Przychód/d',money(p.revenueDay),'ostatni dzień')}${stat('Aktualizacje',p.updates||0,'wdrożonych')}</div><div class="card section"><h3>🌐 Języki produktu</h3><p class="muted">${(p.languages||[]).length} języków</p><div class="actions"><button onclick="openUpdateProduct(${i})">🔄 Panel aktualizacji</button><button onclick="openProductAssignment(${i})">🏢 Przypisz do spółki</button></div></div><div class="card section"><h3>📜 Ostatnie aktualizacje</h3>${(p.updatesLog||[]).slice(0,8).map(u=>`<div class="row"><div><strong>Dzień ${u.day}</strong><small>${u.options.join(' · ')}</small></div><span class="pill">+${u.langs.length} jęz.</span></div>`).join('')||'<div class="empty">Brak aktualizacji.</div>'}</div>`)}
 function openUpdateProduct(i){const p=S.products[i];const base=Math.round(18000+(p.rating||60)*350);const availableLanguages=LANGUAGES.filter(lang=>!(p.languages||[]).includes(lang));openModal(`<div class=\"modalHead\"><div><h2>🔄 Panel aktualizacji — ${escapeHtml(p.name)}</h2><p class=\"muted\">Języki już dodane do produktu są usunięte z listy i nie można ich dodać ponownie.</p></div><button class=\"close\" onclick=\"closeModal()\">×</button></div><div class=\"form\"><label>Co aktualizujesz?${selectionGrid('updateOptions',UPDATE_OPTIONS.map(x=>x[1]),[])}</label><label>Dodaj nowe języki${availableLanguages.length?selectionGrid('updateLanguages',availableLanguages,[]):'<div class=\"empty\">Produkt ma już wszystkie dostępne języki.</div>'}</label><div class=\"card\"><h3>💰 Koszt bazowy</h3><div class=\"metric\">${money(base)}</div><p class=\"muted\">Języki są dodawane do już posiadanych — nie zastępują wcześniejszych.</p></div><button onclick=\"confirmProductUpdate(${i},${base})\">🚀 Wdróż aktualizację</button></div>`) }
 function confirmProductUpdate(i,base){const p=S.products[i],opts=checkedValues('updateOptions'),langs=checkedValues('updateLanguages');if(!opts.length)return toast('Wybierz aktualizację');const existing=new Set(p.languages||[]);const newLangs=langs.filter(x=>!existing.has(x));const cost=Math.round(base*(1+Math.max(0,opts.length-1)*.55));if(!spend(cost,'aktualizacja produktu'))return;let usersMult=1,valueBonus=0,rating=0;opts.forEach(label=>{const o=UPDATE_OPTIONS.find(x=>x[1]===label);if(!o)return;if(o[0]==='bugs')rating+=3;if(o[0]==='content')usersMult*=1.14;if(o[0]==='ai'){rating+=8;p.aiLevel=(p.aiLevel||0)+1}if(o[0]==='features')valueBonus+=.18;if(o[0]==='performance')usersMult*=1.09;if(o[0]==='security'){rating+=3;S.reputation=Math.min(100,S.reputation+3)}if(o[0]==='design')rating+=4;if(['ads','mobile','localization','accessibility'].includes(o[0]))usersMult*=o[0]==='ads'?1.10:o[0]==='mobile'?1.12:o[0]==='localization'?1.08:1.04;if(['cloud','hardware','analytics','subscriptions'].includes(o[0]))valueBonus+=o[3]||.1});p.languages=[...(p.languages||[]),...newLangs];p.languages=[...new Set(p.languages)];p.users=Math.round(p.users*usersMult);p.rating=Math.min(100,p.rating+rating);p.value=Math.round(p.value*(1+valueBonus)+cost*4);p.version='v'+((parseInt(String(p.version).replace(/[^0-9]/g,''))||1)+1)+'.0';p.updates=(p.updates||0)+1;p.updatesLog.unshift({day:S.day,options:opts,langs:newLangs,cost});save();closeModal();render();toast(`🔄 ${p.name}: ${opts.length} zmian${newLangs.length?` · +${newLangs.length} jęz.`:''}`)}
-function openProductAssignment(i){const p=S.products[i];openModal(`<div class="modalHead"><h2>🏢 Właściciel produktu</h2><button class="close" onclick="closeModal()">×</button></div><div class="form"><label>Przypisz do<select id="assignOwner"><option value="NEXORA">NEXORA</option>${S.subsidiaries.map(c=>`<option value="${c.id}" ${p.ownerId===c.id?'selected':''}>${escapeHtml(c.name)}</option>`).join('')}</select></label><button onclick="assignProduct(${i})">Zapisz</button></div>`)}
-function assignProduct(i){const id=document.getElementById('assignOwner').value,p=S.products[i];if(!setProductOwner(p.id,id))return toast('Nieprawidłowa spółka');save();closeModal();render();toast(`📦 ${p.name} → ${ownerName(id)}`)}
+function openProductAssignment(i){const p=S.products[i];if(!p)return toast('Nie znaleziono produktu');repairProductOwnership(S);openModal(`<div class="modalHead"><div><h2>🏢 Właściciel produktu</h2><p class="muted">Produkt może należeć do NEXORA albo jednej konkretnej spółki córki.</p></div><button class="close" onclick="closeModal()">×</button></div><div class="form"><label>Przypisz do<select id="assignOwner"><option value="NEXORA" ${p.ownerId==='NEXORA'?'selected':''}>NEXORA</option>${S.subsidiaries.map(c=>`<option value="${escapeHtml(c.id)}" ${p.ownerId===c.id?'selected':''}>${escapeHtml(c.name)}</option>`).join('')}</select></label><button onclick="assignProduct(${i})">💾 Zapisz właściciela</button></div>`)}
+function assignProduct(i){const p=S.products[i],el=document.getElementById('assignOwner');if(!p||!el)return toast('Nie znaleziono produktu');const id=el.value||'NEXORA';if(!S.subsidiaries.some(c=>c.id===id)&&id!=='NEXORA')return toast('Nieprawidłowa spółka');if(!setProductOwner(p.id,id))return toast('Nie udało się przypisać produktu');save();closeModal();render();toast(`📦 ${p.name} → ${ownerName(id)}`)}
 function buyGPU(){if(spend(35000,'zakup GPU')){S.gpu++;save();render();toast(`🧩 GPU: ${S.gpu}`)}}
 function upgradeGPU(){const cost=gpuUpgradeCost();if(spend(cost,'ulepszenie GPU')){S.gpuLevel++;S.gpu+=5;S.models.forEach(m=>m.quality=Math.min(100,(m.quality||70)+1));save();render();toast(`⚡ GPU ulepszone: poziom ${S.gpuLevel}, ${S.gpu} GPU`)}}
 function buildEngine(name){const e=ENGINE_TYPES.find(x=>x[0]===name);if(!e||S.engines.includes(name))return toast('Silnik jest już zbudowany');if(!spend(e[3],'budowa silnika'))return;S.engines.push(name);S.events.unshift(`⚙️ Zbudowano ${name}`);save();render();toast(`⚙️ ${name} gotowy`)}
