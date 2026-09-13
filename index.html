@@ -1368,16 +1368,31 @@ if(__v15_dailyTick){
 })();
 
 
-/* ===== V19 — STABILNA NAWIGACJA I RENDERER ===== */
+/* ===== V20 — STABILNA NAWIGACJA ===== */
 (function(){
-  ensureV17();
+  // Samodzielna inicjalizacja — nie korzysta z lokalnego ensureV17 z wcześniejszego IIFE.
+  if(!G.laws)G.laws=[];
+  if(!G.amendments)G.amendments=[];
+  G.oval=G.oval||{unlocked:false,chief:'Do obsadzenia',staff:0,orders:0,agenda:[],approvals:0};
+  G.oval.staff=+G.oval.staff||0; G.oval.orders=+G.oval.orders||0; G.oval.approvals=+G.oval.approvals||0;
+  G.oval.meetings=+G.oval.meetings||0; G.oval.press=+G.oval.press||0;
+  G.oval.agenda=Array.isArray(G.oval.agenda)?G.oval.agenda:[];
+  G.inflation=Number.isFinite(+G.inflation)?+G.inflation:3.1;
+  G.inflationControl=G.inflationControl||{rate:0,actions:0};
+  G.markets=G.markets||{oil:78,gas:3.2,electricity:112,food:100,gold:2380,shipping:100,history:[]};
+  G.markets.history=Array.isArray(G.markets.history)?G.markets.history:[];
+  G.worldEvents=Array.isArray(G.worldEvents)?G.worldEvents:[];
+  G.diplomacy=G.diplomacy||{};
+  G.diplomacy.tradeDeals=Array.isArray(G.diplomacy.tradeDeals)?G.diplomacy.tradeDeals:[];
+  G.diplomacy.summits=Array.isArray(G.diplomacy.summits)?G.diplomacy.summits:[];
   if(!Array.isArray(NAV)) return;
   if(!NAV.some(x=>x[0]==='markets')) NAV.push(['markets','Rynki i ceny','📈']);
 
   // Jeden, prosty mechanizm nawigacji. Przyciski nie polegają już na zagnieżdżonych
   // wersjach setPage/renderNav z poprzednich aktualizacji.
   window.setPage=function(id){
-    ensureV17();
+    // no dependency on earlier scoped helpers
+    if(!G.oval)G.oval={unlocked:false};
     const allowed=['overview','election','congress','laws','states','economy','foreign','military','events','oval','markets'];
     if(!allowed.includes(id)) id='overview';
     if(id==='oval' && !G.oval.unlocked){ toast('Gabinet Owalny odblokuje się po wygraniu wyborów.'); return; }
@@ -1406,7 +1421,7 @@ if(__v15_dailyTick){
   },true);
 
   window.render=function(){
-    ensureV17();
+    if(!G.oval)G.oval={unlocked:false};
     renderNav();
     const title=document.getElementById('pageTitle');
     const content=document.getElementById('content');
