@@ -1366,4 +1366,65 @@ if(__v15_dailyTick){
   window.addEventListener('error',function(e){console.error('USA PRESIDENT:',e.error||e.message)});
   renderNav(); render();
 })();
+
+
+/* ===== V19 — STABILNA NAWIGACJA I RENDERER ===== */
+(function(){
+  ensureV17();
+  if(!Array.isArray(NAV)) return;
+  if(!NAV.some(x=>x[0]==='markets')) NAV.push(['markets','Rynki i ceny','📈']);
+
+  // Jeden, prosty mechanizm nawigacji. Przyciski nie polegają już na zagnieżdżonych
+  // wersjach setPage/renderNav z poprzednich aktualizacji.
+  window.setPage=function(id){
+    ensureV17();
+    const allowed=['overview','election','congress','laws','states','economy','foreign','military','events','oval','markets'];
+    if(!allowed.includes(id)) id='overview';
+    if(id==='oval' && !G.oval.unlocked){ toast('Gabinet Owalny odblokuje się po wygraniu wyborów.'); return; }
+    if(id==='economy' && G.economyUnlocked===false){ toast('Gospodarka odblokuje się po wygraniu wyborów prezydenckich.'); return; }
+    G.page=id;
+    save();
+    render();
+  };
+
+  window.renderNav=function(){
+    const nav=document.getElementById('nav');
+    if(!nav)return;
+    nav.innerHTML=NAV.map(([id,label,icon])=>{
+      const locked=(id==='oval'&&!G.oval.unlocked)||(id==='economy'&&G.economyUnlocked===false);
+      return `<button type="button" class="navBtn ${G.page===id?'active':''} ${locked?'locked':''}" data-page="${id}">${icon} ${label}${locked?' 🔒':''}</button>`;
+    }).join('');
+  };
+
+  // Event delegation — działa nawet po każdym przebudowaniu HTML.
+  document.addEventListener('click',function(e){
+    const b=e.target.closest('#nav [data-page]');
+    if(!b)return;
+    e.preventDefault();
+    e.stopPropagation();
+    window.setPage(b.dataset.page);
+  },true);
+
+  window.render=function(){
+    ensureV17();
+    renderNav();
+    const title=document.getElementById('pageTitle');
+    const content=document.getElementById('content');
+    if(!content)return;
+    const titles={overview:'Centrum dowodzenia',election:'Wybory prezydenckie',congress:'Kongres',laws:'Ustawy federalne',states:'Stany USA',economy:'Gospodarka',foreign:'Polityka zagraniczna',military:'Obrona',events:'Wydarzenia na świecie',oval:'Gabinet Owalny',markets:'Rynki i ceny'};
+    if(title)title.textContent=titles[G.page]||titles.overview;
+    const pages={overview:vOverview,election:vElection,congress:vCongress,laws:vLaws,states:vStates,economy:vEconomy,foreign:vForeign,military:vMilitary,events:vEvents,oval:vOval,markets:vMarkets};
+    let fn=pages[G.page]||vOverview;
+    try{ content.innerHTML=fn(); }
+    catch(err){
+      console.error('Render error:',err);
+      content.innerHTML=`<div class="card full"><h2>⚠️ Błąd panelu</h2><p class="muted">Panel został zabezpieczony przed zatrzymaniem całej gry.</p><button class="btn primary" type="button" onclick="setPage('overview')">Wróć do przeglądu</button></div>`;
+    }
+    updateClock();
+    setTimeout(()=>{try{initVisibleMaps()}catch(err){console.error(err)}},30);
+  };
+
+  // Po zmianie renderera ponownie uruchamiamy ekran bez kasowania zapisu.
+  render();
+})();
 </script>
