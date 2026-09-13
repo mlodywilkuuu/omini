@@ -18,7 +18,7 @@
 <small>Symulator polityczny USA<br>Automatyczny czas gry • bez ręcznego zapisu</small>
 </aside>
 <main class="main">
-<header class="top"><div><div class="eyebrow">Federal Republic • Washington, D.C.</div><h1 id="pageTitle">Centrum dowodzenia</h1></div><div class="clockbox"><div class="date" id="gameDate">1 stycznia 2029</div><div class="time" id="gameTime">08:00</div><div class="muted" id="clockStatus">Czas gry płynie automatycznie</div></div></header>
+<header class="top"><div><div class="eyebrow">Federal Republic • Washington, D.C.</div><h1 id="pageTitle">Centrum dowodzenia</h1></div><div class="clockbox"><div class="date" id="gameDate">1 stycznia 2029</div><div class="time" id="gameTime">08:00</div><div class="muted" id="clockStatus">Czas gry płynie automatycznie</div><div class="clockControls"><button class="btn" id="speedPause" onclick="setSpeed(0)">⏸ Pauza</button><button class="btn" id="speed1" onclick="setSpeed(1)">▶ 1×</button><button class="btn" id="speed2" onclick="setSpeed(2)">⏩ 2×</button><button class="btn" id="speed4" onclick="setSpeed(4)">🚀 4×</button></div></div></header>
 <section id="content"></section>
 </main></div>
 <div class="modal" id="modal"><div class="modalBox"><div id="modalBody"></div><div class="rowActions" style="margin-top:12px"><button class="btn" onclick="closeModal()">Zamknij</button></div></div></div>
@@ -30,7 +30,7 @@ const PAGE_TITLES={overview:'Centrum dowodzenia',election:'Wybory prezydenckie',
 const NAV=[['overview','Przegląd','🏛️'],['election','Wybory','🗳️'],['congress','Kongres','🏛️'],['laws','Ustawy federalne','📜'],['states','Stany','🗺️'],['economy','Gospodarka','💵'],['foreign','Dyplomacja','🌐'],['military','Obrona','🛡️'],['events','Wydarzenia','📰'],['oval','Gabinet Owalny','🦅']];
 function fresh(){
  const states={}; STATES.forEach(s=>states[s[1]]={support:0,red:46+Math.random()*10,purple:4+Math.random()*4,called:null,senate:null});
- return {year:2029,month:1,day:1,hour:8,minute:0,page:'overview',selectedState:'AL',cash:850,popularity:0,campaign:0,president:false,vice:'Nie wybrano',candidate:'Twój kandydat',party:'blue',presidentialCycle:2029,nextPresidential:2029,nextCongress:2031,election:{active:true,type:'presidential',day:1,totalDays:30,phase:'campaign',results:{},called:[],winner:null},congressCampaign:null,houseD:215,houseR:215,houseI:5,senateD:48,senateR:48,senateI:4,gdp:100,inflation:3.1,unemployment:4.8,foreign:55,defense:65,laws:[],amendments:[],news:['Kampania prezydencka rozpoczęta. Masz 30 dni na zbudowanie poparcia.'],states,oval:{unlocked:false,chief:'Do obsadzenia',staff:0,orders:0,agenda:[],approvals:0},settings:{auto:true}};
+ return {year:2029,month:1,day:1,hour:8,minute:0,page:'overview',selectedState:null,cash:850,popularity:0,campaign:0,president:false,vice:'Nie wybrano',candidate:'Twój kandydat',party:'blue',presidentialCycle:2029,nextPresidential:2029,nextCongress:2031,election:{active:true,type:'presidential',day:1,totalDays:30,phase:'campaign',results:{},called:[],winner:null},congressCampaign:null,houseD:215,houseR:215,houseI:5,senateD:48,senateR:48,senateI:4,gdp:100,inflation:3.1,unemployment:4.8,foreign:55,defense:65,economyUnlocked:false,laws:[],amendments:[],news:['Kampania prezydencka rozpoczęta. Masz 30 dni na zbudowanie poparcia.'],states,oval:{unlocked:false,chief:'Do obsadzenia',staff:0,orders:0,agenda:[],approvals:0},settings:{auto:true}};
 }
 let G=load()||fresh();
 function load(){try{return JSON.parse(localStorage.getItem('usaPresidentV4'))}catch(e){return null}}
@@ -132,7 +132,167 @@ function applyEmbargo(c){c=decodeURIComponent(c);ensureDiplomacy();const scope=d
 function liftEmbargo(i){ensureDiplomacy();const e=G.diplomacy.embargoes[i];if(!e)return;const d=G.diplomacy.countries[e.country];if(d){d.relation=clamp(d.relation+4,0,100);d.trade=clamp(d.trade+(e.scope==='full'?15:8),0,100)}G.diplomacy.embargoes.splice(i,1);saveNews(`✅ Zniesiono embargo wobec ${e.country}.`);save();render()}
 function diplomacyCard(c){ensureDiplomacy();const d=G.diplomacy.countries[c];return C('wide selectedStateCard',`🌐 ${c}`,stat('Relacje',Math.round(d.relation)+'/100')+stat('Zaufanie',Math.round(d.trust)+'/100')+stat('Handel',Math.round(d.trade)+'/100')+stat('Ambasada',d.embassy?`Poziom ${d.embassy}/3`:'Brak')+bar(d.relation)+`<div class="rowActions"><button class="btn primary" onclick="buildEmbassy('${encodeURIComponent(c)}')">🏛️ Zbuduj / ulepsz ambasadę — $25M</button><button class="btn danger" onclick="removeEmbassy('${encodeURIComponent(c)}')">🗑️ Usuń ambasadę</button></div><div class="actionGrid" style="margin-top:8px"><button class="btn" onclick="diplomacyAction('${encodeURIComponent(c)}','summit')">🤝 Szczyt przywódców</button><button class="btn" onclick="diplomacyAction('${encodeURIComponent(c)}','trade')">💱 Umowa handlowa</button><button class="btn" onclick="diplomacyAction('${encodeURIComponent(c)}','aid')">💰 Pomoc gospodarcza — $40M</button><button class="btn" onclick="diplomacyAction('${encodeURIComponent(c)}','security')">🛡️ Współpraca bezpieczeństwa</button><button class="btn" onclick="diplomacyAction('${encodeURIComponent(c)}','visit')">✈️ Wizyta państwowa</button><button class="btn danger" onclick="openEmbargo('${encodeURIComponent(c)}')">🚫 Embargo</button></div>`)}
 function vForeign(){ensureDiplomacy();const c=G.diplomacy.selected;const embassyCount=COUNTRIES.reduce((n,x)=>n+((G.diplomacy.countries[x]?.embassy||0)>0?1:0),0);const orgHtml=ORGS.map(o=>{const d=G.diplomacy.orgs[o[0]];return `<div class="list"><b>${o[0]} — ${o[1]}</b><div class="muted">${o[2]} • ${d.membership} • relacje ${Math.round(d.relation)}/100</div><div class="rowActions" style="margin-top:7px"><button class="btn" onclick="orgAction('${encodeURIComponent(o[0])}','summit')">Szczyt</button><button class="btn" onclick="orgAction('${encodeURIComponent(o[0])}','fund')">Finansowanie — $30M</button></div></div>`}).join('');const embargoHtml=G.diplomacy.embargoes.length?G.diplomacy.embargoes.map((e,i)=>`<div class="list"><b>🚫 ${e.country}</b><div class="muted">${e.targets.join(', ')}</div><div class="muted">Poziom: ${e.level} • ${e.scope==='full'?'pełne embargo':'sektorowe'}${e.reason?` • ${e.reason}`:''}</div><button class="btn" onclick="liftEmbargo(${i})">Znieś embargo</button></div>`).join(''):'<div class="empty">Brak aktywnych embarg.</div>';const options=COUNTRIES.map(x=>`<option value="${x.replaceAll('"','&quot;')}" ${x===c?'selected':''}>${x}</option>`).join('');return `<div class="grid">${C('','Siła dyplomatyczna',`<div class="metric">${G.foreign}/100</div>${bar(G.foreign)}`)}${C('','Sieć dyplomatyczna',stat('Państwa',COUNTRIES.length)+stat('Organizacje',ORGS.length)+stat('Ambasady',embassyCount)+stat('Aktywne embarga',G.diplomacy.embargoes.length))}${C('full','🌍 Państwa świata',`<div class="notice">Lista obejmuje państwa ONZ oraz dodatkowo Watykan / Stolicę Apostolską, Kosowo i Tajwan. Wybierz państwo, aby zarządzać relacjami i ambasadą.</div><select class="diplomacySelect" onchange="selectCountry(this.value)">${options}</select>${diplomacyCard(c)}`)}${C('full','🏛️ Organizacje międzynarodowe',`<div class="orgGrid">${orgHtml}</div>`)}${C('full','🚫 Aktywne embarga',embargoHtml)}</div>`}
-ensureDiplomacy();
+
+/* ===== FINAL FIXES v7 ===== */
+(function(){
+  /* Time controls shown directly beside the date/time. */
+  if(typeof G.timeSpeed!=='number') G.timeSpeed=1;
+  G.paused=!!G.paused;
+  window.setSpeed=function(v){
+    G.timeSpeed=v;
+    G.paused=v===0;
+    save();
+    updateClock();
+    toast(v===0?'⏸ Czas zatrzymany':`⏱️ Prędkość czasu: ${v}×`);
+  };
+  const oldUpdateClock=window.updateClock;
+  window.updateClock=function(){
+    const months=['stycznia','lutego','marca','kwietnia','maja','czerwca','lipca','sierpnia','września','października','listopada','grudnia'];
+    const d=document.getElementById('gameDate'),t=document.getElementById('gameTime'),st=document.getElementById('clockStatus');
+    if(!d||!t||!st)return;
+    d.textContent=`${G.day} ${months[G.month-1]} ${G.year}`;
+    t.textContent=`${String(G.hour).padStart(2,'0')}:${String(G.minute).padStart(2,'0')}`;
+    st.textContent=G.paused?'Czas zatrzymany':G.election?.active&&G.election.phase==='campaign'?`Kampania prezydencka • dzień ${G.election.day}/${G.election.totalDays}`:G.congressCampaign?.active?`Kampania do Kongresu • dzień ${G.congressCampaign.day}/${G.congressCampaign.totalDays}`:G.president?'Kadencja prezydencka':'Czas gry płynie automatycznie';
+    ['speedPause','speed1','speed2','speed4'].forEach(id=>document.getElementById(id)?.classList.remove('primary'));
+    const active=G.paused?'speedPause':`speed${G.timeSpeed}`;
+    document.getElementById(active)?.classList.add('primary');
+  };
+
+  /* Economy is locked until the presidential victory. */
+  if(typeof G.economyUnlocked!=='boolean') G.economyUnlocked=!!G.president;
+  const oldSetPage=window.setPage;
+  window.setPage=function(p){
+    if(p==='oval'&&!G.oval.unlocked){toast('Gabinet Owalny odblokuje się po wygraniu wyborów.');return;}
+    if(p==='economy'&&!G.economyUnlocked){toast('💵 Gospodarka odblokuje się po wygraniu wyborów prezydenckich.');return;}
+    G.page=p;render();
+  };
+  window.renderNav=function(){
+    document.getElementById('nav').innerHTML=NAV.map(([id,label,icon])=>{
+      const lock=id==='oval'&&!G.oval.unlocked || id==='economy'&&!G.economyUnlocked;
+      return `<button class="${G.page===id?'active':''} ${lock?'locked':''}" onclick="setPage('${id}')">${icon} ${label}${lock?' 🔒':''}</button>`;
+    }).join('');
+  };
+
+  /* Economy simulation only starts after victory. */
+  window.advanceEconomy=function(){
+    if(!G.economyUnlocked)return;
+    G.cash=Math.max(0,G.cash+Math.round(3+Math.random()*4-G.unemployment*.25));
+    G.gdp+=.04-(G.inflation>5?.05:0);
+    G.unemployment=clamp(G.unemployment+(Math.random()-.5)*.05,2.5,10);
+    G.inflation=clamp(G.inflation+(Math.random()-.5)*.04,1,9);
+    if(Math.random()<.08)saveNews('📰 Nowe wydarzenie wpłynęło na nastroje w kraju.');
+  };
+  const oldFinish=window.finishPresidentialElection;
+  window.finishPresidentialElection=function(){
+    oldFinish();
+    if(G.president){G.economyUnlocked=true;saveNews('💵 Gospodarka została odblokowana po zwycięstwie prezydenckim.');save();render();}
+  };
+  window.vEconomy=function(){
+    if(!G.economyUnlocked)return `<div class="grid"><div class="card full lockedPanel"><div class="big">🔒</div><h2>Gospodarka</h2><p class="muted">Panel gospodarczy zostanie odblokowany po wygraniu wyborów prezydenckich.</p><button class="btn primary" onclick="setPage('election')">Przejdź do wyborów</button></div></div>`;
+    return `<div class="grid">${C('','PKB',`<div class="metric">${G.gdp.toFixed(1)}</div>`)}${C('','Inflacja',`<div class="metric">${G.inflation.toFixed(1)}%</div>`)}${C('','Bezrobocie',`<div class="metric">${G.unemployment.toFixed(1)}%</div>`)}${C('','Skarb',`<div class="metric">${money(G.cash)}</div>`)}${C('wide','Polityka gospodarcza',`<div class="rowActions"><button class="btn primary" onclick="econ('stimulus')">Infrastruktura — $60M</button><button class="btn" onclick="econ('tax')">Reforma podatkowa</button><button class="btn" onclick="econ('austerity')">Oszczędności</button></div>`)}${C('half','Wskaźniki',stat('PKB',G.gdp.toFixed(1))+stat('Inflacja',G.inflation.toFixed(1)+'%')+stat('Bezrobocie',G.unemployment.toFixed(1)+'%'))}</div>`;
+  };
+
+  /* Congress has its own election cycle and can run independently. */
+  window.startCongressCampaign=function(){
+    if(G.congressCampaign?.active)return toast('Kampania do Kongresu już trwa.');
+    G.congressCampaign={active:true,day:1,totalDays:20,phase:'campaign',results:null};
+    saveNews('🏛️ Rozpoczęła się niezależna kampania do Kongresu. Nie jest powiązana z wyborami prezydenckimi.');save();render();
+  };
+  window.vCongress=function(){
+    if(G.congressCampaign?.phase==='results'){
+      return `<div class="grid">${C('wide','🏛️ Wyniki wyborów do Kongresu',`<div class="resultBanner"><div class="metric">Izba: ${G.houseD} D / ${G.houseR} R / ${G.houseI} I</div><p>Senat: ${G.senateD} D / ${G.senateR} R / ${G.senateI} I</p><div class="rowActions"><button class="btn primary" onclick="startCongressCampaign()">Rozpocznij nową kampanię Kongresu</button></div></div>`)}${C('half','Kontrola Kongresu',stat('Izba',houseControl())+stat('Senat',senateControl()))}${C('half','Kalendarz',stat('Następna kampania',G.nextCongress)+`<span class="muted">Kongres jest niezależny od cyklu prezydenckiego.</span>`)}${C('full','Mapa Senatu',mapHTML('senateMap','senate'))}</div>`;
+    }
+    if(!G.congressCampaign?.active){
+      return `<div class="grid">${C('wide','🏛️ Kampania do Kongresu',`<div class="campaignHero"><div class="eyebrow">Oddzielny cykl wyborczy</div><div class="campaignDay">Kongres wybierasz niezależnie</div><p class="muted">Ta kampania nie czeka na wybory prezydenckie. Możesz rozpocząć ją w dowolnym momencie i prowadzić osobno Izbę Reprezentantów oraz Senat.</p><button class="btn primary" onclick="startCongressCampaign()">🏛️ Rozpocznij kampanię do Kongresu</button></div>`)}${C('','Stan Kongresu',stat('Izba',`${G.houseD} D / ${G.houseR} R / ${G.houseI} I`)+stat('Senat',`${G.senateD} D / ${G.senateR} R / ${G.senateI} I`))}${C('full','Mapa kampanii',mapHTML('congressMap','political'))}</div>`;
+    }
+    return `<div class="grid">${C('wide','🏛️ Kampania do Kongresu',`<div class="campaignHero"><div class="eyebrow">Niezależne wybory parlamentarne</div><div class="campaignDay">Dzień ${G.congressCampaign.day} / ${G.congressCampaign.totalDays}</div><div class="progress"><i style="width:${G.congressCampaign.day/G.congressCampaign.totalDays*100}%"></i></div><p class="muted">Kampania Kongresu działa równolegle do reszty gry i nie jest resetowana przez wybory prezydenckie.</p></div>`)}${C('','Stan Kongresu',stat('Izba',`${G.houseD} D / ${G.houseR} R / ${G.houseI} I`)+stat('Senat',`${G.senateD} D / ${G.senateR} R / ${G.senateI} I`))}${C('full','Mapa kampanii',mapHTML('congressMap','political'))}${C('wide','Operacje kampanijne',`<div class="campaignGrid"><button class="campaignAction btn" onclick="congressAction('ground')"><b>🤝 Organizacja terenu</b>-$30M</button><button class="campaignAction btn" onclick="congressAction('tv')"><b>📺 Reklama TV</b>-$55M</button><button class="campaignAction btn" onclick="congressAction('fund')"><b>💰 Fundraising</b>+$65M</button><button class="campaignAction btn" onclick="congressAction('endorse')"><b>⭐ Poparcie liderów</b>-$20M</button><button class="campaignAction btn" onclick="congressAction('attack')"><b>⚔️ Kampania negatywna</b>-$40M</button></div>`)}</div>`;
+  };
+
+  /* Both campaign clocks advance independently each game day. */
+  window.dailyTick=function(){
+    advanceEconomy();
+    if(G.election?.active&&G.election.phase==='campaign'){
+      G.election.day++;
+      if(G.election.day>G.election.totalDays)startElectionNight();
+    }
+    if(G.congressCampaign?.active&&G.congressCampaign.phase==='campaign'){
+      G.congressCampaign.day++;
+      if(G.congressCampaign.day>G.congressCampaign.totalDays)finishCongress();
+    }
+    if(!G.congressCampaign?.active&&G.year>=G.nextCongress&&G.month===1){startCongressCampaign();}
+    if(G.president&&G.year>=G.nextPresidential&&G.month===1&&!G.election.active){
+      G.election={active:true,type:'presidential',day:1,totalDays:30,phase:'campaign',results:{},called:[],winner:null};
+      saveNews('🗳️ Rozpoczęła się kolejna kampania prezydencka.');
+    }
+    if(Math.random()<.03)G.popularity=clamp(G.popularity+(Math.random()-.45)*2,0,100);
+    save();render();
+  };
+
+  /* Tick respects pause/speed; one real second = speed game-hours. */
+  window.tick=function(){
+    if(G.paused)return;
+    const loops=Math.max(1,G.timeSpeed||1);
+    for(let i=0;i<loops;i++){
+      G.minute+=60;
+      if(G.minute>=60){G.minute=0;G.hour++;}
+      if(G.hour>=24){
+        G.hour=0;
+        G.day++;
+        if(G.day>daysInMonth(G.year,G.month)){
+          G.day=1;G.month++;
+          if(G.month>12){G.month=1;G.year++;}
+        }
+        dailyTick();
+      }
+    }
+    updateClock();save();
+  };
+
+  /* Fix map clicks: dragging no longer steals the click from a state. */
+  window.initMap=async function(id,mode='political'){
+    const root=document.getElementById(id);if(!root||!window.d3||!window.topojson)return;
+    const svg=d3.select(root).select('svg');svg.selectAll('*').remove();
+    try{
+      const us=await d3.json('https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json');
+      const features=topojson.feature(us,us.objects.states).features;
+      const projection=d3.geoAlbersUsa().fitSize([root.clientWidth,root.clientHeight],{type:'FeatureCollection',features});
+      const path=d3.geoPath(projection),g=svg.append('g');
+      g.selectAll('path').data(features).join('path').attr('class','statePath').attr('d',path)
+        .attr('fill',d=>{const m=STATES.find(x=>x[3]===String(d.id).padStart(2,'0'));return m?colorFor(m[1],mode):'#273b54';})
+        .on('click',(e,d)=>{if(root.__mapMoved){root.__mapMoved=false;return;}const m=STATES.find(x=>x[3]===String(d.id).padStart(2,'0'));if(m)stateInfo(m[1]);});
+      g.selectAll('text').data(features).join('text').attr('class','stateLabel').attr('transform',d=>{const c=path.centroid(d);return `translate(${c[0]},${c[1]})`;}).text(d=>{const m=STATES.find(x=>x[3]===String(d.id).padStart(2,'0'));return m?m[1]:'';});
+      mapStates[id]={svg,g,scale:1,x:0,y:0,drag:false};
+      root.__mapMoved=false;root.__dragStart=null;
+      root.onpointerdown=e=>{if(e.target.closest('.mapTools'))return;root.__dragStart={x:e.clientX,y:e.clientY,ox:mapStates[id].x,oy:mapStates[id].y};};
+      root.onpointermove=e=>{const m=mapStates[id];const st=root.__dragStart;if(!m||!st)return;const dx=e.clientX-st.x,dy=e.clientY-st.y;if(Math.hypot(dx,dy)>5)root.__mapMoved=true;m.x=st.ox+dx;m.y=st.oy+dy;applyMap(id);};
+      root.onpointerup=()=>{root.__dragStart=null;};root.onpointercancel=()=>{root.__dragStart=null;};
+      root.onwheel=e=>{e.preventDefault();mapZoom(id,e.deltaY<0?1.1:.9);};
+    }catch(e){svg.append('text').attr('x','50%').attr('y','50%').attr('text-anchor','middle').attr('fill','#71839a').text('Nie udało się wczytać mapy USA');}
+  };
+  window.initVisibleMaps=function(){document.querySelectorAll('.mapViewport').forEach(x=>initMap(x.id,x.dataset.mode||'political'));};
+
+  /* Tile-based diplomacy: countries on the left, organizations on the right. */
+  window.vForeign=function(){
+    ensureDiplomacy();
+    const c=G.diplomacy.selected;
+    const embassyCount=COUNTRIES.reduce((n,x)=>n+((G.diplomacy.countries[x]?.embassy||0)>0?1:0),0);
+    const countryTiles=COUNTRIES.map(x=>{const d=G.diplomacy.countries[x];const active=x===c;return `<button class="countryTile ${active?'selected':''}" onclick="selectCountry('${encodeURIComponent(x)}')"><span class="tileIcon">🌍</span><span><b>${x}</b><small>Relacje ${Math.round(d.relation)}/100 • Ambasada ${d.embassy}/3</small></span></button>`;}).join('');
+    const orgTiles=ORGS.map(o=>{const d=G.diplomacy.orgs[o[0]];return `<div class="orgTile"><div class="orgTop"><span class="tileIcon">🏛️</span><div><b>${o[0]}</b><small>${o[1]}</small></div></div><div class="muted">${o[2]} • ${d.membership} • relacje ${Math.round(d.relation)}/100</div><div class="rowActions" style="margin-top:8px"><button class="btn" onclick="orgAction('${encodeURIComponent(o[0])}','summit')">🤝 Szczyt</button><button class="btn" onclick="orgAction('${encodeURIComponent(o[0])}','fund')">💰 Finansowanie — $30M</button></div></div>`;}).join('');
+    const d=G.diplomacy.countries[c];
+    const embargoHtml=G.diplomacy.embargoes.length?G.diplomacy.embargoes.map((e,i)=>`<div class="list"><b>🚫 ${e.country}</b><div class="muted">${e.targets.join(', ')}</div><div class="muted">Poziom: ${e.level} • ${e.scope==='full'?'pełne embargo':'sektorowe'}${e.reason?` • ${e.reason}`:''}</div><button class="btn" onclick="liftEmbargo(${i})">Znieś embargo</button></div>`).join(''):'<div class="empty">Brak aktywnych embarg.</div>';
+    return `<div class="grid">${C('','Siła dyplomatyczna',`<div class="metric">${G.foreign}/100</div>${bar(G.foreign)}`)}${C('','Sieć dyplomatyczna',stat('Państwa',COUNTRIES.length)+stat('Organizacje',ORGS.length)+stat('Ambasady',embassyCount)+stat('Aktywne embarga',G.diplomacy.embargoes.length))}<div class="card full diplomacyColumns"><div class="diplomacyCol"><div class="sectionTitle"><span>🌍 Państwa świata</span><small>${COUNTRIES.length} dostępnych</small></div><div class="tileGrid">${countryTiles}</div></div><div class="diplomacyCol"><div class="sectionTitle"><span>🏛️ Organizacje</span><small>${ORGS.length} organizacji</small></div><div class="tileGrid orgTiles">${orgTiles}</div></div></div>${C('full selectedStateCard',`🌐 ${c}`,stat('Relacje',Math.round(d.relation)+'/100')+stat('Zaufanie',Math.round(d.trust)+'/100')+stat('Handel',Math.round(d.trade)+'/100')+stat('Ambasada',d.embassy?`Poziom ${d.embassy}/3`:'Brak')+bar(d.relation)+`<div class="rowActions"><button class="btn primary" onclick="buildEmbassy('${encodeURIComponent(c)}')">🏛️ Zbuduj / ulepsz ambasadę — $25M</button><button class="btn danger" onclick="removeEmbassy('${encodeURIComponent(c)}')">🗑️ Usuń ambasadę</button></div><div class="actionGrid" style="margin-top:8px"><button class="btn" onclick="diplomacyAction('${encodeURIComponent(c)}','summit')">🤝 Szczyt przywódców</button><button class="btn" onclick="diplomacyAction('${encodeURIComponent(c)}','trade')">💱 Umowa handlowa</button><button class="btn" onclick="diplomacyAction('${encodeURIComponent(c)}','aid')">💰 Pomoc gospodarcza — $40M</button><button class="btn" onclick="diplomacyAction('${encodeURIComponent(c)}','security')">🛡️ Współpraca bezpieczeństwa</button><button class="btn" onclick="diplomacyAction('${encodeURIComponent(c)}','visit')">✈️ Wizyta państwowa</button><button class="btn danger" onclick="openEmbargo('${encodeURIComponent(c)}')">🚫 Embargo</button></div>`)}${C('full','🚫 Aktywne embarga',embargoHtml)}</div>`;
+  };
+
+  /* CSS for the new diplomacy layout and clock buttons. */
+  const st=document.createElement('style');st.textContent=`
+    .clockControls{display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap;margin-top:9px}.clockControls .btn{padding:6px 9px;font-size:11px}
+    .diplomacyColumns{display:grid;grid-template-columns:1fr 1fr;gap:18px}.diplomacyCol{min-width:0}.sectionTitle{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px;font-weight:900}.sectionTitle small{color:#70839a;font-weight:600}.tileGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;max-height:680px;overflow:auto;padding-right:3px}.countryTile,.orgTile{width:100%;min-width:0;text-align:left;padding:11px;border:1px solid #ffffff0d;border-radius:13px;background:linear-gradient(145deg,#ffffff06,#ffffff02);color:#fff}.countryTile{display:flex;align-items:center;gap:9px}.countryTile:hover,.countryTile.selected{border-color:#4d8dff55;background:#4d8dff12}.countryTile b,.orgTile b{display:block;font-size:12px;line-height:1.2}.countryTile small,.orgTile small{display:block;color:#788da7;margin-top:4px;line-height:1.25}.tileIcon{font-size:21px;flex:0 0 auto}.orgTile{display:block}.orgTop{display:flex;gap:9px;align-items:flex-start;margin-bottom:7px}.orgTop .tileIcon{font-size:22px}.orgTile .btn{font-size:11px;padding:7px 8px}@media(max-width:1000px){.diplomacyColumns{grid-template-columns:1fr}.tileGrid{max-height:500px}}@media(max-width:650px){.tileGrid{grid-template-columns:1fr}.clockControls{justify-content:flex-start}}
+  `;document.head.appendChild(st);
+
+  /* Keep current old saves usable. */
+  if(G.president)G.economyUnlocked=true;
+  ensureDiplomacy();
+})();
 
 render();
 </script></body></html>
