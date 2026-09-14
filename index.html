@@ -56,7 +56,7 @@
 <div class="map-wrap">
 <div id="map" class="map"></div>
 <div class="map-toolbar"><button class="btn small primary" id="newLineBtn">＋ NOWA LINIA</button><button class="btn small green" id="buildStopBtn">＋ BUDUJ PRZYSTANEK</button><button class="btn small" id="finishLineBtn" disabled>ZAPISZ LINIĘ</button><button class="btn small" id="clearDraftBtn" disabled>WYCZYŚĆ TRASĘ</button><button class="btn small" id="centerBtn">⌾ CENTRUJ</button></div>
-<div class="map-help" id="mapHelp">Kliknij „NOWA LINIA”, a następnie klikaj na mapie, aby ręcznie dodawać przystanki. Każdy kolejny punkt zostanie połączony zieloną linią.</div>
+<div class="map-help" id="mapHelp">Kliknij „NOWA LINIA”, a następnie wybieraj niebieskie pineski przystanków. Zielona linia pokaże kolejność.</div>
 </div>
 <div class="line-side">
 <div class="panel"><h3>Budowanie linii</h3><div class="field"><label>Nazwa linii</label><input id="lineName" value="Linia 1" placeholder="np. 101"></div><div style="height:10px"></div><div class="field"><label>Przystanki na trasie</label><div id="draftStops" class="stop-list"><div class="muted">Rozpocznij budowę i klikaj mapę.</div></div></div></div>
@@ -80,14 +80,14 @@
 
 <div id="setupModal" class="modal-backdrop hidden"><div class="modal"><button class="close" data-close="setupModal">×</button><h2>Utwórz przedsiębiorstwo</h2><p>Wybierz kraj i miasto. Możesz też wpisać własną nazwę ręcznie.</p><div class="form-grid">
 <div class="field full"><label>Nazwa przedsiębiorstwa</label><input id="companyName" value="CityBus Transport"></div>
-<div class="field"><label>Państwo</label><input id="countryInput" list="countryList" placeholder="Wybierz lub wpisz państwo"><datalist id="countryList"></datalist></div>
+<div class="field"><label>Państwo</label><select id="countryInput"><option value="">Wybierz państwo…</option></select></div>
 <div class="field"><label>Miasto</label><input id="cityInput" placeholder="np. Białystok, Warszawa, Marki"></div>
 <div class="field full"><label>Tryb gry</label><div class="mode-grid"><div class="mode active" data-mode="normal"><b>Tryb zwykły</b><small>Rozwijaj firmę od podstaw.</small></div><div class="mode" data-mode="sandbox"><b>Piaskownica</b><small>Maksymalna gotówka, flota i rozwój.</small></div></div></div>
 </div><div class="modal-actions"><button class="btn" data-close="setupModal">ANULUJ</button><button class="btn primary" id="createGameBtn">UTWÓRZ FIRMĘ</button></div></div></div>
 
 <div id="stopModal" class="modal-backdrop hidden"><div class="modal" style="max-width:500px"><button class="close" data-close="stopModal">×</button><h2>Budowa przystanku</h2><p>Przystanek zostanie dodany dokładnie w wybranym miejscu na mapie.</p><div class="form-grid"><div class="field full"><label>Nazwa przystanku</label><input id="newStopName" value="Nowy przystanek"></div><div class="field"><label>Szerokość</label><input id="newStopLat" readonly></div><div class="field"><label>Długość</label><input id="newStopLon" readonly></div></div><div class="modal-actions"><button class="btn" data-close="stopModal">ANULUJ</button><button class="btn primary" id="confirmStopBtn">BUDUJ — $5 000</button></div></div></div>
 
-<div id="loading" class="screen hidden"><div class="loading-box"><div class="spinner"></div><h2 id="loadingTitle">Przygotowywanie miasta…</h2><p id="loadingText" class="muted">Ładowanie mapy i dróg</p><div class="progress"><i id="progressBar"></i></div></div></div>
+<div id="loading" class="screen hidden"><div class="loading-box"><div class="spinner"></div><h2 id="loadingTitle">Przygotowywanie miasta…</h2><p id="loadingText" class="muted">Uruchamianie mapy — dane ulic pobiorą się w tle</p><div class="progress"><i id="progressBar"></i></div></div></div>
 <div id="toast" class="toast"><b id="toastTitle"></b><span id="toastText"></span></div>
 </div>
 
@@ -96,7 +96,7 @@
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const state={company:"CityBus Transport",country:"Polska",city:"Białystok",mode:"normal",cash:250000,day:1,minutes:360,unlockedRadius:8500,unlockLevel:1,lines:[],buses:[],staff:[],incomeToday:0,expenseToday:0,passengers:0,map:null,mapCenter:null,roadsLayer:null,stopLayer:null,osmStops:[],customStops:[],routeLayers:[],stopMarkers:[],busMarkers:new Map(),buildStopMode:false,draft:{active:false,name:"Linia 1",stops:[],previewLine:null},selectedLineId:null,roadReady:false};
 const countries=["Afganistan","Albania","Algieria","Andora","Angola","Antigua i Barbuda","Argentyna","Armenia","Australia","Austria","Azerbejdżan","Bahamy","Bahrajn","Bangladesz","Barbados","Belgia","Belize","Benin","Bhutan","Białoruś","Boliwia","Bośnia i Hercegowina","Botswana","Brazylia","Brunei","Bułgaria","Burkina Faso","Burundi","Chile","Chiny","Chorwacja","Cypr","Czad","Czarnogóra","Czechy","Dania","Demokratyczna Republika Konga","Dominika","Dominikana","Dżibuti","Egipt","Ekwador","Erytrea","Estonia","Eswatini","Etiopia","Fidżi","Filipiny","Finlandia","Francja","Gabon","Gambia","Ghana","Grecja","Grenada","Gruzja","Gujana","Gwatemala","Gwinea","Gwinea Bissau","Gwinea Równikowa","Haiti","Hiszpania","Holandia","Honduras","Indie","Indonezja","Irak","Iran","Irlandia","Islandia","Izrael","Jamajka","Japonia","Jemen","Jordania","Kambodża","Kamerun","Kanada","Katar","Kazachstan","Kenia","Kirgistan","Kiribati","Kolumbia","Komory","Kongo","Korea Południowa","Korea Północna","Kostaryka","Kuba","Kuwejt","Laos","Lesotho","Liban","Liberia","Libia","Liechtenstein","Litwa","Luksemburg","Łotwa","Madagaskar","Malawi","Malezja","Malediwy","Mali","Malta","Maroko","Mauretania","Mauritius","Meksyk","Mikronezja","Mjanma","Mołdawia","Monako","Mongolia","Mozambik","Namibia","Nauru","Nepal","Niemcy","Niger","Nigeria","Nikaragua","Norwegia","Nowa Zelandia","Oman","Pakistan","Palau","Panama","Papua-Nowa Gwinea","Paragwaj","Peru","Polska","Portugalia","Republika Południowej Afryki","Republika Środkowoafrykańska","Rumunia","Rosja","Rwanda","Saint Kitts i Nevis","Saint Lucia","Saint Vincent i Grenadyny","Salwador","Samoa","San Marino","Senegal","Serbia","Seszele","Sierra Leone","Singapur","Słowacja","Słowenia","Somalia","Sri Lanka","Stany Zjednoczone","Sudan","Sudan Południowy","Surinam","Syria","Szwajcaria","Szwecja","Tadżykistan","Tajlandia","Tanzania","Timor Wschodni","Togo","Tonga","Trynidad i Tobago","Tunezja","Turcja","Turkmenistan","Tuvalu","Uganda","Ukraina","Urugwaj","Uzbekistan","Vanuatu","Watykan","Wenezuela","Węgry","Wietnam","Wielka Brytania","Wybrzeże Kości Słoniowej","Wyspy Marshalla","Wyspy Salomona","Zambia","Zimbabwe","Zjednoczone Emiraty Arabskie"];
-countries.forEach(c=>{const o=document.createElement("option");o.value=c;$("#countryList").appendChild(o)});
+countries.forEach(c=>{const o=document.createElement("option");o.value=c;o.textContent=c;$("#countryInput").appendChild(o)});$("#countryInput").value="Polska";
 let toastTimer;
 function toast(title,text){$("#toastTitle").textContent=title;$("#toastText").textContent=text;$("#toast").classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(()=>$("#toast").classList.remove("show"),3300)}
 function money(n){return "$"+Math.round(n).toLocaleString("pl-PL")}function setCash(n){state.cash=n;$("#cashLabel").textContent=money(n);$("#financeCash").textContent=money(n)}
@@ -106,13 +106,36 @@ $$("[data-close]").forEach(b=>b.onclick=()=>hideModal(b.dataset.close));$("#conf
 $$(".mode").forEach(m=>m.onclick=()=>{$$(".mode").forEach(x=>x.classList.remove("active"));m.classList.add("active");state.mode=m.dataset.mode});
 function showTab(name){$$(".tab").forEach(x=>x.classList.remove("active"));$("#tab-"+name).classList.add("active");$$(".nav button").forEach(x=>x.classList.toggle("active",x.dataset.tab===name));const titles={dashboard:"Dashboard",lines:"Linie",fleet:"Flota",staff:"Pracownicy",finance:"Finanse",development:"Rozwój"};$("#pageTitle").textContent=titles[name]||name;if(name==="lines"){setTimeout(()=>state.map&&state.map.invalidateSize(false),80);renderLineSide()}if(name==="fleet")renderFleet();if(name==="staff")renderStaff();if(name==="finance")renderFinance()}
 $$(".nav button").forEach(b=>b.onclick=()=>showTab(b.dataset.tab));
-async function geocodeCity(){const q=(state.city||"Białystok")+", "+(state.country||"Polska");try{const r=await fetch("https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q="+encodeURIComponent(q),{headers:{"Accept-Language":"pl"}});const d=await r.json();if(d[0])return[+d[0].lat,+d[0].lon]}catch(e){}const f={"Białystok":[53.1325,23.1688],"Warszawa":[52.2297,21.0122],"Kraków":[50.0647,19.945],"Wrocław":[51.1079,17.0385],"Gdańsk":[54.352,18.6466],"Poznań":[52.4064,16.9252],"Łódź":[51.7592,19.456],"Lublin":[51.2465,22.5684],"Marki":[52.3202,21.104],"Bielsk Podlaski":[52.765,23.19]};return f[state.city]||[52.2297,21.0122]}
+async function geocodeCity(){const q=(state.city||"Białystok")+", "+(state.country||"Polska");try{const ctl=new AbortController();const timer=setTimeout(()=>ctl.abort(),3500);const r=await fetch("https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q="+encodeURIComponent(q),{headers:{"Accept-Language":"pl"},signal:ctl.signal});clearTimeout(timer);const d=await r.json();if(d[0])return[+d[0].lat,+d[0].lon]}catch(e){}const f={"Białystok":[53.1325,23.1688],"Warszawa":[52.2297,21.0122],"Kraków":[50.0647,19.945],"Wrocław":[51.1079,17.0385],"Gdańsk":[54.352,18.6466],"Poznań":[52.4064,16.9252],"Łódź":[51.7592,19.456],"Lublin":[51.2465,22.5684],"Marki":[52.3202,21.104],"Bielsk Podlaski":[52.765,23.19]};return f[state.city]||[52.2297,21.0122]}
 function setProgress(n,title,text){$("#progressBar").style.width=n+"%";$("#loadingTitle").textContent=title;$("#loadingText").textContent=text}
-async function createGame(){state.company=$("#companyName").value.trim()||"CityBus Transport";state.country=$("#countryInput").value.trim()||"Polska";state.city=$("#cityInput").value.trim()||"Białystok";if(state.mode==="sandbox"){state.cash=999999999;state.unlockedRadius=40000;state.buses=[];for(let i=0;i<20;i++)addBus(true);for(let i=0;i<20;i++)state.staff.push({id:crypto.randomUUID(),name:randomDriver(),salary:0})}else{state.cash=250000;state.buses=[];for(let i=0;i<3;i++)addBus(true);state.staff=[]}hideModal("setupModal");$("#start").classList.add("hidden");$("#loading").classList.remove("hidden");setProgress(8,"Przygotowywanie miasta…","Wyszukiwanie lokalizacji");state.mapCenter=await geocodeCity();setProgress(30,"Ładowanie mapy…","Pobieranie ulic");$("#game").classList.remove("hidden");initMap();setProgress(55,"Ładowanie dróg…","Pobieranie danych OpenStreetMap");await loadRoads(state.mapCenter,state.unlockedRadius);setProgress(68,"Ładowanie przystanków…","Pobieranie istniejących przystanków");await loadStops(state.mapCenter,state.unlockedRadius);setProgress(82,"Uruchamianie symulacji…","Przygotowywanie floty i rozkładów");updateCompanyUI();renderAll();setProgress(100,"Gotowe","Miasto jest gotowe do gry");setTimeout(()=>$("#loading").classList.add("hidden"),450)}
-$("#createGameBtn").onclick=createGame;
+async function createGame(){
+  state.company=$("#companyName").value.trim()||"CityBus Transport";
+  state.country=$("#countryInput").value||"Polska";
+  state.city=$("#cityInput").value.trim()||"Białystok";
+  if(state.mode==="sandbox"){
+    state.cash=999999999;state.unlockedRadius=40000;state.buses=[];
+    for(let i=0;i<20;i++)addBus(true);
+    for(let i=0;i<20;i++)state.staff.push({id:crypto.randomUUID(),name:randomDriver(),salary:0});
+  }else{
+    state.cash=250000;state.buses=[];for(let i=0;i<3;i++)addBus(true);state.staff=[];
+  }
+  hideModal("setupModal");$("#start").classList.add("hidden");
+  $("#loading").classList.remove("hidden");setProgress(12,"Uruchamianie gry…","Ustawianie miasta");
+  state.mapCenter=await geocodeCity();
+  setProgress(45,"Uruchamianie mapy…","Gotowe — dane OpenStreetMap pobierają się w tle");
+  $("#game").classList.remove("hidden");
+  initMap();updateCompanyUI();renderAll();
+  setTimeout(()=>{$("#loading").classList.add("hidden");showTab("dashboard");},180);
+  // Nie blokujemy wejścia do gry na wolne serwisy OpenStreetMap.
+  setProgress(65,"Pobieranie danych…","Ulice i przystanki ładują się w tle");
+  Promise.allSettled([
+    loadRoads(state.mapCenter,state.unlockedRadius),
+    loadStops(state.mapCenter,state.unlockedRadius)
+  ]).then(()=>{renderLinesMap();renderLineSide();});
+}$("#createGameBtn").onclick=createGame;
 function initMap(){if(state.map){state.map.setView(state.mapCenter,13);return}state.map=L.map("map",{zoomControl:true,preferCanvas:true}).setView(state.mapCenter,13);L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:20,attribution:"© OpenStreetMap contributors"}).addTo(state.map);state.roadsLayer=L.layerGroup().addTo(state.map);state.stopLayer=L.layerGroup().addTo(state.map);state.map.on("click",e=>{if(state.buildStopMode){openBuildStopModal(e.latlng);return}if(state.draft.active){toast("Budowanie linii","Kliknij istniejący przystanek na mapie. Aby dodać nowy, wyłącz budowanie linii i użyj „BUDUJ PRZYSTANEK”.");}});$("#centerBtn").onclick=()=>state.map.setView(state.mapCenter,13);$("#buildStopBtn").onclick=toggleBuildStopMode;drawUnlockCircle()}
 function drawUnlockCircle(){if(!state.map||!state.mapCenter)return;if(state.unlockCircle)state.map.removeLayer(state.unlockCircle);state.unlockCircle=L.circle(state.mapCenter,{radius:state.unlockedRadius,color:"#637fff",weight:1,dashArray:"7 7",fillColor:"#637fff",fillOpacity:.035,interactive:false}).addTo(state.map)}
-async function loadRoads(center,radius){if(!state.map)return;const [lat,lon]=center,r=Math.min(radius,15000),query=`[out:json][timeout:35];way(around:${r},${lat},${lon})[highway][name];out geom;`;try{const resp=await fetch("https://overpass-api.de/api/interpreter",{method:"POST",body:query});if(!resp.ok)throw 0;const data=await resp.json();state.roadsLayer.clearLayers();const seen=new Set();data.elements.forEach(el=>{if(seen.has(el.id)||!el.geometry||el.geometry.length<2)return;seen.add(el.id);L.polyline(el.geometry.map(p=>[p.lat,p.lon]),{color:"#5f6670",weight:2,opacity:.58}).addTo(state.roadsLayer)});state.roadReady=true}catch(e){state.roadReady=false;toast("Mapa","Nie udało się pobrać części dróg. Routing autobusów nadal spróbuje użyć serwisu tras.")}}
+async function loadRoads(center,radius){if(!state.map)return;const [lat,lon]=center,r=Math.min(radius,9000),query=`[out:json][timeout:12];way(around:${r},${lat},${lon})[highway][name];out geom;`;try{const resp=await fetch("https://overpass-api.de/api/interpreter?data="+encodeURIComponent(query));if(!resp.ok)throw 0;const data=await resp.json();state.roadsLayer.clearLayers();const seen=new Set();data.elements.forEach(el=>{if(seen.has(el.id)||!el.geometry||el.geometry.length<2)return;seen.add(el.id);L.polyline(el.geometry.map(p=>[p.lat,p.lon]),{color:"#5f6670",weight:2,opacity:.58}).addTo(state.roadsLayer)});state.roadReady=true}catch(e){state.roadReady=false;toast("Mapa","Nie udało się pobrać części dróg. Routing autobusów nadal spróbuje użyć serwisu tras.")}}
 function stopIcon(num,custom=false,selected=false){
  const bg=selected?"#19d67f":(custom?"#20d981":"#4f72ff");
  return L.divIcon({className:"",html:`<div class="real-stop-pin" style="background:${bg};${selected?'transform:scale(1.16);':''}"><span>●</span></div>`,iconSize:[34,42],iconAnchor:[17,40],popupAnchor:[0,-38]});
@@ -120,42 +143,34 @@ function stopIcon(num,custom=false,selected=false){
 function draftStopIcon(num){return L.divIcon({className:"",html:`<div class="draft-stop-pin">${num}</div>`,iconSize:[34,42],iconAnchor:[17,40]})}
 
 async function loadStops(center,radius){
- if(!state.map||!state.stopLayer)return;
- const [lat,lon]=center;
- const r=Math.min(Math.max(radius,1000),20000);
- const query=`[out:json][timeout:50];(node(around:${r},${lat},${lon})[highway=bus_stop];node(around:${r},${lat},${lon})[public_transport=platform];);out body;`;
- const endpoints=[
-  "https://overpass-api.de/api/interpreter",
-  "https://overpass.kumi.systems/api/interpreter",
-  "https://overpass.nchc.org.tw/api/interpreter"
- ];
- let data=null,lastError=null;
- for(const endpoint of endpoints){
-  try{
-   const resp=await fetch(endpoint,{method:"POST",body:query,headers:{"Content-Type":"text/plain;charset=UTF-8"}});
-   if(!resp.ok)throw new Error("HTTP "+resp.status);
-   const json=await resp.json();
-   if(json&&Array.isArray(json.elements)){data=json;break;}
-  }catch(e){lastError=e;}
- }
- if(!data){
-  toast("Przystanki","Serwery mapy są chwilowo niedostępne. Spróbuj ponownie za chwilę.");
-  return;
- }
- const existing=new Map(state.osmStops.map(x=>[String(x.osmId),x]));
- data.elements.forEach(el=>{
-  if(typeof el.lat!=="number"||typeof el.lon!=="number")return;
-  const tags=el.tags||{};
-  const name=tags.name||tags["name:pl"]||tags.ref||`Przystanek ${el.id}`;
-  existing.set(String(el.id),{osmId:el.id,name,lat:el.lat,lon:el.lon,type:"osm"});
- });
- state.osmStops=[...existing.values()];
- renderStopMarkers();
- if(state.osmStops.length){
-  toast("Przystanki załadowane",`Na mapie pojawiło się ${state.osmStops.length} przystanków. Klikaj pineski podczas tworzenia linii.`);
- }else{
-  toast("Brak przystanków","OpenStreetMap nie zwrócił przystanków w odblokowanym obszarze.");
- }
+  if(!state.map||!state.stopLayer)return;
+  const [lat,lon]=center,r=Math.min(Math.max(radius,1000),10000);
+  const query=`[out:json][timeout:12];(node(around:${r},${lat},${lon})[highway=bus_stop];node(around:${r},${lat},${lon})[public_transport=platform];);out body;`;
+  const endpoints=[
+    "https://overpass-api.de/api/interpreter",
+    "https://overpass.kumi.systems/api/interpreter"
+  ];
+  let data=null;
+  for(const endpoint of endpoints){
+    try{
+      const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),10000);
+      const resp=await fetch(endpoint+"?data="+encodeURIComponent(query),{headers:{"Accept":"application/json"},signal:ctl.signal});
+      clearTimeout(timer);
+      if(!resp.ok)continue;
+      const json=await resp.json();
+      if(json&&Array.isArray(json.elements)){data=json;break;}
+    }catch(e){}
+  }
+  if(!data){toast("Dane mapy","Przystanki są jeszcze niedostępne — mapa działa, spróbuj odświeżyć kartę Linie.");return}
+  const existing=new Map(state.osmStops.map(x=>[String(x.osmId),x]));
+  data.elements.forEach(el=>{
+    if(typeof el.lat!=="number"||typeof el.lon!=="number")return;
+    const tags=el.tags||{},name=tags.name||tags["name:pl"]||tags.ref||`Przystanek ${el.id}`;
+    existing.set(String(el.id),{osmId:el.id,name,lat:el.lat,lon:el.lon,type:"osm"});
+  });
+  state.osmStops=[...existing.values()];renderStopMarkers();
+  if(state.osmStops.length)toast("Przystanki gotowe",`Załadowano ${state.osmStops.length} przystanków.`);
+  else toast("Brak przystanków","W tym obszarze OSM nie zwrócił przystanków.");
 }
 function renderStopMarkers(){
  if(!state.stopLayer)return;
