@@ -119,20 +119,32 @@ async function createGame(){
   }else{
     state.cash=250000;state.buses=[];for(let i=0;i<3;i++)addBus(true);state.staff=[];
   }
+
   hideModal("setupModal");$("#start").classList.add("hidden");
-  $("#loading").classList.remove("hidden");setProgress(12,"Uruchamianie gry…","Ustawianie miasta");
-  state.mapCenter=await geocodeCity();
-  setProgress(45,"Uruchamianie mapy…","Gotowe — dane OpenStreetMap pobierają się w tle");
+  $("#loading").classList.remove("hidden");
+  setProgress(70,"Uruchamianie gry…","Przygotowywanie panelu");
+
+  // START BEZ CZEKANIA NA INTERNET. Dla popularnych miast używamy współrzędnych lokalnych.
+  const quick={"Białystok":[53.1325,23.1688],"Warszawa":[52.2297,21.0122],"Kraków":[50.0647,19.945],"Wrocław":[51.1079,17.0385],"Gdańsk":[54.352,18.6466],"Poznań":[52.4064,16.9252],"Łódź":[51.7592,19.456],"Lublin":[51.2465,22.5684],"Marki":[52.3202,21.104],"Bielsk Podlaski":[52.765,23.19]};
+  state.mapCenter=quick[state.city]||[52.2297,21.0122];
+
   $("#game").classList.remove("hidden");
   initMap();updateCompanyUI();renderAll();
-  setTimeout(()=>{$("#loading").classList.add("hidden");showTab("dashboard");},180);
-  // Nie blokujemy wejścia do gry na wolne serwisy OpenStreetMap.
-  setProgress(65,"Pobieranie danych…","Ulice i przystanki ładują się w tle");
-  Promise.allSettled([
-    loadRoads(state.mapCenter,state.unlockedRadius),
-    loadStops(state.mapCenter,state.unlockedRadius)
-  ]).then(()=>{renderLinesMap();renderLineSide();});
-}$("#createGameBtn").onclick=createGame;
+  $("#loading").classList.add("hidden");
+  showTab("dashboard");
+
+  // Geokodowanie własnego miasta działa już po uruchomieniu gry.
+  if(!quick[state.city]){
+    geocodeCity().then(center=>{
+      if(center&&state.map){
+        state.mapCenter=center;
+        state.map.setView(center,13);
+        drawUnlockCircle();
+      }
+    }).catch(()=>{});
+  }
+}
+$("#createGameBtn").onclick=createGame;
 function initMap(){if(state.map){state.map.setView(state.mapCenter,13);return}state.map=L.map("map",{zoomControl:true,preferCanvas:true}).setView(state.mapCenter,13);L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:20,attribution:"© OpenStreetMap contributors"}).addTo(state.map);state.roadsLayer=L.layerGroup().addTo(state.map);state.stopLayer=L.layerGroup().addTo(state.map);state.map.on("click",e=>{if(state.buildStopMode){openBuildStopModal(e.latlng);return}if(state.draft.active){toast("Budowanie linii","Kliknij istniejący przystanek na mapie. Aby dodać nowy, wyłącz budowanie linii i użyj „BUDUJ PRZYSTANEK”.");}});$("#centerBtn").onclick=()=>state.map.setView(state.mapCenter,13);$("#buildStopBtn").onclick=toggleBuildStopMode;drawUnlockCircle()}
 function drawUnlockCircle(){if(!state.map||!state.mapCenter)return;if(state.unlockCircle)state.map.removeLayer(state.unlockCircle);state.unlockCircle=L.circle(state.mapCenter,{radius:state.unlockedRadius,color:"#637fff",weight:1,dashArray:"7 7",fillColor:"#637fff",fillOpacity:.035,interactive:false}).addTo(state.map)}
 async function loadRoads(center,radius){if(!state.map)return;const [lat,lon]=center,r=Math.min(radius,9000),query=`[out:json][timeout:12];way(around:${r},${lat},${lon})[highway][name];out geom;`;try{const resp=await fetch("https://overpass-api.de/api/interpreter?data="+encodeURIComponent(query));if(!resp.ok)throw 0;const data=await resp.json();state.roadsLayer.clearLayers();const seen=new Set();data.elements.forEach(el=>{if(seen.has(el.id)||!el.geometry||el.geometry.length<2)return;seen.add(el.id);L.polyline(el.geometry.map(p=>[p.lat,p.lon]),{color:"#5f6670",weight:2,opacity:.58}).addTo(state.roadsLayer)});state.roadReady=true}catch(e){state.roadReady=false;toast("Mapa","Nie udało się pobrać części dróg. Routing autobusów nadal spróbuje użyć serwisu tras.")}}
