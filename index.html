@@ -1,1073 +1,1030 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pl">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>USA PRESIDENT — Political Empire</title>
-<script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js">
-/* ===== V13 MAP ZOOM STABILITY FIX ===== */
-(function(){
-  window.initMap=function(id,mode='political'){
-    const root=document.getElementById(id);
-    if(!root||!window.d3||!window.topojson)return;
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    // Keep the current camera when render() rebuilds the page. The old version
-    // reset scale/x/y to defaults, which made zoom visibly blink and snap back.
-    const old=mapStates[id]||{};
-    const scale=typeof old.scale==='number'?old.scale:1;
-    const x=typeof old.x==='number'?old.x:0;
-    const y=typeof old.y==='number'?old.y:0;
-    const token=(old.token||0)+1;
+    <title>Bus Manager</title>
 
-    const svg=d3.select(root).select('svg');
-    svg.selectAll('*').remove();
-    mapStates[id]={svg,g:null,scale,x,y,drag:false,moved:false,sx:0,sy:0,ox:x,oy:y,token};
-    const myToken=token;
+    <meta name="description" content="Bus Manager — zarządzaj własnym przedsiębiorstwem autobusowym.">
+    <meta name="theme-color" content="#07111f">
 
-    d3.json('https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json').then(us=>{
-      const st=mapStates[id];
-      if(!st||st.token!==myToken)return;
-      const features=topojson.feature(us,us.objects.states).features;
-      const projection=d3.geoAlbersUsa().fitSize([root.clientWidth,root.clientHeight],{type:'FeatureCollection',features});
-      const path=d3.geoPath(projection);
-      const g=svg.append('g');
-
-      g.selectAll('path').data(features).join('path')
-        .attr('class','statePath').attr('d',path)
-        .attr('fill',d=>{
-          const m=STATES.find(x=>x[3]===String(d.id).padStart(2,'0'));
-          return m?colorFor(m[1],mode):'#273b54';
-        })
-        .on('pointerdown',e=>e.stopPropagation())
-        .on('click',(e,d)=>{
-          e.stopPropagation();
-          const m=STATES.find(x=>x[3]===String(d.id).padStart(2,'0'));
-          const cur=mapStates[id];
-          if(m&&cur&&!cur.moved)stateInfo(m[1]);
-          if(cur)cur.moved=false;
-        });
-
-      g.selectAll('text').data(features).join('text')
-        .attr('class','stateLabel')
-        .attr('transform',d=>{
-          const c=path.centroid(d);
-          return `translate(${c[0]},${c[1]})`;
-        })
-        .text(d=>{
-          const m=STATES.find(x=>x[3]===String(d.id).padStart(2,'0'));
-          return m?m[1]:'';
-        });
-
-      st.g=g;
-      let drag=null;
-      root.onpointerdown=e=>{
-        if(e.target.closest('.mapTools')||e.target.closest('.statePath'))return;
-        drag={x:e.clientX,y:e.clientY,ox:st.x,oy:st.y,moved:false};
-      };
-      root.onpointermove=e=>{
-        if(!drag)return;
-        const dx=e.clientX-drag.x,dy=e.clientY-drag.y;
-        if(Math.abs(dx)+Math.abs(dy)>5)drag.moved=true;
-        if(drag.moved){
-          st.x=drag.ox+dx;st.y=drag.oy+dy;st.moved=true;applyMap(id);
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-      };
-      root.onpointerup=()=>{
-        if(drag){st.moved=drag.moved;drag=null;}
-      };
-      root.onpointercancel=()=>{drag=null;st.moved=false;};
-      root.onwheel=e=>{
-        e.preventDefault();
-        // Do not call render(), save(), or recreate the map during zoom.
-        mapZoom(id,e.deltaY<0?1.1:.9);
-      };
-      applyMap(id);
-    }).catch(()=>{
-      if(mapStates[id]?.token!==myToken)return;
-      svg.append('text').attr('x','50%').attr('y','50%').attr('text-anchor','middle')
-        .attr('fill','#71839a').text('Nie udało się wczytać mapy USA');
-    });
-  };
 
-  window.mapZoom=function(id,f){
-    const st=mapStates[id];
-    if(!st)return;
-    const oldScale=st.scale||1;
-    const next=clamp(oldScale*f,.7,3.2);
-    if(next===oldScale)return;
-    st.scale=next;
-    applyMap(id);
-  };
+        :root {
+            --bg: #050b14;
+            --bg2: #081524;
+            --text: #f5f8ff;
+            --muted: #91a0b7;
+            --blue: #3b82f6;
+            --cyan: #22d3ee;
+            --green: #22c55e;
+            --glass: rgba(255,255,255,0.055);
+            --border: rgba(255,255,255,0.10);
+        }
 
-  window.mapReset=function(id){
-    const st=mapStates[id];
-    if(!st)return;
-    st.scale=1;st.x=0;st.y=0;st.moved=false;
-    applyMap(id);
-  };
-})();
-</script>
-<script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
-<style>
-*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:#050b15;color:#eef5ff;font:14px Inter,system-ui,-apple-system,Segoe UI,sans-serif}button,input,select,textarea{font:inherit}button{cursor:pointer}.app{display:grid;grid-template-columns:250px 1fr;min-height:100vh}.side{background:linear-gradient(180deg,#07111f,#030812);border-right:1px solid #ffffff12;padding:22px;position:sticky;top:0;height:100vh;z-index:20}.logo{font-size:21px;font-weight:950;letter-spacing:.3px;margin:6px 5px 26px}.logo span{color:#65a5ff}.brandline{color:#61738c;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;margin:0 5px 18px}.nav{display:grid;gap:6px}.nav button{background:transparent;color:#8da1ba;border:1px solid transparent;padding:11px 12px;border-radius:11px;text-align:left;transition:.2s}.nav button:hover{background:#ffffff08;color:#fff}.nav button.active{background:#4e8dff18;border-color:#4e8dff38;color:#fff;box-shadow:inset 3px 0 #4e8dff}.locked{opacity:.45}.side small{position:absolute;bottom:18px;left:22px;right:22px;color:#50627a;line-height:1.45}.main{padding:24px;max-width:1700px;width:100%;margin:auto}.top{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:18px}.eyebrow{font-size:10px;text-transform:uppercase;letter-spacing:1.7px;color:#6daaff;font-weight:900}.top h1{margin:4px 0 0;font-size:28px}.clockbox{min-width:230px;padding:11px 15px;border:1px solid #ffffff12;border-radius:15px;background:#0d1a2bdd;backdrop-filter:blur(16px);text-align:right}.clockbox .date{font-weight:900}.clockbox .time{color:#69aaff;font-size:20px;font-weight:950}.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px}.card{grid-column:span 3;background:linear-gradient(145deg,#10203ddf,#091426df);border:1px solid #ffffff0f;border-radius:18px;padding:17px;box-shadow:0 20px 55px #0005;backdrop-filter:blur(15px)}.wide{grid-column:span 8}.half{grid-column:span 6}.full{grid-column:1/-1}.card h3{margin:0 0 12px;font-size:15px}.muted{color:#8ea1b9}.metric{font-size:28px;font-weight:950}.big{font-size:42px}.pos{color:#49d89c}.neg{color:#ff6878}.gold{color:#ffd66e}.blueText{color:#69aaff}.bar{height:8px;background:#ffffff0b;border-radius:99px;overflow:hidden;margin:8px 0}.bar i{display:block;height:100%;background:linear-gradient(90deg,#4d8dff,#73b6ff);border-radius:99px}.btn{background:#ffffff08;color:#fff;border:1px solid #ffffff13;border-radius:10px;padding:9px 12px;transition:.18s}.btn:hover{background:#ffffff13;transform:translateY(-1px)}.btn.primary{background:#4d8dff;border-color:#4d8dff;font-weight:850}.btn.danger{background:#ff526712;border-color:#ff526733;color:#ff9ca8}.btn.green{background:#35d39a15;border-color:#35d39a33;color:#72e3b9}.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}.rowActions{display:flex;gap:8px;flex-wrap:wrap}.stat{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid #ffffff08;color:#91a3bb}.stat b{color:#fff}.badge{display:inline-flex;align-items:center;padding:4px 8px;border-radius:99px;font-size:11px;font-weight:800}.badge.g{background:#35d39a18;color:#69e1b2}.badge.r{background:#ff526718;color:#ff8998}.badge.y{background:#ffd35a18;color:#ffd970}.badge.b{background:#4d8dff18;color:#75b2ff}.notice{padding:12px 13px;border:1px solid #ffffff0e;border-radius:12px;background:#ffffff06;margin:8px 0}.list{border:1px solid #ffffff09;background:#ffffff04;border-radius:12px;padding:11px;margin:7px 0}.empty{padding:28px;text-align:center;color:#63758c;border:1px dashed #ffffff14;border-radius:13px}.progress{height:10px;background:#ffffff0a;border-radius:99px;overflow:hidden}.progress i{display:block;height:100%;background:linear-gradient(90deg,#4d8dff,#8f7cff);transition:.3s}.tablewrap{overflow:auto;border:1px solid #ffffff0b;border-radius:14px}table{width:100%;border-collapse:collapse;min-width:760px}th,td{padding:11px;border-bottom:1px solid #ffffff08;text-align:left;vertical-align:top}th{color:#73869e;font-size:11px;text-transform:uppercase;letter-spacing:.7px}.mapViewport{height:500px;overflow:hidden;border:1px solid #ffffff12;border-radius:16px;background:radial-gradient(circle at 50% 40%,#0d2036,#050c16 72%);position:relative;touch-action:none}.mapViewport.small{height:390px}.mapTools{position:absolute;z-index:5;right:10px;top:10px;display:flex;gap:6px}.mapTools .btn{padding:7px 10px;background:#081322dd;backdrop-filter:blur(8px)}.usSvg{width:100%;height:100%;display:block}.statePath{stroke:#0b1624;stroke-width:.65;cursor:pointer;transition:.18s}.statePath:hover{stroke:#fff;stroke-width:1.5;filter:brightness(1.22)}.stateLabel{pointer-events:none;font-size:7px;fill:#dfeaff;text-anchor:middle;font-weight:900}.legend{display:flex;gap:12px;flex-wrap:wrap;margin-top:9px;color:#91a3bb;font-size:11px}.dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:5px;vertical-align:-1px}.dBlue{background:#3d7cff}.dRed{background:#ef535f}.dPurple{background:#9c6cff}.dGray{background:#516174}.campaignHero{background:linear-gradient(135deg,#0b1d35,#102c52 50%,#0a1424);border:1px solid #4d8dff33}.campaignDay{font-size:38px;font-weight:950}.campaignGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.campaignAction{padding:12px;border:1px solid #ffffff0c;background:#ffffff05;border-radius:12px}.campaignAction b{display:block;margin-bottom:5px}.electionTicker{display:flex;gap:8px;overflow:auto;padding:8px 0}.tickerState{min-width:125px;padding:9px;border-radius:10px;border:1px solid #ffffff0e;background:#ffffff05}.lockedPanel{padding:35px;text-align:center;border:1px dashed #ffffff18;border-radius:16px;background:#ffffff03}.oval{background:radial-gradient(circle at 50% 0,#153763,#0b1627 60%)}.ovalGrid{display:grid;grid-template-columns:1.2fr .8fr;gap:14px}.presidentBadge{display:inline-flex;padding:6px 10px;border-radius:99px;background:#35d39a18;color:#67dfaf;font-weight:850}.toast{position:fixed;right:20px;bottom:20px;background:#101f34;border:1px solid #ffffff18;padding:12px 15px;border-radius:12px;box-shadow:0 20px 60px #0008;z-index:100}.modal{position:fixed;inset:0;background:#0009;display:none;align-items:center;justify-content:center;padding:20px;z-index:90}.modal.show{display:flex}.modalBox{max-width:760px;width:100%;max-height:90vh;overflow:auto;background:#0b1728;border:1px solid #ffffff15;border-radius:18px;padding:20px;box-shadow:0 30px 100px #000}.modalBox input,.modalBox select,.modalBox textarea{width:100%;margin:6px 0 12px;background:#06101c;color:#fff;border:1px solid #ffffff15;border-radius:9px;padding:10px}.modalBox textarea{min-height:120px;resize:vertical}.resultBanner{padding:18px;border-radius:16px;background:linear-gradient(135deg,#123d2c,#0b1c18);border:1px solid #35d39a33}.resultBanner.lose{background:linear-gradient(135deg,#3b1720,#1d0c12);border-color:#ff536733}.seatbar{display:flex;height:18px;border-radius:99px;overflow:hidden;background:#ffffff08}.seatbar i{display:block;height:100%}.red{background:#ef535f}.partyBlue{background:#3d7cff}.ind{background:#9c6cff}@media(max-width:1050px){.app{grid-template-columns:1fr}.side{position:relative;height:auto}.side small{position:static;display:block;margin-top:20px}.nav{grid-template-columns:repeat(3,1fr)}.card{grid-column:span 6}.wide,.half{grid-column:span 12}.ovalGrid{grid-template-columns:1fr}}@media(max-width:650px){.nav{grid-template-columns:1fr 1fr}.card{grid-column:1/-1}.top{align-items:flex-start;flex-direction:column}.clockbox{text-align:left;width:100%}.campaignGrid{grid-template-columns:1fr 1fr}}
-</style><style>
-.embassyGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.embassyBox{padding:12px;border:1px solid #ffffff0b;background:#ffffff04;border-radius:12px}.embargoList{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;max-height:420px;overflow:auto;padding-right:4px}.embargoList .list{margin:0}.orgGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.diplomacySelect{font-size:15px;font-weight:800}.modalBox.embargoModal{max-width:920px;max-height:92vh}.modalBox.embargoModal h2{margin-top:0}.embargoSummary{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0}.embargoStat{padding:10px;border:1px solid #ffffff0b;border-radius:11px;background:#ffffff04}.embargoStat b{display:block;font-size:18px;margin-top:3px}@media(max-width:800px){.embassyGrid,.orgGrid{grid-template-columns:1fr}.embargoList{grid-template-columns:1fr}.embargoSummary{grid-template-columns:1fr 1fr}}
-</style>
-<style>
-.electoralBox{margin:14px 0 4px;padding:16px;border:1px solid rgba(255,255,255,.09);border-radius:18px;background:rgba(255,255,255,.035);box-shadow:inset 0 1px 0 rgba(255,255,255,.04)}
-.electoralHead{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:10px}.electoralHead span{font-size:12px;color:#8ea0b8}
-.evTrack{height:18px;border-radius:999px;background:#172235;overflow:hidden;display:flex;box-shadow:inset 0 0 0 1px rgba(255,255,255,.06)}.evTrack i{display:block;height:100%;transition:width .45s ease}.evBlue{background:#3d7cff}.evRed{background:#ef535f}.evPurple{background:#9c6cff}
-.evLegend{display:flex;flex-wrap:wrap;gap:10px 18px;margin-top:10px;color:#9aaac0;font-size:12px}.evLegend b{color:#fff}.stateEVMini{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}.stateEVMini span{padding:8px 10px;border-radius:10px;background:rgba(255,255,255,.035);font-size:12px;color:#9aaac0}.stateEVMini b{color:#fff}
-</style>
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            font-family:
+                Inter,
+                ui-sans-serif,
+                system-ui,
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                sans-serif;
+
+            color: var(--text);
+            background:
+                radial-gradient(
+                    circle at 15% 20%,
+                    rgba(37, 99, 235, 0.18),
+                    transparent 30%
+                ),
+                radial-gradient(
+                    circle at 85% 75%,
+                    rgba(34, 211, 238, 0.12),
+                    transparent 30%
+                ),
+                linear-gradient(
+                    135deg,
+                    var(--bg),
+                    var(--bg2)
+                );
+        }
+
+        /* =========================
+           BACKGROUND
+        ========================= */
+
+        .background {
+            position: fixed;
+            inset: 0;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .glow {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: .35;
+            animation: floatGlow 10s ease-in-out infinite alternate;
+        }
+
+        .glow.one {
+            width: 350px;
+            height: 350px;
+            background: #2563eb;
+            top: -120px;
+            left: -100px;
+        }
+
+        .glow.two {
+            width: 300px;
+            height: 300px;
+            background: #06b6d4;
+            right: -100px;
+            bottom: -80px;
+            animation-delay: 2s;
+        }
+
+        .glow.three {
+            width: 220px;
+            height: 220px;
+            background: #7c3aed;
+            left: 45%;
+            top: 45%;
+            opacity: .12;
+            animation-delay: 4s;
+        }
+
+        @keyframes floatGlow {
+            from {
+                transform: translate(0, 0) scale(1);
+            }
+
+            to {
+                transform: translate(35px, -25px) scale(1.15);
+            }
+        }
+
+        /* =========================
+           ROAD NETWORK
+        ========================= */
+
+        .roads {
+            position: absolute;
+            inset: 0;
+            opacity: .18;
+        }
+
+        .road {
+            position: absolute;
+            height: 1px;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(96,165,250,.7),
+                transparent
+            );
+            transform-origin: left center;
+        }
+
+        .road.r1 {
+            width: 75%;
+            left: -5%;
+            top: 22%;
+            transform: rotate(14deg);
+        }
+
+        .road.r2 {
+            width: 80%;
+            left: 25%;
+            top: 58%;
+            transform: rotate(-11deg);
+        }
+
+        .road.r3 {
+            width: 65%;
+            left: 15%;
+            top: 80%;
+            transform: rotate(8deg);
+        }
+
+        .road.r4 {
+            width: 55%;
+            left: 55%;
+            top: 12%;
+            transform: rotate(70deg);
+        }
+
+        .road.r5 {
+            width: 60%;
+            left: 5%;
+            top: 65%;
+            transform: rotate(-62deg);
+        }
+
+        .road::after {
+            content: "";
+            position: absolute;
+            inset: -3px 0;
+            border-top: 1px dashed rgba(255,255,255,.25);
+        }
+
+        /* =========================
+           PARTICLES
+        ========================= */
+
+        .particles {
+            position: absolute;
+            inset: 0;
+        }
+
+        .particle {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: rgba(255,255,255,.65);
+            border-radius: 50%;
+            box-shadow: 0 0 12px rgba(96,165,250,.8);
+            animation: particleMove linear infinite;
+        }
+
+        @keyframes particleMove {
+            from {
+                transform: translateY(110vh);
+                opacity: 0;
+            }
+
+            15% {
+                opacity: 1;
+            }
+
+            85% {
+                opacity: 1;
+            }
+
+            to {
+                transform: translateY(-10vh);
+                opacity: 0;
+            }
+        }
+
+        /* =========================
+           MAIN
+        ========================= */
+
+        .welcome {
+            position: relative;
+            z-index: 5;
+
+            width: 100%;
+            height: 100vh;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            padding: 30px;
+        }
+
+        .container {
+            width: min(1100px, 100%);
+            text-align: center;
+        }
+
+        /* =========================
+           LOGO
+        ========================= */
+
+        .logo {
+            width: 104px;
+            height: 104px;
+            margin: 0 auto 30px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 30px;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(59,130,246,.28),
+                    rgba(34,211,238,.10)
+                );
+
+            border: 1px solid rgba(147,197,253,.25);
+
+            box-shadow:
+                0 20px 60px rgba(0,0,0,.35),
+                inset 0 1px 0 rgba(255,255,255,.12);
+
+            backdrop-filter: blur(20px);
+
+            animation: logoFloat 4s ease-in-out infinite;
+        }
+
+        @keyframes logoFloat {
+            0%,100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-8px);
+            }
+        }
+
+        .bus-icon {
+            position: relative;
+            width: 62px;
+            height: 43px;
+
+            background: linear-gradient(
+                145deg,
+                #60a5fa,
+                #2563eb
+            );
+
+            border-radius: 10px 10px 7px 7px;
+
+            box-shadow:
+                0 10px 30px rgba(37,99,235,.45);
+        }
+
+        .bus-icon::before {
+            content: "";
+
+            position: absolute;
+
+            width: 43px;
+            height: 17px;
+
+            left: 9px;
+            top: 7px;
+
+            background:
+                linear-gradient(
+                    90deg,
+                    #172554,
+                    #0f172a
+                );
+
+            border-radius: 4px;
+        }
+
+        .bus-icon::after {
+            content: "";
+
+            position: absolute;
+
+            width: 10px;
+            height: 10px;
+
+            border-radius: 50%;
+
+            background: #07111f;
+
+            left: 8px;
+            bottom: -5px;
+
+            box-shadow:
+                36px 0 0 #07111f;
+        }
+
+        /* =========================
+           TITLE
+        ========================= */
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+
+            padding: 8px 14px;
+
+            border-radius: 999px;
+
+            background: rgba(255,255,255,.045);
+            border: 1px solid var(--border);
+
+            color: #9ec5ff;
+
+            font-size: 12px;
+            font-weight: 700;
+
+            letter-spacing: 2px;
+            text-transform: uppercase;
+
+            margin-bottom: 22px;
+
+            backdrop-filter: blur(15px);
+        }
+
+        .status-dot {
+            width: 7px;
+            height: 7px;
+
+            border-radius: 50%;
+
+            background: #22c55e;
+
+            box-shadow:
+                0 0 12px rgba(34,197,94,.9);
+
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%,100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+
+            50% {
+                transform: scale(1.45);
+                opacity: .6;
+            }
+        }
+
+        h1 {
+            font-size: clamp(58px, 10vw, 125px);
+            line-height: .9;
+
+            font-weight: 900;
+            letter-spacing: -6px;
+
+            margin-bottom: 25px;
+
+            background:
+                linear-gradient(
+                    110deg,
+                    #ffffff 10%,
+                    #b9d7ff 45%,
+                    #67e8f9 80%,
+                    #ffffff
+                );
+
+            background-size: 250% auto;
+
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+
+            animation: titleGradient 7s linear infinite;
+        }
+
+        @keyframes titleGradient {
+            from {
+                background-position: 0% center;
+            }
+
+            to {
+                background-position: 250% center;
+            }
+        }
+
+        .subtitle {
+            max-width: 650px;
+
+            margin: 0 auto;
+
+            color: var(--muted);
+
+            font-size: clamp(16px, 2vw, 20px);
+
+            line-height: 1.7;
+        }
+
+        /* =========================
+           BUTTONS
+        ========================= */
+
+        .buttons {
+            display: flex;
+            justify-content: center;
+            gap: 14px;
+
+            margin-top: 38px;
+
+            flex-wrap: wrap;
+        }
+
+        button {
+            border: none;
+            font: inherit;
+            cursor: pointer;
+        }
+
+        .primary {
+            position: relative;
+            overflow: hidden;
+
+            min-width: 220px;
+
+            padding: 17px 27px;
+
+            border-radius: 15px;
+
+            color: white;
+
+            font-size: 15px;
+            font-weight: 800;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #2563eb,
+                    #0891b2
+                );
+
+            box-shadow:
+                0 14px 35px rgba(37,99,235,.28),
+                inset 0 1px 0 rgba(255,255,255,.25);
+
+            transition:
+                transform .25s ease,
+                box-shadow .25s ease;
+        }
+
+        .primary::before {
+            content: "";
+
+            position: absolute;
+
+            width: 80px;
+            height: 180%;
+
+            top: -40%;
+
+            left: -100px;
+
+            transform: rotate(20deg);
+
+            background: rgba(255,255,255,.20);
+
+            transition: left .5s ease;
+        }
+
+        .primary:hover::before {
+            left: 120%;
+        }
+
+        .primary:hover {
+            transform: translateY(-3px);
+            box-shadow:
+                0 20px 45px rgba(37,99,235,.40),
+                inset 0 1px 0 rgba(255,255,255,.25);
+        }
+
+        .primary:active {
+            transform: translateY(0);
+        }
+
+        .secondary {
+            min-width: 150px;
+
+            padding: 17px 27px;
+
+            border-radius: 15px;
+
+            color: #d8e5f8;
+
+            background: rgba(255,255,255,.045);
+
+            border: 1px solid rgba(255,255,255,.11);
+
+            backdrop-filter: blur(15px);
+
+            font-size: 15px;
+            font-weight: 700;
+
+            transition: .25s ease;
+        }
+
+        .secondary:hover {
+            background: rgba(255,255,255,.08);
+            border-color: rgba(147,197,253,.3);
+            transform: translateY(-3px);
+        }
+
+        /* =========================
+           FEATURES
+        ========================= */
+
+        .features {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+
+            margin-top: 55px;
+
+            flex-wrap: wrap;
+        }
+
+        .feature {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+
+            padding: 10px 15px;
+
+            border-radius: 12px;
+
+            color: #8fa2bc;
+
+            background: rgba(255,255,255,.025);
+
+            border: 1px solid rgba(255,255,255,.06);
+
+            font-size: 12px;
+
+            backdrop-filter: blur(10px);
+        }
+
+        .feature span {
+            font-size: 16px;
+        }
+
+        /* =========================
+           VERSION
+        ========================= */
+
+        .version {
+            position: fixed;
+
+            bottom: 20px;
+            right: 25px;
+
+            z-index: 10;
+
+            color: rgba(255,255,255,.3);
+
+            font-size: 11px;
+            letter-spacing: 1px;
+        }
+
+        /* =========================
+           START SCREEN
+        ========================= */
+
+        .game-screen {
+            position: fixed;
+            inset: 0;
+
+            z-index: 50;
+
+            display: none;
+            align-items: center;
+            justify-content: center;
+
+            background:
+                radial-gradient(
+                    circle at center,
+                    rgba(37,99,235,.15),
+                    transparent 45%
+                ),
+                #050b14;
+
+            animation: screenIn .5s ease;
+        }
+
+        .game-screen.active {
+            display: flex;
+        }
+
+        @keyframes screenIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .start-card {
+            width: min(550px, calc(100% - 40px));
+
+            padding: 45px;
+
+            text-align: center;
+
+            border-radius: 25px;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(255,255,255,.08),
+                    rgba(255,255,255,.035)
+                );
+
+            border: 1px solid rgba(255,255,255,.12);
+
+            box-shadow:
+                0 30px 100px rgba(0,0,0,.45);
+
+            backdrop-filter: blur(30px);
+        }
+
+        .start-card .mini-icon {
+            font-size: 55px;
+            margin-bottom: 20px;
+        }
+
+        .start-card h2 {
+            font-size: 32px;
+            margin-bottom: 12px;
+        }
+
+        .start-card p {
+            color: var(--muted);
+            line-height: 1.7;
+            margin-bottom: 30px;
+        }
+
+        .back {
+            margin-top: 12px;
+            background: transparent;
+            color: #8092aa;
+            font-size: 13px;
+        }
+
+        .back:hover {
+            color: white;
+        }
+
+        /* =========================
+           RESPONSIVE
+        ========================= */
+
+        @media (max-width: 600px) {
+            .welcome {
+                padding: 20px;
+            }
+
+            .logo {
+                width: 82px;
+                height: 82px;
+                border-radius: 24px;
+                margin-bottom: 22px;
+            }
+
+            .bus-icon {
+                transform: scale(.8);
+            }
+
+            h1 {
+                letter-spacing: -3px;
+            }
+
+            .subtitle {
+                font-size: 15px;
+            }
+
+            .buttons {
+                margin-top: 30px;
+            }
+
+            .primary,
+            .secondary {
+                width: 100%;
+            }
+
+            .features {
+                margin-top: 35px;
+            }
+
+            .feature {
+                font-size: 11px;
+            }
+
+            .version {
+                bottom: 10px;
+                right: 12px;
+            }
+        }
+    </style>
 </head>
+
 <body>
-<div class="app">
-<aside class="side">
-<div class="logo">USA <span>PRESIDENT</span></div><div class="brandline">Political Empire</div>
-<div class="nav" id="nav"></div>
-<small>Symulator polityczny USA<br>Automatyczny czas gry • bez ręcznego zapisu</small>
-</aside>
-<main class="main">
-<header class="top"><div><div class="eyebrow">Federal Republic • Washington, D.C.</div><h1 id="pageTitle">Centrum dowodzenia</h1></div><div class="clockbox"><div class="date" id="gameDate">1 stycznia 2029</div><div class="time" id="gameTime">08:00</div><div class="muted" id="clockStatus">Czas gry płynie automatycznie</div><div class="clockControls"><button class="btn" id="speedPause" onclick="setSpeed(0)">⏸ Pauza</button><button class="btn" id="speed1" onclick="setSpeed(1)">▶ 1×</button><button class="btn" id="speed2" onclick="setSpeed(2)">⏩ 2×</button><button class="btn" id="speed4" onclick="setSpeed(4)">🚀 4×</button></div></div></header>
-<div id="fundsBar" class="fundsBar"></div>
-<section id="content"></section>
-</main></div>
-<div class="modal" id="modal"><div class="modalBox"><div id="modalBody"></div><div class="rowActions" style="margin-top:12px"><button class="btn" onclick="closeModal()">Zamknij</button></div></div></div>
-<script>
-const STATES=[
-['Alabama','AL',9,'01'],['Alaska','AK',3,'02'],['Arizona','AZ',11,'04'],['Arkansas','AR',6,'05'],['California','CA',54,'06'],['Colorado','CO',10,'08'],['Connecticut','CT',7,'09'],['Delaware','DE',3,'10'],['Florida','FL',30,'12'],['Georgia','GA',16,'13'],['Hawaii','HI',4,'15'],['Idaho','ID',4,'16'],['Illinois','IL',19,'17'],['Indiana','IN',11,'18'],['Iowa','IA',6,'19'],['Kansas','KS',6,'20'],['Kentucky','KY',8,'21'],['Louisiana','LA',8,'22'],['Maine','ME',4,'23'],['Maryland','MD',10,'24'],['Massachusetts','MA',11,'25'],['Michigan','MI',15,'26'],['Minnesota','MN',10,'27'],['Mississippi','MS',6,'28'],['Missouri','MO',10,'29'],['Montana','MT',4,'30'],['Nebraska','NE',5,'31'],['Nevada','NV',6,'32'],['New Hampshire','NH',4,'33'],['New Jersey','NJ',14,'34'],['New Mexico','NM',5,'35'],['New York','NY',28,'36'],['North Carolina','NC',16,'37'],['North Dakota','ND',3,'38'],['Ohio','OH',17,'39'],['Oklahoma','OK',7,'40'],['Oregon','OR',8,'41'],['Pennsylvania','PA',19,'42'],['Rhode Island','RI',4,'44'],['South Carolina','SC',9,'45'],['South Dakota','SD',3,'46'],['Tennessee','TN',11,'47'],['Texas','TX',40,'48'],['Utah','UT',6,'49'],['Vermont','VT',3,'50'],['Virginia','VA',13,'51'],['Washington','WA',12,'53'],['West Virginia','WV',4,'54'],['Wisconsin','WI',10,'55'],['Wyoming','WY',3,'56']];
-const PARTY={blue:{name:'Partia Niebieska',color:'#3d7cff'},red:{name:'Partia Czerwona',color:'#ef535f'},purple:{name:'Niezależni',color:'#9c6cff'}};
-const PAGE_TITLES={overview:'Centrum dowodzenia',election:'Wybory prezydenckie',congress:'Kampania do Kongresu',laws:'Ustawy federalne',states:'Stany USA',economy:'Gospodarka',foreign:'Polityka zagraniczna',military:'Obrona',events:'Wydarzenia',oval:'Gabinet Owalny'};
-const NAV=[['overview','Przegląd','🏛️'],['election','Wybory','🗳️'],['congress','Kongres','🏛️'],['laws','Ustawy federalne','📜'],['states','Stany','🗺️'],['economy','Gospodarka','💵'],['foreign','Dyplomacja','🌐'],['military','Obrona','🛡️'],['events','Wydarzenia','📰'],['oval','Gabinet Owalny','🦅']];
-function fresh(){
- const states={}; STATES.forEach(s=>states[s[1]]={support:0,red:46+Math.random()*10,purple:4+Math.random()*4,called:null,senate:null});
- return {year:2029,month:1,day:1,hour:8,minute:0,page:'overview',selectedState:null,funds:850,popularity:0,campaign:0,president:false,vice:'Nie wybrano',candidate:'Twój kandydat',party:'blue',presidentialCycle:2029,nextPresidential:2029,nextCongress:2031,election:{active:true,type:'presidential',day:1,totalDays:30,phase:'campaign',results:{},called:[],winner:null},congressCampaign:null,houseD:215,houseR:215,houseI:5,senateD:48,senateR:48,senateI:4,gdp:100,inflation:3.1,unemployment:4.8,foreign:55,defense:65,economyUnlocked:false,laws:[],amendments:[],news:['Kampania prezydencka rozpoczęta. Masz 30 dni na zbudowanie poparcia.'],states,oval:{unlocked:false,chief:'Do obsadzenia',staff:0,orders:0,agenda:[],approvals:0},settings:{auto:true}};
-}
-let G=load()||fresh();
-function load(){try{return JSON.parse(localStorage.getItem('usaPresidentV4'))}catch(e){return null}}
-function save(){try{localStorage.setItem('usaPresidentV4',JSON.stringify(G))}catch(e){}}
-function money(v){return '$'+Math.round(v)+'M'} function pct(v){return Math.round(v)+'%'}
-function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
-function toast(t){const d=document.createElement('div');d.className='toast';d.textContent=t;document.body.appendChild(d);setTimeout(()=>d.remove(),2400)}
-function C(cls,title,body){return `<div class="card ${cls||''}"><h3>${title}</h3>${body}</div>`}
-function stat(a,b){return `<div class="stat"><span>${a}</span><b>${b}</b></div>`}
-function bar(v){return `<div class="bar"><i style="width:${clamp(v,0,100)}%"></i></div>`}
-function saveNews(x){G.news.push(x);G.news=G.news.slice(-30)}
-function setPage(p){if(p==='oval'&&!G.oval.unlocked){toast('Gabinet Owalny odblokuje się po wygraniu wyborów.');return}G.page=p;render()}
-function renderNav(){document.getElementById('nav').innerHTML=NAV.map(([id,label,icon])=>{const lock=id==='oval'&&!G.oval.unlocked;return `<button class="${G.page===id?'active':''} ${lock?'locked':''}" onclick="setPage('${id}')">${icon} ${label}${lock?' 🔒':''}</button>`}).join('')}
-function updateClock(){const months=['stycznia','lutego','marca','kwietnia','maja','czerwca','lipca','sierpnia','września','października','listopada','grudnia'];document.getElementById('gameDate').textContent=`${G.day} ${months[G.month-1]} ${G.year}`;document.getElementById('gameTime').textContent=`${String(G.hour).padStart(2,'0')}:${String(G.minute).padStart(2,'0')}`;let s=G.election?.active?`Kampania • dzień ${G.election.day}/${G.election.totalDays}`:G.president?'Kadencja prezydencka':'Kampania polityczna';document.getElementById('clockStatus').textContent=s}
-function mapHTML(id,mode='political',small=false){return `<div class="mapViewport ${small?'small':''}" id="${id}" data-mode="${mode}"><div class="mapTools"><button class="btn" onclick="mapZoom('${id}',1.18)">+</button><button class="btn" onclick="mapZoom('${id}',.85)">−</button><button class="btn" onclick="mapReset('${id}')">⟳</button></div><svg class="usSvg"></svg></div>`}
-const mapStates={};
-function colorFor(a,mode){let s=G.states[a];if(mode==='presidential'&&s?.called)return s.called==='blue'?PARTY.blue.color:s.called==='red'?PARTY.red.color:PARTY.purple.color;if(mode==='presidential'){let u=s?.support||0,r=s?.red||50,p=s?.purple||5;if(u>=r&&u>=p)return PARTY.blue.color;if(r>=p)return PARTY.red.color;return PARTY.purple.color}if(mode==='senate'){let x=G.states[a]?.senate;return x==='blue'?PARTY.blue.color:x==='red'?PARTY.red.color:x==='purple'?PARTY.purple.color:'#46576d'}return '#273b54'}
-async function initMap(id,mode='political'){
- const root=document.getElementById(id);if(!root||!window.d3||!window.topojson)return;const svg=d3.select(root).select('svg');svg.selectAll('*').remove();
- try{const us=await d3.json('https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json');const features=topojson.feature(us,us.objects.states).features;const projection=d3.geoAlbersUsa().fitSize([root.clientWidth,root.clientHeight],{type:'FeatureCollection',features});const path=d3.geoPath(projection);const g=svg.append('g');g.selectAll('path').data(features).join('path').attr('class','statePath').attr('d',path).attr('fill',d=>{const m=STATES.find(x=>x[3]===String(d.id).padStart(2,'0'));return m?colorFor(m[1],mode):'#273b54'}).on('click',(e,d)=>{const m=STATES.find(x=>x[3]===String(d.id).padStart(2,'0'));if(m)stateInfo(m[1])});g.selectAll('text').data(features).join('text').attr('class','stateLabel').attr('transform',d=>{const c=path.centroid(d);return `translate(${c[0]},${c[1]})`}).text(d=>{const m=STATES.find(x=>x[3]===String(d.id).padStart(2,'0'));return m?m[1]:''});mapStates[id]={svg,g,scale:1,x:0,y:0};root.onpointerdown=e=>{mapStates[id].drag=true;mapStates[id].sx=e.clientX;mapStates[id].sy=e.clientY;mapStates[id].ox=mapStates[id].x;mapStates[id].oy=mapStates[id].y;root.setPointerCapture(e.pointerId)};root.onpointermove=e=>{const m=mapStates[id];if(!m?.drag)return;m.x=m.ox+e.clientX-m.sx;m.y=m.oy+e.clientY-m.sy;applyMap(id)};root.onpointerup=()=>mapStates[id]&&(mapStates[id].drag=false);root.onpointercancel=()=>mapStates[id]&&(mapStates[id].drag=false);root.onwheel=e=>{e.preventDefault();mapZoom(id,e.deltaY<0?1.1:.9)}}catch(e){svg.append('text').attr('x','50%').attr('y','50%').attr('text-anchor','middle').attr('fill','#71839a').text('Nie udało się wczytać mapy USA')}}
-function applyMap(id){const m=mapStates[id];if(m)m.g.attr('transform',`translate(${m.x},${m.y}) scale(${m.scale})`)}
-function mapZoom(id,f){const m=mapStates[id];if(!m)return;m.scale=clamp(m.scale*f,.7,3.2);applyMap(id)}
-function mapReset(id){const m=mapStates[id];if(!m)return;m.scale=1;m.x=0;m.y=0;applyMap(id)}
-function initVisibleMaps(){document.querySelectorAll('.mapViewport').forEach(x=>initMap(x.id,x.dataset.mode||'political'))}
-function ev(){return STATES.reduce((n,s)=>n+(G.states[s[1]].called==='blue'?s[2]:0),0)}
-function forecastEV(){return STATES.reduce((n,s)=>{const x=G.states[s[1]],u=x.support||0,r=x.red||50,p=x.purple||5;return n+(u>=r&&u>=p?s[2]:0)},0)}
-function stateInfo(a){G.selectedState=a;save();render();const s=STATES.find(x=>x[1]===a),x=G.states[a];openModal(`<h2>${s[0]} (${a})</h2>${stat('Głosy elektorskie',s[2])}${stat('Twoje poparcie',pct(x.support))}${stat('Rywal czerwony',pct(x.red))}${stat('Niezależni',pct(x.purple))}${stat('Wynik',x.called?`Partia ${x.called==='blue'?'Niebieska':x.called==='red'?'Czerwona':'Niezależna'}`:'Jeszcze nie rozstrzygnięty')}${G.election?.active&&G.election.phase==='campaign'?`<div class="rowActions" style="margin-top:12px"><button class="btn primary" onclick="stateRally('${a}')">Wiec w ${s[0]} — $20M</button><button class="btn" onclick="targetAds('${a}')">Reklama stanowa — $25M</button></div>`:''}`)}
-function startCongressCampaign(){if(G.congressCampaign?.active)return;G.congressCampaign={active:true,day:1,totalDays:20,phase:'campaign',results:null};saveNews('🏛️ Rozpoczęła się 20-dniowa kampania do Kongresu.');save();render()}
-function campaignAction(type){if(!G.election.active||G.election.phase!=='campaign')return toast('Kampania prezydencka jest zakończona.');const costs={rally:35,tv:60,web:30,fund:0,debate:0,attack:45};const c=costs[type];if(G.funds<c)return toast('Brak środków kampanii');G.funds-=c;switch(type){case'rally':G.popularity=clamp(G.popularity+3,0,100);STATES.forEach(s=>G.states[s[1]].support=clamp(G.states[s[1]].support+(.5+Math.random()*1.5),0,70));saveNews('📣 Wielki wiec krajowy podniósł poparcie.');break;case'tv':G.popularity=clamp(G.popularity+4,0,100);STATES.forEach(s=>G.states[s[1]].support=clamp(G.states[s[1]].support+.8,0,70));saveNews('📺 Ogólnokrajowa kampania TV zwiększyła rozpoznawalność.');break;case'web':G.popularity=clamp(G.popularity+2.2,0,100);STATES.filter(s=>['AZ','GA','MI','NV','NC','PA','WI'].includes(s[1])).forEach(s=>G.states[s[1]].support=clamp(G.states[s[1]].support+2,0,70));saveNews('💻 Kampania cyfrowa trafiła do młodszych wyborców.');break;case'fund':G.funds+=70;G.popularity=clamp(G.popularity-.4,0,100);saveNews('💰 Zorganizowano zbiórkę pieniędzy.');break;case'debate':G.popularity=clamp(G.popularity+(Math.random()*8-1),0,100);saveNews('🎙️ Debata prezydencka zmieniła układ sił.');break;case'attack':G.popularity=clamp(G.popularity+(Math.random()*5-1),0,100);STATES.filter(s=>Math.random()<.3).forEach(s=>G.states[s[1]].red=clamp(G.states[s[1]].red-2,30,65));saveNews('⚔️ Kampania negatywna osłabiła część rywala, ale zwiększyła polaryzację.');break}G.campaign=clamp(G.campaign+4,0,100);save();render()}
-function stateRally(a){if(G.funds<20)return toast('Brak środków');G.funds-=20;G.states[a].support=clamp(G.states[a].support+5+Math.random()*2,0,75);G.popularity=clamp(G.popularity+.5,0,100);closeModal();saveNews(`📍 Bezpośredni wiec zwiększył poparcie w ${a}.`);save();render()}
-function targetAds(a){if(G.funds<25)return toast('Brak środków');G.funds-=25;G.states[a].support=clamp(G.states[a].support+4,0,75);closeModal();saveNews(`📡 Uruchomiono reklamy celowane w ${a}.`);save();render()}
-function startElectionNight(){G.election.phase='electionNight';G.election.called=[];G.states && Object.values(G.states).forEach(s=>s.called=null);saveNews('🗳️ Kampania zakończona. Rozpoczyna się Noc Wyborcza.');save();render()}
-function callNextState(){if(G.election.phase!=='electionNight')return;const remaining=STATES.filter(s=>!G.election.called.includes(s[1]));if(!remaining.length){finishPresidentialElection();return}remaining.sort((a,b)=>{const aa=Math.abs((G.states[a[1]].support||0)-(G.states[a[1]].red||50));const bb=Math.abs((G.states[b[1]].support||0)-(G.states[b[1]].red||50));return aa-bb});const pick=Math.random()<.7?remaining[0]:remaining[Math.floor(Math.random()*Math.min(remaining.length,10))];const x=G.states[pick[1]],u=x.support||0,r=x.red||50,p=x.purple||5;let winner=u>=r&&u>=p?'blue':r>=p?'red':'purple';x.called=winner;G.election.called.push(pick[1]);saveNews(`📡 ${pick[0]}: ${winner==='blue'?'Partia Niebieska':winner==='red'?'Partia Czerwona':'Niezależni'} zdobywa ${pick[2]} głosów elektorskich.`);save();render();if(G.election.called.length<STATES.length)setTimeout(callNextState,550);else setTimeout(finishPresidentialElection,900)}
-function finishPresidentialElection(){const won=ev()>=270;G.election.phase='results';G.election.winner=won?'blue':Object.values(G.states).filter(s=>s.called==='red').reduce((a,s)=>a,0)?'red':'purple';if(won){G.president=true;G.oval.unlocked=true;G.nextCongress=G.year+2;G.nextPresidential=G.year+5;G.popularity=clamp(G.popularity+8,0,100);saveNews(`🎉 ZWYCIĘSTWO! Zdobyłeś ${ev()} głosów elektorskich i obejmujesz urząd Prezydenta USA.`)}else{G.president=false;saveNews(`❌ Przegrałeś wybory. Zdobyłeś ${ev()} głosów elektorskich.`)}save();render()}
-function vOverview(){const gov=G.president?'<span class="presidentBadge">Prezydent USA</span>':'<span class="badge y">Kandydat</span>';return `<div class="grid">${C('wide','Centrum dowodzenia',`<div class="metric">${gov}</div><p class="muted">${G.president?'Państwo jest teraz pod Twoim kierownictwem. Gabinet Owalny jest odblokowany.':'Zbuduj kampanię, zdobądź 270 głosów elektorskich i przejmij Biały Dom.'}</p>${G.election.active?`<div class="notice"><b>Kampania:</b> dzień ${G.election.day}/${G.election.totalDays} • ${G.election.phase==='campaign'?'aktywny etap kampanii':'Noc Wyborcza'}</div>`:''}`)}${C('','Poparcie',`<div class="metric">${pct(G.popularity)}</div>${bar(G.popularity)}`)}${C('','Kolegium Elektorów',`<div class="metric">${G.election.phase==='results'||G.election.phase==='electionNight'?ev():forecastEV()} / 270</div><span class="muted">538 łącznie</span>`)}${C('','Skarb',`<div class="metric">${money(G.funds)}</div><span class="muted">Fundusze państwowe / kampanijne</span>`)}${C('half','Kongres',stat('Izba',houseControl())+stat('Senat',senateControl())+stat('Mandaty Izby',`${G.houseD} D / ${G.houseR} R / ${G.houseI} I`)+stat('Senat',`${G.senateD} D / ${G.senateR} R / ${G.senateI} I`))}${C('half','Najważniejsze wskaźniki',stat('PKB',G.gdp.toFixed(1))+stat('Inflacja',G.inflation.toFixed(1)+'%')+stat('Bezrobocie',G.unemployment.toFixed(1)+'%')+stat('Relacje zagraniczne',G.foreign+'/100'))}${C('wide','Mapa polityczna USA',mapHTML('overviewMap',G.election.active?'presidential':'political',true)+`<div class="legend"><span><i class="dot dBlue"></i>Ty</span><span><i class="dot dRed"></i>Rywal</span><span><i class="dot dPurple"></i>Niezależni</span></div>`)}${C('','Alerty',newsHTML())}${C('','Szybkie działania',`<div class="rowActions">${!G.president?`<button class="btn primary" onclick="setPage('election')">Otwórz kampanię</button>`:`<button class="btn primary" onclick="setPage('oval')">Wejdź do Gabinetu Owalnego</button>`}<button class="btn" onclick="setPage('laws')">Nowa ustawa</button></div>`)}</div>`}
-function newsHTML(){return G.news.length?G.news.slice(-7).reverse().map(x=>`<div class="list">${x}</div>`).join(''):'<div class="empty">Brak wydarzeń.</div>'}
-function vElection(){if(G.election.phase==='results'){return `<div class="grid">${C('wide',G.election.winner==='blue'?'🎉 Biały Dom zdobyty':'❌ Wybory przegrane',`<div class="resultBanner ${G.election.winner==='blue'?'':'lose'}"><div class="metric">${ev()} / 538 EV</div><p>${G.election.winner==='blue'?'Wygrałeś. Gabinet Owalny został odblokowany.':'Tym razem nie udało się przekroczyć progu 270.'}</p><div class="rowActions">${G.election.winner==='blue'?`<button class="btn primary" onclick="setPage('oval')">Otwórz Gabinet Owalny</button>`:`<button class="btn primary" onclick="restartCampaign()">Nowa kampania</button>`}</div></div>`)}${C('','Wynik',stat('Głosy elektorskie',ev())+stat('Próg zwycięstwa','270')+stat('Stany zdobyte',G.election.called.filter(a=>G.states[a].called==='blue').length))}${C('full','Mapa wyników',mapHTML('electionResultsMap','presidential'))}</div>`}return `<div class="grid">${C('wide','Kampania prezydencka',`<div class="campaignHero"><div class="eyebrow">Następne 30 dni decyduje o Białym Domu</div><div class="campaignDay">Dzień ${G.election.day} / ${G.election.totalDays}</div><div class="progress"><i style="width:${G.election.day/G.election.totalDays*100}%"></i></div><p class="muted">Czas płynie automatycznie. Wykorzystuj działania kampanijne, a po 30. dniu rozpocznie się Noc Wyborcza.</p></div>`)}${C('','Sondaż krajowy',`<div class="metric">${pct(G.popularity)}</div>${bar(G.popularity)}${stat('Prognoza EV',forecastEV())}`)}${C('wide','Mapa stanów',mapHTML('electionMap','presidential'))}${C('','Działania kampanii',`<div class="campaignGrid"><button class="campaignAction btn" onclick="campaignAction('rally')"><b>📣 Wiec</b>-$35M</button><button class="campaignAction btn" onclick="campaignAction('tv')"><b>📺 TV</b>-$60M</button><button class="campaignAction btn" onclick="campaignAction('web')"><b>💻 Internet</b>-$30M</button><button class="campaignAction btn" onclick="campaignAction('fund')"><b>💰 Zbiórka</b>+$70M</button><button class="campaignAction btn" onclick="campaignAction('debate')"><b>🎙️ Debata</b>Wpływ opinii</button><button class="campaignAction btn" onclick="campaignAction('attack')"><b>⚔️ Atak</b>-$45M</button></div>`)}${C('','Kandydaci',stat('Ty',PARTY.blue.name)+stat('Rywal',PARTY.red.name)+stat('Niezależni',PARTY.purple.name))}${C('full','Dziennik kampanii',newsHTML())}</div>`}
-function restartCampaign(){G.president=false;G.oval.unlocked=false;G.election={active:true,type:'presidential',day:1,totalDays:30,phase:'campaign',results:{},called:[],winner:null};G.popularity=0;G.campaign=0;STATES.forEach(s=>G.states[s[1]]={support:0,red:46+Math.random()*10,purple:4+Math.random()*4,called:null,senate:null});saveNews('🔄 Rozpoczęto nową kampanię prezydencką.');save();render()}
-function vCongress(){if(!G.congressCampaign?.active&&!G.president)return `<div class="grid">${C('wide','Kampania do Kongresu',`<p class="muted">Po objęciu Białego Domu możesz prowadzić własną kampanię do Kongresu. System rozgrywa osobno Izbę Reprezentantów i Senat.</p><button class="btn primary" onclick="toast('Najpierw wygraj wybory prezydenckie.')">Kampania zablokowana</button>`)}${C('','Kongres',stat('Izba','435 miejsc')+stat('Senat','100 miejsc'))}</div>`;if(G.congressCampaign.phase==='results')return `<div class="grid">${C('wide','🏛️ Wyniki wyborów do Kongresu',`<div class="resultBanner"><div class="metric">Izba: ${G.houseD} D / ${G.houseR} R / ${G.houseI} I</div><p>Senat: ${G.senateD} D / ${G.senateR} R / ${G.senateI} I</p></div>`)}${C('full','Mapa stanów — Senat',mapHTML('senateMap','senate'))}${C('half','Kontrola Kongresu',stat('Izba',houseControl())+stat('Senat',senateControl()))}${C('half','Kadencja',`<p class="muted">Następna kampania kongresowa: ${G.nextCongress}.</p>`)} </div>`;return `<div class="grid">${C('wide','Kampania parlamentarna',`<div class="campaignHero"><div class="campaignDay">Dzień ${G.congressCampaign.day} / ${G.congressCampaign.totalDays}</div><div class="progress"><i style="width:${G.congressCampaign.day/G.congressCampaign.totalDays*100}%"></i></div><p class="muted">Buduj zaplecze dla kandydatów do Izby i Senatu. Kampania kończy się automatycznie.</p></div>`)}${C('','Stan Kongresu',stat('Izba',`${G.houseD} D / ${G.houseR} R / ${G.houseI} I`)+stat('Senat',`${G.senateD} D / ${G.senateR} R / ${G.senateI} I`))}${C('full','Mapa kampanii',mapHTML('congressMap','political'))}${C('wide','Operacje kampanijne',`<div class="campaignGrid"><button class="campaignAction btn" onclick="congressAction('ground')"><b>🤝 Organizacja terenu</b>-$30M</button><button class="campaignAction btn" onclick="congressAction('tv')"><b>📺 Reklama TV</b>-$55M</button><button class="campaignAction btn" onclick="congressAction('fund')"><b>💰 Fundraising</b>+$65M</button><button class="campaignAction btn" onclick="congressAction('endorse')"><b>⭐ Poparcie liderów</b>-$20M</button><button class="campaignAction btn" onclick="congressAction('attack')"><b>⚔️ Kampania negatywna</b>-$40M</button></div>`)}${C('','Start',`<p class="muted">${G.congressCampaign.day===1?'Kampania właśnie się rozpoczęła.':'Kampania trwa.'}</p>`)}</div>`}
-function congressAction(a){if(!G.congressCampaign?.active)return;const cost={ground:30,tv:55,fund:0,endorse:20,attack:40}[a];if(G.funds<cost)return toast('Brak środków');G.funds-=cost;if(a==='fund')G.funds+=65;else if(a==='ground'){G.houseD+=Math.random()<.65?2:1;G.senateD+=Math.random()<.5?1:0}else if(a==='tv'){G.houseD+=3;G.senateD+=Math.random()<.55?1:0}else if(a==='endorse'){G.houseD+=2;G.senateD+=1}else G.houseR=Math.max(0,G.houseR-2);normalizeCongress();saveNews('🏛️ Wykonano operację kampanii do Kongresu.');save();render()}
-function normalizeCongress(){G.houseD=clamp(Math.round(G.houseD),0,435);G.houseI=clamp(Math.round(G.houseI),0,435-G.houseD);G.houseR=435-G.houseD-G.houseI;G.senateD=clamp(Math.round(G.senateD),0,100);G.senateI=clamp(Math.round(G.senateI),0,100-G.senateD);G.senateR=100-G.senateD-G.senateI}
-function finishCongress(){G.congressCampaign.phase='results';G.congressCampaign.active=false;normalizeCongress();G.nextCongress=G.year+2;saveNews(`🏛️ Zakończono wybory do Kongresu. Izba: ${houseControl()}, Senat: ${senateControl()}.`);save();render()}
-function houseControl(){return G.houseD>G.houseR&&G.houseD>G.houseI?'Demokraci':G.houseR>G.houseD&&G.houseR>G.houseI?'Republikanie':'Brak większości'}
-function senateControl(){return G.senateD>G.senateR&&G.senateD>G.senateI?'Demokraci':G.senateR>G.senateD&&G.senateR>G.senateI?'Republikanie':'Brak większości'}
-function vLaws(){return `<div class="grid">${C('wide','Ustawy federalne — nowy proces',`<p class="muted">Projekt → komisja → Izba (218) → Senat (51) → uzgodnienie → podpis lub weto. Głosowania są zapisywane osobno, więc ustawa nie znika i nie zmienia statusu bez powodu.</p><button class="btn primary" onclick="lawModal()">✍️ Napisz projekt ustawy</button>`)}${C('','Wymogi',stat('Izba','218 / 435')+stat('Senat','51 / 100')+stat('Prezydent',G.president?'Podpis / weto':'Nie pełnisz urzędu'))}${C('full','Rejestr ustaw',G.laws.length?`<div class="tablewrap"><table><thead><tr><th>Ustawa</th><th>Komisja</th><th>Izba</th><th>Senat</th><th>Status</th><th>Akcja</th></tr></thead><tbody>${G.laws.slice().reverse().map((l,ri)=>{const i=G.laws.length-1-ri;return `<tr><td><b>${l.name}</b><br><span class="muted">${l.desc}</span></td><td>${l.committee}</td><td>${l.houseVotes}/435</td><td>${l.senateVotes}/100</td><td><span class="badge ${l.status==='Podpisana'?'g':l.status==='Zawetowana'||l.status==='Odrzucona'?'r':'y'}">${l.status}</span></td><td>${l.status==='Do podpisu'&&G.president?`<button class="btn green" onclick="signLaw(${i})">Podpisz</button> <button class="btn danger" onclick="vetoLaw(${i})">Weto</button>`:'—'}</td></tr>`}).join('')}</tbody></table></div>`:'<div class="empty">Brak projektów ustaw.</div>')}${C('full','Poprawki do Konstytucji',`${G.amendments.length?G.amendments.slice().reverse().map((a,ri)=>{const i=G.amendments.length-1-ri;return `<div class="list"><b>${a.name}</b><div class="muted">${a.text}</div>${stat('Izba',a.houseVotes+'/435')}${stat('Senat',a.senateVotes+'/100')}${stat('Stany',a.statesYes+'/50')}${stat('Status',a.status)}</div>`}).join(''):'<div class="empty">Brak poprawek.</div>'}<div class="rowActions"><button class="btn primary" onclick="amendmentModal()">⚖️ Zaproponuj poprawkę</button></div>`)}</div>`}
-function lawModal(){openModal(`<h2>Nowy projekt ustawy</h2><label>Nazwa</label><input id="lawName" value="Ustawa o modernizacji infrastruktury"><label>Komisja</label><select id="lawCommittee"><option>Finanse i budżet</option><option>Gospodarka</option><option>Zdrowie</option><option>Obrona</option><option>Technologie</option><option>Sprawy zagraniczne</option></select><label>Opis</label><textarea id="lawDesc">Projekt ustawy federalnej.</textarea><label>Koszt budżetowy (mln $)</label><input id="lawCost" type="number" min="0" value="40"><button class="btn primary" onclick="submitLaw()">Przeprowadź ustawę przez Kongres</button>`)}
-function submitLaw(){const name=document.getElementById('lawName').value.trim()||'Nowa ustawa';const committee=document.getElementById('lawCommittee').value;const desc=document.getElementById('lawDesc').value.trim();const cost=Math.max(0,+document.getElementById('lawCost').value||0);let house=Math.round(G.houseD+G.houseI+G.houseR*(G.popularity/100)*.65+Math.random()*16-8);let senate=Math.round(G.senateD+G.senateI+G.senateR*(G.popularity/100)*.65+Math.random()*7-3);house=clamp(house,0,435);senate=clamp(senate,0,100);let status=house>=218&&senate>=51?'Do podpisu':'Odrzucona';G.laws.push({name,committee,desc,cost,houseVotes:house,senateVotes:senate,status,created:`${G.day}.${G.month}.${G.year}`});saveNews(status==='Do podpisu'?`📜 Ustawa „${name}” przeszła obie izby.`:`📜 Ustawa „${name}” upadła podczas głosowania.`);closeModal();save();render()}
-function signLaw(i){const l=G.laws[i];if(!l||l.status!=='Do podpisu')return;if(!G.president)return toast('Nie jesteś prezydentem');if(l.cost>G.funds)return toast('Brak środków na realizację ustawy');G.funds-=l.cost;l.status='Podpisana';G.gdp+=l.cost*.012;G.popularity=clamp(G.popularity+(l.cost?1:.3),0,100);saveNews(`✍️ Podpisałeś ustawę „${l.name}”.`);save();render()}
-function vetoLaw(i){const l=G.laws[i];if(!l||l.status!=='Do podpisu')return;l.status='Zawetowana';G.popularity=clamp(G.popularity-.5,0,100);saveNews(`🛑 Zawetowałeś ustawę „${l.name}”.`);save();render()}
-function amendmentModal(){openModal(`<h2>⚖️ Poprawka do Konstytucji</h2><p class="muted">Gra wymaga 2/3 w Izbie, 2/3 w Senacie i ratyfikacji przez 38 z 50 stanów.</p><label>Nazwa</label><input id="amName" value="Poprawka dotycząca praw obywatelskich"><label>Treść</label><textarea id="amText">Kongres proponuje zmianę Konstytucji Stanów Zjednoczonych.</textarea><button class="btn primary" onclick="submitAmendment()">Uruchom procedurę</button>`)}
-function submitAmendment(){const name=document.getElementById('amName').value.trim()||'Nowa poprawka';const text=document.getElementById('amText').value.trim()||'Proponowana zmiana';const h=G.houseD+G.houseI+Math.round(G.houseR*(G.popularity/100)*.55);const s=G.senateD+G.senateI+Math.round(G.senateR*(G.popularity/100)*.55);let sy=0;STATES.forEach(st=>{const x=G.states[st[1]];if(x.support>=45+Math.random()*20)sy++});const passed=h>=290&&s>=67;const status=passed?(sy>=38?'Ratyfikowana':'W ratyfikacji'):'Odrzucona przez Kongres';G.amendments.push({name,text,houseVotes:clamp(h,0,435),senateVotes:clamp(s,0,100),statesYes:sy,status});saveNews(`⚖️ Poprawka „${name}”: ${status}.`);closeModal();save();render()}
-function vStates(){const selected=STATES.find(x=>x[1]===G.selectedState)||STATES[0],sx=G.states[selected[1]];const lead=sx.support>=sx.red&&sx.support>=sx.purple?'Ty':sx.red>=sx.purple?'Rywal':'Niezależni';return `<div class="grid">${C('wide','Mapa Stanów Zjednoczonych',mapHTML('statesMap','presidential'))}${C('','Wybrany stan',`<div class="eyebrow">${selected[1]}</div><div class="metric">${selected[0]}</div>${stat('Głosy elektorskie',selected[2])}${stat('Twoje poparcie',pct(sx.support))}${stat('Rywal czerwony',pct(sx.red))}${stat('Niezależni',pct(sx.purple))}${stat('Prowadzi',lead)}${bar(sx.support)}<div class="rowActions" style="margin-top:10px"><button class="btn primary" onclick="stateRally('${selected[1]}')">Wiec — $20M</button><button class="btn" onclick="targetAds('${selected[1]}')">Reklama — $25M</button></div>`)}${C('','Federalizm',stat('Stany','50')+stat('Kolegium','538')+stat('Próg','270')+`<p class="muted">Kliknij dowolny stan na mapie. Kafelek obok natychmiast pokazuje jego statystyki.</p>`)}${C('full','Tabela stanów',`<div class="tablewrap"><table><thead><tr><th>Stan</th><th>EV</th><th>Twoje poparcie</th><th>Rywal</th><th>Pozycja</th></tr></thead><tbody>${STATES.map(s=>{const x=G.states[s[1]],lead=x.support>=x.red&&x.support>=x.purple?'Ty':x.red>=x.purple?'Rywal':'Niezależni';return `<tr><td><b>${s[0]}</b> (${s[1]})</td><td>${s[2]}</td><td>${pct(x.support)}</td><td>${pct(x.red)}</td><td><span class="badge ${lead==='Ty'?'b':lead==='Rywal'?'r':'y'}">${lead}</span></td></tr>`}).join('')}</tbody></table></div>`)}</div>`}
-function vEconomy(){return `<div class="grid">${C('','PKB',`<div class="metric">${G.gdp.toFixed(1)}</div>`)}${C('','Inflacja',`<div class="metric">${G.inflation.toFixed(1)}%</div>`)}${C('','Bezrobocie',`<div class="metric">${G.unemployment.toFixed(1)}%</div>`)}${C('wide','Polityka gospodarcza',`<div class="rowActions"><button class="btn primary" onclick="econ('stimulus')">Infrastruktura — $60M</button><button class="btn" onclick="econ('tax')">Reforma podatkowa</button><button class="btn" onclick="econ('austerity')">Oszczędności</button></div>`)}${C('half','Wskaźniki',stat('PKB',G.gdp.toFixed(1))+stat('Inflacja',G.inflation.toFixed(1)+'%')+stat('Bezrobocie',G.unemployment.toFixed(1)+'%'))}</div>`}
-function econ(a){if(a==='stimulus'){if(G.funds<60)return toast('Brak środków');G.funds-=60;G.gdp+=2;G.unemployment=Math.max(2.5,G.unemployment-.3);G.inflation+=.25;G.popularity=clamp(G.popularity+1,0,100)}else if(a==='tax'){G.funds+=80;G.gdp+=.5;G.popularity=clamp(G.popularity-1,0,100)}else{G.funds+=70;G.gdp-=.7;G.inflation=Math.max(1,G.inflation-.3);G.popularity=clamp(G.popularity-2,0,100)}saveNews('💵 Wprowadzono zmianę polityki gospodarczej.');save();render()}
-function vForeign(){return `<div class="grid">${C('','Relacje zagraniczne',`<div class="metric">${G.foreign}/100</div>${bar(G.foreign)}`)}${C('wide','Dyplomacja',`<div class="rowActions"><button class="btn primary" onclick="foreign('summit')">Szczyt</button><button class="btn" onclick="foreign('aid')">Pomoc — $35M</button><button class="btn danger" onclick="foreign('sanctions')">Sankcje</button></div>`)}${C('full','Panel strategiczny',stat('Sojusznicy',G.foreign+'/100')+stat('Wiarygodność',Math.round((G.foreign+G.popularity)/2)+'/100')+stat('Presja',Math.max(5,100-G.foreign)+'/100'))}</div>`}
-function foreign(a){if(a==='aid'){if(G.funds<35)return toast('Brak środków');G.funds-=35;G.foreign=clamp(G.foreign+8,0,100)}else if(a==='summit')G.foreign=clamp(G.foreign+5,0,100);else{G.foreign=clamp(G.foreign-3,0,100);G.popularity=clamp(G.popularity+1,0,100)}saveNews('🌐 Działanie dyplomatyczne wykonane.');save();render()}
-function vMilitary(){return `<div class="grid">${C('','Gotowość obronna',`<div class="metric">${G.defense}/100</div>${bar(G.defense)}`)}${C('','Budżet obronny',`<div class="metric">$180M</div>`)}${C('wide','Naczelny Dowódca',`<div class="rowActions"><button class="btn primary" onclick="military('modernize')">Modernizacja — $70M</button><button class="btn" onclick="military('ready')">Gotowość — $40M</button><button class="btn" onclick="military('diplomacy')">Redukcja napięć</button></div>`)}${C('half','Informacja strategiczna',stat('Gotowość',G.defense+'/100')+stat('Relacje',G.foreign+'/100'))}</div>`}
-function military(a){const c=a==='modernize'?70:a==='ready'?40:0;if(c&&G.funds<c)return toast('Brak środków');G.funds-=c;if(a==='modernize')G.defense=clamp(G.defense+9,0,100);else if(a==='ready')G.defense=clamp(G.defense+5,0,100);else{G.defense=clamp(G.defense-2,0,100);G.foreign=clamp(G.foreign+5,0,100)}saveNews('🛡️ Zmieniono politykę obronną.');save();render()}
-function vEvents(){return `<div class="grid">${C('wide','Wydarzenia i decyzje',newsHTML())}${C('','Kalendarz',stat('Data',`${G.day}.${G.month}.${G.year}`)+stat('Następne wybory prezydenckie',G.nextPresidential)+stat('Kongres',G.nextCongress))}${C('full','Automatyczny świat',`<p class="muted">Każdy dzień może przynieść zmianę gospodarki, nastrojów społecznych, Kongresu i polityki zagranicznej. Nie ma ręcznego przycisku „przejdź miesiąc” — czas działa sam.</p>`)}</div>`}
-function vOval(){if(!G.oval.unlocked)return `<div class="lockedPanel"><div class="big">🔒</div><h2>Gabinet Owalny</h2><p class="muted">Pokój prezydenta zostanie odblokowany po zwycięstwie wyborczym.</p></div>`;return `<div class="grid">${C('full oval','🦅 Gabinet Owalny',`<div class="ovalGrid"><div><div class="eyebrow">The White House</div><div class="metric big">Prezydent USA</div><p class="muted">Najważniejsze decyzje państwa wykonujesz tutaj. To główny panel zarządzania po zwycięstwie.</p>${stat('Aprobata',pct(G.popularity))}${stat('Rozkazy wykonawcze',G.oval.orders)}${stat('Personel Białego Domu',G.oval.staff)}${stat('Program prezydenta',G.oval.agenda.length?'Aktywny':'Brak')}</div><div><h3>Centrum decyzji</h3><div class="rowActions"><button class="btn primary" onclick="ovalAction('order')">✍️ Rozkaz wykonawczy</button><button class="btn" onclick="ovalAction('staff')">👥 Zatrudnij personel — $15M</button><button class="btn" onclick="ovalAction('agenda')">📋 Ustal priorytet</button><button class="btn" onclick="ovalAction('press')">🎙️ Konferencja prasowa</button></div></div></div>`)}${C('half','Gabinet',stat('Szef personelu',G.oval.chief)+stat('Aprobata',G.oval.approvals+'/100'))}${C('half','Kongres',stat('Izba',houseControl())+stat('Senat',senateControl())+`<button class="btn" onclick="setPage('laws')">Przejdź do ustaw</button>`)}${C('wide','Priorytety prezydenta',G.oval.agenda.length?G.oval.agenda.map(x=>`<div class="list">${x}</div>`).join(''):'<div class="empty">Nie ustawiono jeszcze priorytetów.</div>')}${C('','Stan państwa',stat('PKB',G.gdp.toFixed(1))+stat('Inflacja',G.inflation.toFixed(1)+'%')+stat('Obrona',G.defense+'/100')+stat('Dyplomacja',G.foreign+'/100'))}</div>`}
-function ovalAction(a){if(a==='order'){G.oval.orders++;G.popularity=clamp(G.popularity+1,0,100);saveNews('🦅 Podpisano nowy rozkaz wykonawczy.')}else if(a==='staff'){if(G.funds<15)return toast('Brak środków');G.funds-=15;G.oval.staff++;G.oval.chief=G.oval.staff>2?'Maya Thompson':'Szef personelu tymczasowy';saveNews('👥 Rozbudowano personel Białego Domu.')}else if(a==='agenda'){const arr=['Infrastruktura i miejsca pracy','Bezpieczeństwo granic','Technologie i AI','Reforma ochrony zdrowia','Energia i niezależność'];G.oval.agenda.unshift(arr[Math.floor(Math.random()*arr.length)]);G.oval.agenda=G.oval.agenda.slice(0,5);saveNews('📋 Ustalono nowy priorytet prezydenta.')}else{G.popularity=clamp(G.popularity+2,0,100);saveNews('🎙️ Konferencja prasowa poprawiła nastroje.')}G.oval.approvals=clamp(Math.round(G.popularity),0,100);save();render()}
-function render(){renderNav();document.getElementById('pageTitle').textContent=PAGE_TITLES[G.page]||PAGE_TITLES.overview;const f={overview:vOverview,election:vElection,congress:vCongress,laws:vLaws,states:vStates,economy:vEconomy,foreign:vForeign,military:vMilitary,events:vEvents,oval:vOval};document.getElementById('content').innerHTML=(f[G.page]||vOverview)();updateClock();setTimeout(initVisibleMaps,30)}
-function openModal(x){document.getElementById('modalBody').innerHTML=x;document.getElementById('modal').classList.add('show')}function closeModal(){document.getElementById('modal').classList.remove('show')}
-document.getElementById('modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal()});
-function advanceEconomy(){G.gdp+=.04-(G.inflation>5?.05:0);G.unemployment=clamp(G.unemployment+(Math.random()-.5)*.05,2.5,10);G.inflation=clamp(G.inflation+(Math.random()-.5)*.04,1,9);if(Math.random()<.08)saveNews('📰 Nowe wydarzenie wpłynęło na nastroje w kraju.')}
-function tick(){G.minute+=60;if(G.minute>=60){G.minute=0;G.hour++}if(G.hour>=24){G.hour=0;G.day++;dailyTick()}if(G.day>daysInMonth(G.year,G.month)){G.day=1;G.month++;if(G.month>12){G.month=1;G.year++}}updateClock();save();}
-function daysInMonth(y,m){return new Date(y,m,0).getDate()}
-function dailyTick(){advanceEconomy();if(G.election?.active&&G.election.phase==='campaign'){G.election.day++;if(G.election.day>G.election.totalDays){startElectionNight()}render();return}if(G.election?.phase==='electionNight')return;if(G.congressCampaign?.active&&G.congressCampaign.phase==='campaign'){G.congressCampaign.day++;if(G.congressCampaign.day>G.congressCampaign.totalDays)finishCongress();render();return}if(G.president&&G.year>=G.nextCongress&&G.month===1&&!G.congressCampaign){startCongressCampaign();return}if(G.president&&G.year>=G.nextPresidential&&G.month===1&&!G.election.active){G.election={active:true,type:'presidential',day:1,totalDays:30,phase:'campaign',results:{},called:[],winner:null};G.election.active=true;saveNews('🗳️ Rozpoczęła się kolejna kampania prezydencka.');render();return}if(Math.random()<.03)G.popularity=clamp(G.popularity+(Math.random()-.45)*2,0,100)}
-setInterval(()=>{if(G.election?.phase==='electionNight')return;tick()},1000);
-setInterval(()=>{if(G.election?.phase==='electionNight'&&G.election.called.length<STATES.length)callNextState()},1800);
-setInterval(()=>{if(G.election?.phase==='electionNight'&&G.election.called.length>=STATES.length)finishPresidentialElection()},4000);
-setInterval(()=>{if(G.congressCampaign?.phase==='results')return},5000);
-render();
 
-/* ===== CLEAN DIPLOMACY SYSTEM v6 ===== */
-const COUNTRIES=[
-'Afganistan','Albania','Algieria','Andora','Angola','Antigua i Barbuda','Argentyna','Armenia','Australia','Austria','Azerbejdżan','Bahamy','Bahrajn','Bangladesz','Barbados','Belgia','Belize','Benin','Bhutan','Boliwia','Bośnia i Hercegowina','Botswana','Brazylia','Brunei','Bułgaria','Burkina Faso','Burundi','Chile','Chiny','Chorwacja','Cypr','Czad','Czarnogóra','Czechy','Dania','Demokratyczna Republika Konga','Dominika','Dominikana','Dżibuti','Egipt','Ekwador','Erytrea','Estonia','Eswatini','Etiopia','Fidżi','Filipiny','Finlandia','Francja','Gabon','Gambia','Ghana','Grecja','Grenada','Gruzja','Gujana','Gwatemala','Gwinea','Gwinea Bissau','Gwinea Równikowa','Haiti','Hiszpania','Honduras','Indie','Indonezja','Irak','Iran','Irlandia','Islandia','Izrael','Jamajka','Japonia','Jemen','Jordania','Kambodża','Kamerun','Kanada','Katar','Kazachstan','Kenia','Kirgistan','Kiribati','Kolumbia','Komory','Kongo','Korea Południowa','Korea Północna','Kostaryka','Kuba','Kuwejt','Laos','Lesotho','Liban','Liberia','Libia','Liechtenstein','Litwa','Luksemburg','Madagaskar','Malawi','Malezja','Malediwy','Mali','Malta','Maroko','Mauretania','Mauritius','Meksyk','Mikronezja','Mołdawia','Monako','Mongolia','Mozambik','Mjanma','Namibia','Nauru','Nepal','Niderlandy','Niemcy','Niger','Nigeria','Nikaragua','Norwegia','Nowa Zelandia','Oman','Pakistan','Palau','Palestyna','Panama','Papua-Nowa Gwinea','Paragwaj','Peru','Polska','Portugalia','Republika Południowej Afryki','Republika Środkowoafrykańska','Republika Zielonego Przylądka','Rosja','Rumunia','Rwanda','Saint Kitts i Nevis','Saint Lucia','Saint Vincent i Grenadyny','Salwador','Samoa','San Marino','Senegal','Serbia','Seszele','Sierra Leone','Singapur','Słowacja','Słowenia','Somalia','Sri Lanka','Stany Zjednoczone','Sudan','Sudan Południowy','Surinam','Syria','Szwajcaria','Szwecja','Tadżykistan','Tajlandia','Tanzania','Timor Wschodni','Togo','Tonga','Trynidad i Tobago','Tunezja','Turcja','Turkmenistan','Tuvalu','Uganda','Ukraina','Urugwaj','Uzbekistan','Vanuatu','Watykan / Stolica Apostolska','Wenezuela','Węgry','Wielka Brytania','Wietnam','Włochy','Wybrzeże Kości Słoniowej','Wyspy Marshalla','Wyspy Salomona','Zambia','Zimbabwe','Zjednoczone Emiraty Arabskie','Macedonia Północna','Kosowo','Tajwan'
-];
-const ORGS=[
-['ONZ','Organizacja Narodów Zjednoczonych','globalna'],['NATO','Sojusz Północnoatlantycki','bezpieczeństwo'],['UE','Unia Europejska','gospodarcza'],['G7','Grupa G7','gospodarcza'],['G20','G20','gospodarcza'],['WTO','Światowa Organizacja Handlu','handel'],['MFW','Międzynarodowy Fundusz Walutowy','finanse'],['Bank Światowy','Grupa Banku Światowego','finanse'],['WHO','Światowa Organizacja Zdrowia','zdrowie'],['OBWE','Organizacja Bezpieczeństwa i Współpracy w Europie','bezpieczeństwo'],['ASEAN','Stowarzyszenie Narodów Azji Południowo-Wschodniej','regionalna'],['Unia Afrykańska','Unia Afrykańska','regionalna'],['OAS','Organizacja Państw Amerykańskich','regionalna'],['Liga Arabska','Liga Państw Arabskich','regionalna'],['OECD','Organizacja Współpracy Gospodarczej i Rozwoju','gospodarcza'],['BRICS','BRICS','gospodarcza']
-];
-const EMBARGO_TARGETS=['Ropa naftowa','Gaz ziemny','Węgiel','Uran i paliwo jądrowe','Broń i amunicja','Technologie wojskowe','Podzespoły elektroniczne','Półprzewodniki','Oprogramowanie i technologie AI','Maszyny przemysłowe','Samoloty i części lotnicze','Statki i części morskie','Pojazdy i części samochodowe','Metale strategiczne','Złoto i metale szlachetne','Żywność i produkty rolne','Nawozy','Produkty farmaceutyczne','Usługi finansowe','Transakcje bankowe','Inwestycje','Eksport wszystkich towarów','Import wszystkich towarów','Podróże i wizy','Transport lotniczy','Transport morski','Media państwowe','Usługi cyfrowe','Dane i usługi chmurowe','Towary luksusowe'];
-function ensureDiplomacy(){
- if(!G.diplomacy)G.diplomacy={selected:COUNTRIES[0],countries:{},orgs:{},embargoes:[]};
- G.diplomacy.selected=COUNTRIES.includes(G.diplomacy.selected)?G.diplomacy.selected:COUNTRIES[0];
- if(!G.diplomacy.countries)G.diplomacy.countries={};
- COUNTRIES.forEach(c=>{if(!G.diplomacy.countries[c])G.diplomacy.countries[c]={relation:40+Math.random()*25,embassy:0,trade:45+Math.random()*25,trust:40+Math.random()*30};});
- if(!G.diplomacy.orgs)G.diplomacy.orgs={};
- ORGS.forEach(o=>{if(!G.diplomacy.orgs[o[0]])G.diplomacy.orgs[o[0]]={relation:50+Math.random()*20,membership:['NATO','G7','G20','WTO','MFW','Bank Światowy','WHO','OECD'].includes(o[0])?'Członek':'Partner'};});
- if(!Array.isArray(G.diplomacy.embargoes))G.diplomacy.embargoes=[];
-}
-function selectCountry(c){ensureDiplomacy();G.diplomacy.selected=c;save();render()}
-function buildEmbassy(c){c=decodeURIComponent(c);ensureDiplomacy();const d=G.diplomacy.countries[c];if(!d)return;if(G.funds<25)return toast('Brak środków na ambasadę');if(d.embassy>=3)return toast('Ambasada ma już maksymalny poziom 3');G.funds-=25;d.embassy++;d.relation=clamp(d.relation+4,0,100);d.trust=clamp(d.trust+3,0,100);saveNews(`🏛️ Rozbudowano ambasadę USA w ${c} do poziomu ${d.embassy}.`);save();render()}
-function removeEmbassy(c){c=decodeURIComponent(c);ensureDiplomacy();const d=G.diplomacy.countries[c];if(!d||!d.embassy)return toast('W tym państwie nie ma ambasady USA');d.embassy=0;d.relation=clamp(d.relation-5,0,100);d.trust=clamp(d.trust-3,0,100);saveNews(`🗑️ Zamknięto ambasadę USA w ${c}.`);save();render()}
-function diplomacyAction(c,a){c=decodeURIComponent(c);ensureDiplomacy();const d=G.diplomacy.countries[c];if(!d)return;if(a==='summit'){d.relation=clamp(d.relation+4,0,100);d.trust=clamp(d.trust+5,0,100);G.foreign=clamp(G.foreign+2,0,100)}else if(a==='trade'){d.trade=clamp(d.trade+8,0,100);d.relation=clamp(d.relation+2,0,100);G.funds+=20}else if(a==='aid'){if(G.funds<40)return toast('Brak środków');G.funds-=40;d.relation=clamp(d.relation+7,0,100);d.trust=clamp(d.trust+5,0,100)}else if(a==='security'){d.trust=clamp(d.trust+6,0,100);d.relation=clamp(d.relation+3,0,100);G.defense=clamp(G.defense+1,0,100)}else if(a==='visit'){d.relation=clamp(d.relation+3,0,100);d.trust=clamp(d.trust+4,0,100)}saveNews(`🌐 Wykonano działanie dyplomatyczne wobec ${c}.`);save();render()}
-function orgAction(o,a){o=decodeURIComponent(o);ensureDiplomacy();const d=G.diplomacy.orgs[o];if(!d)return;if(a==='summit'){d.relation=clamp(d.relation+4,0,100)}else{if(G.funds<30)return toast('Brak środków');G.funds-=30;d.relation=clamp(d.relation+3,0,100)}G.foreign=clamp(G.foreign+1,0,100);saveNews(`🏛️ Wykonano działanie wobec ${o}.`);save();render()}
-function openEmbargo(c){c=decodeURIComponent(c);ensureDiplomacy();const d=G.diplomacy.countries[c];openModal(`<div class="embargoModal"><h2>🚫 Embargo wobec ${c}</h2><p class="muted">Wybierz zakres, poziom oraz dowolną liczbę sektorów. Okno nie zamknie się samo — pozostanie otwarte aż do Twojej decyzji.</p><div class="embargoSummary"><div class="embargoStat">Relacje<b>${Math.round(d.relation)}/100</b></div><div class="embargoStat">Handel<b>${Math.round(d.trade)}/100</b></div><div class="embargoStat">Zaufanie<b>${Math.round(d.trust)}/100</b></div><div class="embargoStat">Ambasada<b>${d.embassy}/3</b></div></div><label>Zakres embargo</label><select id="embargoScope"><option value="sector">Embargo sektorowe</option><option value="full">Pełne embargo handlowe</option></select><label>Poziom</label><select id="embargoLevel"><option value="Lekkie">Lekkie</option><option value="Średnie">Średnie</option><option value="Surowe">Surowe</option><option value="Maksymalne">Maksymalne</option></select><label>Na co nakładasz embargo?</label><div class="embargoList">${EMBARGO_TARGETS.map((x,i)=>`<label class="list"><input type="checkbox" name="embTarget" value="${i}"> ${x}</label>`).join('')}</div><label>Uzasadnienie decyzji</label><textarea id="embargoReason" placeholder="Np. naruszenie umowy, agresja, bezpieczeństwo narodowe..."></textarea><div class="notice">Lekkie embargo: mała presja. Średnie: wyraźne ograniczenie. Surowe: silna presja. Maksymalne: bardzo duży spadek handlu i relacji.</div><div class="rowActions"><button class="btn danger" onclick="applyEmbargo('${encodeURIComponent(c)}')">🚫 Nałóż embargo</button><button class="btn" onclick="closeModal()">Zamknij bez zmian</button></div></div>`);document.querySelector('#modal .modalBox').classList.add('embargoModal')}
-function applyEmbargo(c){c=decodeURIComponent(c);ensureDiplomacy();const scope=document.getElementById('embargoScope')?.value,level=document.getElementById('embargoLevel')?.value;const targets=[...document.querySelectorAll('input[name="embTarget"]:checked')].map(x=>EMBARGO_TARGETS[+x.value]);if(scope!=='full'&&!targets.length)return toast('Wybierz przynajmniej jeden sektor');const d=G.diplomacy.countries[c];if(!d)return;const penalty=level==='Maksymalne'?12:level==='Surowe'?8:level==='Średnie'?5:3;d.relation=clamp(d.relation-penalty,0,100);d.trade=clamp(d.trade-(scope==='full'?40:penalty*2),0,100);G.foreign=clamp(G.foreign+1,0,100);G.diplomacy.embargoes.push({country:c,targets:scope==='full'?['Cały handel']:targets,scope,level,reason:(document.getElementById('embargoReason')?.value||'').trim(),date:`${G.day}.${G.month}.${G.year}`});saveNews(`🚫 Nałożono ${level.toLowerCase()} embargo na ${c}.`);closeModal();save();render()}
-function liftEmbargo(i){ensureDiplomacy();const e=G.diplomacy.embargoes[i];if(!e)return;const d=G.diplomacy.countries[e.country];if(d){d.relation=clamp(d.relation+4,0,100);d.trade=clamp(d.trade+(e.scope==='full'?15:8),0,100)}G.diplomacy.embargoes.splice(i,1);saveNews(`✅ Zniesiono embargo wobec ${e.country}.`);save();render()}
-function diplomacyCard(c){ensureDiplomacy();const d=G.diplomacy.countries[c];return C('wide selectedStateCard',`🌐 ${c}`,stat('Relacje',Math.round(d.relation)+'/100')+stat('Zaufanie',Math.round(d.trust)+'/100')+stat('Handel',Math.round(d.trade)+'/100')+stat('Ambasada',d.embassy?`Poziom ${d.embassy}/3`:'Brak')+bar(d.relation)+`<div class="rowActions"><button class="btn primary" onclick="buildEmbassy('${encodeURIComponent(c)}')">🏛️ Zbuduj / ulepsz ambasadę — $25M</button><button class="btn danger" onclick="removeEmbassy('${encodeURIComponent(c)}')">🗑️ Usuń ambasadę</button></div><div class="actionGrid" style="margin-top:8px"><button class="btn" onclick="diplomacyAction('${encodeURIComponent(c)}','summit')">🤝 Szczyt przywódców</button><button class="btn" onclick="diplomacyAction('${encodeURIComponent(c)}','trade')">💱 Umowa handlowa</button><button class="btn" onclick="diplomacyAction('${encodeURIComponent(c)}','aid')">💰 Pomoc gospodarcza — $40M</button><button class="btn" onclick="diplomacyAction('${encodeURIComponent(c)}','security')">🛡️ Współpraca bezpieczeństwa</button><button class="btn" onclick="diplomacyAction('${encodeURIComponent(c)}','visit')">✈️ Wizyta państwowa</button><button class="btn danger" onclick="openEmbargo('${encodeURIComponent(c)}')">🚫 Embargo</button></div>`)}
-function vForeign(){ensureDiplomacy();const c=G.diplomacy.selected;const embassyCount=COUNTRIES.reduce((n,x)=>n+((G.diplomacy.countries[x]?.embassy||0)>0?1:0),0);const orgHtml=ORGS.map(o=>{const d=G.diplomacy.orgs[o[0]];return `<div class="list"><b>${o[0]} — ${o[1]}</b><div class="muted">${o[2]} • ${d.membership} • relacje ${Math.round(d.relation)}/100</div><div class="rowActions" style="margin-top:7px"><button class="btn" onclick="orgAction('${encodeURIComponent(o[0])}','summit')">Szczyt</button><button class="btn" onclick="orgAction('${encodeURIComponent(o[0])}','fund')">Finansowanie — $30M</button></div></div>`}).join('');const embargoHtml=G.diplomacy.embargoes.length?G.diplomacy.embargoes.map((e,i)=>`<div class="list"><b>🚫 ${e.country}</b><div class="muted">${e.targets.join(', ')}</div><div class="muted">Poziom: ${e.level} • ${e.scope==='full'?'pełne embargo':'sektorowe'}${e.reason?` • ${e.reason}`:''}</div><button class="btn" onclick="liftEmbargo(${i})">Znieś embargo</button></div>`).join(''):'<div class="empty">Brak aktywnych embarg.</div>';const options=COUNTRIES.map(x=>`<option value="${x.replaceAll('"','&quot;')}" ${x===c?'selected':''}>${x}</option>`).join('');return `<div class="grid">${C('','Siła dyplomatyczna',`<div class="metric">${G.foreign}/100</div>${bar(G.foreign)}`)}${C('','Sieć dyplomatyczna',stat('Państwa',COUNTRIES.length)+stat('Organizacje',ORGS.length)+stat('Ambasady',embassyCount)+stat('Aktywne embarga',G.diplomacy.embargoes.length))}${C('full','🌍 Państwa świata',`<div class="notice">Lista obejmuje państwa ONZ oraz dodatkowo Watykan / Stolicę Apostolską, Kosowo i Tajwan. Wybierz państwo, aby zarządzać relacjami i ambasadą.</div><select class="diplomacySelect" onchange="selectCountry(this.value)">${options}</select>${diplomacyCard(c)}`)}${C('full','🏛️ Organizacje międzynarodowe',`<div class="orgGrid">${orgHtml}</div>`)}${C('full','🚫 Aktywne embarga',embargoHtml)}</div>`}
+    <!-- =========================
+         BACKGROUND
+    ========================== -->
 
-/* ===== FINAL FIXES v7 ===== */
-(function(){
-  /* Time controls shown directly beside the date/time. */
-  if(typeof G.timeSpeed!=='number') G.timeSpeed=1;
-  G.paused=!!G.paused;
-  window.setSpeed=function(v){
-    G.timeSpeed=v;
-    G.paused=v===0;
-    save();
-    updateClock();
-    toast(v===0?'⏸ Czas zatrzymany':`⏱️ Prędkość czasu: ${v}×`);
-  };
-  const oldUpdateClock=window.updateClock;
-  window.updateClock=function(){
-    const months=['stycznia','lutego','marca','kwietnia','maja','czerwca','lipca','sierpnia','września','października','listopada','grudnia'];
-    const d=document.getElementById('gameDate'),t=document.getElementById('gameTime'),st=document.getElementById('clockStatus');
-    if(!d||!t||!st)return;
-    d.textContent=`${G.day} ${months[G.month-1]} ${G.year}`;
-    t.textContent=`${String(G.hour).padStart(2,'0')}:${String(G.minute).padStart(2,'0')}`;
-    st.textContent=G.paused?'Czas zatrzymany':G.election?.active&&G.election.phase==='campaign'?`Kampania prezydencka • dzień ${G.election.day}/${G.election.totalDays}`:G.congressCampaign?.active?`Kampania do Kongresu • dzień ${G.congressCampaign.day}/${G.congressCampaign.totalDays}`:G.president?'Kadencja prezydencka':'Czas gry płynie automatycznie';
-    ['speedPause','speed1','speed2','speed4'].forEach(id=>document.getElementById(id)?.classList.remove('primary'));
-    const active=G.paused?'speedPause':`speed${G.timeSpeed}`;
-    document.getElementById(active)?.classList.add('primary');
-  };
+    <div class="background">
 
-  /* Economy is locked until the presidential victory. */
-  if(typeof G.economyUnlocked!=='boolean') G.economyUnlocked=!!G.president;
-  const oldSetPage=window.setPage;
-  window.setPage=function(p){
-    if(p==='oval'&&!G.oval.unlocked){toast('Gabinet Owalny odblokuje się po wygraniu wyborów.');return;}
-    if(p==='economy'&&!G.economyUnlocked){toast('💵 Gospodarka odblokuje się po wygraniu wyborów prezydenckich.');return;}
-    G.page=p;render();
-  };
-  window.renderNav=function(){
-    document.getElementById('nav').innerHTML=NAV.map(([id,label,icon])=>{
-      const lock=id==='oval'&&!G.oval.unlocked || id==='economy'&&!G.economyUnlocked;
-      return `<button class="${G.page===id?'active':''} ${lock?'locked':''}" onclick="setPage('${id}')">${icon} ${label}${lock?' 🔒':''}</button>`;
-    }).join('');
-  };
+        <div class="glow one"></div>
+        <div class="glow two"></div>
+        <div class="glow three"></div>
 
-  /* Economy simulation only starts after victory. */
-  window.advanceEconomy=function(){
-    if(!G.economyUnlocked)return;
-    G.funds=Math.max(0,G.funds+Math.round(3+Math.random()*4-G.unemployment*.25));
-    G.gdp+=.04-(G.inflation>5?.05:0);
-    G.unemployment=clamp(G.unemployment+(Math.random()-.5)*.05,2.5,10);
-    G.inflation=clamp(G.inflation+(Math.random()-.5)*.04,1,9);
-    if(Math.random()<.08)saveNews('📰 Nowe wydarzenie wpłynęło na nastroje w kraju.');
-  };
-  const oldFinish=window.finishPresidentialElection;
-  window.finishPresidentialElection=function(){
-    oldFinish();
-    if(G.president){G.economyUnlocked=true;saveNews('💵 Gospodarka została odblokowana po zwycięstwie prezydenckim.');save();render();}
-  };
-  window.vEconomy=function(){
-    if(!G.economyUnlocked)return `<div class="grid"><div class="card full lockedPanel"><div class="big">🔒</div><h2>Gospodarka</h2><p class="muted">Panel gospodarczy zostanie odblokowany po wygraniu wyborów prezydenckich.</p><button class="btn primary" onclick="setPage('election')">Przejdź do wyborów</button></div></div>`;
-    return `<div class="grid">${C('','PKB',`<div class="metric">${G.gdp.toFixed(1)}</div>`)}${C('','Inflacja',`<div class="metric">${G.inflation.toFixed(1)}%</div>`)}${C('','Bezrobocie',`<div class="metric">${G.unemployment.toFixed(1)}%</div>`)}${C('wide','Polityka gospodarcza',`<div class="rowActions"><button class="btn primary" onclick="econ('stimulus')">Infrastruktura — $60M</button><button class="btn" onclick="econ('tax')">Reforma podatkowa</button><button class="btn" onclick="econ('austerity')">Oszczędności</button></div>`)}${C('half','Wskaźniki',stat('PKB',G.gdp.toFixed(1))+stat('Inflacja',G.inflation.toFixed(1)+'%')+stat('Bezrobocie',G.unemployment.toFixed(1)+'%'))}</div>`;
-  };
+        <div class="roads">
+            <div class="road r1"></div>
+            <div class="road r2"></div>
+            <div class="road r3"></div>
+            <div class="road r4"></div>
+            <div class="road r5"></div>
+        </div>
 
-  /* Congress has its own election cycle and can run independently. */
-  window.startCongressCampaign=function(){
-    if(G.congressCampaign?.active)return toast('Kampania do Kongresu już trwa.');
-    G.congressCampaign={active:true,day:1,totalDays:20,phase:'campaign',results:null};
-    saveNews('🏛️ Rozpoczęła się niezależna kampania do Kongresu. Nie jest powiązana z wyborami prezydenckimi.');save();render();
-  };
-  window.vCongress=function(){
-    if(G.congressCampaign?.phase==='results'){
-      return `<div class="grid">${C('wide','🏛️ Wyniki wyborów do Kongresu',`<div class="resultBanner"><div class="metric">Izba: ${G.houseD} D / ${G.houseR} R / ${G.houseI} I</div><p>Senat: ${G.senateD} D / ${G.senateR} R / ${G.senateI} I</p><div class="rowActions"><button class="btn primary" onclick="startCongressCampaign()">Rozpocznij nową kampanię Kongresu</button></div></div>`)}${C('half','Kontrola Kongresu',stat('Izba',houseControl())+stat('Senat',senateControl()))}${C('half','Kalendarz',stat('Następna kampania',G.nextCongress)+`<span class="muted">Kongres jest niezależny od cyklu prezydenckiego.</span>`)}${C('full','Mapa Senatu',mapHTML('senateMap','senate'))}</div>`;
-    }
-    if(!G.congressCampaign?.active){
-      return `<div class="grid">${C('wide','🏛️ Kampania do Kongresu',`<div class="campaignHero"><div class="eyebrow">Oddzielny cykl wyborczy</div><div class="campaignDay">Kongres wybierasz niezależnie</div><p class="muted">Ta kampania nie czeka na wybory prezydenckie. Możesz rozpocząć ją w dowolnym momencie i prowadzić osobno Izbę Reprezentantów oraz Senat.</p><button class="btn primary" onclick="startCongressCampaign()">🏛️ Rozpocznij kampanię do Kongresu</button></div>`)}${C('','Stan Kongresu',stat('Izba',`${G.houseD} D / ${G.houseR} R / ${G.houseI} I`)+stat('Senat',`${G.senateD} D / ${G.senateR} R / ${G.senateI} I`))}${C('full','Mapa kampanii',mapHTML('congressMap','political'))}</div>`;
-    }
-    return `<div class="grid">${C('wide','🏛️ Kampania do Kongresu',`<div class="campaignHero"><div class="eyebrow">Niezależne wybory parlamentarne</div><div class="campaignDay">Dzień ${G.congressCampaign.day} / ${G.congressCampaign.totalDays}</div><div class="progress"><i style="width:${G.congressCampaign.day/G.congressCampaign.totalDays*100}%"></i></div><p class="muted">Kampania Kongresu działa równolegle do reszty gry i nie jest resetowana przez wybory prezydenckie.</p></div>`)}${C('','Stan Kongresu',stat('Izba',`${G.houseD} D / ${G.houseR} R / ${G.houseI} I`)+stat('Senat',`${G.senateD} D / ${G.senateR} R / ${G.senateI} I`))}${C('full','Mapa kampanii',mapHTML('congressMap','political'))}${C('wide','Operacje kampanijne',`<div class="campaignGrid"><button class="campaignAction btn" onclick="congressAction('ground')"><b>🤝 Organizacja terenu</b>-$30M</button><button class="campaignAction btn" onclick="congressAction('tv')"><b>📺 Reklama TV</b>-$55M</button><button class="campaignAction btn" onclick="congressAction('fund')"><b>💰 Fundraising</b>+$65M</button><button class="campaignAction btn" onclick="congressAction('endorse')"><b>⭐ Poparcie liderów</b>-$20M</button><button class="campaignAction btn" onclick="congressAction('attack')"><b>⚔️ Kampania negatywna</b>-$40M</button></div>`)}</div>`;
-  };
+        <div class="particles" id="particles"></div>
 
-  /* Both campaign clocks advance independently each game day. */
-  window.dailyTick=function(){
-    advanceEconomy();
-    if(G.election?.active&&G.election.phase==='campaign'){
-      G.election.day++;
-      if(G.election.day>G.election.totalDays)startElectionNight();
-    }
-    if(G.congressCampaign?.active&&G.congressCampaign.phase==='campaign'){
-      G.congressCampaign.day++;
-      if(G.congressCampaign.day>G.congressCampaign.totalDays)finishCongress();
-    }
-    if(!G.congressCampaign?.active&&G.year>=G.nextCongress&&G.month===1){startCongressCampaign();}
-    if(G.president&&G.year>=G.nextPresidential&&G.month===1&&!G.election.active){
-      G.election={active:true,type:'presidential',day:1,totalDays:30,phase:'campaign',results:{},called:[],winner:null};
-      saveNews('🗳️ Rozpoczęła się kolejna kampania prezydencka.');
-    }
-    if(Math.random()<.03)G.popularity=clamp(G.popularity+(Math.random()-.45)*2,0,100);
-    save();render();
-  };
+    </div>
 
-  /* Tick respects pause/speed; one real second = speed game-hours. */
-  window.tick=function(){
-    if(G.paused)return;
-    const loops=Math.max(1,G.timeSpeed||1);
-    for(let i=0;i<loops;i++){
-      G.minute+=60;
-      if(G.minute>=60){G.minute=0;G.hour++;}
-      if(G.hour>=24){
-        G.hour=0;
-        G.day++;
-        if(G.day>daysInMonth(G.year,G.month)){
-          G.day=1;G.month++;
-          if(G.month>12){G.month=1;G.year++;}
+
+    <!-- =========================
+         WELCOME SCREEN
+    ========================== -->
+
+    <main class="welcome" id="welcomeScreen">
+
+        <div class="container">
+
+            <div class="logo">
+                <div class="bus-icon"></div>
+            </div>
+
+            <div class="eyebrow">
+                <span class="status-dot"></span>
+                SYSTEM ONLINE
+            </div>
+
+            <h1>
+                BUS<br>
+                MANAGER
+            </h1>
+
+            <p class="subtitle">
+                Zbuduj własne przedsiębiorstwo autobusowe,
+                zarządzaj flotą, twórz linie i zostań najlepszym
+                operatorem transportowym.
+            </p>
+
+            <div class="buttons">
+
+                <button
+                    class="primary"
+                    id="startButton"
+                    onclick="startGame()"
+                >
+                    🚌 &nbsp; ROZPOCZNIJ GRĘ
+                </button>
+
+                <button
+                    class="secondary"
+                    onclick="showInfo()"
+                >
+                    ℹ️ &nbsp; INFORMACJE
+                </button>
+
+            </div>
+
+            <div class="features">
+
+                <div class="feature">
+                    <span>🚌</span>
+                    Zarządzanie flotą
+                </div>
+
+                <div class="feature">
+                    <span>🛣️</span>
+                    Linie autobusowe
+                </div>
+
+                <div class="feature">
+                    <span>💰</span>
+                    Ekonomia
+                </div>
+
+                <div class="feature">
+                    <span>🏙️</span>
+                    Rozwój miasta
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+
+    <!-- =========================
+         TEMPORARY GAME SCREEN
+    ========================== -->
+
+    <section
+        class="game-screen"
+        id="gameScreen"
+    >
+
+        <div class="start-card">
+
+            <div class="mini-icon">
+                🚌
+            </div>
+
+            <h2>
+                Witaj w Bus Manager
+            </h2>
+
+            <p>
+                To dopiero początek Twojego przedsiębiorstwa.
+                Wkrótce tutaj pojawi się właściwy panel
+                zarządzania firmą autobusową.
+            </p>
+
+            <button
+                class="primary"
+                onclick="continueGame()"
+            >
+                PRZEJDŹ DALEJ
+            </button>
+
+            <br>
+
+            <button
+                class="back"
+                onclick="backToWelcome()"
+            >
+                ← Wróć do ekranu głównego
+            </button>
+
+        </div>
+
+    </section>
+
+
+    <div class="version">
+        BUS MANAGER • v0.1.0
+    </div>
+
+
+    <script>
+
+        /* =========================
+           PARTICLES
+        ========================== */
+
+        const particleContainer =
+            document.getElementById("particles");
+
+        for (let i = 0; i < 45; i++) {
+
+            const particle =
+                document.createElement("div");
+
+            particle.className = "particle";
+
+            particle.style.left =
+                Math.random() * 100 + "%";
+
+            particle.style.animationDuration =
+                (7 + Math.random() * 12) + "s";
+
+            particle.style.animationDelay =
+                (-Math.random() * 15) + "s";
+
+            particle.style.opacity =
+                0.2 + Math.random() * 0.7;
+
+            particleContainer.appendChild(particle);
         }
-        dailyTick();
-      }
-    }
-    updateClock();save();
-  };
 
-  /* Fix map clicks: dragging no longer steals the click from a state. */
-  window.initMap=async function(id,mode='political'){
-    const root=document.getElementById(id);if(!root||!window.d3||!window.topojson)return;
-    const svg=d3.select(root).select('svg');svg.selectAll('*').remove();
-    try{
-      const us=await d3.json('https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json');
-      const features=topojson.feature(us,us.objects.states).features;
-      const projection=d3.geoAlbersUsa().fitSize([root.clientWidth,root.clientHeight],{type:'FeatureCollection',features});
-      const path=d3.geoPath(projection),g=svg.append('g');
-      g.selectAll('path').data(features).join('path').attr('class','statePath').attr('d',path)
-        .attr('fill',d=>{const m=STATES.find(x=>x[3]===String(d.id).padStart(2,'0'));return m?colorFor(m[1],mode):'#273b54';})
-        .on('click',(e,d)=>{if(root.__mapMoved){root.__mapMoved=false;return;}const m=STATES.find(x=>x[3]===String(d.id).padStart(2,'0'));if(m)stateInfo(m[1]);});
-      g.selectAll('text').data(features).join('text').attr('class','stateLabel').attr('transform',d=>{const c=path.centroid(d);return `translate(${c[0]},${c[1]})`;}).text(d=>{const m=STATES.find(x=>x[3]===String(d.id).padStart(2,'0'));return m?m[1]:'';});
-      mapStates[id]={svg,g,scale:1,x:0,y:0,drag:false};
-      root.__mapMoved=false;root.__dragStart=null;
-      root.onpointerdown=e=>{if(e.target.closest('.mapTools'))return;root.__dragStart={x:e.clientX,y:e.clientY,ox:mapStates[id].x,oy:mapStates[id].y};};
-      root.onpointermove=e=>{const m=mapStates[id];const st=root.__dragStart;if(!m||!st)return;const dx=e.clientX-st.x,dy=e.clientY-st.y;if(Math.hypot(dx,dy)>5)root.__mapMoved=true;m.x=st.ox+dx;m.y=st.oy+dy;applyMap(id);};
-      root.onpointerup=()=>{root.__dragStart=null;};root.onpointercancel=()=>{root.__dragStart=null;};
-      root.onwheel=e=>{e.preventDefault();mapZoom(id,e.deltaY<0?1.1:.9);};
-    }catch(e){svg.append('text').attr('x','50%').attr('y','50%').attr('text-anchor','middle').attr('fill','#71839a').text('Nie udało się wczytać mapy USA');}
-  };
-  window.initVisibleMaps=function(){document.querySelectorAll('.mapViewport').forEach(x=>initMap(x.id,x.dataset.mode||'political'));};
 
-  /* Tile-based diplomacy: countries on the left, organizations on the right. */
-  window.vForeign=function(){
-    ensureDiplomacy();
-    const c=G.diplomacy.selected;
-    const embassyCount=COUNTRIES.reduce((n,x)=>n+((G.diplomacy.countries[x]?.embassy||0)>0?1:0),0);
-    const countryTiles=COUNTRIES.map(x=>{const d=G.diplomacy.countries[x];const active=x===c;return `<button class="countryTile ${active?'selected':''}" onclick="selectCountry('${encodeURIComponent(x)}')"><span class="tileIcon">🌍</span><span><b>${x}</b><small>Relacje ${Math.round(d.relation)}/100 • Ambasada ${d.embassy}/3</small></span></button>`;}).join('');
-    const orgTiles=ORGS.map(o=>{const d=G.diplomacy.orgs[o[0]];return `<div class="orgTile"><div class="orgTop"><span class="tileIcon">🏛️</span><div><b>${o[0]}</b><small>${o[1]}</small></div></div><div class="muted">${o[2]} • ${d.membership} • relacje ${Math.round(d.relation)}/100</div><div class="rowActions" style="margin-top:8px"><button class="btn" onclick="orgAction('${encodeURIComponent(o[0])}','summit')">🤝 Szczyt</button><button class="btn" onclick="orgAction('${encodeURIComponent(o[0])}','fund')">💰 Finansowanie — $30M</button></div></div>`;}).join('');
-    const d=G.diplomacy.countries[c];
-    const embargoHtml=G.diplomacy.embargoes.length?G.diplomacy.embargoes.map((e,i)=>`<div class="list"><b>🚫 ${e.country}</b><div class="muted">${e.targets.join(', ')}</div><div class="muted">Poziom: ${e.level} • ${e.scope==='full'?'pełne embargo':'sektorowe'}${e.reason?` • ${e.reason}`:''}</div><button class="btn" onclick="liftEmbargo(${i})">Znieś embargo</button></div>`).join(''):'<div class="empty">Brak aktywnych embarg.</div>';
-    return `<div class="grid">${C('','Siła dyplomatyczna',`<div class="metric">${G.foreign}/100</div>${bar(G.foreign)}`)}${C('','Sieć dyplomatyczna',stat('Państwa',COUNTRIES.length)+stat('Organizacje',ORGS.length)+stat('Ambasady',embassyCount)+stat('Aktywne embarga',G.diplomacy.embargoes.length))}<div class="card full diplomacyColumns"><div class="diplomacyCol"><div class="sectionTitle"><span>🌍 Państwa świata</span><small>${COUNTRIES.length} dostępnych</small></div><div class="tileGrid">${countryTiles}</div></div><div class="diplomacyCol"><div class="sectionTitle"><span>🏛️ Organizacje</span><small>${ORGS.length} organizacji</small></div><div class="tileGrid orgTiles">${orgTiles}</div></div></div>${C('full selectedStateCard',`🌐 ${c}`,stat('Relacje',Math.round(d.relation)+'/100')+stat('Zaufanie',Math.round(d.trust)+'/100')+stat('Handel',Math.round(d.trade)+'/100')+stat('Ambasada',d.embassy?`Poziom ${d.embassy}/3`:'Brak')+bar(d.relation)+`<div class="rowActions"><button class="btn primary" onclick="buildEmbassy('${encodeURIComponent(c)}')">🏛️ Zbuduj / ulepsz ambasadę — $25M</button><button class="btn danger" onclick="removeEmbassy('${encodeURIComponent(c)}')">🗑️ Usuń ambasadę</button></div><div class="actionGrid" style="margin-top:8px"><button class="btn" onclick="diplomacyAction('${encodeURIComponent(c)}','summit')">🤝 Szczyt przywódców</button><button class="btn" onclick="diplomacyAction('${encodeURIComponent(c)}','trade')">💱 Umowa handlowa</button><button class="btn" onclick="diplomacyAction('${encodeURIComponent(c)}','aid')">💰 Pomoc gospodarcza — $40M</button><button class="btn" onclick="diplomacyAction('${encodeURIComponent(c)}','security')">🛡️ Współpraca bezpieczeństwa</button><button class="btn" onclick="diplomacyAction('${encodeURIComponent(c)}','visit')">✈️ Wizyta państwowa</button><button class="btn danger" onclick="openEmbargo('${encodeURIComponent(c)}')">🚫 Embargo</button></div>`)}${C('full','🚫 Aktywne embarga',embargoHtml)}</div>`;
-  };
+        /* =========================
+           START GAME
+        ========================== */
 
-  /* CSS for the new diplomacy layout and clock buttons. */
-  const st=document.createElement('style');st.textContent=`
-    .fundsBar{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:0 0 18px;padding:13px 16px;border:1px solid #ffffff12;border-radius:16px;background:linear-gradient(135deg,#0d1b2d,#0a1422);box-shadow:0 15px 45px #0004;backdrop-filter:blur(14px)}.fundsBar .fundsLabel{color:#8194ad;font-size:11px;text-transform:uppercase;letter-spacing:1.1px;font-weight:900}.fundsBar .fundsValue{font-size:25px;font-weight:950;color:#6ee3b2}.fundsBar .fundsSub{font-size:11px;color:#61758f}.cheatModal{max-width:560px}.cheatCode{font-size:18px!important;font-weight:900;letter-spacing:1px;text-align:center}.cheatHint{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:10px}.cheatHint div{padding:9px;border:1px solid #ffffff0b;border-radius:10px;background:#ffffff04;color:#8da0b8}.diplomacyLocked{padding:40px;text-align:center}.diplomacyLocked .big{font-size:55px}@media(max-width:650px){.fundsBar{align-items:flex-start;flex-direction:column}.cheatHint{grid-template-columns:1fr}}
-    .clockControls{display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap;margin-top:9px}.clockControls .btn{padding:6px 9px;font-size:11px}
-    .diplomacyColumns{display:grid;grid-template-columns:1fr 1fr;gap:18px}.diplomacyCol{min-width:0}.sectionTitle{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px;font-weight:900}.sectionTitle small{color:#70839a;font-weight:600}.tileGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;max-height:680px;overflow:auto;padding-right:3px}.countryTile,.orgTile{width:100%;min-width:0;text-align:left;padding:11px;border:1px solid #ffffff0d;border-radius:13px;background:linear-gradient(145deg,#ffffff06,#ffffff02);color:#fff}.countryTile{display:flex;align-items:center;gap:9px}.countryTile:hover,.countryTile.selected{border-color:#4d8dff55;background:#4d8dff12}.countryTile b,.orgTile b{display:block;font-size:12px;line-height:1.2}.countryTile small,.orgTile small{display:block;color:#788da7;margin-top:4px;line-height:1.25}.tileIcon{font-size:21px;flex:0 0 auto}.orgTile{display:block}.orgTop{display:flex;gap:9px;align-items:flex-start;margin-bottom:7px}.orgTop .tileIcon{font-size:22px}.orgTile .btn{font-size:11px;padding:7px 8px}@media(max-width:1000px){.diplomacyColumns{grid-template-columns:1fr}.tileGrid{max-height:500px}}@media(max-width:650px){.tileGrid{grid-template-columns:1fr}.clockControls{justify-content:flex-start}}
-  `;document.head.appendChild(st);
+        function startGame() {
 
-  /* v8 fixes: independent funds, cheats, diplomacy lock and robust state selection. */
-  if(typeof G.funds!=='number') G.funds=typeof G.cash==='number'?G.cash:850;
-  delete G.cash;
-  if(typeof G.diplomacyUnlocked!=='boolean') G.diplomacyUnlocked=!!G.president;
+            const welcome =
+                document.getElementById("welcomeScreen");
 
-  window.updateFundsBar=function(){
-    const el=document.getElementById('fundsBar');
-    if(!el)return;
-    el.innerHTML=`<div><div class="fundsLabel">💰 Dostępne środki</div><div class="fundsSub">Niezależne środki operacyjne • niezależne od wskaźników gospodarki</div></div><div class="fundsValue">${money(G.funds)}</div>`;
-  };
+            const game =
+                document.getElementById("gameScreen");
 
-  const oldRenderV8=window.render;
-  window.render=function(){oldRenderV8();updateFundsBar();};
+            welcome.style.opacity = "0";
+            welcome.style.transform = "scale(.98)";
 
-  /* Economy never changes funds automatically. GDP/inflation are separate systems. */
-  window.advanceEconomy=function(){
-    if(!G.economyUnlocked)return;
-    G.gdp+=.04-(G.inflation>5?.05:0);
-    G.unemployment=clamp(G.unemployment+(Math.random()-.5)*.05,2.5,10);
-    G.inflation=clamp(G.inflation+(Math.random()-.5)*.04,1,9);
-    if(Math.random()<.08)saveNews('📰 Nowe wydarzenie wpłynęło na nastroje w kraju.');
-  };
+            welcome.style.transition =
+                "opacity .45s ease, transform .45s ease";
 
-  /* Diplomacy is available only after winning the presidential election. */
-  const oldSetPageV8=window.setPage;
-  window.setPage=function(p){
-    if(p==='economy'&&!G.economyUnlocked){toast('💵 Gospodarka odblokuje się po wygraniu wyborów prezydenckich.');return;}
-    if(p==='foreign'&&!G.diplomacyUnlocked){toast('🌐 Dyplomacja odblokuje się po wygraniu wyborów prezydenckich.');return;}
-    if(p==='oval'&&!G.oval.unlocked){toast('Gabinet Owalny odblokuje się po wygraniu wyborów.');return;}
-    G.page=p;render();
-  };
-  window.renderNav=function(){
-    document.getElementById('nav').innerHTML=NAV.map(([id,label,icon])=>{
-      const lock=(id==='oval'&&!G.oval.unlocked)||(id==='economy'&&!G.economyUnlocked)||(id==='foreign'&&!G.diplomacyUnlocked);
-      return `<button class="${G.page===id?'active':''} ${lock?'locked':''}" onclick="setPage('${id}')">${icon} ${label}${lock?' 🔒':''}</button>`;
-    }).join('');
-  };
+            setTimeout(() => {
 
-  const oldFinishV8=window.finishPresidentialElection;
-  window.finishPresidentialElection=function(){
-    oldFinishV8();
-    if(G.president){
-      G.economyUnlocked=true;
-      G.diplomacyUnlocked=true;
-      saveNews('🌐 Dyplomacja została odblokowana po zwycięstwie prezydenckim.');
-      save();render();
-    }
-  };
+                welcome.style.display = "none";
 
-  /* Robust state selection: clicking a state immediately updates the side panel. */
-  window.stateInfo=function(a){
-    if(!G.states[a])return;
-    G.selectedState=a;
-    save();
-    render();
-  };
-  window.initMap=async function(id,mode='political'){
-    const root=document.getElementById(id);if(!root||!window.d3||!window.topojson)return;
-    const svg=d3.select(root).select('svg');svg.selectAll('*').remove();
-    try{
-      const us=await d3.json('https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json');
-      const features=topojson.feature(us,us.objects.states).features;
-      const projection=d3.geoAlbersUsa().fitSize([root.clientWidth,root.clientHeight],{type:'FeatureCollection',features});
-      const path=d3.geoPath(projection),g=svg.append('g');
-      g.selectAll('path').data(features).join('path').attr('class','statePath').attr('d',path)
-        .attr('fill',d=>{const m=STATES.find(x=>x[3]===String(d.id).padStart(2,'0'));return m?colorFor(m[1],mode):'#273b54';})
-        .on('pointerdown',e=>e.stopPropagation())
-        .on('click',(e,d)=>{
-          e.preventDefault();e.stopPropagation();
-          const m=STATES.find(x=>x[3]===String(d.id).padStart(2,'0'));
-          if(m)window.stateInfo(m[1]);
-        });
-      g.selectAll('text').data(features).join('text').attr('class','stateLabel')
-        .attr('transform',d=>{const c=path.centroid(d);return `translate(${c[0]},${c[1]})`;})
-        .text(d=>{const m=STATES.find(x=>x[3]===String(d.id).padStart(2,'0'));return m?m[1]:'';});
-      mapStates[id]={svg,g,scale:1,x:0,y:0,drag:false};
-      let drag={active:false,moved:false,x:0,y:0,ox:0,oy:0};
-      root.onpointerdown=e=>{if(e.target.closest('.mapTools')||e.target.closest('.statePath'))return;drag={active:true,moved:false,x:e.clientX,y:e.clientY,ox:mapStates[id].x,oy:mapStates[id].y};root.setPointerCapture?.(e.pointerId)};
-      root.onpointermove=e=>{const m=mapStates[id];if(!drag.active)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(Math.hypot(dx,dy)>5)drag.moved=true;if(drag.moved){m.x=drag.ox+dx;m.y=drag.oy+dy;applyMap(id);}};
-      root.onpointerup=()=>{drag.active=false;};root.onpointercancel=()=>{drag.active=false;};
-      root.onwheel=e=>{e.preventDefault();mapZoom(id,e.deltaY<0?1.1:.9)};
-    }catch(e){svg.append('text').attr('x','50%').attr('y','50%').attr('text-anchor','middle').attr('fill','#71839a').text('Nie udało się wczytać mapy USA');}
-  };
+                game.classList.add("active");
 
-  /* Cheats: press ~ / `, type a code and press Enter. Enter always closes the window. */
-  window.openCheatPanel=function(){
-    openModal(`<div class="cheatModal"><h2>⌁ Panel cheatów</h2><p class="muted">Wpisz kod i naciśnij Enter. Po wykonaniu kodu okno automatycznie się zamknie.</p><input id="cheatCode" class="cheatCode" autocomplete="off" autofocus placeholder="np. MONEY1000 lub SUPPORT25"><div class="cheatHint"><div><b>MONEY1000</b><br>+1 000 mln $</div><div><b>MONEY10000</b><br>+10 000 mln $</div><div><b>SUPPORT25</b><br>+25 pkt poparcia</div><div><b>SUPPORT50</b><br>+50 pkt poparcia</div><div><b>WIN</b><br>Natychmiastowa wygrana</div><div><b>RESET</b><br>Nowa gra</div></div></div>`);
-    document.querySelector('#modal .modalBox').classList.add('cheatModal');
-    const input=document.getElementById('cheatCode');
-    setTimeout(()=>input?.focus(),30);
-    input?.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();runCheat(input.value);}});
-  };
-  window.runCheat=function(raw){
-    const code=String(raw||'').trim().toUpperCase().replace(/\s+/g,'');
-    if(!code){closeModal();return;}
-    let m=code.match(/^(?:MONEY|CASH|KASA|FUNDS)(\d+)$/);
-    if(m){G.funds+=Number(m[1]);saveNews(`⌁ Cheat: dodano ${money(Number(m[1]))} do środków.`);save();closeModal();render();toast('💰 Dodano środki');return;}
-    m=code.match(/^(?:SUPPORT|POP|POPARCIE)(\d+)$/);
-    if(m){const amount=Number(m[1]);G.popularity=clamp(G.popularity+amount,0,100);STATES.forEach(s=>G.states[s[1]].support=clamp(G.states[s[1]].support+amount*.35,0,100));saveNews(`⌁ Cheat: zwiększono poparcie o ${amount} pkt.`);save();closeModal();render();toast('📈 Zwiększono poparcie');return;}
-    if(code==='WIN'||code==='WINNOW'||code==='PREZYDENT'){
-      G.president=true;G.economyUnlocked=true;G.diplomacyUnlocked=true;G.oval.unlocked=true;
-      if(G.election){G.election.active=false;G.election.phase='results';G.election.winner='blue';}
-      G.popularity=Math.max(G.popularity,70);saveNews('⌁ Cheat: natychmiastowe zwycięstwo wyborcze.');save();closeModal();render();toast('🗳️ Wybory wygrane');return;
-    }
-    if(code==='RESET'){
-      localStorage.removeItem('usaPresidentV4');G=fresh();G.funds=850;save();closeModal();render();toast('♻️ Rozpoczęto nową grę');return;
-    }
-    closeModal();toast('❌ Nieznany kod cheat');
-  };
-  document.addEventListener('keydown',e=>{
-    if((e.key==='~'||e.code==='Backquote')&&!['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName)){e.preventDefault();openCheatPanel();}
-  });
+            }, 450);
+        }
 
-  const oldVForeignV8=window.vForeign;
-  window.vForeign=function(){
-    if(!G.diplomacyUnlocked)return `<div class="grid"><div class="card full diplomacyLocked"><div class="big">🔒</div><h2>Dyplomacja</h2><p class="muted">Dyplomacja, państwa świata, organizacje, ambasady i embargo odblokują się po wygraniu wyborów prezydenckich.</p><button class="btn primary" onclick="setPage('election')">Przejdź do wyborów</button></div></div>`;
-    return oldVForeignV8();
-  };
 
-  ensureDiplomacy();
-})();
+        /* =========================
+           BACK
+        ========================== */
 
-render();
+        function backToWelcome() {
 
-/* ===== v9 FEDERAL LAWS: SCOPE + PRESIDENTIAL SIGN/VETO ===== */
-(function(){
-  function escLaw(v){return String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
-  function lawScopeLabel(l){
-    if(l.scope==='all') return '🇺🇸 Wszystkie stany';
-    const st=STATES.find(x=>x[1]===l.scopeState);
-    return st ? `📍 ${st[0]} (${st[1]})` : '📍 Wybrany stan';
-  }
-  function applyLawEffect(l){
-    const targets=l.scope==='all'?STATES.map(x=>x[1]):[l.scopeState];
-    targets.forEach(a=>{
-      const st=G.states[a]; if(!st)return;
-      if(!Array.isArray(st.federalLaws))st.federalLaws=[];
-      if(!st.federalLaws.includes(l.name))st.federalLaws.push(l.name);
-      // Ustawa daje niewielki, trwały efekt polityczny w objętych nią stanach.
-      st.support=clamp((st.support||0)+(l.effectSupport||0),0,100);
-    });
-    l.appliedTo=targets;
-  }
-  window.lawModal=function(){
-    const stateOptions=STATES.map(x=>`<option value="${x[1]}">${x[0]} (${x[1]})</option>`).join('');
-    openModal(`<div class="lawModal"><h2>📜 Nowy projekt ustawy federalnej</h2>
-      <p class="muted">Najpierw wybierz zakres obowiązywania. Po przejściu przez Izbę i Senat ustawa otrzyma status <b>Do decyzji prezydenta</b>. Jeżeli jesteś prezydentem, to Ty decydujesz: podpisujesz albo wetujesz.</p>
-      <label>Nazwa ustawy</label><input id="lawName" value="Ustawa o modernizacji infrastruktury">
-      <label>Komisja</label><select id="lawCommittee"><option>Finanse i budżet</option><option>Gospodarka</option><option>Zdrowie</option><option>Obrona</option><option>Technologie</option><option>Sprawy zagraniczne</option><option>Infrastruktura</option><option>Rolnictwo</option></select>
-      <label>Opis</label><textarea id="lawDesc">Projekt ustawy federalnej.</textarea>
-      <label>Koszt realizacji (mln $)</label><input id="lawCost" type="number" min="0" value="40">
-      <label>Gdzie ustawa ma obowiązywać?</label>
-      <select id="lawScope" onchange="document.getElementById('lawStateWrap').style.display=this.value==='state'?'block':'none'"><option value="all">🇺🇸 Wszystkie stany</option><option value="state">📍 Jeden wybrany stan</option></select>
-      <div id="lawStateWrap" style="display:none"><label>Wybierz stan</label><select id="lawState">${stateOptions}</select></div>
-      <label>Wpływ na poparcie w objętym stanie/stanach</label><input id="lawEffect" type="number" min="-10" max="10" step="0.5" value="0">
-      <div class="notice">🏛️ Proces: projekt → Izba → Senat → <b>decyzja prezydenta</b>. Weto oznacza, że ustawa nie wchodzi w życie.</div>
-      <div class="rowActions"><button class="btn primary" onclick="submitLaw()">🏛️ Wyślij do Kongresu</button><button class="btn" onclick="closeModal()">Anuluj</button></div>
-    </div>`);
-  };
-  window.submitLaw=function(){
-    const name=document.getElementById('lawName')?.value.trim()||'Nowa ustawa';
-    const committee=document.getElementById('lawCommittee')?.value||'Finanse i budżet';
-    const desc=document.getElementById('lawDesc')?.value.trim()||'Projekt ustawy federalnej.';
-    const cost=Math.max(0,+document.getElementById('lawCost')?.value||0);
-    const scope=document.getElementById('lawScope')?.value||'all';
-    const scopeState=scope==='state'?(document.getElementById('lawState')?.value||'AL'):null;
-    const effect=clamp(+document.getElementById('lawEffect')?.value||0,-10,10);
-    let house=Math.round(G.houseD+G.houseI+G.houseR*(G.popularity/100)*.65+Math.random()*16-8);
-    let senate=Math.round(G.senateD+G.senateI+G.senateR*(G.popularity/100)*.65+Math.random()*7-3);
-    house=clamp(house,0,435); senate=clamp(senate,0,100);
-    let status=house<218?'Odrzucona przez Izbę':senate<51?'Odrzucona przez Senat':'Do decyzji prezydenta';
-    const law={name,committee,desc,cost,houseVotes:house,senateVotes:senate,status,created:`${G.day}.${G.month}.${G.year}`,scope,scopeState,effectSupport:effect,appliedTo:[]};
-    G.laws.push(law);
-    saveNews(status==='Do decyzji prezydenta'?`📜 Ustawa „${name}” przeszła Kongres i czeka na decyzję prezydenta. Zakres: ${lawScopeLabel(law)}.`:`📜 Ustawa „${name}” nie przeszła Kongresu (${status.toLowerCase()}).`);
-    closeModal();save();render();
-  };
-  window.signLaw=function(i){
-    const l=G.laws[i];
-    if(!l||l.status!=='Do decyzji prezydenta')return;
-    if(!G.president)return toast('Nie jesteś prezydentem — nie możesz podpisać ustawy.');
-    if(l.cost>G.funds)return toast('Brak środków na realizację ustawy.');
-    G.funds-=l.cost;
-    l.status='Podpisana — obowiązuje';
-    l.signedBy='Ty — Prezydent USA';
-    l.signedDate=`${G.day}.${G.month}.${G.year}`;
-    applyLawEffect(l);
-    G.gdp+=l.cost*.012;
-    G.popularity=clamp(G.popularity+(l.cost?1:.3),0,100);
-    saveNews(`✍️ Podpisałeś ustawę „${l.name}”. Obowiązuje: ${lawScopeLabel(l)}.`);
-    save();render();
-  };
-  window.vetoLaw=function(i){
-    const l=G.laws[i];
-    if(!l||l.status!=='Do decyzji prezydenta')return;
-    if(!G.president)return toast('Nie jesteś prezydentem — nie możesz zawetować ustawy.');
-    l.status='Zawetowana';
-    l.vetoedBy='Ty — Prezydent USA';
-    l.vetoedDate=`${G.day}.${G.month}.${G.year}`;
-    G.popularity=clamp(G.popularity-.5,0,100);
-    saveNews(`🛑 Zawetowałeś ustawę „${l.name}”. Ustawa nie obowiązuje.`);
-    save();render();
-  };
-  window.vLaws=function(){
-    return `<div class="grid">${C('wide','Ustawy federalne — Kongres + Prezydent',`<p class="muted">Każda ustawa ma określony zakres: <b>wszystkie stany</b> albo <b>jeden wybrany stan</b>. Po pozytywnych głosowaniach trafia do prezydenta. Gdy jesteś prezydentem, tylko Ty możesz ją podpisać albo zawetować.</p><button class="btn primary" onclick="lawModal()">✍️ Napisz projekt ustawy</button>`)}
-      ${C('','Wymogi',stat('Izba','218 / 435')+stat('Senat','51 / 100')+stat('Prezydent',G.president?'Możesz podpisać / zawetować':'Nie pełnisz urzędu'))}
-      ${C('full','Rejestr ustaw',G.laws.length?`<div class="tablewrap"><table><thead><tr><th>Ustawa</th><th>Zakres</th><th>Komisja</th><th>Izba</th><th>Senat</th><th>Status</th><th>Decyzja</th></tr></thead><tbody>${G.laws.slice().reverse().map((l,ri)=>{const i=G.laws.length-1-ri;const pending=l.status==='Do decyzji prezydenta';const signed=l.status.startsWith('Podpisana');const rejected=l.status.includes('Odrzucona')||l.status==='Zawetowana';return `<tr><td><b>${escLaw(l.name)}</b><br><span class="muted">${escLaw(l.desc)}</span>${signed&&l.signedBy?`<br><span class="muted">Podpis: ${escLaw(l.signedBy)}</span>`:''}</td><td>${lawScopeLabel(l)}</td><td>${escLaw(l.committee)}</td><td>${l.houseVotes}/435</td><td>${l.senateVotes}/100</td><td><span class="badge ${signed?'g':rejected?'r':'y'}">${escLaw(l.status)}</span></td><td>${pending&&G.president?`<button class="btn green" onclick="signLaw(${i})">✍️ Podpisz</button> <button class="btn danger" onclick="vetoLaw(${i})">🛑 Weto</button>`:pending?'⏳ Czeka na prezydenta':signed?'✅ Obowiązuje':'—'}</td></tr>`}).join('')}</tbody></table></div>`:'<div class="empty">Brak projektów ustaw.</div>')}
-      ${C('full','Jak działa ustawa',`<div class="notice">1️⃣ Tworzysz projekt i wybierasz <b>stan</b> albo <b>wszystkie stany</b>.<br>2️⃣ Projekt jest głosowany w Izbie i Senacie.<br>3️⃣ Jeśli przejdzie obie izby, status zmienia się na <b>Do decyzji prezydenta</b>.<br>4️⃣ Jeśli jesteś prezydentem, pojawiają się przyciski <b>Podpisz</b> i <b>Weto</b>.<br>5️⃣ Po podpisie ustawa zostaje oznaczona jako obowiązująca i przypisana do wybranego stanu albo wszystkich 50 stanów.</div>`)}
-      ${C('full','Poprawki do Konstytucji',`${G.amendments.length?G.amendments.slice().reverse().map((a,ri)=>{const i=G.amendments.length-1-ri;return `<div class="list"><b>${escLaw(a.name)}</b><div class="muted">${escLaw(a.text)}</div>${stat('Izba',a.houseVotes+'/435')}${stat('Senat',a.senateVotes+'/100')}${stat('Stany',a.statesYes+'/50')}${stat('Status',a.status)}</div>`}).join(''):'<div class="empty">Brak poprawek.</div>'}<div class="rowActions"><button class="btn primary" onclick="amendmentModal()">⚖️ Zaproponuj poprawkę</button></div>`)}
-    </div>`;
-  };
+            const welcome =
+                document.getElementById("welcomeScreen");
 
-  // Stare zapisane ustawy dostają bezpieczne wartości domyślne.
-  (G.laws||[]).forEach(l=>{
-    if(!l.scope)l.scope='all';
-    if(l.scope==='state'&&!l.scopeState)l.scopeState='AL';
-    if(typeof l.effectSupport!=='number')l.effectSupport=0;
-    if(l.status==='Do podpisu')l.status='Do decyzji prezydenta';
-  });
-})();
+            const game =
+                document.getElementById("gameScreen");
 
-/* ===== V10: LOCKS + FEDERAL LAW SCOPE / PRESIDENTIAL SIGNATURE ===== */
-const LOCKED_AFTER_WIN=['economy','foreign','military'];
-function isLockedPage(p){return LOCKED_AFTER_WIN.includes(p)&&!G.president}
-function setPage(p){
-  if(p==='oval'&&!G.oval.unlocked){toast('Gabinet Owalny odblokuje się po wygraniu wyborów.');return}
-  if(isLockedPage(p)){toast('Ta sekcja odblokuje się po wygraniu wyborów prezydenckich.');return}
-  G.page=p;save();render()
-}
-function renderNav(){
-  document.getElementById('nav').innerHTML=NAV.map(([id,label,icon])=>{
-    const lock=(id==='oval'&&!G.oval.unlocked)||isLockedPage(id);
-    return `<button class="${G.page===id?'active':''} ${lock?'locked':''}" onclick="setPage('${id}')">${icon} ${label}${lock?' 🔒':''}</button>`
-  }).join('')
-}
+            game.classList.remove("active");
 
-function lawScopeLabel(l){
-  if(!l.scopeType||l.scopeType==='all')return 'Wszystkie stany';
-  const st=STATES.find(x=>x[1]===l.scopeState);
-  return st?`Tylko ${st[0]} (${st[1]})`:'Wybrany stan';
-}
-function lawStatusClass(status){
-  if(status==='Podpisana'||status==='Obowiązuje')return 'g';
-  if(status.includes('Odrzucona')||status==='Zawetowana')return 'r';
-  if(status==='Do podpisu')return 'y';
-  return 'b';
-}
-function vLaws(){
-  return `<div class="grid">
-    ${C('wide','Ustawy federalne — proces legislacyjny',`<p class="muted">Projekt ustawy przechodzi przez Kongres. Po przyjęciu przez Izbę i Senat trafia do prezydenta. Gdy jesteś prezydentem, to Ty decydujesz: <b>podpisujesz</b> albo <b>wetujesz</b>.</p><button class="btn primary" onclick="lawModal()">✍️ Napisz projekt ustawy</button>`)}
-    ${C('','Wymogi',stat('Izba','218 / 435')+stat('Senat','51 / 100')+stat('Prezydent',G.president?'Ty — podpis / weto':'Obecny prezydent'))}
-    ${C('full','Rejestr ustaw',G.laws.length?`<div class="tablewrap"><table><thead><tr><th>Ustawa</th><th>Zakres</th><th>Komisja</th><th>Izba</th><th>Senat</th><th>Status</th><th>Decyzja</th></tr></thead><tbody>${G.laws.slice().reverse().map((l,ri)=>{
-      const i=G.laws.length-1-ri;
-      const canDecide=l.status==='Do podpisu'&&G.president;
-      return `<tr><td><b>${l.name}</b><br><span class="muted">${l.desc||''}</span></td><td><span class="badge b">${lawScopeLabel(l)}</span></td><td>${l.committee}</td><td>${l.houseVotes}/435</td><td>${l.senateVotes}/100</td><td><span class="badge ${lawStatusClass(l.status)}">${l.status}</span></td><td>${canDecide?`<div class="rowActions"><button class="btn green" onclick="signLaw(${i})">✍️ Podpisz</button><button class="btn danger" onclick="vetoLaw(${i})">🛑 Weto</button></div>`:(l.status==='Do podpisu'?'⏳ Oczekuje na decyzję prezydenta':'—')}</td></tr>`
-    }).join('')}</tbody></table></div>`:'<div class="empty">Brak projektów ustaw.</div>')}
-    ${C('full','Poprawki do Konstytucji',`${G.amendments.length?G.amendments.slice().reverse().map((a,ri)=>{const i=G.amendments.length-1-ri;return `<div class="list"><b>${a.name}</b><div class="muted">${a.text}</div>${stat('Izba',a.houseVotes+'/435')}${stat('Senat',a.senateVotes+'/100')}${stat('Stany',a.statesYes+'/50')}${stat('Status',a.status)}</div>`}).join(''):'<div class="empty">Brak poprawek.</div>'}<div class="rowActions"><button class="btn primary" onclick="amendmentModal()">⚖️ Zaproponuj poprawkę</button></div>`)}
-  </div>`
-}
+            welcome.style.display = "flex";
 
-function lawModal(){
-  const stateOptions=STATES.map(s=>`<option value="${s[1]}">${s[0]} (${s[1]})</option>`).join('');
-  openModal(`<h2>📜 Nowy projekt ustawy</h2>
-    <label>Nazwa</label><input id="lawName" value="Ustawa o modernizacji infrastruktury">
-    <label>Komisja</label><select id="lawCommittee"><option>Finanse i budżet</option><option>Gospodarka</option><option>Zdrowie</option><option>Obrona</option><option>Technologie</option><option>Sprawy zagraniczne</option><option>Rolnictwo</option><option>Edukacja</option></select>
-    <label>Opis</label><textarea id="lawDesc">Projekt ustawy federalnej.</textarea>
-    <label>Gdzie ustawa ma obowiązywać?</label>
-    <select id="lawScope" onchange="toggleLawState()"><option value="all">🇺🇸 Wszystkie stany</option><option value="state">📍 Tylko wybrany stan</option></select>
-    <div id="lawStateWrap" style="display:none"><label>Wybierz stan</label><select id="lawState">${stateOptions}</select></div>
-    <label>Koszt budżetowy (mln $)</label><input id="lawCost" type="number" min="0" value="40">
-    <button class="btn primary" onclick="submitLaw()">Przeprowadź przez Kongres</button>`)
-}
-function toggleLawState(){
-  const el=document.getElementById('lawStateWrap');
-  const scope=document.getElementById('lawScope');
-  if(el&&scope)el.style.display=scope.value==='state'?'block':'none';
-}
-function submitLaw(){
-  const name=document.getElementById('lawName').value.trim()||'Nowa ustawa';
-  const committee=document.getElementById('lawCommittee').value;
-  const desc=document.getElementById('lawDesc').value.trim()||'Projekt ustawy federalnej.';
-  const cost=Math.max(0,+document.getElementById('lawCost').value||0);
-  const scopeType=document.getElementById('lawScope').value;
-  const scopeState=scopeType==='state'?document.getElementById('lawState').value:null;
-  let house=Math.round(G.houseD+G.houseI+G.houseR*(G.popularity/100)*.65+Math.random()*16-8);
-  let senate=Math.round(G.senateD+G.senateI+G.senateR*(G.popularity/100)*.65+Math.random()*7-3);
-  house=clamp(house,0,435); senate=clamp(senate,0,100);
-  let status;
-  if(house<218)status='Odrzucona przez Izbę';
-  else if(senate<51)status='Odrzucona przez Senat';
-  else status='Do podpisu';
-  G.laws.push({name,committee,desc,cost,scopeType,scopeState,houseVotes:house,senateVotes:senate,status,created:`${G.day}.${G.month}.${G.year}`});
-  saveNews(status==='Do podpisu'?`📜 Ustawa „${name}” przeszła Kongres i trafiła do prezydenta.`:`📜 Ustawa „${name}” została odrzucona: ${status}.`);
-  closeModal();save();render()
-}
-function signLaw(i){
-  const l=G.laws[i];
-  if(!l||l.status!=='Do podpisu')return;
-  if(!G.president)return toast('Nie jesteś prezydentem — ustawa czeka na decyzję urzędującego prezydenta.');
-  if(l.cost>G.funds)return toast('Brak środków na realizację ustawy');
-  G.funds-=l.cost;
-  l.status='Podpisana';
-  l.enactedAt=`${G.day}.${G.month}.${G.year}`;
-  G.gdp+=l.cost*.012;
-  G.popularity=clamp(G.popularity+(l.cost?1:.3),0,100);
-  saveNews(`✍️ Jako Prezydent podpisałeś ustawę „${l.name}”. Obowiązuje: ${lawScopeLabel(l)}.`);
-  save();render()
-}
-function vetoLaw(i){
-  const l=G.laws[i];
-  if(!l||l.status!=='Do podpisu')return;
-  if(!G.president)return toast('Nie jesteś prezydentem.');
-  l.status='Zawetowana';
-  l.vetoedAt=`${G.day}.${G.month}.${G.year}`;
-  G.popularity=clamp(G.popularity-.5,0,100);
-  saveNews(`🛑 Jako Prezydent zawetowałeś ustawę „${l.name}”.`);
-  save();render()
-}
+            setTimeout(() => {
 
-function vEconomy(){
-  if(!G.president)return `<div class="grid">${C('full','🔒 Gospodarka zablokowana',`<div class="lockedPanel"><div class="big">🔒</div><h2>Gospodarka federalna</h2><p class="muted">Gospodarka odblokuje się po wygraniu wyborów prezydenckich.</p><button class="btn primary" onclick="setPage('election')">Przejdź do wyborów</button></div>`)}</div>`;
-  return `<div class="grid">${C('','PKB',`<div class="metric">${G.gdp.toFixed(1)}</div>`)}${C('','Inflacja',`<div class="metric">${G.inflation.toFixed(1)}%</div>`)}${C('','Bezrobocie',`<div class="metric">${G.unemployment.toFixed(1)}%</div>`)}${C('wide','Polityka gospodarcza',`<div class="rowActions"><button class="btn primary" onclick="econ('stimulus')">Infrastruktura — $60M</button><button class="btn" onclick="econ('tax')">Reforma podatkowa</button><button class="btn" onclick="econ('austerity')">Oszczędności</button></div>`)}${C('half','Wskaźniki',stat('PKB',G.gdp.toFixed(1))+stat('Inflacja',G.inflation.toFixed(1)+'%')+stat('Bezrobocie',G.unemployment.toFixed(1)+'%'))}</div>`
-}
-function vForeign(){
-  if(!G.president)return `<div class="grid">${C('full','🔒 Dyplomacja zablokowana',`<div class="lockedPanel"><div class="big">🔒</div><h2>Polityka zagraniczna</h2><p class="muted">Dyplomacja odblokuje się po wygraniu wyborów prezydenckich.</p><button class="btn primary" onclick="setPage('election')">Przejdź do wyborów</button></div>`)}</div>`;
-  return typeof renderDiplomacyPage==='function'?renderDiplomacyPage():`<div class="grid">${C('','Relacje zagraniczne',`<div class="metric">${G.foreign}/100</div>${bar(G.foreign)}`)}${C('wide','Dyplomacja',`<div class="rowActions"><button class="btn primary" onclick="foreign('summit')">Szczyt</button><button class="btn" onclick="foreign('aid')">Pomoc — $35M</button><button class="btn danger" onclick="foreign('sanctions')">Sankcje</button></div>`)}</div>`
-}
-function vMilitary(){
-  if(!G.president)return `<div class="grid">${C('full','🔒 Obrona zablokowana',`<div class="lockedPanel"><div class="big">🔒</div><h2>Departament Obrony</h2><p class="muted">System obronny odblokuje się po wygraniu wyborów prezydenckich.</p><button class="btn primary" onclick="setPage('election')">Przejdź do wyborów</button></div>`)}</div>`;
-  return `<div class="grid">${C('','Gotowość obronna',`<div class="metric">${G.defense}/100</div>${bar(G.defense)}`)}${C('','Budżet obronny',`<div class="metric">$180M</div>`)}${C('wide','Naczelny Dowódca',`<div class="rowActions"><button class="btn primary" onclick="military('modernize')">Modernizacja — $70M</button><button class="btn" onclick="military('ready')">Gotowość — $40M</button><button class="btn" onclick="military('diplomacy')">Redukcja napięć</button></div>`)}${C('half','Informacja strategiczna',stat('Gotowość',G.defense+'/100')+stat('Relacje',G.foreign+'/100'))}</div>`
-}
+                welcome.style.opacity = "1";
+                welcome.style.transform = "scale(1)";
 
-/* Fix old saves: preserve funds and add lock state safely. */
-if(typeof G.funds!=='number')G.funds=typeof G.cash==='number'?G.cash:850;
-if(typeof G.cash!=='number')G.cash=G.funds;
-if(!G.president){G.oval.unlocked=false}
-save();
-render();
+            }, 20);
+        }
 
-</script></body></html>
 
-<!-- ===== v11: dynamic electoral college, AI state swings, 5-year election cycles, rotating candidates ===== -->
-<script>
-(function(){
-  const CANDIDATE_POOL={
-    red:[
-      ['James Walker','Laura Bennett'],['Michael Carter','Emily Brooks'],['Daniel Mitchell','Sarah Collins'],
-      ['Robert Hayes','Amanda Reed'],['Thomas Parker','Olivia Morgan'],['William Foster','Rachel Cooper'],
-      ['Andrew Sullivan','Jessica Turner'],['Christopher Bennett','Megan Ross']
-    ],
-    purple:[
-      ['Ethan Morgan','Sofia Hayes'],['Alexander Reed','Maya Brooks'],['Nathan Cooper','Emma Parker'],
-      ['Samuel Turner','Chloe Bennett'],['Benjamin Ross','Ava Mitchell'],['Lucas Collins','Grace Foster']
-    ]
-  };
+        /* =========================
+           CONTINUE
+        ========================== */
 
-  function ensureElectionData(){
-    if(!G.candidates)G.candidates={blue:{name:G.candidate||'Twój kandydat',vice:G.vice||'Nie wybrano'},red:{name:'James Walker',vice:'Laura Bennett'},purple:{name:'Ethan Morgan',vice:'Sofia Hayes'}};
-    if(!G.candidates.red)G.candidates.red={name:'James Walker',vice:'Laura Bennett'};
-    if(!G.candidates.purple)G.candidates.purple={name:'Ethan Morgan',vice:'Sofia Hayes'};
-    if(typeof G.nextPresidential!=='number')G.nextPresidential=G.year+5;
-    if(typeof G.nextCongress!=='number')G.nextCongress=G.year+5;
-    if(!G.election)G.election={active:false,type:'presidential',day:0,totalDays:30,phase:'results',results:{},called:[],winner:null};
-  }
-  ensureElectionData();
+        function continueGame() {
 
-  function newCandidates(){
-    const r=CANDIDATE_POOL.red[Math.floor(Math.random()*CANDIDATE_POOL.red.length)];
-    const p=CANDIDATE_POOL.purple[Math.floor(Math.random()*CANDIDATE_POOL.purple.length)];
-    G.candidates.red={name:r[0],vice:r[1]};
-    G.candidates.purple={name:p[0],vice:p[1]};
-    G.candidates.blue={name:G.candidate||'Twój kandydat',vice:G.vice&&G.vice!=='Nie wybrano'?G.vice:'Kandydat na wiceprezydenta'};
-  }
+            alert(
+                "Panel zarządzania autobusami dodamy w następnym etapie gry."
+            );
+        }
 
-  function electoralTotals(){
-    let blue=0,red=0,purple=0,called=0;
-    STATES.forEach(s=>{
-      const x=G.states[s[1]];
-      if(x?.called==='blue')blue+=s[2],called+=s[2];
-      else if(x?.called==='red')red+=s[2],called+=s[2];
-      else if(x?.called==='purple')purple+=s[2],called+=s[2];
-    });
-    return {blue,red,purple,called,remaining:538-called};
-  }
 
-  function projectedTotals(){
-    let blue=0,red=0,purple=0;
-    STATES.forEach(s=>{
-      const x=G.states[s[1]];
-      if(x?.called==='blue')blue+=s[2];
-      else if(x?.called==='red')red+=s[2];
-      else if(x?.called==='purple')purple+=s[2];
-      else {
-        const u=x?.support||0,r=x?.red||50,p=x?.purple||5;
-        if(u>=r&&u>=p)blue+=s[2]; else if(r>=p)red+=s[2]; else purple+=s[2];
-      }
-    });
-    return {blue,red,purple};
-  }
+        /* =========================
+           INFORMATION
+        ========================== */
 
-  function electoralBar(title='Kolegium Elektorskie'){
-    const actual=electoralTotals();
-    const projected=(G.election?.phase==='campaign')?projectedTotals():actual;
-    const b=projected.blue/538*100,r=projected.red/538*100,p=projected.purple/538*100;
-    const projectedLabel=G.election?.phase==='campaign'?'prognoza na podstawie aktualnego poparcia':`${actual.called} / 538 rozstrzygniętych`;
-    return `<div class="electoralBox"><div class="electoralHead"><b>${title}</b><span>${projectedLabel} • 270 do zwycięstwa</span></div><div class="evTrack"><i class="evBlue" style="width:${b}%"></i><i class="evRed" style="width:${r}%"></i><i class="evPurple" style="width:${p}%"></i></div><div class="evLegend"><span>🔵 ${G.candidates?.blue?.name||'Ty'} <b>${projected.blue}</b></span><span>🔴 ${G.candidates?.red?.name||'Rywal'} <b>${projected.red}</b></span><span>🟣 ${G.candidates?.purple?.name||'Niezależni'} <b>${projected.purple}</b></span><span>⚪ Nierozstrzygnięte <b>${actual.remaining}</b></span></div></div>`;
-  }
+        function showInfo() {
 
-  function stateLead(s){
-    const x=G.states[s[1]],u=x?.support||0,r=x?.red||50,p=x?.purple||5;
-    return u>=r&&u>=p?'blue':r>=p?'red':'purple';
-  }
+            alert(
+                "BUS MANAGER\\n\\n" +
+                "Wersja: 0.1.0\\n\\n" +
+                "Gra będzie symulatorem zarządzania " +
+                "przedsiębiorstwem autobusowym."
+            );
+        }
 
-  function aiCampaignDay(){
-    if(!G.election?.active||G.election.phase!=='campaign')return;
-    const swings=STATES.filter(s=>!G.states[s[1]].called).sort((a,b)=>{
-      const aa=Math.abs((G.states[a[1]].support||0)-(G.states[a[1]].red||50));
-      const bb=Math.abs((G.states[b[1]].support||0)-(G.states[b[1]].red||50));
-      return aa-bb;
-    });
-    const count=Math.random()<.45?1:2;
-    for(let i=0;i<count;i++){
-      const s=swings[Math.floor(Math.random()*Math.min(swings.length,14))]; if(!s)continue;
-      const x=G.states[s[1]];
-      const intensity=.45+Math.random()*1.15;
-      x.red=clamp((x.red||50)+intensity,0,85);
-      x.support=clamp((x.support||0)-intensity*.72,0,85);
-      if(Math.random()<.28)x.purple=clamp((x.purple||5)+.2,0,40);
-      if(Math.random()<.18)saveNews(`🔴 Rywal prowadzi intensywną kampanię w ${s[0]} i próbuje odebrać Ci stan.`);
-    }
-  }
+    </script>
 
-  function startPresidentialCycle(){
-    newCandidates();
-    G.election={active:true,type:'presidential',day:1,totalDays:30,phase:'campaign',results:{},called:[],winner:null};
-    G.presidentialCycle=G.year;
-    G.popularity=clamp(G.popularity+(.5-Math.random()),0,100);
-    STATES.forEach(s=>{
-      const x=G.states[s[1]];
-      x.called=null;
-      x.support=clamp((x.support||0)+Math.random()*3,0,80);
-      x.red=clamp((x.red||50)+(Math.random()*3-1.2),25,80);
-      x.purple=clamp((x.purple||5)+(Math.random()*1.5-.4),2,30);
-    });
-    saveNews(`🗳️ Nowe wybory prezydenckie! Kandydaci: ${G.candidates.blue.name}, ${G.candidates.red.name}, ${G.candidates.purple.name}.`);
-    save();render();
-  }
-
-  function startCongressCycle(){
-    G.congressCampaign={active:true,day:1,totalDays:20,phase:'campaign',results:null};
-    G.congressCycle=G.year;
-    saveNews('🏛️ Rozpoczęły się nowe wybory do Kongresu. Ten cykl działa niezależnie od wyborów prezydenckich.');
-    save();render();
-  }
-
-  window.vElection=function(){
-    ensureElectionData();
-    if(G.election.phase==='results'){
-      const t=electoralTotals();
-      return `<div class="grid">${C('wide',G.election.winner==='blue'?'🎉 Biały Dom zdobyty':'🗳️ Wyniki wyborów',`${electoralBar('Ostateczny wynik Kolegium Elektorskiego')}<div class="resultBanner ${G.election.winner==='blue'?'':'lose'}"><div class="metric">${t.blue} / 538 EV</div><p>${G.election.winner==='blue'?'Wygrałeś wybory.':'Wybory wygrał inny kandydat.'}</p><p class="muted">Następne wybory prezydenckie: <b>${G.nextPresidential}</b> — 5 lat po zakończeniu poprzednich.</p></div>`)}${C('','Kandydaci',stat('🔵 Twój kandydat',G.candidates.blue.name)+stat('🔴 Rywal',G.candidates.red.name)+stat('🟣 Niezależni',G.candidates.purple.name))}${C('','Kadencja wyborcza',stat('Zakończone wybory',G.presidentialCycle||G.year)+stat('Następne wybory',G.nextPresidential)+stat('Próg','270 EV'))}${C('full','Mapa wyników',mapHTML('electionResultsMap','presidential'))}</div>`;
-    }
-    const p=projectedTotals();
-    return `<div class="grid">${C('wide','🗳️ Wybory prezydenckie',`${electoralBar('Aktualny stan Kolegium Elektorskiego')}<div class="campaignHero"><div class="eyebrow">Rywal aktywnie próbuje odbierać Ci stany</div><div class="campaignDay">Dzień ${G.election.day} / ${G.election.totalDays}</div><div class="progress"><i style="width:${G.election.day/G.election.totalDays*100}%"></i></div><p class="muted">Każdego dnia przeciwnik prowadzi własną kampanię i może zmieniać poparcie w kluczowych stanach.</p></div>`)}${C('','Prognoza EV',stat('🔵 Ty',p.blue)+stat('🔴 Rywal',p.red)+stat('🟣 Niezależni',p.purple)+stat('Do zwycięstwa','270'))}${C('wide','Mapa stanów',mapHTML('electionMap','presidential'))}${C('','Działania kampanii',`<div class="campaignGrid"><button class="campaignAction btn" onclick="campaignAction('rally')"><b>📣 Wiec</b>-$35M</button><button class="campaignAction btn" onclick="campaignAction('tv')"><b>📺 TV</b>-$60M</button><button class="campaignAction btn" onclick="campaignAction('web')"><b>💻 Internet</b>-$30M</button><button class="campaignAction btn" onclick="campaignAction('fund')"><b>💰 Zbiórka</b>+$70M</button><button class="campaignAction btn" onclick="campaignAction('debate')"><b>🎙️ Debata</b>Wpływ opinii</button><button class="campaignAction btn" onclick="campaignAction('attack')"><b>⚔️ Atak</b>-$45M</button></div>`)}${C('','Kandydaci',stat('🔵 Ty',G.candidates.blue.name)+stat('🔴 Rywal',G.candidates.red.name)+stat('🟣 Niezależni',G.candidates.purple.name))}${C('full','Dziennik kampanii',newsHTML())}</div>`;
-  };
-
-  window.vStates=function(){
-    const selected=STATES.find(x=>x[1]===G.selectedState)||STATES[0],sx=G.states[selected[1]],lead=stateLead(selected),t=electoralTotals();
-    const ownStates=STATES.filter(s=>G.states[s[1]].called==='blue').reduce((n,s)=>n+s[2],0);
-    const redStates=STATES.filter(s=>G.states[s[1]].called==='red').reduce((n,s)=>n+s[2],0);
-    const purpleStates=STATES.filter(s=>G.states[s[1]].called==='purple').reduce((n,s)=>n+s[2],0);
-    return `<div class="grid">${C('wide','🗺️ Stany USA',`${electoralBar('Aktualny bilans głosów elektorskich')}${C('','',`<div class="stateEVMini"><span>🔵 Twoje rozstrzygnięte: <b>${ownStates} EV</b></span><span>🔴 Rywal: <b>${redStates} EV</b></span><span>🟣 Niezależni: <b>${purpleStates} EV</b></span><span>⚪ Nierozstrzygnięte: <b>${t.remaining} EV</b></span></div>`)}${mapHTML('statesMap','presidential')}`)}${C('','Wybrany stan',`<div class="eyebrow">${selected[1]}</div><div class="metric">${selected[0]}</div>${stat('Głosy elektorskie',selected[2])}${stat('Twoje poparcie',pct(sx.support))}${stat('Rywal czerwony',pct(sx.red))}${stat('Niezależni',pct(sx.purple))}${stat('Prowadzi',lead==='blue'?'Ty':lead==='red'?'Rywal':'Niezależni')}${bar(Math.max(sx.support,sx.red,sx.purple))}<div class="rowActions" style="margin-top:10px"><button class="btn primary" onclick="stateRally('${selected[1]}')">Wiec — $20M</button><button class="btn" onclick="targetAds('${selected[1]}')">Reklama — $25M</button></div>`)}${C('','Kolegium',stat('Łącznie','538 EV')+stat('Próg zwycięstwa','270 EV')+stat('Twoje rozstrzygnięte',ownStates+' EV')+stat('Rywal',redStates+' EV')+stat('Nierozstrzygnięte',t.remaining+' EV'))}${C('full','Tabela stanów',`<div class="tablewrap"><table><thead><tr><th>Stan</th><th>EV</th><th>Ty</th><th>Rywal</th><th>Pozycja</th></tr></thead><tbody>${STATES.map(s=>{const x=G.states[s[1]],l=stateLead(s);return `<tr><td><b>${s[0]}</b> (${s[1]})</td><td>${s[2]}</td><td>${pct(x.support)}</td><td>${pct(x.red)}</td><td><span class="badge ${l==='blue'?'b':l==='red'?'r':'y'}">${l==='blue'?'Ty':l==='red'?'Rywal':'Niezależni'}</span></td></tr>`}).join('')}</tbody></table></div>`)}</div>`;
-  };
-
-  const oldFinish=window.finishPresidentialElection;
-  window.finishPresidentialElection=function(){
-    oldFinish();
-    G.election.active=false;
-    if(G.election?.phase==='results'){
-      G.nextPresidential=G.year+5;
-      G.presidentialCycle=G.year;
-      saveNews(`📅 Kolejne wybory prezydenckie odbędą się w ${G.nextPresidential} roku — dokładnie 5 lat po zakończeniu tych wyborów.`);
-      save();render();
-    }
-  };
-
-  const oldFinishCongress=window.finishCongress;
-  window.finishCongress=function(){
-    oldFinishCongress();
-    G.nextCongress=G.year+5;
-    G.congressCycle=G.year;
-    saveNews(`📅 Kolejne wybory do Kongresu odbędą się w ${G.nextCongress} roku — 5 lat po zakończeniu poprzednich.`);
-    save();render();
-  };
-
-  window.startCongressCampaign=function(){
-    if(G.congressCampaign?.active)return toast('Kampania do Kongresu już trwa.');
-    startCongressCycle();
-  };
-
-  window.dailyTick=function(){
-    advanceEconomy();
-    if(G.election?.active&&G.election.phase==='campaign'){
-      aiCampaignDay();
-      G.election.day++;
-      if(G.election.day>G.election.totalDays)startElectionNight();
-    }
-    if(G.congressCampaign?.active&&G.congressCampaign.phase==='campaign'){
-      G.congressCampaign.day++;
-      if(G.congressCampaign.day>G.congressCampaign.totalDays)finishCongress();
-    }
-    if(!G.congressCampaign?.active&&G.year>=G.nextCongress&&G.month===1&&!G.election?.active)startCongressCycle();
-    if(!G.election?.active&&G.year>=G.nextPresidential&&G.month===1)startPresidentialCycle();
-    if(Math.random()<.03)G.popularity=clamp(G.popularity+(Math.random()-.45)*2,0,100);
-    save();render();
-  };
-
-  // Initialize candidate names for old saves without changing current election progress.
-  ensureElectionData();
-  if(G.election?.active&&G.election.phase==='campaign'&&G.candidates.red.name==='James Walker'&&G.candidates.purple.name==='Ethan Morgan'){
-    // keep stable once initialized; future cycles rotate automatically
-  }
-  save();
-})();
-
-/* ===== V12 FIX: stable maps + locked election panel after results + defense unlock ===== */
-(function(){
-  // Prevent D3 map from treating a normal click as a drag. This removes the
-  // "swirling"/jumping effect after the 30-day campaign and keeps state clicks stable.
-  window.initMap=function(id,mode='political'){
-    const root=document.getElementById(id);
-    if(!root||!window.d3||!window.topojson)return;
-    const svg=d3.select(root).select('svg');
-    svg.selectAll('*').remove();
-    const token=(mapStates[id]?.token||0)+1;
-    mapStates[id]={svg,scale:1,x:0,y:0,drag:false,moved:false,sx:0,sy:0,ox:0,oy:0,token};
-    const myToken=token;
-    d3.json('https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json').then(us=>{
-      if(!mapStates[id]||mapStates[id].token!==myToken)return;
-      const features=topojson.feature(us,us.objects.states).features;
-      const projection=d3.geoAlbersUsa().fitSize([root.clientWidth,root.clientHeight],{type:'FeatureCollection',features});
-      const path=d3.geoPath(projection);
-      const g=svg.append('g');
-      g.selectAll('path').data(features).join('path')
-        .attr('class','statePath').attr('d',path)
-        .attr('fill',d=>{const m=STATES.find(x=>x[3]===String(d.id).padStart(2,'0'));return m?colorFor(m[1],mode):'#273b54'})
-        .on('click',(e,d)=>{
-          const m=STATES.find(x=>x[3]===String(d.id).padStart(2,'0'));
-          const st=mapStates[id];
-          if(m&&st&&!st.moved)stateInfo(m[1]);
-          if(st)st.moved=false;
-        });
-      g.selectAll('text').data(features).join('text').attr('class','stateLabel')
-        .attr('transform',d=>{const c=path.centroid(d);return `translate(${c[0]},${c[1]})`})
-        .text(d=>{const m=STATES.find(x=>x[3]===String(d.id).padStart(2,'0'));return m?m[1]:''});
-      mapStates[id].g=g;
-      const st=mapStates[id];
-      root.onpointerdown=e=>{st.drag=true;st.moved=false;st.sx=e.clientX;st.sy=e.clientY;st.ox=st.x;st.oy=st.y};
-      root.onpointermove=e=>{if(!st.drag)return;const dx=e.clientX-st.sx,dy=e.clientY-st.sy;if(Math.abs(dx)+Math.abs(dy)>5)st.moved=true;if(st.moved){st.x=st.ox+dx;st.y=st.oy+dy;applyMap(id)}};
-      root.onpointerup=()=>{st.drag=false};
-      root.onpointercancel=()=>{st.drag=false};
-      root.onwheel=e=>{e.preventDefault();mapZoom(id,e.deltaY<0?1.1:.9)};
-      applyMap(id);
-    }).catch(()=>{svg.append('text').attr('x','50%').attr('y','50%').attr('text-anchor','middle').attr('fill','#71839a').text('Nie udało się wczytać mapy USA')});
-  };
-
-  // After the election is over, the election screen becomes a result/locked
-  // panel. The player cannot accidentally start campaign actions again.
-  window.vElection=function(){
-    ensureElectionData();
-    if(G.election.phase==='results'){
-      const won=G.election.winner==='blue';
-      const evNow=ev();
-      const msg=won
-        ? `🎉 Zostałeś Prezydentem Stanów Zjednoczonych! Zdobyłeś ${evNow} głosów elektorskich.`
-        : `❌ Nie zostałeś Prezydentem. Zdobyłeś ${evNow} głosów elektorskich.`;
-      return `<div class="grid">
-        ${C('full',won?'🎉 WYBORY ZAKOŃCZONE — ZOSTAŁEŚ PREZYDENTEM':'🗳️ WYBORY ZAKOŃCZONE',
-          `<div class="resultBanner ${won?'':'lose'}"><div class="big">${won?'🇺🇸':'🗳️'}</div><h2>${msg}</h2><p>${won?'Twój panel wyborczy został zablokowany do następnego cyklu wyborczego. Obrona, gospodarka i dyplomacja są odblokowane.':'Panel wyborczy jest zamknięty do następnego cyklu. Następna kampania rozpocznie się zgodnie z harmonogramem.'}</p><div class="notice"><b>Panel zablokowany</b><br><span class="muted">Po zakończeniu 30-dniowej kampanii nie można ponownie uruchomić tej samej kampanii.</span></div></div>`)}
-        ${C('wide','Kolegium Elektorskie',`${electoralBar('Ostateczny wynik — 538 EV')}<div class="stat"><span>Próg zwycięstwa</span><b>270 EV</b></div><div class="stat"><span>Twój wynik</span><b>${evNow} EV</b></div><div class="stat"><span>Następne wybory</span><b>${G.nextPresidential}</b></div>`)}
-        ${C('','Kandydaci',stat('🔵 Twój kandydat',G.candidates.blue.name)+stat('🔴 Rywal',G.candidates.red.name)+stat('🟣 Niezależni',G.candidates.purple.name))}
-        ${C('full','Mapa końcowych wyników',mapHTML('electionResultsMap','presidential'))}
-      </div>`;
-    }
-    const p=projectedTotals();
-    return `<div class="grid">${C('wide','🗳️ Wybory prezydenckie',`${electoralBar('Aktualny stan Kolegium Elektorskiego')}<div class="campaignHero"><div class="eyebrow">Rywal aktywnie próbuje odbierać Ci stany</div><div class="campaignDay">Dzień ${G.election.day} / ${G.election.totalDays}</div><div class="progress"><i style="width:${G.election.day/G.election.totalDays*100}%"></i></div><p class="muted">Każdego dnia przeciwnik prowadzi własną kampanię i może zmieniać poparcie w kluczowych stanach.</p></div>`)}${C('','Prognoza EV',stat('🔵 Ty',p.blue)+stat('🔴 Rywal',p.red)+stat('🟣 Niezależni',p.purple)+stat('Do zwycięstwa','270'))}${C('wide','Mapa stanów',mapHTML('electionMap','presidential'))}${C('','Działania kampanii',`<div class="campaignGrid"><button class="campaignAction btn" onclick="campaignAction('rally')"><b>📣 Wiec</b>-$35M</button><button class="campaignAction btn" onclick="campaignAction('tv')"><b>📺 TV</b>-$60M</button><button class="campaignAction btn" onclick="campaignAction('web')"><b>💻 Internet</b>-$30M</button><button class="campaignAction btn" onclick="campaignAction('fund')"><b>💰 Zbiórka</b>+$70M</button><button class="campaignAction btn" onclick="campaignAction('debate')"><b>🎙️ Debata</b>Wpływ opinii</button><button class="campaignAction btn" onclick="campaignAction('attack')"><b>⚔️ Atak</b>-$45M</button></div>`)}${C('','Kandydaci',stat('🔵 Ty',G.candidates.blue.name)+stat('🔴 Rywal',G.candidates.red.name)+stat('🟣 Niezależni',G.candidates.purple.name))}${C('full','Dziennik kampanii',newsHTML())}</div>`;
-  };
-
-  // States stay viewable after the election, but all campaign controls disappear.
-  const oldStates=window.vStates;
-  window.vStates=function(){
-    const selected=STATES.find(x=>x[1]===G.selectedState)||STATES[0],sx=G.states[selected[1]],lead=stateLead(selected),t=electoralTotals();
-    const own=STATES.filter(s=>G.states[s[1]].called==='blue').reduce((n,s)=>n+s[2],0);
-    const red=STATES.filter(s=>G.states[s[1]].called==='red').reduce((n,s)=>n+s[2],0);
-    const pur=STATES.filter(s=>G.states[s[1]].called==='purple').reduce((n,s)=>n+s[2],0);
-    const finished=G.election?.phase==='results';
-    return `<div class="grid">${C('wide','🗺️ Stany USA',`${electoralBar(finished?'Ostateczny bilans głosów elektorskich':'Aktualny bilans głosów elektorskich')}<div class="stateEVMini"><span>🔵 Ty: <b>${own} EV</b></span><span>🔴 Rywal: <b>${red} EV</b></span><span>🟣 Niezależni: <b>${pur} EV</b></span><span>⚪ Nierozstrzygnięte: <b>${t.remaining} EV</b></span></div>${mapHTML('statesMap','presidential')}`)}${C('','Wybrany stan',`<div class="eyebrow">${selected[1]}</div><div class="metric">${selected[0]}</div>${stat('Głosy elektorskie',selected[2])}${stat('Twoje poparcie',pct(sx.support))}${stat('Rywal czerwony',pct(sx.red))}${stat('Niezależni',pct(sx.purple))}${stat('Prowadzi',lead==='blue'?'Ty':lead==='red'?'Rywal':'Niezależni')}${bar(Math.max(sx.support,sx.red,sx.purple))}${finished?`<div class="notice"><b>Wybory zakończone.</b><br><span class="muted">Działania kampanijne są zablokowane.</span></div>`:`<div class="rowActions" style="margin-top:10px"><button class="btn primary" onclick="stateRally('${selected[1]}')">Wiec — $20M</button><button class="btn" onclick="targetAds('${selected[1]}')">Reklama — $25M</button></div>`}`)}${C('','Kolegium',stat('Łącznie','538 EV')+stat('Próg zwycięstwa','270 EV')+stat('Twoje',own+' EV')+stat('Rywal',red+' EV')+stat('Nierozstrzygnięte',t.remaining+' EV'))}${C('full','Tabela stanów',`<div class="tablewrap"><table><thead><tr><th>Stan</th><th>EV</th><th>Ty</th><th>Rywal</th><th>Pozycja</th></tr></thead><tbody>${STATES.map(s=>{const x=G.states[s[1]],l=stateLead(s);return `<tr><td><b>${s[0]}</b> (${s[1]})</td><td>${s[2]}</td><td>${pct(x.support)}</td><td>${pct(x.red)}</td><td><span class="badge ${l==='blue'?'b':l==='red'?'r':'y'}">${l==='blue'?'Ty':l==='red'?'Rywal':'Niezależni'}</span></td></tr>`}).join('')}</tbody></table></div>`)}</div>`;
-  };
-
-  // Make the victory state explicit and guarantee Defense unlocks immediately.
-  const oldFinish=window.finishPresidentialElection;
-  window.finishPresidentialElection=function(){
-    if(!G.election||G.election.phase==='results')return;
-    oldFinish();
-    if(G.election?.winner==='blue'){
-      G.president=true;
-      G.oval.unlocked=true;
-      G.economyUnlocked=true;
-      G.diplomacyUnlocked=true;
-      G.defenseUnlocked=true;
-      saveNews('🇺🇸 Zostałeś Prezydentem USA! Obrona, gospodarka i dyplomacja zostały odblokowane.');
-    }
-    G.election.active=false;
-    G.nextPresidential=G.year+5;
-    G.nextCongress=G.year+5;
-    save();render();
-  };
-
-  // Campaign actions cannot be used once the result is final.
-  const oldCampaignAction=window.campaignAction;
-  window.campaignAction=function(type){
-    if(G.election?.phase==='results'||!G.election?.active)return toast('Panel wyborczy jest zablokowany — wybory zostały zakończone.');
-    return oldCampaignAction(type);
-  };
-  window.stateRally=function(a){if(G.election?.phase==='results')return toast('Wybory zakończone — kampania jest zablokowana.');const c=G.funds<20; if(c)return toast('Brak środków');G.funds-=20;G.states[a].support=clamp(G.states[a].support+5+Math.random()*2,0,75);G.popularity=clamp(G.popularity+.5,0,100);closeModal();saveNews(`📍 Bezpośredni wiec zwiększył poparcie w ${a}.`);save();render()};
-  window.targetAds=function(a){if(G.election?.phase==='results')return toast('Wybory zakończone — kampania jest zablokowana.');if(G.funds<25)return toast('Brak środków');G.funds-=25;G.states[a].support=clamp(G.states[a].support+4,0,75);closeModal();saveNews(`📡 Uruchomiono reklamy celowane w ${a}.`);save();render()};
-})();
-
-/* ===== V14: stronger opponent state campaign ===== */
-(function(){
-  window.aiCampaignDay=function(){
-    if(!G.election?.active || G.election.phase!=='campaign') return;
-    const candidates=STATES.filter(st=>!G.states[st[1]].called).map(st=>{
-      const x=G.states[st[1]];
-      const gap=(x.support||0)-(x.red||50);
-      return {st,x,score:Math.abs(gap)+(st[2]/20)};
-    }).sort((a,b)=>b.score-a.score);
-    const count=Math.random()<.75?2:3;
-    for(let i=0;i<count;i++){
-      const pick=candidates[Math.floor(Math.random()*Math.min(candidates.length,18))];
-      if(!pick) continue;
-      const {st,x}=pick;
-      const swing=.8+Math.random()*1.8;
-      x.red=clamp((x.red||0)+swing,0,85);
-      x.support=clamp((x.support||0)-swing*.62,0,85);
-      if(Math.random()<.22){
-        const bonus=.8+Math.random()*1.4;
-        x.red=clamp(x.red+bonus,0,90);
-        x.support=clamp(x.support-bonus*.55,0,90);
-      }
-      if(Math.random()<.12) saveNews(`🔴 ${G.candidates.red.name} zwiększył poparcie w ${st[0]} o ok. ${swing.toFixed(1)} pkt.`);
-    }
-  };
-
-  window.dailyTick=function(){
-    advanceEconomy();
-    if(G.election?.active&&G.election.phase==='campaign'){
-      window.aiCampaignDay();
-      G.election.day++;
-      if(G.election.day>G.election.totalDays) startElectionNight();
-    }
-    if(G.congressCampaign?.active&&G.congressCampaign.phase==='campaign'){
-      G.congressCampaign.day++;
-      if(G.congressCampaign.day>G.congressCampaign.totalDays) finishCongress();
-    }
-    if(!G.congressCampaign?.active&&G.year>=G.nextCongress&&G.month===1&&!G.election?.active) startCongressCycle();
-    if(!G.election?.active&&G.year>=G.nextPresidential&&G.month===1) startPresidentialCycle();
-    if(Math.random()<.03) G.popularity=clamp(G.popularity+(Math.random()-.45)*2,0,100);
-    save(); render();
-  };
-})();
-
-</script>
+</body>
+</html>
