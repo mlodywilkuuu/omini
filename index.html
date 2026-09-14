@@ -2,1439 +2,2919 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Bus Manager</title>
-
-    <meta name="description" content="Bus Manager — zarządzaj własnym przedsiębiorstwem autobusowym.">
-    <meta name="theme-color" content="#07111f">
-
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        :root {
-            --bg: #050b14;
-            --bg2: #081524;
-            --text: #f5f8ff;
-            --muted: #91a0b7;
-            --blue: #3b82f6;
-            --cyan: #22d3ee;
-            --green: #22c55e;
-            --glass: rgba(255,255,255,0.055);
-            --border: rgba(255,255,255,0.10);
-        }
-
-        html,
-        body {
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-        }
-
-        body {
-            font-family:
-                Inter,
-                ui-sans-serif,
-                system-ui,
-                -apple-system,
-                BlinkMacSystemFont,
-                "Segoe UI",
-                sans-serif;
-
-            color: var(--text);
-
-            background:
-                radial-gradient(
-                    circle at 15% 20%,
-                    rgba(37, 99, 235, 0.18),
-                    transparent 30%
-                ),
-                radial-gradient(
-                    circle at 85% 75%,
-                    rgba(34, 211, 238, 0.12),
-                    transparent 30%
-                ),
-                linear-gradient(
-                    135deg,
-                    var(--bg),
-                    var(--bg2)
-                );
-        }
-
-        /* =========================
-           BACKGROUND
-        ========================== */
-
-        .background {
-            position: fixed;
-            inset: 0;
-            overflow: hidden;
-            pointer-events: none;
-        }
-
-        .glow {
-            position: absolute;
-            border-radius: 50%;
-            filter: blur(80px);
-            opacity: .35;
-            animation: floatGlow 10s ease-in-out infinite alternate;
-        }
-
-        .glow.one {
-            width: 350px;
-            height: 350px;
-            background: #2563eb;
-            top: -120px;
-            left: -100px;
-        }
-
-        .glow.two {
-            width: 300px;
-            height: 300px;
-            background: #06b6d4;
-            right: -100px;
-            bottom: -80px;
-            animation-delay: 2s;
-        }
-
-        .glow.three {
-            width: 220px;
-            height: 220px;
-            background: #7c3aed;
-            left: 45%;
-            top: 45%;
-            opacity: .12;
-            animation-delay: 4s;
-        }
-
-        @keyframes floatGlow {
-            from {
-                transform: translate(0, 0) scale(1);
-            }
-
-            to {
-                transform: translate(35px, -25px) scale(1.15);
-            }
-        }
-
-        /* =========================
-           ROADS
-        ========================== */
-
-        .roads {
-            position: absolute;
-            inset: 0;
-            opacity: .18;
-        }
-
-        .road {
-            position: absolute;
-            height: 1px;
-            background: linear-gradient(
-                90deg,
-                transparent,
-                rgba(96,165,250,.7),
-                transparent
-            );
-            transform-origin: left center;
-        }
-
-        .road.r1 {
-            width: 75%;
-            left: -5%;
-            top: 22%;
-            transform: rotate(14deg);
-        }
-
-        .road.r2 {
-            width: 80%;
-            left: 25%;
-            top: 58%;
-            transform: rotate(-11deg);
-        }
-
-        .road.r3 {
-            width: 65%;
-            left: 15%;
-            top: 80%;
-            transform: rotate(8deg);
-        }
-
-        .road.r4 {
-            width: 55%;
-            left: 55%;
-            top: 12%;
-            transform: rotate(70deg);
-        }
-
-        .road.r5 {
-            width: 60%;
-            left: 5%;
-            top: 65%;
-            transform: rotate(-62deg);
-        }
-
-        .road::after {
-            content: "";
-            position: absolute;
-            inset: -3px 0;
-            border-top: 1px dashed rgba(255,255,255,.25);
-        }
-
-        /* =========================
-           PARTICLES
-        ========================== */
-
-        .particles {
-            position: absolute;
-            inset: 0;
-        }
-
-        .particle {
-            position: absolute;
-            width: 3px;
-            height: 3px;
-            background: rgba(255,255,255,.65);
-            border-radius: 50%;
-            box-shadow: 0 0 12px rgba(96,165,250,.8);
-            animation: particleMove linear infinite;
-        }
-
-        @keyframes particleMove {
-            from {
-                transform: translateY(110vh);
-                opacity: 0;
-            }
-
-            15% {
-                opacity: 1;
-            }
-
-            85% {
-                opacity: 1;
-            }
-
-            to {
-                transform: translateY(-10vh);
-                opacity: 0;
-            }
-        }
-
-        /* =========================
-           WELCOME
-        ========================== */
-
-        .welcome {
-            position: relative;
-            z-index: 5;
-
-            width: 100%;
-            height: 100vh;
-
-            display: flex;
-            align-items: center;
-            justify-content: center;
-
-            padding: 30px;
-
-            transition:
-                opacity .45s ease,
-                transform .45s ease;
-        }
-
-        .container {
-            width: min(1100px, 100%);
-            text-align: center;
-        }
-
-        /* =========================
-           LOGO
-        ========================== */
-
-        .logo {
-            width: 104px;
-            height: 104px;
-            margin: 0 auto 30px;
-
-            display: flex;
-            align-items: center;
-            justify-content: center;
-
-            border-radius: 30px;
-
-            background:
-                linear-gradient(
-                    145deg,
-                    rgba(59,130,246,.28),
-                    rgba(34,211,238,.10)
-                );
-
-            border: 1px solid rgba(147,197,253,.25);
-
-            box-shadow:
-                0 20px 60px rgba(0,0,0,.35),
-                inset 0 1px 0 rgba(255,255,255,.12);
-
-            backdrop-filter: blur(20px);
-
-            animation: logoFloat 4s ease-in-out infinite;
-        }
-
-        @keyframes logoFloat {
-            0%,100% {
-                transform: translateY(0);
-            }
-
-            50% {
-                transform: translateY(-8px);
-            }
-        }
-
-        .bus-icon {
-            position: relative;
-            width: 62px;
-            height: 43px;
-
-            background: linear-gradient(
-                145deg,
-                #60a5fa,
-                #2563eb
-            );
-
-            border-radius: 10px 10px 7px 7px;
-
-            box-shadow:
-                0 10px 30px rgba(37,99,235,.45);
-        }
-
-        .bus-icon::before {
-            content: "";
-
-            position: absolute;
-
-            width: 43px;
-            height: 17px;
-
-            left: 9px;
-            top: 7px;
-
-            background:
-                linear-gradient(
-                    90deg,
-                    #172554,
-                    #0f172a
-                );
-
-            border-radius: 4px;
-        }
-
-        .bus-icon::after {
-            content: "";
-
-            position: absolute;
-
-            width: 10px;
-            height: 10px;
-
-            border-radius: 50%;
-
-            background: #07111f;
-
-            left: 8px;
-            bottom: -5px;
-
-            box-shadow:
-                36px 0 0 #07111f;
-        }
-
-        /* =========================
-           TITLE
-        ========================== */
-
-        .eyebrow {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-
-            padding: 8px 14px;
-
-            border-radius: 999px;
-
-            background: rgba(255,255,255,.045);
-            border: 1px solid var(--border);
-
-            color: #9ec5ff;
-
-            font-size: 12px;
-            font-weight: 700;
-
-            letter-spacing: 2px;
-            text-transform: uppercase;
-
-            margin-bottom: 22px;
-
-            backdrop-filter: blur(15px);
-        }
-
-        .status-dot {
-            width: 7px;
-            height: 7px;
-
-            border-radius: 50%;
-
-            background: #22c55e;
-
-            box-shadow:
-                0 0 12px rgba(34,197,94,.9);
-
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%,100% {
-                transform: scale(1);
-                opacity: 1;
-            }
-
-            50% {
-                transform: scale(1.45);
-                opacity: .6;
-            }
-        }
-
-        h1 {
-            font-size: clamp(58px, 10vw, 125px);
-            line-height: .9;
-
-            font-weight: 900;
-            letter-spacing: -6px;
-
-            margin-bottom: 25px;
-
-            background:
-                linear-gradient(
-                    110deg,
-                    #ffffff 10%,
-                    #b9d7ff 45%,
-                    #67e8f9 80%,
-                    #ffffff
-                );
-
-            background-size: 250% auto;
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Bus Manager</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+:root{
+    --bg:#050b14;
+    --bg2:#081524;
+    --text:#f5f8ff;
+    --muted:#91a0b7;
+    --blue:#3b82f6;
+    --cyan:#22d3ee;
+    --green:#22c55e;
+    --red:#ef4444;
+    --orange:#f59e0b;
+}
+
+html,
+body{
+    width:100%;
+    height:100%;
+    overflow:hidden;
+}
+
+body{
+    font-family:
+        Inter,
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+
+    color:var(--text);
+
+    background:
+        radial-gradient(
+            circle at 15% 20%,
+            rgba(37,99,235,.18),
+            transparent 30%
+        ),
+        radial-gradient(
+            circle at 85% 75%,
+            rgba(34,211,238,.12),
+            transparent 30%
+        ),
+        linear-gradient(
+            135deg,
+            var(--bg),
+            var(--bg2)
+        );
+}
+
+/* =========================================================
+   BACKGROUND
+========================================================= */
+
+.background{
+    position:fixed;
+    inset:0;
+    overflow:hidden;
+    pointer-events:none;
+}
+
+.glow{
+    position:absolute;
+    border-radius:50%;
+    filter:blur(85px);
+    opacity:.35;
+    animation:floatGlow 10s ease-in-out infinite alternate;
+}
+
+.glow.one{
+    width:350px;
+    height:350px;
+    background:#2563eb;
+    top:-120px;
+    left:-100px;
+}
+
+.glow.two{
+    width:300px;
+    height:300px;
+    background:#06b6d4;
+    right:-100px;
+    bottom:-80px;
+    animation-delay:2s;
+}
+
+.glow.three{
+    width:220px;
+    height:220px;
+    background:#7c3aed;
+    left:45%;
+    top:45%;
+    opacity:.12;
+    animation-delay:4s;
+}
+
+@keyframes floatGlow{
+    from{
+        transform:translate(0,0) scale(1);
+    }
+
+    to{
+        transform:translate(35px,-25px) scale(1.15);
+    }
+}
+
+.roads{
+    position:absolute;
+    inset:0;
+    opacity:.18;
+}
+
+.road{
+    position:absolute;
+    height:1px;
+
+    background:
+        linear-gradient(
+            90deg,
+            transparent,
+            rgba(96,165,250,.7),
+            transparent
+        );
+}
+
+.road.r1{
+    width:75%;
+    left:-5%;
+    top:22%;
+    transform:rotate(14deg);
+}
+
+.road.r2{
+    width:80%;
+    left:25%;
+    top:58%;
+    transform:rotate(-11deg);
+}
+
+.road.r3{
+    width:65%;
+    left:15%;
+    top:80%;
+    transform:rotate(8deg);
+}
+
+.road.r4{
+    width:55%;
+    left:55%;
+    top:12%;
+    transform:rotate(70deg);
+}
+
+.road.r5{
+    width:60%;
+    left:5%;
+    top:65%;
+    transform:rotate(-62deg);
+}
+
+.road::after{
+    content:"";
+    position:absolute;
+    inset:-3px 0;
+    border-top:1px dashed rgba(255,255,255,.25);
+}
+
+.particles{
+    position:absolute;
+    inset:0;
+}
+
+.particle{
+    position:absolute;
+
+    width:3px;
+    height:3px;
+
+    border-radius:50%;
+
+    background:rgba(255,255,255,.65);
+
+    box-shadow:
+        0 0 12px rgba(96,165,250,.8);
+
+    animation:
+        particleMove linear infinite;
+}
+
+@keyframes particleMove{
+    from{
+        transform:translateY(110vh);
+        opacity:0;
+    }
+
+    15%{
+        opacity:1;
+    }
+
+    85%{
+        opacity:1;
+    }
+
+    to{
+        transform:translateY(-10vh);
+        opacity:0;
+    }
+}
+
+/* =========================================================
+   WELCOME
+========================================================= */
+
+.welcome{
+    position:relative;
+    z-index:5;
+
+    width:100%;
+    height:100vh;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    padding:30px;
+
+    transition:
+        opacity .45s ease,
+        transform .45s ease;
+}
+
+.container{
+    width:min(1100px,100%);
+    text-align:center;
+}
+
+/* =========================================================
+   LOGO
+========================================================= */
+
+.logo{
+    width:104px;
+    height:104px;
+
+    margin:0 auto 30px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    border-radius:30px;
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(59,130,246,.28),
+            rgba(34,211,238,.10)
+        );
+
+    border:
+        1px solid rgba(147,197,253,.25);
+
+    box-shadow:
+        0 20px 60px rgba(0,0,0,.35),
+        inset 0 1px 0 rgba(255,255,255,.12);
 
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
+    backdrop-filter:blur(20px);
 
-            animation: titleGradient 7s linear infinite;
-        }
+    animation:logoFloat 4s ease-in-out infinite;
+}
 
-        @keyframes titleGradient {
-            from {
-                background-position: 0% center;
-            }
+@keyframes logoFloat{
+    0%,100%{
+        transform:translateY(0);
+    }
 
-            to {
-                background-position: 250% center;
-            }
-        }
+    50%{
+        transform:translateY(-8px);
+    }
+}
 
-        .subtitle {
-            max-width: 650px;
+.bus-icon{
+    position:relative;
 
-            margin: 0 auto;
+    width:62px;
+    height:43px;
 
-            color: var(--muted);
+    background:
+        linear-gradient(
+            145deg,
+            #60a5fa,
+            #2563eb
+        );
 
-            font-size: clamp(16px, 2vw, 20px);
+    border-radius:
+        10px 10px 7px 7px;
 
-            line-height: 1.7;
-        }
+    box-shadow:
+        0 10px 30px rgba(37,99,235,.45);
+}
 
-        /* =========================
-           BUTTONS
-        ========================== */
+.bus-icon::before{
+    content:"";
 
-        .buttons {
-            display: flex;
-            justify-content: center;
-            gap: 14px;
+    position:absolute;
 
-            margin-top: 38px;
+    width:43px;
+    height:17px;
 
-            flex-wrap: wrap;
-        }
+    left:9px;
+    top:7px;
 
-        button {
-            border: none;
-            font: inherit;
-            cursor: pointer;
-        }
+    background:
+        linear-gradient(
+            90deg,
+            #172554,
+            #0f172a
+        );
 
-        .primary {
-            position: relative;
-            overflow: hidden;
+    border-radius:4px;
+}
 
-            min-width: 220px;
+.bus-icon::after{
+    content:"";
 
-            padding: 17px 27px;
+    position:absolute;
 
-            border-radius: 15px;
+    width:10px;
+    height:10px;
 
-            color: white;
+    border-radius:50%;
 
-            font-size: 15px;
-            font-weight: 800;
+    background:#07111f;
 
-            background:
-                linear-gradient(
-                    135deg,
-                    #2563eb,
-                    #0891b2
-                );
+    left:8px;
+    bottom:-5px;
 
-            box-shadow:
-                0 14px 35px rgba(37,99,235,.28),
-                inset 0 1px 0 rgba(255,255,255,.25);
+    box-shadow:
+        36px 0 0 #07111f;
+}
 
-            transition:
-                transform .25s ease,
-                box-shadow .25s ease;
-        }
+/* =========================================================
+   TITLE
+========================================================= */
 
-        .primary:hover {
-            transform: translateY(-3px);
+.eyebrow{
+    display:inline-flex;
 
-            box-shadow:
-                0 20px 45px rgba(37,99,235,.40),
-                inset 0 1px 0 rgba(255,255,255,.25);
-        }
+    align-items:center;
+    gap:8px;
 
-        .secondary {
-            min-width: 150px;
+    padding:8px 14px;
 
-            padding: 17px 27px;
+    border-radius:999px;
 
-            border-radius: 15px;
+    background:rgba(255,255,255,.045);
 
-            color: #d8e5f8;
+    border:
+        1px solid rgba(255,255,255,.10);
 
-            background: rgba(255,255,255,.045);
+    color:#9ec5ff;
 
-            border: 1px solid rgba(255,255,255,.11);
+    font-size:12px;
+    font-weight:700;
 
-            backdrop-filter: blur(15px);
+    letter-spacing:2px;
 
-            font-size: 15px;
-            font-weight: 700;
+    text-transform:uppercase;
 
-            transition: .25s ease;
-        }
+    margin-bottom:22px;
 
-        .secondary:hover {
-            background: rgba(255,255,255,.08);
-            border-color: rgba(147,197,253,.3);
-            transform: translateY(-3px);
-        }
+    backdrop-filter:blur(15px);
+}
 
-        /* =========================
-           FEATURES
-        ========================== */
+.status-dot{
+    width:7px;
+    height:7px;
 
-        .features {
-            display: flex;
-            justify-content: center;
-            gap: 12px;
+    border-radius:50%;
 
-            margin-top: 55px;
+    background:#22c55e;
 
-            flex-wrap: wrap;
-        }
+    box-shadow:
+        0 0 12px rgba(34,197,94,.9);
 
-        .feature {
-            display: flex;
-            align-items: center;
-            gap: 9px;
+    animation:pulse 2s infinite;
+}
 
-            padding: 10px 15px;
+@keyframes pulse{
+    0%,100%{
+        transform:scale(1);
+        opacity:1;
+    }
 
-            border-radius: 12px;
+    50%{
+        transform:scale(1.45);
+        opacity:.6;
+    }
+}
 
-            color: #8fa2bc;
+h1{
+    font-size:clamp(58px,10vw,125px);
 
-            background: rgba(255,255,255,.025);
+    line-height:.9;
 
-            border: 1px solid rgba(255,255,255,.06);
+    font-weight:900;
 
-            font-size: 12px;
+    letter-spacing:-6px;
 
-            backdrop-filter: blur(10px);
-        }
+    margin-bottom:25px;
 
-        .feature span {
-            font-size: 16px;
-        }
+    background:
+        linear-gradient(
+            110deg,
+            #ffffff 10%,
+            #b9d7ff 45%,
+            #67e8f9 80%,
+            #ffffff
+        );
 
-        /* =========================
-           VERSION
-        ========================== */
+    background-size:250% auto;
 
-        .version {
-            position: fixed;
+    -webkit-background-clip:text;
+    background-clip:text;
 
-            bottom: 20px;
-            right: 25px;
+    color:transparent;
 
-            z-index: 10;
+    animation:
+        titleGradient 7s linear infinite;
+}
 
-            color: rgba(255,255,255,.3);
+@keyframes titleGradient{
+    from{
+        background-position:0% center;
+    }
 
-            font-size: 11px;
-            letter-spacing: 1px;
-        }
+    to{
+        background-position:250% center;
+    }
+}
 
-        /* =========================
-           INFORMATION MODAL
-        ========================== */
+.subtitle{
+    max-width:650px;
 
-        .info-overlay {
-            position: fixed;
-            inset: 0;
+    margin:0 auto;
 
-            z-index: 100;
+    color:var(--muted);
 
-            display: flex;
-            align-items: center;
-            justify-content: center;
+    font-size:
+        clamp(16px,2vw,20px);
 
-            padding: 25px;
+    line-height:1.7;
+}
 
-            background: rgba(1,5,12,.72);
+/* =========================================================
+   BUTTONS
+========================================================= */
 
-            backdrop-filter: blur(14px);
+.buttons{
+    display:flex;
 
-            opacity: 0;
-            visibility: hidden;
+    justify-content:center;
 
-            transition:
-                opacity .3s ease,
-                visibility .3s ease;
-        }
+    gap:14px;
 
-        .info-overlay.active {
-            opacity: 1;
-            visibility: visible;
-        }
+    margin-top:38px;
 
-        .info-window {
-            position: relative;
+    flex-wrap:wrap;
+}
 
-            width: min(760px, 100%);
-            max-height: 90vh;
+button{
+    border:none;
+    font:inherit;
+    cursor:pointer;
+}
 
-            overflow-y: auto;
+.primary{
+    min-width:220px;
 
-            padding: 38px;
+    padding:17px 27px;
 
-            border-radius: 26px;
+    border-radius:15px;
 
-            background:
-                linear-gradient(
-                    145deg,
-                    rgba(18,34,55,.94),
-                    rgba(7,17,30,.94)
-                );
+    color:white;
 
-            border: 1px solid rgba(147,197,253,.16);
+    font-size:15px;
+    font-weight:800;
 
-            box-shadow:
-                0 35px 100px rgba(0,0,0,.55),
-                inset 0 1px 0 rgba(255,255,255,.08);
+    background:
+        linear-gradient(
+            135deg,
+            #2563eb,
+            #0891b2
+        );
 
-            transform: translateY(25px) scale(.97);
+    box-shadow:
+        0 14px 35px rgba(37,99,235,.28),
+        inset 0 1px 0 rgba(255,255,255,.25);
 
-            transition:
-                transform .35s ease;
-        }
+    transition:.25s ease;
+}
 
-        .info-overlay.active .info-window {
-            transform: translateY(0) scale(1);
-        }
+.primary:hover{
+    transform:translateY(-3px);
 
-        .close-info {
-            position: absolute;
+    box-shadow:
+        0 20px 45px rgba(37,99,235,.40);
+}
 
-            top: 18px;
-            right: 18px;
+.secondary{
+    min-width:150px;
 
-            width: 38px;
-            height: 38px;
+    padding:17px 27px;
 
-            border-radius: 12px;
+    border-radius:15px;
 
-            background: rgba(255,255,255,.06);
+    color:#d8e5f8;
 
-            border: 1px solid rgba(255,255,255,.08);
+    background:
+        rgba(255,255,255,.045);
 
-            color: #9aa9bd;
+    border:
+        1px solid rgba(255,255,255,.11);
 
-            font-size: 19px;
+    backdrop-filter:blur(15px);
 
-            transition: .2s ease;
-        }
+    font-size:15px;
+    font-weight:700;
 
-        .close-info:hover {
-            color: white;
-            background: rgba(255,255,255,.11);
-            transform: rotate(5deg);
-        }
+    transition:.25s ease;
+}
 
-        .info-header {
-            display: flex;
-            align-items: center;
-            gap: 18px;
+.secondary:hover{
+    background:
+        rgba(255,255,255,.08);
 
-            padding-right: 45px;
+    transform:translateY(-3px);
+}
 
-            margin-bottom: 28px;
-        }
+/* =========================================================
+   FEATURES
+========================================================= */
 
-        .info-logo {
-            width: 64px;
-            height: 64px;
+.features{
+    display:flex;
 
-            display: flex;
-            align-items: center;
-            justify-content: center;
+    justify-content:center;
 
-            flex-shrink: 0;
+    gap:12px;
 
-            border-radius: 19px;
+    margin-top:55px;
 
-            background:
-                linear-gradient(
-                    135deg,
-                    rgba(59,130,246,.25),
-                    rgba(34,211,238,.12)
-                );
+    flex-wrap:wrap;
+}
 
-            border: 1px solid rgba(147,197,253,.16);
+.feature{
+    display:flex;
 
-            font-size: 30px;
-        }
+    align-items:center;
 
-        .info-header h2 {
-            font-size: 28px;
-            margin-bottom: 5px;
-        }
+    gap:9px;
 
-        .info-header p {
-            color: #7f91a9;
-            font-size: 13px;
-        }
+    padding:10px 15px;
 
-        .info-intro {
-            color: #b5c2d4;
+    border-radius:12px;
 
-            font-size: 15px;
-            line-height: 1.75;
+    color:#8fa2bc;
 
-            margin-bottom: 28px;
-        }
+    background:
+        rgba(255,255,255,.025);
 
-        .info-grid {
-            display: grid;
+    border:
+        1px solid rgba(255,255,255,.06);
 
-            grid-template-columns:
-                repeat(2, minmax(0, 1fr));
+    font-size:12px;
 
-            gap: 12px;
-        }
+    backdrop-filter:blur(10px);
+}
 
-        .info-item {
-            padding: 18px;
+.feature span{
+    font-size:16px;
+}
 
-            border-radius: 17px;
+/* =========================================================
+   MODAL BASE
+========================================================= */
 
-            background: rgba(255,255,255,.035);
+.modal{
+    position:fixed;
 
-            border: 1px solid rgba(255,255,255,.07);
+    inset:0;
 
-            transition:
-                transform .2s ease,
-                background .2s ease;
-        }
+    z-index:100;
 
-        .info-item:hover {
-            transform: translateY(-2px);
-            background: rgba(255,255,255,.055);
-        }
+    display:flex;
 
-        .info-icon {
-            font-size: 25px;
-            margin-bottom: 10px;
-        }
+    align-items:center;
+    justify-content:center;
 
-        .info-item h3 {
-            font-size: 14px;
-            margin-bottom: 7px;
-        }
+    padding:25px;
 
-        .info-item p {
-            color: #7f91a9;
+    background:
+        rgba(1,5,12,.78);
 
-            font-size: 12px;
-            line-height: 1.6;
-        }
+    backdrop-filter:blur(16px);
 
-        .info-footer {
-            margin-top: 25px;
-            padding-top: 20px;
+    opacity:0;
+    visibility:hidden;
 
-            border-top:
-                1px solid rgba(255,255,255,.07);
+    transition:
+        opacity .3s ease,
+        visibility .3s ease;
+}
 
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+.modal.active{
+    opacity:1;
+    visibility:visible;
+}
 
-            gap: 15px;
+.modal-window{
 
-            color: #71839b;
+    position:relative;
 
-            font-size: 11px;
-        }
+    width:min(820px,100%);
 
-        .info-footer strong {
-            color: #9db9de;
-        }
+    max-height:90vh;
 
-        /* =========================
-           TEMP GAME SCREEN
-        ========================== */
+    overflow-y:auto;
 
-        .game-screen {
-            position: fixed;
-            inset: 0;
+    padding:38px;
 
-            z-index: 50;
+    border-radius:27px;
 
-            display: none;
+    background:
+        linear-gradient(
+            145deg,
+            rgba(18,34,55,.97),
+            rgba(7,17,30,.97)
+        );
 
-            align-items: center;
-            justify-content: center;
+    border:
+        1px solid rgba(147,197,253,.16);
 
-            background:
-                radial-gradient(
-                    circle at center,
-                    rgba(37,99,235,.15),
-                    transparent 45%
-                ),
-                #050b14;
+    box-shadow:
+        0 35px 100px rgba(0,0,0,.6),
+        inset 0 1px 0 rgba(255,255,255,.08);
 
-            animation: screenIn .5s ease;
-        }
+    transform:
+        translateY(25px) scale(.97);
 
-        .game-screen.active {
-            display: flex;
-        }
+    transition:
+        transform .35s ease;
+}
 
-        @keyframes screenIn {
-            from {
-                opacity: 0;
-            }
+.modal.active .modal-window{
+    transform:
+        translateY(0) scale(1);
+}
 
-            to {
-                opacity: 1;
-            }
-        }
+.modal-window::-webkit-scrollbar{
+    width:7px;
+}
 
-        .start-card {
-            width: min(550px, calc(100% - 40px));
+.modal-window::-webkit-scrollbar-thumb{
+    background:rgba(147,197,253,.22);
+    border-radius:10px;
+}
 
-            padding: 45px;
+.close{
 
-            text-align: center;
+    position:absolute;
 
-            border-radius: 25px;
+    top:18px;
+    right:18px;
 
-            background:
-                linear-gradient(
-                    145deg,
-                    rgba(255,255,255,.08),
-                    rgba(255,255,255,.035)
-                );
+    width:38px;
+    height:38px;
 
-            border: 1px solid rgba(255,255,255,.12);
+    border-radius:12px;
 
-            box-shadow:
-                0 30px 100px rgba(0,0,0,.45);
+    color:#9aa9bd;
 
-            backdrop-filter: blur(30px);
-        }
+    background:
+        rgba(255,255,255,.06);
 
-        .start-card .mini-icon {
-            font-size: 55px;
-            margin-bottom: 20px;
-        }
+    border:
+        1px solid rgba(255,255,255,.08);
 
-        .start-card h2 {
-            font-size: 32px;
-            margin-bottom: 12px;
-        }
+    font-size:18px;
 
-        .start-card p {
-            color: var(--muted);
-            line-height: 1.7;
-            margin-bottom: 30px;
-        }
+    transition:.2s ease;
+}
 
-        .back {
-            margin-top: 12px;
-            background: transparent;
-            color: #8092aa;
-            font-size: 13px;
-        }
+.close:hover{
 
-        .back:hover {
-            color: white;
-        }
+    color:white;
 
-        /* =========================
-           RESPONSIVE
-        ========================== */
+    background:
+        rgba(255,255,255,.11);
 
-        @media (max-width: 600px) {
+    transform:rotate(5deg);
+}
 
-            .welcome {
-                padding: 20px;
-            }
+/* =========================================================
+   INFO
+========================================================= */
 
-            .logo {
-                width: 82px;
-                height: 82px;
+.info-header{
 
-                border-radius: 24px;
+    display:flex;
 
-                margin-bottom: 22px;
-            }
+    align-items:center;
 
-            .bus-icon {
-                transform: scale(.8);
-            }
+    gap:18px;
 
-            h1 {
-                letter-spacing: -3px;
-            }
+    padding-right:50px;
 
-            .subtitle {
-                font-size: 15px;
-            }
+    margin-bottom:25px;
+}
 
-            .buttons {
-                margin-top: 30px;
-            }
+.info-logo{
 
-            .primary,
-            .secondary {
-                width: 100%;
-            }
+    width:64px;
+    height:64px;
 
-            .features {
-                margin-top: 35px;
-            }
+    flex-shrink:0;
 
-            .feature {
-                font-size: 11px;
-            }
+    display:flex;
 
-            .info-window {
-                padding: 25px 20px;
-                border-radius: 21px;
-            }
+    align-items:center;
+    justify-content:center;
 
-            .info-header h2 {
-                font-size: 23px;
-            }
+    border-radius:19px;
 
-            .info-grid {
-                grid-template-columns: 1fr;
-            }
+    background:
+        linear-gradient(
+            135deg,
+            rgba(59,130,246,.25),
+            rgba(34,211,238,.12)
+        );
 
-            .info-footer {
-                flex-direction: column;
-                align-items: flex-start;
-            }
+    border:
+        1px solid rgba(147,197,253,.16);
 
-            .version {
-                bottom: 10px;
-                right: 12px;
-            }
-        }
-    </style>
+    font-size:30px;
+}
+
+.info-header h2{
+    font-size:28px;
+    margin-bottom:5px;
+}
+
+.info-header p{
+    color:#7f91a9;
+    font-size:13px;
+}
+
+.info-intro{
+
+    color:#b5c2d4;
+
+    font-size:15px;
+
+    line-height:1.75;
+
+    margin-bottom:25px;
+}
+
+.info-grid{
+
+    display:grid;
+
+    grid-template-columns:
+        repeat(2,minmax(0,1fr));
+
+    gap:12px;
+}
+
+.info-item{
+
+    padding:18px;
+
+    border-radius:17px;
+
+    background:
+        rgba(255,255,255,.035);
+
+    border:
+        1px solid rgba(255,255,255,.07);
+
+    transition:.2s ease;
+}
+
+.info-item:hover{
+
+    transform:translateY(-2px);
+
+    background:
+        rgba(255,255,255,.055);
+}
+
+.info-icon{
+
+    font-size:25px;
+
+    margin-bottom:10px;
+}
+
+.info-item h3{
+
+    font-size:14px;
+
+    margin-bottom:7px;
+}
+
+.info-item p{
+
+    color:#7f91a9;
+
+    font-size:12px;
+
+    line-height:1.6;
+}
+
+.info-footer{
+
+    margin-top:25px;
+
+    padding-top:20px;
+
+    border-top:
+        1px solid rgba(255,255,255,.07);
+
+    display:flex;
+
+    justify-content:space-between;
+
+    color:#71839b;
+
+    font-size:11px;
+}
+
+/* =========================================================
+   SETUP
+========================================================= */
+
+.setup-window{
+    width:min(900px,100%);
+}
+
+.setup-header{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:15px;
+
+    margin-bottom:8px;
+
+    padding-right:50px;
+}
+
+.setup-icon{
+
+    width:58px;
+    height:58px;
+
+    display:flex;
+
+    align-items:center;
+    justify-content:center;
+
+    border-radius:18px;
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(37,99,235,.28),
+            rgba(34,211,238,.12)
+        );
+
+    border:
+        1px solid rgba(147,197,253,.15);
+
+    font-size:28px;
+}
+
+.setup-header h2{
+    font-size:27px;
+}
+
+.setup-subtitle{
+
+    color:#7f91a9;
+
+    font-size:13px;
+
+    margin-bottom:28px;
+}
+
+/* =========================================================
+   FORM
+========================================================= */
+
+.form-grid{
+
+    display:grid;
+
+    grid-template-columns:
+        1fr 1fr;
+
+    gap:18px;
+}
+
+.form-group.full{
+    grid-column:1/-1;
+}
+
+.label{
+
+    display:block;
+
+    color:#c4d0df;
+
+    font-size:13px;
+
+    font-weight:700;
+
+    margin-bottom:9px;
+}
+
+.hint{
+
+    color:#667a94;
+
+    font-size:11px;
+
+    margin-top:6px;
+}
+
+/* =========================================================
+   TEXT INPUT
+========================================================= */
+
+.text-input{
+
+    width:100%;
+
+    height:52px;
+
+    padding:
+        0 16px;
+
+    outline:none;
+
+    color:white;
+
+    background:
+        rgba(255,255,255,.045);
+
+    border:
+        1px solid rgba(255,255,255,.10);
+
+    border-radius:14px;
+
+    font-size:14px;
+
+    transition:.2s ease;
+}
+
+.text-input::placeholder{
+    color:#62748d;
+}
+
+.text-input:focus{
+
+    border-color:
+        rgba(59,130,246,.65);
+
+    background:
+        rgba(255,255,255,.065);
+
+    box-shadow:
+        0 0 0 4px rgba(59,130,246,.08);
+}
+
+/* =========================================================
+   DROPDOWN
+========================================================= */
+
+.dropdown{
+    position:relative;
+}
+
+.dropdown-button{
+
+    width:100%;
+
+    height:52px;
+
+    padding:
+        0 16px;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:space-between;
+
+    text-align:left;
+
+    color:#dbe7f7;
+
+    background:
+        rgba(255,255,255,.045);
+
+    border:
+        1px solid rgba(255,255,255,.10);
+
+    border-radius:14px;
+
+    font-size:14px;
+
+    transition:.2s ease;
+}
+
+.dropdown-button:hover{
+
+    background:
+        rgba(255,255,255,.065);
+}
+
+.arrow{
+
+    color:#7f91a9;
+
+    transition:.25s ease;
+}
+
+.dropdown.open .arrow{
+    transform:rotate(180deg);
+}
+
+.dropdown-list{
+
+    position:absolute;
+
+    z-index:500;
+
+    left:0;
+    right:0;
+
+    top:calc(100% + 7px);
+
+    max-height:0;
+
+    overflow:hidden;
+
+    opacity:0;
+
+    transform:
+        translateY(-8px);
+
+    border-radius:15px;
+
+    background:
+        #091727;
+
+    border:
+        1px solid rgba(147,197,253,.17);
+
+    box-shadow:
+        0 25px 60px rgba(0,0,0,.65);
+
+    transition:
+        max-height .35s ease,
+        opacity .25s ease,
+        transform .25s ease;
+}
+
+.dropdown.open .dropdown-list{
+
+    max-height:300px;
+
+    overflow-y:auto;
+
+    opacity:1;
+
+    transform:
+        translateY(0);
+}
+
+.dropdown-search{
+
+    position:sticky;
+
+    top:0;
+
+    z-index:2;
+
+    width:100%;
+
+    height:43px;
+
+    padding:0 13px;
+
+    color:white;
+
+    background:#0b1c30;
+
+    border:none;
+
+    border-bottom:
+        1px solid rgba(255,255,255,.07);
+
+    outline:none;
+
+    font-size:12px;
+}
+
+.dropdown-search::placeholder{
+    color:#60748e;
+}
+
+.dropdown-item{
+
+    padding:13px 15px;
+
+    color:#aebed2;
+
+    font-size:13px;
+
+    cursor:pointer;
+
+    border-bottom:
+        1px solid rgba(255,255,255,.035);
+
+    transition:.15s ease;
+}
+
+.dropdown-item:last-child{
+    border-bottom:none;
+}
+
+.dropdown-item:hover{
+
+    color:white;
+
+    background:
+        rgba(59,130,246,.14);
+}
+
+.dropdown-item.selected{
+
+    color:#70b5ff;
+
+    background:
+        rgba(59,130,246,.10);
+}
+
+.dropdown-list::-webkit-scrollbar{
+    width:6px;
+}
+
+.dropdown-list::-webkit-scrollbar-thumb{
+
+    background:
+        rgba(147,197,253,.25);
+
+    border-radius:10px;
+}
+
+/* =========================================================
+   MODE
+========================================================= */
+
+.mode-title{
+
+    margin-top:25px;
+
+    margin-bottom:12px;
+
+    color:#c4d0df;
+
+    font-size:13px;
+
+    font-weight:700;
+}
+
+.mode-grid{
+
+    display:grid;
+
+    grid-template-columns:
+        1fr 1fr;
+
+    gap:14px;
+}
+
+.mode-card{
+
+    position:relative;
+
+    padding:20px;
+
+    text-align:left;
+
+    border-radius:18px;
+
+    background:
+        rgba(255,255,255,.035);
+
+    border:
+        1px solid rgba(255,255,255,.08);
+
+    cursor:pointer;
+
+    transition:.25s ease;
+}
+
+.mode-card:hover{
+
+    transform:translateY(-2px);
+
+    background:
+        rgba(255,255,255,.06);
+}
+
+.mode-card.active{
+
+    border-color:
+        rgba(59,130,246,.65);
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(37,99,235,.16),
+            rgba(34,211,238,.06)
+        );
+
+    box-shadow:
+        0 0 0 1px rgba(59,130,246,.12);
+}
+
+.mode-radio{
+
+    position:absolute;
+
+    top:19px;
+    right:19px;
+
+    width:18px;
+    height:18px;
+
+    border-radius:50%;
+
+    border:
+        2px solid #60748f;
+
+    transition:.2s ease;
+}
+
+.mode-card.active .mode-radio{
+
+    border-color:#60a5fa;
+
+    background:#60a5fa;
+
+    box-shadow:
+        inset 0 0 0 4px #0a1728;
+}
+
+.mode-icon{
+
+    font-size:28px;
+
+    margin-bottom:11px;
+}
+
+.mode-card h3{
+
+    font-size:15px;
+
+    margin-bottom:7px;
+}
+
+.mode-card p{
+
+    color:#71839b;
+
+    font-size:12px;
+
+    line-height:1.6;
+}
+
+/* =========================================================
+   SANDBOX WARNING
+========================================================= */
+
+.sandbox-note{
+
+    display:none;
+
+    margin-top:12px;
+
+    padding:13px 15px;
+
+    border-radius:13px;
+
+    background:
+        rgba(245,158,11,.07);
+
+    border:
+        1px solid rgba(245,158,11,.16);
+
+    color:#c8a968;
+
+    font-size:11px;
+
+    line-height:1.5;
+}
+
+.sandbox-note.show{
+    display:block;
+}
+
+/* =========================================================
+   ACTIONS
+========================================================= */
+
+.setup-actions{
+
+    display:flex;
+
+    justify-content:flex-end;
+
+    gap:12px;
+
+    margin-top:28px;
+
+    padding-top:22px;
+
+    border-top:
+        1px solid rgba(255,255,255,.07);
+}
+
+.cancel{
+
+    padding:14px 20px;
+
+    border-radius:13px;
+
+    color:#91a0b7;
+
+    background:
+        rgba(255,255,255,.04);
+
+    border:
+        1px solid rgba(255,255,255,.08);
+
+    font-weight:700;
+
+    transition:.2s ease;
+}
+
+.cancel:hover{
+
+    color:white;
+
+    background:
+        rgba(255,255,255,.08);
+}
+
+.create{
+
+    padding:14px 26px;
+
+    border-radius:13px;
+
+    color:white;
+
+    background:
+        linear-gradient(
+            135deg,
+            #2563eb,
+            #0891b2
+        );
+
+    box-shadow:
+        0 10px 25px rgba(37,99,235,.25);
+
+    font-weight:800;
+
+    transition:.2s ease;
+}
+
+.create:hover{
+
+    transform:translateY(-2px);
+
+    box-shadow:
+        0 15px 35px rgba(37,99,235,.38);
+}
+
+/* =========================================================
+   TEMP GAME
+========================================================= */
+
+.game-screen{
+
+    position:fixed;
+
+    inset:0;
+
+    z-index:50;
+
+    display:none;
+
+    align-items:center;
+    justify-content:center;
+
+    background:
+        radial-gradient(
+            circle at center,
+            rgba(37,99,235,.15),
+            transparent 45%
+        ),
+        #050b14;
+}
+
+.game-screen.active{
+    display:flex;
+}
+
+.start-card{
+
+    width:min(550px,calc(100% - 40px));
+
+    padding:45px;
+
+    text-align:center;
+
+    border-radius:25px;
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(255,255,255,.08),
+            rgba(255,255,255,.035)
+        );
+
+    border:
+        1px solid rgba(255,255,255,.12);
+
+    box-shadow:
+        0 30px 100px rgba(0,0,0,.45);
+
+    backdrop-filter:blur(30px);
+}
+
+.start-card .mini-icon{
+    font-size:55px;
+    margin-bottom:20px;
+}
+
+.start-card h2{
+    font-size:32px;
+    margin-bottom:12px;
+}
+
+.start-card p{
+    color:var(--muted);
+    line-height:1.7;
+    margin-bottom:30px;
+}
+
+.back{
+
+    margin-top:12px;
+
+    background:transparent;
+
+    color:#8092aa;
+
+    font-size:13px;
+}
+
+/* =========================================================
+   VERSION
+========================================================= */
+
+.version{
+
+    position:fixed;
+
+    bottom:20px;
+    right:25px;
+
+    z-index:10;
+
+    color:rgba(255,255,255,.3);
+
+    font-size:11px;
+
+    letter-spacing:1px;
+}
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media(max-width:700px){
+
+    .form-grid{
+        grid-template-columns:1fr;
+    }
+
+    .form-group.full{
+        grid-column:auto;
+    }
+
+    .mode-grid{
+        grid-template-columns:1fr;
+    }
+
+    .info-grid{
+        grid-template-columns:1fr;
+    }
+
+    .modal-window{
+        padding:25px 20px;
+    }
+
+    .setup-window{
+        padding:25px 20px;
+    }
+}
+
+@media(max-width:500px){
+
+    h1{
+        letter-spacing:-3px;
+    }
+
+    .logo{
+        width:82px;
+        height:82px;
+    }
+
+    .buttons{
+        flex-direction:column;
+    }
+
+    .primary,
+    .secondary{
+        width:100%;
+    }
+
+    .features{
+        margin-top:35px;
+    }
+
+    .setup-actions{
+        flex-direction:column-reverse;
+    }
+
+    .cancel,
+    .create{
+        width:100%;
+    }
+}
+
+</style>
 </head>
 
 <body>
 
-    <!-- =========================
-         BACKGROUND
-    ========================== -->
+<!-- =========================================================
+     BACKGROUND
+========================================================= -->
 
-    <div class="background">
+<div class="background">
 
-        <div class="glow one"></div>
-        <div class="glow two"></div>
-        <div class="glow three"></div>
+    <div class="glow one"></div>
+    <div class="glow two"></div>
+    <div class="glow three"></div>
 
-        <div class="roads">
-            <div class="road r1"></div>
-            <div class="road r2"></div>
-            <div class="road r3"></div>
-            <div class="road r4"></div>
-            <div class="road r5"></div>
-        </div>
-
-        <div class="particles" id="particles"></div>
-
+    <div class="roads">
+        <div class="road r1"></div>
+        <div class="road r2"></div>
+        <div class="road r3"></div>
+        <div class="road r4"></div>
+        <div class="road r5"></div>
     </div>
-
-
-    <!-- =========================
-         WELCOME SCREEN
-    ========================== -->
-
-    <main class="welcome" id="welcomeScreen">
-
-        <div class="container">
-
-            <div class="logo">
-                <div class="bus-icon"></div>
-            </div>
-
-            <div class="eyebrow">
-                <span class="status-dot"></span>
-                SYSTEM ONLINE
-            </div>
-
-            <h1>
-                BUS<br>
-                MANAGER
-            </h1>
-
-            <p class="subtitle">
-                Zbuduj własne przedsiębiorstwo autobusowe,
-                zarządzaj flotą, twórz linie i zostań najlepszym
-                operatorem transportowym.
-            </p>
-
-            <div class="buttons">
-
-                <button
-                    class="primary"
-                    onclick="startGame()"
-                >
-                    🚌 &nbsp; ROZPOCZNIJ GRĘ
-                </button>
-
-                <button
-                    class="secondary"
-                    onclick="openInfo()"
-                >
-                    ℹ️ &nbsp; INFORMACJE
-                </button>
-
-            </div>
-
-            <div class="features">
-
-                <div class="feature">
-                    <span>🚌</span>
-                    Zarządzanie flotą
-                </div>
-
-                <div class="feature">
-                    <span>🛣️</span>
-                    Linie autobusowe
-                </div>
-
-                <div class="feature">
-                    <span>💰</span>
-                    Ekonomia
-                </div>
-
-                <div class="feature">
-                    <span>🏙️</span>
-                    Rozwój miasta
-                </div>
-
-            </div>
-
-        </div>
-
-    </main>
-
-
-    <!-- =========================
-         INFORMATION MODAL
-    ========================== -->
 
     <div
-        class="info-overlay"
-        id="infoOverlay"
-        onclick="closeInfoOutside(event)"
-    >
+        class="particles"
+        id="particles">
+    </div>
 
-        <div class="info-window">
-
-            <button
-                class="close-info"
-                onclick="closeInfo()"
-                aria-label="Zamknij"
-            >
-                ✕
-            </button>
-
-            <div class="info-header">
-
-                <div class="info-logo">
-                    🚌
-                </div>
-
-                <div>
-                    <h2>Bus Manager</h2>
-
-                    <p>
-                        Symulator zarządzania przedsiębiorstwem autobusowym
-                    </p>
-                </div>
-
-            </div>
+</div>
 
 
-            <p class="info-intro">
-                Witaj w <strong>Bus Manager</strong> — grze, w której
-                przejmujesz kontrolę nad własnym przedsiębiorstwem
-                transportowym. Twoim zadaniem będzie rozwijanie firmy,
-                zarządzanie autobusami, kierowcami, liniami oraz finansami.
-            </p>
+<!-- =========================================================
+     WELCOME SCREEN
+========================================================= -->
 
+<main
+    class="welcome"
+    id="welcomeScreen">
 
-            <div class="info-grid">
+    <div class="container">
 
-                <div class="info-item">
+        <div class="logo">
+            <div class="bus-icon"></div>
+        </div>
 
-                    <div class="info-icon">🚌</div>
+        <div class="eyebrow">
 
-                    <h3>Flota autobusów</h3>
+            <span class="status-dot"></span>
 
-                    <p>
-                        Kupuj nowe autobusy, rozwijaj swoją flotę,
-                        dbaj o ich stan techniczny i decyduj,
-                        które pojazdy będą obsługiwać poszczególne linie.
-                    </p>
-
-                </div>
-
-
-                <div class="info-item">
-
-                    <div class="info-icon">🛣️</div>
-
-                    <h3>Linie i trasy</h3>
-
-                    <p>
-                        Twórz własne linie autobusowe, planuj trasy
-                        i dopasowuj częstotliwość kursowania
-                        do zapotrzebowania pasażerów.
-                    </p>
-
-                </div>
-
-
-                <div class="info-item">
-
-                    <div class="info-icon">👨‍✈️</div>
-
-                    <h3>Pracownicy</h3>
-
-                    <p>
-                        Zatrudniaj kierowców i innych pracowników.
-                        Organizuj pracę oraz dbaj o odpowiednią liczbę
-                        osób potrzebnych do obsługi transportu.
-                    </p>
-
-                </div>
-
-
-                <div class="info-item">
-
-                    <div class="info-icon">💰</div>
-
-                    <h3>Finanse</h3>
-
-                    <p>
-                        Kontroluj przychody i wydatki firmy.
-                        Paliwo, pensje, naprawy i zakup autobusów
-                        będą miały wpływ na kondycję przedsiębiorstwa.
-                    </p>
-
-                </div>
-
-
-                <div class="info-item">
-
-                    <div class="info-icon">🔧</div>
-
-                    <h3>Warsztat</h3>
-
-                    <p>
-                        Autobusy będą się zużywać i wymagać serwisowania.
-                        Odpowiednie utrzymanie floty pozwoli uniknąć
-                        kosztownych awarii i przestojów.
-                    </p>
-
-                </div>
-
-
-                <div class="info-item">
-
-                    <div class="info-icon">🏙️</div>
-
-                    <h3>Rozwój firmy</h3>
-
-                    <p>
-                        Rozwijaj przedsiębiorstwo, zwiększaj liczbę
-                        obsługiwanych linii i buduj coraz większą
-                        sieć transportową.
-                    </p>
-
-                </div>
-
-            </div>
-
-
-            <div class="info-footer">
-
-                <span>
-                    Wersja gry: <strong>0.1.0</strong>
-                </span>
-
-                <span>
-                    Projekt rozwijany etapami
-                </span>
-
-            </div>
+            SYSTEM ONLINE
 
         </div>
 
-    </div>
+        <h1>
+            BUS<br>
+            MANAGER
+        </h1>
 
+        <p class="subtitle">
 
-    <!-- =========================
-         TEMPORARY GAME SCREEN
-    ========================== -->
+            Zbuduj własne przedsiębiorstwo autobusowe,
+            zarządzaj flotą, twórz linie i zostań najlepszym
+            operatorem transportowym.
 
-    <section
-        class="game-screen"
-        id="gameScreen"
-    >
+        </p>
 
-        <div class="start-card">
-
-            <div class="mini-icon">
-                🚌
-            </div>
-
-            <h2>
-                Witaj w Bus Manager
-            </h2>
-
-            <p>
-                To dopiero początek Twojego przedsiębiorstwa.
-                Wkrótce tutaj pojawi się właściwy panel
-                zarządzania firmą autobusową.
-            </p>
+        <div class="buttons">
 
             <button
                 class="primary"
-                onclick="continueGame()"
-            >
-                PRZEJDŹ DALEJ
+                onclick="startGame()">
+
+                🚌 &nbsp; ROZPOCZNIJ GRĘ
+
             </button>
 
-            <br>
-
             <button
-                class="back"
-                onclick="backToWelcome()"
-            >
-                ← Wróć do ekranu głównego
+                class="secondary"
+                onclick="openInfo()">
+
+                ℹ️ &nbsp; INFORMACJE
+
             </button>
 
         </div>
 
-    </section>
+        <div class="features">
 
+            <div class="feature">
+                <span>🚌</span>
+                Zarządzanie flotą
+            </div>
 
-    <div class="version">
-        BUS MANAGER • v0.1.0
+            <div class="feature">
+                <span>🛣️</span>
+                Linie autobusowe
+            </div>
+
+            <div class="feature">
+                <span>💰</span>
+                Ekonomia
+            </div>
+
+            <div class="feature">
+                <span>🏙️</span>
+                Rozwój miasta
+            </div>
+
+        </div>
+
     </div>
 
-
-    <script>
-
-        /* =========================
-           PARTICLES
-        ========================== */
-
-        const particleContainer =
-            document.getElementById("particles");
-
-        for (let i = 0; i < 45; i++) {
-
-            const particle =
-                document.createElement("div");
-
-            particle.className = "particle";
-
-            particle.style.left =
-                Math.random() * 100 + "%";
-
-            particle.style.animationDuration =
-                (7 + Math.random() * 12) + "s";
-
-            particle.style.animationDelay =
-                (-Math.random() * 15) + "s";
-
-            particle.style.opacity =
-                0.2 + Math.random() * 0.7;
-
-            particleContainer.appendChild(particle);
-        }
+</main>
 
 
-        /* =========================
-           START GAME
-        ========================== */
+<!-- =========================================================
+     INFORMATION MODAL
+========================================================= -->
 
-        function startGame() {
+<div
+    class="modal"
+    id="infoModal"
+    onclick="outsideClose(event,'infoModal')">
 
-            const welcome =
-                document.getElementById("welcomeScreen");
+    <div class="modal-window">
 
-            const game =
-                document.getElementById("gameScreen");
+        <button
+            class="close"
+            onclick="closeModal('infoModal')">
 
-            welcome.style.opacity = "0";
-            welcome.style.transform = "scale(.98)";
+            ✕
 
-            setTimeout(() => {
+        </button>
 
-                welcome.style.display = "none";
+        <div class="info-header">
 
-                game.classList.add("active");
+            <div class="info-logo">
+                🚌
+            </div>
 
-            }, 450);
-        }
+            <div>
+
+                <h2>
+                    Bus Manager
+                </h2>
+
+                <p>
+                    Symulator zarządzania
+                    przedsiębiorstwem autobusowym
+                </p>
+
+            </div>
+
+        </div>
+
+        <p class="info-intro">
+
+            W <strong>Bus Manager</strong> przejmujesz kontrolę
+            nad własnym przedsiębiorstwem autobusowym.
+            Zaczynasz od niewielkiej firmy i stopniowo budujesz
+            dużego operatora transportowego.
+
+        </p>
+
+        <div class="info-grid">
+
+            <div class="info-item">
+
+                <div class="info-icon">🚌</div>
+
+                <h3>
+                    Flota autobusów
+                </h3>
+
+                <p>
+                    Kupuj autobusy różnych typów,
+                    rozwijaj flotę i utrzymuj pojazdy
+                    w dobrym stanie.
+                </p>
+
+            </div>
+
+            <div class="info-item">
+
+                <div class="info-icon">🛣️</div>
+
+                <h3>
+                    Linie i trasy
+                </h3>
+
+                <p>
+                    Twórz linie, ustalaj trasy,
+                    częstotliwość kursów i rozwijaj
+                    sieć komunikacyjną.
+                </p>
+
+            </div>
+
+            <div class="info-item">
+
+                <div class="info-icon">👨‍✈️</div>
+
+                <h3>
+                    Pracownicy
+                </h3>
+
+                <p>
+                    Zatrudniaj kierowców oraz innych
+                    pracowników i organizuj pracę
+                    przedsiębiorstwa.
+                </p>
+
+            </div>
+
+            <div class="info-item">
+
+                <div class="info-icon">💰</div>
+
+                <h3>
+                    Finanse
+                </h3>
+
+                <p>
+                    Zarządzaj budżetem, przychodami,
+                    kosztami paliwa, pensjami,
+                    zakupami i naprawami.
+                </p>
+
+            </div>
+
+            <div class="info-item">
+
+                <div class="info-icon">🔧</div>
+
+                <h3>
+                    Serwis i awarie
+                </h3>
+
+                <p>
+                    Autobusy zużywają się i mogą
+                    ulegać awariom. Rozwijaj zaplecze
+                    techniczne firmy.
+                </p>
+
+            </div>
+
+            <div class="info-item">
+
+                <div class="info-icon">🏙️</div>
+
+                <h3>
+                    Rozwój przedsiębiorstwa
+                </h3>
+
+                <p>
+                    Rozwijaj firmę, zwiększaj liczbę
+                    autobusów, linii i pasażerów
+                    oraz zdobywaj coraz większą część rynku.
+                </p>
+
+            </div>
+
+        </div>
+
+        <div class="info-footer">
+
+            <span>
+                Wersja <strong>0.1.0</strong>
+            </span>
+
+            <span>
+                Bus Manager
+            </span>
+
+        </div>
+
+    </div>
+
+</div>
 
 
-        /* =========================
-           INFORMATION
-        ========================== */
+<!-- =========================================================
+     NEW GAME SETUP
+========================================================= -->
 
-        function openInfo() {
+<div
+    class="modal"
+    id="setupModal"
+    onclick="outsideClose(event,'setupModal')">
 
-            document
-                .getElementById("infoOverlay")
-                .classList.add("active");
+    <div class="modal-window setup-window">
 
-        }
+        <button
+            class="close"
+            onclick="closeModal('setupModal')">
 
+            ✕
 
-        function closeInfo() {
-
-            document
-                .getElementById("infoOverlay")
-                .classList.remove("active");
-
-        }
+        </button>
 
 
-        function closeInfoOutside(event) {
+        <div class="setup-header">
 
-            if (
-                event.target ===
-                document.getElementById("infoOverlay")
-            ) {
+            <div class="setup-icon">
+                🌍
+            </div>
 
-                closeInfo();
+            <div>
 
-            }
+                <h2>
+                    Nowa gra
+                </h2>
 
-        }
+                <div class="setup-subtitle">
+                    Skonfiguruj swoje przedsiębiorstwo
+                    przed rozpoczęciem rozgrywki.
+                </div>
+
+            </div>
+
+        </div>
 
 
-        /* =========================
-           ESC CLOSE
-        ========================== */
+        <div class="form-grid">
 
-        document.addEventListener(
-            "keydown",
-            function(event) {
 
-                if (event.key === "Escape") {
+            <!-- COMPANY NAME -->
 
-                    closeInfo();
+            <div class="form-group full">
 
-                }
+                <label class="label">
+                    🏢 Nazwa przedsiębiorstwa
+                </label>
 
-            }
+                <input
+                    id="companyName"
+                    class="text-input"
+                    type="text"
+                    placeholder="np. CityBus Transport">
+
+                <div class="hint">
+                    Możesz wpisać dowolną nazwę swojej firmy.
+                </div>
+
+            </div>
+
+
+            <!-- COUNTRY -->
+
+            <div class="form-group">
+
+                <label class="label">
+                    🌍 Państwo
+                </label>
+
+                <div
+                    class="dropdown"
+                    id="countryDropdown">
+
+                    <button
+                        class="dropdown-button"
+                        type="button"
+                        onclick="toggleDropdown('countryDropdown')">
+
+                        <span id="countryValue">
+                            Wybierz państwo
+                        </span>
+
+                        <span class="arrow">
+                            ▼
+                        </span>
+
+                    </button>
+
+                    <div class="dropdown-list">
+
+                        <input
+                            class="dropdown-search"
+                            id="countrySearch"
+                            type="text"
+                            placeholder="Wpisz nazwę państwa..."
+                            onclick="event.stopPropagation()"
+                            oninput="filterCountries()">
+
+                        <div id="countryItems"></div>
+
+                    </div>
+
+                </div>
+
+                <div class="hint">
+                    Możesz wybrać z listy albo wpisać własną nazwę.
+                </div>
+
+            </div>
+
+
+            <!-- CITY -->
+
+            <div class="form-group">
+
+                <label class="label">
+                    🏙️ Miasto
+                </label>
+
+                <div
+                    class="dropdown"
+                    id="cityDropdown">
+
+                    <button
+                        class="dropdown-button"
+                        type="button"
+                        onclick="toggleDropdown('cityDropdown')">
+
+                        <span id="cityValue">
+                            Wybierz miasto
+                        </span>
+
+                        <span class="arrow">
+                            ▼
+                        </span>
+
+                    </button>
+
+                    <div class="dropdown-list">
+
+                        <input
+                            class="dropdown-search"
+                            id="citySearch"
+                            type="text"
+                            placeholder="Wpisz nazwę miasta..."
+                            onclick="event.stopPropagation()"
+                            oninput="filterCities()">
+
+                        <div id="cityItems"></div>
+
+                    </div>
+
+                </div>
+
+                <div class="hint">
+                    Możesz wybrać miasto lub wpisać własne.
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- MODE -->
+
+        <div class="mode-title">
+            🎮 Tryb gry
+        </div>
+
+        <div class="mode-grid">
+
+
+            <div
+                class="mode-card active"
+                id="normalMode"
+                onclick="selectMode('normal')">
+
+                <div class="mode-radio"></div>
+
+                <div class="mode-icon">
+                    🎯
+                </div>
+
+                <h3>
+                    Tryb zwykły
+                </h3>
+
+                <p>
+                    Klasyczna rozgrywka. Masz ograniczony
+                    budżet, musisz kupować autobusy,
+                    zatrudniać pracowników i rozwijać firmę.
+                </p>
+
+            </div>
+
+
+            <div
+                class="mode-card"
+                id="sandboxMode"
+                onclick="selectMode('sandbox')">
+
+                <div class="mode-radio"></div>
+
+                <div class="mode-icon">
+                    🧪
+                </div>
+
+                <h3>
+                    Piaskownica
+                </h3>
+
+                <p>
+                    Wszystko na maksimum. Ogromny budżet,
+                    pełny dostęp do autobusów, pracowników
+                    i rozwoju firmy.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div
+            class="sandbox-note"
+            id="sandboxNote">
+
+            🧪 <strong>Tryb piaskownicy:</strong>
+            startujesz z maksymalnym budżetem,
+            maksymalnym zapleczem, pełnym dostępem
+            do pojazdów i odblokowanymi możliwościami.
+
+        </div>
+
+
+        <!-- ACTIONS -->
+
+        <div class="setup-actions">
+
+            <button
+                class="cancel"
+                onclick="closeModal('setupModal')">
+
+                ANULUJ
+
+            </button>
+
+            <button
+                class="create"
+                onclick="createGame()">
+
+                🚌 &nbsp; UTWÓRZ PRZEDSIĘBIORSTWO
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     TEMPORARY GAME SCREEN
+========================================================= -->
+
+<section
+    class="game-screen"
+    id="gameScreen">
+
+    <div class="start-card">
+
+        <div class="mini-icon">
+            🚌
+        </div>
+
+        <h2>
+            Przedsiębiorstwo utworzone!
+        </h2>
+
+        <p id="createdInfo">
+            Twoja firma została utworzona.
+        </p>
+
+        <button
+            class="primary"
+            onclick="alert('Właściwy panel zarządzania dodamy w kolejnym etapie.')">
+
+            PRZEJDŹ DO GRY
+
+        </button>
+
+        <br>
+
+        <button
+            class="back"
+            onclick="backToWelcome()">
+
+            ← Wróć
+
+        </button>
+
+    </div>
+
+</section>
+
+
+<div class="version">
+    BUS MANAGER • v0.1.0
+</div>
+
+
+<script>
+
+/* =========================================================
+   PARTICLES
+========================================================= */
+
+const particleContainer =
+    document.getElementById("particles");
+
+for(let i=0;i<45;i++){
+
+    const particle =
+        document.createElement("div");
+
+    particle.className="particle";
+
+    particle.style.left =
+        Math.random()*100+"%";
+
+    particle.style.animationDuration =
+        (7+Math.random()*12)+"s";
+
+    particle.style.animationDelay =
+        (-Math.random()*15)+"s";
+
+    particle.style.opacity =
+        .2+Math.random()*.7;
+
+    particleContainer.appendChild(particle);
+}
+
+
+/* =========================================================
+   DATA
+========================================================= */
+
+const countries = [
+
+    "Polska",
+    "Niemcy",
+    "Czechy",
+    "Słowacja",
+    "Austria",
+    "Węgry",
+    "Francja",
+    "Hiszpania",
+    "Portugalia",
+    "Włochy",
+    "Szwajcaria",
+    "Holandia",
+    "Belgia",
+    "Dania",
+    "Szwecja",
+    "Norwegia",
+    "Finlandia",
+    "Estonia",
+    "Łotwa",
+    "Litwa",
+    "Rumunia",
+    "Bułgaria",
+    "Chorwacja",
+    "Serbia",
+    "Słowenia",
+    "Grecja",
+    "Ukraina",
+    "Wielka Brytania",
+    "Irlandia",
+    "Islandia",
+    "Stany Zjednoczone",
+    "Kanada",
+    "Meksyk",
+    "Brazylia",
+    "Argentyna",
+    "Australia",
+    "Japonia",
+    "Korea Południowa",
+    "Chiny",
+    "Indie",
+    "Turcja"
+
+];
+
+const cities = {
+
+    "Polska":[
+        "Białystok",
+        "Warszawa",
+        "Kraków",
+        "Wrocław",
+        "Poznań",
+        "Gdańsk",
+        "Gdynia",
+        "Szczecin",
+        "Lublin",
+        "Katowice",
+        "Łódź",
+        "Rzeszów",
+        "Toruń",
+        "Bydgoszcz",
+        "Olsztyn"
+    ],
+
+    "Niemcy":[
+        "Berlin",
+        "Hamburg",
+        "Monachium",
+        "Kolonia",
+        "Frankfurt",
+        "Stuttgart",
+        "Düsseldorf",
+        "Dortmund"
+    ],
+
+    "Czechy":[
+        "Praga",
+        "Brno",
+        "Ostrawa",
+        "Pilzno",
+        "Liberec"
+    ],
+
+    "Słowacja":[
+        "Bratysława",
+        "Koszyce",
+        "Preszów",
+        "Żylina"
+    ],
+
+    "Austria":[
+        "Wiedeń",
+        "Graz",
+        "Linz",
+        "Salzburg",
+        "Innsbruck"
+    ],
+
+    "Francja":[
+        "Paryż",
+        "Marsylia",
+        "Lyon",
+        "Tuluza",
+        "Nicea",
+        "Bordeaux"
+    ],
+
+    "Hiszpania":[
+        "Madryt",
+        "Barcelona",
+        "Walencja",
+        "Sewilla",
+        "Bilbao"
+    ],
+
+    "Włochy":[
+        "Rzym",
+        "Mediolan",
+        "Turyn",
+        "Neapol",
+        "Bolonia",
+        "Florencja"
+    ],
+
+    "Wielka Brytania":[
+        "Londyn",
+        "Manchester",
+        "Liverpool",
+        "Birmingham",
+        "Leeds",
+        "Glasgow",
+        "Edynburg"
+    ],
+
+    "Stany Zjednoczone":[
+        "Nowy Jork",
+        "Los Angeles",
+        "Chicago",
+        "Houston",
+        "Phoenix",
+        "Filadelfia",
+        "Seattle",
+        "Boston"
+    ],
+
+    "Kanada":[
+        "Toronto",
+        "Montreal",
+        "Vancouver",
+        "Calgary",
+        "Ottawa"
+    ],
+
+    "Japonia":[
+        "Tokio",
+        "Osaka",
+        "Kioto",
+        "Nagoya",
+        "Sapporo"
+    ],
+
+    "Australia":[
+        "Sydney",
+        "Melbourne",
+        "Brisbane",
+        "Perth",
+        "Adelaide"
+    ]
+
+};
+
+
+/* =========================================================
+   STATE
+========================================================= */
+
+let selectedCountry = "";
+let selectedCity = "";
+let selectedMode = "normal";
+
+
+/* =========================================================
+   MODALS
+========================================================= */
+
+function openInfo(){
+
+    document
+        .getElementById("infoModal")
+        .classList.add("active");
+
+}
+
+function openSetup(){
+
+    document
+        .getElementById("setupModal")
+        .classList.add("active");
+
+    renderCountries();
+
+}
+
+function closeModal(id){
+
+    document
+        .getElementById(id)
+        .classList.remove("active");
+
+    closeDropdowns();
+
+}
+
+function outsideClose(event,id){
+
+    if(event.target.id === id){
+
+        closeModal(id);
+
+    }
+
+}
+
+
+/* =========================================================
+   START
+========================================================= */
+
+function startGame(){
+
+    const welcome =
+        document.getElementById("welcomeScreen");
+
+    welcome.style.opacity="0";
+    welcome.style.transform="scale(.98)";
+
+    setTimeout(()=>{
+
+        welcome.style.display="none";
+
+        openSetup();
+
+    },450);
+
+}
+
+
+/* =========================================================
+   COUNTRIES
+========================================================= */
+
+function renderCountries(filter=""){
+
+    const container =
+        document.getElementById("countryItems");
+
+    const query =
+        filter.toLowerCase().trim();
+
+    const filtered =
+        countries.filter(country =>
+            country.toLowerCase().includes(query)
         );
 
+    container.innerHTML="";
 
-        /* =========================
-           BACK
-        ========================== */
+    filtered.forEach(country=>{
 
-        function backToWelcome() {
+        const item =
+            document.createElement("div");
 
-            const welcome =
-                document.getElementById("welcomeScreen");
+        item.className="dropdown-item";
 
-            const game =
-                document.getElementById("gameScreen");
-
-            game.classList.remove("active");
-
-            welcome.style.display = "flex";
-
-            setTimeout(() => {
-
-                welcome.style.opacity = "1";
-                welcome.style.transform = "scale(1)";
-
-            }, 20);
+        if(country === selectedCountry){
+            item.classList.add("selected");
         }
 
+        item.textContent=country;
 
-        /* =========================
-           CONTINUE
-        ========================== */
+        item.onclick=()=>{
 
-        function continueGame() {
+            selectedCountry=country;
 
-            alert(
-                "Panel zarządzania autobusami dodamy w następnym etapie gry."
-            );
+            document
+                .getElementById("countryValue")
+                .textContent=country;
+
+            document
+                .getElementById("countrySearch")
+                .value="";
+
+            renderCountries();
+
+            updateCities();
+
+            /*
+             * WAŻNE:
+             * po wyborze państwa zamykamy tylko dropdown.
+             * Nie zamykamy całego okna.
+             */
+
+            closeDropdown("countryDropdown");
+
+        };
+
+        container.appendChild(item);
+
+    });
+
+}
+
+
+/* =========================================================
+   CITIES
+========================================================= */
+
+function updateCities(){
+
+    selectedCity="";
+
+    document
+        .getElementById("cityValue")
+        .textContent="Wybierz miasto";
+
+    renderCities();
+
+}
+
+function getCities(){
+
+    if(
+        selectedCountry &&
+        cities[selectedCountry]
+    ){
+
+        return cities[selectedCountry];
+
+    }
+
+    return [
+
+        "Warszawa",
+        "Kraków",
+        "Wrocław",
+        "Poznań",
+        "Gdańsk",
+        "Katowice",
+        "Łódź"
+
+    ];
+
+}
+
+function renderCities(filter=""){
+
+    const container =
+        document.getElementById("cityItems");
+
+    const query =
+        filter.toLowerCase().trim();
+
+    const filtered =
+        getCities().filter(city =>
+            city.toLowerCase().includes(query)
+        );
+
+    container.innerHTML="";
+
+    filtered.forEach(city=>{
+
+        const item =
+            document.createElement("div");
+
+        item.className="dropdown-item";
+
+        if(city===selectedCity){
+            item.classList.add("selected");
+        }
+
+        item.textContent=city;
+
+        item.onclick=()=>{
+
+            selectedCity=city;
+
+            document
+                .getElementById("cityValue")
+                .textContent=city;
+
+            document
+                .getElementById("citySearch")
+                .value="";
+
+            renderCities();
+
+            closeDropdown("cityDropdown");
+
+        };
+
+        container.appendChild(item);
+
+    });
+
+}
+
+
+/* =========================================================
+   FILTER
+========================================================= */
+
+function filterCountries(){
+
+    renderCountries(
+        document
+            .getElementById("countrySearch")
+            .value
+    );
+
+}
+
+function filterCities(){
+
+    renderCities(
+        document
+            .getElementById("citySearch")
+            .value
+    );
+
+}
+
+
+/* =========================================================
+   DROPDOWNS
+========================================================= */
+
+function toggleDropdown(id){
+
+    const dropdown =
+        document.getElementById(id);
+
+    const wasOpen =
+        dropdown.classList.contains("open");
+
+    closeDropdowns();
+
+    if(!wasOpen){
+
+        dropdown.classList.add("open");
+
+        if(id==="countryDropdown"){
+
+            renderCountries();
+
+            setTimeout(()=>{
+
+                document
+                    .getElementById("countrySearch")
+                    .focus();
+
+            },100);
 
         }
 
-    </script>
+        if(id==="cityDropdown"){
+
+            renderCities();
+
+            setTimeout(()=>{
+
+                document
+                    .getElementById("citySearch")
+                    .focus();
+
+            },100);
+
+        }
+
+    }
+
+}
+
+function closeDropdown(id){
+
+    document
+        .getElementById(id)
+        .classList.remove("open");
+
+}
+
+function closeDropdowns(){
+
+    document
+        .querySelectorAll(".dropdown")
+        .forEach(dropdown=>{
+
+            dropdown.classList.remove("open");
+
+        });
+
+}
+
+
+/*
+ * Kliknięcie wewnątrz dropdownu nie powoduje
+ * zamknięcia całej listy.
+ */
+
+document.addEventListener("click",event=>{
+
+    const insideDropdown =
+        event.target.closest(".dropdown");
+
+    if(!insideDropdown){
+
+        closeDropdowns();
+
+    }
+
+});
+
+
+/* =========================================================
+   MODE
+========================================================= */
+
+function selectMode(mode){
+
+    selectedMode=mode;
+
+    document
+        .getElementById("normalMode")
+        .classList.toggle(
+            "active",
+            mode==="normal"
+        );
+
+    document
+        .getElementById("sandboxMode")
+        .classList.toggle(
+            "active",
+            mode==="sandbox"
+        );
+
+    document
+        .getElementById("sandboxNote")
+        .classList.toggle(
+            "show",
+            mode==="sandbox"
+        );
+
+}
+
+
+/* =========================================================
+   CREATE GAME
+========================================================= */
+
+function createGame(){
+
+    const company =
+        document
+            .getElementById("companyName")
+            .value
+            .trim();
+
+    /*
+     * Jeżeli użytkownik nic nie wpisze,
+     * wybieramy nazwę domyślną.
+     */
+
+    const finalCompany =
+        company || "CityBus Transport";
+
+    /*
+     * Państwo może zostać wpisane ręcznie.
+     * Jeśli nie wybrano z listy, używamy
+     * wartości domyślnej.
+     */
+
+    const finalCountry =
+        selectedCountry || "Polska";
+
+    /*
+     * Miasto również może zostać wpisane
+     * później ręcznie — na ten moment
+     * używamy wybranego lub domyślnego.
+     */
+
+    const finalCity =
+        selectedCity || "Warszawa";
+
+    closeModal("setupModal");
+
+    document
+        .getElementById("welcomeScreen")
+        .style.display="none";
+
+    document
+        .getElementById("gameScreen")
+        .classList.add("active");
+
+    let modeText =
+        selectedMode==="sandbox"
+        ? "🧪 Piaskownica — wszystko na maksimum"
+        : "🎯 Tryb zwykły";
+
+    document
+        .getElementById("createdInfo")
+        .innerHTML=
+
+        "<strong>"+
+        escapeHTML(finalCompany)+
+        "</strong><br><br>"+
+
+        "🌍 "+
+        escapeHTML(finalCountry)+
+        "<br>"+
+
+        "🏙️ "+
+        escapeHTML(finalCity)+
+        "<br><br>"+
+
+        modeText;
+
+}
+
+
+/* =========================================================
+   ESCAPE HTML
+========================================================= */
+
+function escapeHTML(text){
+
+    return text
+        .replace(/&/g,"&amp;")
+        .replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;")
+        .replace(/"/g,"&quot;")
+        .replace(/'/g,"&#039;");
+
+}
+
+
+/* =========================================================
+   BACK
+========================================================= */
+
+function backToWelcome(){
+
+    document
+        .getElementById("gameScreen")
+        .classList.remove("active");
+
+    const welcome =
+        document.getElementById("welcomeScreen");
+
+    welcome.style.display="flex";
+
+    setTimeout(()=>{
+
+        welcome.style.opacity="1";
+        welcome.style.transform="scale(1)";
+
+    },20);
+
+}
+
+
+/* =========================================================
+   ESC
+========================================================= */
+
+document.addEventListener(
+    "keydown",
+    event=>{
+
+        if(event.key==="Escape"){
+
+            closeModal("infoModal");
+            closeModal("setupModal");
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   INITIAL DATA
+========================================================= */
+
+renderCountries();
+renderCities();
+
+</script>
 
 </body>
 </html>
