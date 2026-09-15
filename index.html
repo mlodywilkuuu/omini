@@ -342,7 +342,7 @@ function renderStopMarkers(){
       if(state.buildStopMode)return;
       if(state.draft.active){addDraftExistingStop(st);return;}
       const safeId=String(st.id||'').replace(/'/g,"\\'");
-      const removeBtn=st.type==='custom'?`<div style="margin-top:8px"><button class=\"btn small danger\" onclick=\"demolishStop('${safeId}')\">🗑 ZBURZ PRZYSTANEK</button></div>`:'';
+      const removeBtn=st.type==='custom'?`<div style="margin-top:8px"><button type="button" class="btn small danger" onclick="event.preventDefault();event.stopPropagation();window.demolishStop('${safeId}')">🗑 ZBURZ PRZYSTANEK</button></div>`:'';
       marker.bindPopup(`<b>${escapeHtml(st.name||'Przystanek')}</b><br><span style="font-size:11px">${st.type==='custom'?'Własny przystanek':'Gotowy przystanek'}</span>${removeBtn}`).openPopup();
     });
     state.stopMarkers.push(marker);
@@ -784,28 +784,56 @@ function getAllStopsUnique(){
   return out;
 }
 function demolishStop(id){
-  const key=String(id);
+  const key=String(id??'').trim();
+  if(!key){toast('Nie można zburzyć','Brak identyfikatora przystanku.');return false}
   const stop=(state.customStops||[]).find(s=>String(s.id)===key);
-  if(!stop){toast('Nie można zburzyć','Gotowego przystanku nie można usunąć.');return}
+  if(!stop){toast('Nie można zburzyć','Tylko własne przystanki można zburzyć.');return false}
+
+  // Usuń przystanek z KAŻDEJ linii oraz z aktualnie budowanej linii.
   const affected=[];
   state.lines.forEach(line=>{
-    if((line.stops||[]).some(s=>String(s.id)===key)){
-      line.stops=(line.stops||[]).filter(s=>String(s.id)!==key);
-      line.roadRoute=null;line.routeDistance=0;line.routeDuration=0;
-      if(line.stops.length<2)line.buses=[];
+    const before=(line.stops||[]).length;
+    line.stops=(line.stops||[]).filter(s=>String(s.id)!==key);
+    if(line.stops.length!==before){
+      // Trasa drogowa przestaje być aktualna po zmianie listy przystanków.
+      line.roadRoute=null;
+      line.routeDistance=0;
+      line.routeDuration=0;
+      if(line.stops.length<2){
+        // Autobusy nie mogą zostać na niekompletnej linii.
+        (line.buses||[]).forEach(busId=>{
+          const bus=state.buses.find(b=>String(b.id)===String(busId));
+          if(bus&&String(bus.lineId)===String(line.id))bus.lineId=null;
+        });
+        line.buses=[];
+      }
       affected.push(line.number||line.name);
     }
   });
+
   state.customStops=state.customStops.filter(s=>String(s.id)!==key);
-  if(state.draft?.stops)state.draft.stops=state.draft.stops.filter(s=>String(s.id)!==key);
+  if(state.draft?.stops){
+    state.draft.stops=state.draft.stops.filter(s=>String(s.id)!==key);
+    redrawDraftLine();
+  }
   if(state.statistics?.stops)delete state.statistics.stops[key];
+
+  // Zamknij popup i natychmiast odśwież wszystkie miejsca, w których przystanek występuje.
   if(state.map){
-    if(state.stopLayer?.clearLayers)renderStopMarkers();
+    state.map.closePopup();
+    renderStopMarkers();
     renderLinesMap();
   }
-  renderDraftStops();renderLineSide();renderStatistics();renderDashboard();saveGame();
-  toast('Przystanek zburzony',`${stop.name} został usunięty${affected.length?'. Linie: '+affected.join(', ')+ ' wymagają ponownego wyznaczenia trasy.':'.'}`);
+  renderDraftStops();
+  renderLineSide();
+  renderStatistics();
+  renderDashboard();
+  renderFleet();
+  saveGame();
+  toast('Przystanek zburzony',`${stop.name} został usunięty${affected.length?'. Zaktualizowano linie: '+affected.join(', ')+'.':'.'}`);
+  return true;
 }
+window.demolishStop=demolishStop;
 function ensureStatistics(){
   if(!state.statistics||typeof state.statistics!=='object')state.statistics={stops:{},lines:{}};
   if(!state.statistics.stops)state.statistics.stops={};
