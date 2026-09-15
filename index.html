@@ -612,53 +612,100 @@ function dedupeStops(rows){
 async function createReadyStops(center){
   if(!center||!state.map||state._stopLoadBusy)return false;
   state._stopLoadBusy=true;
+  const previous=Array.isArray(state.readyStops)?state.readyStops.slice():[];
   setStatusSafe('Pobieranie przystanków…');
   try{
     let rows=[];
+    let source='';
     const isBialystok=/białystok/i.test(state.city||'');
+
+    // Białystok: najpierw oficjalny GTFS BKM. Jeżeli przeglądarka/GitHub Pages
+    // zablokuje pobranie ZIP-a, NIE czyścimy przystanków — przechodzimy automatycznie
+    // na rzeczywiste dane OpenStreetMap.
     if(isBialystok){
       rows=await fetchOfficialBkmGtfsStops();
-      // Dla Białegostoku NIE łączymy wyników z Transitland, bo mogłyby zawierać inne feedy.
-      if(!rows.length){
-        setStatusSafe('BKM GTFS: nie udało się pobrać danych');
-        renderStopMarkers();
-        toast('Przystanki BKM','Nie udało się pobrać oficjalnego GTFS BKM. Spróbuj ponownie przyciskiem ↻ PRZYSTANKI.');
-        return false;
+      if(rows.length){
+        source='BKM GTFS';
+      }else{
+        setStatusSafe('BKM GTFS niedostępny — pobieranie z OpenStreetMap…');
+        let b=state.cityBounds;
+        if(!b||![b.south,b.north,b.west,b.east].every(Number.isFinite)){
+          const [lat,lon]=center;
+          b={south:lat-.10,north:lat+.10,west:lon-.14,east:lon+.14};
+        }
+        const margin=.004;
+        b={south:b.south-margin,north:b.north+margin,west:b.west-margin,east:b.east+margin};
+        rows=await fetchOsmStops(b);
+        source='OpenStreetMap';
       }
     }else{
       let b=state.cityBounds;
       if(!b||![b.south,b.north,b.west,b.east].every(Number.isFinite)){
-        const [lat,lon]=center;b={south:lat-.08,north:lat+.08,west:lon-.12,east:lon+.12};
+        const [lat,lon]=center;
+        b={south:lat-.08,north:lat+.08,west:lon-.12,east:lon+.12};
       }
-      const margin=.004;b={south:b.south-margin,north:b.north+margin,west:b.west-margin,east:b.east+margin};
+      const margin=.004;
+      b={south:b.south-margin,north:b.north+margin,west:b.west-margin,east:b.east+margin};
       rows=await fetchTransitlandStops(b);
-      if(!rows.length){setStatusSafe('Pobieranie z OpenStreetMap…');rows=await fetchOsmStops(b)}
+      source=rows.length?'Transitland':'';
+      if(!rows.length){
+        setStatusSafe('Transitland niedostępny — pobieranie z OpenStreetMap…');
+        rows=await fetchOsmStops(b);
+        source=rows.length?'OpenStreetMap':'';
+      }
     }
-    rows=dedupeStops(rows.filter(s=>String(s.name||'').trim()&&Number.isFinite(Number(s.lat))&&Number.isFinite(Number(s.lon))));
+
+    rows=dedupeStops((rows||[]).filter(s=>String(s.name||'').trim()&&Number.isFinite(Number(s.lat))&&Number.isFinite(Number(s.lon))));
+
+    // Zostawiamy tylko punkty mieszczące się w granicach miasta + mały margines.
+    // Dla OSM/Transitland nie wyrzucamy przystanków tylko dlatego, że mają tę samą nazwę.
     if(state.cityBounds){
-      const cb=state.cityBounds,margin=.0025;
+      const cb=state.cityBounds,margin=.0035;
       rows=rows.filter(x=>Number(x.lat)>=Number(cb.south)-margin&&Number(x.lat)<=Number(cb.north)+margin&&Number(x.lon)>=Number(cb.west)-margin&&Number(x.lon)<=Number(cb.east)+margin);
     }
+
     if(rows.length){
       state.readyStops=rows;
-      state.readyStopsSource=rows.every(s=>s.source==='gtfs-bkm')?'BKM GTFS':rows.every(s=>s.source==='transitland')?'Transitland':'OpenStreetMap';
+      state.readyStopsSource=source||'OpenStreetMap';
       renderStopMarkers();
       state.stopLayer?.bringToFront?.();
       const b2=L.latLngBounds(rows.map(x=>[Number(x.lat),Number(x.lon)]));
-      if(b2.isValid())state.map.fitBounds(b2.pad(.03),{maxZoom:14,animate:false});
+      if(b2.isValid())state.map.fitBounds(b2.pad(.03),{maxZoom:15,animate:false});
       setStatusSafe(`Gotowe: ${rows.length} • ${state.readyStopsSource}`);
-      const countEl=document.querySelector('#stopCount');if(countEl)countEl.textContent=String(rows.length+(state.customStops||[]).length);
+      const countEl=document.querySelector('#stopCount');
+      if(countEl)countEl.textContent=String(rows.length+(state.customStops||[]).length);
       saveGame();
       return true;
     }
-    setStatusSafe('Gotowe: 0 • brak danych');
+
+    // Nie kasuj działającej listy przy chwilowym błędzie sieci.
+    if(previous.length){
+      state.readyStops=previous;
+      renderStopMarkers();
+      setStatusSafe(`Gotowe: ${previous.length} • zapisane`);
+      toast('Przystanki','Nie udało się pobrać nowych danych. Zachowano wcześniej zapisane przystanki.');
+      return false;
+    }
+
+    state.readyStops=[];
     renderStopMarkers();
+    setStatusSafe('Gotowe: 0 • brak danych');
+    toast('Przystanki','Nie udało się pobrać przystanków z dostępnych źródeł. Spróbuj ponownie przyciskiem ↻ PRZYSTANKI.');
     return false;
   }catch(e){
-    setStatusSafe('Przystanki: błąd pobierania');
+    state.readyStops=previous;
     renderStopMarkers();
+    if(previous.length){
+      setStatusSafe(`Gotowe: ${previous.length} • zapisane`);
+      toast('Przystanki','Wystąpił błąd pobierania. Zachowano poprzednie przystanki.');
+    }else{
+      setStatusSafe('Przystanki: błąd pobierania');
+      toast('Przystanki','Wystąpił błąd pobierania przystanków. Spróbuj ponownie.');
+    }
     return false;
-  }finally{state._stopLoadBusy=false}
+  }finally{
+    state._stopLoadBusy=false;
+  }
 }
 
 // Usunięto wcześniejszy „builtin” — gra nie tworzy już żadnych fikcyjnych przystanków.
