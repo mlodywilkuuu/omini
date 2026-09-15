@@ -55,8 +55,8 @@
 <div class="line-layout">
 <div class="map-wrap">
 <div id="map" class="map"></div>
-<div class="map-toolbar"><button class="btn small primary" id="newLineBtn">＋ NOWA LINIA</button><button class="btn small green" id="buildStopBtn">＋ BUDUJ PRZYSTANEK</button><button class="btn small" id="finishLineBtn" disabled>ZAPISZ LINIĘ</button><button class="btn small" id="clearDraftBtn" disabled>WYCZYŚĆ TRASĘ</button><button class="btn small" id="centerBtn">⌾ CENTRUJ</button><button class="btn small" id="refreshStopsBtn">↻ PRZYSTANKI <span id="stopCount">0</span></button></div>
-<div class="map-help" id="mapHelp">Na mapie widoczne są gotowe przystanki. Kliknij „NOWA LINIA”, a potem klikaj pineski przystanków w kolejności. Zielona linia pokaże trasę.</div>
+<div class="map-toolbar"><button class="btn small primary" id="newLineBtn">＋ NOWA LINIA</button><button class="btn small green" id="buildStopBtn">＋ BUDUJ PRZYSTANEK</button><button class="btn small" id="finishLineBtn" disabled>ZAPISZ LINIĘ</button><button class="btn small" id="clearDraftBtn" disabled>WYCZYŚĆ TRASĘ</button><button class="btn small" id="centerBtn">⌾ CENTRUJ</button></div>
+<div class="map-help" id="mapHelp">Najpierw kliknij „BUDUJ PRZYSTANEK”, dodaj własne przystanki na mapie, a potem kliknij „NOWA LINIA” i wybieraj je w kolejności.</div>
 </div>
 <div class="line-side">
 <div class="panel"><h3>Budowanie linii</h3><div class="field"><label>Nazwa linii</label><input id="lineName" value="Linia 1" placeholder="np. 101"></div><div style="height:10px"></div><div class="field"><label>Przystanki na trasie</label><div id="draftStops" class="stop-list"><div class="muted">Rozpocznij budowę i klikaj mapę.</div></div></div></div>
@@ -127,9 +127,6 @@ function showTab(name){
       if(state.mapCenter&&!state.mapDataStarted){
         state.mapDataStarted=true;
         loadRoads(state.mapCenter,state.unlockedRadius);
-        loadStops(state.mapCenter,state.unlockedRadius);
-      }else if(state.mapCenter&&state.osmStops.length===0){
-        loadStops(state.mapCenter,state.unlockedRadius);
       }
     },100);
   }
@@ -202,7 +199,6 @@ async function restoreSavedGame(){
   initMap();
   updateCompanyUI();
   renderAll();
-  await loadStops(state.mapCenter,state.unlockedRadius);
   return true;
 }
 async function createGame(){
@@ -225,158 +221,40 @@ async function createGame(){
   initMap();
   setTimeout(()=>{if(state.map){state.map.invalidateSize(true);if(state.mapCenter)state.map.setView(state.mapCenter,13)}},250);
   updateCompanyUI();renderAll();saveGame();
-  await loadStops(state.mapCenter,state.unlockedRadius);
-  toast("Gra rozpoczęta",`${state.city}: gotowe przystanki są pobierane z OpenStreetMap.`);
+  toast("Gra rozpoczęta",`${state.city}: dodawaj własne przystanki przyciskiem „BUDUJ PRZYSTANEK”.`);
 }
 $("#createGameBtn").onclick=createGame;
-function initMap(){const el=$("#map");if(!el||typeof L==="undefined")return;if(state.map){state.map.setView(state.mapCenter||[53.1325,23.1688],13);setTimeout(()=>state.map.invalidateSize(true),100);return}if(!state.mapCenter)state.mapCenter=[53.1325,23.1688];state.map=L.map(el,{zoomControl:true,preferCanvas:false,center:state.mapCenter,zoom:13});const tile=L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:20,attribution:"© OpenStreetMap contributors",crossOrigin:true});tile.on("tileerror",()=>{if(!state._tileFallback){state._tileFallback=true;L.tileLayer("https://tile.openstreetmap.de/{z}/{x}/{y}.png",{maxZoom:20,attribution:"© OpenStreetMap contributors"}).addTo(state.map);}});tile.addTo(state.map);state.roadsLayer=L.layerGroup().addTo(state.map);state.map.createPane("busStopPane");state.map.getPane("busStopPane").style.zIndex=800;state.stopLayer=L.layerGroup().addTo(state.map);state.stopLayer.bringToFront();$("#refreshStopsBtn").onclick=()=>loadStops(state.mapCenter,state.unlockedRadius);state.map.on("click",e=>{if(state.buildStopMode){openBuildStopModal(e.latlng);return}if(state.draft.active){toast("Budowanie linii","Kliknij istniejący przystanek na mapie. Aby dodać nowy, wyłącz budowanie linii i użyj „BUDUJ PRZYSTANEK”.");}});$("#centerBtn").onclick=()=>state.map.setView(state.mapCenter,13);$("#buildStopBtn").onclick=toggleBuildStopMode;$("#refreshStopsBtn").onclick=()=>{if(state.mapCenter){toast("Przystanki","Pobieram gotowe przystanki z OpenStreetMap…");loadStops(state.mapCenter,state.unlockedRadius).then(()=>{if(state.stopLayer)state.stopLayer.bringToFront()})}};drawUnlockCircle()}
+function initMap(){const el=$("#map");if(!el||typeof L==="undefined")return;if(state.map){state.map.setView(state.mapCenter||[53.1325,23.1688],13);setTimeout(()=>state.map.invalidateSize(true),100);return}if(!state.mapCenter)state.mapCenter=[53.1325,23.1688];state.map=L.map(el,{zoomControl:true,preferCanvas:false,center:state.mapCenter,zoom:13});const tile=L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:20,attribution:"© OpenStreetMap contributors",crossOrigin:true});tile.on("tileerror",()=>{if(!state._tileFallback){state._tileFallback=true;L.tileLayer("https://tile.openstreetmap.de/{z}/{x}/{y}.png",{maxZoom:20,attribution:"© OpenStreetMap contributors"}).addTo(state.map);}});tile.addTo(state.map);state.roadsLayer=L.layerGroup().addTo(state.map);state.map.createPane("busStopPane");state.map.getPane("busStopPane").style.zIndex=800;state.stopLayer=L.layerGroup().addTo(state.map);state.stopLayer.bringToFront();state.map.on("click",e=>{if(state.buildStopMode){openBuildStopModal(e.latlng);return}if(state.draft.active){toast("Budowanie linii","Kliknij zielony pin własnego przystanku. Linie tworzone są wyłącznie z ręcznie dodanych przystanków.");}});$("#centerBtn").onclick=()=>state.map.setView(state.mapCenter,13);$("#buildStopBtn").onclick=toggleBuildStopMode;drawUnlockCircle()}
 function drawUnlockCircle(){if(!state.map||!state.mapCenter)return;if(state.unlockCircle)state.map.removeLayer(state.unlockCircle);state.unlockCircle=L.circle(state.mapCenter,{radius:state.unlockedRadius,color:"#637fff",weight:1,dashArray:"7 7",fillColor:"#637fff",fillOpacity:.035,interactive:false}).addTo(state.map)}
 async function loadRoads(center,radius){if(!state.map)return;const [lat,lon]=center,r=Math.min(radius,9000),query=`[out:json][timeout:12];way(around:${r},${lat},${lon})[highway][name];out geom;`;try{const resp=await fetch("https://overpass-api.de/api/interpreter?data="+encodeURIComponent(query));if(!resp.ok)throw 0;const data=await resp.json();state.roadsLayer.clearLayers();const seen=new Set();data.elements.forEach(el=>{if(seen.has(el.id)||!el.geometry||el.geometry.length<2)return;seen.add(el.id);L.polyline(el.geometry.map(p=>[p.lat,p.lon]),{color:"#5f6670",weight:2,opacity:.58}).addTo(state.roadsLayer)});state.roadReady=true}catch(e){state.roadReady=false;toast("Mapa","Nie udało się pobrać części dróg. Routing autobusów nadal spróbuje użyć serwisu tras.")}}
 function stopIcon(num,custom=false,selected=false){
- const bg=selected?"#19d67f":(custom?"#20d981":"#4f72ff");
+ const bg="#20d981";
  return L.divIcon({className:"bus-stop-marker",html:`<div class="bus-stop-pin osm" style="background:${bg};${selected?'transform:scale(1.16);':''}"><span>🚌</span></div>`,iconSize:[34,42],iconAnchor:[17,40],popupAnchor:[0,-38]});
 }
 function draftStopIcon(num){return L.divIcon({className:"",html:`<div class="draft-stop-pin">${num}</div>`,iconSize:[34,42],iconAnchor:[17,40]})}
-
-async function loadStops(center,radius){
-  if(!state.map||!state.stopLayer)return false;
-  const [lat,lon]=center;
-  const r=Math.min(Math.max(Number(radius)||8500,2500),15000);
-  // Pobieramy prawdziwe obiekty przystankowe z OSM. POST jest stabilniejszy
-  // na hostingu GitHub Pages niż bardzo długie zapytania GET.
-  const query=`[out:json][timeout:35];(
-    node(around:${r},${lat},${lon})[highway=bus_stop];
-    node(around:${r},${lat},${lon})[public_transport=platform];
-    node(around:${r},${lat},${lon})[public_transport=stop_position];
-    way(around:${r},${lat},${lon})[public_transport=platform];
-    way(around:${r},${lat},${lon})[highway=bus_stop];
-  );out center tags;`;
-  const endpoints=[
-    "https://overpass-api.de/api/interpreter",
-    "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
-    "https://overpass.private.coffee/api/interpreter"
-  ];
-  let data=null;
-  for(const endpoint of endpoints){
-    try{
-      const controller=new AbortController();
-      const timer=setTimeout(()=>controller.abort(),16000);
-      const resp=await fetch(endpoint,{method:"POST",body:"data="+encodeURIComponent(query),headers:{"Content-Type":"application/x-www-form-urlencoded; charset=UTF-8","Accept":"application/json"},signal:controller.signal,cache:"no-store"});
-      clearTimeout(timer);
-      if(!resp.ok)continue;
-      const json=await resp.json();
-      if(json&&Array.isArray(json.elements)){data=json;break}
-    }catch(e){}
-  }
-  if(data){
-    const existing=new Map();
-    data.elements.forEach(el=>{
-      let plat=el.lat,plon=el.lon;
-      if((plat==null||plon==null)&&el.center){plat=el.center.lat;plon=el.center.lon}
-      if(plat==null||plon==null)return;
-      const tags=el.tags||{};
-      const name=tags.name||tags["name:pl"]||tags.ref||`Przystanek ${el.id}`;
-      const key=String(el.type||"node")+":"+String(el.id);
-      existing.set(key,{id:"osm:"+key,osmId:key,name,lat:Number(plat),lon:Number(plon),type:"osm",ref:tags.ref||""});
-    });
-    state.osmStops=[...existing.values()];
-    renderStopMarkers();
-    if(state.osmStops.length){
-      state.stopLayer.bringToFront();
-      // Dopasuj widok do rzeczywistych przystanków, ale tylko nieznacznie,
-      // żeby gracz nie tracił wybranego centrum miasta.
-      if(state.osmStops.length>0 && state.osmStops.length<5000){
-        const b=L.latLngBounds(state.osmStops.map(s=>[s.lat,s.lon]));
-        if(b.isValid())state.map.fitBounds(b.pad(.08),{maxZoom:14,animate:false});
-      }
-      toast("Przystanki",`Załadowano ${state.osmStops.length} rzeczywistych przystanków z OpenStreetMap.`);
-      saveGame();
-      return true;
-    }
-  }
-
-  // Oficjalny GTFS Białostockiej Komunikacji Miejskiej jako dodatkowe źródło.
-  if(/białystok|bialystok/i.test(state.city) && typeof fflate!=="undefined"){
-    try{
-      const url="https://komunikacja.bialystok.pl/cms/File/download/gtfs/google_transit.zip";
-      const controller=new AbortController();
-      const timer=setTimeout(()=>controller.abort(),20000);
-      const resp=await fetch(url,{signal:controller.signal,cache:"no-store"});
-      clearTimeout(timer);
-      if(resp.ok){
-        const bytes=new Uint8Array(await resp.arrayBuffer());
-        const files=fflate.unzipSync(bytes);
-        const raw=files["stops.txt"];
-        if(raw){
-          const text=fflate.strFromU8(raw),rows=parseCSV(text),stops=[];
-          rows.forEach(row=>{
-            const la=Number(row.stop_lat),lo=Number(row.stop_lon);
-            if(!Number.isFinite(la)||!Number.isFinite(lo))return;
-            if(distanceMeters(lat,lon,la,lo)>r)return;
-            stops.push({id:"gtfs:"+(row.stop_id||crypto.randomUUID()),osmId:"gtfs:"+(row.stop_id||crypto.randomUUID()),name:row.stop_name||"Przystanek BKM",lat:la,lon:lo,type:"osm",ref:row.stop_code||row.stop_id||""});
-          });
-          if(stops.length){
-            state.osmStops=stops;
-            renderStopMarkers();
-            state.stopLayer.bringToFront();
-            const b=L.latLngBounds(stops.map(s=>[s.lat,s.lon]));
-            if(b.isValid())state.map.fitBounds(b.pad(.08),{maxZoom:14,animate:false});
-            toast("Przystanki BKM",`Załadowano ${stops.length} rzeczywistych przystanków.`);
-            saveGame();
-            return true;
-          }
-        }
-      }
-    }catch(e){}
-  }
-  state.osmStops=[];
-  renderStopMarkers();
-  toast("Przystanki","Nie udało się pobrać rzeczywistych przystanków. Spróbuj ponownie przyciskiem ↻ PRZYSTANKI.");
-  return false;
-}
-function parseCSV(text){
-  const out=[];let row=[],cell="",quoted=false;
-  for(let i=0;i<text.length;i++){
-    const c=text[i],n=text[i+1];
-    if(quoted){
-      if(c==='"'&&n==='"'){cell+='"';i++;}
-      else if(c==='"')quoted=false;
-      else cell+=c;
-    }else{
-      if(c==='"')quoted=true;
-      else if(c===','){row.push(cell);cell="";}
-      else if(c==='\n'){row.push(cell);out.push(row);row=[];cell="";}
-      else if(c!=='\r')cell+=c;
-    }
-  }
-  if(cell!==""||row.length){row.push(cell);out.push(row);}
-  if(!out.length)return[];
-  const headers=out[0].map(x=>x.trim().replace(/^\uFEFF/,""));
-  return out.slice(1).map(r=>{const o={};headers.forEach((h,i)=>o[h]=(r[i]??"").trim());return o});
-}
 
 function renderStopMarkers(){
  if(!state.stopLayer)return;
  state.stopLayer.clearLayers();
  const selected=new Map(state.draft.stops.map((x,i)=>[x.id,i+1]));
- const all=[...state.osmStops,...state.customStops];
+ const all=[...state.customStops];
  all.forEach((s,i)=>{
   const order=selected.get(s.id);
   const marker=L.marker([s.lat,s.lon],{
-   icon:order?draftStopIcon(order):stopIcon(i,s.type==="custom",false),
+   icon:order?draftStopIcon(order):stopIcon(i,true,false),
    title:(order?order+". ":"")+s.name,
    zIndexOffset:order?5000:3000,pane:"busStopPane"
   }).addTo(state.stopLayer);
   marker.on("click",ev=>{
    L.DomEvent.stopPropagation(ev);
    if(state.draft.active){addDraftExistingStop(s);return}
-   marker.bindPopup(`<b>${escapeHtml(s.name)}</b><br><span style="font-size:11px">${s.type==="custom"?"Przystanek zbudowany przez Ciebie":"Istniejący przystanek"}${order?"<br>Na trasie: przystanek "+order:""}</span>`).openPopup();
+   marker.bindPopup(`<b>${escapeHtml(s.name)}</b><br><span style="font-size:11px">Przystanek zbudowany przez Ciebie${order?"<br>Na trasie: przystanek "+order:""}</span>`).openPopup();
   });
   s.marker=marker;
  });
- const countEl=$("#stopCount");if(countEl)countEl.textContent=all.length;
+ 
 }
-function openBuildStopModal(latlng){if(distanceMeters(state.mapCenter[0],state.mapCenter[1],latlng.lat,latlng.lng)>state.unlockedRadius){toast("Obszar zablokowany","Najpierw odblokuj większy obszar mapy.");return}$("#newStopLat").value=latlng.lat;$("#newStopLon").value=latlng.lng;$("#newStopName").value="Przystanek "+(state.osmStops.length+state.customStops.length+1);showModal("stopModal")}
+function openBuildStopModal(latlng){if(distanceMeters(state.mapCenter[0],state.mapCenter[1],latlng.lat,latlng.lng)>state.unlockedRadius){toast("Obszar zablokowany","Najpierw odblokuj większy obszar mapy.");return}$("#newStopLat").value=latlng.lat;$("#newStopLon").value=latlng.lng;$("#newStopName").value="Przystanek "+(state.customStops.length+1);showModal("stopModal")}
 function createCustomStop(){const name=$("#newStopName").value.trim()||"Nowy przystanek",lat=Number($("#newStopLat").value),lon=Number($("#newStopLon").value),cost=5000;if(state.cash<cost){hideModal("stopModal");toast("Brak środków","Budowa przystanku kosztuje $5 000.");return}const stop={id:crypto.randomUUID(),name,lat,lon,type:"custom"};state.customStops.push(stop);addCash(-cost,"Budowa przystanku: "+name);renderStopMarkers();saveGame();hideModal("stopModal");state.buildStopMode=false;$("#buildStopBtn").textContent="＋ BUDUJ PRZYSTANEK";$("#buildStopBtn").classList.remove("primary");$("#mapHelp").textContent="Przystanek zbudowany. Kliknij „NOWA LINIA”, aby użyć go na trasie.";toast("Przystanek zbudowany",name+" jest dostępny do tworzenia linii.")}
 function addDraftExistingStop(stop){
   if(state.draft.stops.some(x=>x.id===stop.id)){
@@ -396,8 +274,8 @@ function addDraftStop(lat,lon){
 function redrawDraftLine(){const pts=state.draft.stops.map(s=>[s.lat,s.lon]);if(state.draft.previewLine)state.map.removeLayer(state.draft.previewLine);if(pts.length>=2)state.draft.previewLine=L.polyline(pts,{color:"#25e38a",weight:6,opacity:.95,lineCap:"round",lineJoin:"round"}).addTo(state.map)}
 function renderDraftStops(){const box=$("#draftStops");if(!state.draft.stops.length){box.innerHTML='<div class="muted">Rozpocznij budowę i klikaj mapę.</div>';return}box.innerHTML=state.draft.stops.map((s,i)=>`<div class="stop-row"><div class="stop-num">${i+1}</div><div><b>${escapeHtml(s.name)}</b><small>${s.lat.toFixed(5)}, ${s.lon.toFixed(5)}</small></div><button class="btn small danger" onclick="removeDraftStop('${s.id}')">×</button></div>`).join("")}
 function removeDraftStop(id){const i=state.draft.stops.findIndex(s=>s.id===id);if(i<0)return;state.draft.stops.splice(i,1);redrawDraftLine();renderDraftStops()}
-$("#newLineBtn").onclick=()=>{if(state.draft.active){toast("Budowanie","Najpierw zapisz albo wyczyść obecną trasę.");return}state.buildStopMode=false;$("#buildStopBtn").textContent="＋ BUDUJ PRZYSTANEK";$("#buildStopBtn").classList.remove("primary");state.draft.active=true;state.draft.stops=[];state.draft.name="Linia "+(state.lines.length+1);$("#lineName").value=state.draft.name;$("#finishLineBtn").disabled=false;$("#clearDraftBtn").disabled=false;$("#newLineBtn").textContent="● BUDOWANIE LINII";$("#mapHelp").textContent="TRYB BUDOWANIA: klikaj kolejno niebieskie pineski przystanków. Zielona linia pokazuje trasę.";renderDraftStops()}
-$("#clearDraftBtn").onclick=()=>{clearDraftVisual();state.draft.active=false;$("#finishLineBtn").disabled=true;$("#clearDraftBtn").disabled=true;$("#newLineBtn").textContent="＋ NOWA LINIA";$("#mapHelp").textContent="Kliknij „NOWA LINIA”, a następnie klikaj niebieskie pineski gotowych przystanków na mapie."}
+$("#newLineBtn").onclick=()=>{if(state.draft.active){toast("Budowanie","Najpierw zapisz albo wyczyść obecną trasę.");return}state.buildStopMode=false;$("#buildStopBtn").textContent="＋ BUDUJ PRZYSTANEK";$("#buildStopBtn").classList.remove("primary");state.draft.active=true;state.draft.stops=[];state.draft.name="Linia "+(state.lines.length+1);$("#lineName").value=state.draft.name;$("#finishLineBtn").disabled=false;$("#clearDraftBtn").disabled=false;$("#newLineBtn").textContent="● BUDOWANIE LINII";$("#mapHelp").textContent="TRYB BUDOWANIA: klikaj kolejno zielone piny własnych przystanków. Zielona linia pokazuje trasę.";renderDraftStops()}
+$("#clearDraftBtn").onclick=()=>{clearDraftVisual();state.draft.active=false;$("#finishLineBtn").disabled=true;$("#clearDraftBtn").disabled=true;$("#newLineBtn").textContent="＋ NOWA LINIA";$("#mapHelp").textContent="Kliknij „NOWA LINIA”, a następnie klikaj zielone piny własnych przystanków na mapie."}
 $("#finishLineBtn").onclick=async()=>{if(state.draft.stops.length<2){toast("Za mało przystanków","Linia musi mieć minimum 2 ręcznie dodane przystanki.");return}const name=$("#lineName").value.trim()||("Linia "+(state.lines.length+1)),line={id:crypto.randomUUID(),name,stops:state.draft.stops.map(s=>({id:s.id,name:s.name,lat:s.lat,lon:s.lon})),schedule:{from:"06:00",to:"22:00",every:20,direction:"both"},buses:[],roadRoute:null,routeDistance:0,routeDuration:0},route=await getRoadRoute(line.stops);if(route){line.roadRoute=route.coordinates;line.routeDistance=route.distance;line.routeDuration=route.duration}state.lines.push(line);state.selectedLineId=line.id;saveGame();state.draft.previewLine&&state.map.removeLayer(state.draft.previewLine);state.draft={active:false,name:"",stops:[],previewLine:null};$("#finishLineBtn").disabled=true;$("#clearDraftBtn").disabled=true;$("#newLineBtn").textContent="＋ NOWA LINIA";$("#mapHelp").textContent="Linia zapisana. Wybierz ją po prawej, ustaw rozkład i przypisz autobusy.";renderLinesMap();renderStopMarkers();renderLineSide();renderDashboard();toast("Linia utworzona",name+" jest gotowa do ustawienia rozkładu.")}
 async function getRoadRoute(stops){const coords=stops.map(s=>`${s.lon},${s.lat}`).join(";");try{const u=`https://router.project-osrm.org/route/v1/driving/${coords}?overview=full&geometries=geojson&steps=false`,r=await fetch(u);if(!r.ok)throw 0;const d=await r.json();if(d.code!=="Ok"||!d.routes[0])throw 0;return{coordinates:d.routes[0].geometry.coordinates.map(x=>[x[1],x[0]]),distance:d.routes[0].distance,duration:d.routes[0].duration}}catch(e){toast("Routing","Nie udało się pobrać trasy drogowej. Zostanie użyta trasa między przystankami.");return{coordinates:stops.map(s=>[s.lat,s.lon]),distance:0,duration:Math.max(300,(stops.length-1)*180)}}}
 function renderLinesMap(){state.routeLayers.forEach(l=>state.map.removeLayer(l));state.routeLayers=[];state.lines.forEach(line=>{if(line.roadRoute?.length>1){const p=L.polyline(line.roadRoute,{color:line.id===state.selectedLineId?"#25e38a":"#5f72ff",weight:line.id===state.selectedLineId?7:5,opacity:.9,lineCap:"round",lineJoin:"round"}).addTo(state.map);p.bindTooltip(line.name,{sticky:true,className:"route-label"});state.routeLayers.push(p)}else if(line.stops?.length>1){const p=L.polyline(line.stops.map(s=>[s.lat,s.lon]),{color:line.id===state.selectedLineId?"#25e38a":"#5f72ff",weight:line.id===state.selectedLineId?7:5,opacity:.9,lineCap:"round"}).addTo(state.map);p.bindTooltip(line.name,{sticky:true,className:"route-label"});state.routeLayers.push(p)}});renderStopMarkers();drawUnlockCircle();renderBusMarkers()}function parseMin(t){const [h,m]=t.split(":").map(Number);return h*60+m}function formatMin(x){x=((x%1440)+1440)%1440;return String(Math.floor(x/60)).padStart(2,"0")+":"+String(x%60).padStart(2,"0")}
@@ -418,7 +296,7 @@ function renderStaff(){$("#staffList").innerHTML=state.staff.length?state.staff.
 function renderFinance(){$("#incomeStat").textContent=money(state.incomeToday);$("#expenseStat").textContent=money(state.expenseToday);$("#balanceStat").textContent=money(state.incomeToday-state.expenseToday);$("#financeCash").textContent=money(state.cash);$("#financeLog").innerHTML=`<div>Przychody: <b style="color:#5be7a0">${money(state.incomeToday)}</b></div><div>Wydatki: <b style="color:#ff7086">${money(state.expenseToday)}</b></div>`}
 function renderDashboard(){$("#statBuses").textContent=state.buses.length;$("#statLines").textContent=state.lines.length;$("#statStaff").textContent=state.staff.length;$("#statPassengers").textContent=state.passengers.toLocaleString("pl-PL");$("#dashboardLines").innerHTML=state.lines.length?state.lines.map(l=>`<div class="bus-card"><div><b>${escapeHtml(l.name)}</b><div class="muted" style="font-size:11px">${l.stops.length} przystanków • ${l.buses.length} autobusów • co ${l.schedule.every} min</div></div><span class="pill green">${l.buses.length?"AKTYWNA":"BEZ AUTOBUSÓW"}</span></div>`).join(""):"Nie utworzono jeszcze linii."}
 function renderUnlockInfo(){$("#unlockInfo").textContent=`Odblokowany promień: ${(state.unlockedRadius/1000).toFixed(1)} km • poziom ${state.unlockLevel}. Kolejny poziom: $${Math.round(40000*state.unlockLevel).toLocaleString("pl-PL")}.`}
-$("#unlockBtn").onclick=async()=>{const cost=40000*state.unlockLevel;if(state.cash<cost){toast("Brak środków","Potrzebujesz "+money(cost)+".");return}addCash(-cost,"Odblokowanie większego obszaru");state.unlockedRadius+=6000;state.unlockLevel++;drawUnlockCircle();renderUnlockInfo();toast("Obszar odblokowany","Możesz teraz budować linie dalej od centrum.");await loadRoads(state.mapCenter,state.unlockedRadius);await loadStops(state.mapCenter,state.unlockedRadius);renderLinesMap()}
+$("#unlockBtn").onclick=async()=>{const cost=40000*state.unlockLevel;if(state.cash<cost){toast("Brak środków","Potrzebujesz "+money(cost)+".");return}addCash(-cost,"Odblokowanie większego obszaru");state.unlockedRadius+=6000;state.unlockLevel++;drawUnlockCircle();renderUnlockInfo();toast("Obszar odblokowany","Możesz teraz budować linie dalej od centrum.");await loadRoads(state.mapCenter,state.unlockedRadius);renderLinesMap()}
 function renderBusMarkers(){if(!state.map)return;state.busMarkers.forEach(m=>state.map.removeLayer(m));state.busMarkers.clear();state.buses.forEach(b=>{if(!b.trip)return;const line=state.lines.find(l=>l.id===b.trip.lineId);if(!line||!line.roadRoute||line.roadRoute.length<2)return;const progress=b.trip.dir===1?b.trip.progress:1-b.trip.progress,pos=interpolateRoute(line.roadRoute,Math.max(0,Math.min(1,progress))),m=L.marker(pos,{icon:L.divIcon({className:"",html:'<div class="bus-icon"></div>',iconSize:[31,22],iconAnchor:[15,11]})}).addTo(state.map);m.bindTooltip(`Autobus #${b.number} • ${line.name} • ${b.trip.dir===1?"kierunek 1":"kierunek 2"}`,{direction:"top"});state.busMarkers.set(b.id,m)})}
 function interpolateRoute(route,t){if(route.length===1)return route[0];const idx=t*(route.length-1),i=Math.floor(idx),f=idx-i,a=route[i],b=route[Math.min(i+1,route.length-1)];return[a[0]+(b[0]-a[0])*f,a[1]+(b[1]-a[1])*f]}
 function isScheduledDeparture(line,minute){return departureEvents(line).filter(e=>e.time===minute)}
@@ -431,7 +309,14 @@ window.addEventListener('load',()=>{$$('.nav button').forEach(b=>b.onclick=()=>s
 function updateCompanyUI(){$("#sideCompany").textContent=state.company;$("#sideCity").textContent=state.city+", "+state.country;setCash(state.cash)}
 function distanceMeters(a,b,c,d){const R=6371000,p=Math.PI/180,x=(c-a)*p,y=(d-b)*p,q=Math.sin(x/2)**2+Math.cos(a*p)*Math.cos(c*p)*Math.sin(y/2)**2;return 2*R*Math.asin(Math.sqrt(q))}
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
-window.addEventListener("load",()=>{setTimeout(()=>restoreSavedGame(),50)});setInterval(simulateMinute,1000);
+window.addEventListener("DOMContentLoaded",()=>{
+  if(loadSavedGame()){
+    document.querySelector("#start")?.classList.add("hidden");
+    document.querySelector("#game")?.classList.remove("hidden");
+    geocodeCity().then(center=>{state.mapCenter=center;initMap();updateCompanyUI();renderAll();showTab("lines");saveGame();});
+  }
+});
+setInterval(simulateMinute,1000);
 </script>
 </body>
 </html>
