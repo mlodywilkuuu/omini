@@ -58,7 +58,7 @@
 <div class="map-wrap">
 <div id="map" class="map"></div>
 <div class="map-stop-status" id="stopStatus">Gotowe: 0 • Własne: 0</div>
-<div class="map-toolbar"><button class="btn small primary" id="newLineBtn">＋ NOWA LINIA</button><button class="btn small green" id="buildStopBtn">＋ BUDUJ PRZYSTANEK</button><button class="btn small" id="finishLineBtn" disabled>ZAPISZ LINIĘ</button><button class="btn small" id="clearDraftBtn" disabled>WYCZYŚĆ TRASĘ</button><button class="btn small" id="centerBtn">⌾ CENTRUJ</button><button class="btn small" id="refreshStopsBtn">↻ PRZYSTANKI <span id="stopCount">0</span></button></div>
+<div class="map-toolbar"><button class="btn small primary" id="newLineBtn">＋ NOWA LINIA</button><button class="btn small green" id="buildStopBtn">＋ BUDUJ PRZYSTANEK</button><button class="btn small" id="finishLineBtn" disabled>ZAPISZ LINIĘ</button><button class="btn small" id="clearDraftBtn" disabled>WYCZYŚĆ TRASĘ</button><button class="btn small" id="centerBtn">⌾ CENTRUJ</button></div>
 <div class="map-help" id="mapHelp">Na mapie są gotowe przystanki z OpenStreetMap. Możesz też budować własne, a potem układać z nich linie.</div>
 </div>
 <div class="line-side">
@@ -122,32 +122,25 @@ function showTab(name){
   const titles={dashboard:'Dashboard',lines:'Linie',fleet:'Flota',staff:'Pracownicy',finance:'Finanse',development:'Rozwój'};
   $('#pageTitle').textContent=titles[name]||name;
   if(name==='lines'){
-    setTimeout(()=>{
-      if(!state.map){
-        if(!state.mapCenter)state.mapCenter=[53.1325,23.1688];
-        initMap();
-      }
-      if(state.map){
-        state.map.invalidateSize(true);
-        if((state.readyStops||[]).length){
-          const b=L.latLngBounds(state.readyStops.map(s=>[Number(s.lat),Number(s.lon)]));
-          if(b.isValid())state.map.fitBounds(b.pad(.12),{maxZoom:14,animate:false});
-          else state.map.setView(state.mapCenter,13);
-        }else{
-          state.map.setView(state.mapCenter,13);
-        }
-        if(state.stopLayer)state.stopLayer.bringToFront();
-      }
+    setTimeout(async()=>{
+      if(!state.map){ if(!state.mapCenter)state.mapCenter=[53.1325,23.1688]; initMap(); }
+      if(!state.map)return;
+      state.map.invalidateSize(true);
+      if(state.stopLayer)state.stopLayer.bringToFront();
       renderLineSide();
       if(state.mapCenter&&!state.mapDataStarted){
         state.mapDataStarted=true;
         loadRoads(state.mapCenter,state.unlockedRadius);
       }
-      if(state.mapCenter&&!state._stopLoadBusy){
-        ensureBuiltinStopsVisible();
+      ensureBuiltinStopsVisible();
+      if(state.mapCenter&&!state._stopLoadBusy&&!(state.readyStops||[]).length){
         createReadyStops(state.mapCenter);
+      } else if((state.readyStops||[]).length){
+        renderStopMarkers();
+        const b=L.latLngBounds(state.readyStops.map(s=>[Number(s.lat),Number(s.lon)]));
+        if(b.isValid())state.map.fitBounds(b.pad(.08),{maxZoom:15,animate:false});
       }
-    },100);
+    },80);
   }
   if(name==='fleet')renderFleet();
   if(name==='staff')renderStaff();
@@ -303,11 +296,12 @@ function initMap(){
     handleMapClick(latlng);
   },true);
   $("#centerBtn").onclick=()=>{state.map.invalidateSize(true);state.map.setView(state.mapCenter,13)};
-  $("#buildStopBtn").onclick=()=>{if(!state.map){toast("Mapa niedostępna","Najpierw otwórz zakładkę Linie.");return}toggleBuildStopMode()}; $("#refreshStopsBtn").onclick=async()=>{if(!state.map){toast("Mapa niedostępna","Otwórz najpierw zakładkę Linie.");return}if(state._stopLoadBusy){toast("Przystanki","Już pobieram dane — poczekaj chwilę.");return}setStatusSafe(`Pobieranie przystanków…`);const ok=await createReadyStops(state.mapCenter||[53.1325,23.1688]);if(ok)toast("Przystanki",`Załadowano ${(state.readyStops||[]).length} przystanków.`);};
+  $("#buildStopBtn").onclick=()=>{if(!state.map){toast("Mapa niedostępna","Najpierw otwórz zakładkę Linie.");return}toggleBuildStopMode()};
   setTimeout(()=>state.map.invalidateSize(true),150);
   drawUnlockCircle();
   ensureBuiltinStopsVisible();
   renderStopMarkers();
+  if(state.mapCenter && !(state.readyStops||[]).length) setTimeout(()=>createReadyStops(state.mapCenter),250);
 }
 function drawUnlockCircle(){if(!state.map||!state.mapCenter)return;if(state.unlockCircle)state.map.removeLayer(state.unlockCircle);state.unlockCircle=L.circle(state.mapCenter,{radius:state.unlockedRadius,color:"#637fff",weight:1,dashArray:"7 7",fillColor:"#637fff",fillOpacity:.035,interactive:false}).addTo(state.map)}
 async function loadRoads(center,radius){if(!state.map)return;const [lat,lon]=center,r=Math.min(radius,9000),query=`[out:json][timeout:12];way(around:${r},${lat},${lon})[highway][name];out geom;`;try{const resp=await fetch("https://overpass-api.de/api/interpreter?data="+encodeURIComponent(query));if(!resp.ok)throw 0;const data=await resp.json();state.roadsLayer.clearLayers();const seen=new Set();data.elements.forEach(el=>{if(seen.has(el.id)||!el.geometry||el.geometry.length<2)return;seen.add(el.id);L.polyline(el.geometry.map(p=>[p.lat,p.lon]),{color:"#5f6670",weight:2,opacity:.58}).addTo(state.roadsLayer)});state.roadReady=true}catch(e){state.roadReady=false;toast("Mapa","Nie udało się pobrać części dróg. Routing autobusów nadal spróbuje użyć serwisu tras.")}}
@@ -390,115 +384,105 @@ function isBialystokCity(){
   const country=String(state.country||'').trim().toLowerCase();
   return country==='polska' && (city==='białystok'||city==='bialystok'||city.includes('białystok')||city.includes('bialystok'));
 }
+async function fetchGTFSStopsFromZip(urls){
+  const sources=[];
+  for(const target of urls){
+    sources.push(target);
+    sources.push('https://api.allorigins.win/raw?url='+encodeURIComponent(target));
+    sources.push('https://api.codetabs.com/v1/proxy?quest='+encodeURIComponent(target));
+  }
+  const tryOne=async(url)=>{
+    const ac=new AbortController();
+    const tm=setTimeout(()=>ac.abort(),10000);
+    try{
+      const r=await fetch(url,{mode:'cors',cache:'no-store',signal:ac.signal});
+      if(!r.ok)throw new Error('HTTP '+r.status);
+      const buf=new Uint8Array(await r.arrayBuffer());
+      if(!buf.length)throw new Error('empty');
+      const files=self.fflate?.unzipSync?self.fflate.unzipSync(buf):null;
+      if(!files)throw new Error('fflate unavailable');
+      const key=Object.keys(files).find(k=>k.toLowerCase().endsWith('/stops.txt')||k.toLowerCase()==='stops.txt');
+      if(!key)throw new Error('stops.txt missing');
+      const text=new TextDecoder('utf-8').decode(files[key]);
+      const rows=parseCSV(text);
+      const usable=rows.filter(x=>x.stop_id&&x.stop_name&&x.stop_lat&&x.stop_lon);
+      if(!usable.length)throw new Error('no stops');
+      return {rows:usable,url};
+    }finally{clearTimeout(tm)}
+  };
+  const jobs=sources.map((url)=>tryOne(url).catch(()=>null));
+  const results=await Promise.all(jobs);
+  return results.find(Boolean)||null;
+}
+
 async function fetchRealStops(bounds){
   if(!bounds)return [];
   const south=Number(bounds.south), north=Number(bounds.north), west=Number(bounds.west), east=Number(bounds.east);
   if(![south,north,west,east].every(Number.isFinite))return [];
-
   const out=new Map();
   const cityNorm=String(state.city||'').trim().toLowerCase();
-  const isBialystok=(String(state.country||'').trim().toLowerCase()==='polska' && (cityNorm==='białystok'||cityNorm==='bialystok'||cityNorm.includes('białystok')||cityNorm.includes('bialystok')));
+  const countryNorm=String(state.country||'').trim().toLowerCase();
+  const bialystok=countryNorm==='polska' && (cityNorm==='białystok'||cityNorm==='bialystok'||cityNorm.includes('białystok')||cityNorm.includes('bialystok'));
   const addStop=(x,source='feed')=>{
-    const lat=Number(x.lat??x.geometry?.coordinates?.[1]??x.stop_lat);
-    const lon=Number(x.lon??x.geometry?.coordinates?.[0]??x.stop_lon);
-    const name=String(x.name??x.stop_name??'').trim();
+    const coords=x?.geometry?.coordinates;
+    const lat=Number(x?.lat ?? coords?.[1] ?? x?.stop_lat ?? x?.stop_latitude);
+    const lon=Number(x?.lon ?? coords?.[0] ?? x?.stop_lon ?? x?.stop_longitude);
+    const name=normalizeStopName(x?.name ?? x?.stop_name ?? x?.tags?.stop_name ?? '');
     if(!Number.isFinite(lat)||!Number.isFinite(lon)||!name)return;
-    if(!isBialystokCity() && (lat<south||lat>north||lon<west||lon>east))return;
-    const code=String(x.stop_code??x.ref??'').trim();
-    const rawId=String(x.id??x.onestop_id??x.stop_id??('feed:'+lat.toFixed(6)+':'+lon.toFixed(6)+':'+name));
+    if(lat<south||lat>north||lon<west||lon>east)return;
+    const code=String(x?.stop_code ?? x?.tags?.stop_code ?? x?.ref ?? '').trim();
+    const rawId=String(x?.id ?? x?.onestop_id ?? x?.stop_id ?? x?.identifiers?.[0] ?? ('stop:'+lat.toFixed(6)+':'+lon.toFixed(6)+':'+name));
     const id='ready:'+rawId;
     if(!out.has(id))out.set(id,{id,name,lat,lon,type:'ready',source,stopCode:code});
   };
 
-  // Białystok: aktualny plik GTFS wygenerowany z danych Pixel OnTime.
-  // Jest to dokładny feed przystanków, zamiast zgadywania z OSM.
-  if(isBialystok){
-    const official='https://komunikacja.bialystok.pl/cms/File/download/gtfs/google_transit.zip';
+  // Białystok: pobieramy rzeczywisty plik GTFS jako ZIP i czytamy stops.txt lokalnie w przeglądarce.
+  // Dzięki temu nie potrzebujemy wycofanego Transitland v1 ani klucza API Transitland v2.
+  if(bialystok){
     const gtfsUrls=[
-      official,
+      'https://komunikacja.bialystok.pl/cms/File/download/gtfs/google_transit.zip',
       'https://files.girlc.at/gtfs/bialystok.zip',
-      'https://api.allorigins.win/raw?url='+encodeURIComponent(official),
-      'https://api.allorigins.win/raw?url='+encodeURIComponent('https://files.girlc.at/gtfs/bialystok.zip')
+      'https://files.mobilitydatabase.org/mdb-1907/mdb-1907-202608180031/mdb-1907-202608180031.zip'
     ];
-    for(const url of gtfsUrls){
+    const gtfs=await fetchGTFSStopsFromZip(gtfsUrls);
+    if(gtfs?.rows?.length){
+      gtfs.rows.forEach(x=>addStop(x,'BKM GTFS'));
+      if(out.size){state.readyStopsSource='BKM GTFS';return [...out.values()];}
+    }
+  }
+
+  // Inne miasta: tylko rzeczywiste przystanki OpenStreetMap.
+  const midLat=(south+north)/2, midLon=(west+east)/2;
+  const boxes=[
+    [south,west,midLat,midLon],[south,midLon,midLat,east],
+    [midLat,west,north,midLon],[midLat,midLon,north,east]
+  ];
+  const queryFor=(b)=>`[out:json][timeout:18];(
+    node(${b[0]},${b[1]},${b[2]},${b[3]})[highway=bus_stop];
+    node(${b[0]},${b[1]},${b[2]},${b[3]})[public_transport=platform];
+    node(${b[0]},${b[1]},${b[2]},${b[3]})[public_transport=stop_position];
+    way(${b[0]},${b[1]},${b[2]},${b[3]})[public_transport=platform];
+  );out center tags;`;
+  const endpoints=['https://overpass-api.de/api/interpreter','https://overpass.kumi.systems/api/interpreter','https://overpass.private.coffee/api/interpreter'];
+  await Promise.allSettled(boxes.map(async b=>{
+    for(const ep of endpoints){
       try{
-        const ac=new AbortController();
-        const tm=setTimeout(()=>ac.abort(),12000);
-        const r=await fetch(url,{mode:'cors',cache:'no-store',signal:ac.signal,headers:{Accept:'application/zip,application/octet-stream'}});
-        clearTimeout(tm);
-        if(!r.ok)continue;
-        const buf=new Uint8Array(await r.arrayBuffer());
-        const zip=fflate.unzipSync(buf);
-        const decoder=new TextDecoder('utf-8');
-        const stopFile=zip['stops.txt'];
-        if(!stopFile)continue;
-        const text=decoder.decode(stopFile).replace(/^\uFEFF/,'');
-        const rows=parseCSV(text);
-        for(const row of rows){
-          const lt=String(row.location_type??'').trim();
-          if(lt && lt!=='0')continue;
-          if(String(row.stop_id||'').startsWith('parent'))continue;
-          addStop({id:row.stop_id,name:row.stop_name,lat:row.stop_lat,lon:row.stop_lon,stop_code:row.stop_code},'pixel-ontime-gtfs');
+        const ac=new AbortController();const tm=setTimeout(()=>ac.abort(),14000);
+        const r=await fetch(ep+'?data='+encodeURIComponent(queryFor(b)),{mode:'cors',cache:'no-store',signal:ac.signal,headers:{Accept:'application/json'}});
+        clearTimeout(tm); if(!r.ok)continue;
+        const j=await r.json();
+        for(const el of (j?.elements||[])){
+          let lat=el.lat,lon=el.lon;if((lat==null||lon==null)&&el.center){lat=el.center.lat;lon=el.center.lon}
+          const t=el.tags||{};
+          addStop({id:`osm:${el.type}:${el.id}`,name:t.name||t['name:pl']||t.ref,lat,lon,stop_code:t.ref},'OpenStreetMap');
         }
-        if(out.size){
-          state.readyStopsSource='Pixel OnTime GTFS';
-          return [...out.values()];
-        }
+        break;
       }catch(e){}
     }
-  }
-
-  // Pozostałe miasta: Transitland v1 + awaryjnie OSM.
-  try{
-    const bbox=`${west},${south},${east},${north}`;
-    let offset=0;
-    for(let page=0;page<8;page++){
-      const url=`https://transit.land/api/v1/stops?bbox=${encodeURIComponent(bbox)}&per_page=1000&offset=${offset}`;
-      const resp=await fetch(url,{mode:'cors',cache:'no-store',headers:{Accept:'application/json'}});
-      if(!resp.ok)throw new Error('Transitland HTTP '+resp.status);
-      const json=await resp.json();
-      const rows=Array.isArray(json?.stops)?json.stops:[];
-      rows.forEach(x=>addStop(x,'transitland'));
-      if(rows.length<1000)break;
-      offset+=rows.length;
-    }
-    if(out.size)return [...out.values()];
-  }catch(e){}
-
-  // OSM fallback — tylko rzeczywiste obiekty transportowe, podzielone na 4 kafle.
-  if(out.size===0){
-    const midLat=(south+north)/2, midLon=(west+east)/2;
-    const boxes=[
-      [south,west,midLat,midLon],[south,midLon,midLat,east],
-      [midLat,west,north,midLon],[midLat,midLon,north,east]
-    ];
-    const queryFor=(b)=>`[out:json][timeout:15];(
-      node(${b[0]},${b[1]},${b[2]},${b[3]})[highway=bus_stop];
-      node(${b[0]},${b[1]},${b[2]},${b[3]})[public_transport=platform];
-      node(${b[0]},${b[1]},${b[2]},${b[3]})[public_transport=stop_position];
-      way(${b[0]},${b[1]},${b[2]},${b[3]})[public_transport=platform];
-      way(${b[0]},${b[1]},${b[2]},${b[3]})[highway=bus_stop];
-    );out center tags;`;
-    const endpoints=['https://overpass-api.de/api/interpreter','https://overpass.kumi.systems/api/interpreter','https://overpass.private.coffee/api/interpreter'];
-    await Promise.allSettled(boxes.map(async b=>{
-      for(const ep of endpoints){
-        try{
-          const ac=new AbortController();const tm=setTimeout(()=>ac.abort(),12000);
-          const r=await fetch(ep+'?data='+encodeURIComponent(queryFor(b)),{mode:'cors',cache:'no-store',signal:ac.signal,headers:{Accept:'application/json'}});
-          clearTimeout(tm); if(!r.ok)continue;
-          const j=await r.json();
-          for(const el of (j?.elements||[])){
-            let lat=el.lat,lon=el.lon;if((lat==null||lon==null)&&el.center){lat=el.center.lat;lon=el.center.lon}
-            const t=el.tags||{};addStop({id:`osm:${el.type}:${el.id}`,name:t.name||t['name:pl']||t.ref,lat,lon,stop_code:t.ref},'osm');
-          }
-          break;
-        }catch(e){}
-      }
-    }));
-  }
+  }));
+  if(out.size)state.readyStopsSource='OpenStreetMap';
   return [...out.values()];
 }
-
 function parseCSV(text){
   const rows=[]; let row=[], cell='', quoted=false;
   for(let i=0;i<text.length;i++){
@@ -525,7 +509,7 @@ async function createReadyStops(center){
   if(!center||!state.map||state._stopLoadBusy)return false;
   state._stopLoadBusy=true;
   const previous=Array.isArray(state.readyStops)?state.readyStops.slice():[];
-  setStatusSafe(previous.length?`Gotowe: ${previous.length} • zapisane • odświeżanie…`:'Pobieranie przystanków…');
+  setStatusSafe(previous.length?`Gotowe: ${previous.length} • odświeżanie…`:'Pobieranie gotowych przystanków…');
   try{
     let b=state.cityBounds;
     if(!b||![b.south,b.north,b.west,b.east].every(Number.isFinite)){
@@ -550,30 +534,31 @@ async function createReadyStops(center){
       state.readyStops=previous;
       renderStopMarkers();
       setStatusSafe(`Gotowe: ${previous.length} • zapisane`);
-      toast('Przystanki','Nie udało się odświeżyć danych OSM. Zachowano poprzednie przystanki.');
+      toast('Przystanki','Nie udało się pobrać nowych danych. Zachowano zapisane przystanki.');
       return false;
     }
     state.readyStops=[];
     renderStopMarkers();
     setStatusSafe('Gotowe: 0 • OSM niedostępne');
-    toast('Przystanki','OSM nie odpowiedziało w czasie 15 s. Spróbuj ponownie przyciskiem ↻ PRZYSTANKI.');
+    toast('Przystanki','Nie udało się pobrać danych. Gra spróbuje ponownie automatycznie.');
     return false;
   }catch(e){
     state.readyStops=previous;
     renderStopMarkers();
     setStatusSafe(previous.length?`Gotowe: ${previous.length} • zapisane`:'Gotowe: 0 • OSM niedostępne');
-    toast('Przystanki','Pobieranie z OpenStreetMap przekroczyło limit czasu.');
+    toast('Przystanki','Nie udało się pobrać danych przystanków. Spróbuj odświeżyć stronę.');
     return false;
-  }finally{state._stopLoadBusy=false}
+  }finally{
+    state._stopLoadBusy=false;
+    if(!(state.readyStops||[]).length && !state._stopRetryScheduled){
+      state._stopRetryScheduled=true;
+      setTimeout(()=>{state._stopRetryScheduled=false; if(state.map&&state.mapCenter)createReadyStops(state.mapCenter)},12000);
+    }
+  }
 }
 
 // Usunięto wcześniejszy „builtin” — gra nie tworzy już żadnych fikcyjnych przystanków.
-function ensureBuiltinStopsVisible(){
-  if(!state.readyStops)return;
-  const before=state.readyStops.length;
-  state.readyStops=state.readyStops.filter(s=>s && s.source!=='osm-builtin' && !String(s.id||'').startsWith('osm:mapy:'));
-  if(before!==state.readyStops.length)renderStopMarkers();
-}
+function ensureBuiltinStopsVisible(){}
 
 function toggleBuildStopMode(){
   if(!state.map){
