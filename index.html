@@ -260,8 +260,59 @@ function renderStopMarkers(){
  });
  
 }
+function toggleBuildStopMode(){
+  if(!state.map){
+    toast("Mapa niedostępna","Najpierw otwórz zakładkę Linie i poczekaj na mapę.");
+    return;
+  }
+  state.buildStopMode=!state.buildStopMode;
+  if(state.buildStopMode){
+    state.draft.active=false;
+    if(state.draft.previewLine&&state.map.hasLayer(state.draft.previewLine)) state.map.removeLayer(state.draft.previewLine);
+    state.draft.previewLine=null;
+    $("#buildStopBtn").textContent="● KLIKNIJ NA MAPIE";
+    $("#buildStopBtn").classList.add("primary");
+    $("#newLineBtn").textContent="＋ NOWA LINIA";
+    $("#mapHelp").textContent="TRYB BUDOWY PRZYSTANKU: kliknij dokładnie miejsce na mapie.";
+    state.map.getContainer().style.cursor="crosshair";
+    toast("Budowa przystanku","Kliknij miejsce na mapie, aby otworzyć formularz.");
+  }else{
+    $("#buildStopBtn").textContent="＋ BUDUJ PRZYSTANEK";
+    $("#buildStopBtn").classList.remove("primary");
+    $("#mapHelp").textContent="Kliknij „BUDUJ PRZYSTANEK”, a następnie wybierz miejsce na mapie.";
+    state.map.getContainer().style.cursor="";
+  }
+}
+
 function openBuildStopModal(latlng){if(distanceMeters(state.mapCenter[0],state.mapCenter[1],latlng.lat,latlng.lng)>state.unlockedRadius){toast("Obszar zablokowany","Najpierw odblokuj większy obszar mapy.");return}$("#newStopLat").value=latlng.lat;$("#newStopLon").value=latlng.lng;$("#newStopName").value="Przystanek "+(state.customStops.length+1);showModal("stopModal")}
-function createCustomStop(){const name=$("#newStopName").value.trim()||"Nowy przystanek",lat=Number($("#newStopLat").value),lon=Number($("#newStopLon").value),cost=5000;if(state.cash<cost){hideModal("stopModal");toast("Brak środków","Budowa przystanku kosztuje $5 000.");return}const stop={id:crypto.randomUUID(),name,lat,lon,type:"custom"};state.customStops.push(stop);addCash(-cost,"Budowa przystanku: "+name);renderStopMarkers();saveGame();hideModal("stopModal");state.buildStopMode=false;$("#buildStopBtn").textContent="＋ BUDUJ PRZYSTANEK";$("#buildStopBtn").classList.remove("primary");$("#mapHelp").textContent="Przystanek zbudowany. Kliknij „NOWA LINIA”, aby użyć go na trasie.";toast("Przystanek zbudowany",name+" jest dostępny do tworzenia linii.")}
+function createCustomStop(){
+  const name=$("#newStopName").value.trim()||"Nowy przystanek";
+  const lat=Number($("#newStopLat").value);
+  const lon=Number($("#newStopLon").value);
+  const cost=5000;
+  if(!Number.isFinite(lat)||!Number.isFinite(lon)){
+    toast("Błąd lokalizacji","Najpierw kliknij miejsce na mapie.");
+    return;
+  }
+  if(state.cash<cost){
+    hideModal("stopModal");
+    toast("Brak środków","Budowa przystanku kosztuje $5 000.");
+    return;
+  }
+  const stop={id:(crypto.randomUUID?crypto.randomUUID():"stop-"+Date.now()),name,lat,lon,type:"custom"};
+  state.customStops.push(stop);
+  addCash(-cost,"Budowa przystanku: "+name);
+  renderStopMarkers();
+  saveGame();
+  hideModal("stopModal");
+  state.buildStopMode=false;
+  $("#buildStopBtn").textContent="＋ BUDUJ PRZYSTANEK";
+  $("#buildStopBtn").classList.remove("primary");
+  if(state.map) state.map.getContainer().style.cursor="";
+  $("#mapHelp").textContent="Przystanek zbudowany. Kliknij „NOWA LINIA”, aby użyć go na trasie.";
+  if(state.map) state.map.setView([lat,lon],Math.max(state.map.getZoom(),14));
+  toast("Przystanek zbudowany",name+" został dodany na mapę za $5 000.");
+}
 function addDraftExistingStop(stop){
   if(state.draft.stops.some(x=>x.id===stop.id)){
     toast("Przystanek już na trasie",stop.name);
