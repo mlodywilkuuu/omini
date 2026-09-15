@@ -524,6 +524,8 @@ async function fetchOsmStops(bounds){
 }
 
 async function fetchOfficialBkmGtfsStops(){
+  // Białystok: używamy wyłącznie oficjalnego GTFS BKM.
+  // Nie mieszamy tutaj Transitland, bo mogłoby dołączyć przystanki z innych/starych feedów.
   if(!/białystok/i.test(state.city||'')) return [];
   const urls=[
     'https://komunikacja.bialystok.pl/cms/File/download/gtfs/google_transit.zip',
@@ -531,24 +533,59 @@ async function fetchOfficialBkmGtfsStops(){
   ];
   for(const url of urls){
     try{
-      const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),30000);
+      const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),35000);
       const r=await fetch(url,{mode:'cors',cache:'no-store',signal:ctl.signal});
-      clearTimeout(timer); if(!r.ok) continue;
+      clearTimeout(timer);
+      if(!r.ok) continue;
       const buf=new Uint8Array(await r.arrayBuffer());
       if(!window.fflate?.unzipSync) continue;
       const files=window.fflate.unzipSync(buf);
-      const key=Object.keys(files).find(k=>k.toLowerCase().endsWith('/stops.txt')||k.toLowerCase()==='stops.txt');
-      if(!key) continue;
-      const text=new TextDecoder('utf-8').decode(files[key]);
-      const rows=parseCsvText(text);
-      const out=[];
-      for(const row of rows){
-        const lat=Number(row.stop_lat),lon=Number(row.stop_lon),name=String(row.stop_name||'').trim();
-        if(!name||!Number.isFinite(lat)||!Number.isFinite(lon)) continue;
-        out.push({id:'gtfs:bkm:'+String(row.stop_id||`${lat},${lon}`),name,lat,lon,type:'ready',source:'gtfs-bkm',stopCode:String(row.stop_code||'')});
+      const stopKey=Object.keys(files).find(k=>k.toLowerCase().endsWith('/stops.txt')||k.toLowerCase()==='stops.txt');
+      if(!stopKey) continue;
+      const timeKey=Object.keys(files).find(k=>k.toLowerCase().endsWith('/stop_times.txt')||k.toLowerCase()==='stop_times.txt');
+      const stopsText=new TextDecoder('utf-8').decode(files[stopKey]);
+      const stopRows=parseCsvText(stopsText);
+
+      // Zostawiamy tylko rzeczywiste miejsca, gdzie autobus może zabierać/wywozić pasażerów:
+      // location_type 0 lub puste. Opcjonalnie 4 (boarding area) traktujemy jako osobne stanowisko.
+      const servedIds=new Set();
+      if(timeKey){
+        const timesText=new TextDecoder('utf-8').decode(files[timeKey]);
+        for(const row of parseCsvText(timesText)){
+          const id=String(row.stop_id||'').trim();
+          if(id) servedIds.add(id);
+        }
       }
-      if(out.length) return dedupeStops(out);
-    }catch(e){}
+
+      let out=[];
+      for(const row of stopRows){
+        const id=String(row.stop_id||'').trim();
+        const name=String(row.stop_name||'').trim();
+        const lat=Number(row.stop_lat),lon=Number(row.stop_lon);
+        const lt=String(row.location_type??'').trim();
+        // GTFS: 0/puste = stop/platform; 4 = boarding area.
+        // Station/entrance/generic node nie jest osobnym przystankiem dla gry.
+        const isBoardingStop=(lt===''||lt==='0'||lt==='4');
+        if(!id||!name||!Number.isFinite(lat)||!Number.isFinite(lon)||!isBoardingStop) continue;
+        // Jeśli stop_times jest dostępny, bierzemy tylko faktycznie obsługiwane stop_id.
+        if(servedIds.size && !servedIds.has(id)) continue;
+        out.push({
+          id:'gtfs:bkm:'+id,
+          name,
+          lat,
+          lon,
+          type:'ready',
+          source:'gtfs-bkm',
+          stopCode:String(row.stop_code||''),
+          locationType:lt||'0',
+          parentStation:String(row.parent_station||'')
+        });
+      }
+      // Deduplikacja tylko identycznego stop_id. Nie usuwamy dwóch przystanków o tej samej nazwie,
+      // jeśli są po przeciwnych stronach ulicy lub w różnych lokalizacjach.
+      out=dedupeStops(out);
+      if(out.length) return out;
+    }catch(e){ /* spróbuj kolejne źródło */ }
   }
   return [];
 }
@@ -578,8 +615,17 @@ async function createReadyStops(center){
   setStatusSafe('Pobieranie przystanków…');
   try{
     let rows=[];
-    if(/białystok/i.test(state.city||'')) rows=await fetchOfficialBkmGtfsStops();
-    if(!rows.length){
+    const isBialystok=/białystok/i.test(state.city||'');
+    if(isBialystok){
+      rows=await fetchOfficialBkmGtfsStops();
+      // Dla Białegostoku NIE łączymy wyników z Transitland, bo mogłyby zawierać inne feedy.
+      if(!rows.length){
+        setStatusSafe('BKM GTFS: nie udało się pobrać danych');
+        renderStopMarkers();
+        toast('Przystanki BKM','Nie udało się pobrać oficjalnego GTFS BKM. Spróbuj ponownie przyciskiem ↻ PRZYSTANKI.');
+        return false;
+      }
+    }else{
       let b=state.cityBounds;
       if(!b||![b.south,b.north,b.west,b.east].every(Number.isFinite)){
         const [lat,lon]=center;b={south:lat-.08,north:lat+.08,west:lon-.12,east:lon+.12};
@@ -589,6 +635,10 @@ async function createReadyStops(center){
       if(!rows.length){setStatusSafe('Pobieranie z OpenStreetMap…');rows=await fetchOsmStops(b)}
     }
     rows=dedupeStops(rows.filter(s=>String(s.name||'').trim()&&Number.isFinite(Number(s.lat))&&Number.isFinite(Number(s.lon))));
+    if(state.cityBounds){
+      const cb=state.cityBounds,margin=.0025;
+      rows=rows.filter(x=>Number(x.lat)>=Number(cb.south)-margin&&Number(x.lat)<=Number(cb.north)+margin&&Number(x.lon)>=Number(cb.west)-margin&&Number(x.lon)<=Number(cb.east)+margin);
+    }
     if(rows.length){
       state.readyStops=rows;
       state.readyStopsSource=rows.every(s=>s.source==='gtfs-bkm')?'BKM GTFS':rows.every(s=>s.source==='transitland')?'Transitland':'OpenStreetMap';
