@@ -90,6 +90,7 @@
 
 <div id="stopModal" class="modal-backdrop hidden"><div class="modal" style="max-width:500px"><button class="close" data-close="stopModal">×</button><h2>Budowa przystanku</h2><p>Przystanek zostanie dodany dokładnie w wybranym miejscu na mapie.</p><div class="form-grid"><div class="field full"><label>Nazwa przystanku</label><input id="newStopName" value="Nowy przystanek"></div><div class="field"><label>Szerokość</label><input id="newStopLat" readonly></div><div class="field"><label>Długość</label><input id="newStopLon" readonly></div></div><div class="modal-actions"><button class="btn" data-close="stopModal">ANULUJ</button><button class="btn primary" id="confirmStopBtn">BUDUJ — $5 000</button></div></div></div>
 <div id="busBuyModal" class="modal-backdrop hidden"><div class="modal" style="max-width:520px"><button class="close" data-close="busBuyModal">×</button><h2>Zakup autobusu</h2><p>Wybierz model i liczbę autobusów.</p><div class="form-grid"><div class="field"><label>Rodzaj autobusu</label><select id="buyBusType"></select></div><div class="field"><label>Liczba</label><input id="buyBusQty" type="number" min="1" max="50" value="1"></div></div><div id="buyBusCost" class="muted" style="margin-top:12px"></div><div class="modal-actions"><button class="btn" data-close="busBuyModal">ANULUJ</button><button class="btn primary" id="confirmBuyBusBtn">KUP</button></div></div></div></div>
+<div id="cheatModal" class="modal-backdrop hidden"><div class="modal" style="max-width:560px"><button class="close" data-close="cheatModal">×</button><h2>Menu cheatów</h2><p>Wpisz polecenie i naciśnij Enter. Przykład: <b>kasa 500000</b></p><div class="field"><label>Polecenie</label><input id="cheatInput" autocomplete="off" placeholder="kasa 1000000"></div><div class="muted" style="font-size:12px;margin-top:12px">Dostępne: <b>kasa [kwota]</b>, <b>max</b>, <b>pracownicy [liczba]</b>, <b>autobusy [liczba]</b></div></div></div>
 <div id="toast" class="toast"><b id="toastTitle"></b><span id="toastText"></span></div>
 </div>
 
@@ -142,6 +143,7 @@ function showTab(name){
         loadRoads(state.mapCenter,state.unlockedRadius);
       }
       if(state.mapCenter&&!state._stopLoadBusy){
+        ensureBuiltinStopsVisible();
         createReadyStops(state.mapCenter);
       }
     },100);
@@ -179,7 +181,7 @@ function loadSavedGame(){
       expenseToday:Number(saved.expenseToday)||0,passengers:Number(saved.passengers)||0,payrollRemainder:Number(saved.payrollRemainder)||0,
       ticketPrice:Number(saved.ticketPrice)>0?Number(saved.ticketPrice):4.50,fineAmount:Number(saved.fineAmount)>0?Number(saved.fineAmount):50,
       fareRevenueToday:Number(saved.fareRevenueToday)||0,fineRevenueToday:Number(saved.fineRevenueToday)||0,
-      readyStops:Array.isArray(saved.readyStops)?saved.readyStops:[],readyStopsSource:saved.readyStopsSource||"osm",cityBounds:saved.cityBounds||null,customStops:Array.isArray(saved.customStops)?saved.customStops:[],
+      readyStops:(Array.isArray(saved.readyStops)?saved.readyStops:[]).filter(s=>s&&s.source!=='osm-builtin'&&!String(s.id||'').startsWith('osm:mapy:')),readyStopsSource:saved.readyStopsSource||"osm",cityBounds:saved.cityBounds||null,customStops:Array.isArray(saved.customStops)?saved.customStops:[],
       selectedLineId:saved.selectedLineId||null,timeSpeed:Number(saved.timeSpeed)||1
     });
     state.osmStops=[]; state.stopMarkers=[]; state.routeLayers=[]; state.busMarkers=new Map();
@@ -220,7 +222,7 @@ async function restoreSavedGame(){
   $("#game").classList.remove("hidden");
   state.mapCenter=await geocodeCity();
   initMap();
-  state.readyStops=[];
+  ensureBuiltinStopsVisible();
   await createReadyStops(state.mapCenter);
   updateCompanyUI();
   renderAll();
@@ -233,9 +235,10 @@ async function createGame(){
   state.lines=[];state.staff=[];state.customStops=[];state.readyStops=[];state.readyStopsSource="osm";state.cityBounds=null;state.osmStops=[];state.selectedLineId=null;
   state.incomeToday=0;state.expenseToday=0;state.fareRevenueToday=0;state.fineRevenueToday=0;state.passengers=0;state.day=1;state.minutes=360;state.ticketPrice=4.50;state.fineAmount=50;
   if(state.mode==="sandbox"){
-    state.cash=999999999;state.unlockedRadius=40000;state.unlockLevel=1;state.buses=[];
-    for(let i=0;i<20;i++)addBus(true);
-    for(let i=0;i<20;i++)state.staff.push({id:crypto.randomUUID(),name:randomDriver(),salary:4500});
+    state.cash=9999999999999;state.unlockedRadius=200000;state.unlockLevel=1;state.buses=[];state.staff=[];state.payrollRemainder=0;
+    const sandboxFleet=Object.keys(BUS_TYPES);
+    for(let i=0;i<100;i++)createBus(sandboxFleet[i%sandboxFleet.length],true);
+    for(let i=0;i<100;i++)state.staff.push({id:crypto.randomUUID(),name:randomDriver(),salary:4500});
   }else{
     state.cash=250000;state.unlockedRadius=8500;state.unlockLevel=1;state.buses=[];
     for(let i=0;i<3;i++)addBus(true);
@@ -243,6 +246,7 @@ async function createGame(){
   hideModal("setupModal");$("#start").classList.add("hidden");$("#game").classList.remove("hidden");
   state.mapCenter=await geocodeCity();
   initMap();
+  ensureBuiltinStopsVisible();
   showTab("lines");
   await createReadyStops(state.mapCenter);
   setTimeout(()=>{if(state.map){state.map.invalidateSize(true)}},250);
@@ -298,13 +302,51 @@ function initMap(){
     handleMapClick(latlng);
   },true);
   $("#centerBtn").onclick=()=>{state.map.invalidateSize(true);state.map.setView(state.mapCenter,13)};
-  $("#buildStopBtn").onclick=()=>{if(!state.map){toast("Mapa niedostępna","Najpierw otwórz zakładkę Linie.");return}toggleBuildStopMode()}; $("#refreshStopsBtn").onclick=()=>{if(state.mapCenter&&!state._stopLoadBusy){state.readyStops=[];renderStopMarkers();createReadyStops(state.mapCenter);}};
+  $("#buildStopBtn").onclick=()=>{if(!state.map){toast("Mapa niedostępna","Najpierw otwórz zakładkę Linie.");return}toggleBuildStopMode()}; $("#refreshStopsBtn").onclick=()=>{if(state.mapCenter&&!state._stopLoadBusy){createReadyStops(state.mapCenter);}};
   setTimeout(()=>state.map.invalidateSize(true),150);
   drawUnlockCircle();
+  ensureBuiltinStopsVisible();
   renderStopMarkers();
 }
 function drawUnlockCircle(){if(!state.map||!state.mapCenter)return;if(state.unlockCircle)state.map.removeLayer(state.unlockCircle);state.unlockCircle=L.circle(state.mapCenter,{radius:state.unlockedRadius,color:"#637fff",weight:1,dashArray:"7 7",fillColor:"#637fff",fillOpacity:.035,interactive:false}).addTo(state.map)}
 async function loadRoads(center,radius){if(!state.map)return;const [lat,lon]=center,r=Math.min(radius,9000),query=`[out:json][timeout:12];way(around:${r},${lat},${lon})[highway][name];out geom;`;try{const resp=await fetch("https://overpass-api.de/api/interpreter?data="+encodeURIComponent(query));if(!resp.ok)throw 0;const data=await resp.json();state.roadsLayer.clearLayers();const seen=new Set();data.elements.forEach(el=>{if(seen.has(el.id)||!el.geometry||el.geometry.length<2)return;seen.add(el.id);L.polyline(el.geometry.map(p=>[p.lat,p.lon]),{color:"#5f6670",weight:2,opacity:.58}).addTo(state.roadsLayer)});state.roadReady=true}catch(e){state.roadReady=false;toast("Mapa","Nie udało się pobrać części dróg. Routing autobusów nadal spróbuje użyć serwisu tras.")}}
+function renderStopOverlay(){
+  // The overlay is intentionally kept empty. Stop markers are rendered by Leaflet
+  // on the dedicated stopLayer so pan/zoom remains fully interactive.
+  if(state.stopOverlay)state.stopOverlay.innerHTML="";
+}
+function renderStopMarkers(){
+  if(!state.map||!state.stopLayer)return;
+  state.stopLayer.clearLayers();
+  state.stopMarkers=[];
+  const selected=new Map((state.draft?.stops||[]).map((s,i)=>[String(s.id),i+1]));
+  const stops=[...(state.readyStops||[]),...(state.customStops||[])];
+  stops.forEach((st,i)=>{
+    const lat=Number(st.lat),lon=Number(st.lon);
+    if(!Number.isFinite(lat)||!Number.isFinite(lon))return;
+    const order=selected.get(String(st.id));
+    const marker=L.marker([lat,lon],{
+      icon:order?draftStopIcon(order):stopIcon(i,st.type==='custom',!!order),
+      zIndexOffset:order?5000:(st.type==='custom'?4000:2500),
+      keyboard:false,
+      riseOnHover:true
+    }).addTo(state.stopLayer);
+    marker.on('click',e=>{
+      L.DomEvent.stopPropagation(e);
+      if(state.buildStopMode)return;
+      if(state.draft.active){addDraftExistingStop(st);return;}
+      marker.bindPopup(`<b>${escapeHtml(st.name||'Przystanek')}</b><br><span style="font-size:11px">${st.type==='custom'?'Własny przystanek':'Gotowy przystanek'}</span>`).openPopup();
+    });
+    state.stopMarkers.push(marker);
+  });
+  state.stopLayer.bringToFront();
+  const countEl=document.querySelector('#stopCount');
+  if(countEl)countEl.textContent=String(stops.length);
+  const status=document.querySelector('#stopStatus');
+  if(status&&!status.textContent.includes('Pobieranie')&&!status.textContent.includes('Transitland'))
+    status.textContent=`Gotowe: ${(state.readyStops||[]).length} • Własne: ${(state.customStops||[]).length}`;
+}
+
 function stopIcon(num,custom=false,selected=false){
   const bg=custom?"#20d981":"#2f73ff";
   const border=custom?"#d9ffe9":"#ffffff";
@@ -321,227 +363,260 @@ function draftStopIcon(num){return L.divIcon({className:"",html:`<div class="dra
 
 // Rzeczywiste przystanki OSM używane jako natychmiastowy fallback dla Białegostoku.
 // Nie są losowane — każde współrzędne pochodzi z publicznych danych mapowych.
-const BUILTIN_READY_STOPS={
-  "białystok":[
-    {id:"osm:node:5802408783",name:"Zagumienna",lat:53.1462,lon:23.15017,type:"ready",osmId:"node 5802408783",source:"osm-builtin"},
-    {id:"osm:node:5145406950",name:"Piastowska/Chrobrego",lat:53.12891,lon:23.18801,type:"ready",osmId:"node 5145406950",source:"osm-builtin"},
-    {id:"osm:node:3682310649",name:"al. Piłsudskiego / Domus",lat:53.13593,lon:23.15021,type:"ready",osmId:"node 3682310649",source:"osm-builtin"},
-    {id:"osm:node:6065984147",name:"Branickiego/Świętojańska",lat:53.12774,lon:23.17505,type:"ready",osmId:"node 6065984147",source:"osm-builtin"},
-    {id:"osm:mapy:990",name:"al. Piłsudskiego/Kościelna(990)",lat:53.1334647,lon:23.1670608,type:"ready",osmId:"mapy-990",source:"osm-builtin"},
-    {id:"osm:node:4533896566",name:"Piastowska/Gen. Sulika",lat:53.1396,lon:23.19973,type:"ready",osmId:"node 4533896566",source:"osm-builtin"},
-    {id:"osm:node:4745098250",name:"Dojnowska/Plażowa",lat:53.11489,lon:23.21558,type:"ready",osmId:"node 4745098250",source:"osm-builtin"},
-    {id:"osm:mapy:517",name:"Wyszyńskiego/Młynowa(517)",lat:53.1276208,lon:23.1441344,type:"ready",osmId:"mapy-517",source:"osm-builtin"},
-    {id:"osm:mapy:344",name:"Ks. J. Popiełuszki/Św. A. Boboli",lat:53.1282386,lon:23.0860406,type:"ready",osmId:"mapy-344",source:"osm-builtin"},
-    {id:"osm:mapy:132",name:"Hetmańska/Promienna",lat:53.1341706,lon:23.1202603,type:"ready",osmId:"mapy-132",source:"osm-builtin"},
-    {id:"osm:mapy:498",name:"Aleja 1000-lecia Państwa Polskiego/Kombatantów",lat:53.1511803,lon:23.1546994,type:"ready",osmId:"mapy-498",source:"osm-builtin"},
-    {id:"osm:mapy:regionalna-koscielna",name:"aleja Józefa Piłsudskiego/Kościelna",lat:53.1338286,lon:23.1652922,type:"ready",osmId:"mapy-regionalna-koscielna",source:"osm-builtin"}
-  ]
-};
-function builtinReadyStopsForCity(city){
-  const key=String(city||"").trim().toLowerCase();
-  return (BUILTIN_READY_STOPS[key]||[]).map(x=>({...x}));
+/*
+  SYSTEM GOTOWYCH PRZYSTANKÓW
+  - główne źródło: Transitland/GTFS (dokładne stop_name + współrzędne)
+  - awaryjnie: OpenStreetMap/Overpass
+  - brak fikcyjnych / losowych przystanków
+*/
+async function fetchTransitlandStops(bounds){
+  if(!bounds)return [];
+  const south=Number(bounds.south), north=Number(bounds.north), west=Number(bounds.west), east=Number(bounds.east);
+  if(![south,north,west,east].every(Number.isFinite))return [];
+
+  // Transitland v1 nie wymaga klucza API i obsługuje bbox + klasyczną paginację.
+  // Pobieramy cały obszar w kilku kaflach, aby ograniczyć rozmiar pojedynczego zapytania.
+  const midLat=(south+north)/2, midLon=(west+east)/2;
+  const boxes=[
+    [west,south,midLon,midLat], [midLon,south,east,midLat],
+    [west,midLat,midLon,north], [midLon,midLat,east,north]
+  ];
+  const all=new Map();
+  const endpoint='https://transit.land/api/v1/stops';
+
+  async function loadBox(box){
+    const [w,s,e,n]=box;
+    let offset=0;
+    for(let page=0;page<30;page++){
+      const qs=new URLSearchParams({
+        bbox:`${w},${s},${e},${n}`,
+        per_page:'1000',offset:String(offset),total:'true',
+        // Pobieramy również dane starszych importów; później deduplikujemy po GTFS stop_id/name+coords.
+        sort_key:'id',sort_order:'asc'
+      });
+      const ctl=new AbortController();
+      const timer=setTimeout(()=>ctl.abort(),25000);
+      try{
+        const r=await fetch(endpoint+'?'+qs.toString(),{
+          method:'GET',mode:'cors',cache:'no-store',headers:{Accept:'application/json'},signal:ctl.signal
+        });
+        if(!r.ok)throw new Error('HTTP '+r.status);
+        const j=await r.json();
+        const rows=Array.isArray(j?.stops)?j.stops:(Array.isArray(j)?j:[]);
+        rows.forEach(st=>{
+          const g=st?.geometry||st?.geometry_centroid||st?.geometry_reversegeo;
+          let lon=Number(g?.coordinates?.[0]),lat=Number(g?.coordinates?.[1]);
+          if(!Number.isFinite(lat)||!Number.isFinite(lon)){
+            lat=Number(st?.stop_lat);lon=Number(st?.stop_lon);
+          }
+          const name=String(st?.name??st?.stop_name??'').trim();
+          if(!name||!Number.isFinite(lat)||!Number.isFinite(lon))return;
+          const gtfsId=String(st?.imported_with_gtfs_id||st?.stop_id||'').trim();
+          const feed=String(st?.imported_from_feed||st?.feed_onestop_id||'').trim();
+          const id=gtfsId&&feed?`gtfs:${feed}:${gtfsId}`:`tl:${st?.onestop_id||st?.id||`${lat.toFixed(6)},${lon.toFixed(6)}`}`;
+          all.set(id,{id,name,lat,lon,type:'ready',source:'transitland',gtfsStopId:gtfsId,feedId:feed,stopCode:String(st?.stop_code||'')});
+        });
+        setStatusSafe(`Przystanki: ${all.size} • Transitland v1`);
+        const total=Number(j?.meta?.total||j?.total||0);
+        if(rows.length===0)break;
+        offset+=rows.length;
+        if(rows.length<1000)break;
+        if(total&&offset>=total)break;
+      }finally{clearTimeout(timer)}
+    }
+  }
+  for(const box of boxes){
+    try{await loadBox(box)}catch(e){}
+  }
+  return [...all.values()];
 }
 
+function setStatusSafe(text){const el=document.querySelector('#stopStatus');if(el)el.textContent=text}
+
+async function fetchOsmStops(bounds){
+  if(!bounds)return [];
+  const south=Number(bounds.south), north=Number(bounds.north), west=Number(bounds.west), east=Number(bounds.east);
+  if(![south,north,west,east].every(Number.isFinite))return [];
+
+  // Najpierw bezpośrednie, rzeczywiste dane OSM API. Dzielimy obszar na kafelki,
+  // aby nie przekroczyć limitu wielkości pojedynczego zapytania.
+  async function fetchOsmMapTiles(){
+    const cols=3, rows=3, out=new Map();
+    const parts=[];
+    for(let iy=0;iy<rows;iy++){
+      const s=south+(north-south)*iy/rows;
+      const n=south+(north-south)*(iy+1)/rows;
+      for(let ix=0;ix<cols;ix++){
+        const w=west+(east-west)*ix/cols;
+        const e=west+(east-west)*(ix+1)/cols;
+        parts.push([w,s,e,n]);
+      }
+    }
+    for(const [w,s,e,n] of parts){
+      try{
+        const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),30000);
+        const url=`https://api.openstreetmap.org/api/0.6/map?bbox=${encodeURIComponent(w+','+s+','+e+','+n)}`;
+        const r=await fetch(url,{method:'GET',mode:'cors',cache:'no-store',headers:{Accept:'application/xml,text/xml'},signal:ctl.signal});
+        clearTimeout(timer);
+        if(!r.ok)continue;
+        const xml=await r.text();
+        const doc=new DOMParser().parseFromString(xml,'application/xml');
+        if(doc.querySelector('parsererror'))continue;
+        const nodes=new Map();
+        [...doc.querySelectorAll('node')].forEach(nd=>{
+          const lat=Number(nd.getAttribute('lat')),lon=Number(nd.getAttribute('lon')),id=nd.getAttribute('id');
+          if(!id||!Number.isFinite(lat)||!Number.isFinite(lon))return;
+          const tags={};nd.querySelectorAll('tag').forEach(t=>tags[t.getAttribute('k')]=t.getAttribute('v'));
+          nodes.set(id,{id:'osm:node:'+id,name:String(tags.name||tags['name:pl']||tags.ref||'').trim(),lat,lon,tags});
+        });
+        nodes.forEach(st=>{
+          const t=st.tags;
+          const isBus=(t.highway==='bus_stop') || (t.public_transport==='platform' && (!t.bus || t.bus==='yes')) || (t.public_transport==='stop_position' && (!t.bus || t.bus==='yes'));
+          if(!isBus||!st.name)return;
+          out.set(st.id,{id:st.id,name:st.name,lat:st.lat,lon:st.lon,type:'ready',source:'osm'});
+        });
+        // Dla platform oznaczonych jako way wyliczamy środek z węzłów.
+        [...doc.querySelectorAll('way')].forEach(wy=>{
+          const tags={};wy.querySelectorAll('tag').forEach(t=>tags[t.getAttribute('k')]=t.getAttribute('v'));
+          const isBus=(tags.highway==='bus_stop') || (tags.public_transport==='platform' && (!tags.bus||tags.bus==='yes'));
+          const name=String(tags.name||tags['name:pl']||tags.ref||'').trim();
+          if(!isBus||!name)return;
+          const pts=[...wy.querySelectorAll('nd')].map(nd=>nodes.get(nd.getAttribute('ref'))).filter(Boolean);
+          if(!pts.length)return;
+          const lat=pts.reduce((a,b)=>a+b.lat,0)/pts.length,lon=pts.reduce((a,b)=>a+b.lon,0)/pts.length;
+          out.set('osm:way:'+wy.getAttribute('id'),{id:'osm:way:'+wy.getAttribute('id'),name,lat,lon,type:'ready',source:'osm'});
+        });
+      }catch(e){}
+    }
+    return [...out.values()];
+  }
+
+  let direct=await fetchOsmMapTiles();
+  if(direct.length)return direct;
+
+  // Awaryjnie Overpass — również wyłącznie rzeczywiste dane OSM.
+  const query=`[out:json][timeout:35];(
+    node[highway=bus_stop](${south},${west},${north},${east});
+    node[public_transport=platform][bus=yes](${south},${west},${north},${east});
+    node[public_transport=platform][highway=bus_stop](${south},${west},${north},${east});
+    node[public_transport=stop_position][bus=yes](${south},${west},${north},${east});
+    way[highway=bus_stop](${south},${west},${north},${east});
+    way[public_transport=platform][bus=yes](${south},${west},${north},${east});
+  );out center tags;`;
+  const endpoints=['https://overpass-api.de/api/interpreter','https://overpass.kumi.systems/api/interpreter','https://overpass.private.coffee/api/interpreter'];
+  for(const ep of endpoints){
+    try{
+      const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),30000);
+      const r=await fetch(ep+'?data='+encodeURIComponent(query)+'&_='+Date.now(),{method:'GET',mode:'cors',cache:'no-store',headers:{Accept:'application/json'},signal:ctl.signal});
+      clearTimeout(timer); if(!r.ok)continue;
+      const j=await r.json(); const out=new Map();
+      (j.elements||[]).forEach(el=>{
+        let lat=el.lat,lon=el.lon;if((lat==null||lon==null)&&el.center){lat=el.center.lat;lon=el.center.lon}
+        const tags=el.tags||{};const name=String(tags.name||tags.official_name||tags['name:pl']||tags.ref||'').trim();
+        if(!name||!Number.isFinite(Number(lat))||!Number.isFinite(Number(lon)))return;
+        const id='osm:'+el.type+':'+el.id;
+        out.set(id,{id,name,lat:Number(lat),lon:Number(lon),type:'ready',source:'osm'});
+      });
+      if(out.size)return [...out.values()];
+    }catch(e){}
+  }
+  return [];
+}
+
+async function fetchOfficialBkmGtfsStops(){
+  if(!/białystok/i.test(state.city||'')) return [];
+  const urls=[
+    'https://komunikacja.bialystok.pl/cms/File/download/gtfs/google_transit.zip',
+    'https://api.allorigins.win/raw?url='+encodeURIComponent('https://komunikacja.bialystok.pl/cms/File/download/gtfs/google_transit.zip')
+  ];
+  for(const url of urls){
+    try{
+      const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),30000);
+      const r=await fetch(url,{mode:'cors',cache:'no-store',signal:ctl.signal});
+      clearTimeout(timer); if(!r.ok) continue;
+      const buf=new Uint8Array(await r.arrayBuffer());
+      if(!window.fflate?.unzipSync) continue;
+      const files=window.fflate.unzipSync(buf);
+      const key=Object.keys(files).find(k=>k.toLowerCase().endsWith('/stops.txt')||k.toLowerCase()==='stops.txt');
+      if(!key) continue;
+      const text=new TextDecoder('utf-8').decode(files[key]);
+      const rows=parseCsvText(text);
+      const out=[];
+      for(const row of rows){
+        const lat=Number(row.stop_lat),lon=Number(row.stop_lon),name=String(row.stop_name||'').trim();
+        if(!name||!Number.isFinite(lat)||!Number.isFinite(lon)) continue;
+        out.push({id:'gtfs:bkm:'+String(row.stop_id||`${lat},${lon}`),name,lat,lon,type:'ready',source:'gtfs-bkm',stopCode:String(row.stop_code||'')});
+      }
+      if(out.length) return dedupeStops(out);
+    }catch(e){}
+  }
+  return [];
+}
+function parseCsvLine(line){
+  const out=[];let cur='',quoted=false;
+  for(let i=0;i<line.length;i++){
+    const ch=line[i];
+    if(ch==='"'){
+      if(quoted&&line[i+1]==='"'){cur+='"';i++}else quoted=!quoted;
+    }else if(ch===','&&!quoted){out.push(cur);cur=''}else cur+=ch;
+  }
+  out.push(cur);return out;
+}
+function parseCsvText(text){
+  const lines=text.replace(/^\uFEFF/,'').split(/\r?\n/).filter(Boolean);if(!lines.length)return [];
+  const header=parseCsvLine(lines[0]).map(x=>x.trim());
+  return lines.slice(1).map(line=>{const vals=parseCsvLine(line),row={};header.forEach((h,i)=>row[h]=vals[i]??'');return row});
+}
+function dedupeStops(rows){
+  const m=new Map();
+  rows.forEach(s=>{const id=String(s.id||`${s.name}|${Number(s.lat).toFixed(6)}|${Number(s.lon).toFixed(6)}`);m.set(id,s)});
+  return [...m.values()];
+}
 async function createReadyStops(center){
   if(!center||!state.map||state._stopLoadBusy)return false;
   state._stopLoadBusy=true;
-  const setStatus=(t)=>{const el=document.querySelector('#stopStatus');if(el)el.textContent=t};
-  setStatus('Pobieranie przystanków z OpenStreetMap…');
-
-  // Używamy granic administracyjnych zwróconych przez Nominatim. Jeśli ich nie ma,
-  // tworzymy zapasowy obszar wokół miasta. Dzięki temu nie gubimy przystanków na obrzeżach.
-  let b=state.cityBounds;
-  if(!b || ![b.south,b.north,b.west,b.east].every(Number.isFinite)){
-    const [lat,lon]=center;
-    const dLat=0.11, dLon=0.16;
-    b={south:lat-dLat,north:lat+dLat,west:lon-dLon,east:lon+dLon};
-  }
-  const margin=0.008;
-  const south=Math.max(-85,b.south-margin), north=Math.min(85,b.north+margin), west=Math.max(-180,b.west-margin), east=Math.min(180,b.east+margin);
-
-  // Dzielimy obszar na ćwiartki. Duże zapytanie Overpass może zostać ucięte;
-  // mniejsze kafelki pozwalają pobrać kompletny zestaw przystanków.
-  const midLat=(south+north)/2, midLon=(west+east)/2;
-  const boxes=[
-    [south,west,midLat,midLon],
-    [south,midLon,midLat,east],
-    [midLat,west,north,midLon],
-    [midLat,midLon,north,east]
-  ];
-  const endpoints=[
-    'https://overpass-api.de/api/interpreter',
-    'https://overpass.kumi.systems/api/interpreter',
-    'https://overpass.private.coffee/api/interpreter'
-  ];
-
-  const queryFor=(bb)=>{
-    const [s,w,n,e]=bb;
-    return `[out:json][timeout:35];(
-      node[highway=bus_stop](${s},${w},${n},${e});
-      node[public_transport=platform](${s},${w},${n},${e});
-      node[public_transport=stop_position](${s},${w},${n},${e});
-      way[highway=bus_stop](${s},${w},${n},${e});
-      way[public_transport=platform](${s},${w},${n},${e});
-      way[public_transport=stop_position](${s},${w},${n},${e});
-      relation[public_transport=platform](${s},${w},${n},${e});
-    );out center tags;`;
-  };
-
-  async function fetchOverpass(query,endpoint){
-    const controller=new AbortController();
-    const timer=setTimeout(()=>controller.abort(),30000);
-    try{
-      const resp=await fetch(endpoint+'?data='+encodeURIComponent(query)+'&_='+Date.now(),{
-        method:'GET',mode:'cors',cache:'no-store',headers:{Accept:'application/json'},signal:controller.signal
-      });
-      if(!resp.ok)throw new Error('HTTP '+resp.status);
-      const json=await resp.json();
-      return Array.isArray(json?.elements)?json.elements:[];
-    }finally{clearTimeout(timer)}
-  }
-
-  const byId=new Map();
-  let completed=0;
-  for(const bb of boxes){
-    let got=[];
-    for(const endpoint of endpoints){
-      try{
-        got=await fetchOverpass(queryFor(bb),endpoint);
-        if(got.length)break;
-      }catch(e){}
+  setStatusSafe('Pobieranie przystanków…');
+  try{
+    let rows=[];
+    if(/białystok/i.test(state.city||'')) rows=await fetchOfficialBkmGtfsStops();
+    if(!rows.length){
+      let b=state.cityBounds;
+      if(!b||![b.south,b.north,b.west,b.east].every(Number.isFinite)){
+        const [lat,lon]=center;b={south:lat-.08,north:lat+.08,west:lon-.12,east:lon+.12};
+      }
+      const margin=.004;b={south:b.south-margin,north:b.north+margin,west:b.west-margin,east:b.east+margin};
+      rows=await fetchTransitlandStops(b);
+      if(!rows.length){setStatusSafe('Pobieranie z OpenStreetMap…');rows=await fetchOsmStops(b)}
     }
-    got.forEach(el=>{
-      let lat=el.lat,lon=el.lon;
-      if((lat==null||lon==null)&&el.center){lat=el.center.lat;lon=el.center.lon}
-      if(!Number.isFinite(Number(lat))||!Number.isFinite(Number(lon)))return;
-      const tags=el.tags||{};
-      const name=tags.name||tags['name:pl']||tags.ref||`Przystanek ${el.id}`;
-      const id=`osm:${el.type}:${el.id}`;
-      byId.set(id,{id,name:String(name),lat:Number(lat),lon:Number(lon),type:'ready',osmId:id,source:'osm'});
-    });
-    completed++;
-    setStatus(`Przystanki OSM: ${byId.size} • obszar ${completed}/4`);
-  }
-
-  const rows=[...byId.values()];
-  state.readyStops=rows;
-  state.readyStopsSource='osm';
-  renderStopMarkers();
-  state.stopLayer?.bringToFront?.();
-  const count=document.querySelector('#stopCount'); if(count)count.textContent=String(rows.length+(state.customStops||[]).length);
-
-  if(rows.length){
-    const bounds=L.latLngBounds(rows.map(x=>[x.lat,x.lon]));
-    if(bounds.isValid())state.map.fitBounds(bounds.pad(.03),{maxZoom:14,animate:false});
-    setStatus(`Gotowe: ${rows.length} • OpenStreetMap`);
-    toast('Przystanki',`Pobrano ${rows.length} rzeczywistych przystanków.`);
-  }else{
-    setStatus('Gotowe: 0 • OSM nie zwróciło przystanków');
-    toast('Przystanki','Nie udało się pobrać przystanków z OpenStreetMap. Spróbuj ponownie.');
-  }
-  saveGame();
-  state._stopLoadBusy=false;
-  return rows.length>0;
-}
-
-function renderStopMarkers(){
-  if(!state.map)return;
-  if(!state.stopLayer)state.stopLayer=L.layerGroup().addTo(state.map);
-  state.stopLayer.clearLayers();
-  const selected=new Map((state.draft?.stops||[]).map((x,i)=>[x.id,i+1]));
-  const all=[...(state.readyStops||[]),...(state.customStops||[])];
-  // Keep Leaflet markers for popups and compatibility.
-  all.forEach((s,i)=>{
-    const lat=Number(s.lat),lon=Number(s.lon); if(!Number.isFinite(lat)||!Number.isFinite(lon))return;
-    const order=selected.get(s.id),isReady=s.type==='ready';
-    const marker=L.marker([lat,lon],{icon:order?draftStopIcon(order):stopIcon(i,!isReady,false),opacity:0,interactive:false,zIndexOffset:20000});
-    marker.addTo(state.stopLayer);s.marker=marker;
-  });
-  renderStopOverlay();
-}
-function renderStopOverlay(){
-  if(!state.map||!state.stopOverlay)return;
-  state.stopOverlay.innerHTML='';
-  const selected=new Map((state.draft?.stops||[]).map((x,i)=>[x.id,i+1]));
-  const all=[...(state.readyStops||[]),...(state.customStops||[])];
-  const zoom=state.map.getZoom();
-  const w=state.map.getSize();
-  const placed=[];
-  const cell=zoom>=15?24:zoom>=14?20:16;
-  const buckets=new Map();
-  const readyVisible=all.filter(s=>Number.isFinite(Number(s.lat))&&Number.isFinite(Number(s.lon)));
-
-  readyVisible.forEach(s=>{
-    const p=state.map.latLngToContainerPoint([Number(s.lat),Number(s.lon)]);
-    if(p.x<-90||p.y<-100||p.x>w.x+90||p.y>w.y+100)return;
-    const gx=Math.round(p.x/cell), gy=Math.round(p.y/cell), key=gx+':'+gy;
-    if(!buckets.has(key))buckets.set(key,[]);
-    buckets.get(key).push({s,p});
-  });
-
-  const makePin=(s,p,dx=0,dy=0)=>{
-    const lat=Number(s.lat),lon=Number(s.lon);
-    const order=selected.get(s.id),isReady=s.type==='ready';
-    const el=document.createElement('div');
-    el.className='stop-overlay-pin '+(isReady?'ready':'custom')+(order?' selected':'');
-    el.style.left=(p.x+dx)+'px';el.style.top=(p.y+dy)+'px';
-    el.style.zIndex=String(order?30000:20000);
-    const compact=zoom<14 && !order;
-    el.innerHTML='<div class="pin-body"><span>'+(order?order:'🚌')+'</span></div>'+((isReady && (zoom>=14||order))?'<div class="pin-label">'+escapeHtml(s.name)+'</div>':'');
-    el.title=s.name;
-    el.addEventListener('click',e=>{
-      e.preventDefault();e.stopPropagation();
-      if(state.draft.active){addDraftExistingStop(s);return;}
-      if(state.buildStopMode)return;
-      state.selectedLineId=null;
-      if(state.map)state.map.openPopup('<b>'+escapeHtml(s.name)+'</b><br><span style="font-size:11px">'+(isReady?'Gotowy przystanek':'Przystanek zbudowany przez Ciebie')+'</span>',[lat,lon]);
-    });
-    state.stopOverlay.appendChild(el);
-    placed.push({x:p.x+dx,y:p.y+dy});
-  };
-
-  buckets.forEach((items)=>{
-    if(items.length===1){
-      makePin(items[0].s,items[0].p);
-      return;
+    rows=dedupeStops(rows.filter(s=>String(s.name||'').trim()&&Number.isFinite(Number(s.lat))&&Number.isFinite(Number(s.lon))));
+    if(rows.length){
+      state.readyStops=rows;
+      state.readyStopsSource=rows.every(s=>s.source==='gtfs-bkm')?'BKM GTFS':rows.every(s=>s.source==='transitland')?'Transitland':'OpenStreetMap';
+      renderStopMarkers();
+      state.stopLayer?.bringToFront?.();
+      const b2=L.latLngBounds(rows.map(x=>[Number(x.lat),Number(x.lon)]));
+      if(b2.isValid())state.map.fitBounds(b2.pad(.03),{maxZoom:14,animate:false});
+      setStatusSafe(`Gotowe: ${rows.length} • ${state.readyStopsSource}`);
+      const countEl=document.querySelector('#stopCount');if(countEl)countEl.textContent=String(rows.length+(state.customStops||[]).length);
+      saveGame();
+      return true;
     }
-    // Nie chowamy przystanków: przy zbliżeniu rozkładamy kolizyjne piny wokół ich prawdziwych pozycji.
-    if(zoom<14){
-      const base=items[0].p;
-      const radius=Math.min(34,18+items.length*2);
-      items.forEach((it,i)=>{
-        const a=(Math.PI*2*i)/items.length;
-        makePin(it.s,base,Math.cos(a)*radius,Math.sin(a)*radius);
-      });
-    }else{
-      items.forEach((it,i)=>{
-        const a=(Math.PI*2*i)/items.length;
-        const radius=Math.min(28,10+items.length*1.5);
-        makePin(it.s,it.p,Math.cos(a)*radius,Math.sin(a)*radius);
-      });
-    }
-  });
-
-  const ready=(state.readyStops||[]).length,custom=(state.customStops||[]).length;
-  const count=$('#stopCount');if(count)count.textContent=ready+custom;
-  const label=$('#stopStatus');if(label)label.textContent='Gotowe: '+ready+' • Własne: '+custom;
-}
-
-function ensureBuiltinStopsVisible(){
-  if(!state.map)return;
-  let stops=builtinReadyStopsForCity(state.city);
-  if(!stops.length && String(state.city||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')==='bialystok'){
-    stops=BUILTIN_READY_STOPS['białystok'].map(x=>({...x}));
-  }
-  if(stops.length){
-    const have=new Set((state.readyStops||[]).map(x=>String(x.id)));
-    stops.forEach(x=>{if(!have.has(String(x.id)))state.readyStops.push(x)});
-    state.readyStopsSource='city-fixed';
+    setStatusSafe('Gotowe: 0 • brak danych');
     renderStopMarkers();
-    state.stopLayer?.bringToFront();
-    const bounds=L.latLngBounds(stops.map(x=>[x.lat,x.lon]));
-    if(bounds.isValid())state.map.fitBounds(bounds.pad(.12),{maxZoom:14,animate:false});
-  }
+    return false;
+  }catch(e){
+    setStatusSafe('Przystanki: błąd pobierania');
+    renderStopMarkers();
+    return false;
+  }finally{state._stopLoadBusy=false}
+}
+
+// Usunięto wcześniejszy „builtin” — gra nie tworzy już żadnych fikcyjnych przystanków.
+function ensureBuiltinStopsVisible(){
+  if(!state.readyStops)return;
+  const before=state.readyStops.length;
+  state.readyStops=state.readyStops.filter(s=>s && s.source!=='osm-builtin' && !String(s.id||'').startsWith('osm:mapy:'));
+  if(before!==state.readyStops.length)renderStopMarkers();
 }
 
 function toggleBuildStopMode(){
@@ -624,9 +699,9 @@ function addDraftStop(lat,lon){
 function redrawDraftLine(){const pts=state.draft.stops.map(s=>[s.lat,s.lon]);if(state.draft.previewLine)state.map.removeLayer(state.draft.previewLine);if(pts.length>=2)state.draft.previewLine=L.polyline(pts,{color:"#25e38a",weight:6,opacity:.95,lineCap:"round",lineJoin:"round"}).addTo(state.map)}
 function renderDraftStops(){const box=$("#draftStops");if(!state.draft.stops.length){box.innerHTML='<div class="muted">Rozpocznij budowę i klikaj mapę.</div>';return}box.innerHTML=state.draft.stops.map((s,i)=>`<div class="stop-row"><div class="stop-num">${i+1}</div><div><b>${escapeHtml(s.name)}</b><small>${s.lat.toFixed(5)}, ${s.lon.toFixed(5)}</small></div><button class="btn small danger" onclick="removeDraftStop('${s.id}')">×</button></div>`).join("")}
 function removeDraftStop(id){const i=state.draft.stops.findIndex(s=>s.id===id);if(i<0)return;state.draft.stops.splice(i,1);redrawDraftLine();renderDraftStops()}
-$("#newLineBtn").onclick=()=>{if(state.draft.active){toast("Budowanie","Najpierw zapisz albo wyczyść obecną trasę.");return}state.buildStopMode=false;$("#buildStopBtn").textContent="＋ BUDUJ PRZYSTANEK";$("#buildStopBtn").classList.remove("primary");state.draft.active=true;state.draft.stops=[];state.draft.name="Linia "+(state.lines.length+1);$("#lineName").value=state.draft.name;$("#finishLineBtn").disabled=false;$("#clearDraftBtn").disabled=false;$("#newLineBtn").textContent="● BUDOWANIE LINII";$("#mapHelp").textContent="TRYB BUDOWANIA: klikaj kolejno zielone piny własnych przystanków. Zielona linia pokazuje trasę.";renderDraftStops()}
+$("#newLineBtn").onclick=()=>{if(state.draft.active){toast("Budowanie","Najpierw zapisz albo wyczyść obecną trasę.");return}state.buildStopMode=false;$("#buildStopBtn").textContent="＋ BUDUJ PRZYSTANEK";$("#buildStopBtn").classList.remove("primary");state.draft.active=true;state.draft.stops=[];state.draft.name="Linia "+(state.lines.length+1);$("#lineName").value=state.draft.name;$("#finishLineBtn").disabled=false;$("#clearDraftBtn").disabled=false;$("#newLineBtn").textContent="● BUDOWANIE LINII";$("#mapHelp").textContent="TRYB BUDOWANIA: klikaj kolejno niebieskie gotowe albo zielone własne przystanki. Zielona linia pokazuje trasę.";renderDraftStops()}
 $("#clearDraftBtn").onclick=()=>{clearDraftVisual();state.draft.active=false;$("#finishLineBtn").disabled=true;$("#clearDraftBtn").disabled=true;$("#newLineBtn").textContent="＋ NOWA LINIA";$("#mapHelp").textContent="Kliknij „NOWA LINIA”, a następnie klikaj zielone piny własnych przystanków na mapie."}
-$("#finishLineBtn").onclick=async()=>{if(state.draft.stops.length<2){toast("Za mało przystanków","Linia musi mieć minimum 2 ręcznie dodane przystanki.");return}const name=$("#lineName").value.trim()||("Linia "+(state.lines.length+1)),line={id:crypto.randomUUID(),color:lineColorForIndex(state.lines.length),name,stops:state.draft.stops.map(s=>({id:s.id,name:s.name,lat:s.lat,lon:s.lon})),schedule:{from:"06:00",to:"22:00",every:20,direction:"both"},buses:[],roadRoute:null,routeDistance:0,routeDuration:0},route=await getRoadRoute(line.stops);if(route){line.roadRoute=route.coordinates;line.routeDistance=route.distance;line.routeDuration=route.duration}state.lines.push(line);state.selectedLineId=line.id;saveGame();state.draft.previewLine&&state.map.removeLayer(state.draft.previewLine);state.draft={active:false,name:"",stops:[],previewLine:null};$("#finishLineBtn").disabled=true;$("#clearDraftBtn").disabled=true;$("#newLineBtn").textContent="＋ NOWA LINIA";$("#mapHelp").textContent="Linia zapisana. Wybierz ją po prawej, ustaw rozkład i przypisz autobusy.";renderLinesMap();renderStopMarkers();renderLineSide();renderDashboard();toast("Linia utworzona",name+" jest gotowa do ustawienia rozkładu.")}
+$("#finishLineBtn").onclick=async()=>{if(state.draft.stops.length<2){toast("Za mało przystanków","Linia musi mieć minimum 2 przystanki.");return}const name=$("#lineName").value.trim()||("Linia "+(state.lines.length+1)),line={id:crypto.randomUUID(),color:lineColorForIndex(state.lines.length),name,stops:state.draft.stops.map(s=>({id:s.id,name:s.name,lat:s.lat,lon:s.lon})),schedule:{from:"06:00",to:"22:00",every:20,direction:"both"},buses:[],roadRoute:null,routeDistance:0,routeDuration:0},route=await getRoadRoute(line.stops);if(route){line.roadRoute=route.coordinates;line.routeDistance=route.distance;line.routeDuration=route.duration}state.lines.push(line);state.selectedLineId=line.id;saveGame();state.draft.previewLine&&state.map.removeLayer(state.draft.previewLine);state.draft={active:false,name:"",stops:[],previewLine:null};$("#finishLineBtn").disabled=true;$("#clearDraftBtn").disabled=true;$("#newLineBtn").textContent="＋ NOWA LINIA";$("#mapHelp").textContent="Linia zapisana. Wybierz ją po prawej, ustaw rozkład i przypisz autobusy.";renderLinesMap();renderStopMarkers();renderLineSide();renderDashboard();toast("Linia utworzona",name+" jest gotowa do ustawienia rozkładu.")}
 async function getRoadRoute(stops){const coords=stops.map(s=>`${s.lon},${s.lat}`).join(";");try{const u=`https://router.project-osrm.org/route/v1/driving/${coords}?overview=full&geometries=geojson&steps=false`,r=await fetch(u);if(!r.ok)throw 0;const d=await r.json();if(d.code!=="Ok"||!d.routes[0])throw 0;return{coordinates:d.routes[0].geometry.coordinates.map(x=>[x[1],x[0]]),distance:d.routes[0].distance,duration:d.routes[0].duration}}catch(e){toast("Routing","Nie udało się pobrać trasy drogowej. Zostanie użyta trasa między przystankami.");return{coordinates:stops.map(s=>[s.lat,s.lon]),distance:0,duration:Math.max(300,(stops.length-1)*180)}}}
 function lineColorForIndex(i){const colors=["#4f7cff","#ff4f81","#20d981","#ffb020","#a56cff","#00c2ff","#ff6b35","#e95eff","#8bd450","#f65dbb"];return colors[i%colors.length]}
 function ensureLineColors(){state.lines.forEach((line,i)=>{if(!line.color)line.color=lineColorForIndex(i)})}
@@ -676,6 +751,37 @@ function updateTimeSpeedUI(){
   if(slow)slow.disabled=state.timeSpeed<=0.5;
   if(fast)fast.disabled=state.timeSpeed>=8;
 }
+function runCheatCommand(raw){
+  const cmd=String(raw||'').trim();
+  const m=cmd.match(/^kasa\s+([+-]?[\d\s.,]+)$/i);
+  if(m){
+    const value=Number(m[1].replace(/\s/g,'').replace(/,/g,'.'));
+    if(Number.isFinite(value)){addCash(value,'Cheat: kasa');return true}
+  }
+  const m2=cmd.match(/^pracownicy\s+(\d+)$/i);
+  if(m2){
+    const target=Math.max(0,Math.min(500,Number(m2[1]))),before=state.staff.length;
+    for(let i=before;i<target;i++)state.staff.push({id:crypto.randomUUID(),name:randomDriver(),salary:4500});
+    renderAll();saveGame();toast('Cheat',`Pracownicy: ${state.staff.length}.`);return true;
+  }
+  const m3=cmd.match(/^autobusy\s+(\d+)$/i);
+  if(m3){
+    const target=Math.max(0,Math.min(500,Number(m3[1]))),before=state.buses.length;
+    for(let i=before;i<target;i++)createBus('Solaris Urbino 12',true);
+    renderAll();saveGame();toast('Cheat',`Autobusy: ${state.buses.length}.`);return true;
+  }
+  if(/^max$/i.test(cmd)){
+    state.cash=9999999999999;state.unlockedRadius=200000;
+    while(state.staff.length<100)state.staff.push({id:crypto.randomUUID(),name:randomDriver(),salary:4500});
+    while(state.buses.length<100)createBus('Solaris Urbino 12',true);
+    setCash(state.cash,0);renderAll();saveGame();toast('Cheat','Maksymalna kasa, 100 pracowników i 100 autobusów.');return true;
+  }
+  toast('Cheat','Nieznane polecenie. Użyj: kasa [kwota], max, pracownicy [liczba], autobusy [liczba]');return false;
+}
+function openCheatMenu(){showModal('cheatModal');const input=$('#cheatInput');if(input){input.value='';setTimeout(()=>input.focus(),40)}}
+$('#cheatInput')?.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();const value=e.target.value;runCheatCommand(value);hideModal('cheatModal')}});
+window.addEventListener('keydown',e=>{if(e.key==='~'||e.key==='`'||e.code==='Backquote'){ const active=document.activeElement;if(active&&(active.tagName==='INPUT'||active.tagName==='TEXTAREA'||active.tagName==='SELECT'))return;openCheatMenu()}});
+
 function restartGameTimer(){
   if(state.timerHandle)clearInterval(state.timerHandle);
   const delay=1000/state.timeSpeed;
@@ -712,7 +818,7 @@ function simulateMinute(){
   renderBusMarkers();renderDashboard();renderFleet();renderFinance();saveGame();
 }
 
-function renderAll(){updateCompanyUI();renderDashboard();renderFleet();renderStaff();renderFinance();renderUnlockInfo();renderLinesMap();renderLineSide()}
+function renderAll(){updateCompanyUI();renderDashboard();renderFleet();renderStaff();renderFinance();renderUnlockInfo();if(state.map)ensureBuiltinStopsVisible();renderLinesMap();renderLineSide()}
 
 // Awaryjne podpięcie wszystkich przycisków nawigacji po załadowaniu DOM
 window.addEventListener('load',()=>{$$('.nav button').forEach(b=>b.onclick=()=>showTab(b.dataset.tab));});
@@ -723,7 +829,7 @@ window.addEventListener("DOMContentLoaded",()=>{
   if(loadSavedGame()){
     document.querySelector("#start")?.classList.add("hidden");
     document.querySelector("#game")?.classList.remove("hidden");
-    geocodeCity().then(center=>{state.mapCenter=center;initMap();state.readyStops=[];createReadyStops(center);updateCompanyUI();renderAll();showTab("lines");saveGame();});
+    geocodeCity().then(center=>{state.mapCenter=center;initMap();ensureBuiltinStopsVisible();createReadyStops(center);updateCompanyUI();renderAll();showTab("lines");saveGame();});
   }
 });
 restartGameTimer();
