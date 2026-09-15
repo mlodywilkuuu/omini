@@ -584,14 +584,46 @@ function toggleBuildStopMode(){
   }
 }
 
-function openBuildStopModal(latlng){
+function findNearestReadyStop(lat,lon,maxMeters=90){
+  let best=null,bestDist=Infinity;
+  for(const st of (state.readyStops||[])){
+    const d=distanceMeters(lat,lon,Number(st.lat),Number(st.lon));
+    if(Number.isFinite(d)&&d<bestDist){best=st;bestDist=d}
+  }
+  return best&&bestDist<=maxMeters?{stop:best,distance:bestDist}:null;
+}
+async function reverseGeocodeStopName(lat,lon){
+  const near=findNearestReadyStop(lat,lon,90);
+  if(near?.stop?.name) return {name:normalizeStopName(near.stop.name),source:'gotowy przystanek',distance:near.distance};
+  try{
+    const ac=new AbortController(); const tm=setTimeout(()=>ac.abort(),3500);
+    const url='https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat='+encodeURIComponent(lat)+'&lon='+encodeURIComponent(lon)+'&zoom=18&addressdetails=1';
+    const r=await fetch(url,{mode:'cors',cache:'no-store',signal:ac.signal,headers:{Accept:'application/json'}});
+    clearTimeout(tm);
+    if(r.ok){
+      const j=await r.json();
+      const a=j?.address||{};
+      const name=normalizeStopName(j?.name||a?.bus_stop||a?.road||'');
+      if(name) return {name,source:'OpenStreetMap'};
+    }
+  }catch(e){}
+  return null;
+}
+async function openBuildStopModal(latlng){
   if(!latlng||!Number.isFinite(latlng.lat)||!Number.isFinite(latlng.lng)){toast("Błąd lokalizacji","Nie udało się odczytać miejsca na mapie.");return}
   if(!state.mapCenter)state.mapCenter=[53.1325,23.1688];
   if(distanceMeters(state.mapCenter[0],state.mapCenter[1],latlng.lat,latlng.lng)>state.unlockedRadius){toast("Obszar zablokowany","Najpierw odblokuj większy obszar mapy.");return}
   $("#newStopLat").value=latlng.lat.toFixed(6);
   $("#newStopLon").value=latlng.lng.toFixed(6);
-  $("#newStopName").value="Przystanek "+(state.customStops.length+1);
+  $("#newStopName").value="Rozpoznawanie przystanku…";
   showModal("stopModal");
+  const result=await reverseGeocodeStopName(latlng.lat,latlng.lng);
+  if(result?.name){
+    $("#newStopName").value=result.name;
+    toast("Nazwa przystanku",result.source==='gotowy przystanek'?`Rozpoznano „${result.name}” (${Math.round(result.distance)} m od gotowego przystanku).`:`Rozpoznano „${result.name}” z OpenStreetMap.`);
+  }else{
+    $("#newStopName").value="Przystanek "+(state.customStops.length+1);
+  }
   setTimeout(()=>$("#newStopName")?.focus(),50);
 }
 function createCustomStop(){
