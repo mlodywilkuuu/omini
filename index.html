@@ -375,45 +375,70 @@ async function fetchRealStops(bounds){
   const south=Number(bounds.south), north=Number(bounds.north), west=Number(bounds.west), east=Number(bounds.east);
   if(![south,north,west,east].every(Number.isFinite))return [];
 
-  // Jedno źródło rzeczywistych przystanków: OpenStreetMap.
-  // Wysyłamy to samo zapytanie równolegle do kilku publicznych instancji Overpass,
-  // więc pierwsza działająca odpowiada i nie ma wielominutowego „wiszenia”.
-  const query=`[out:json][timeout:18];(
-    node(${south},${west},${north},${east})[highway=bus_stop];
-    node(${south},${west},${north},${east})[public_transport=platform];
-    node(${south},${west},${north},${east})[public_transport=stop_position];
-    way(${south},${west},${north},${east})[public_transport=platform];
-    way(${south},${west},${north},${east})[highway=bus_stop];
-  );out center tags;`;
-  const endpoints=[
-    'https://overpass-api.de/api/interpreter',
-    'https://overpass.kumi.systems/api/interpreter',
-    'https://overpass.private.coffee/api/interpreter'
-  ];
-  const controller=new AbortController();
-  const timer=setTimeout(()=>controller.abort(),15000);
+  const out=new Map();
+  const addStop=(x)=>{
+    const lat=Number(x.lat??x.geometry?.coordinates?.[1]??x.stop_lat);
+    const lon=Number(x.lon??x.geometry?.coordinates?.[0]??x.stop_lon);
+    const name=String(x.name??x.stop_name??'').trim();
+    if(!Number.isFinite(lat)||!Number.isFinite(lon)||!name)return;
+    if(lat<south||lat>north||lon<west||lon>east)return;
+    const id=String(x.id??x.onestop_id??x.stop_id??('tl:'+lat.toFixed(6)+':'+lon.toFixed(6)+':'+name));
+    out.set(id,{id:'ready:'+id,name,lat,lon,type:'ready',source:'transitland',stopCode:String(x.stop_code??'')});
+  };
+
+  // 1) Transitland v1: no API key, supports bbox + pagination.
   try{
-    const attempts=endpoints.map(ep=>fetch(ep+'?data='+encodeURIComponent(query),{
-      method:'GET',mode:'cors',cache:'no-store',headers:{Accept:'application/json'},signal:controller.signal
-    }).then(r=>r.ok?r.json():Promise.reject(new Error('HTTP '+r.status))));
-    let data;
-    try{data=await Promise.any(attempts)}catch(e){return []}
-    const out=new Map();
-    for(const el of (data?.elements||[])){
-      let lat=el.lat,lon=el.lon;
-      if((lat==null||lon==null)&&el.center){lat=el.center.lat;lon=el.center.lon}
-      lat=Number(lat);lon=Number(lon);
-      if(!Number.isFinite(lat)||!Number.isFinite(lon))continue;
-      const t=el.tags||{};
-      const isStop=t.highway==='bus_stop' || t.public_transport==='platform' || t.public_transport==='stop_position';
-      if(!isStop)continue;
-      const name=String(t.name||t['name:pl']||t.ref||'').trim();
-      if(!name)continue;
-      const id=`osm:${el.type}:${el.id}`;
-      out.set(id,{id,name,lat,lon,type:'ready',source:'osm',stopCode:String(t.ref||'')});
+    const bbox=`${west},${south},${east},${north}`;
+    let offset=0;
+    for(let page=0;page<8;page++){
+      const url=`https://transit.land/api/v1/stops?bbox=${encodeURIComponent(bbox)}&per_page=1000&offset=${offset}`;
+      const resp=await fetch(url,{mode:'cors',cache:'no-store',headers:{Accept:'application/json'}});
+      if(!resp.ok)throw new Error('Transitland HTTP '+resp.status);
+      const json=await resp.json();
+      const rows=Array.isArray(json?.stops)?json.stops:[];
+      rows.forEach(addStop);
+      if(rows.length<1000)break;
+      offset+=rows.length;
     }
-    return [...out.values()];
-  }finally{clearTimeout(timer)}
+  }catch(e){}
+
+  // 2) OSM fallback: parallel Overpass requests split into four tiles,
+  // so a large city does not fail because a single request is too large.
+  if(out.size===0){
+    const midLat=(south+north)/2, midLon=(west+east)/2;
+    const boxes=[
+      [south,west,midLat,midLon],[south,midLon,midLat,east],
+      [midLat,west,north,midLon],[midLat,midLon,north,east]
+    ];
+    const queryFor=(b)=>`[out:json][timeout:15];(
+      node(${b[0]},${b[1]},${b[2]},${b[3]})[highway=bus_stop];
+      node(${b[0]},${b[1]},${b[2]},${b[3]})[public_transport=platform];
+      node(${b[0]},${b[1]},${b[2]},${b[3]})[public_transport=stop_position];
+      way(${b[0]},${b[1]},${b[2]},${b[3]})[public_transport=platform];
+      way(${b[0]},${b[1]},${b[2]},${b[3]})[highway=bus_stop];
+    );out center tags;`;
+    const endpoints=['https://overpass-api.de/api/interpreter','https://overpass.kumi.systems/api/interpreter','https://overpass.private.coffee/api/interpreter'];
+    const jobs=[];
+    for(const b of boxes){
+      jobs.push((async()=>{
+        for(const ep of endpoints){
+          try{
+            const ac=new AbortController();const tm=setTimeout(()=>ac.abort(),12000);
+            const r=await fetch(ep+'?data='+encodeURIComponent(queryFor(b)),{mode:'cors',cache:'no-store',signal:ac.signal,headers:{Accept:'application/json'}});
+            clearTimeout(tm); if(!r.ok)continue;
+            const j=await r.json();
+            for(const el of (j?.elements||[])){
+              let lat=el.lat,lon=el.lon;if((lat==null||lon==null)&&el.center){lat=el.center.lat;lon=el.center.lon}
+              const t=el.tags||{};addStop({id:`osm:${el.type}:${el.id}`,name:t.name||t['name:pl']||t.ref,lat,lon,stop_code:t.ref});
+            }
+            break;
+          }catch(e){}
+        }
+      })());
+    }
+    await Promise.allSettled(jobs);
+  }
+  return [...out.values()];
 }
 
 async function createReadyStops(center){
