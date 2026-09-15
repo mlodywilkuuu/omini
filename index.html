@@ -223,7 +223,7 @@ async function restoreSavedGame(){
   state.mapCenter=await geocodeCity();
   initMap();
   ensureBuiltinStopsVisible();
-  await createReadyStops(state.mapCenter);
+  createReadyStops(state.mapCenter);
   updateCompanyUI();
   renderAll();
   return true;
@@ -248,7 +248,7 @@ async function createGame(){
   initMap();
   ensureBuiltinStopsVisible();
   showTab("lines");
-  await createReadyStops(state.mapCenter);
+  createReadyStops(state.mapCenter);
   setTimeout(()=>{if(state.map){state.map.invalidateSize(true)}},250);
   updateCompanyUI();renderAll();saveGame();
   toast("Gra rozpoczęta",`${state.city}: dodawaj własne przystanki przyciskiem „BUDUJ PRZYSTANEK”.`);
@@ -369,348 +369,96 @@ function draftStopIcon(num){return L.divIcon({className:"",html:`<div class="dra
   - awaryjnie: OpenStreetMap/Overpass
   - brak fikcyjnych / losowych przystanków
 */
-async function fetchTransitlandStops(bounds){
+async function fetchRealStops(bounds){
   if(!bounds)return [];
   const south=Number(bounds.south), north=Number(bounds.north), west=Number(bounds.west), east=Number(bounds.east);
   if(![south,north,west,east].every(Number.isFinite))return [];
 
-  // Transitland v1 nie wymaga klucza API i obsługuje bbox + klasyczną paginację.
-  // Pobieramy cały obszar w kilku kaflach, aby ograniczyć rozmiar pojedynczego zapytania.
-  const midLat=(south+north)/2, midLon=(west+east)/2;
-  const boxes=[
-    [west,south,midLon,midLat], [midLon,south,east,midLat],
-    [west,midLat,midLon,north], [midLon,midLat,east,north]
+  // Jedno źródło rzeczywistych przystanków: OpenStreetMap.
+  // Wysyłamy to samo zapytanie równolegle do kilku publicznych instancji Overpass,
+  // więc pierwsza działająca odpowiada i nie ma wielominutowego „wiszenia”.
+  const query=`[out:json][timeout:18];(
+    node(${south},${west},${north},${east})[highway=bus_stop];
+    node(${south},${west},${north},${east})[public_transport=platform];
+    node(${south},${west},${north},${east})[public_transport=stop_position];
+    way(${south},${west},${north},${east})[public_transport=platform];
+    way(${south},${west},${north},${east})[highway=bus_stop];
+  );out center tags;`;
+  const endpoints=[
+    'https://overpass-api.de/api/interpreter',
+    'https://overpass.kumi.systems/api/interpreter',
+    'https://overpass.private.coffee/api/interpreter'
   ];
-  const all=new Map();
-  const endpoint='https://transit.land/api/v1/stops';
-
-  async function loadBox(box){
-    const [w,s,e,n]=box;
-    let offset=0;
-    for(let page=0;page<30;page++){
-      const qs=new URLSearchParams({
-        bbox:`${w},${s},${e},${n}`,
-        per_page:'1000',offset:String(offset),total:'true',
-        // Pobieramy również dane starszych importów; później deduplikujemy po GTFS stop_id/name+coords.
-        sort_key:'id',sort_order:'asc'
-      });
-      const ctl=new AbortController();
-      const timer=setTimeout(()=>ctl.abort(),25000);
-      try{
-        const r=await fetch(endpoint+'?'+qs.toString(),{
-          method:'GET',mode:'cors',cache:'no-store',headers:{Accept:'application/json'},signal:ctl.signal
-        });
-        if(!r.ok)throw new Error('HTTP '+r.status);
-        const j=await r.json();
-        const rows=Array.isArray(j?.stops)?j.stops:(Array.isArray(j)?j:[]);
-        rows.forEach(st=>{
-          const g=st?.geometry||st?.geometry_centroid||st?.geometry_reversegeo;
-          let lon=Number(g?.coordinates?.[0]),lat=Number(g?.coordinates?.[1]);
-          if(!Number.isFinite(lat)||!Number.isFinite(lon)){
-            lat=Number(st?.stop_lat);lon=Number(st?.stop_lon);
-          }
-          const name=String(st?.name??st?.stop_name??'').trim();
-          if(!name||!Number.isFinite(lat)||!Number.isFinite(lon))return;
-          const gtfsId=String(st?.imported_with_gtfs_id||st?.stop_id||'').trim();
-          const feed=String(st?.imported_from_feed||st?.feed_onestop_id||'').trim();
-          const id=gtfsId&&feed?`gtfs:${feed}:${gtfsId}`:`tl:${st?.onestop_id||st?.id||`${lat.toFixed(6)},${lon.toFixed(6)}`}`;
-          all.set(id,{id,name,lat,lon,type:'ready',source:'transitland',gtfsStopId:gtfsId,feedId:feed,stopCode:String(st?.stop_code||'')});
-        });
-        setStatusSafe(`Przystanki: ${all.size} • Transitland v1`);
-        const total=Number(j?.meta?.total||j?.total||0);
-        if(rows.length===0)break;
-        offset+=rows.length;
-        if(rows.length<1000)break;
-        if(total&&offset>=total)break;
-      }finally{clearTimeout(timer)}
-    }
-  }
-  for(const box of boxes){
-    try{await loadBox(box)}catch(e){}
-  }
-  return [...all.values()];
-}
-
-function setStatusSafe(text){const el=document.querySelector('#stopStatus');if(el)el.textContent=text}
-
-async function fetchOsmStops(bounds){
-  if(!bounds)return [];
-  const south=Number(bounds.south), north=Number(bounds.north), west=Number(bounds.west), east=Number(bounds.east);
-  if(![south,north,west,east].every(Number.isFinite))return [];
-
-  // Najpierw bezpośrednie, rzeczywiste dane OSM API. Dzielimy obszar na kafelki,
-  // aby nie przekroczyć limitu wielkości pojedynczego zapytania.
-  async function fetchOsmMapTiles(){
-    const cols=3, rows=3, out=new Map();
-    const parts=[];
-    for(let iy=0;iy<rows;iy++){
-      const s=south+(north-south)*iy/rows;
-      const n=south+(north-south)*(iy+1)/rows;
-      for(let ix=0;ix<cols;ix++){
-        const w=west+(east-west)*ix/cols;
-        const e=west+(east-west)*(ix+1)/cols;
-        parts.push([w,s,e,n]);
-      }
-    }
-    for(const [w,s,e,n] of parts){
-      try{
-        const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),30000);
-        const url=`https://api.openstreetmap.org/api/0.6/map?bbox=${encodeURIComponent(w+','+s+','+e+','+n)}`;
-        const r=await fetch(url,{method:'GET',mode:'cors',cache:'no-store',headers:{Accept:'application/xml,text/xml'},signal:ctl.signal});
-        clearTimeout(timer);
-        if(!r.ok)continue;
-        const xml=await r.text();
-        const doc=new DOMParser().parseFromString(xml,'application/xml');
-        if(doc.querySelector('parsererror'))continue;
-        const nodes=new Map();
-        [...doc.querySelectorAll('node')].forEach(nd=>{
-          const lat=Number(nd.getAttribute('lat')),lon=Number(nd.getAttribute('lon')),id=nd.getAttribute('id');
-          if(!id||!Number.isFinite(lat)||!Number.isFinite(lon))return;
-          const tags={};nd.querySelectorAll('tag').forEach(t=>tags[t.getAttribute('k')]=t.getAttribute('v'));
-          nodes.set(id,{id:'osm:node:'+id,name:String(tags.name||tags['name:pl']||tags.ref||'').trim(),lat,lon,tags});
-        });
-        nodes.forEach(st=>{
-          const t=st.tags;
-          const isBus=(t.highway==='bus_stop') || (t.public_transport==='platform' && (!t.bus || t.bus==='yes')) || (t.public_transport==='stop_position' && (!t.bus || t.bus==='yes'));
-          if(!isBus||!st.name)return;
-          out.set(st.id,{id:st.id,name:st.name,lat:st.lat,lon:st.lon,type:'ready',source:'osm'});
-        });
-        // Dla platform oznaczonych jako way wyliczamy środek z węzłów.
-        [...doc.querySelectorAll('way')].forEach(wy=>{
-          const tags={};wy.querySelectorAll('tag').forEach(t=>tags[t.getAttribute('k')]=t.getAttribute('v'));
-          const isBus=(tags.highway==='bus_stop') || (tags.public_transport==='platform' && (!tags.bus||tags.bus==='yes'));
-          const name=String(tags.name||tags['name:pl']||tags.ref||'').trim();
-          if(!isBus||!name)return;
-          const pts=[...wy.querySelectorAll('nd')].map(nd=>nodes.get(nd.getAttribute('ref'))).filter(Boolean);
-          if(!pts.length)return;
-          const lat=pts.reduce((a,b)=>a+b.lat,0)/pts.length,lon=pts.reduce((a,b)=>a+b.lon,0)/pts.length;
-          out.set('osm:way:'+wy.getAttribute('id'),{id:'osm:way:'+wy.getAttribute('id'),name,lat,lon,type:'ready',source:'osm'});
-        });
-      }catch(e){}
+  const controller=new AbortController();
+  const timer=setTimeout(()=>controller.abort(),15000);
+  try{
+    const attempts=endpoints.map(ep=>fetch(ep+'?data='+encodeURIComponent(query),{
+      method:'GET',mode:'cors',cache:'no-store',headers:{Accept:'application/json'},signal:controller.signal
+    }).then(r=>r.ok?r.json():Promise.reject(new Error('HTTP '+r.status))));
+    let data;
+    try{data=await Promise.any(attempts)}catch(e){return []}
+    const out=new Map();
+    for(const el of (data?.elements||[])){
+      let lat=el.lat,lon=el.lon;
+      if((lat==null||lon==null)&&el.center){lat=el.center.lat;lon=el.center.lon}
+      lat=Number(lat);lon=Number(lon);
+      if(!Number.isFinite(lat)||!Number.isFinite(lon))continue;
+      const t=el.tags||{};
+      const isStop=t.highway==='bus_stop' || t.public_transport==='platform' || t.public_transport==='stop_position';
+      if(!isStop)continue;
+      const name=String(t.name||t['name:pl']||t.ref||'').trim();
+      if(!name)continue;
+      const id=`osm:${el.type}:${el.id}`;
+      out.set(id,{id,name,lat,lon,type:'ready',source:'osm',stopCode:String(t.ref||'')});
     }
     return [...out.values()];
-  }
-
-  let direct=await fetchOsmMapTiles();
-  if(direct.length)return direct;
-
-  // Awaryjnie Overpass — również wyłącznie rzeczywiste dane OSM.
-  const query=`[out:json][timeout:35];(
-    node[highway=bus_stop](${south},${west},${north},${east});
-    node[public_transport=platform][bus=yes](${south},${west},${north},${east});
-    node[public_transport=platform][highway=bus_stop](${south},${west},${north},${east});
-    node[public_transport=stop_position][bus=yes](${south},${west},${north},${east});
-    way[highway=bus_stop](${south},${west},${north},${east});
-    way[public_transport=platform][bus=yes](${south},${west},${north},${east});
-  );out center tags;`;
-  const endpoints=['https://overpass-api.de/api/interpreter','https://overpass.kumi.systems/api/interpreter','https://overpass.private.coffee/api/interpreter'];
-  for(const ep of endpoints){
-    try{
-      const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),30000);
-      const r=await fetch(ep+'?data='+encodeURIComponent(query)+'&_='+Date.now(),{method:'GET',mode:'cors',cache:'no-store',headers:{Accept:'application/json'},signal:ctl.signal});
-      clearTimeout(timer); if(!r.ok)continue;
-      const j=await r.json(); const out=new Map();
-      (j.elements||[]).forEach(el=>{
-        let lat=el.lat,lon=el.lon;if((lat==null||lon==null)&&el.center){lat=el.center.lat;lon=el.center.lon}
-        const tags=el.tags||{};const name=String(tags.name||tags.official_name||tags['name:pl']||tags.ref||'').trim();
-        if(!name||!Number.isFinite(Number(lat))||!Number.isFinite(Number(lon)))return;
-        const id='osm:'+el.type+':'+el.id;
-        out.set(id,{id,name,lat:Number(lat),lon:Number(lon),type:'ready',source:'osm'});
-      });
-      if(out.size)return [...out.values()];
-    }catch(e){}
-  }
-  return [];
+  }finally{clearTimeout(timer)}
 }
 
-async function fetchOfficialBkmGtfsStops(){
-  // Białystok: używamy wyłącznie oficjalnego GTFS BKM.
-  // Nie mieszamy tutaj Transitland, bo mogłoby dołączyć przystanki z innych/starych feedów.
-  if(!/białystok/i.test(state.city||'')) return [];
-  const official='https://komunikacja.bialystok.pl/cms/File/download/gtfs/google_transit.zip';
-  const backup='https://files.girlc.at/gtfs/bialystok.zip';
-  const urls=[
-    official,
-    'https://api.allorigins.win/raw?url='+encodeURIComponent(official),
-    backup,
-    'https://api.allorigins.win/raw?url='+encodeURIComponent(backup),
-    'https://corsproxy.io/?url='+encodeURIComponent(backup)
-  ];
-  for(const url of urls){
-    try{
-      const ctl=new AbortController(),timer=setTimeout(()=>ctl.abort(),35000);
-      const r=await fetch(url,{mode:'cors',cache:'no-store',signal:ctl.signal});
-      clearTimeout(timer);
-      if(!r.ok) continue;
-      const buf=new Uint8Array(await r.arrayBuffer());
-      if(!window.fflate?.unzipSync) continue;
-      const files=window.fflate.unzipSync(buf);
-      const stopKey=Object.keys(files).find(k=>k.toLowerCase().endsWith('/stops.txt')||k.toLowerCase()==='stops.txt');
-      if(!stopKey) continue;
-      const timeKey=Object.keys(files).find(k=>k.toLowerCase().endsWith('/stop_times.txt')||k.toLowerCase()==='stop_times.txt');
-      const stopsText=new TextDecoder('utf-8').decode(files[stopKey]);
-      const stopRows=parseCsvText(stopsText);
-
-      // Zostawiamy tylko rzeczywiste miejsca, gdzie autobus może zabierać/wywozić pasażerów:
-      // location_type 0 lub puste. Opcjonalnie 4 (boarding area) traktujemy jako osobne stanowisko.
-      const servedIds=new Set();
-      if(timeKey){
-        const timesText=new TextDecoder('utf-8').decode(files[timeKey]);
-        for(const row of parseCsvText(timesText)){
-          const id=String(row.stop_id||'').trim();
-          if(id) servedIds.add(id);
-        }
-      }
-
-      let out=[];
-      for(const row of stopRows){
-        const id=String(row.stop_id||'').trim();
-        const name=String(row.stop_name||'').trim();
-        const lat=Number(row.stop_lat),lon=Number(row.stop_lon);
-        const lt=String(row.location_type??'').trim();
-        // GTFS: 0/puste = stop/platform; 4 = boarding area.
-        // Station/entrance/generic node nie jest osobnym przystankiem dla gry.
-        const isBoardingStop=(lt===''||lt==='0'||lt==='4');
-        if(!id||!name||!Number.isFinite(lat)||!Number.isFinite(lon)||!isBoardingStop) continue;
-        // Jeśli stop_times jest dostępny, bierzemy tylko faktycznie obsługiwane stop_id.
-        if(servedIds.size && !servedIds.has(id)) continue;
-        out.push({
-          id:'gtfs:bkm:'+id,
-          name,
-          lat,
-          lon,
-          type:'ready',
-          source:'gtfs-bkm',
-          stopCode:String(row.stop_code||''),
-          locationType:lt||'0',
-          parentStation:String(row.parent_station||'')
-        });
-      }
-      // Deduplikacja tylko identycznego stop_id. Nie usuwamy dwóch przystanków o tej samej nazwie,
-      // jeśli są po przeciwnych stronach ulicy lub w różnych lokalizacjach.
-      out=dedupeStops(out);
-      if(out.length) return out;
-    }catch(e){ /* spróbuj kolejne źródło */ }
-  }
-  return [];
-}
-function parseCsvLine(line){
-  const out=[];let cur='',quoted=false;
-  for(let i=0;i<line.length;i++){
-    const ch=line[i];
-    if(ch==='"'){
-      if(quoted&&line[i+1]==='"'){cur+='"';i++}else quoted=!quoted;
-    }else if(ch===','&&!quoted){out.push(cur);cur=''}else cur+=ch;
-  }
-  out.push(cur);return out;
-}
-function parseCsvText(text){
-  const lines=text.replace(/^\uFEFF/,'').split(/\r?\n/).filter(Boolean);if(!lines.length)return [];
-  const header=parseCsvLine(lines[0]).map(x=>x.trim());
-  return lines.slice(1).map(line=>{const vals=parseCsvLine(line),row={};header.forEach((h,i)=>row[h]=vals[i]??'');return row});
-}
-function dedupeStops(rows){
-  const m=new Map();
-  rows.forEach(s=>{const id=String(s.id||`${s.name}|${Number(s.lat).toFixed(6)}|${Number(s.lon).toFixed(6)}`);m.set(id,s)});
-  return [...m.values()];
-}
 async function createReadyStops(center){
   if(!center||!state.map||state._stopLoadBusy)return false;
   state._stopLoadBusy=true;
   const previous=Array.isArray(state.readyStops)?state.readyStops.slice():[];
-  setStatusSafe('Pobieranie przystanków…');
+  setStatusSafe(previous.length?`Gotowe: ${previous.length} • zapisane • odświeżanie…`:'Pobieranie przystanków…');
   try{
-    let rows=[];
-    let source='';
-    const isBialystok=/białystok/i.test(state.city||'');
-
-    // Białystok: najpierw oficjalny GTFS BKM. Jeżeli przeglądarka/GitHub Pages
-    // zablokuje pobranie ZIP-a, NIE czyścimy przystanków — przechodzimy automatycznie
-    // na rzeczywiste dane OpenStreetMap.
-    if(isBialystok){
-      rows=await fetchOfficialBkmGtfsStops();
-      if(rows.length){
-        source='BKM GTFS';
-      }else{
-        setStatusSafe('BKM GTFS niedostępny — pobieranie z OpenStreetMap…');
-        let b=state.cityBounds;
-        if(!b||![b.south,b.north,b.west,b.east].every(Number.isFinite)){
-          const [lat,lon]=center;
-          b={south:lat-.10,north:lat+.10,west:lon-.14,east:lon+.14};
-        }
-        const margin=.004;
-        b={south:b.south-margin,north:b.north+margin,west:b.west-margin,east:b.east+margin};
-        rows=await fetchOsmStops(b);
-        source='OpenStreetMap';
-      }
-    }else{
-      let b=state.cityBounds;
-      if(!b||![b.south,b.north,b.west,b.east].every(Number.isFinite)){
-        const [lat,lon]=center;
-        b={south:lat-.08,north:lat+.08,west:lon-.12,east:lon+.12};
-      }
-      const margin=.004;
-      b={south:b.south-margin,north:b.north+margin,west:b.west-margin,east:b.east+margin};
-      rows=await fetchTransitlandStops(b);
-      source=rows.length?'Transitland':'';
-      if(!rows.length){
-        setStatusSafe('Transitland niedostępny — pobieranie z OpenStreetMap…');
-        rows=await fetchOsmStops(b);
-        source=rows.length?'OpenStreetMap':'';
-      }
+    let b=state.cityBounds;
+    if(!b||![b.south,b.north,b.west,b.east].every(Number.isFinite)){
+      const [lat,lon]=center;
+      b={south:lat-.08,north:lat+.08,west:lon-.12,east:lon+.12};
     }
-
-    rows=dedupeStops((rows||[]).filter(s=>String(s.name||'').trim()&&Number.isFinite(Number(s.lat))&&Number.isFinite(Number(s.lon))));
-
-    // Zostawiamy tylko punkty mieszczące się w granicach miasta + mały margines.
-    // Dla OSM/Transitland nie wyrzucamy przystanków tylko dlatego, że mają tę samą nazwę.
-    if(state.cityBounds){
-      const cb=state.cityBounds,margin=.0035;
-      rows=rows.filter(x=>Number(x.lat)>=Number(cb.south)-margin&&Number(x.lat)<=Number(cb.north)+margin&&Number(x.lon)>=Number(cb.west)-margin&&Number(x.lon)<=Number(cb.east)+margin);
-    }
-
+    const margin=.003;
+    b={south:b.south-margin,north:b.north+margin,west:b.west-margin,east:b.east+margin};
+    const rows=dedupeStops((await fetchRealStops(b)).filter(s=>String(s.name||'').trim()&&Number.isFinite(Number(s.lat))&&Number.isFinite(Number(s.lon))));
     if(rows.length){
       state.readyStops=rows;
-      state.readyStopsSource=source||'OpenStreetMap';
+      state.readyStopsSource='OpenStreetMap';
       renderStopMarkers();
       state.stopLayer?.bringToFront?.();
-      const b2=L.latLngBounds(rows.map(x=>[Number(x.lat),Number(x.lon)]));
-      if(b2.isValid())state.map.fitBounds(b2.pad(.03),{maxZoom:15,animate:false});
-      setStatusSafe(`Gotowe: ${rows.length} • ${state.readyStopsSource}`);
+      setStatusSafe(`Gotowe: ${rows.length} • OpenStreetMap`);
       const countEl=document.querySelector('#stopCount');
       if(countEl)countEl.textContent=String(rows.length+(state.customStops||[]).length);
       saveGame();
       return true;
     }
-
-    // Nie kasuj działającej listy przy chwilowym błędzie sieci.
     if(previous.length){
       state.readyStops=previous;
       renderStopMarkers();
       setStatusSafe(`Gotowe: ${previous.length} • zapisane`);
-      toast('Przystanki','Nie udało się pobrać nowych danych. Zachowano wcześniej zapisane przystanki.');
+      toast('Przystanki','Nie udało się odświeżyć danych OSM. Zachowano poprzednie przystanki.');
       return false;
     }
-
     state.readyStops=[];
     renderStopMarkers();
-    setStatusSafe('Gotowe: 0 • brak danych');
-    toast('Przystanki','Nie udało się pobrać przystanków z dostępnych źródeł. Spróbuj ponownie przyciskiem ↻ PRZYSTANKI.');
+    setStatusSafe('Gotowe: 0 • OSM niedostępne');
+    toast('Przystanki','OSM nie odpowiedziało w czasie 15 s. Spróbuj ponownie przyciskiem ↻ PRZYSTANKI.');
     return false;
   }catch(e){
     state.readyStops=previous;
     renderStopMarkers();
-    if(previous.length){
-      setStatusSafe(`Gotowe: ${previous.length} • zapisane`);
-      toast('Przystanki','Wystąpił błąd pobierania. Zachowano poprzednie przystanki.');
-    }else{
-      setStatusSafe('Przystanki: błąd pobierania');
-      toast('Przystanki','Wystąpił błąd pobierania przystanków. Spróbuj ponownie.');
-    }
+    setStatusSafe(previous.length?`Gotowe: ${previous.length} • zapisane`:'Gotowe: 0 • OSM niedostępne');
+    toast('Przystanki','Pobieranie z OpenStreetMap przekroczyło limit czasu.');
     return false;
-  }finally{
-    state._stopLoadBusy=false;
-  }
+  }finally{state._stopLoadBusy=false}
 }
 
 // Usunięto wcześniejszy „builtin” — gra nie tworzy już żadnych fikcyjnych przystanków.
