@@ -370,23 +370,85 @@ function draftStopIcon(num){return L.divIcon({className:"",html:`<div class="dra
   - awaryjnie: OpenStreetMap/Overpass
   - brak fikcyjnych / losowych przystanków
 */
+function normalizeStopName(name){
+  return String(name||'').replace(/\s+/g,' ').trim();
+}
+function dedupeStops(stops){
+  const map=new Map();
+  for(const raw of (Array.isArray(stops)?stops:[])){
+    if(!raw)continue;
+    const lat=Number(raw.lat), lon=Number(raw.lon);
+    const name=normalizeStopName(raw.name);
+    if(!Number.isFinite(lat)||!Number.isFinite(lon)||!name)continue;
+    const id=String(raw.id||('ready:'+lat.toFixed(6)+':'+lon.toFixed(6)+':'+name));
+    if(!map.has(id)) map.set(id,{...raw,id,name,lat,lon,type:raw.type||'ready'});
+  }
+  return [...map.values()];
+}
+function isBialystokCity(){
+  const city=String(state.city||'').trim().toLowerCase();
+  const country=String(state.country||'').trim().toLowerCase();
+  return country==='polska' && (city==='białystok'||city==='bialystok'||city.includes('białystok')||city.includes('bialystok'));
+}
 async function fetchRealStops(bounds){
   if(!bounds)return [];
   const south=Number(bounds.south), north=Number(bounds.north), west=Number(bounds.west), east=Number(bounds.east);
   if(![south,north,west,east].every(Number.isFinite))return [];
 
   const out=new Map();
-  const addStop=(x)=>{
+  const cityNorm=String(state.city||'').trim().toLowerCase();
+  const isBialystok=(String(state.country||'').trim().toLowerCase()==='polska' && (cityNorm==='białystok'||cityNorm==='bialystok'||cityNorm.includes('białystok')||cityNorm.includes('bialystok')));
+  const addStop=(x,source='feed')=>{
     const lat=Number(x.lat??x.geometry?.coordinates?.[1]??x.stop_lat);
     const lon=Number(x.lon??x.geometry?.coordinates?.[0]??x.stop_lon);
     const name=String(x.name??x.stop_name??'').trim();
     if(!Number.isFinite(lat)||!Number.isFinite(lon)||!name)return;
-    if(lat<south||lat>north||lon<west||lon>east)return;
-    const id=String(x.id??x.onestop_id??x.stop_id??('tl:'+lat.toFixed(6)+':'+lon.toFixed(6)+':'+name));
-    out.set(id,{id:'ready:'+id,name,lat,lon,type:'ready',source:'transitland',stopCode:String(x.stop_code??'')});
+    if(!isBialystokCity() && (lat<south||lat>north||lon<west||lon>east))return;
+    const code=String(x.stop_code??x.ref??'').trim();
+    const rawId=String(x.id??x.onestop_id??x.stop_id??('feed:'+lat.toFixed(6)+':'+lon.toFixed(6)+':'+name));
+    const id='ready:'+rawId;
+    if(!out.has(id))out.set(id,{id,name,lat,lon,type:'ready',source,stopCode:code});
   };
 
-  // 1) Transitland v1: no API key, supports bbox + pagination.
+  // Białystok: aktualny plik GTFS wygenerowany z danych Pixel OnTime.
+  // Jest to dokładny feed przystanków, zamiast zgadywania z OSM.
+  if(isBialystok){
+    const official='https://komunikacja.bialystok.pl/cms/File/download/gtfs/google_transit.zip';
+    const gtfsUrls=[
+      official,
+      'https://files.girlc.at/gtfs/bialystok.zip',
+      'https://api.allorigins.win/raw?url='+encodeURIComponent(official),
+      'https://api.allorigins.win/raw?url='+encodeURIComponent('https://files.girlc.at/gtfs/bialystok.zip')
+    ];
+    for(const url of gtfsUrls){
+      try{
+        const ac=new AbortController();
+        const tm=setTimeout(()=>ac.abort(),12000);
+        const r=await fetch(url,{mode:'cors',cache:'no-store',signal:ac.signal,headers:{Accept:'application/zip,application/octet-stream'}});
+        clearTimeout(tm);
+        if(!r.ok)continue;
+        const buf=new Uint8Array(await r.arrayBuffer());
+        const zip=fflate.unzipSync(buf);
+        const decoder=new TextDecoder('utf-8');
+        const stopFile=zip['stops.txt'];
+        if(!stopFile)continue;
+        const text=decoder.decode(stopFile).replace(/^\uFEFF/,'');
+        const rows=parseCSV(text);
+        for(const row of rows){
+          const lt=String(row.location_type??'').trim();
+          if(lt && lt!=='0')continue;
+          if(String(row.stop_id||'').startsWith('parent'))continue;
+          addStop({id:row.stop_id,name:row.stop_name,lat:row.stop_lat,lon:row.stop_lon,stop_code:row.stop_code},'pixel-ontime-gtfs');
+        }
+        if(out.size){
+          state.readyStopsSource='Pixel OnTime GTFS';
+          return [...out.values()];
+        }
+      }catch(e){}
+    }
+  }
+
+  // Pozostałe miasta: Transitland v1 + awaryjnie OSM.
   try{
     const bbox=`${west},${south},${east},${north}`;
     let offset=0;
@@ -396,14 +458,14 @@ async function fetchRealStops(bounds){
       if(!resp.ok)throw new Error('Transitland HTTP '+resp.status);
       const json=await resp.json();
       const rows=Array.isArray(json?.stops)?json.stops:[];
-      rows.forEach(addStop);
+      rows.forEach(x=>addStop(x,'transitland'));
       if(rows.length<1000)break;
       offset+=rows.length;
     }
+    if(out.size)return [...out.values()];
   }catch(e){}
 
-  // 2) OSM fallback: parallel Overpass requests split into four tiles,
-  // so a large city does not fail because a single request is too large.
+  // OSM fallback — tylko rzeczywiste obiekty transportowe, podzielone na 4 kafle.
   if(out.size===0){
     const midLat=(south+north)/2, midLon=(west+east)/2;
     const boxes=[
@@ -418,27 +480,45 @@ async function fetchRealStops(bounds){
       way(${b[0]},${b[1]},${b[2]},${b[3]})[highway=bus_stop];
     );out center tags;`;
     const endpoints=['https://overpass-api.de/api/interpreter','https://overpass.kumi.systems/api/interpreter','https://overpass.private.coffee/api/interpreter'];
-    const jobs=[];
-    for(const b of boxes){
-      jobs.push((async()=>{
-        for(const ep of endpoints){
-          try{
-            const ac=new AbortController();const tm=setTimeout(()=>ac.abort(),12000);
-            const r=await fetch(ep+'?data='+encodeURIComponent(queryFor(b)),{mode:'cors',cache:'no-store',signal:ac.signal,headers:{Accept:'application/json'}});
-            clearTimeout(tm); if(!r.ok)continue;
-            const j=await r.json();
-            for(const el of (j?.elements||[])){
-              let lat=el.lat,lon=el.lon;if((lat==null||lon==null)&&el.center){lat=el.center.lat;lon=el.center.lon}
-              const t=el.tags||{};addStop({id:`osm:${el.type}:${el.id}`,name:t.name||t['name:pl']||t.ref,lat,lon,stop_code:t.ref});
-            }
-            break;
-          }catch(e){}
-        }
-      })());
-    }
-    await Promise.allSettled(jobs);
+    await Promise.allSettled(boxes.map(async b=>{
+      for(const ep of endpoints){
+        try{
+          const ac=new AbortController();const tm=setTimeout(()=>ac.abort(),12000);
+          const r=await fetch(ep+'?data='+encodeURIComponent(queryFor(b)),{mode:'cors',cache:'no-store',signal:ac.signal,headers:{Accept:'application/json'}});
+          clearTimeout(tm); if(!r.ok)continue;
+          const j=await r.json();
+          for(const el of (j?.elements||[])){
+            let lat=el.lat,lon=el.lon;if((lat==null||lon==null)&&el.center){lat=el.center.lat;lon=el.center.lon}
+            const t=el.tags||{};addStop({id:`osm:${el.type}:${el.id}`,name:t.name||t['name:pl']||t.ref,lat,lon,stop_code:t.ref},'osm');
+          }
+          break;
+        }catch(e){}
+      }
+    }));
   }
   return [...out.values()];
+}
+
+function parseCSV(text){
+  const rows=[]; let row=[], cell='', quoted=false;
+  for(let i=0;i<text.length;i++){
+    const c=text[i];
+    if(quoted){
+      if(c==='"'){
+        if(text[i+1]==='"'){cell+='"';i++;}
+        else quoted=false;
+      }else cell+=c;
+    }else{
+      if(c==='"')quoted=true;
+      else if(c===','){row.push(cell);cell='';}
+      else if(c==='\n'){row.push(cell.replace(/\r$/,''));rows.push(row);row=[];cell='';}
+      else cell+=c;
+    }
+  }
+  if(cell!==''||row.length){row.push(cell.replace(/\r$/,''));rows.push(row);}
+  if(!rows.length)return [];
+  const headers=rows.shift().map(x=>x.trim());
+  return rows.map(r=>{const o={};headers.forEach((h,i)=>o[h]=r[i]??'');return o;}).filter(o=>Object.values(o).some(v=>v!==''));
 }
 
 async function createReadyStops(center){
@@ -457,10 +537,10 @@ async function createReadyStops(center){
     const rows=dedupeStops((await fetchRealStops(b)).filter(s=>String(s.name||'').trim()&&Number.isFinite(Number(s.lat))&&Number.isFinite(Number(s.lon))));
     if(rows.length){
       state.readyStops=rows;
-      state.readyStopsSource='OpenStreetMap';
+      if(!state.readyStopsSource || state.readyStopsSource==='osm') state.readyStopsSource=isBialystokCity()?'Pixel OnTime GTFS':'OpenStreetMap';
       renderStopMarkers();
       state.stopLayer?.bringToFront?.();
-      setStatusSafe(`Gotowe: ${rows.length} • OpenStreetMap`);
+      setStatusSafe(`Gotowe: ${rows.length} • ${state.readyStopsSource||'dane transportowe'}`);
       const countEl=document.querySelector('#stopCount');
       if(countEl)countEl.textContent=String(rows.length+(state.customStops||[]).length);
       saveGame();
