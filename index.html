@@ -82,7 +82,7 @@
     <script>
         let stan = {
             aktualnaLiga: "Ekstraklasa Futsalu",
-            ligi: ["Ekstraklasa Futsalu", "1. Liga Futsalu - Grupa Wschód", "1. Liga Futsalu - Grupa Zachód"],
+            ligi: ["Ekstraklasa Futsalu", "1. Liga Futsalu - Grupa Wschód", "1. Liga Futsal - Grupa Zachód"],
             kolejka: 1,
             budzet_centralny: 15000000,
             reputacja: 65,
@@ -93,7 +93,11 @@
                 "FC Dinamo Wrocław": { punkty: 0, bramki_strzelone: 0, bramki_stracone: 0, budzet: 3000000, forma: 3, licencja: true, liga: "Ekstraklasa Futsalu" },
                 "Jagiellonia Futsal": { punkty: 0, bramki_strzelone: 0, bramki_stracone: 0, budzet: 3500000, forma: 3, licencja: true, liga: "Ekstraklasa Futsalu" },
                 "Orły Warszawa": { punkty: 0, bramki_strzelone: 0, bramki_stracone: 0, budzet: 2800000, forma: 3, licencja: true, liga: "Ekstraklasa Futsalu" },
-                "Błękitni Poznań": { punkty: 0, bramki_strzelone: 0, bramki_stracone: 0, budzet: 2000000, forma: 3, licencja: true, liga: "Ekstraklasa Futsalu" }
+                "Błękitni Poznań": { punkty: 0, bramki_strzelone: 0, bramki_stracone: 0, budzet: 2000000, forma: 3, licencja: true, liga: "Ekstraklasa Futsalu" },
+                "Znicz Pruszków": { punkty: 0, bramki_strzelone: 0, bramki_stracone: 0, budzet: 1800000, forma: 3, licencja: true, liga: "1. Liga Futsalu - Grupa Wschód" },
+                "AZS UW Warszawa": { punkty: 0, bramki_strzelone: 0, bramki_stracone: 0, budzet: 1900000, forma: 3, licencja: true, liga: "1. Liga Futsalu - Grupa Wschód" },
+                "Piast Gliwice Futsal": { punkty: 0, bramki_strzelone: 0, bramki_stracone: 0, budzet: 2100000, forma: 3, licencja: true, liga: "1. Liga Futsalu - Grupa Zachód" },
+                "Rekord Bielsko-B.": { punkty: 0, bramki_strzelone: 0, bramki_stracone: 0, budzet: 2400000, forma: 3, licencja: true, liga: "1. Liga Futsalu - Grupa Zachód" }
             },
             kontrakty: [
                 { id: 1, nazwa: "Sponsor Główny (BetPol)", typ: "sponsor", zyskNaKolejke: 300000, pozostałoKolejek: 6 },
@@ -101,12 +105,12 @@
                 { id: 3, nazwa: "Sponsor Techniczny (Sportwear)", typ: "sponsor", zyskNaKolejke: 150000, pozostałoKolejek: 8 }
             ],
             sedziowie: [
-                { id: 1, imie: "Pomas Sędzia (FIFA)", poziom: "Wysoki", kontrowersje: "Niskie", przypisanyMecz: null },
+                { id: 1, imie: "Piotr Sędzia (FIFA)", poziom: "Wysoki", kontrowersje: "Niskie", przypisanyMecz: null },
                 { id: 2, imie: "Jan Frankowski", poziom: "Średni", kontrowersje: "Średnie", przypisanyMecz: null },
                 { id: 3, imie: "Tomasz Kwiatkowski", poziom: "Wysoki", kontrowersje: "Niskie", przypisanyMecz: null },
                 { id: 4, imie: "Krzysztof Jakubik", poziom: "Niski", kontrowersje: "Wysokie", przypisanyMecz: null }
             ],
-            przypisaniaMeczow: {}, // klucz: index pary, wartość: id sędziego
+            przypisaniaSedziow: {},
             logi: ["Rozpoczął się nowy sezon rozgrywek ligowych."]
         };
 
@@ -137,17 +141,60 @@
             if (stan.logi.length > 25) stan.logi.pop();
         }
 
+        function zmienLige(nowaLiga) {
+            stan.aktualnaLiga = nowaLiga;
+            renderujWidok();
+        }
+
+        function generujParyMeczowe() {
+            let klubyW2Lidze = Object.keys(stan.kluby).filter(k => stan.kluby[k].liga === stan.aktualnaLiga && stan.kluby[k].licencja);
+            let pary = [];
+            for (let i = 0; i < klubyW2Lidze.length; i += 2) {
+                if (i + 1 < klubyW2Lidze.length) {
+                    pary.push([klubyW2Lidze[i], klubyW2Lidze[i+1]]);
+                }
+            }
+            return pary;
+        }
+
         function renderujWidok() {
             let kontener = document.getElementById('widok-kontener');
             kontener.innerHTML = '';
 
             if (stan.aktywnyWidok === 'tabela') {
+                let klubyW1Lidze = Object.entries(stan.kluby).filter(([k, d]) => d.liga === stan.aktualnaLiga);
+                let posortowane = klubyW1Lidze.sort((a, b) => {
+                    if (b[1].punkty !== a[1].punkty) return b[1].punkty - a[1].punkty;
+                    let bilansA = a[1].bramki_strzelone - a[1].bramki_stracone;
+                    let bilansB = b[1].bramki_strzelone - b[1].bramki_stracone;
+                    if (bilansB !== bilansA) return bilansB - bilansA;
+                    return b[1].bramki_strzelone - a[1].bramki_strzelone;
+                });
+
+                let wierszeTabeli = posortowane.map(([nazwa, dane], idx) => {
+                    let bilans = dane.bramki_strzelone - dane.bramki_stracone;
+                    return `
+                        <tr class="border-b border-slate-800/50 hover:bg-slate-800/30">
+                            <td class="py-3 px-2 font-semibold text-slate-400">${idx + 1}</td>
+                            <td class="py-3 px-2 font-medium text-slate-200">${nazwa}</td>
+                            <td class="py-3 px-2 text-center text-slate-400">${stan.kolejka - 1}</td>
+                            <td class="py-3 px-2 text-center font-bold text-emerald-400">${dane.punkty}</td>
+                            <td class="py-3 px-2 text-center text-slate-300">${dane.bramki_strzelone}:${dane.bramki_stracone} (${bilans > 0 ? '+' + bilans : bilans})</td>
+                            <td class="py-3 px-2 text-right">
+                                <span class="px-2 py-0.5 rounded text-[10px] font-semibold ${dane.licencja ? 'bg-emerald-900/50 text-emerald-300 border border-emerald-700' : 'bg-rose-900/50 text-rose-300 border border-rose-700'}">
+                                    ${dane.licencja ? 'Aktywna' : 'Brak'}
+                                </span>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+
                 kontener.innerHTML = `
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         <div class="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
                             <div class="flex justify-between items-center mb-4">
                                 <h2 class="text-lg font-bold text-slate-200">Tabela: ${stan.aktualnaLiga}</h2>
-                                <select onchange="zmienlige(this.value)" class="bg-slate-800 border border-slate-700 text-sm rounded-lg px-3 py-1.5 text-slate-200">
+                                <select onchange="zmienLige(this.value)" class="bg-slate-800 border border-slate-700 text-sm rounded-lg px-3 py-1.5 text-slate-200">
                                     ${stan.ligi.map(l => `<option value="${l}" ${l === stan.aktualnaLiga ? 'selected' : ''}>${l}</option>`).join('')}
                                 </select>
                             </div>
@@ -164,7 +211,7 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        ${generujWierszeTabeli()}
+                                        ${wierszeTabeli || '<tr><td colspan="6" class="py-4 text-center text-slate-500">Brak klubów w tej lidze</td></tr>'}
                                     </tbody>
                                 </table>
                             </div>
@@ -227,12 +274,12 @@
                 kontener.innerHTML = `
                     <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-6">
                         <h2 class="text-xl font-bold text-slate-100">Obsada Sędziowska na Kolejkę ${stan.kolejka}</h2>
-                        <p class="text-xs text-slate-400">Przypisz sędziów do nadchodzących meczów. Przypisani sędziowie znikną z poniższej listy wolnych.</p>
+                        <p class="text-xs text-slate-400">Przypisz sędziów do nadchodzących meczów. Przypisani sędziowie znikają z poniższej listy wolnych.</p>
                         
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div class="space-y-3">
-                                <h3 class="font-semibold text-sm text-slate-300">Pary Meczowe tej kolejki:</h3>
-                                ${paryMeczowe.map((para, idx) => `
+                                <h3 class="font-semibold text-sm text-slate-300">Pary Meczowe (${stan.aktualnaLiga}):</h3>
+                                ${paryMeczowe.length > 0 ? paryMeczowe.map((para, idx) => `
                                     <div class="bg-slate-800/70 border border-slate-700 p-3 rounded-xl text-xs space-y-2">
                                         <p class="font-bold text-emerald-400">Mecz ${idx+1}: ${para[0]} vs${para[1]}</p>
                                         <div class="flex items-center gap-2">
@@ -245,7 +292,7 @@
                                             </select>
                                         </div>
                                     </div>
-                                `).join('')}
+                                `).join('') : '<p class="text-xs text-slate-500">Brak wystarczającej liczby klubów z licencją w tej lidze.</p>'}
                             </div>
                             <div class="bg-slate-950 border border-slate-800 p-4 rounded-xl space-y-3">
                                 <h3 class="font-semibold text-sm text-slate-300">Dostępni Sędziowie w Związku:</h3>
@@ -304,4 +351,239 @@
                                         <h4 class="font-bold text-slate-200">${nazwa}</h4>
                                         <p class="text-xs text-slate-400">Liga: ${dane.liga}</p>
                                         <span class="inline-block mt-2 px-2 py-0.5 rounded text-[10px] font-semibold ${dane.licencja ? 'bg-emerald-900/50 text-emerald-300 border border-emerald-700' : 'bg-rose-900/50 text-rose-300 border border-rose-700'}">
-                                            ${dane.licencja ? 'Licencja aktywna'
+                                            ${dane.licencja ? 'Licencja aktywna' : 'Brak licencji'}
+                                        </span>
+                                    </div>
+                                    <button onclick="przelaczLicencje('${nazwa}')" class="px-4 py-2 rounded-lg text-xs font-medium ${dane.licencja ? 'bg-rose-800 hover:bg-rose-700 text-slate-100' : 'bg-emerald-700 hover:bg-emerald-600 text-slate-100'}">
+                                        ${dane.licencja ? 'Odbierz' : 'Przyznaj'}
+                                    </button>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            } else if (stan.aktywnyWidok === 'zarzadzanie') {
+                kontener.innerHTML = `
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+                            <h2 class="text-xl font-bold text-slate-100">Dodaj Nowy Klub</h2>
+                            <div class="space-y-3">
+                                <input type="text" id="nowy-klub-nazwa" placeholder="Nazwa klubu" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-sm text-slate-200">
+                                <select id="nowy-klub-liga" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-sm text-slate-200">
+                                    ${stan.ligi.map(l => `<option value="${l}">${l}</option>`).join('')}
+                                </select>
+                                <button onclick="dodajKlub()" class="w-full bg-emerald-600 hover:bg-emerald-500 py-2.5 rounded-xl text-sm font-medium">Zarejestruj Klub</button>
+                            </div>
+                        </div>
+                        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+                            <h2 class="text-xl font-bold text-slate-100">Dodaj Nową Ligę</h2>
+                            <div class="space-y-3">
+                                <input type="text" id="nowa-liga-nazwa" placeholder="Nazwa nowej ligi" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-sm text-slate-200">
+                                <button onclick="dodajLige()" class="w-full bg-sky-600 hover:bg-sky-500 py-2.5 rounded-xl text-sm font-medium">Utwórz Rozgrywki</button>
+                            </div>
+                        </div>
+                        <div class="md:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+                            <h2 class="text-xl font-bold text-slate-100">Istniejące Kluby (Usuwanie)</h2>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                ${Object.keys(stan.kluby).map(k => `
+                                    <div class="bg-slate-800 p-3 rounded-xl flex justify-between items-center text-xs">
+                                        <span class="font-medium text-slate-200">${k}</span>
+                                        <button onclick="usunKlub('${k}')" class="text-rose-400 hover:text-rose-300 font-bold px-2 py-1">Usuń</button>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function inwestujFinanse(typ) {
+            if (typ === 'tv' && stan.budzet_centralny >= 1000000) {
+                stan.budzet_centralny -= 1000000;
+                stan.reputacja = Math.min(100, stan.reputacja + 5);
+                dodajLog("📺 Zakupiono nowoczesny pakiet medialny TV. Reputacja ligi wzrosła.");
+            } else if (typ === 'marketing' && stan.budzet_centralny >= 750000) {
+                stan.budzet_centralny -= 750000;
+                stan.reputacja = Math.min(100, stan.reputacja + 8);
+                dodajLog("📈 Przeprowadzono ogólnokrajową kampanię wizerunkową.");
+            } else if (typ === 'gala' && stan.budzet_centralny >= 500000) {
+                stan.budzet_centralny -= 500000;
+                stan.reputacja = Math.min(100, stan.reputacja + 4);
+                dodajLog("✨ Zorganizowano prestiżową galę sezonu.");
+            } else {
+                alert("Brak wystarczających środków w budżecie centralnym!");
+            }
+            odswiezUI();
+        }
+
+        function negocjujKontrakt(id) {
+            let k = stan.kontrakty.find(x => x.id === id);
+            if (k) {
+                k.pozostałoKolejek += 5;
+                k.zyskNaKolejke += 50000;
+                dodajLog(`📝 Przedłużono kontrakt "${k.nazwa}". Nowy zysk: +${k.zyskNaKolejke.toLocaleString()} PLN/kolejkę.`);
+                odswiezUI();
+            }
+        }
+
+        function szukajNowegoSponsora() {
+            if (stan.budzet_centralny >= 300000) {
+                stan.budzet_centralny -= 300000;
+                let nowyZysk = Math.floor(Math.random() * 200000) + 100000;
+                stan.kontrakty.push({
+                    id: stan.kontrakty.length + 1,
+                    nazwa: "Sponsor Regionalny #" + (stan.kontrakty.length + 1),
+                    typ: "sponsor",
+                    zyskNaKolejke: nowyZysk,
+                    pozostałoKolejek: 6
+                });
+                dodajLog(`🤝 Pozyskano nowego sponsora generującego +${nowyZysk.toLocaleString()} PLN na kolejkę.`);
+                odswiezUI();
+            } else {
+                alert("Za mało środków na działania poszukiwawcze!");
+            }
+        }
+
+        function przypiszSedziego(idxMeczu, idSedziego) {
+            stan.sedziowie.forEach(s => {
+                if (s.przypisanyMecz === idxMeczu) s.przypisanyMecz = null;
+            });
+            if (idSedziego !== "") {
+                let sedzia = stan.sedziowie.find(s => s.id == idSedziego);
+                if (sedzia) sedzia.przypisanyMecz = idxMeczu;
+            }
+            renderujWidok();
+        }
+
+        function zastosujKare() {
+            let klub = document.getElementById('kara-klub').value;
+            let pkt = parseInt(document.getElementById('kara-pkt').value) || 0;
+            let kasa = parseInt(document.getElementById('kara-kasa').value) || 0;
+
+            if (stan.kluby[klub]) {
+                stan.kluby[klub].punkty = Math.max(0, stan.kluby[klub].punkty - pkt);
+                stan.budzet_centralny += kasa;
+                dodajLog(`⚖️ Komisja nałożyła na klub ${klub} karę: -${pkt} pkt oraz grzywnę ${kasa.toLocaleString()} PLN.`);
+                zmienWidok('tabela');
+            }
+        }
+
+        function przelaczLicencje(nazwa) {
+            stan.kluby[nazwa].licencja = !stan.kluby[nazwa].licencja;
+            dodajLog(`🛡️ Zmieniono status licencji dla klubu ${nazwa} na: ${stan.kluby[nazwa].licencja ? 'Aktywna' : 'Odebrana'}.`);
+            renderujWidok();
+        }
+
+        function dodajKlub() {
+            let nazwa = document.getElementById('nowy-klub-nazwa').value.trim();
+            let liga = document.getElementById('nowy-klub-liga').value;
+            if (nazwa && !stan.kluby[nazwa]) {
+                stan.kluby[nazwa] = { punkty: 0, bramki_strzelone: 0, bramki_stracone: 0, budzet: 2000000, forma: 3, licencja: true, liga: liga };
+                dodajLog(`🏢 Zarejestrowano nowy klub ${nazwa} w lidze ${liga}.`);
+                zmienWidok('tabela');
+            } else {
+                alert("Podaj poprawną lub unikalną nazwę klubu.");
+            }
+        }
+
+        function usunKlub(nazwa) {
+            delete stan.kluby[nazwa];
+            dodajLog(`🗑️ Usunięto klub ${nazwa} ze struktur związku.`);
+            renderujWidok();
+        }
+
+        function dodajLige() {
+            let nazwa = document.getElementById('nowa-liga-nazwa').value.trim();
+            if (nazwa && !stan.ligi.includes(nazwa)) {
+                stan.ligi.push(nazwa);
+                dodajLog(`⚙️ Utworzono nowe rozgrywki ligowe: ${nazwa}.`);
+                zmienWidok('tabela');
+            } else {
+                alert("Podaj poprawną lub unikalną nazwę ligi.");
+            }
+        }
+
+        function symulujKolejke() {
+            if (stan.kolejka > 10) return;
+
+            // Obsługa wpływów z kontraktów
+            let sumaPrzychodow = 0;
+            stan.kontrakty.forEach(k => {
+                sumaPrzychodow += k.zyskNaKolejke;
+                k.pozostałoKolejek--;
+            });
+            stan.budzet_centralny += sumaPrzychodow;
+            stan.kontrakty = stan.kontrakty.filter(k => k.pozostałoKolejek > 0);
+
+            let klubyW1Lidze = Object.keys(stan.kluby).filter(k => stan.kluby[k].liga === stan.aktualnaLiga && stan.kluby[k].licencja);
+            for (let i = klubyW1Lidze.length - 1; i > 0; i--) {
+                let j = Math.floor(Math.random() * (i + 1));
+                [klubyW1Lidze[i], klubyW1Lidze[j]] = [klubyW1Lidze[j], klubyW1Lidze[i]];
+            }
+
+            let wynikiTekst = `<strong>Wyniki kolejki ${stan.kolejka} (${stan.aktualnaLiga}):</strong><br>`;
+            for (let i = 0; i < klubyW1Lidze.length; i += 2) {
+                if (i + 1 >= klubyW1Lidze.length) break;
+                let g = klubyW1Lidze[i];
+                let as = klubyW1Lidze[i+1];
+
+                let gBramki = Math.floor(Math.random() * 5) + (stan.kluby[g].forma > 3 ? 1 : 0);
+                let asBramki = Math.floor(Math.random() * 5) + (stan.kluby[as].forma > 3 ? 1 : 0);
+
+                stan.kluby[g].bramki_strzelone += gBramki;
+                stan.kluby[g].bramki_stracone += asBramki;
+                stan.kluby[as].bramki_strzelone += asBramki;
+                stan.kluby[as].bramki_stracone += gBramki;
+
+                if (gBramki > asBramki) {
+                    stan.kluby[g].punkty += 3;
+                } else if (asBramki > gBramki) {
+                    stan.kluby[as].punkty += 3;
+                } else {
+                    stan.kluby[g].punkty += 1;
+                    stan.kluby[as].punkty += 1;
+                }
+
+                wynikiTekst += `🏟️ ${g} ${gBramki} : ${asBramki} ${as}<br>`;
+            }
+
+            dodajLog(wynikiTekst);
+            dodajLog(`💰 Zasilenie budżetu z aktywnych kontraktów: +${sumaPrzychodow.toLocaleString()} PLN.`);
+
+            // Reset przypisań sędziów
+            stan.sedziowie.forEach(s => s.przypisanyMecz = null);
+
+            stan.kolejka++;
+
+            if (stan.kolejka > 10) {
+                rozstrzygnijAwansISpadek();
+            }
+
+            odswiezUI();
+        }
+
+        function rozstrzygnijAwansISpadek() {
+            dodajLog("🏆 Koniec 10. kolejki! Sezon dobiegł końca. Następuje weryfikacja awansów i spadków.");
+            let klubyLigi = Object.entries(stan.kluby).filter(([k, d]) => d.liga === stan.aktualnaLiga);
+            klubyLigi.sort((a, b) => b[1].punkty - a[1].punkty);
+            
+            if (klubyLigi.length >= 2) {
+                let mistrz = klubyLigi[0][0];
+                let spadkowicz = klubyLigi[klubyLigi.length - 1][0];
+                dodajLog(`🥇 Mistrzem ligi ${stan.aktualnaLiga} zostaje ${mistrz}!`);
+                dodajLog(`🔻 Z ligi spada zespół ${spadkowicz}.`);
+            }
+        }
+
+        function resetujGre() {
+            if (confirm("Czy na pewno chcesz zresetować cały sezon ligowy?")) {
+                location.reload();
+            }
+        }
+
+        // Inicjalizacja startowa
+        odswiezUI();
+    </script>
+</body>
+</html>
