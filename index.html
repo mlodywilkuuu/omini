@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tech Empire Tycoon - GitHub Edition</title>
+    <title>Football League Manager - GitHub Edition</title>
     <style>
         :root {
-            --bg-color: #0f172a;
-            --card-bg: #1e293b;
-            --accent: #38bdf8;
-            --text: #f8fafc;
-            --text-muted: #94a3b8;
-            --success: #4ade80;
+            --bg-color: #064e3b;
+            --card-bg: #065f46;
+            --accent: #34d399;
+            --text: #ecfdf5;
+            --text-muted: #a7f3d0;
+            --success: #6ee7b7;
             --danger: #f87171;
         }
 
@@ -25,18 +25,18 @@
 
         header {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
         }
 
         h1 {
             margin: 0;
             color: var(--accent);
-            font-size: 2.5rem;
+            font-size: 2.3rem;
         }
 
-        .dashboard {
+        .container {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
             gap: 20px;
             max-width: 1200px;
             margin: 0 auto;
@@ -46,36 +46,30 @@
             background-color: var(--card-bg);
             border-radius: 12px;
             padding: 20px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+            border: 1px solid #047857;
         }
 
         .card h2 {
             margin-top: 0;
-            font-size: 1.25rem;
-            border-bottom: 2px solid #334155;
-            padding-bottom: 10px;
+            font-size: 1.2rem;
+            border-bottom: 2px solid #047857;
+            padding-bottom: 8px;
             color: var(--accent);
         }
 
         .stat-row {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 12px;
-            font-size: 1.1rem;
+            margin-bottom: 10px;
+            font-size: 1rem;
         }
-
-        .stat-value {
-            font-weight: bold;
-        }
-
-        .positive { color: var(--success); }
-        .negative { color: var(--danger); }
 
         button {
             background-color: var(--accent);
-            color: var(--bg-color);
+            color: #022c22;
             border: none;
-            padding: 10px 16px;
+            padding: 12px 16px;
             border-radius: 6px;
             font-weight: bold;
             cursor: pointer;
@@ -84,36 +78,31 @@
             transition: opacity 0.2s;
         }
 
-        button:hover {
-            opacity: 0.9;
+        button:hover { opacity: 0.9; }
+        button:disabled { background-color: #047857; color: #a7f3d0; cursor: not-allowed; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+            margin-top: 10px;
         }
 
-        button:disabled {
-            background-color: #475569;
-            color: #94a3b8;
-            cursor: not-allowed;
+        th, td {
+            padding: 6px 8px;
+            text-align: left;
+            border-bottom: 1px solid #047857;
         }
 
-        .competitor-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
+        th { color: var(--accent); }
 
-        .competitor-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid #334155;
-        }
-
-        .log-box {
-            background-color: #090d16;
+        .match-commentary {
+            background-color: #022c22;
             padding: 10px;
             border-radius: 6px;
             font-family: monospace;
-            font-size: 0.9rem;
-            height: 100px;
+            font-size: 0.85rem;
+            height: 120px;
             overflow-y: auto;
             color: var(--text-muted);
             margin-top: 15px;
@@ -123,190 +112,162 @@
 <body>
 
     <header>
-        <h1>Tech Empire Tycoon</h1>
-        <p>Zbuduj cyfrowego giganta i zdominuj rynek! (Projekt Open Source)</p>
+        <h1>Football League Manager</h1>
+        <p>Poprowadź swój klub do mistrzostwa ligowego! (Open Source)</p>
     </header>
 
-    <div class="dashboard">
-        <!-- Panel Finansowy Gracza -->
+    <div class="container">
+        <!-- Zarządzanie Klubem -->
         <div class="card">
-            <h2>Twoja Korporacja</h2>
-            <div class="stat-row">
-                <span>Gotówka:</span>
-                <span id="cash" class="stat-value positive">$10,000</span>
-            </div>
-            <div class="stat-row">
-                <span>Przychód / sek:</span>
-                <span id="income" class="stat-value positive">$0</span>
-            </div>
-            <div class="stat-row">
-                <span>Koszt serwerów:</span>
-                <span id="server-cost" class="stat-value negative">$0</span>
-            </div>
-            <div class="stat-row">
-                <span>Programiści:</span>
-                <span id="devs" class="stat-value">0</span>
-            </div>
-            <div class="stat-row">
-                <span>Serwery:</span>
-                <span id="servers" class="stat-value">1</span>
-            </div>
+            <h2>Twój Klub: <span id="club-name">Legion Białystok</span></h2>
+            <div class="stat-row"><span>Budżet:</span><span id="budget">$50,000</span></div>
+            <div class="stat-row"><span>Reputacja:</span><span id="reputation">Niska</span></div>
+            <div class="stat-row"><span>Siła Drużyny (OVR):</span><span id="team-ovr">68</span></div>
+            <div class="stat-row"><span>Rozegrane mecze:</span><span id="played-matches">0</span></div>
             
-            <button onclick="hireDev()">Zatrudnij Programistę ($1,000)</button>
-            <button onclick="buyServer()">Kup Serwer ($2,500)</button>
+            <button onclick="playMatch()" id="match-btn">Rozegraj Kolejny Mecz</button>
+            <button onclick="upgradeFacility()" style="background-color: #10b981; color: white;">Rozbuduj Bazę Treningową ($15,000)</button>
         </div>
 
-        <!-- Akcje i Rozwój -->
+        <!-- Tabela Ligowa -->
         <div class="card">
-            <h2>Rozwój Produktu</h2>
-            <p>Twoi programiści generują kod i przychód bazowy. Serwery pozwalają obsługiwać więcej użytkowników.</p>
-            <div class="stat-row">
-                <span>Baza użytkowników:</span>
-                <span id="users" class="stat-value">0</span>
-            </div>
-            <div class="stat-row">
-                <span>Hype / Marketing:</span>
-                <span id="hype" class="stat-value">10%</span>
-            </div>
-            <button onclick="runMarketing()">Kampania Marketingowa ($500)</button>
-            
-            <div class="log-box" id="game-log">
-                [00:00] Rozpoczęto działalność w garażu. Powodzenia!
-            </div>
+            <h2>Tabela Ligowa</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Poz</th>
+                        <th>Klub</th>
+                        <th>M</th>
+                        <th>Pkt</th>
+                    </tr>
+                </thead>
+                <tbody id="league-table">
+                    <!-- Generowane przez JS -->
+                </tbody>
+            </table>
         </div>
 
-        <!-- Konkurencja AI (Giełda) -->
-        <div class="card">
-            <h2>Giełda i Konkurencja</h2>
-            <ul class="competitor-list" id="competitors-list">
-                <!-- Generowane przez JS -->
-            </ul>
+        <!-- Centrum Meczowe / Relacja -->
+        <div class="card" style="grid-column: span auto;">
+            <h2>Centrum Medialne i Relacja</h2>
+            <p>Śledź przebieg spotkań i reakcje kibiców na żywo.</p>
+            <div class="match-commentary" id="match-log">
+                [Skrzynka Podawcza] Oczekiwanie na pierwszy gwizdek sezonu ligowego...
+            </div>
         </div>
     </div>
 
     <script>
-        // Stan Gry
         const game = {
-            cash: 10000,
-            devs: 0,
-            servers: 1,
-            users: 0,
-            hype: 10,
-            serverCostPerUnit: 50,
-            devIncome: 15,
-            competitors: [
-                { name: "Meta", marketCap: 1200000, growth: 1.02 },
-                { name: "Microsoft", marketCap: 2500000, growth: 1.015 },
-                { name: "Amazon", marketCap: 1800000, growth: 1.018 },
-                { name: "Ekipa Holding", marketCap: 150000, growth: 0.98 } // bywa różnie z hypem ;)
+            clubName: "Legion Białystok",
+            budget: 50000,
+            ovr: 68,
+            played: 0,
+            facilityLevel: 1,
+            teams: [
+                { name: "Legion Białystok", pts: 0, mp: 0, ovr: 68, isPlayer: true },
+                { name: "Super Strikers", pts: 0, mp: 0, ovr: 67, isPlayer: false },
+                { name: "Dinamo Wrocław", pts: 0, mp: 0, ovr: 66, isPlayer: false },
+                { name: "Jagiellonia Fan Club", pts: 0, mp: 0, ovr: 65, isPlayer: false }
             ]
         };
 
-        // UI Elements
-        const cashEl = document.getElementById('cash');
-        const incomeEl = document.getElementById('income');
-        const serverCostEl = document.getElementById('server-cost');
-        const devsEl = document.getElementById('devs');
-        const serversEl = document.getElementById('servers');
-        const usersEl = document.getElementById('users');
-        const hypeEl = document.getElementById('hype');
-        const competitorsListEl = document.getElementById('competitors-list');
-        const logBox = document.getElementById('game-log');
+        const budgetEl = document.getElementById('budget');
+        const ovrEl = document.getElementById('team-ovr');
+        const playedEl = document.getElementById('played-matches');
+        const tableEl = document.getElementById('league-table');
+        const logBox = document.getElementById('match-log');
 
-        function log(message) {
-            const time = new Date().toLocaleTimeString();
-            logBox.innerHTML += `<br>[${time}] ${message}`;
+        function log(msg) {
+            logBox.innerHTML += `<br>> ${msg}`;
             logBox.scrollTop = logBox.scrollHeight;
         }
 
         function updateUI() {
-            cashEl.innerText = `$${Math.floor(game.cash).toLocaleString()}`;
-            
-            const grossIncome = game.devs * game.devIncome * (1 + game.hype / 100);
-            const totalServerCost = game.servers * game.serverCostPerUnit;
-            const netIncome = grossIncome - totalServerCost;
+            budgetEl.innerText = `$${game.budget.toLocaleString()}`;
+            ovrEl.innerText = game.ovr;
+            playedEl.innerText = game.played;
 
-            incomeEl.innerText = `$${netIncome.toFixed(1)}`;
-            incomeEl.className = `stat-value ${netIncome >= 0 ? 'positive' : 'negative'}`;
+            // Sortowanie tabeli wg punktów i OVR
+            game.teams.sort((a, b) => b.pts - a.pts || b.ovr - a.ovr);
 
-            serverCostEl.innerText = `$${totalServerCost}`;
-            devsEl.innerText = game.devs;
-            serversEl.innerText = game.servers;
-            usersEl.innerText = Math.floor(game.users).toLocaleString();
-            hypeEl.innerText = `${game.hype}%`;
-
-            // Renderowanie listy konkurencji
-            competitorsListEl.innerHTML = '';
-            game.competitors.forEach(comp => {
-                competitorsListEl.innerHTML += `
-                    <li class="competitor-item">
-                        <span>${comp.name}</span>
-                        <span class="positive">$${Math.floor(comp.marketCap).toLocaleString()}</span>
-                    </li>
+            tableEl.innerHTML = '';
+            game.teams.forEach((t, index) => {
+                tableEl.innerHTML += `
+                    <tr style="${t.isPlayer ? 'font-weight: bold; color: #6ee7b7;' : ''}">
+                        <td>${index + 1}</td>
+                        <td>${t.name}</td>
+                        <td>${t.mp}</td>
+                        <td>${t.pts}</td>
+                    </tr>
                 `;
             });
         }
 
-        function hireDev() {
-            const cost = 1000;
-            if (game.cash >= cost) {
-                game.cash -= cost;
-                game.devs += 1;
-                log("Zatrudniono nowego programistę.");
-                updateUI();
+        function playMatch() {
+            // Losujemy przeciwnika spośród innych zespołów
+            const opponents = game.teams.filter(t => !t.isPlayer);
+            const opponent = opponents[Math.floor(Math.random() * opponents.length)];
+
+            game.played++;
+            
+            // Symulacja wyniku na podstawie OVR + losowość (forma dnia)
+            const playerChance = game.ovr + (Math.random() * 20 - 10);
+            const opponentChance = opponent.ovr + (Math.random() * 20 - 10);
+
+            let pGoals = Math.floor(Math.random() * 3);
+            let oGoals = Math.floor(Math.random() * 3);
+
+            if (playerChance > opponentChance + 5) pGoals += 1;
+            if (opponentChance > playerChance + 5) oGoals += 1;
+
+            // Aktualizacja tabeli ligowej
+            const playerTeam = game.teams.find(t => t.isPlayer);
+            playerTeam.mp++;
+            opponent.mp++;
+
+            let prize = 3000;
+            if (pGoals > oGoals) {
+                playerTeam.pts += 3;
+                prize += 5000;
+                log(`[MECZ] ZWYCIĘSTWO! Pokonujesz ${opponent.name} wynikiem ${pGoals}:${oGoals}! (+3 pkt, +$5000 premii)`);
+            } else if (pGoals === oGoals) {
+                playerTeam.pts += 1;
+                opponent.pts += 1;
+                prize += 2000;
+                log(`[MECZ] REMIS! Remisujesz z ${opponent.name} ${pGoals}:${oGoals}. (+1 pkt)`);
             } else {
-                alert("Za mało gotówki!");
+                prize += 1000;
+                log(`[MECZ] PORAŻKA. Przegrywasz z ${opponent.name} ${pGoals}:${oGoals}. Walczymy dalej!`);
             }
-        }
 
-        function buyServer() {
-            const cost = 2500;
-            if (game.cash >= cost) {
-                game.cash -= cost;
-                game.servers += 1;
-                log("Dokupiono nową szafę serwerową.");
-                updateUI();
-            } else {
-                alert("Za mało gotówki!");
-            }
-        }
-
-        function runMarketing() {
-            const cost = 500;
-            if (game.cash >= cost) {
-                game.cash -= cost;
-                game.hype += 5;
-                log("Przeprowadzono kampanię marketingową (+5% Hype).");
-                updateUI();
-            } else {
-                alert("Za mało gotówki!");
-            }
-        }
-
-        // Główna Pętla Gry (Tick co 1 sekundę)
-        function gameTick() {
-            // Obliczenia finansowe
-            const grossIncome = game.devs * game.devIncome * (1 + game.hype / 100);
-            const totalServerCost = game.servers * game.serverCostPerUnit;
-            const netIncome = grossIncome - totalServerCost;
-
-            game.cash += netIncome;
-            if (game.cash < 0) game.cash = 0;
-
-            // Przyrost użytkowników zależny od devów i hypu
-            game.users += game.devs * 12 * (game.hype / 50);
-
-            // Symulacja zmian u konkurencji
-            game.competitors.forEach(comp => {
-                const fluctuation = (Math.random() * 0.1) - 0.04; // -4% do +6%
-                comp.marketCap *= (1 + fluctuation);
+            // Symulacja meczów AI między sobą w tle
+            opponents.forEach(t => {
+                if (t.name !== opponent.name) {
+                    t.mp++;
+                    const r = Math.random();
+                    if (r > 0.6) t.pts += 3;
+                    else if (r > 0.3) t.pts += 1;
+                }
             });
 
+            game.budget += prize;
             updateUI();
         }
 
-        // Start pętli
-        setInterval(gameTick, 1000);
+        function upgradeFacility() {
+            const cost = 15000 * game.facilityLevel;
+            if (game.budget >= cost) {
+                game.budget -= cost;
+                game.facilityLevel++;
+                game.ovr += 3;
+                log(`[KLUB] Rozbudowano bazę treningową! Siła drużyny wzrosła do ${game.ovr}.`);
+                updateUI();
+            } else {
+                alert("Za mało środków w budżecie klubu!");
+            }
+        }
+
         updateUI();
     </script>
 </body>
