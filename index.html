@@ -413,7 +413,7 @@
                 kontener.innerHTML = `
                     <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-6 max-w-xl">
                         <h2 class="text-xl font-bold text-slate-100">Komisja Dyscyplinarna - Nakładanie Kar</h2>
-                        <p class="text-xs text-slate-400">Wprowadź sankcje regulaminowe dla wybranego klubu. Kara finansowa pomniejsza budżet klubu, a punkty są odejmowane bezpośrednio w tabeli.</p>
+                        <p class="text-xs text-slate-400">Wprowadź sankcje regulaminowe dla wybranego klubu. Kara finansowa trafia bezpośrednio do budżetu związku, a punkty są odejmowane w tabeli.</p>
                         
                         <div class="space-y-4">
                             <div>
@@ -427,7 +427,7 @@
                                 <input type="number" id="kara-pkt" value="1" min="0" max="20" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-sm text-slate-200">
                             </div>
                             <div>
-                                <label class="block text-xs text-slate-300 mb-1">Kara finansowa dla klubu (PLN):</label>
+                                <label class="block text-xs text-slate-300 mb-1">Kara finansowa (pieniądze trafiają do Związku) (PLN):</label>
                                 <input type="number" id="kara-kasa" value="50000" step="10000" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-sm text-slate-200">
                             </div>
                             <button onclick="zastosujKare()" class="w-full bg-rose-700 hover:bg-rose-600 py-3 rounded-xl font-medium text-sm transition">Nałóż Oficjalną Karę</button>
@@ -588,13 +588,15 @@
             let kasa = parseInt(document.getElementById('kara-kasa').value) || 0;
 
             if (stan.kluby[klub]) {
-                stan.kluby[klub].punkty = Math.max(0, stan.kluby[klub].punkty - pkt);
-                stan.kluby[klub].budzet = Math.max(0, stan.kluby[klub].budzet - kasa);
+                // Poprawka: Bezpośrednie odjęcie punktów od stanu klubu, co automatycznie aktualizuje tabelę
+                stan.kluby[klub].punkty -= pkt;
+                // Poprawka: Pieniądze z kary trafiają bezpośrednio do budżetu centralnego (Związku)
+                stan.budzet_centralny += kasa;
                 
-                let komunikat = `⚖️ Komisja Dyscyplinarna ukarala klub ${klub}: -${pkt} pkt oraz grzywna finansowa w wysokości ${kasa.toLocaleString()} PLN.`;
+                let komunikat = `⚖️ Komisja Dyscyplinarna ukarala klub ${klub}: -${pkt} pkt oraz grzywna finansowa ${kasa.toLocaleString()} PLN wpłynęła do budżetu związku.`;
                 dodajLog(komunikat);
                 dodajWydarzenieMeczowe(`[SANKCJA] ${komunikat}`);
-                zmienWidok('tabela');
+                odswiezUI();
             }
         }
 
@@ -755,7 +757,6 @@
             liga1.sort((a, b) => b[1].punkty - a[1].punkty);
             liga2.sort((a, b) => b[1].punkty - a[1].punkty);
 
-            // Spadek z Ekstraklase do 1. Ligi (ostatnie 3 zespoły)
             if (ekstr.length >= 3 && liga1.length > 0) {
                 let s1 = ekstr[ekstr.length - 1][0];
                 let s2 = ekstr[ekstr.length - 2][0];
@@ -766,7 +767,6 @@
                 dodajLog(`🔻 Spadek z Ekstraklasy do 1. Ligi: ${s1}, ${s2}, ${s3}`);
             }
 
-            // Awans z 1. Ligi do Ekstraklasy (pierwsze 3 zespoły) oraz spadki do 2. Ligi (ostatnie 3 zespoły)
             if (liga1.length >= 3) {
                 let a1 = liga1[0][0];
                 let a2 = liga1[1][0];
@@ -785,7 +785,6 @@
                 dodajLog(`🔻 Spadek z 1. Ligi do 2. Ligi: ${s1_1l}, ${s2_1l}, ${s3_1l}`);
             }
 
-            // Awans z 2. Ligi do 1. Ligi (pierwsze 3 zespoły)
             if (liga2.length >= 3) {
                 let a1_2l = liga2[0][0];
                 let a2_2l = liga2[1][0];
@@ -796,7 +795,6 @@
                 dodajLog(`🚀 Awans z 2. Ligi do 1. Ligi: ${a1_2l}, ${a2_2l}, ${a3_2l}`);
             }
 
-            // Reset punktów i bramek na nowy sezon
             for (let k in stan.kluby) {
                 stan.kluby[k].punkty = 0;
                 stan.kluby[k].bramki_strzelone = 0;
