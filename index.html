@@ -1,66 +1,313 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-  <meta charset="UTF-8">
-  <title>Company Empire</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tech Empire Tycoon - GitHub Edition</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --accent: #38bdf8;
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --success: #4ade80;
+            --danger: #f87171;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            margin: 0;
+            color: var(--accent);
+            font-size: 2.5rem;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .card h2 {
+            margin-top: 0;
+            font-size: 1.25rem;
+            border-bottom: 2px solid #334155;
+            padding-bottom: 10px;
+            color: var(--accent);
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            font-size: 1.1rem;
+        }
+
+        .stat-value {
+            font-weight: bold;
+        }
+
+        .positive { color: var(--success); }
+        .negative { color: var(--danger); }
+
+        button {
+            background-color: var(--accent);
+            color: var(--bg-color);
+            border: none;
+            padding: 10px 16px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+            transition: opacity 0.2s;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        button:disabled {
+            background-color: #475569;
+            color: #94a3b8;
+            cursor: not-allowed;
+        }
+
+        .competitor-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .competitor-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #334155;
+        }
+
+        .log-box {
+            background-color: #090d16;
+            padding: 10px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 0.9rem;
+            height: 100px;
+            overflow-y: auto;
+            color: var(--text-muted);
+            margin-top: 15px;
+        }
+    </style>
 </head>
 <body>
 
-<div class="app">
+    <header>
+        <h1>Tech Empire Tycoon</h1>
+        <p>Zbuduj cyfrowego giganta i zdominuj rynek! (Projekt Open Source)</p>
+    </header>
 
-  <!-- Sidebar -->
-  <aside class="sidebar">
-    <h2>🏢 Empire</h2>
-    <button onclick="showTab('dashboard')">📊 Dashboard</button>
-    <button onclick="showTab('actions')">⚙️ Akcje</button>
-    <button onclick="showTab('stats')">📈 Statystyki</button>
-    <button onclick="showTab('log')">📜 Log</button>
-  </aside>
+    <div class="dashboard">
+        <!-- Panel Finansowy Gracza -->
+        <div class="card">
+            <h2>Twoja Korporacja</h2>
+            <div class="stat-row">
+                <span>Gotówka:</span>
+                <span id="cash" class="stat-value positive">$10,000</span>
+            </div>
+            <div class="stat-row">
+                <span>Przychód / sek:</span>
+                <span id="income" class="stat-value positive">$0</span>
+            </div>
+            <div class="stat-row">
+                <span>Koszt serwerów:</span>
+                <span id="server-cost" class="stat-value negative">$0</span>
+            </div>
+            <div class="stat-row">
+                <span>Programiści:</span>
+                <span id="devs" class="stat-value">0</span>
+            </div>
+            <div class="stat-row">
+                <span>Serwery:</span>
+                <span id="servers" class="stat-value">1</span>
+            </div>
+            
+            <button onclick="hireDev()">Zatrudnij Programistę ($1,000)</button>
+            <button onclick="buyServer()">Kup Serwer ($2,500)</button>
+        </div>
 
-  <!-- Main -->
-  <main class="main">
+        <!-- Akcje i Rozwój -->
+        <div class="card">
+            <h2>Rozwój Produktu</h2>
+            <p>Twoi programiści generują kod i przychód bazowy. Serwery pozwalają obsługiwać więcej użytkowników.</p>
+            <div class="stat-row">
+                <span>Baza użytkowników:</span>
+                <span id="users" class="stat-value">0</span>
+            </div>
+            <div class="stat-row">
+                <span>Hype / Marketing:</span>
+                <span id="hype" class="stat-value">10%</span>
+            </div>
+            <button onclick="runMarketing()">Kampania Marketingowa ($500)</button>
+            
+            <div class="log-box" id="game-log">
+                [00:00] Rozpoczęto działalność w garażu. Powodzenia!
+            </div>
+        </div>
 
-    <!-- Topbar -->
-    <div class="topbar">
-      <span>💰 <span id="money">1000</span></span>
-      <span>👨‍💻 <span id="employees">1</span></span>
-      <span>⭐ <span id="reputation">50</span></span>
+        <!-- Konkurencja AI (Giełda) -->
+        <div class="card">
+            <h2>Giełda i Konkurencja</h2>
+            <ul class="competitor-list" id="competitors-list">
+                <!-- Generowane przez JS -->
+            </ul>
+        </div>
     </div>
 
-    <!-- Dashboard -->
-    <section id="dashboard" class="tab active">
-      <h1>Dashboard</h1>
-      <p>Rozwijaj swoją firmę i zostań gigantem rynku 🚀</p>
-    </section>
+    <script>
+        // Stan Gry
+        const game = {
+            cash: 10000,
+            devs: 0,
+            servers: 1,
+            users: 0,
+            hype: 10,
+            serverCostPerUnit: 50,
+            devIncome: 15,
+            competitors: [
+                { name: "Meta", marketCap: 1200000, growth: 1.02 },
+                { name: "Microsoft", marketCap: 2500000, growth: 1.015 },
+                { name: "Amazon", marketCap: 1800000, growth: 1.018 },
+                { name: "Ekipa Holding", marketCap: 150000, growth: 0.98 } // bywa różnie z hypem ;)
+            ]
+        };
 
-    <!-- Actions -->
-    <section id="actions" class="tab">
-      <h1>Akcje</h1>
-      <button onclick="developProduct()">📦 Stwórz produkt</button>
-      <button onclick="hireEmployee()">👨‍💻 Zatrudnij pracownika</button>
-      <button onclick="marketing()">📢 Marketing</button>
-      <button onclick="nextTurn()">➡️ Następna tura</button>
-    </section>
+        // UI Elements
+        const cashEl = document.getElementById('cash');
+        const incomeEl = document.getElementById('income');
+        const serverCostEl = document.getElementById('server-cost');
+        const devsEl = document.getElementById('devs');
+        const serversEl = document.getElementById('servers');
+        const usersEl = document.getElementById('users');
+        const hypeEl = document.getElementById('hype');
+        const competitorsListEl = document.getElementById('competitors-list');
+        const logBox = document.getElementById('game-log');
 
-    <!-- Stats -->
-    <section id="stats" class="tab">
-      <h1>Statystyki</h1>
-      <p>Pieniądze: <span id="money2">1000</span></p>
-      <p>Pracownicy: <span id="employees2">1</span></p>
-      <p>Reputacja: <span id="reputation2">50</span></p>
-    </section>
+        function log(message) {
+            const time = new Date().toLocaleTimeString();
+            logBox.innerHTML += `<br>[${time}] ${message}`;
+            logBox.scrollTop = logBox.scrollHeight;
+        }
 
-    <!-- Log -->
-    <section id="log" class="tab">
-      <h1>Log wydarzeń</h1>
-      <ul id="logList"></ul>
-    </section>
+        function updateUI() {
+            cashEl.innerText = `$${Math.floor(game.cash).toLocaleString()}`;
+            
+            const grossIncome = game.devs * game.devIncome * (1 + game.hype / 100);
+            const totalServerCost = game.servers * game.serverCostPerUnit;
+            const netIncome = grossIncome - totalServerCost;
 
-  </main>
+            incomeEl.innerText = `$${netIncome.toFixed(1)}`;
+            incomeEl.className = `stat-value ${netIncome >= 0 ? 'positive' : 'negative'}`;
 
-</div>
+            serverCostEl.innerText = `$${totalServerCost}`;
+            devsEl.innerText = game.devs;
+            serversEl.innerText = game.servers;
+            usersEl.innerText = Math.floor(game.users).toLocaleString();
+            hypeEl.innerText = `${game.hype}%`;
 
-<script src="script.js"></script>
+            // Renderowanie listy konkurencji
+            competitorsListEl.innerHTML = '';
+            game.competitors.forEach(comp => {
+                competitorsListEl.innerHTML += `
+                    <li class="competitor-item">
+                        <span>${comp.name}</span>
+                        <span class="positive">$${Math.floor(comp.marketCap).toLocaleString()}</span>
+                    </li>
+                `;
+            });
+        }
+
+        function hireDev() {
+            const cost = 1000;
+            if (game.cash >= cost) {
+                game.cash -= cost;
+                game.devs += 1;
+                log("Zatrudniono nowego programistę.");
+                updateUI();
+            } else {
+                alert("Za mało gotówki!");
+            }
+        }
+
+        function buyServer() {
+            const cost = 2500;
+            if (game.cash >= cost) {
+                game.cash -= cost;
+                game.servers += 1;
+                log("Dokupiono nową szafę serwerową.");
+                updateUI();
+            } else {
+                alert("Za mało gotówki!");
+            }
+        }
+
+        function runMarketing() {
+            const cost = 500;
+            if (game.cash >= cost) {
+                game.cash -= cost;
+                game.hype += 5;
+                log("Przeprowadzono kampanię marketingową (+5% Hype).");
+                updateUI();
+            } else {
+                alert("Za mało gotówki!");
+            }
+        }
+
+        // Główna Pętla Gry (Tick co 1 sekundę)
+        function gameTick() {
+            // Obliczenia finansowe
+            const grossIncome = game.devs * game.devIncome * (1 + game.hype / 100);
+            const totalServerCost = game.servers * game.serverCostPerUnit;
+            const netIncome = grossIncome - totalServerCost;
+
+            game.cash += netIncome;
+            if (game.cash < 0) game.cash = 0;
+
+            // Przyrost użytkowników zależny od devów i hypu
+            game.users += game.devs * 12 * (game.hype / 50);
+
+            // Symulacja zmian u konkurencji
+            game.competitors.forEach(comp => {
+                const fluctuation = (Math.random() * 0.1) - 0.04; // -4% do +6%
+                comp.marketCap *= (1 + fluctuation);
+            });
+
+            updateUI();
+        }
+
+        // Start pętli
+        setInterval(gameTick, 1000);
+        updateUI();
+    </script>
 </body>
 </html>
