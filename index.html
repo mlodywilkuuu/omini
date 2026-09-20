@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Symulator Zarządzania Ligą Futsalu</title>
+    <title>Zaawansowany Symulator Zarządzania Ligą</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex flex-col md:flex-row">
@@ -12,28 +12,37 @@
     <aside class="w-full md:w-72 bg-slate-900 border-r border-slate-800 p-6 flex flex-col justify-between shrink-0 shadow-2xl">
         <div class="space-y-6">
             <div>
-                <h1 class="text-xl font-bold tracking-wide text-emerald-400">Ekstraklasa Futsalu</h1>
-                <p class="text-xs text-slate-400 mt-1">Prezydent Związku: <span class="text-slate-200 font-medium">Jan Kowalski</span></p>
+                <h1 id="tytul-ligi" class="text-xl font-bold tracking-wide text-emerald-400">Ekstraklasa Futsalu</h1>
+                <p class="text-xs text-slate-400 mt-1">Prezydent: <span class="text-slate-200 font-medium">Jan Kowalski</span></p>
             </div>
 
-            <nav class="space-y-2">
-                <button onclick="symulujKolejke()" id="btn-symuluj" class="w-full bg-emerald-600 hover:bg-emerald-500 font-semibold p-3 rounded-xl transition shadow-lg flex items-center gap-3 text-left">
-                    <span>⚽</span> Symuluj Kolejkę
+            <nav class="space-y-2 text-sm">
+                <button onclick="zmienWidok('tabela')" id="nav-tabela" class="w-full bg-emerald-600 hover:bg-emerald-500 font-semibold p-3 rounded-xl transition shadow-lg text-left flex items-center gap-3">
+                    <span>🏆</span> Tabela i Rozgrywki
                 </button>
-                <button onclick="pokazFinanse()" class="w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 font-medium p-3 rounded-xl transition shadow-lg flex items-center gap-3 text-left">
+                <button onclick="zmienWidok('finanse')" id="nav-finanse" class="w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 font-medium p-3 rounded-xl transition text-left flex items-center gap-3">
                     <span>💰</span> Finanse i Sponsorzy
                 </button>
-                <button onclick="pokazRegulamin()" class="w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 font-medium p-3 rounded-xl transition shadow-lg flex items-center gap-3 text-left">
-                    <span>⚖️</span> Komisja Ligi i Sędziowie
+                <button onclick="zmienWidok('kontrakty')" id="nav-kontrakty" class="w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 font-medium p-3 rounded-xl transition text-left flex items-center gap-3">
+                    <span>📝</span> Negocjacje Kontraktów
                 </button>
-                <button onclick="pokazKlubyMenu()" class="w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 font-medium p-3 rounded-xl transition shadow-lg flex items-center gap-3 text-left">
-                    <span>🏟️</span> Dotacje i Licencje
+                <button onclick="zmienWidok('sedziowie')" id="nav-sedziowie" class="w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 font-medium p-3 rounded-xl transition text-left flex items-center gap-3">
+                    <span>🚩</span> Sędziowie i Mecze
+                </button>
+                <button onclick="zmienWidok('kary')" id="nav-kary" class="w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 font-medium p-3 rounded-xl transition text-left flex items-center gap-3">
+                    <span>⚖️</span> Komisja i Kary
+                </button>
+                <button onclick="zmienWidok('licencje')" id="nav-licencje" class="w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 font-medium p-3 rounded-xl transition text-left flex items-center gap-3">
+                    <span>🛡️</span> Licencje Klubowe
+                </button>
+                <button onclick="zmienWidok('zarzadzanie')" id="nav-zarzadzanie" class="w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 font-medium p-3 rounded-xl transition text-left flex items-center gap-3">
+                    <span>⚙️</span> Kluby i Ligi
                 </button>
             </nav>
         </div>
 
         <div class="pt-6 border-t border-slate-800 mt-6">
-            <button onclick="resetujGre()" class="w-full bg-rose-900/40 hover:bg-rose-900/60 border border-rose-800 text-rose-300 font-medium p-3 rounded-xl transition shadow-lg text-center">
+            <button onclick="resetujGre()" class="w-full bg-rose-900/40 hover:bg-rose-900/60 border border-rose-800 text-rose-300 font-medium p-3 rounded-xl transition text-center">
                 🔄 Resetuj Sezon
             </button>
         </div>
@@ -42,326 +51,257 @@
     <!-- Główna zawartość ekranu -->
     <main class="flex-1 p-4 md:p-8 space-y-6 overflow-y-auto">
         
-        <!-- Pasek statystyk głównych -->
-        <header class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
+        <!-- Pasek statystyk -->
+        <header class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl grid grid-cols-1 sm:grid-cols-4 gap-4 text-center">
             <div class="bg-slate-800/60 px-4 py-3 rounded-xl border border-slate-700/50">
-                <span class="block text-xs text-slate-400 uppercase tracking-wider">Kolejka</span>
+                <span class="block text-xs text-slate-400 uppercase">Kolejka</span>
                 <span id="stat-kolejka" class="text-xl font-bold text-amber-400">1 / 10</span>
             </div>
             <div class="bg-slate-800/60 px-4 py-3 rounded-xl border border-slate-700/50">
-                <span class="block text-xs text-slate-400 uppercase tracking-wider">Reputacja Ligi</span>
+                <span class="block text-xs text-slate-400 uppercase">Reputacja</span>
                 <span id="stat-reputacja" class="text-xl font-bold text-sky-400">65/100</span>
             </div>
             <div class="bg-slate-800/60 px-4 py-3 rounded-xl border border-slate-700/50">
-                <span class="block text-xs text-slate-400 uppercase tracking-wider">Budżet Związku</span>
+                <span class="block text-xs text-slate-400 uppercase">Budżet Związku</span>
                 <span id="stat-budzet" class="text-xl font-bold text-emerald-400">15,000,000 PLN</span>
+            </div>
+            <div class="bg-slate-800/60 px-4 py-3 rounded-xl border border-slate-700/50 flex items-center justify-center">
+                <button onclick="symulujKolejke()" id="btn-symuluj" class="w-full bg-emerald-600 hover:bg-emerald-500 font-bold py-2 px-4 rounded-xl transition shadow">
+                    ⚽ Symuluj Kolejkę
+                </button>
             </div>
         </header>
 
-        <!-- Sekcja Tabela i Wydarzenia -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            
-            <!-- Tabela Ligowa -->
-            <div class="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
-                <h2 class="text-lg font-bold mb-4 text-slate-200">Tabela Ligowa</h2>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse text-sm">
-                        <thead>
-                            <tr class="border-b border-slate-800 text-slate-400">
-                                <th class="py-2 px-2">Poz</th>
-                                <th class="py-2 px-2">Klub</th>
-                                <th class="py-2 px-2 text-center">M</th>
-                                <th class="py-2 px-2 text-center">Pkt</th>
-                                <th class="py-2 px-2 text-center">BZ:BS</th>
-                                <th class="py-2 px-2 text-right">Budżet</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tabela-body">
-                            <!-- Dynamiczne wiersze -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Dziennik / Wydarzenia -->
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col">
-                <h2 class="text-lg font-bold mb-4 text-slate-200">Wydarzenia</h2>
-                <div id="logi-kontener" class="bg-slate-950 border border-slate-800 rounded-xl p-4 flex-1 text-xs text-slate-300 space-y-2 overflow-y-auto max-h-[350px]">
-                    <p class="text-slate-500">Rozpoczął się nowy sezon rozgrywek. Zarządzaj ligą mądrze!</p>
-                </div>
-            </div>
-
+        <!-- Dynamiczny Widok / Ekran -->
+        <div id="widok-kontener" class="space-y-6">
+            <!-- Wypełniane przez JavaScript -->
         </div>
 
     </main>
 
-    <!-- Modal Interaktywny -->
-    <div id="modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 max-w-lg w-full shadow-2xl space-y-4">
-            <h3 id="modal-tytul" class="text-xl font-bold text-slate-100">Tytuł</h3>
-            <div id="modal-tresc" class="text-sm text-slate-300 space-y-3"></div>
-            <div class="flex justify-end pt-2">
-                <button onclick="zamknijModal()" class="bg-slate-800 hover:bg-slate-700 px-4 py-2 rounded-xl font-medium transition">Zamknij</button>
-            </div>
-        </div>
-    </div>
-
     <script>
         let stan = {
+            aktualnaLiga: "Ekstraklasa Futsalu",
+            ligi: ["Ekstraklasa Futsalu", "1. Liga Futsalu - Grupa Wschód", "1. Liga Futsalu - Grupa Zachód"],
             kolejka: 1,
             budzet_centralny: 15000000,
             reputacja: 65,
+            aktywnyWidok: 'tabela',
             kluby: {
-                "Legion Białystok": { punkty: 0, bramki_strzelone: 0, bramki_stracone: 0, budzet: 2500000, forma: 3 },
-                "Super Strikers": { punkty: 0, bramki_strzelone: 0, bramki_stracone: 0, budzet: 2200000, forma: 3 },
-                "FC Dinamo Wrocław": { punkty: 0, bramki_strzelone: 0, bramki_stracone: 0, budzet: 3000000, forma: 3 },
-                "Jagiellonia Futsal": { punkty: 0, bramki_strzelone: 0, bramki_stracone: 0, budzet: 3500000, forma: 3 },
-                "Orły Warszawa": { punkty: 0, bramki_strzelone: 0, bramki_stracone: 0, budzet: 2800000, forma: 3 },
-                "Błękitni Poznań": { punkty: 0, bramki_strzelone: 0, bramki_stracone: 0, budzet: 2000000, forma: 3 }
+                "Legion Białystok": { punkty: 0, bramki_strzelone: 0, bramki_stracone: 0, budzet: 2500000, forma: 3, licencja: true, liga: "Ekstraklasa Futsalu" },
+                "Super Strikers": { punkty: 0, bramki_strzelone: 0, bramki_stracone: 0, budzet: 2200000, forma: 3, licencja: true, liga: "Ekstraklasa Futsalu" },
+                "FC Dinamo Wrocław": { punkty: 0, bramki_strzelone: 0, bramki_stracone: 0, budzet: 3000000, forma: 3, licencja: true, liga: "Ekstraklasa Futsalu" },
+                "Jagiellonia Futsal": { punkty: 0, bramki_strzelone: 0, bramki_stracone: 0, budzet: 3500000, forma: 3, licencja: true, liga: "Ekstraklasa Futsalu" },
+                "Orły Warszawa": { punkty: 0, bramki_strzelone: 0, bramki_stracone: 0, budzet: 2800000, forma: 3, licencja: true, liga: "Ekstraklasa Futsalu" },
+                "Błękitni Poznań": { punkty: 0, bramki_strzelone: 0, bramki_stracone: 0, budzet: 2000000, forma: 3, licencja: true, liga: "Ekstraklasa Futsalu" }
             },
-            sponsorzy: {
-                "Główny Sponsor (BetPol)": 3000000,
-                "Sponsor Techniczny (Sportwear)": 1500000,
-                "Partner Medyczny (MediCare)": 800000
-            }
+            kontrakty: [
+                { id: 1, nazwa: "Sponsor Główny (BetPol)", typ: "sponsor", zyskNaKolejke: 300000, pozostałoKolejek: 6 },
+                { id: 2, nazwa: "Prawa Telewizyjne (Polsat Sport)", typ: "tv", zyskNaKolejke: 500000, pozostałoKolejek: 4 },
+                { id: 3, nazwa: "Sponsor Techniczny (Sportwear)", typ: "sponsor", zyskNaKolejke: 150000, pozostałoKolejek: 8 }
+            ],
+            sedziowie: [
+                { id: 1, imie: "Pomas Sędzia (FIFA)", poziom: "Wysoki", kontrowersje: "Niskie", przypisanyMecz: null },
+                { id: 2, imie: "Jan Frankowski", poziom: "Średni", kontrowersje: "Średnie", przypisanyMecz: null },
+                { id: 3, imie: "Tomasz Kwiatkowski", poziom: "Wysoki", kontrowersje: "Niskie", przypisanyMecz: null },
+                { id: 4, imie: "Krzysztof Jakubik", poziom: "Niski", kontrowersje: "Wysokie", przypisanyMecz: null }
+            ],
+            przypisaniaMeczow: {}, // klucz: index pary, wartość: id sędziego
+            logi: ["Rozpoczął się nowy sezon rozgrywek ligowych."]
         };
+
+        function zmienWidok(widok) {
+            stan.aktywnyWidok = widok;
+            document.querySelectorAll('aside nav button').forEach(b => {
+                b.classList.remove('bg-emerald-600', 'font-semibold');
+                b.classList.add('bg-slate-800', 'font-medium');
+            });
+            let aktywnyBtn = document.getElementById('nav-' + widok);
+            if (aktywnyBtn) {
+                aktywnyBtn.classList.remove('bg-slate-800', 'font-medium');
+                aktywnyBtn.classList.add('bg-emerald-600', 'font-semibold');
+            }
+            renderujWidok();
+        }
 
         function odswiezUI() {
             document.getElementById('stat-kolejka').innerText = `${stan.kolejka} / 10`;
             document.getElementById('stat-reputacja').innerText = `${stan.reputacja}/100`;
             document.getElementById('stat-budzet').innerText = stan.budzet_centralny.toLocaleString() + " PLN";
-
-            let tbody = document.getElementById('tabela-body');
-            tbody.innerHTML = '';
-
-            let posortowane = Object.entries(stan.kluby).sort((a, b) => {
-                let pktA = a[1].punkty, pktB = b[1].punkty;
-                if (pktA !== pktB) return pktB - pktA;
-                let bilansA = a[1].bramki_strzelone - a[1].bramki_stracone;
-                let bilansB = b[1].bramki_strzelone - b[1].bramki_stracone;
-                if (bilansA !== bilansB) return bilansB - bilansA;
-                return b[1].bramki_strzelone - a[1].bramki_strzelone;
-            });
-
-            posortowane.forEach(([nazwa, dane], idx) => {
-                let bilans = dane.bramki_strzelone - dane.bramki_stracone;
-                let row = `<tr class="border-b border-slate-800/50 hover:bg-slate-800/30">
-                    <td class="py-3 px-2 font-semibold text-slate-400">${idx + 1}</td>
-                    <td class="py-3 px-2 font-medium text-slate-200">${nazwa}</td>
-                    <td class="py-3 px-2 text-center text-slate-400">${stan.kolejka - 1}</td>
-                    <td class="py-3 px-2 text-center font-bold text-emerald-400">${dane.punkty}</td>
-                    <td class="py-3 px-2 text-center text-slate-300">${dane.bramki_strzelone}:${dane.bramki_stracone} (${bilans > 0 ? '+' + bilans : bilans})</td>
-                    <td class="py-3 px-2 text-right text-slate-400">${(dane.budzet / 1000000).toFixed(1)}M PLN</td>
-                </tr>`;
-                tbody.innerHTML += row;
-            });
-
-            if (stan.kolejka > 10) {
-                let btn = document.getElementById('btn-symuluj');
-                btn.disabled = true;
-                btn.classList.add('opacity-50', 'cursor-not-allowed');
-                dodajLog("🏆 Sezon dobiegł końca! Sprawdź ostateczną tabelę ligową.");
-            }
+            document.getElementById('tytul-ligi').innerText = stan.aktualnaLiga;
+            renderujWidok();
         }
 
         function dodajLog(tekst) {
-            let kontener = document.getElementById('logi-kontener');
-            kontener.innerHTML += `<p class="border-l-2 border-emerald-500 pl-2 py-0.5">${tekst}</p>`;
-            kontener.scrollTop = kontener.scrollHeight;
+            stan.logi.unshift(tekst);
+            if (stan.logi.length > 25) stan.logi.pop();
         }
 
-        function symulujKolejke() {
-            if (stan.kolejka > 10) return;
+        function renderujWidok() {
+            let kontener = document.getElementById('widok-kontener');
+            kontener.innerHTML = '';
 
-            let klubyLista = Object.keys(stan.kluby);
-            for (let i = klubyLista.length - 1; i > 0; i--) {
-                let j = Math.floor(Math.random() * (i + 1));
-                [klubyLista[i], klubyLista[j]] = [klubyLista[j], klubyLista[i]];
-            }
-
-            let wynikiTekst = `<strong>Wyniki kolejki ${stan.kolejka}:</strong><br>`;
-            for (let i = 0; i < klubyLista.length; i += 2) {
-                let g = klubyLista[i];
-                let as = klubyLista[i+1];
-
-                let gBramki = Math.floor(Math.random() * 5) + (stan.kluby[g].forma > 3 ? 1 : 0);
-                let asBramki = Math.floor(Math.random() * 5) + (stan.kluby[as].forma > 3 ? 1 : 0);
-
-                stan.kluby[g].bramki_strzelone += gBramki;
-                stan.kluby[g].bramki_stracone += asBramki;
-                stan.kluby[as].bramki_strzelone += asBramki;
-                stan.kluby[as].bramki_stracone += gBramki;
-
-                if (gBramki > asBramki) {
-                    stan.kluby[g].punkty += 3;
-                } else if (asBramki > gBramki) {
-                    stan.kluby[as].punkty += 3;
-                } else {
-                    stan.kluby[g].punkty += 1;
-                    stan.kluby[as].punkty += 1;
-                }
-
-                wynikiTekst += `🏟️ ${g} ${gBramki} : ${asBramki} ${as}<br>`;
-            }
-
-            dodajLog(wynikiTekst);
-
-            let los = Math.floor(Math.random() * 4) + 1;
-            if (los === 1) {
-                stan.budzet_centralny += 50000;
-                dodajLog("ℹ️ Komisja nałożyła kary finansowe na zawodników (+50,000 PLN).");
-            } else if (los === 2) {
-                stan.reputacja = Math.min(100, stan.reputacja + 2);
-                dodajLog("ℹ️ Świetny poziom meczów podniósł reputację ligi!");
-            } else if (los === 3) {
-                stan.reputacja = Math.max(10, stan.reputacja - 2);
-                dodajLog("ℹ️ Skandal sędziowski w jednej z hal! Spadek reputacji.");
-            }
-
-            stan.kolejka++;
-            odswiezUI();
-        }
-
-        function pokazFinanse() {
-            otworzModal("Finanse i Marketing", `
-                <p class="text-slate-400">Dostępne środki związku: <strong class="text-emerald-400">${stan.budzet_centralny.toLocaleString()} PLN</strong></p>
-                <div class="space-y-2 py-2">
-                    <button onclick="negocjujSponsorow()" class="w-full bg-slate-800 hover:bg-slate-700 p-3 rounded-xl text-left transition flex justify-between items-center">
-                        <span>🤝 Negocjuj nowe umowy sponsorskie</span>
-                        <span class="text-xs text-slate-400">Koszt: 200k PLN</span>
-                    </button>
-                    <button onclick="kampaniaPromocyjna()" class="w-full bg-slate-800 hover:bg-slate-700 p-3 rounded-xl text-left transition flex justify-between items-center">
-                        <span>📈 Ogólnokrajowa kampania promocyjna (+5 reputacji)</span>
-                        <span class="text-xs text-slate-400">Koszt: 500k PLN</span>
-                    </button>
-                    <button onclick="wplacKlubom()" class="w-full bg-slate-800 hover:bg-slate-700 p-3 rounded-xl text-left transition flex justify-between items-center">
-                        <span>💰 Wypłać dywidendę klubom (po 100k dla każdego)</span>
-                        <span class="text-xs text-slate-400">Koszt zależny</span>
-                    </button>
-                </div>
-            `);
-        }
-
-        function negocjujSponsorow() {
-            if (stan.budzet_centralny >= 200000) {
-                stan.budzet_centralny -= 200000;
-                let zysk = Math.floor(Math.random() * 1000000) + 500000;
-                stan.budzet_centralny += zysk;
-                dodajLog(`🎉 Pozyskano nowego sponsora! Zysk netto: ${(zysk - 200000).toLocaleString()} PLN`);
-                zamknijModal();
-                odswiezUI();
-            } else {
-                alert("Za mało środków!");
-            }
-        }
-
-        function kampaniaPromocyjna() {
-            if (stan.budzet_centralny >= 500000) {
-                stan.budzet_centralny -= 500000;
-                stan.reputacja = Math.min(100, stan.reputacja + 5);
-                dodajLog("📈 Kampania medialna przyciągnęła uwagę kibiców. Reputacja wzrosła.");
-                zamknijModal();
-                odswiezUI();
-            } else {
-                alert("Za mało środków!");
-            }
-        }
-
-        function wplacKlubom() {
-            let koszt = Object.keys(stan.kluby).length * 100000;
-            if (stan.budzet_centralny >= koszt) {
-                stan.budzet_centralny -= koszt;
-                for (let k in stan.kluby) stan.kluby[k].budzet += 100000;
-                dodajLog("🤝 Wsparto wszystkie kluby kwotą po 100,000 PLN.");
-                zamknijModal();
-                odswiezUI();
-            } else {
-                alert("Brak wystarczających środków w budżecie centralnym!");
-            }
-        }
-
-        function pokazRegulamin() {
-            otworzModal("Komisja Ligi i Sędziowie", `
-                <div class="space-y-2">
-                    <button onclick="szkolenieVar()" class="w-full bg-slate-800 hover:bg-slate-700 p-3 rounded-xl text-left transition flex justify-between items-center">
-                        <span>🎯 Przeprowadź szkolenie VAR / Popraw sędziowanie</span>
-                        <span class="text-xs text-slate-400">300k PLN</span>
-                    </button>
-                    <div class="pt-2">
-                        <p class="text-xs text-slate-400 mb-2">Nałóż karę regulaminową (-1 pkt) na wybrany klub:</p>
-                        <div class="grid grid-cols-2 gap-2">
-                            ${Object.keys(stan.kluby).map(k => `<button onclick="ukarajKlub('${k}')" class="bg-slate-800 hover:bg-slate-700 p-2 rounded-lg text-xs text-left">${k}</button>`).join('')}
+            if (stan.aktywnyWidok === 'tabela') {
+                kontener.innerHTML = `
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
+                            <div class="flex justify-between items-center mb-4">
+                                <h2 class="text-lg font-bold text-slate-200">Tabela: ${stan.aktualnaLiga}</h2>
+                                <select onchange="zmienlige(this.value)" class="bg-slate-800 border border-slate-700 text-sm rounded-lg px-3 py-1.5 text-slate-200">
+                                    ${stan.ligi.map(l => `<option value="${l}" ${l === stan.aktualnaLiga ? 'selected' : ''}>${l}</option>`).join('')}
+                                </select>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left border-collapse text-sm">
+                                    <thead>
+                                        <tr class="border-b border-slate-800 text-slate-400">
+                                            <th class="py-2 px-2">Poz</th>
+                                            <th class="py-2 px-2">Klub</th>
+                                            <th class="py-2 px-2 text-center">M</th>
+                                            <th class="py-2 px-2 text-center">Pkt</th>
+                                            <th class="py-2 px-2 text-center">Bilans</th>
+                                            <th class="py-2 px-2 text-right">Licencja</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${generujWierszeTabeli()}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col">
+                            <h2 class="text-lg font-bold mb-4 text-slate-200">Dziennik Wydarzeń</h2>
+                            <div class="bg-slate-950 border border-slate-800 rounded-xl p-4 flex-1 text-xs text-slate-300 space-y-2 overflow-y-auto max-h-[380px]">
+                                ${stan.logi.map(l => `<p class="border-l-2 border-emerald-500 pl-2 py-0.5">${l}</p>`).join('')}
+                            </div>
                         </div>
                     </div>
-                </div>
-            `);
-        }
-
-        function szkolenieVar() {
-            if (stan.budzet_centralny >= 300000) {
-                stan.budzet_centralny -= 300000;
-                stan.reputacja = Math.min(100, stan.reputacja + 3);
-                dodajLog("✅ Szkolenie sędziów poprawiło jakość gwizdków. Wzrosła reputacja.");
-                zamknijModal();
-                odswiezUI();
-            } else {
-                alert("Za mało środków!");
-            }
-        }
-
-        function ukarajKlub(klub) {
-            stan.kluby[klub].punkty = Math.max(0, stan.kluby[klub].punkty - 1);
-            stan.budzet_centralny += 50000;
-            dodajLog(`⚖️ Klub ${klub} ukarany odebraniem 1 punktu i grzywną 50k PLN.`);
-            zamknijModal();
-            odswiezUI();
-        }
-
-        function pokazKlubyMenu() {
-            otworzModal("Dotacje Infrastrukturalne", `
-                <p class="text-xs text-slate-400 mb-3">Przekaż dotację celową (300,000 PLN), aby podnieść formę klubu:</p>
-                <div class="space-y-2">
-                    ${Object.entries(stan.kluby).map(([k, d]) => `
-                        <div class="flex justify-between items-center bg-slate-800 p-2 rounded-lg text-xs">
-                            <span>${k} (Forma:${d.forma}/5)</span>
-                            <button onclick="dajDotacje('${k}')" class="bg-emerald-600 hover:bg-emerald-500 px-3 py-1 rounded font-medium">Dotuj</button>
+                `;
+            } else if (stan.aktywnyWidok === 'finanse') {
+                kontener.innerHTML = `
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-6">
+                        <h2 class="text-xl font-bold text-slate-100">Zarządzanie Finansami i Marketingiem</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="bg-slate-800/50 border border-slate-700 p-4 rounded-xl">
+                                <h3 class="font-semibold text-emerald-400 mb-2">Pakiet Medialny TV</h3>
+                                <p class="text-xs text-slate-300 mb-4">Zainwestuj w nowoczesny sprzęt transmisyjny, aby podnieść atrakcyjność ligi.</p>
+                                <button onclick="inwestujFinanse('tv')" class="w-full bg-emerald-600 hover:bg-emerald-500 py-2 rounded-lg text-sm font-medium">Inwestuj (1.000.000 PLN)</button>
+                            </div>
+                            <div class="bg-slate-800/50 border border-slate-700 p-4 rounded-xl">
+                                <h3 class="font-semibold text-sky-400 mb-2">Kampania Wizerunkowa</h3>
+                                <p class="text-xs text-slate-300 mb-4">Ogólnokrajowa akcja marketingowa zwiększająca reputację organizacji (+8 pkt).</p>
+                                <button onclick="inwestujFinanse('marketing')" class="w-full bg-sky-600 hover:bg-sky-500 py-2 rounded-lg text-sm font-medium">Kup Kampanię (750.000 PLN)</button>
+                            </div>
+                            <div class="bg-slate-800/50 border border-slate-700 p-4 rounded-xl">
+                                <h3 class="font-semibold text-amber-400 mb-2">Gala Sezonu</h3>
+                                <p class="text-xs text-slate-300 mb-4">Organizacja prestiżowej gali nagród dla najlepszych zawodników i klubów.</p>
+                                <button onclick="inwestujFinanse('gala')" class="w-full bg-amber-600 hover:bg-amber-500 py-2 rounded-lg text-sm font-medium">Zorganizuj Galę (500.000 PLN)</button>
+                            </div>
                         </div>
-                    `).join('')}
-                </div>
-            `);
-        }
-
-        function dajDotacje(klub) {
-            if (stan.budzet_centralny >= 300000) {
-                stan.budzet_centralny -= 300000;
-                stan.kluby[klub].forma = Math.min(5, stan.kluby[klub].forma + 1);
-                dodajLog(`🏟️ Klub ${klub} doskonale wykorzystał dotację celową! Wzrosła forma drużyny.`);
-                zamknijModal();
-                odswiezUI();
-            } else {
-                alert("Brak środków w budżecie centralnym!");
-            }
-        }
-
-        function otworzModal(tytul, tresc) {
-            document.getElementById('modal-tytul').innerText = tytul;
-            document.getElementById('modal-tresc').innerHTML = tresc;
-            document.getElementById('modal').classList.remove('hidden');
-            document.getElementById('modal').classList.add('flex');
-        }
-
-        function zamknijModal() {
-            document.getElementById('modal').classList.remove('flex');
-            document.getElementById('modal').classList.add('hidden');
-        }
-
-        function resetujGre() {
-            if (confirm("Czy na pewno chcesz zresetować cały sezon ligowy?")) {
-                location.reload();
-            }
-        }
-
-        odswiezUI();
-    </script>
-</body>
-</html>
+                    </div>
+                `;
+            } else if (stan.aktywnyWidok === 'kontrakty') {
+                kontener.innerHTML = `
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-6">
+                        <h2 class="text-xl font-bold text-slate-100">Aktywne Kontrakty i Negocjacje</h2>
+                        <p class="text-xs text-slate-400">Kontrakty generują stały przychód co kolejkę. Gdy wygasną, możesz negocjować nowe umowy.</p>
+                        <div class="space-y-3">
+                            ${stan.kontrakty.map(k => `
+                                <div class="bg-slate-800 border border-slate-700 p-4 rounded-xl flex justify-between items-center">
+                                    <div>
+                                        <h4 class="font-bold text-slate-200">${k.nazwa}</h4>
+                                        <p class="text-xs text-emerald-400">Przychód: +${k.zyskNaKolejke.toLocaleString()} PLN / kolejkę</p>
+                                        <p class="text-xs text-amber-400">Pozostało kolejek: ${k.pozostałoKolejek}</p>
+                                    </div>
+                                    <button onclick="negocjujKontrakt(${k.id})" class="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-lg text-sm font-medium">Przedłuż / Renegocjuj</button>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div class="pt-4 border-t border-slate-800">
+                            <button onclick="szukajNowegoSponsora()" class="bg-emerald-600 hover:bg-emerald-500 px-5 py-2.5 rounded-xl font-medium text-sm">Szukaj Nowego Sponsora (Koszt: 300k PLN)</button>
+                        </div>
+                    </div>
+                `;
+            } else if (stan.aktywnyWidok === 'sedziowie') {
+                let paryMeczowe = generujParyMeczowe();
+                kontener.innerHTML = `
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-6">
+                        <h2 class="text-xl font-bold text-slate-100">Obsada Sędziowska na Kolejkę ${stan.kolejka}</h2>
+                        <p class="text-xs text-slate-400">Przypisz sędziów do nadchodzących meczów. Przypisani sędziowie znikną z poniższej listy wolnych.</p>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="space-y-3">
+                                <h3 class="font-semibold text-sm text-slate-300">Pary Meczowe tej kolejki:</h3>
+                                ${paryMeczowe.map((para, idx) => `
+                                    <div class="bg-slate-800/70 border border-slate-700 p-3 rounded-xl text-xs space-y-2">
+                                        <p class="font-bold text-emerald-400">Mecz ${idx+1}: ${para[0]} vs${para[1]}</p>
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-slate-400">Sędzia:</span>
+                                            <select onchange="przypiszSedziego(${idx}, this.value)" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 flex-1 text-slate-200">
+                                                <option value="">-- Wybierz sędziego --</option>
+                                                ${stan.sedziowie.filter(s => s.przypisanyMecz === null || s.przypisanyMecz === idx).map(s => `
+                                                    <option value="${s.id}" ${s.przypisanyMecz === idx ? 'selected' : ''}>${s.imie} (${s.poziom})</option>
+                                                `).join('')}
+                                            </select>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                            <div class="bg-slate-950 border border-slate-800 p-4 rounded-xl space-y-3">
+                                <h3 class="font-semibold text-sm text-slate-300">Dostępni Sędziowie w Związku:</h3>
+                                <div class="space-y-2">
+                                    ${stan.sedziowie.map(s => `
+                                        <div class="bg-slate-900 border border-slate-800 p-2 rounded-lg text-xs flex justify-between items-center">
+                                            <div>
+                                                <span class="font-medium text-slate-200">${s.imie}</span>
+                                                <p class="text-[10px] text-slate-400">Poziom: ${s.poziom} \vert{} Kontrowersje:${s.kontrowersje}</p>
+                                            </div>
+                                            <span class="px-2 py-1 rounded text-[10px] ${s.przypisanyMecz !== null ? 'bg-amber-900/50 text-amber-300 border border-amber-800' : 'bg-emerald-900/50 text-emerald-300 border border-emerald-800'}">
+                                                ${s.przypisanyMecz !== null ? 'Przypisany' : 'Wolny'}
+                                            </span>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if (stan.aktywnyWidok === 'kary') {
+                kontener.innerHTML = `
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-6 max-w-xl">
+                        <h2 class="text-xl font-bold text-slate-100">Komisja Dyscyplinarna - Nakładanie Kar</h2>
+                        <p class="text-xs text-slate-400">Wprowadź sankcje regulaminowe dla wybranego klubu za naruszenia i niesportowe zachowanie.</p>
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-xs text-slate-300 mb-1">Wybierz Klub:</label>
+                                <select id="kara-klub" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-sm text-slate-200">
+                                    ${Object.keys(stan.kluby).map(k => `<option value="${k}">${k}</option>`).join('')}
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs text-slate-300 mb-1">Odejmowane punkty:</label>
+                                <input type="number" id="kara-pkt" value="1" min="0" max="10" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-sm text-slate-200">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-slate-300 mb-1">Kara finansowa (PLN):</label>
+                                <input type="number" id="kara-kasa" value="50000" step="10000" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-sm text-slate-200">
+                            </div>
+                            <button onclick="zastosujKare()" class="w-full bg-rose-700 hover:bg-rose-600 py-3 rounded-xl font-medium text-sm transition">Nałóż Oficjalną Karę</button>
+                        </div>
+                    </div>
+                `;
+            } else if (stan.aktywnyWidok === 'licencje') {
+                kontener.innerHTML = `
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-6">
+                        <h2 class="text-xl font-bold text-slate-100">Zarządzanie Licencjami Klubowymi</h2>
+                        <p class="text-xs text-slate-400">Kluby bez ważnej licencji nie mogą brać udziału w oficjalnych rozgrywkach związku.</p>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            ${Object.entries(stan.kluby).map(([nazwa, dane]) => `
+                                <div class="bg-slate-800 border border-slate-700 p-4 rounded-xl flex justify-between items-center">
+                                    <div>
+                                        <h4 class="font-bold text-slate-200">${nazwa}</h4>
+                                        <p class="text-xs text-slate-400">Liga: ${dane.liga}</p>
+                                        <span class="inline-block mt-2 px-2 py-0.5 rounded text-[10px] font-semibold ${dane.licencja ? 'bg-emerald-900/50 text-emerald-300 border border-emerald-700' : 'bg-rose-900/50 text-rose-300 border border-rose-700'}">
+                                            ${dane.licencja ? 'Licencja aktywna'
