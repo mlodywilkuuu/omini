@@ -3,16 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Football League Manager - GitHub Edition</title>
+    <title>Football League Manager - Panel Zarządzania</title>
     <style>
         :root {
-            --bg-color: #064e3b;
-            --card-bg: #065f46;
-            --accent: #34d399;
-            --text: #ecfdf5;
-            --text-muted: #a7f3d0;
-            --success: #6ee7b7;
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --accent: #38bdf8;
+            --accent-hover: #0ea5e9;
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --success: #4ade80;
             --danger: #f87171;
+            --border: #334155;
         }
 
         body {
@@ -25,21 +27,61 @@
 
         header {
             text-align: center;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
 
         h1 {
             margin: 0;
             color: var(--accent);
-            font-size: 2.3rem;
+            font-size: 2.2rem;
         }
 
-        .container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 20px;
-            max-width: 1200px;
+        /* Menu / Przyciski Przełączania */
+        .nav-menu {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            background-color: var(--card-bg);
+            color: var(--text-muted);
+            border: 1px solid var(--border);
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .nav-btn:hover {
+            border-color: var(--accent);
+            color: var(--text);
+        }
+
+        .nav-btn.active {
+            background-color: var(--accent);
+            color: var(--bg-color);
+            border-color: var(--accent);
+        }
+
+        /* Sekcje / Zakładki */
+        .tab-content {
+            display: none;
+            max-width: 1000px;
             margin: 0 auto;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
         }
 
         .card {
@@ -47,13 +89,14 @@
             border-radius: 12px;
             padding: 20px;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
-            border: 1px solid #047857;
+            border: 1px solid var(--border);
+            margin-bottom: 20px;
         }
 
         .card h2 {
             margin-top: 0;
             font-size: 1.2rem;
-            border-bottom: 2px solid #047857;
+            border-bottom: 2px solid var(--border);
             padding-bottom: 8px;
             color: var(--accent);
         }
@@ -61,13 +104,17 @@
         .stat-row {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
             font-size: 1rem;
         }
 
-        button {
+        .stat-value { font-weight: bold; }
+        .positive { color: var(--success); }
+        .negative { color: var(--danger); }
+
+        button.action-btn {
             background-color: var(--accent);
-            color: #022c22;
+            color: var(--bg-color);
             border: none;
             padding: 12px 16px;
             border-radius: 6px;
@@ -78,34 +125,46 @@
             transition: opacity 0.2s;
         }
 
-        button:hover { opacity: 0.9; }
-        button:disabled { background-color: #047857; color: #a7f3d0; cursor: not-allowed; }
+        button.action-btn:hover { background-color: var(--accent-hover); }
+        button:disabled { background-color: var(--border); color: var(--text-muted); cursor: not-allowed; }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             margin-top: 10px;
         }
 
         th, td {
-            padding: 6px 8px;
+            padding: 10px;
             text-align: left;
-            border-bottom: 1px solid #047857;
+            border-bottom: 1px solid var(--border);
         }
 
         th { color: var(--accent); }
 
-        .match-commentary {
-            background-color: #022c22;
-            padding: 10px;
+        .log-box {
+            background-color: #090d16;
+            padding: 12px;
             border-radius: 6px;
             font-family: monospace;
             font-size: 0.85rem;
-            height: 120px;
+            height: 150px;
             overflow-y: auto;
             color: var(--text-muted);
             margin-top: 15px;
+            border: 1px solid var(--border);
+        }
+
+        .fixture-box {
+            background: #111827;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid var(--border);
         }
     </style>
 </head>
@@ -113,31 +172,73 @@
 
     <header>
         <h1>Football League Manager</h1>
-        <p>Poprowadź swój klub do mistrzostwa ligowego! (Open Source)</p>
+        <p>Ty zarządzasz ligą, harmonogramem i własnym klubem!</p>
     </header>
 
-    <div class="container">
-        <!-- Zarządzanie Klubem -->
+    <!-- MENU PRZEŁĄCZANIA ZAKŁADEK -->
+    <div class="nav-menu">
+        <button class="nav-btn active" onclick="switchTab('club')">Mój Klub</button>
+        <button class="nav-btn" onclick="switchTab('schedule')">Terminarz i Zarządzanie Ligą</button>
+        <button class="nav-btn" onclick="switchTab('table')">Tabela Ligowa</button>
+        <button class="nav-btn" onclick="switchTab('squad')">Skład i Kadra</button>
+    </div>
+
+    <!-- ZAKŁADKA 1: MÓJ KLUB -->
+    <div id="tab-club" class="tab-content active">
+        <div class="grid-2">
+            <div class="card">
+                <h2>Zarządzanie Klubem</h2>
+                <div class="stat-row"><span>Nazwa Klubu:</span><span id="club-name" class="stat-value">Legion Białystok</span></div>
+                <div class="stat-row"><span>Budżet:</span><span id="budget" class="stat-value positive">$50,000</span></div>
+                <div class="stat-row"><span>Siła Drużyny (OVR):</span><span id="team-ovr" class="stat-value">68</span></div>
+                <div class="stat-row"><span>Baza Treningowa:</span><span id="facility-lvl" class="stat-value">Poziom 1</span></div>
+                
+                <button class="action-btn" onclick="upgradeFacility()">Rozbuduj Bazę Treningową ($15,000)</button>
+            </div>
+
+            <div class="card">
+                <h2>Centrum Operacyjne</h2>
+                <p>Jako prezes i menedżer decydujesz o rozwoju infrastruktury oraz dbasz o finanse. Przejdź do zakładki <b>Terminarz</b>, aby uruchomić mecze i zarządzać kolejkami!</p>
+                <div class="stat-row"><span>Aktualna Kolejka:</span><span id="current-matchday" class="stat-value">1 z 6</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ZAKŁADKA 2: TERMINARZ I MECZE (Zarządzanie Ligą) -->
+    <div id="tab-schedule" class="tab-content">
         <div class="card">
-            <h2>Twój Klub: <span id="club-name">Legion Białystok</span></h2>
-            <div class="stat-row"><span>Budżet:</span><span id="budget">$50,000</span></div>
-            <div class="stat-row"><span>Reputacja:</span><span id="reputation">Niska</span></div>
-            <div class="stat-row"><span>Siła Drużyny (OVR):</span><span id="team-ovr">68</span></div>
-            <div class="stat-row"><span>Rozegrane mecze:</span><span id="played-matches">0</span></div>
+            <h2>Harmonogram Rozgrywek (Zarządzaj Meczem)</h2>
+            <p>Tutaj kontrolujesz przebieg sezonu. Możesz rozgrywać mecze kolejkami.</p>
             
-            <button onclick="playMatch()" id="match-btn">Rozegraj Kolejny Mecz</button>
-            <button onclick="upgradeFacility()" style="background-color: #10b981; color: white;">Rozbuduj Bazę Treningową ($15,000)</button>
+            <div id="matchday-container">
+                <!-- Generowane przez JS -->
+            </div>
+
+            <button class="action-btn" id="play-round-btn" onclick="playCurrentRound()">Rozegraj całą Kolejkę Ligową</button>
         </div>
 
-        <!-- Tabela Ligowa -->
         <div class="card">
-            <h2>Tabela Ligowa</h2>
+            <h2>Komunikaty z boiska i ligi</h2>
+            <div class="log-box" id="match-log">
+                [System] Gotowy do startu rozgrywek. Ustal terminarz i rozpocznij kolejkę.
+            </div>
+        </div>
+    </div>
+
+    <!-- ZAKŁADKA 3: TABELA LIGOWA -->
+    <div id="tab-table" class="tab-content">
+        <div class="card">
+            <h2>Aktualna Tabela Ligi</h2>
             <table>
                 <thead>
                     <tr>
                         <th>Poz</th>
                         <th>Klub</th>
                         <th>M</th>
+                        <th>Z</th>
+                        <th>R</th>
+                        <th>P</th>
+                        <th>Bramki</th>
                         <th>Pkt</th>
                     </tr>
                 </thead>
@@ -146,128 +247,198 @@
                 </tbody>
             </table>
         </div>
+    </div>
 
-        <!-- Centrum Meczowe / Relacja -->
-        <div class="card" style="grid-column: span auto;">
-            <h2>Centrum Medialne i Relacja</h2>
-            <p>Śledź przebieg spotkań i reakcje kibiców na żywo.</p>
-            <div class="match-commentary" id="match-log">
-                [Skrzynka Podawcza] Oczekiwanie na pierwszy gwizdek sezonu ligowego...
-            </div>
+    <!-- ZAKŁADKA 4: SKŁAD -->
+    <div id="tab-squad" class="tab-content">
+        <div class="card">
+            <h2>Kadra Zespołu</h2>
+            <p>Twoi kluczowi zawodnicy wpływający na siłę drużyny (OVR: <span id="squad-ovr">68</span>).</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Pozycja</th>
+                        <th>Imię i Nazwisko</th>
+                        <th>Ocena (OVR)</th>
+                        <th>Forma</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>BR</td><td>Kamil Borowski</td><td>69</td><td><span class="positive">Świetna</span></td></tr>
+                    <tr><td>OB</td><td>Bartosz Kowal</td><td>67</td><td><span class="positive">Stabilna</span></td></tr>
+                    <tr><td>POM</td><td>Mateusz "Captain" S.</td><td>70</td><td><span class="positive">Optymalna</span></td></tr>
+                    <tr><td>NAP</td><td>Patryk Strikerski</td><td>68</td><td><span class="positive">Dobra</span></td></tr>
+                </tbody>
+            </table>
         </div>
     </div>
 
     <script>
+        // Stan Gry
         const game = {
             clubName: "Legion Białystok",
             budget: 50000,
             ovr: 68,
-            played: 0,
             facilityLevel: 1,
+            currentRound: 1,
+            maxRounds: 6,
             teams: [
-                { name: "Legion Białystok", pts: 0, mp: 0, ovr: 68, isPlayer: true },
-                { name: "Super Strikers", pts: 0, mp: 0, ovr: 67, isPlayer: false },
-                { name: "Dinamo Wrocław", pts: 0, mp: 0, ovr: 66, isPlayer: false },
-                { name: "Jagiellonia Fan Club", pts: 0, mp: 0, ovr: 65, isPlayer: false }
+                { name: "Legion Białystok", mp: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, pts: 0, ovr: 68, isPlayer: true },
+                { name: "Super Strikers", mp: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, pts: 0, ovr: 67, isPlayer: false },
+                { name: "Dinamo Wrocław", mp: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, pts: 0, ovr: 66, isPlayer: false },
+                { name: "Jagiellonia Fan Club", mp: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, pts: 0, ovr: 65, isPlayer: false }
             ]
         };
 
+        // Elementy UI
         const budgetEl = document.getElementById('budget');
         const ovrEl = document.getElementById('team-ovr');
-        const playedEl = document.getElementById('played-matches');
+        const squadOvrEl = document.getElementById('squad-ovr');
+        const facilityEl = document.getElementById('facility-lvl');
+        const currentMatchdayEl = document.getElementById('current-matchday');
         const tableEl = document.getElementById('league-table');
+        const matchdayContainer = document.getElementById('matchday-container');
         const logBox = document.getElementById('match-log');
+        const playRoundBtn = document.getElementById('play-round-btn');
 
         function log(msg) {
             logBox.innerHTML += `<br>> ${msg}`;
             logBox.scrollTop = logBox.scrollHeight;
         }
 
+        // Przełączanie Zakładek
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+
+            document.getElementById(`tab-${tabId}`).classList.add('active');
+            event.target.classList.add('active');
+        }
+
         function updateUI() {
             budgetEl.innerText = `$${game.budget.toLocaleString()}`;
             ovrEl.innerText = game.ovr;
-            playedEl.innerText = game.played;
+            squadOvrEl.innerText = game.ovr;
+            facilityEl.innerText = `Poziom ${game.facilityLevel}`;
+            currentMatchdayEl.innerText = `${game.currentRound} z ${game.maxRounds}`;
 
-            // Sortowanie tabeli wg punktów i OVR
-            game.teams.sort((a, b) => b.pts - a.pts || b.ovr - a.ovr);
+            // Sortowanie tabeli: Pkt -> Bilans bramek -> OVR
+            game.teams.sort((a, b) => b.pts - a.pts || (b.gf - b.ga) - (a.gf - a.ga) || b.ovr - a.ovr);
 
+            // Render Tabeli
             tableEl.innerHTML = '';
             game.teams.forEach((t, index) => {
                 tableEl.innerHTML += `
-                    <tr style="${t.isPlayer ? 'font-weight: bold; color: #6ee7b7;' : ''}">
+                    <tr style="${t.isPlayer ? 'font-weight: bold; color: #38bdf8;' : ''}">
                         <td>${index + 1}</td>
                         <td>${t.name}</td>
                         <td>${t.mp}</td>
-                        <td>${t.pts}</td>
+                        <td>${t.w}</td>
+                        <td>${t.d}</td>
+                        <td>${t.l}</td>
+                        <td>${t.gf}:${t.ga}</td>
+                        <td><strong>${t.pts}</strong></td>
                     </tr>
                 `;
             });
+
+            // Render podglądu kolejki w terminarzu
+            if (game.currentRound <= game.maxRounds) {
+                matchdayContainer.innerHTML = `
+                    <div class="fixture-box">
+                        <span><strong>Kolejka ${game.currentRound}</strong>: Twoje spotkanie ligowe</span>
+                        <span style="color: var(--accent); font-weight: bold;">[Gotowe do rozegrania]</span>
+                    </div>
+                `;
+                playRoundBtn.disabled = false;
+            } else {
+                matchdayContainer.innerHTML = `<p class="positive">Sezon ligowy został zakończony! Gratulacje!</p>`;
+                playRoundBtn.disabled = true;
+            }
         }
 
-        function playMatch() {
-            // Losujemy przeciwnika spośród innych zespołów
+        function playCurrentRound() {
+            if (game.currentRound > game.maxRounds) return;
+
+            // Znajdź gracza i losowego przeciwnika spośród pozostałych
+            const playerTeam = game.teams.find(t => t.isPlayer);
             const opponents = game.teams.filter(t => !t.isPlayer);
             const opponent = opponents[Math.floor(Math.random() * opponents.length)];
 
-            game.played++;
-            
-            // Symulacja wyniku na podstawie OVR + losowość (forma dnia)
-            const playerChance = game.ovr + (Math.random() * 20 - 10);
-            const opponentChance = opponent.ovr + (Math.random() * 20 - 10);
+            log(`--- KOLEJKA ${game.currentRound} STARTUJE ---`);
 
-            let pGoals = Math.floor(Math.random() * 3);
-            let oGoals = Math.floor(Math.random() * 3);
+            // Mecz gracza
+            simulateMatch(playerTeam, opponent);
 
-            if (playerChance > opponentChance + 5) pGoals += 1;
-            if (opponentChance > playerChance + 5) oGoals += 1;
-
-            // Aktualizacja tabeli ligowej
-            const playerTeam = game.teams.find(t => t.isPlayer);
-            playerTeam.mp++;
-            opponent.mp++;
-
-            let prize = 3000;
-            if (pGoals > oGoals) {
-                playerTeam.pts += 3;
-                prize += 5000;
-                log(`[MECZ] ZWYCIĘSTWO! Pokonujesz ${opponent.name} wynikiem ${pGoals}:${oGoals}! (+3 pkt, +$5000 premii)`);
-            } else if (pGoals === oGoals) {
-                playerTeam.pts += 1;
-                opponent.pts += 1;
-                prize += 2000;
-                log(`[MECZ] REMIS! Remisujesz z ${opponent.name} ${pGoals}:${oGoals}. (+1 pkt)`);
-            } else {
-                prize += 1000;
-                log(`[MECZ] PORAŻKA. Przegrywasz z ${opponent.name} ${pGoals}:${oGoals}. Walczymy dalej!`);
+            // Symulacja drugiego meczu w tle między komputerami
+            const remainingTeams = opponents.filter(t => t.name !== opponent.name);
+            if (remainingTeams.length >= 2) {
+                simulateMatch(remainingTeams[0], remainingTeams[1], false);
             }
 
-            // Symulacja meczów AI między sobą w tle
-            opponents.forEach(t => {
-                if (t.name !== opponent.name) {
-                    t.mp++;
-                    const r = Math.random();
-                    if (r > 0.6) t.pts += 3;
-                    else if (r > 0.3) t.pts += 1;
-                }
-            });
-
-            game.budget += prize;
+            game.currentRound++;
             updateUI();
         }
 
-        function upgradeFacility() {
-            const cost = 15000 * game.facilityLevel;
-            if (game.budget >= cost) {
-                game.budget -= cost;
-                game.facilityLevel++;
-                game.ovr += 3;
-                log(`[KLUB] Rozbudowano bazę treningową! Siła drużyny wzrosła do ${game.ovr}.`);
-                updateUI();
+        function simulateMatch(teamA, teamB, isPlayerMatch = true) {
+            // Symulacja wyników na podstawie OVR + czynnik losowy
+            const chanceA = teamA.ovr + (Math.random() * 16 - 8);
+            const chanceB = teamB.ovr + (Math.random() * 16 - 8);
+
+            let goalsA = Math.floor(Math.random() * 3);
+            let goalsB = Math.floor(Math.random() * 3);
+
+            if (chanceA > chanceB + 4) goalsA += 1;
+            if (chanceB > chanceA + 4) goalsB += 1;
+
+            teamA.mp++;
+            teamB.mp++;
+            teamA.gf += goalsA;
+            teamA.ga += goalsB;
+            teamB.gf += goalsB;
+            teamB.ga += goalsA;
+
+            let prize = 3000;
+
+            if (goalsA > goalsB) {
+                teamA.w++;
+                teamB.l++;
+                teamA.pts += 3;
+                prize += 4000;
+                if (isPlayerMatch) log(`[MECZ] ZWYCIĘSTWO! ${teamA.name} pokonuje ${teamB.name} wynikiem ${goalsA}:${goalsB}! (+3 pkt, +$4,000 premii)`);
+            } else if (goalsA === goalsB) {
+                teamA.d++;
+                teamB.d++;
+                teamA.pts += 1;
+                teamB.pts += 1;
+                prize += 1500;
+                if (isPlayerMatch) log(`[MECZ] REMIS! ${teamA.name} remisuje z ${teamB.name} ${goalsA}:${goalsB}. (+1 pkt)`);
             } else {
-                alert("Za mało środków w budżecie klubu!");
+                teamA.l++;
+                teamB.w++;
+                teamB.pts += 3;
+                if (isPlayerMatch) log(`[MECZ] PORAŻKA. ${teamA.name} przegrywa z ${teamB.name} ${goalsA}:${goalsB}.`);
+            }
+
+            if (isPlayerMatch) {
+                game.budget += prize;
             }
         }
 
+        function upgradeFacility() {
+            const cost = 12000 * game.facilityLevel;
+            if (game.budget >= cost) {
+                game.budget -= cost;
+                game.facilityLevel++;
+                game.ovr += 2;
+                log(`[KLUB] Rozbudowano infrastrukturę treningową! Siła drużyny wzrosła do ${game.ovr}.`);
+                updateUI();
+            } else {
+                alert("Brak środków w budżecie klubu!");
+            }
+        }
+
+        // Inicjalizacja interfejsu
         updateUI();
     </script>
 </body>
