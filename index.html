@@ -82,7 +82,7 @@
     <script>
         let stan = {
             aktualnaLiga: "Ekstraklasa Futsalu",
-            ligi: ["Ekstraklasa Futsalu", "1. Liga Futsalu - Grupa Wschód", "1. Liga Futsal - Grupa Zachód"],
+            ligi: ["Ekstraklasa Futsalu", "1. Liga Futsalu - Grupa Wschód", "1. Liga Futsalu - Grupa Zachód"],
             kolejka: 1,
             budzet_centralny: 15000000,
             reputacja: 65,
@@ -104,13 +104,20 @@
                 { id: 2, nazwa: "Prawa Telewizyjne (Polsat Sport)", typ: "tv", zyskNaKolejke: 500000, pozostałoKolejek: 4 },
                 { id: 3, nazwa: "Sponsor Techniczny (Sportwear)", typ: "sponsor", zyskNaKolejke: 150000, pozostałoKolejek: 8 }
             ],
+            ofertyKontraktow: [
+                { id: 101, nazwa: "Sponsor Strategiczny (Orlen)", zyskNaKolejke: 450000, kolejek: 8, kosztPodpisania: 200000 },
+                { id: 102, nazwa: "Partner Techniczny (Adidas)", zyskNaKolejke: 200000, kolejek: 6, kosztPodpisania: 100000 }
+            ],
             sedziowie: [
                 { id: 1, imie: "Piotr Sędzia (FIFA)", poziom: "Wysoki", kontrowersje: "Niskie", przypisanyMecz: null },
                 { id: 2, imie: "Jan Frankowski", poziom: "Średni", kontrowersje: "Średnie", przypisanyMecz: null },
                 { id: 3, imie: "Tomasz Kwiatkowski", poziom: "Wysoki", kontrowersje: "Niskie", przypisanyMecz: null },
-                { id: 4, imie: "Krzysztof Jakubik", poziom: "Niski", kontrowersje: "Wysokie", przypisanyMecz: null }
+                { id: 4, imie: "Krzysztof Jakubik", poziom: "Niski", kontrowersje: "Wysokie", przypisanyMecz: null },
+                { id: 5, imie: "Paweł Raczkowski", poziom: "Wysoki", kontrowersje: "Średnie", przypisanyMecz: null },
+                { id: 6, imie: "Damian Sylwestrzak", poziom: "Średni", kontrowersje: "Niskie", przypisanyMecz: null },
+                { id: 7, imie: "Jarosław Przybył", poziom: "Średni", kontrowersje: "Wysokie", przypisanyMecz: null },
+                { id: 8, imie: "Wojciech Myć", poziom: "Niski", kontrowersje: "Średnie", przypisanyMecz: null }
             ],
-            przypisaniaSedziow: {},
             logi: ["Rozpoczął się nowy sezon rozgrywek ligowych."]
         };
 
@@ -146,12 +153,12 @@
             renderujWidok();
         }
 
-        function generujParyMeczowe() {
-            let klubyW2Lidze = Object.keys(stan.kluby).filter(k => stan.kluby[k].liga === stan.aktualnaLiga && stan.kluby[k].licencja);
+        function generujParyDlaLigi(nazwaLigi) {
+            let kluby = Object.keys(stan.kluby).filter(k => stan.kluby[k].liga === nazwaLigi && stan.kluby[k].licencja);
             let pary = [];
-            for (let i = 0; i < klubyW2Lidze.length; i += 2) {
-                if (i + 1 < klubyW2Lidze.length) {
-                    pary.push([klubyW2Lidze[i], klubyW2Lidze[i+1]]);
+            for (let i = 0; i < kluby.length; i += 2) {
+                if (i + 1 < kluby.length) {
+                    pary.push([kluby[i], kluby[i+1]]);
                 }
             }
             return pary;
@@ -250,9 +257,11 @@
             } else if (stan.aktywnyWidok === 'kontrakty') {
                 kontener.innerHTML = `
                     <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-6">
-                        <h2 class="text-xl font-bold text-slate-100">Aktywne Kontrakty i Negocjacje</h2>
-                        <p class="text-xs text-slate-400">Kontrakty generują stały przychód co kolejkę. Gdy wygasną, możesz negocjować nowe umowy.</p>
+                        <h2 class="text-xl font-bold text-slate-100">Aktywne Kontrakty i Nowe Oferty</h2>
+                        <p class="text-xs text-slate-400">Zarządzaj trwającymi umowami oraz przeglądaj automatycznie generowane propozycje rynkowe.</p>
+                        
                         <div class="space-y-3">
+                            <h3 class="font-semibold text-sm text-slate-300">Podpisane Kontrakty:</h3>
                             ${stan.kontrakty.map(k => `
                                 <div class="bg-slate-800 border border-slate-700 p-4 rounded-xl flex justify-between items-center">
                                     <div>
@@ -260,43 +269,64 @@
                                         <p class="text-xs text-emerald-400">Przychód: +${k.zyskNaKolejke.toLocaleString()} PLN / kolejkę</p>
                                         <p class="text-xs text-amber-400">Pozostało kolejek: ${k.pozostałoKolejek}</p>
                                     </div>
-                                    <button onclick="negocjujKontrakt(${k.id})" class="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-lg text-sm font-medium">Przedłuż / Renegocjuj</button>
+                                    <button onclick="negocjujKontrakt(${k.id})" class="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-lg text-sm font-medium">Przedłuż (+5 kolejek)</button>
                                 </div>
                             `).join('')}
                         </div>
-                        <div class="pt-4 border-t border-slate-800">
-                            <button onclick="szukajNowegoSponsora()" class="bg-emerald-600 hover:bg-emerald-500 px-5 py-2.5 rounded-xl font-medium text-sm">Szukaj Nowego Sponsora (Koszt: 300k PLN)</button>
+
+                        <div class="pt-4 border-t border-slate-800 space-y-3">
+                            <h3 class="font-semibold text-sm text-slate-300">Dostępne Nowe Oferty na Rynku:</h3>
+                            ${stan.ofertyKontraktow.length > 0 ? stan.ofertyKontraktow.map(o => `
+                                <div class="bg-slate-950 border border-slate-800 p-4 rounded-xl flex justify-between items-center">
+                                    <div>
+                                        <h4 class="font-bold text-emerald-400">${o.nazwa}</h4>
+                                        <p class="text-xs text-slate-300">Zysk: +${o.zyskNaKolejke.toLocaleString()} PLN/kolejkę \vert{} Czas: ${o.kolejek} kolejek</p>
+                                        <p class="text-xs text-slate-400">Koszt podpisania: ${o.kosztPodpisania.toLocaleString()} PLN</p>
+                                    </div>
+                                    <button onclick="podpiszOfertu(${o.id})" class="bg-emerald-600 hover:bg-emerald-500 px-4 py-2 rounded-lg text-sm font-medium">Podpisz Umowę</button>
+                                </div>
+                            `).join('') : '<p class="text-xs text-slate-500">Brak nowych ofert. Pojawią się w kolejnych kolejkach.</p>'}
                         </div>
                     </div>
                 `;
             } else if (stan.aktywnyWidok === 'sedziowie') {
-                let paryMeczowe = generujParyMeczowe();
                 kontener.innerHTML = `
                     <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-6">
-                        <h2 class="text-xl font-bold text-slate-100">Obsada Sędziowska na Kolejkę ${stan.kolejka}</h2>
-                        <p class="text-xs text-slate-400">Przypisz sędziów do nadchodzących meczów. Przypisani sędziowie znikają z poniższej listy wolnych.</p>
+                        <h2 class="text-xl font-bold text-slate-100">Obsada Sędziowska na Kolejkę ${stan.kolejka} (Wszystkie Ligi)</h2>
+                        <p class="text-xs text-slate-400">Przypisz sędziów do meczów ze wszystkich prowadzonych lig.</p>
                         
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div class="space-y-3">
-                                <h3 class="font-semibold text-sm text-slate-300">Pary Meczowe (${stan.aktualnaLiga}):</h3>
-                                ${paryMeczowe.length > 0 ? paryMeczowe.map((para, idx) => `
-                                    <div class="bg-slate-800/70 border border-slate-700 p-3 rounded-xl text-xs space-y-2">
-                                        <p class="font-bold text-emerald-400">Mecz ${idx+1}: ${para[0]} vs${para[1]}</p>
-                                        <div class="flex items-center gap-2">
-                                            <span class="text-slate-400">Sędzia:</span>
-                                            <select onchange="przypiszSedziego(${idx}, this.value)" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 flex-1 text-slate-200">
-                                                <option value="">-- Wybierz sędziego --</option>
-                                                ${stan.sedziowie.filter(s => s.przypisanyMecz === null || s.przypisanyMecz === idx).map(s => `
-                                                    <option value="${s.id}" ${s.przypisanyMecz === idx ? 'selected' : ''}>${s.imie} (${s.poziom})</option>
-                                                `).join('')}
-                                            </select>
+                            <div class="space-y-4">
+                                ${stan.ligi.map(liga => {
+                                    let pary = generujParyDlaLigi(liga);
+                                    if(pary.length === 0) return '';
+                                    return `
+                                        <div class="bg-slate-950 border border-slate-800 p-4 rounded-xl space-y-2">
+                                            <h3 class="font-bold text-emerald-400 text-sm border-b border-slate-800 pb-1">Liga: ${liga}</h3>${pary.map((para, pIdx) => {
+                                                let globalnyID = `${liga}_${pIdx}`;
+                                                return `
+                                                    <div class="bg-slate-900 border border-slate-800 p-2.5 rounded-lg text-xs space-y-1">
+                                                        <p class="font-medium text-slate-200">${para[0]} vs ${para[1]}</p>
+                                                        <div class="flex items-center gap-2">
+                                                            <span class="text-slate-400">Sędzia:</span>
+                                                            <select onchange="przypiszSedziego('${globalnyID}', this.value)" class="bg-slate-950 border border-slate-700 rounded px-2 py-1 flex-1 text-slate-200">
+                                                                <option value="">-- Wybierz sędziego --</option>
+                                                                ${stan.sedziowie.filter(s => s.przypisanyMecz === null || s.przypisanyMecz === globalnyID).map(s => `
+                                                                    <option value="${s.id}" ${s.przypisanyMecz === globalnyID ? 'selected' : ''}>${s.imie} (${s.poziom})</option>
+                                                                `).join('')}
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                `;
+                                            }).join('')}
                                         </div>
-                                    </div>
-                                `).join('') : '<p class="text-xs text-slate-500">Brak wystarczającej liczby klubów z licencją w tej lidze.</p>'}
+                                    `;
+                                }).join('')}
                             </div>
-                            <div class="bg-slate-950 border border-slate-800 p-4 rounded-xl space-y-3">
-                                <h3 class="font-semibold text-sm text-slate-300">Dostępni Sędziowie w Związku:</h3>
-                                <div class="space-y-2">
+
+                            <div class="bg-slate-950 border border-slate-800 p-4 rounded-xl space-y-3 h-fit">
+                                <h3 class="font-semibold text-sm text-slate-300">Wszyscy Sędziowie Związku:</h3>
+                                <div class="space-y-2 max-h-[450px] overflow-y-auto">
                                     ${stan.sedziowie.map(s => `
                                         <div class="bg-slate-900 border border-slate-800 p-2 rounded-lg text-xs flex justify-between items-center">
                                             <div>
@@ -304,7 +334,7 @@
                                                 <p class="text-[10px] text-slate-400">Poziom: ${s.poziom} \vert{} Kontrowersje:${s.kontrowersje}</p>
                                             </div>
                                             <span class="px-2 py-1 rounded text-[10px] ${s.przypisanyMecz !== null ? 'bg-amber-900/50 text-amber-300 border border-amber-800' : 'bg-emerald-900/50 text-emerald-300 border border-emerald-800'}">
-                                                ${s.przypisanyMecz !== null ? 'Przypisany' : 'Wolny'}
+                                                ${s.przypisanyMecz !== null ? 'Delegovaný' : 'Wolny'}
                                             </span>
                                         </div>
                                     `).join('')}
@@ -376,10 +406,19 @@
                             </div>
                         </div>
                         <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-                            <h2 class="text-xl font-bold text-slate-100">Dodaj Nową Ligę</h2>
+                            <h2 class="text-xl font-bold text-slate-100">Zarządzanie Ligami (Tworzenie i Edycja)</h2>
                             <div class="space-y-3">
                                 <input type="text" id="nowa-liga-nazwa" placeholder="Nazwa nowej ligi" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-sm text-slate-200">
                                 <button onclick="dodajLige()" class="w-full bg-sky-600 hover:bg-sky-500 py-2.5 rounded-xl text-sm font-medium">Utwórz Rozgrywki</button>
+                            </div>
+                            <div class="pt-3 border-t border-slate-800 space-y-2">
+                                <p class="text-xs text-slate-400">Edytuj istniejące nazwy lig:</p>
+                                ${stan.ligi.map((l, index) => `
+                                    <div class="flex gap-2">
+                                        <input type="text" id="edit-liga-${index}" value="${l}" class="bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-slate-200 flex-1">
+                                        <button onclick="zapiszNazweLigi(${index})" class="bg-slate-700 hover:bg-slate-600 px-3 py-1 rounded text-xs">Zmień</button>
+                                    </div>
+                                `).join('')}
                             </div>
                         </div>
                         <div class="md:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
@@ -427,31 +466,51 @@
             }
         }
 
-        function szukajNowegoSponsora() {
-            if (stan.budzet_centralny >= 300000) {
-                stan.budzet_centralny -= 300000;
-                let nowyZysk = Math.floor(Math.random() * 200000) + 100000;
-                stan.kontrakty.push({
-                    id: stan.kontrakty.length + 1,
-                    nazwa: "Sponsor Regionalny #" + (stan.kontrakty.length + 1),
-                    typ: "sponsor",
-                    zyskNaKolejke: nowyZysk,
-                    pozostałoKolejek: 6
-                });
-                dodajLog(`🤝 Pozyskano nowego sponsora generującego +${nowyZysk.toLocaleString()} PLN na kolejkę.`);
-                odswiezUI();
-            } else {
-                alert("Za mało środków na działania poszukiwawcze!");
+        function podpiszOfertu(id) {
+            let oferta = stan.ofertyKontraktow.find(o => o.id === id);
+            if (oferta) {
+                if (stan.budzet_centralny >= oferta.kosztPodpisania) {
+                    stan.budzet_centralny -= oferta.kosztPodpisania;
+                    stan.kontrakty.push({
+                        id: Date.now(),
+                        nazwa: oferta.nazwa,
+                        typ: "sponsor",
+                        zyskNaKolejke: oferta.zyskNaKolejke,
+                        pozostałoKolejek: oferta.kolejek
+                    });
+                    stan.ofertyKontraktow = stan.ofertyKontraktow.filter(o => o.id !== id);
+                    dodajLog(`🤝 Podpisano nową umowę: "${oferta.nazwa}" (+${oferta.zyskNaKolejke.toLocaleString()} PLN/kolejkę).`);
+                    odswiezUI();
+                } else {
+                    alert("Brak środków na pokrycie kosztów podpisania umowy!");
+                }
             }
         }
 
-        function przypiszSedziego(idxMeczu, idSedziego) {
+        function generujLosowaOfertaKontraktu() {
+            if (Math.random() < 0.7 && stan.ofertyKontraktow.length < 3) {
+                let firmy = ["Lotos", "Orlen", "Żywiec", "T-Mobile", "Pekao SA", "4F", "Kratki"];
+                let losowaFirma = firmy[Math.floor(Math.random() * firmas?.length || firmy.length)];
+                let zysk = Math.floor(Math.random() * 300000) + 150000;
+                let koszt = Math.floor(zysk * 0.5);
+                stan.ofertyKontraktow.push({
+                    id: Date.now(),
+                    nazwa: `Sponsor / Partner (${losowaFirma})`,
+                    zyskNaKolejke: zysk,
+                    kolejek: 6,
+                    kosztPodpisania: koszt
+                });
+                dodajLog(`📢 Na rynku pojawiła się nowa oferta sponsorska od ${losowaFirma}! Sprawdź zakładkę Kontrakty.`);
+            }
+        }
+
+        function przypiszSedziego(globalnyID, idSedziego) {
             stan.sedziowie.forEach(s => {
-                if (s.przypisanyMecz === idxMeczu) s.przypisanyMecz = null;
+                if (s.przypisanyMecz === globalnyID) s.przypisanyMecz = null;
             });
             if (idSedziego !== "") {
                 let sedzia = stan.sedziowie.find(s => s.id == idSedziego);
-                if (sedzia) sedzia.przypisanyMecz = idxMeczu;
+                if (sedzia) sedzia.przypisanyMecz = globalnyID;
             }
             renderujWidok();
         }
@@ -504,6 +563,25 @@
             }
         }
 
+        function zapiszNazweLigi(index) {
+            let inputVal = document.getElementById(`edit-liga-${index}`).value.trim();
+            if (inputVal) {
+                let staraNazwa = stan.ligi[index];
+                stan.ligi[index] = inputVal;
+                // Aktualizuj ligę w klubach
+                for (let k in stan.kluby) {
+                    if (stan.kluby[k].liga === staraNazwa) {
+                        stan.kluby[k].liga = inputVal;
+                    }
+                }
+                if (stan.aktualnaLiga === staraNazwa) {
+                    stan.aktualnaLiga = inputVal;
+                }
+                dodajLog(`⚙️ Zmieniono nazwę ligi z "${staraNazwa}" na "${inputVal}".`);
+                odswiezUI();
+            }
+        }
+
         function symulujKolejke() {
             if (stan.kolejka > 10) return;
 
@@ -516,43 +594,51 @@
             stan.budzet_centralny += sumaPrzychodow;
             stan.kontrakty = stan.kontrakty.filter(k => k.pozostałoKolejek > 0);
 
-            let klubyW1Lidze = Object.keys(stan.kluby).filter(k => stan.kluby[k].liga === stan.aktualnaLiga && stan.kluby[k].licencja);
-            for (let i = klubyW1Lidze.length - 1; i > 0; i--) {
-                let j = Math.floor(Math.random() * (i + 1));
-                [klubyW1Lidze[i], klubyW1Lidze[j]] = [klubyW1Lidze[j], klubyW1Lidze[i]];
-            }
-
-            let wynikiTekst = `<strong>Wyniki kolejki ${stan.kolejka} (${stan.aktualnaLiga}):</strong><br>`;
-            for (let i = 0; i < klubyW1Lidze.length; i += 2) {
-                if (i + 1 >= klubyW1Lidze.length) break;
-                let g = klubyW1Lidze[i];
-                let as = klubyW1Lidze[i+1];
-
-                let gBramki = Math.floor(Math.random() * 5) + (stan.kluby[g].forma > 3 ? 1 : 0);
-                let asBramki = Math.floor(Math.random() * 5) + (stan.kluby[as].forma > 3 ? 1 : 0);
-
-                stan.kluby[g].bramki_strzelone += gBramki;
-                stan.kluby[g].bramki_stracone += asBramki;
-                stan.kluby[as].bramki_strzelone += asBramki;
-                stan.kluby[as].bramki_stracone += gBramki;
-
-                if (gBramki > asBramki) {
-                    stan.kluby[g].punkty += 3;
-                } else if (asBramki > gBramki) {
-                    stan.kluby[as].punkty += 3;
-                } else {
-                    stan.kluby[g].punkty += 1;
-                    stan.kluby[as].punkty += 1;
+            // Symulacja meczów we WSZYSTKICH ligach
+            stan.ligi.forEach(liga => {
+                let klubyW2Lidze = Object.keys(stan.kluby).filter(k => stan.kluby[k].liga === liga && stan.kluby[k].licencja);
+                for (let i = klubyW2Lidze.length - 1; i > 0; i--) {
+                    let j = Math.floor(Math.random() * (i + 1));
+                    [klubyW2Lidze[i], klubyW2Lidze[j]] = [klubyW2Lidze[j], klubyW2Lidze[i]];
                 }
 
-                wynikiTekst += `🏟️ ${g} ${gBramki} : ${asBramki} ${as}<br>`;
-            }
+                let wynikiTekst = `<strong>Wyniki kolejki ${stan.kolejka} (${liga}):</strong><br>`;
+                let rozegranoMecze = false;
+                for (let i = 0; i < klubyW2Lidze.length; i += 2) {
+                    if (i + 1 >= klubyW2Lidze.length) break;
+                    rozegranoMecze = true;
+                    let g = klubyW2Lidze[i];
+                    let as = klubyW2Lidze[i+1];
 
-            dodajLog(wynikiTekst);
+                    let gBramki = Math.floor(Math.random() * 5) + (stan.kluby[g].forma > 3 ? 1 : 0);
+                    let asBramki = Math.floor(Math.random() * 5) + (stan.kluby[as].forma > 3 ? 1 : 0);
+
+                    stan.kluby[g].bramki_strzelone += gBramki;
+                    stan.kluby[g].bramki_stracone += asBramki;
+                    stan.kluby[as].bramki_strzelone += asBramki;
+                    stan.kluby[as].bramki_stracone += gBramki;
+
+                    if (gBramki > asBramki) {
+                        stan.kluby[g].punkty += 3;
+                    } else if (asBramki > gBramki) {
+                        stan.kluby[as].punkty += 3;
+                    } else {
+                        stan.kluby[g].punkty += 1;
+                        stan.kluby[as].punkty += 1;
+                    }
+
+                    wynikiTekst += `🏟️ ${g} ${gBramki} : ${asBramki} ${as}<br>`;
+                }
+                if (rozegranoMecze) {
+                    dodajLog(wynikiTekst);
+                }
+            });
+
             dodajLog(`💰 Zasilenie budżetu z aktywnych kontraktów: +${sumaPrzychodow.toLocaleString()} PLN.`);
 
-            // Reset przypisań sędziów
+            // Reset przypisań sędziów i generowanie nowych ofert kontraktów
             stan.sedziowie.forEach(s => s.przypisanyMecz = null);
+            generujLosowaOfertaKontraktu();
 
             stan.kolejka++;
 
@@ -565,15 +651,15 @@
 
         function rozstrzygnijAwansISpadek() {
             dodajLog("🏆 Koniec 10. kolejki! Sezon dobiegł końca. Następuje weryfikacja awansów i spadków.");
-            let klubyLigi = Object.entries(stan.kluby).filter(([k, d]) => d.liga === stan.aktualnaLiga);
-            klubyLigi.sort((a, b) => b[1].punkty - a[1].punkty);
-            
-            if (klubyLigi.length >= 2) {
-                let mistrz = klubyLigi[0][0];
-                let spadkowicz = klubyLigi[klubyLigi.length - 1][0];
-                dodajLog(`🥇 Mistrzem ligi ${stan.aktualnaLiga} zostaje ${mistrz}!`);
-                dodajLog(`🔻 Z ligi spada zespół ${spadkowicz}.`);
-            }
+            stan.ligi.forEach(liga => {
+                let klubyLigi = Object.entries(stan.kluby).filter(([k, d]) => d.liga === liga);
+                klubyLigi.sort((a, b) => b[1].punkty - a[1].punkty);
+                if (klubyLigi.length >= 2) {
+                    let mistrz = klubyLigi[0][0];
+                    let spadkowicz = klubyLigi[klubyLigi.length - 1][0];
+                    dodajLog(`🥇 W lidze ${liga} mistrzem zostaje ${mistrz}, a spada ${spadkowicz}!`);
+                }
+            });
         }
 
         function resetujGre() {
