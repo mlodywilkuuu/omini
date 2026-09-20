@@ -1,490 +1,266 @@
-<!DOCTYPE html>
-<html lang="pl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>League Commissioner Tycoon</title>
-    <style>
-        :root {
-            --bg-dark: #061a14;
-            --bg-card: #0b2920;
-            --bg-card-hover: #10382b;
-            --accent: #10b981;
-            --accent-hover: #059669;
-            --text-main: #f0fdf4;
-            --text-muted: #86efac;
-            --danger: #ef4444;
-            --border: #144535;
+import random
+import os
+
+class LigaSimulator:
+    def __init__(self):
+        self.nazwa_ligi = "Ekstraklasa Futsalu"
+        self.kolejka = 1
+        self.budzet_centralny = 15000000
+        self.reputacja = 65
+        self.prezydent = "Jan Kowalski"
+        
+        # Drużyny w lidze
+        self.kluby = {
+            "Legion Białystok": {"punkty": 0, "bramki_strzelone": 0, "bramki_stracone": 0, "budzet": 2500000, "forma": 3, "kary": 0},
+            "Super Strikers": {"punkty": 0, "bramki_strzelone": 0, "bramki_stracone": 0, "budzet": 2200000, "forma": 3, "kary": 0},
+            "FC Dinamo Wrocław": {"punkty": 0, "bramki_strzelone": 0, "bramki_stracone": 0, "budzet": 3000000, "forma": 3, "kary": 0},
+            "Jagiellonia Futsal": {"punkty": 0, "bramki_strzelone": 0, "bramki_stracone": 0, "budzet": 3500000, "forma": 3, "kary": 0},
+            "Orły Warszawa": {"punkty": 0, "bramki_strzelone": 0, "bramki_stracone": 0, "budzet": 2800000, "forma": 3, "kary": 0},
+            "Błękitni Poznań": {"punkty": 0, "bramki_strzelone": 0, "bramki_stracone": 0, "budzet": 2000000, "forma": 3, "kary": 0}
         }
-
-        body {
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            background-color: var(--bg-dark);
-            color: var(--text-main);
-            margin: 0;
-            padding: 20px;
+        
+        self.sponsorzy = {
+            "Główny Sponsor (BetPol)": 3000000,
+            "Sponsor Techniczny (Sportwear)": 1500000,
+            "Partner Medyczny (MediCare)": 800000
         }
+        
+    def czysc_ekran(self):
+        os.system('cls' if os.name == 'nt' else 'clear')
 
-        header {
-            text-align: center;
-            margin-bottom: 25px;
-        }
+    def wyswietl_status(self):
+        print("=" * 60)
+        print(f" ZARZĄDZANIE LIGĄ: {self.nazwa_ligi.upper()} ")
+        print("=" * 60)
+        print(f"📅 Kolejka: {self.kolejka} / 10  |  ⭐ Reputacja Ligi: {self.reputacja}/100")
+        print(f"💰 Budżet Związku: {self.budzet_centralny:,} PLN")
+        print("=" * 60)
 
-        h1 {
-            margin: 0;
-            color: var(--accent);
-            font-size: 2.4rem;
-            letter-spacing: -0.5px;
-        }
+    def menu_glowne(self):
+        while self.kolejka <= 10:
+            self.czysc_ekran()
+            self.wyswietl_status()
+            print("\n[1] Symuluj kolejkę meczów")
+            print("[2] Tabela ligowa")
+            print("[3] Finanse i Prawa TV")
+            print("[4] Zarządzaj sędziami i karami regulaminowymi")
+            print("[5] Okno transferowe / Licencje klubów")
+            print("[6] Zakończ grę")
+            
+            wybor = input("\nWybierz opcję (1-6): ").strip()
+            
+            if wybor == "1":
+                self.symuluj_kolejke()
+            elif wybor == "2":
+                self.pokaz_tabele()
+            elif wybor == "3":
+                self.zarzadzaj_finansami()
+            elif wybor == "4":
+                self.zarzadzaj_regulaminem()
+            elif wybor == "5":
+                self.zarzadzaj_klubami()
+            elif wybor == "6":
+                print("\nDziękujemy za grę! Liga została poprowadzona do historii.")
+                break
+            else:
+                input("\nNieprawidłowy wybór. Naciśnij Enter, aby kontynuować...")
+        
+        if self.kolejka > 10:
+            self.czysc_ekran()
+            print("=" * 60)
+            print(" KONIEC SEZONU! PODSUMOWANIE LIGI ")
+            print("=" * 60)
+            self.pokaz_tabele()
+            print(f"\n🏆 Zwycięzca ligi otrzymuje Puchar oraz awans do Ligi Mistrzów!")
+            print(f"Ostateczna reputacja organizacji: {self.reputacja}/100")
+            input("\nNaciśnij Enter, aby zakończyć...")
 
-        header p {
-            color: var(--text-muted);
-            margin-top: 5px;
-        }
-
-        /* Menu / Zakładki */
-        .nav-menu {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
-        }
-
-        .nav-btn {
-            background-color: var(--bg-card);
-            color: var(--text-muted);
-            border: 1px solid var(--border);
-            padding: 12px 22px;
-            border-radius: 10px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .nav-btn:hover {
-            background-color: var(--bg-card-hover);
-            color: var(--text-main);
-            border-color: var(--accent);
-        }
-
-        .nav-btn.active {
-            background-color: var(--accent);
-            color: var(--bg-dark);
-            border-color: var(--accent);
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-        }
-
-        /* Kontener widoków */
-        .tab-content {
-            display: none;
-            max-width: 1100px;
-            margin: 0 auto;
-        }
-
-        .tab-content.active {
-            display: block;
-            animation: fadeIn 0.3s ease-in-out;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(5px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .grid-2 {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 20px;
-        }
-
-        /* Karty */
-        .card {
-            background-color: var(--bg-card);
-            border-radius: 14px;
-            padding: 24px;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
-            border: 1px solid var(--border);
-            margin-bottom: 20px;
-        }
-
-        .card h2 {
-            margin-top: 0;
-            font-size: 1.3rem;
-            border-bottom: 2px solid var(--border);
-            padding-bottom: 12px;
-            color: var(--accent);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .stat-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 14px;
-            font-size: 1.05rem;
-            border-bottom: 1px dashed rgba(20, 69, 53, 0.5);
-            padding-bottom: 8px;
-        }
-
-        .stat-value { font-weight: bold; color: var(--text-main); }
-        .positive { color: var(--accent); }
-
-        /* Przyciski Akcji */
-        button.action-btn {
-            background-color: var(--accent);
-            color: var(--bg-dark);
-            border: none;
-            padding: 12px 18px;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-            width: 100%;
-            margin-top: 15px;
-            transition: background-color 0.2s, transform 0.1s;
-        }
-
-        button.action-btn:hover { background-color: var(--accent-hover); }
-        button.action-btn:active { transform: scale(0.98); }
-        button:disabled { background-color: #1b3a31; color: #4e796c; cursor: not-allowed; }
-
-        /* Tabele */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.95rem;
-            margin-top: 10px;
-        }
-
-        th, td {
-            padding: 12px 10px;
-            text-align: left;
-            border-bottom: 1px solid var(--border);
-        }
-
-        th { color: var(--accent); font-weight: 600; }
-        tr:hover { background-color: rgba(16, 185, 129, 0.04); }
-
-        /* Konsola komunikatów */
-        .log-box {
-            background-color: #04100c;
-            padding: 15px;
-            border-radius: 8px;
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 0.85rem;
-            height: 180px;
-            overflow-y: auto;
-            color: var(--text-muted);
-            margin-top: 15px;
-            border: 1px solid var(--border);
-            line-height: 1.4;
-        }
-
-        .badge {
-            background: #144535;
-            color: var(--text-muted);
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-        }
-    </style>
-</head>
-<body>
-
-    <header>
-        <h1>League Commissioner Tycoon</h1>
-        <p>Zarządzaj całą ligą piłkarską, ustalaj terminarz, buduj prestiż i kontroluj budżet federacji!</p>
-    </header>
-
-    <!-- MENU NAWIGACYJNE -->
-    <div class="nav-menu">
-        <button class="nav-btn active" onclick="switchTab('dashboard')">Panel Komisarza</button>
-        <button class="nav-btn" onclick="switchTab('scheduler')">Terminarz i Mecze</button>
-        <button class="nav-btn" onclick="switchTab('teams')">Zarządzanie Klubami</button>
-        <button class="nav-btn" onclick="switchTab('table')">Tabela Ligi</button>
-    </div>
-
-    <!-- 1. PANEL KOMISARZA (DASHBOARD) -->
-    <div id="tab-dashboard" class="tab-content active">
-        <div class="grid-2">
-            <div class="card">
-                <h2>Finanse Federacji <span class="badge">Biuro Ligi</span></h2>
-                <div class="stat-row"><span>Budżet Ligi (Kapitał):</span><span id="league-budget" class="stat-value positive">$150,000</span></div>
-                <div class="stat-row"><span>Prestiż Rozgrywek:</span><span id="league-prestige" class="stat-value">Średni (Lokalna Liga)</span></div>
-                <div class="stat-row"><span>Aktualna Kolejka:</span><span id="comm-round" class="stat-value">1 z 6</span></div>
+    def symuluj_kolejke(self):
+        self.czysc_ekran()
+        print(f"--- WYNIKI KOLEJKI {self.kolejka} ---\n")
+        
+        kluby_lista = list(self.kluby.keys())
+        random.shuffle(kluby_lista)
+        
+        pary = [(kluby_lista[i], kluby_lista[i+1]) for i in range(0, len(kluby_lista), 2)]
+        
+        for gospodarz, gosc in pary:
+            g_bramki = random.randint(0, 5) + (1 if self.kluby[gospodarz]["forma"] > 3 else 0)
+            gs_bramki = random.randint(0, 5) + (1 if self.kluby[gosc]["forma"] > 3 else 0)
+            
+            self.kluby[gospodarz]["bramki_strzelone"] += g_bramki
+            self.kluby[gospodarz]["bramki_stracone"] += gs_bramki
+            self.kluby[gosc]["bramki_strzelone"] += gs_bramki
+            self.kluby[gosc]["bramki_stracone"] += g_bramki
+            
+            if g_bramki > gs_bramki:
+                self.kluby[gospodarz]["punkty"] += 3
+            elif gs_bramki > g_bramki:
+                self.kluby[gosc]["punkty"] += 3
+            else:
+                self.kluby[gospodarz]["punkty"] += 1
+                self.kluby[gosc]["punkty"] += 1
                 
-                <button class="action-btn" onclick="investInMarketing()">Zainwestuj w Marketing Ligi ($25,000)</button>
-            </div>
+            print(f"🏟️ {gospodarz} {g_bramki} : {gs_bramki} {gosc}")
+            
+        wydarzenie = random.randint(1, 4)
+        if wydarzenie == 1:
+            kary_bonus = 50000
+            self.budzet_centralny += kary_bonus
+            print(f"\nℹ️ Komisja Ligi nałożyła kary finansowe na zawodników za niesportowe zachowanie. Do budżetu wpływa: {kary_bonus} PLN.")
+        elif wydarzenie == 2:
+            self.reputacja = min(100, self.reputacja + 2)
+            print("\nℹ️ Świetny poziom meczów przyciągnął tłumy na trybuny! Wzrosła reputacja rozgrywek.")
+        elif wydarzenie == 3:
+            self.reputacja = max(10, self.reputacja - 2)
+            print("\nℹ️ Skandal sędziowski w jednej z hal! Fani krytykują władze ligi (spadek reputacji).")
 
-            <div class="card">
-                <h2>Centrum Dowodzenia Komisarza</h2>
-                <p>Jako szef ligi odpowiadasz za płynność finansową klubów, atrakcyjność widowiska oraz harmonogram spotkań.</p>
-                <div class="stat-row" style="margin-top: 20px;"><span>Zarejestrowane Kluby:</span><span class="stat-value">4 Drużyny</span></div>
-                <div class="stat-row"><span>Status Sezonu:</span><span id="season-status" class="stat-value positive">W toku</span></div>
-            </div>
-        </div>
-    </div>
+        self.kolejka += 1
+        input("\nNaciśnij Enter, aby kontynuować...")
 
-    <!-- 2. TERMINARZ I MECZE (USTALASZ I ROZGRYWASZ) -->
-    <div id="tab-scheduler" class="tab-content">
-        <div class="grid-2">
-            <div class="card">
-                <h2>Panel Terminarza <span class="badge" id="round-badge">Kolejka 1</span></h2>
-                <p>Wybierz pary i zarządź rozegranie nadchodzącej kolejki ligowej.</p>
+    def pokaz_tabele(self):
+        self.czysc_ekran()
+        print("=" * 70)
+        print(f" TABELA LIGOWA - PO KOLEJCE {self.kolejka - 1} ")
+        print("=" * 70)
+        print(f"{'Poz':<4} {'Klub':<22} {'M':<3} {'Pkt':<5} {'BZ':<4} {'BS':<4} {'RB':<5} {'Budżet':<10}")
+        print("-" * 70)
+        
+        posortowane = sorted(
+            self.kluby.items(), 
+            key=lambda x: (x[1]["punkty"], (x[1]["bramki_strzelone"] - x[1]["bramki_stracone"]), x[1]["bramki_strzelone"]), 
+            reverse=True
+        )
+        
+        for idx, (klub, dane) in enumerate(posortowane, 1):
+            bilans = dane["bramki_strzelone"] - dane["bramki_stracone"]
+            print(f"{idx:<4} {klub:<22} {self.kolejka-1:<3} {dane['punkty']:<5} {dane['bramki_strzelone']:<4} {dane['bramki_stracone']:<4} {bilans:<5} {dane['budzet']//1000000}M PLN")
+            
+        print("=" * 70)
+        input("\nNaciśnij Enter, aby powrócić do menu...")
+
+    def zarzadzaj_finansami(self):
+        while True:
+            self.czysc_ekran()
+            print("=" * 50)
+            print(" ZARZĄDZANIE FINANSAMI I MARKETINGIEM LIGI ")
+            print("=" * 50)
+            print(f"💰 Dostępne środki związku: {self.budzet_centralny:,} PLN")
+            print("\nSponsorzy Ligi:")
+            for s, kwota in self.sponsorzy.items():
+                print(f" - {s}: {kwota:,} PLN/sezon")
                 
-                <div id="fixtures-preview" style="margin: 15px 0;">
-                    <!-- Generowane dynamicznie -->
-                </div>
+            print("\n[1] Negocjuj nowe umowy sponsorskie (+koszt marketingowy 200,000 PLN)")
+            print("[2] Zainwestuj w kampanię promocyjną ligi (+5 reputacji, koszt 500,000 PLN)")
+            print("[3] Wypłać dywidendę klubom (wsparcie po 100,000 PLN dla każdego)")
+            print("[4] Powrót do menu")
+            
+            wybor = input("\nWybierz opcję: ").strip()
+            
+            if wybor == "1":
+                if self.budzet_centralny >= 200000:
+                    self.budzet_centralny -= 200000
+                    zysk = random.randint(500000, 1500000)
+                    self.budzet_centralny += zysk
+                    print(f"\n🎉 Pozyskano dodatkowego sponsora! Związek zyskał netto: {zysk - 200000:,} PLN.")
+                else:
+                    print("\n❌ Za mało środków na kampanię marketingową!")
+                input("\nNaciśnij Enter...")
+            elif wybor == "2":
+                if self.budzet_centralny >= 500000:
+                    self.budzet_centralny -= 500000
+                    self.reputacja = min(100, self.reputacja + 5)
+                    print("\n📈 Kampania medialna ruszyła w całym kraju! Reputacja ligi wzrosła.")
+                else:
+                    print("\n❌ Za mało środków w budżecie centralnym!")
+                input("\nNaciśnij Enter...")
+            elif wybor == "3":
+                koszt = len(self.kluby) * 100000
+                if self.budzet_centralny >= koszt:
+                    self.budzet_centralny -= koszt
+                    for k in self.kluby:
+                        self.kluby[k]["budzet"] += 100000
+                    print(f"\n🤝 Wypłacono zapomogi dla klubów. Zadowolenie prezesów klubów rośnie.")
+                else:
+                    print(f"\n❌ Potrzebujesz {koszt:,} PLN, aby wesprzeć wszystkie kluby.")
+                input("\nNaciśnij Enter...")
+            elif wybor == "4":
+                break
 
-                <button class="action-btn" id="play-matchday-btn" onclick="executeMatchday()">Rozegraj Kolejku</button>
-            </div>
+    def zarzadzaj_regulaminem(self):
+        while True:
+            self.czysc_ekran()
+            print("=" * 50)
+            print(" KOMISJA LIGI I SĘDZIOWIE ")
+            print("=" * 50)
+            print("[1] Przeprowadź szkolenie VAR / Popraw sędziowanie (Koszt: 300,000 PLN)")
+            print("[2] Nałóż karę regulaminową na wyłoniony klub za naruszenia (-1 pkt, +50,000 PLN do budżetu)")
+            print("[3] Powrót")
+            
+            wybor = input("\nWybierz opcję: ").strip()
+            
+            if wybor == "1":
+                if self.budzet_centralny >= 300000:
+                    self.budzet_centralny -= 300000
+                    self.reputacja = min(100, self.reputacja + 3)
+                    print("\n✅ Szkolenie sędziów poprawiło jakość gwizdków. Mniej kontrowersji w kolejkach!")
+                else:
+                    print("\n❌ Brak środków.")
+                input("\nNaciśnij Enter...")
+            elif wybor == "2":
+                print("\nWybierz klub do ukarania:")
+                kluby_lista = list(self.kluby.keys())
+                for i, k in enumerate(kluby_lista, 1):
+                    print(f"[{i}] {k}")
+                try:
+                    k_idx = int(input("Numer klubu: ")) - 1
+                    if 0 <= k_idx < len(kluby_lista):
+                        wybrany_klub = kluby_lista[k_idx]
+                        self.kluby[wybrany_klub]["punkty"] = max(0, self.kluby[wybrany_klub]["punkty"] - 1)
+                        self.budzet_centralny += 50000
+                        print(f"\n⚖️ Klub {wybrany_klub} ukarany odebraniem 1 punktu i grzywną 50k PLN.")
+                    else:
+                        print("❌ Błędny numer.")
+                except ValueError:
+                    print("❌ Wpisz liczbę.")
+                input("\nNaciśnij Enter...")
+            elif wybor == "3":
+                break
 
-            <div class="card">
-                <h2>Komunikaty i Sędziowskie Raporty</h2>
-                <div class="log-box" id="league-log">
-                    [System] Zainicjalizowano strukturę ligi. Czas ustalić pierwszą kolejkę spotkań.
-                </div>
-            </div>
-        </div>
-    </div>
+    def zarzadzaj_klubami(self):
+        while True:
+            self.czysc_ekran()
+            print("=" * 50)
+            print(" LICENCJE I ROZWÓJ KLUBÓW ")
+            print("=" * 50)
+            print("Możesz przyznać dotację infrastrukturalną wybranemu klubowi, aby podnieść jego potencjał.")
+            print("\nKluby w lidze:")
+            kluby_lista = list(self.kluby.keys())
+            for i, k in enumerate(kluby_lista, 1):
+                print(f"[{i}] {k} (Forma drużyny: {self.kluby[k]['forma']}, Budżet klubu: {self.kluby[k]['budzet']:,} PLN)")
+                
+            print(f"\n[Wpisz numer klubu] Przekaż dotację celową 300,000 PLN na rozwój akademii/hal")
+            print("[0] Powrót do menu")
+            
+            wybor = input("\nWybierz opcję: ").strip()
+            if wybor == "0":
+                break
+            try:
+                k_idx = int(wybor) - 1
+                if 0 <= k_idx < len(kluby_lista):
+                    wybrany_klub = kluby_lista[k_idx]
+                    if self.budzet_centralny >= 300000:
+                        self.budzet_centralny -= 300000
+                        self.kluby[wybrany_klub]["forma"] = min(5, self.kluby[wybrany_klub]["forma"] + 1)
+                        print(f"\n🏟️ Klub {wybrany_klub} świetnie wykorzystał dotację! Wzrosła ich forma sportowa.")
+                    else:
+                        print("\n❌ Związek nie ma tylu środków.")
+                else:
+                    print("\n❌ Nie ma takiego klubu.")
+            except ValueError:
+                print("\n❌ Nieprawidłowy wybór.")
+            input("\nNaciśnij Enter...")
 
-    <!-- 3. ZARZĄDZANIE KLUBAMI -->
-    <div id="tab-teams" class="tab-content">
-        <div class="card">
-            <h2>Uczestnicy Ligi (Zarządzaj Siłą i Sponsoringiem)</h2>
-            <p>Możesz podnosić potencjał drużyn lub dofinansowywać je z budżetu federacji.</p>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Nazwa Klubu</th>
-                        <th>Siła (OVR)</th>
-                        <th>Finanse Klubu</th>
-                        <th>Akcje Zarządcze</th>
-                    </tr>
-                </thead>
-                <tbody id="teams-management-list">
-                    <!-- Generowane przez JS -->
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- 4. TABELA LIGOWA -->
-    <div id="tab-table" class="tab-content">
-        <div class="card">
-            <h2>Oficjalna Tabela Ligi</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Poz</th>
-                        <th>Klub</th>
-                        <th>M</th>
-                        <th>Z</th>
-                        <th>R</th>
-                        <th>P</th>
-                        <th>Bramki</th>
-                        <th>Pkt</th>
-                    </tr>
-                </thead>
-                <tbody id="league-table-body">
-                    <!-- Generowane przez JS -->
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <script>
-        // Główny stan gry komisarza
-        const game = {
-            budget: 150000,
-            prestige: 1, // 1: Lokalna, 2: Krajowa, 3: Międzynarodowa
-            currentRound: 1,
-            maxRounds: 6,
-            teams: [
-                { id: 1, name: "Legion Białystok", ovr: 69, cash: 40000, mp: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, pts: 0 },
-                { id: 2, name: "Super Strikers", ovr: 68, cash: 35000, mp: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, pts: 0 },
-                { id: 3, name: "Dinamo Wrocław", ovr: 67, cash: 30000, mp: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, pts: 0 },
-                { id: 4, name: "Jagiellonia Fan Club", ovr: 66, cash: 25000, mp: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, pts: 0 }
-            ]
-        };
-
-        // Referencje UI
-        const budgetEl = document.getElementById('league-budget');
-        const prestigeEl = document.getElementById('league-prestige');
-        const commRoundEl = document.getElementById('comm-round');
-        const roundBadgeEl = document.getElementById('round-badge');
-        const fixturesPreviewEl = document.getElementById('fixtures-preview');
-        const playBtn = document.getElementById('play-matchday-btn');
-        const logBox = document.getElementById('league-log');
-        const teamsListEl = document.getElementById('teams-management-list');
-        const tableBodyEl = document.getElementById('league-table-body');
-        const seasonStatusEl = document.getElementById('season-status');
-
-        function log(msg) {
-            logBox.innerHTML += `<br>> ${msg}`;
-            logBox.scrollTop = logBox.scrollHeight;
-        }
-
-        function switchTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
-
-            document.getElementById(`tab-${tabId}`).classList.add('active');
-            event.target.classList.add('active');
-        }
-
-        function updateUI() {
-            budgetEl.innerText = `$${game.budget.toLocaleString()}`;
-            commRoundEl.innerText = `${game.currentRound} z ${game.maxRounds}`;
-            roundBadgeEl.innerText = `Kolejka ${game.currentRound}`;
-
-            if (game.prestige === 1) prestigeEl.innerText = "Średni (Lokalna Liga)";
-            else if (game.prestige === 2) prestigeEl.innerText = "Wysoki (Krajowa Ekstraklasa)";
-            else prestigeEl.innerText = "Globalny (Elita Międzynarodowa)";
-
-            // Generowanie podglądu par na tę kolejkę
-            if (game.currentRound <= game.maxRounds) {
-                const pairings = getPairingsForRound(game.currentRound);
-                let html = '';
-                pairings.forEach(p => {
-                    html += `<div style="background: #04100c; padding: 10px; border-radius: 8px; margin-bottom: 8px; border: 1px solid var(--border); display: flex; justify-content: space-between;">
-                        <span><strong>${p[0].name}</strong> vs <strong>${p[1].name}</strong></span>
-                        <span style="color: var(--accent);">Zaplanowane</span>
-                    </div>`;
-                });
-                fixturesPreviewEl.innerHTML = html;
-                playBtn.disabled = false;
-            } else {
-                fixturesPreviewEl.innerHTML = `<p class="positive" style="text-align:center;">Sezon ligowy dobiegł końca! Sprawdź końcową tabelę.</p>`;
-                playBtn.disabled = true;
-                seasonStatusEl.innerText = "Zakończony";
-            }
-
-            // Tabela ligowa (sortowanie)
-            game.teams.sort((a, b) => b.pts - a.pts || (b.gf - b.ga) - (a.gf - a.ga) || b.ovr - a.ovr);
-            tableBodyEl.innerHTML = '';
-            game.teams.forEach((t, index) => {
-                tableBodyEl.innerHTML += `
-                    <tr>
-                        <td><strong>${index + 1}</strong></td>
-                        <td>${t.name}</td>
-                        <td>${t.mp}</td>
-                        <td>${t.w}</td>
-                        <td>${t.d}</td>
-                        <td>${t.l}</td>
-                        <td>${t.gf}:${t.ga}</td>
-                        <td><strong>${t.pts}</strong></td>
-                    </tr>
-                `;
-            });
-
-            // Zarządzanie klubami
-            teamsListEl.innerHTML = '';
-            game.teams.forEach(t => {
-                teamsListEl.innerHTML += `
-                    <tr>
-                        <td><strong>${t.name}</strong></td>
-                        <td>${t.ovr} OVR</td>
-                        <td>$${t.cash.toLocaleString()}</td>
-                        <td>
-                            <button onclick="subsidizeTeam(${t.id})" style="background:#10b981; color:#061a14; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; font-weight:bold; font-size:0.8rem;">Dotacja ($10k)</button>
-                        </td>
-                    </tr>
-                `;
-            });
-        }
-
-        // Prosty algorytm parowania drużyn na podstawie rundy
-        function getPairingsForRound(round) {
-            const t = game.teams;
-            if (round === 1) return [[t[0], t[1]], [t[2], t[3]]];
-            if (round === 2) return [[t[0], t[2]], [t[1], t[3]]];
-            if (round === 3) return [[t[0], t[3]], [t[1], t[2]]];
-            if (round === 4) return [[t[1], t[0]], [t[3], t[2]]];
-            if (round === 5) return [[t[2], t[0]], [t[3], t[1]]];
-            if (round === 6) return [[t[3], t[0]], [t[2], t[1]]];
-            return [];
-        }
-
-        function executeMatchday() {
-            if (game.currentRound > game.maxRounds) return;
-
-            log(`--- ROZPOCZĘTO KOLEJKĘ NR ${game.currentRound} ---`);
-            const pairings = getPairingsForRound(game.currentRound);
-
-            pairings.forEach(pair => {
-                const teamA = pair[0];
-                const teamB = pair[1];
-
-                // Symulacja wyniku meczu oparta na OVR + RNG
-                const formA = teamA.ovr + (Math.random() * 14 - 7);
-                const formB = teamB.ovr + (Math.random() * 14 - 7);
-
-                let goalsA = Math.floor(Math.random() * 3);
-                let goalsB = Math.floor(Math.random() * 3);
-
-                if (formA > formB + 3) goalsA++;
-                if (formB > formA + 3) goalsB++;
-
-                teamA.mp++;
-                teamB.mp++;
-                teamA.gf += goalsA;
-                teamA.ga += goalsB;
-                teamB.gf += goalsB;
-                teamB.ga += goalsA;
-
-                if (goalsA > goalsB) {
-                    teamA.w++; teamB.l++;
-                    teamA.pts += 3;
-                    log(`[MECZ] ${teamA.name} wygrywa z ${teamB.name} wynikiem ${goalsA}:${goalsB}!`);
-                } else if (goalsA === goalsB) {
-                    teamA.d++; teamB.d++;
-                    teamA.pts += 1; teamB.pts += 1;
-                    log(`[MECZ] Remis w starciu ${teamA.name} vs ${teamB.name} (${goalsA}:${goalsB}).`);
-                } else {
-                    teamA.l++; teamB.w++;
-                    teamB.pts += 3;
-                    log(`[MECZ] Sensacja! ${teamB.name} pokonuje ${teamA.name} ${goalsB}:${goalsA}!`);
-                }
-
-                // Zysk ligi z biletów/praw telewizyjnych z tego meczu
-                game.budget += 5000;
-            });
-
-            game.currentRound++;
-            log(`[Finanse] Wpływy z praw telewizyjnych i biletów za kolejkę zasiliły budżet ligi.`);
-            updateUI();
-        }
-
-        function investInMarketing() {
-            const cost = 25000;
-            if (game.budget >= cost) {
-                game.budget -= cost;
-                game.prestige = Math.min(3, game.prestige + 1);
-                log(`[Zarząd] Zainwestowano w kampanię marketingową! Prestiż rozgrywek wzrósł.`);
-                updateUI();
-            } else {
-                alert("Za mało środków w budżecie federacji ligowej!");
-            }
-        }
-
-        function subsidizeTeam(teamId) {
-            const cost = 10000;
-            const team = game.teams.find(t => t.id === teamId);
-            if (game.budget >= cost) {
-                game.budget -= cost;
-                team.cash += cost;
-                team.ovr += 1; // Dożywienie finansowe podnosi potencjał klubu
-                log(`[Komisarz] Udzielono dotacji finansowej dla klubu ${team.name}. Ich siła wzrosła do ${team.ovr} OVR.`);
-                updateUI();
-            } else {
-                alert("Brak środków w budżecie ligi na dotację!");
-            }
-        }
-
-        // Inicjalizacja
-        updateUI();
-    </script>
-</body>
-</html>
+if __name__ == "__main__":
+    gra = LigaSimulator()
+    gra.menu_glowne()
