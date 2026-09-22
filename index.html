@@ -41,6 +41,9 @@
                 <button onclick="zmienWidok('puchar')" id="nav-puchar" class="w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 font-medium p-3 rounded-xl transition text-left flex items-center gap-3">
                     <span>🏅</span> Puchar Polski
                 </button>
+                <button onclick="zmienWidok('europa')" id="nav-europa" class="w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 font-medium p-3 rounded-xl transition text-left flex items-center gap-3">
+                    <span>🌍</span> Europejskie Puchary
+                </button>
                 <button onclick="zmienWidok('rozwoj')" id="nav-rozwoj" class="w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 font-medium p-3 rounded-xl transition text-left flex items-center gap-3">
                     <span>📈</span> Rozwój Klubów
                 </button>
@@ -195,6 +198,41 @@
             stan.historiaSezonow = stan.historiaSezonow || [];
             stan.puchar = stan.puchar || { runda: 1, aktywny: true, uczestnicy: [], historia: [], zwyciezca: null };
             stan.ostatnieWydarzenie = stan.ostatnieWydarzenie || 'Brak';
+            stan.europa = stan.europa || {
+                sezon: stan.sezon,
+                rozgrywki: {
+                    LM: { nazwa: 'Liga Mistrzów', kod: 'LM', etap: 0, aktywni: [], historia: [], zwyciezca: null },
+                    LE: { nazwa: 'Liga Europy', kod: 'LE', etap: 0, aktywni: [], historia: [], zwyciezca: null },
+                    LK: { nazwa: 'Liga Konferencji', kod: 'LK', etap: 0, aktywni: [], historia: [], zwyciezca: null }
+                }
+            };
+            if (!stan.europa.rozgrywki) stan.europa.rozgrywki = {};
+            ['LM','LE','LK'].forEach(kod => {
+                const nazwy = {LM:'Liga Mistrzów', LE:'Liga Europy', LK:'Liga Konferencji'};
+                stan.europa.rozgrywki[kod] = stan.europa.rozgrywki[kod] || { nazwa:nazwy[kod], kod, etap:0, aktywni:[], oczekujacy:[], historia:[], zwyciezca:null };
+                stan.europa.rozgrywki[kod].aktywni = stan.europa.rozgrywki[kod].aktywni || [];
+                stan.europa.rozgrywki[kod].oczekujacy = stan.europa.rozgrywki[kod].oczekujacy || [];
+                stan.europa.rozgrywki[kod].historia = stan.europa.rozgrywki[kod].historia || [];
+            });
+            const brakHistoriiEuropy = ['LM','LE','LK'].every(kod => stan.europa.rozgrywki[kod].aktywni.length === 0 && stan.europa.rozgrywki[kod].historia.length === 0 && !stan.europa.rozgrywki[kod].zwyciezca);
+            if (stan.sezon === 1 && brakHistoriiEuropy) {
+                // Startowa obsada pierwszego sezonu według nowych rund kwalifikacyjnych.
+                stan.europa.rozgrywki.LM.etap = 1;
+                stan.europa.rozgrywki.LM.aktywni = ['Śląsk Wrocław'].filter(n => stan.kluby[n]);
+                stan.europa.rozgrywki.LM.oczekujacy = [{klub:'Jagiellonia Białystok', startEtap:3, zrodlo:'Mistrz — IV runda eliminacji'}].filter(w => stan.kluby[w.klub]);
+                stan.europa.rozgrywki.LE.etap = 1;
+                stan.europa.rozgrywki.LE.aktywni = ['Legia Warszawa'].filter(n => stan.kluby[n]);
+                stan.europa.rozgrywki.LE.oczekujacy = [{klub:'Wisła Kraków', startEtap:3, zrodlo:'Puchar Polski — IV runda eliminacji'}].filter(w => stan.kluby[w.klub]);
+                stan.europa.rozgrywki.LK.etap = 1;
+                stan.europa.rozgrywki.LK.aktywni = ['Pogoń Szczecin'].filter(n => stan.kluby[n]);
+            }
+
+            // Zaplecze 3. Ligi — kluby te są poza głównym widokiem, ale walczą o awans do 2. Ligi.
+            const zaplecze3Ligi = ['Unia Skierniewice','Rekord Bielsko-Biała','Podhale Nowy Targ','Avia Świdnik','Świt Nowy Dwór Mazowiecki','Star Starachowice','Sokół Kleczew','Legionovia Legionowo'];
+            zaplecze3Ligi.forEach((nazwa, i) => {
+                if (!stan.kluby[nazwa]) stan.kluby[nazwa] = { punkty:0, bramki_strzelone:0, bramki_stracone:0, budzet:1800000 + i*120000, forma:2 + (i%3), licencja:true, liga:'3. Liga', morale:65, akademia:1, infrastruktura:1, kibice:35 };
+            });
+
             stan.kluby && Object.values(stan.kluby).forEach(k => {
                 if (typeof k.morale !== 'number') k.morale = 70;
                 if (typeof k.akademia !== 'number') k.akademia = 1;
@@ -267,6 +305,53 @@
             return pary;
         }
 
+        function strefyDlaPozycji(liga, idx, liczba, nazwaKlubu, posortowane) {
+            let strefy = [];
+            if (liga === 'Ekstraklasa') {
+                const zdobywcaPP = stan.puchar && stan.puchar.zwyciezca;
+                const top4 = posortowane.slice(0,4).map(x => x[0]);
+                const slotPP = zdobywcaPP && top4.includes(zdobywcaPP)
+                    ? (posortowane.find(([nazwa]) => !top4.includes(nazwa)) || [null])[0]
+                    : zdobywcaPP;
+
+                if (idx === 0) strefy.push({tekst:'IV runda el. Ligi Mistrzów', klasa:'bg-sky-900/60 text-sky-200 border-sky-700', wiersz:'bg-sky-950/25'});
+                if (idx === 1) strefy.push({tekst:'II runda el. Ligi Mistrzów', klasa:'bg-cyan-900/60 text-cyan-200 border-cyan-700', wiersz:'bg-cyan-950/20'});
+                if (idx === 2) strefy.push({tekst:'II runda el. Ligi Europy', klasa:'bg-orange-900/60 text-orange-200 border-orange-700', wiersz:'bg-orange-950/20'});
+                if (idx === 3) strefy.push({tekst:'II runda el. Ligi Konferencji Europy', klasa:'bg-emerald-900/60 text-emerald-200 border-emerald-700', wiersz:'bg-emerald-950/20'});
+
+                if (slotPP && nazwaKlubu === slotPP && !top4.includes(nazwaKlubu)) {
+                    strefy.push({tekst: zdobywcaPP === slotPP ? 'IV runda el. Ligi Europy — Puchar Polski' : 'IV runda el. Ligi Europy — slot Pucharu Polski', klasa:'bg-amber-900/60 text-amber-200 border-amber-700', wiersz:'bg-amber-950/20'});
+                }
+                if (idx >= liczba - 3) strefy.push({tekst:'Spadek do 1. Ligi', klasa:'bg-rose-900/60 text-rose-200 border-rose-700', wiersz:'bg-rose-950/30'});
+            } else if (liga === '1. Liga') {
+                if (idx < 3) strefy.push({tekst:'Awans do Ekstraklasy', klasa:'bg-emerald-900/60 text-emerald-200 border-emerald-700', wiersz:'bg-emerald-950/20'});
+                if (idx >= liczba - 3) strefy.push({tekst:'Spadek do 2. Ligi', klasa:'bg-rose-900/60 text-rose-200 border-rose-700', wiersz:'bg-rose-950/30'});
+            } else if (liga === '2. Liga') {
+                if (idx < 3) strefy.push({tekst:'Awans do 1. Ligi', klasa:'bg-emerald-900/60 text-emerald-200 border-emerald-700', wiersz:'bg-emerald-950/20'});
+                if (idx >= liczba - 3) strefy.push({tekst:'Spadek do 3. Ligi', klasa:'bg-rose-900/60 text-rose-200 border-rose-700', wiersz:'bg-rose-950/30'});
+            }
+            // Zdobywca Pucharu Polski z niższej ligi wchodzi do IV rundy eliminacji Ligi Europy.
+            if (liga !== 'Ekstraklasa' && stan.puchar && stan.puchar.zwyciezca === nazwaKlubu) {
+                strefy.unshift({tekst:'IV runda el. Ligi Europy — Puchar Polski', klasa:'bg-amber-900/60 text-amber-200 border-amber-700', wiersz:'bg-amber-950/20'});
+            }
+            return strefy;
+        }
+
+        function legendaStref(liga) {
+            if (liga === 'Ekstraklasa') return `
+                <div class="flex flex-wrap gap-2 text-[10px]">
+                    <span class="px-2 py-1 rounded border bg-sky-900/50 text-sky-200 border-sky-700">Mistrz → IV runda el. Ligi Mistrzów</span>
+                    <span class="px-2 py-1 rounded border bg-cyan-900/50 text-cyan-200 border-cyan-700">Wicemistrz → II runda el. Ligi Mistrzów</span>
+                    <span class="px-2 py-1 rounded border bg-amber-900/50 text-amber-200 border-amber-700">Puchar Polski → IV runda el. Ligi Europy</span>
+                    <span class="px-2 py-1 rounded border bg-orange-900/50 text-orange-200 border-orange-700">3. miejsce → II runda el. Ligi Europy</span>
+                    <span class="px-2 py-1 rounded border bg-emerald-900/50 text-emerald-200 border-emerald-700">4. miejsce → II runda el. Ligi Konferencji Europy</span>
+                    <span class="px-2 py-1 rounded border bg-rose-900/50 text-rose-200 border-rose-700">3 ostatnie → 1. Liga</span>
+                </div>`;
+            if (liga === '1. Liga') return `<div class="flex flex-wrap gap-2 text-[10px]"><span class="px-2 py-1 rounded border bg-emerald-900/50 text-emerald-200 border-emerald-700">TOP 3 → Ekstraklasa</span><span class="px-2 py-1 rounded border bg-rose-900/50 text-rose-200 border-rose-700">3 ostatnie → 2. Liga</span></div>`;
+            if (liga === '2. Liga') return `<div class="flex flex-wrap gap-2 text-[10px]"><span class="px-2 py-1 rounded border bg-emerald-900/50 text-emerald-200 border-emerald-700">TOP 3 → 1. Liga</span><span class="px-2 py-1 rounded border bg-rose-900/50 text-rose-200 border-rose-700">3 ostatnie → 3. Liga</span></div>`;
+            return '';
+        }
+
         function renderujWidok() {
             let kontener = document.getElementById('widok-kontener');
             kontener.innerHTML = '';
@@ -283,13 +368,16 @@
 
                 let wierszeTabeli = posortowane.map(([nazwa, dane], idx) => {
                     let bilans = dane.bramki_strzelone - dane.bramki_stracone;
+                    let strefy = strefyDlaPozycji(stan.aktualnaLiga, idx, posortowane.length, nazwa, posortowane);
+                    let klasaWiersza = strefy.length ? strefy[strefy.length - 1].wiersz : '';
                     return `
-                        <tr class="border-b border-slate-800/50 hover:bg-slate-800/30">
+                        <tr class="border-b border-slate-800/50 hover:bg-slate-800/40 ${klasaWiersza}">
                             <td class="py-3 px-2 font-semibold text-slate-400">${idx + 1}</td>
                             <td class="py-3 px-2 font-medium text-slate-200">${nazwa}</td>
                             <td class="py-3 px-2 text-center text-slate-400">${stan.kolejka - 1}</td>
                             <td class="py-3 px-2 text-center font-bold text-emerald-400">${dane.punkty}</td>
                             <td class="py-3 px-2 text-center text-slate-300">${dane.bramki_strzelone}:${dane.bramki_stracone} (${bilans > 0 ? '+' + bilans : bilans})</td>
+                            <td class="py-3 px-2"><div class="flex flex-wrap gap-1">${strefy.map(s => `<span class="px-2 py-0.5 rounded text-[9px] font-semibold border ${s.klasa}">${s.tekst}</span>`).join('') || '<span class="text-slate-600 text-[10px]">—</span>'}</div></td>
                             <td class="py-3 px-2 text-right">
                                 <span class="px-2 py-0.5 rounded text-[10px] font-semibold ${dane.licencja ? 'bg-emerald-900/50 text-emerald-300 border border-emerald-700' : 'bg-rose-900/50 text-rose-300 border border-rose-700'}">
                                     ${dane.licencja ? 'Aktywna' : 'Brak'}
@@ -308,6 +396,7 @@
                                     ${stan.ligi.map(l => `<option value="${l}" ${l === stan.aktualnaLiga ? 'selected' : ''}>${l}</option>`).join('')}
                                 </select>
                             </div>
+                            <div class="mb-4">${legendaStref(stan.aktualnaLiga)}</div>
                             <div class="overflow-x-auto">
                                 <table class="w-full text-left border-collapse text-sm">
                                     <thead>
@@ -317,11 +406,12 @@
                                             <th class="py-2 px-2 text-center">M</th>
                                             <th class="py-2 px-2 text-center">Pkt</th>
                                             <th class="py-2 px-2 text-center">Bilans</th>
+                                            <th class="py-2 px-2">Strefa</th>
                                             <th class="py-2 px-2 text-right">Licencja</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        ${wierszeTabeli || '<tr><td colspan="6" class="py-4 text-center text-slate-500">Brak klubów w tej lidze</td></tr>'}
+                                        ${wierszeTabeli || '<tr><td colspan="7" class="py-4 text-center text-slate-500">Brak klubów w tej lidze</td></tr>'}
                                     </tbody>
                                 </table>
                             </div>
@@ -534,6 +624,38 @@
                             <div class="space-y-2 text-xs max-h-[520px] overflow-y-auto">${uczestnicy.map(k => `<div class="bg-slate-800 rounded-lg p-2 flex justify-between"><span>${k}</span><span class="text-slate-500">${stan.kluby[k]?.liga || ''}</span></div>`).join('') || '<p class="text-slate-500">Turniej zakończony.</p>'}</div>
                         </div>
                     </div>`;
+            } else if (stan.aktywnyWidok === 'europa') {
+                const etapy = etapyEuropejskie();
+                const kolory = {LM:'sky', LE:'orange', LK:'emerald'};
+                const opisy = {
+                    LM:'Mistrz Ekstraklasy startuje od IV rundy eliminacji, a wicemistrz od II rundy eliminacji.',
+                    LE:'Zdobywca Pucharu Polski startuje od IV rundy eliminacji, a 3. zespół Ekstraklasy od II rundy eliminacji.',
+                    LK:'4. zespół Ekstraklasy startuje od II rundy eliminacji Ligi Konferencji Europy.'
+                };
+                kontener.innerHTML = `
+                    <div class="space-y-6">
+                        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
+                            <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                                <div><h2 class="text-xl font-bold">🌍 Europejskie Puchary — sezon ${stan.sezon}</h2><p class="text-xs text-slate-400 mt-1">Uproszczony system pucharowy. Rundy europejskie są rozgrywane automatycznie co 4 kolejki ligowe.</p></div>
+                                <span class="text-xs px-3 py-1 rounded-lg bg-slate-800 border border-slate-700">Kolejna runda: ${stan.kolejka <= 32 ? (Math.ceil(stan.kolejka/4)*4) + '. kolejka' : 'zakończona'}</span>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 xl:grid-cols-3 gap-5">
+                            ${['LM','LE','LK'].map(kod => {
+                                const r = stan.europa.rozgrywki[kod];
+                                const aktywni = r.aktywni || [];
+                                const oczekujacy = r.oczekujacy || [];
+                                const etapTekst = r.zwyciezca ? 'Zakończona' : (aktywni.length ? (etapy[r.etap] || 'Finał') : (oczekujacy.length ? `Oczekiwanie na ${etapy[Math.min(...oczekujacy.map(w => w.startEtap))]}` : 'Brak polskich klubów'));
+                                return `<div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
+                                    <div><h3 class="font-bold text-lg ${kod==='LM'?'text-sky-300':kod==='LE'?'text-orange-300':'text-emerald-300'}">${r.nazwa}</h3><p class="text-[11px] text-slate-400 mt-1">${opisy[kod]}</p></div>
+                                    <div class="bg-slate-950 border border-slate-800 rounded-xl p-3"><p class="text-[10px] uppercase text-slate-500">Aktualny etap</p><p class="font-semibold mt-1">${etapTekst}</p></div>
+                                    <div><p class="text-xs text-slate-400 mb-2">Polskie kluby w grze:</p>${aktywni.length ? aktywni.map(n => `<div class="bg-slate-800 border border-slate-700 rounded-lg p-2 mb-2 text-sm flex justify-between"><span>${n}</span><span class="text-emerald-300">aktywny</span></div>`).join('') : `<p class="text-xs text-slate-600">${r.zwyciezca ? 'Zwycięzca: '+r.zwyciezca : 'Brak aktywnego klubu w tej rundzie.'}</p>`}</div>
+                                    ${oczekujacy.length ? `<div><p class="text-xs text-slate-400 mb-2">Kluby czekające na swoją rundę:</p>${oczekujacy.map(w => `<div class="bg-slate-800/60 border border-slate-700 rounded-lg p-2 mb-2 text-xs flex justify-between gap-2"><span>${w.klub}</span><span class="text-amber-300">${etapy[w.startEtap]}</span></div>`).join('')}</div>` : ''}
+                                    <div class="bg-slate-950 border border-slate-800 rounded-xl p-3 max-h-[300px] overflow-y-auto text-[11px] space-y-2">${r.historia.length ? r.historia.slice().reverse().map(h => `<div class="border-b border-slate-800 pb-2"><b>${h.etap}</b><br>${h.wyniki.join('<br>')}</div>`).join('') : '<p class="text-slate-600">Brak rozegranych meczów.</p>'}</div>
+                                </div>`;
+                            }).join('')}
+                        </div>
+                    </div>`;
             } else if (stan.aktywnyWidok === 'rozwoj') {
                 let lista = Object.entries(stan.kluby).sort((a,b) => b[1].budzet - a[1].budzet);
                 kontener.innerHTML = `
@@ -546,7 +668,7 @@
                 kontener.innerHTML = `
                     <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-5">
                         <div class="flex justify-between items-center"><div><h2 class="text-xl font-bold">📚 Archiwum Sezonów</h2><p class="text-xs text-slate-400">Mistrzowie, zwycięzcy pucharu i stan federacji po zakończonych sezonach.</p></div><span class="text-xs bg-violet-900/40 border border-violet-800 text-violet-300 px-3 py-1 rounded-lg">Aktualny sezon: ${stan.sezon}</span></div>
-                        ${stan.historiaSezonow.length ? `<div class="grid grid-cols-1 md:grid-cols-2 gap-4">${stan.historiaSezonow.slice().reverse().map(h => `<div class="bg-slate-800 border border-slate-700 rounded-xl p-4"><div class="flex justify-between"><b>Sezon ${h.sezon}</b><span class="text-xs text-slate-400">Rep. ${h.reputacja}</span></div><p class="mt-2 text-emerald-300">🏆 Mistrz: ${h.mistrz}</p><p class="text-amber-300">🏅 Puchar: ${h.puchar || 'nierozstrzygnięty'}</p><p class="text-xs text-slate-400 mt-2">Budżet związku: ${h.budzet.toLocaleString()} PLN</p></div>`).join('')}</div>` : '<div class="bg-slate-950 border border-slate-800 rounded-xl p-8 text-center text-slate-500">Zakończ pierwszy sezon, aby utworzyć archiwum.</div>'}
+                        ${stan.historiaSezonow.length ? `<div class="grid grid-cols-1 md:grid-cols-2 gap-4">${stan.historiaSezonow.slice().reverse().map(h => `<div class="bg-slate-800 border border-slate-700 rounded-xl p-4"><div class="flex justify-between"><b>Sezon ${h.sezon}</b><span class="text-xs text-slate-400">Rep. ${h.reputacja}</span></div><p class="mt-2 text-emerald-300">🏆 Mistrz: ${h.mistrz}</p><p class="text-amber-300">🏅 Puchar: ${h.puchar || 'nierozstrzygnięty'}</p>${h.europa ? `<p class="text-xs text-sky-300 mt-2">🌍 Europa: LM ${h.europa.LM || '—'} • LE ${h.europa.LE || '—'} • LK ${h.europa.LK || '—'}</p>` : ''}<p class="text-xs text-slate-400 mt-2">Budżet związku: ${h.budzet.toLocaleString()} PLN</p></div>`).join('')}</div>` : '<div class="bg-slate-950 border border-slate-800 rounded-xl p-8 text-center text-slate-500">Zakończ pierwszy sezon, aby utworzyć archiwum.</div>'}
                     </div>`;
             } else if (stan.aktywnyWidok === 'zarzadzanie') {
                 kontener.innerHTML = `
@@ -844,6 +966,142 @@
             }
         }
 
+        function etapyEuropejskie() {
+            return ['I runda eliminacji','II runda eliminacji','III runda eliminacji','IV runda eliminacji','Play-off','Faza ligowa','1/8 finału','Ćwierćfinał','Półfinał','Finał'];
+        }
+
+        function wyznaczKwalifikacjeEuropejskie(ekstr) {
+            const top = ekstr.map(x => x[0]);
+            const wynik = { LM: [], LE: [], LK: [] };
+            const zajete = new Set();
+
+            const dodaj = (kod, klub, startEtap, zrodlo) => {
+                if (!klub || zajete.has(klub)) return false;
+                wynik[kod].push({klub, startEtap, zrodlo});
+                zajete.add(klub);
+                return true;
+            };
+
+            // Ekstraklasa: miejsca ligowe według zasad użytkownika.
+            dodaj('LM', top[0], 3, 'Mistrz Ekstraklasy — IV runda eliminacji');
+            dodaj('LM', top[1], 1, 'Wicemistrz Ekstraklasy — II runda eliminacji');
+            dodaj('LE', top[2], 1, '3. miejsce Ekstraklasy — II runda eliminacji');
+            dodaj('LK', top[3], 1, '4. miejsce Ekstraklasy — II runda eliminacji');
+
+            // Puchar Polski: IV runda eliminacji LE. Jeśli zdobywca ma już slot z tabeli,
+            // miejsce przechodzi na najwyżej sklasyfikowany klub bez europejskiej kwalifikacji.
+            const pp = stan.puchar && stan.puchar.zwyciezca;
+            if (pp) {
+                if (!dodaj('LE', pp, 3, 'Zdobywca Pucharu Polski — IV runda eliminacji')) {
+                    const zastepca = top.find(klub => klub && !zajete.has(klub));
+                    dodaj('LE', zastepca, 3, 'Slot Pucharu Polski — IV runda eliminacji');
+                }
+            }
+            return wynik;
+        }
+
+        function przygotujEuropejskiePuchary(kwalifikacje) {
+            const nazwy = {LM:'Liga Mistrzów', LE:'Liga Europy', LK:'Liga Konferencji Europy'};
+            stan.europa = { sezon: stan.sezon, rozgrywki: {} };
+            ['LM','LE','LK'].forEach(kod => {
+                const wpisy = (kwalifikacje[kod] || []).map(w => typeof w === 'string' ? {klub:w,startEtap:0,zrodlo:''} : w);
+                const start = wpisy.length ? Math.min(...wpisy.map(w => w.startEtap ?? 0)) : 0;
+                const aktywni = wpisy.filter(w => (w.startEtap ?? 0) === start).map(w => w.klub);
+                const oczekujacy = wpisy.filter(w => (w.startEtap ?? 0) > start);
+                stan.europa.rozgrywki[kod] = { nazwa:nazwy[kod], kod, etap:start, aktywni, oczekujacy, kwalifikacje:wpisy, historia:[], zwyciezca:null };
+            });
+            const wszyscy = ['LM','LE','LK'].flatMap(kod => (kwalifikacje[kod] || []).map(w => typeof w === 'string' ? w : w.klub));
+            if (wszyscy.length) dodajLog(`🌍 Europejskie puchary: ${wszyscy.join(', ')} otrzymali miejsca w rozgrywkach UEFA na kolejny sezon.`);
+        }
+
+        function losowyRywalEuropejski(kod) {
+            const rywale = {
+                LM:['Real Madrid','Manchester City','Bayern Monachium','Inter Mediolan','Paris SG','FC Barcelona','Arsenal','Borussia Dortmund','Benfica','PSV Eindhoven'],
+                LE:['AS Roma','Tottenham','Real Sociedad','Lazio','Feyenoord','FC Porto','Lyon','Real Betis','Eintracht Frankfurt','Rangers'],
+                LK:['Fiorentina','AZ Alkmaar','Rapid Wiedeń','Gent','Hearts','Djurgården','Molde','Lugano','Hajduk Split','Omonia Nikozja']
+            };
+            const pula = rywale[kod];
+            return pula[Math.floor(Math.random()*pula.length)];
+        }
+
+        function rozegrajRundeEuropejska() {
+            if (!stan.europa || !stan.europa.rozgrywki) return;
+            const etapy = etapyEuropejskie();
+            const bazowaSila = {LM:6.4, LE:5.7, LK:5.0};
+            const premie = [500000,700000,1000000,1500000,2200000,3500000,5000000,9000000];
+
+            ['LM','LE','LK'].forEach(kod => {
+                const r = stan.europa.rozgrywki[kod];
+                if (!r || r.zwyciezca || r.etap >= etapy.length) return;
+                r.aktywni = r.aktywni || [];
+                r.oczekujacy = r.oczekujacy || [];
+
+                // Dołącz kluby dokładnie w rundzie, od której mają rozpocząć eliminacje.
+                if (!r.aktywni.length && r.oczekujacy.length) {
+                    const najblizszyStart = Math.min(...r.oczekujacy.map(w => w.startEtap));
+                    if (r.etap < najblizszyStart) r.etap = najblizszyStart;
+                }
+                const dolaczajacy = r.oczekujacy.filter(w => w.startEtap === r.etap);
+                dolaczajacy.forEach(w => { if (!r.aktywni.includes(w.klub)) r.aktywni.push(w.klub); });
+                r.oczekujacy = r.oczekujacy.filter(w => w.startEtap !== r.etap);
+                if (!r.aktywni.length) return;
+
+                const etapNazwa = etapy[r.etap];
+                let wyniki = [];
+                let awans = [];
+
+                // Jeśli dwa polskie kluby dotarły do finału LK, grają finał między sobą.
+                if (r.etap === etapy.length - 1 && r.aktywni.length === 2) {
+                    const [a,b] = r.aktywni;
+                    const ka=stan.kluby[a], kb=stan.kluby[b];
+                    let sa=(ka?.forma||3)+(ka?.morale||60)/45+Math.random()*2;
+                    let sb=(kb?.forma||3)+(kb?.morale||60)/45+Math.random()*2;
+                    let ga=Math.floor(Math.random()*3)+(sa>sb?1:0), gb=Math.floor(Math.random()*3)+(sb>sa?1:0);
+                    if (ga===gb) { if (Math.random()<.5) ga++; else gb++; }
+                    const wygrany=ga>gb?a:b;
+                    r.zwyciezca=wygrany;
+                    r.aktywni=[];
+                    stan.kluby[wygrany].budzet += premie[r.etap];
+                    stan.kluby[wygrany].morale=100;
+                    stan.reputacja=Math.min(100,stan.reputacja+7);
+                    wyniki.push(`🏆 ${a} ${ga}:${gb} ${b} → <b>${wygrany} zdobywa ${r.nazwa}</b>`);
+                    dodajLog(`🏆 ${wygrany} zdobywa ${r.nazwa}!`);
+                } else {
+                    r.aktywni.forEach(klubNazwa => {
+                        const klub=stan.kluby[klubNazwa];
+                        if (!klub) return;
+                        const rywal=losowyRywalEuropejski(kod);
+                        const sila=(klub.forma||3)*1.05+(klub.morale||60)/50+(klub.infrastruktura||1)*0.18+Math.random()*2.2;
+                        const silaRywala=bazowaSila[kod]+r.etap*0.22+Math.random()*2.0;
+                        let gk=Math.floor(Math.random()*3)+(sila>silaRywala?1:0);
+                        let gr=Math.floor(Math.random()*3)+(silaRywala>sila?1:0);
+                        if (gk===gr) { if (sila+Math.random()>silaRywala+Math.random()) gk++; else gr++; }
+                        if (gk>gr) {
+                            klub.budzet += premie[r.etap];
+                            klub.morale=Math.min(100,klub.morale+6);
+                            stan.reputacja=Math.min(100,stan.reputacja+1);
+                            if (r.etap === etapy.length - 1) {
+                                r.zwyciezca=klubNazwa;
+                                stan.reputacja=Math.min(100,stan.reputacja+6);
+                                wyniki.push(`🏆 ${klubNazwa} ${gk}:${gr} ${rywal} → <b>${klubNazwa} zdobywa ${r.nazwa}</b>`);
+                                dodajLog(`🏆 ${klubNazwa} zdobywa ${r.nazwa}!`);
+                            } else {
+                                awans.push(klubNazwa);
+                                wyniki.push(`✅ ${klubNazwa} ${gk}:${gr} ${rywal} → awans`);
+                            }
+                        } else {
+                            klub.morale=Math.max(25,klub.morale-5);
+                            wyniki.push(`❌ ${klubNazwa} ${gk}:${gr} ${rywal} → odpadnięcie`);
+                        }
+                    });
+                    r.aktywni = r.zwyciezca ? [] : awans;
+                }
+                r.historia.push({etap:etapNazwa, wyniki});
+                if (!r.zwyciezca) r.etap++;
+                if (wyniki.length) dodajWydarzenieMeczowe(`[EUROPA — ${r.nazwa}, ${etapNazwa}] ${wyniki.join(' | ')}`);
+            });
+        }
+
         function zapiszGre(pokazKomunikat=true) {
             try { localStorage.setItem('symulatorPolskichLig_save_v2', JSON.stringify(stan)); if (pokazKomunikat) alert('Gra została zapisana w tej przeglądarce.'); } catch(e) { if (pokazKomunikat) alert('Nie udało się zapisać gry.'); }
         }
@@ -917,6 +1175,7 @@
             aktualizujRozwojKlubow();
             losoweWydarzenieFederacji();
             if (stan.kolejka % 5 === 0) rozegrajRundePucharu();
+            if (stan.kolejka % 4 === 0) rozegrajRundeEuropejska();
 
             stan.kolejka++;
 
@@ -938,6 +1197,9 @@
             ekstr.sort((a, b) => b[1].punkty - a[1].punkty);
             liga1.sort((a, b) => b[1].punkty - a[1].punkty);
             liga2.sort((a, b) => b[1].punkty - a[1].punkty);
+
+            // Kwalifikacje europejskie liczymy na podstawie końcowej tabeli przed awansami i spadkami.
+            const kwalifikacjeEuropa = wyznaczKwalifikacjeEuropejskie(ekstr);
 
             if (ekstr.length >= 3 && liga1.length > 0) {
                 let s1 = ekstr[ekstr.length - 1][0];
@@ -975,10 +1237,25 @@
                 stan.kluby[a2_2l].liga = "1. Liga";
                 stan.kluby[a3_2l].liga = "1. Liga";
                 dodajLog(`🚀 Awans z 2. Ligi do 1. Ligi: ${a1_2l}, ${a2_2l}, ${a3_2l}`);
+
+                const spadek2 = liga2.slice(-3).map(x => x[0]);
+                spadek2.forEach(n => stan.kluby[n].liga = '3. Liga');
+                dodajLog(`🔻 Spadek z 2. Ligi do 3. Ligi: ${spadek2.join(', ')}`);
+
+                let kandydaci3 = Object.entries(stan.kluby).filter(([n,d]) => d.liga === '3. Liga' && !spadek2.includes(n));
+                kandydaci3.sort((a,b) => ((b[1].forma||3)+(b[1].morale||60)/50+Math.random()*2) - ((a[1].forma||3)+(a[1].morale||60)/50+Math.random()*2));
+                const awans3 = kandydaci3.slice(0,3).map(x => x[0]);
+                awans3.forEach(n => stan.kluby[n].liga = '2. Liga');
+                if (awans3.length) dodajLog(`⬆️ Awans z 3. Ligi do 2. Ligi: ${awans3.join(', ')}`);
             }
 
             let mistrz = ekstr.length ? ekstr[0][0] : 'Brak';
-            stan.historiaSezonow.push({ sezon: stan.sezon, mistrz, puchar: stan.puchar.zwyciezca, reputacja: stan.reputacja, budzet: stan.budzet_centralny });
+            const europaWyniki = {
+                LM: stan.europa?.rozgrywki?.LM?.zwyciezca || null,
+                LE: stan.europa?.rozgrywki?.LE?.zwyciezca || null,
+                LK: stan.europa?.rozgrywki?.LK?.zwyciezca || null
+            };
+            stan.historiaSezonow.push({ sezon: stan.sezon, mistrz, puchar: stan.puchar.zwyciezca, europa: europaWyniki, reputacja: stan.reputacja, budzet: stan.budzet_centralny });
             stan.sezon++;
 
             for (let k in stan.kluby) {
@@ -988,6 +1265,9 @@
             }
             stan.kolejka = 1;
             przygotujPuchar();
+            przygotujEuropejskiePuchary(kwalifikacjeEuropa);
+            const fmtKwal = arr => (arr||[]).map(w => `${w.klub} (${etapyEuropejskie()[w.startEtap]})`).join(', ') || 'brak';
+            dodajLog(`🌍 Kwalifikacje do Europy: LM — ${fmtKwal(kwalifikacjeEuropa.LM)}; LE — ${fmtKwal(kwalifikacjeEuropa.LE)}; LK — ${fmtKwal(kwalifikacjeEuropa.LK)}.`);
             dodajLog(`🔄 Rozpoczęto sezon ${stan.sezon}. Tabele wyzerowano, a Puchar Polski otrzymał nową drabinkę.`);
         }
 
