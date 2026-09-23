@@ -1,1287 +1,3609 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zaawansowany Symulator Polskich Lig Piłkarskich</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>MANDAT — Political Strategy</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, Arial, sans-serif;
+      color: white;
+      background: #0e1636;
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    #game {
+      --bg-speed: 10s;
+
+      min-height: 100vh;
+      padding: 32px 20px;
+
+      background:
+        linear-gradient(
+          125deg,
+          #101b42,
+          #65206d
+        );
+
+      background-size: 230% 230%;
+      animation: backgroundFlow var(--bg-speed) ease-in-out infinite;
+    }
+
+    .container {
+      width: min(1050px, 100%);
+      margin: auto;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .center {
+      min-height: calc(100vh - 64px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+
+    /* =========================
+       LOGO
+    ========================= */
+
+    .game-title {
+      margin: 0;
+
+      font-size: clamp(64px, 13vw, 120px);
+      font-weight: 950;
+
+      line-height: .85;
+      letter-spacing: -6px;
+
+      background:
+        linear-gradient(
+          90deg,
+          #ffffff,
+          #d6cbff,
+          #ffb8e8,
+          #ffffff
+        );
+
+      background-size: 260% auto;
+
+      -webkit-background-clip: text;
+      background-clip: text;
+
+      color: transparent;
+
+      animation: titleFlow 4.5s linear infinite;
+    }
+
+    .subtitle {
+      margin-top: 20px;
+
+      font-size: 12px;
+      font-weight: 700;
+
+      letter-spacing: 5px;
+
+      color: rgba(255,255,255,.5);
+    }
+
+    /* =========================
+       BUTTONS
+    ========================= */
+
+    .button {
+      min-height: 52px;
+
+      padding: 0 24px;
+
+      border: none;
+      border-radius: 999px;
+
+      background: rgba(255,255,255,.96);
+      color: #18181b;
+
+      font-weight: 800;
+
+      box-shadow: 0 12px 30px rgba(0,0,0,.16);
+
+      transition:
+        transform .2s ease,
+        box-shadow .2s ease,
+        background .2s ease;
+    }
+
+    .button:hover {
+      transform: translateY(-2px);
+
+      background: white;
+
+      box-shadow: 0 16px 36px rgba(0,0,0,.22);
+    }
+
+    .button.full {
+      width: 100%;
+    }
+
+    .button.secondary {
+      min-height: 46px;
+      background: rgba(255,255,255,.86);
+    }
+
+    .ghost-button {
+      min-height: 44px;
+
+      padding: 0 18px;
+
+      color: white;
+
+      border:
+        1px solid rgba(255,255,255,.16);
+
+      border-radius: 999px;
+
+      background:
+        rgba(255,255,255,.08);
+    }
+
+    .ghost-button:hover {
+      background:
+        rgba(255,255,255,.14);
+    }
+
+    /* =========================
+       HOME
+    ========================= */
+
+    .main-menu {
+      width: min(380px, 100%);
+      margin: 42px auto 0;
+    }
+
+    .main-menu .button {
+      margin-bottom: 12px;
+    }
+
+    .menu-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    /* =========================
+       GENERIC UI
+    ========================= */
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      gap: 16px;
+
+      margin-bottom: 24px;
+    }
+
+    .eyebrow {
+      font-size: 12px;
+      font-weight: 800;
+
+      letter-spacing: 3px;
+
+      color: rgba(255,255,255,.45);
+
+      text-transform: uppercase;
+    }
+
+    h2 {
+      margin: 5px 0 0;
+
+      font-size: clamp(28px, 5vw, 42px);
+
+      letter-spacing: -1.5px;
+    }
+
+    .glass {
+      padding: 18px;
+
+      border:
+        1px solid rgba(255,255,255,.13);
+
+      border-radius: 26px;
+
+      background:
+        rgba(7,9,27,.25);
+
+      backdrop-filter: blur(18px);
+    }
+
+    .section-title {
+      margin-bottom: 13px;
+
+      font-size: 13px;
+      font-weight: 800;
+
+      letter-spacing: 2px;
+
+      color:
+        rgba(255,255,255,.55);
+
+      text-transform: uppercase;
+    }
+
+    .separator {
+      height: 1px;
+
+      margin: 22px 0;
+
+      background:
+        rgba(255,255,255,.1);
+    }
+
+    /* =========================
+       CHOICES
+    ========================= */
+
+    .choice {
+      position: relative;
+
+      width: 100%;
+      min-width: 0;
+
+      padding: 15px;
+
+      text-align: left;
+
+      color: white;
+
+      border:
+        1px solid rgba(255,255,255,.12);
+
+      border-radius: 19px;
+
+      background:
+        rgba(255,255,255,.07);
+
+      transition:
+        background .2s,
+        border-color .2s;
+    }
+
+    .choice:hover {
+      background:
+        rgba(255,255,255,.12);
+    }
+
+    .choice.selected {
+      background:
+        rgba(255,255,255,.17);
+
+      border-color:
+        rgba(255,255,255,.62);
+    }
+
+    .choice-check {
+      position: absolute;
+
+      top: 10px;
+      right: 10px;
+
+      width: 23px;
+      height: 23px;
+
+      display: grid;
+      place-items: center;
+
+      border-radius: 50%;
+
+      background: white;
+      color: #17171a;
+
+      font-size: 12px;
+      font-weight: 900;
+
+      opacity: 0;
+
+      transform: scale(.75);
+
+      transition: .2s;
+    }
+
+    .choice.selected .choice-check {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .choice-description {
+      margin-top: 5px;
+
+      font-size: 14px;
+      line-height: 1.4;
+
+      color:
+        rgba(255,255,255,.5);
+    }
+
+    /* =========================
+       COUNTRIES
+    ========================= */
+
+    .country-grid {
+      display: grid;
+      grid-template-columns:
+        repeat(3, minmax(0,1fr));
+
+      gap: 12px;
+    }
+
+    .country-content {
+      display: flex;
+      align-items: center;
+
+      gap: 12px;
+
+      padding-right: 16px;
+    }
+
+    .country-map {
+      width: 76px;
+      height: 58px;
+
+      flex-shrink: 0;
+
+      display: grid;
+      place-items: center;
+
+      overflow: hidden;
+
+      border-radius: 14px;
+
+      background:
+        rgba(255,255,255,.07);
+    }
+
+    .country-map svg {
+      width: 70px;
+      height: 52px;
+    }
+
+    .country-map path {
+      fill:
+        rgba(255,255,255,.9);
+
+      stroke: white;
+
+      stroke-width: .45;
+
+      vector-effect:
+        non-scaling-stroke;
+    }
+
+    .country-code {
+      margin-top: 3px;
+
+      font-size: 13px;
+
+      color:
+        rgba(255,255,255,.4);
+    }
+
+    /* =========================
+       MODE
+    ========================= */
+
+    .mode-grid {
+      display: grid;
+      grid-template-columns:
+        repeat(3,1fr);
+
+      gap: 12px;
+    }
+
+    .sandbox {
+      background:
+        linear-gradient(
+          135deg,
+          rgba(255,255,255,.18),
+          rgba(255,255,255,.06)
+        );
+    }
+
+    .sandbox-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+
+      gap: 20px;
+
+      padding-right: 26px;
+    }
+
+    .sandbox-title {
+      font-size: 21px;
+      font-weight: 900;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+
+      min-height: 27px;
+
+      padding: 0 10px;
+
+      border:
+        1px solid rgba(255,255,255,.11);
+
+      border-radius: 999px;
+
+      background:
+        rgba(255,255,255,.11);
+
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    /* =========================
+       SUMMARY
+    ========================= */
+
+    .selection-summary {
+      margin-top: 15px;
+
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      gap: 15px;
+    }
+
+    .muted {
+      color:
+        rgba(255,255,255,.48);
+    }
+
+    /* =========================
+       CANDIDATE
+    ========================= */
+
+    .candidate-layout {
+      display: grid;
+
+      grid-template-columns:
+        1.15fr .85fr;
+
+      gap: 16px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+
+      gap: 15px;
+    }
+
+    label span {
+      display: block;
+
+      margin-bottom: 7px;
+
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .full-column {
+      grid-column: 1 / -1;
+    }
+
+    .field {
+      width: 100%;
+      min-height: 48px;
+
+      padding: 0 13px;
+
+      color: white;
+
+      border:
+        1px solid rgba(255,255,255,.14);
+
+      border-radius: 14px;
+
+      outline: none;
+
+      background:
+        rgba(255,255,255,.09);
+    }
+
+    .field::placeholder {
+      color:
+        rgba(255,255,255,.35);
+    }
+
+    select.field option {
+      color: #111;
+      background: white;
+    }
+
+    .preview-name {
+      margin-top: 5px;
+
+      font-size: 30px;
+      font-weight: 900;
+    }
+
+    .preview-info {
+      margin-top: 22px;
+    }
+
+    .preview-row {
+      display: flex;
+      justify-content: space-between;
+
+      gap: 15px;
+
+      padding: 8px 0;
+
+      font-size: 14px;
+    }
+
+    .quote-box {
+      margin-top: 15px;
+
+      padding: 14px;
+
+      border:
+        1px solid rgba(255,255,255,.1);
+
+      border-radius: 17px;
+
+      background:
+        rgba(255,255,255,.05);
+    }
+
+    /* =========================
+       GAME
+    ========================= */
+
+    .game-layout {
+      display: grid;
+
+      grid-template-columns:
+        1.1fr .9fr;
+
+      gap: 16px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+
+      gap: 12px;
+    }
+
+    .stat {
+      padding: 13px;
+
+      border:
+        1px solid rgba(255,255,255,.1);
+
+      border-radius: 17px;
+
+      background:
+        rgba(255,255,255,.07);
+    }
+
+    .stat-header {
+      display: flex;
+      justify-content: space-between;
+
+      gap: 10px;
+
+      font-size: 14px;
+    }
+
+    .bar {
+      height: 8px;
+
+      margin-top: 9px;
+
+      overflow: hidden;
+
+      border-radius: 999px;
+
+      background:
+        rgba(255,255,255,.11);
+    }
+
+    .bar-inner {
+      height: 100%;
+
+      border-radius: 999px;
+
+      background: white;
+
+      transition: width .25s;
+    }
+
+    .event {
+      margin-top: 16px;
+
+      padding: 17px;
+
+      border:
+        1px solid rgba(255,255,255,.13);
+
+      border-radius: 21px;
+
+      background:
+        rgba(0,0,0,.12);
+    }
+
+    .actions-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+
+      gap: 9px;
+
+      margin-top: 13px;
+    }
+
+    .action {
+      min-height: 50px;
+
+      padding: 10px 12px;
+
+      text-align: left;
+
+      color: white;
+
+      border:
+        1px solid rgba(255,255,255,.13);
+
+      border-radius: 15px;
+
+      background:
+        rgba(255,255,255,.08);
+
+      font-weight: 700;
+    }
+
+    .action:hover {
+      background:
+        rgba(255,255,255,.14);
+    }
+
+    .action small {
+      display: block;
+
+      margin-top: 3px;
+
+      font-weight: 400;
+
+      color:
+        rgba(255,255,255,.45);
+    }
+
+    /* =========================
+       SANDBOX GAME PANEL
+    ========================= */
+
+    .sandbox-panel {
+      margin-top: 16px;
+
+      padding: 16px;
+
+      border:
+        1px solid rgba(255,255,255,.19);
+
+      border-radius: 23px;
+
+      background:
+        linear-gradient(
+          135deg,
+          rgba(255,255,255,.15),
+          rgba(255,255,255,.05)
+        );
+    }
+
+    .sandbox-control-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+
+      gap: 10px;
+
+      margin-top: 13px;
+    }
+
+    .sandbox-control {
+      padding: 12px;
+
+      border:
+        1px solid rgba(255,255,255,.1);
+
+      border-radius: 15px;
+
+      background:
+        rgba(0,0,0,.13);
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: white;
+    }
+
+    /* =========================
+       ABOUT MODAL
+    ========================= */
+
+    .modal-background {
+      position: absolute;
+
+      inset: 0;
+
+      z-index: 50;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      padding: 20px;
+
+      background:
+        rgba(0,0,0,.58);
+
+      backdrop-filter:
+        blur(8px);
+    }
+
+    .modal {
+      width: min(430px,100%);
+
+      padding: 24px;
+
+      border:
+        1px solid rgba(255,255,255,.14);
+
+      border-radius: 28px;
+
+      background:
+        rgba(12,13,35,.95);
+    }
+
+    /* =========================
+       ANIMATION
+    ========================= */
+
+    @keyframes backgroundFlow {
+      0% {
+        background-position: 0% 50%;
+      }
+
+      50% {
+        background-position: 100% 50%;
+      }
+
+      100% {
+        background-position: 0% 50%;
+      }
+    }
+
+    @keyframes titleFlow {
+      from {
+        background-position: 0 center;
+      }
+
+      to {
+        background-position: 260% center;
+      }
+    }
+
+    /* =========================
+       MOBILE
+    ========================= */
+
+    @media(max-width:800px) {
+      .country-grid {
+        grid-template-columns:
+          1fr 1fr;
+      }
+
+      .candidate-layout,
+      .game-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media(max-width:600px) {
+      #game {
+        padding: 22px 14px;
+      }
+
+      .country-grid,
+      .mode-grid,
+      .stats-grid,
+      .actions-grid,
+      .form-grid,
+      .sandbox-control-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .selection-summary {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .selection-summary .button {
+        width: 100%;
+      }
+    }
+  </style>
 </head>
-<body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex flex-col md:flex-row">
-    
-    <!-- Boczne Menu (Sidebar) -->
-    <aside class="w-full md:w-72 bg-slate-900 border-r border-slate-800 p-6 flex flex-col justify-between shrink-0 shadow-2xl">
-        <div class="space-y-6">
-            <div>
-                <h1 id="tytul-ligi" class="text-xl font-bold tracking-wide text-emerald-400">Ekstraklasa</h1>
-                <p class="text-xs text-slate-400 mt-1">Prezydent: <span class="text-slate-200 font-medium">Jan Kowalski</span></p>
-            </div>
 
-            <nav class="space-y-2 text-sm">
-                <button onclick="zmienWidok('tabela')" id="nav-tabela" class="w-full bg-emerald-600 hover:bg-emerald-500 font-semibold p-3 rounded-xl transition shadow-lg text-left flex items-center gap-3">
-                    <span>🏆</span> Tabela i Rozgrywki
-                </button>
-                <button onclick="zmienWidok('wydarzenia')" id="nav-wydarzenia" class="w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 font-medium p-3 rounded-xl transition text-left flex items-center gap-3">
-                    <span>⚡</span> Wydarzenia z Meczów
-                </button>
-                <button onclick="zmienWidok('finanse')" id="nav-finanse" class="w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 font-medium p-3 rounded-xl transition text-left flex items-center gap-3">
-                    <span>💰</span> Finanse i Sponsorzy
-                </button>
-                <button onclick="zmienWidok('kontrakty')" id="nav-kontrakty" class="w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 font-medium p-3 rounded-xl transition text-left flex items-center gap-3">
-                    <span>📝</span> Negocjacje Kontraktów
-                </button>
-                <button onclick="zmienWidok('sedziowie')" id="nav-sedziowie" class="w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 font-medium p-3 rounded-xl transition text-left flex items-center gap-3">
-                    <span>🚩</span> Sędziowie i Mecze
-                </button>
-                <button onclick="zmienWidok('kary')" id="nav-kary" class="w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 font-medium p-3 rounded-xl transition text-left flex items-center gap-3">
-                    <span>⚖️</span> Komisja i Kary
-                </button>
-                <button onclick="zmienWidok('licencje')" id="nav-licencje" class="w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 font-medium p-3 rounded-xl transition text-left flex items-center gap-3">
-                    <span>🛡️</span> Licencje Klubowe
-                </button>
-                <button onclick="zmienWidok('puchar')" id="nav-puchar" class="w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 font-medium p-3 rounded-xl transition text-left flex items-center gap-3">
-                    <span>🏅</span> Puchar Polski
-                </button>
-                <button onclick="zmienWidok('europa')" id="nav-europa" class="w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 font-medium p-3 rounded-xl transition text-left flex items-center gap-3">
-                    <span>🌍</span> Europejskie Puchary
-                </button>
-                <button onclick="zmienWidok('rozwoj')" id="nav-rozwoj" class="w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 font-medium p-3 rounded-xl transition text-left flex items-center gap-3">
-                    <span>📈</span> Rozwój Klubów
-                </button>
-                <button onclick="zmienWidok('archiwum')" id="nav-archiwum" class="w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 font-medium p-3 rounded-xl transition text-left flex items-center gap-3">
-                    <span>📚</span> Archiwum Sezonów
-                </button>
-                <button onclick="zmienWidok('zarzadzanie')" id="nav-zarzadzanie" class="w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 font-medium p-3 rounded-xl transition text-left flex items-center gap-3">
-                    <span>⚙️</span> Kluby i Ligi
-                </button>
-            </nav>
+<body>
+
+<div id="game">
+
+  <div class="container">
+
+    <!-- =======================
+         MENU GŁÓWNE
+    ======================== -->
+
+    <section id="screenHome" class="center">
+
+      <div>
+
+        <h1 class="game-title">
+          MANDAT
+        </h1>
+
+        <div class="subtitle">
+          POLITICAL STRATEGY
         </div>
 
-        <div class="pt-6 border-t border-slate-800 mt-6 space-y-2">
-            <div class="grid grid-cols-2 gap-2">
-                <button onclick="zapiszGre(true)" class="bg-sky-900/40 hover:bg-sky-900/60 border border-sky-800 text-sky-300 font-medium p-2 rounded-xl transition text-xs">💾 Zapisz</button>
-                <button onclick="wczytajGre(true)" class="bg-violet-900/40 hover:bg-violet-900/60 border border-violet-800 text-violet-300 font-medium p-2 rounded-xl transition text-xs">📂 Wczytaj</button>
-            </div>
-            <button onclick="resetujGre()" class="w-full bg-rose-900/40 hover:bg-rose-900/60 border border-rose-800 text-rose-300 font-medium p-3 rounded-xl transition text-center">
-                🔄 Nowa Gra
+        <div class="main-menu">
+
+          <button
+            id="newGameButton"
+            class="button full"
+          >
+            Nowa gra
+          </button>
+
+          <div class="menu-row">
+
+            <button
+              id="settingsButton"
+              class="button secondary"
+            >
+              Ustawienia
             </button>
-        </div>
-    </aside>
 
-    <!-- Główna zawartość ekranu -->
-    <main class="flex-1 p-4 md:p-8 space-y-6 overflow-y-auto">
-        
-        <!-- Pasek statystyk -->
-        <header class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl grid grid-cols-1 sm:grid-cols-5 gap-4 text-center">
-            <div class="bg-slate-800/60 px-4 py-3 rounded-xl border border-slate-700/50">
-                <span class="block text-xs text-slate-400 uppercase">Sezon</span>
-                <span id="stat-sezon" class="text-xl font-bold text-violet-400">1</span>
-            </div>
-            <div class="bg-slate-800/60 px-4 py-3 rounded-xl border border-slate-700/50">
-                <span class="block text-xs text-slate-400 uppercase">Kolejka</span>
-                <span id="stat-kolejka" class="text-xl font-bold text-amber-400">1 / 34</span>
-            </div>
-            <div class="bg-slate-800/60 px-4 py-3 rounded-xl border border-slate-700/50">
-                <span class="block text-xs text-slate-400 uppercase">Reputacja</span>
-                <span id="stat-reputacja" class="text-xl font-bold text-sky-400">65/100</span>
-            </div>
-            <div class="bg-slate-800/60 px-4 py-3 rounded-xl border border-slate-700/50">
-                <span class="block text-xs text-slate-400 uppercase">Budżet Związku</span>
-                <span id="stat-budzet" class="text-xl font-bold text-emerald-400">15,000,000 PLN</span>
-            </div>
-            <div class="bg-slate-800/60 px-4 py-3 rounded-xl border border-slate-700/50 flex items-center justify-center">
-                <button onclick="symulujKolejke()" id="btn-symuluj" class="w-full bg-emerald-600 hover:bg-emerald-500 font-bold py-2 px-4 rounded-xl transition shadow">
-                    ⚽ Symuluj Kolejkę
-                </button>
-            </div>
-        </header>
+            <button
+              id="aboutButton"
+              class="button secondary"
+            >
+              O grze
+            </button>
 
-        <!-- Dynamiczny Widok / Ekran -->
-        <div id="widok-kontener" class="space-y-6">
-            <!-- Wypełniane przez JavaScript -->
+          </div>
+
         </div>
 
-    </main>
+      </div>
 
-    <script>
-        let stan = {
-            aktualnaLiga: "Ekstraklasa",
-            ligi: ["Ekstraklasa", "1. Liga", "2. Liga"],
-            kolejka: 1,
-            budzet_centralny: 15000000,
-            reputacja: 65,
-            aktywnyWidok: 'tabela',
-            kluby: {
-                // Ekstraklasa (18 zespołów)
-                "Jagiellonia Białystok": { punkty: 0, bramki_strzelone: 0, bramki_stracone: 0, budzet: 20000000, forma: 4, licencja: true, liga: "Ekstraklasa" },
-                "Śląsk Wrocław": { punkty: 0, bramki_strzelone: 0, bramki_stracone: 0, budzet: 18000000, forma: 4, licencja: true, liga: "Ekstraklasa" },
-                "Legia Warszawa": { punkty: 0, bramki_strzelone: 0, bramki_stracone: 0, budzet: 35000000, forma: 5, licencja: true, liga: "Ekstraklasa" },
-                "Lech Poznań": { punkty: 0, bramki_strzelone: 0, bramki_stracone: 0, budzet: 30000000, forma: 4, licencja: true, liga: "Ekstraklasa" },
-                "Raków Częstochowa": { punkty: 0, bramki_strzelone: 0, bramki_stracone: 0, budzet: 28000000, forma: 4, licencja: true, liga: "Ekstraklasa" },
-                "Pogoń Szczecin": { punkty: 0, bramki_strzelone: 0, bramki_stracone: 0, budzet: 22000000, forma: 3, licencja: true, liga: "Ekstraklasa" },
-                "Górnik Zabrze": { punkty: 0, bramki_strzelone: 0, bramki_stracone: 0, budzet: 16000000, forma: 3, licencja: true, liga: "Ekstraklasa" },
-                "Widzew Łódź": { punkty: 0, bramki_strzelone: 0, bramki_stracone: 0, budzet: 17000000, forma: 3, licencja: true, liga: "Ekstraklasa" },
-                "Cracovia": { punkty: 0, bramki_strzelone: 0, bramki_stracone: 0, budzet: 16000000, forma: 3, licencja: true, liga: "Ekstraklasa" },
-                "Zagłębie Lubin": { punkty: 0, bramki_strzelone: 0, bramki_stracone: 0, budzet: 15000000, forma: 3, licencja: true, liga: "Ekstraklasa" },
-                "Stal Mielec": { punkty: 0, bramki_strzelone: 0, bramki_stracone: 0, budzet: 12000000, forma: 3, licencja: true, liga: "Ekstraklasa" },
-                "Radomiak Radom": { punkty: 0, bramki_strzelone: 0, bramki_stracone: 0, budzet: 13000000, forma: 3, licencja: true, liga: "Ekstraklasa" },
-                "Piast Gliwice": { punkty: 0, bramki_strzelone: 0, bramki_stracone: 0, budzet: 16000000, forma: 3, licencja: true, liga: "Ekstraklasa" },
-                "Korona Kielce": { punkty: 0, bramki_strzelone: 0, bramki_stracone: 0, budzet: 13000000, forma: 3, licencja: true, liga: "Ekstraklasa" },
-                "Puszcza Niepołomice": { punkty: 0, bramki_strzelone: 0, bramki_stracone: 0, budzet: 9000000, forma: 3, licencja: true, liga: "Ekstraklasa" },
-                "Lechia Gdańsk": { punkty: 0, bramki_strzelone: 0, bramki_stracone: 0, budzet: 14000000, forma: 3, licencja: true, liga: "Ekstraklasa" },
-                "GKS Katowice": { punkty: 0, bramki_strzelone: 0, bramki_stracone: 0, budzet: 13000000, forma: 3, licencja: true, liga: "Ekstraklasa" },
-                "Motor Lublin": { punkty: 0, bramki_strzelone: 0, bramki_stracone: 0, budzet: 12000000, forma: 3, licencja: true, liga: "Ekstraklasa" },
+    </section>
 
-                // 1. Liga (18 zespołów)
-                "Arka Gdynia": { punkty: 0, bramki_strzelone: 0, bramki_stracone: 0, budzet: 9000000, forma: 4, licencja: true, liga: "1. Liga" },
-                "Wisła Kraków": { punkty: 0, bramki_strzelone: 0, bramki_stracone: 0, budzet: 12000000, forma: 4, licencja: true, liga: "1. Liga" },
-                "Miedź Legnica": { punkty: 0, bramki_strzelone: 0, bramki_stracone: 0, budzet: 8000000, forma: 3, licencja: true, liga: "1. Liga" },
-                "ŁKS Łódź": { punkty: 0, bramki_strzelone: 0, bramki_stracone: 0, budzet: 9500000, forma: 3, licencja: true, liga: "1. Liga" },
-                "Ruch Chorzów": { punkty: 0, bramki_strzelone: 0, bramki_stracone: 0, budzet: 10000000, forma: 3, licencja: true, liga: "1. Liga" },
-                "Bruk-Bet Termalica": { punkty: 0, bramki_strzelone: 0, bramki_stracone: 0, budzet: 8500000, forma: 3, licencja: true, liga: "1. Liga" },
-                "Górnik Łęczna": { punkty: 0, bramki_strzelone: 0, bramki_stracone: 0, budzet: 6000000, forma: 3, licencja: true, liga: "1. Liga" },
-                "GKS Tychy": { punkty: 0, bramki_strzelone: 0, bramki_stracone: 0, budzet: 6500000, forma: 3, licencja: true, liga: "1. Liga" },
-                "Odra Opole": { punkty: 0, bramki_strzelone: 0, bramki_stracone: 0, budzet: 5500000, forma: 3, licencja: true, liga: "1. Liga" },
-                "Wisła Płock": { punkty: 0, bramki_strzelone: 0, bramki_stracone: 0, budzet: 8000000, forma: 3, licencja: true, liga: "1. Liga" },
-                "Stal Rzeszów": { punkty: 0, bramki_strzelone: 0, bramki_stracone: 0, budzet: 6000000, forma: 3, licencja: true, liga: "1. Liga" },
-                "Chrobry Głogów": { punkty: 0, bramki_strzelone: 0, bramki_stracone: 0, budzet: 5000000, forma: 3, licencja: true, liga: "1. Liga" },
-                "Znicz Pruszków": { punkty: 0, bramki_strzelone: 0, bramki_stracone: 0, budzet: 4500000, forma: 3, licencja: true, liga: "1. Liga" },
-                "Resovia": { punkty: 0, bramki_strzelone: 0, bramki_stracone: 0, budzet: 4800000, forma: 3, licencja: true, liga: "1. Liga" },
-                "Polonia Warszawa": { punkty: 0, bramki_strzelone: 0, bramki_stracone: 0, budzet: 7000000, forma: 3, licencja: true, liga: "1. Liga" },
-                "Warta Poznań": { punkty: 0, bramki_strzelone: 0, bramki_stracone: 0, budzet: 7500000, forma: 3, licencja: true, liga: "1. Liga" },
-                "Kotwica Kołobrzeg": { punkty: 0, bramki_strzelone: 0, bramki_stracone: 0, budzet: 5000000, forma: 3, licencja: true, liga: "1. Liga" },
-                "Pogoń Siedlce": { punkty: 0, bramki_strzelone: 0, bramki_stracone: 0, budzet: 4500000, forma: 3, licencja: true, liga: "1. Liga" },
+    <!-- =======================
+         WYBÓR GRY
+    ======================== -->
 
-                // 2. Liga (18 zespołów)
-                "KKS 1925 Kalisz": { punkty: 0, bramki_strzelone: 0, bramki_stracone: 0, budzet: 3500000, forma: 3, licencja: true, liga: "2. Liga" },
-                "Polonia Bytom": { punkty: 0, bramki_strzelone: 0, bramki_stracone: 0, budzet: 4000000, forma: 3, licencja: true, liga: "2. Liga" },
-                "Stal Stalowa Wola": { punkty: 0, bramki_strzelone: 0, bramki_stracone: 0, budzet: 3200000, forma: 3, licencja: true, liga: "2. Liga" },
-                "Chojniczanka Chojnice": { punkty: 0, bramki_strzelone: 0, bramki_stracone: 0, budzet: 3000000, forma: 3, licencja: true, liga: "2. Liga" },
-                "Hutnik Kraków": { punkty: 0, bramki_strzelone: 0, bramki_stracone: 0, budzet: 2800000, forma: 3, licencja: true, liga: "2. Liga" },
-                "Zagłębie Sosnowiec": { punkty: 0, bramki_strzelone: 0, bramki_stracone: 0, budzet: 5000000, forma: 3, licencja: true, liga: "2. Liga" },
-                "Olimpia Elbląg": { punkty: 0, bramki_strzelone: 0, bramki_stracone: 0, budzet: 2500000, forma: 3, licencja: true, liga: "2. Liga" },
-                "Radunia Stężyca": { punkty: 0, bramki_strzelone: 0, bramki_stracone: 0, budzet: 2600000, forma: 3, licencja: true, liga: "2. Liga" },
-                "Skra Częstochowa": { punkty: 0, bramki_strzelone: 0, bramki_stracone: 0, budzet: 2400000, forma: 3, licencja: true, liga: "2. Liga" },
-                "GKS Jastrzębie": { punkty: 0, bramki_strzelone: 0, bramki_stracone: 0, budzet: 2500000, forma: 3, licencja: true, liga: "2. Liga" },
-                "Lech II Poznań": { punkty: 0, bramki_strzelone: 0, bramki_stracone: 0, budzet: 3000000, forma: 3, licencja: true, liga: "2. Liga" },
-                "Wisła Puławy": { punkty: 0, bramki_strzelone: 0, bramki_stracone: 0, budzet: 2700000, forma: 3, licencja: true, liga: "2. Liga" },
-                "Sandecja Nowy Sącz": { punkty: 0, bramki_strzelone: 0, bramki_stracone: 0, budzet: 3500000, forma: 3, licencja: true, liga: "2. Liga" },
-                "Stomil Olsztyn": { punkty: 0, bramki_strzelone: 0, bramki_stracone: 0, budzet: 2900000, forma: 3, licencja: true, liga: "2. Liga" },
-                "Podbeskidzie Bielsko-B.": { punkty: 0, bramki_strzelone: 0, bramki_stracone: 0, budzet: 4500000, forma: 3, licencja: true, liga: "2. Liga" },
-                "Wieczysta Kraków": { punkty: 0, bramki_strzelone: 0, bramki_stracone: 0, budzet: 8000000, forma: 4, licencja: true, liga: "2. Liga" },
-                "Świt Skolwin": { punkty: 0, bramki_strzelone: 0, bramki_stracone: 0, budzet: 2200000, forma: 3, licencja: true, liga: "2. Liga" },
-                "CLKS Resovia II": { punkty: 0, bramki_strzelone: 0, bramki_stracone: 0, budzet: 2000000, forma: 2, licencja: true, liga: "2. Liga" }
-            },
-            kontrakty: [
-                { id: 1, nazwa: "Sponsor Główny (Betclic)", typ: "sponsor", zyskNaKolejke: 300000, pozostałoKolejek: 34 },
-                { id: 2, nazwa: "Prawa Telewizyjne (TVP Sport / Canal+)", typ: "tv", zyskNaKolejke: 500000, pozostałoKolejek: 34 },
-                { id: 3, nazwa: "Sponsor Techniczny (Nike)", typ: "sponsor", zyskNaKolejke: 150000, pozostałoKolejek: 34 }
-            ],
-            ofertyKontraktow: [
-                { id: 101, nazwa: "Sponsor Strategiczny (Orlen)", zyskNaKolejke: 450000, kolejek: 34, kosztPodpisania: 200000 },
-                { id: 102, nazwa: "Partner Techniczny (Adidas)", zyskNaKolejke: 200000, kolejek: 20, kosztPodpisania: 100000 }
-            ],
-            sedziowie: [
-                { id: 1, imie: "Szymon Marciniak (FIFA)", poziom: "Wysoki", kontrowersje: "Niskie", przypisanyMecz: null },
-                { id: 2, imie: "Paweł Raczkowski", poziom: "Wysoki", kontrowersje: "Średnie", przypisanyMecz: null },
-                { id: 3, imie: "Tomasz Kwiatkowski", poziom: "Średni", kontrowersje: "Niskie", przypisanyMecz: null },
-                { id: 4, imie: "Krzysztof Jakubik", poziom: "Niski", kontrowersje: "Wysokie", przypisanyMecz: null },
-                { id: 5, imie: "Damian Sylwestrzak", poziom: "Wysoki", kontrowersje: "Niskie", przypisanyMecz: null },
-                { id: 6, imie: "Jarosław Przybył", poziom: "Średni", kontrowersje: "Wysokie", przypisanyMecz: null }
-            ],
-            logi: ["Rozpoczął się nowy 34-kolejkowy sezon piłkarski w Polsce."],
-            meczoweWydarzenia: []
-        };
+    <section
+      id="screenSetup"
+      class="hidden"
+    >
 
-        // Rozszerzenia stanu gry (kompatybilne także ze starszym zapisem).
-        function uzupelnijStan() {
-            stan.sezon = stan.sezon || 1;
-            stan.historiaSezonow = stan.historiaSezonow || [];
-            stan.puchar = stan.puchar || { runda: 1, aktywny: true, uczestnicy: [], historia: [], zwyciezca: null };
-            stan.ostatnieWydarzenie = stan.ostatnieWydarzenie || 'Brak';
-            stan.europa = stan.europa || {
-                sezon: stan.sezon,
-                rozgrywki: {
-                    LM: { nazwa: 'Liga Mistrzów', kod: 'LM', etap: 0, aktywni: [], historia: [], zwyciezca: null },
-                    LE: { nazwa: 'Liga Europy', kod: 'LE', etap: 0, aktywni: [], historia: [], zwyciezca: null },
-                    LK: { nazwa: 'Liga Konferencji', kod: 'LK', etap: 0, aktywni: [], historia: [], zwyciezca: null }
-                }
-            };
-            if (!stan.europa.rozgrywki) stan.europa.rozgrywki = {};
-            ['LM','LE','LK'].forEach(kod => {
-                const nazwy = {LM:'Liga Mistrzów', LE:'Liga Europy', LK:'Liga Konferencji'};
-                stan.europa.rozgrywki[kod] = stan.europa.rozgrywki[kod] || { nazwa:nazwy[kod], kod, etap:0, aktywni:[], oczekujacy:[], historia:[], zwyciezca:null };
-                stan.europa.rozgrywki[kod].aktywni = stan.europa.rozgrywki[kod].aktywni || [];
-                stan.europa.rozgrywki[kod].oczekujacy = stan.europa.rozgrywki[kod].oczekujacy || [];
-                stan.europa.rozgrywki[kod].historia = stan.europa.rozgrywki[kod].historia || [];
-            });
-            const brakHistoriiEuropy = ['LM','LE','LK'].every(kod => stan.europa.rozgrywki[kod].aktywni.length === 0 && stan.europa.rozgrywki[kod].historia.length === 0 && !stan.europa.rozgrywki[kod].zwyciezca);
-            if (stan.sezon === 1 && brakHistoriiEuropy) {
-                // Startowa obsada pierwszego sezonu według nowych rund kwalifikacyjnych.
-                stan.europa.rozgrywki.LM.etap = 1;
-                stan.europa.rozgrywki.LM.aktywni = ['Śląsk Wrocław'].filter(n => stan.kluby[n]);
-                stan.europa.rozgrywki.LM.oczekujacy = [{klub:'Jagiellonia Białystok', startEtap:3, zrodlo:'Mistrz — IV runda eliminacji'}].filter(w => stan.kluby[w.klub]);
-                stan.europa.rozgrywki.LE.etap = 1;
-                stan.europa.rozgrywki.LE.aktywni = ['Legia Warszawa'].filter(n => stan.kluby[n]);
-                stan.europa.rozgrywki.LE.oczekujacy = [{klub:'Wisła Kraków', startEtap:3, zrodlo:'Puchar Polski — IV runda eliminacji'}].filter(w => stan.kluby[w.klub]);
-                stan.europa.rozgrywki.LK.etap = 1;
-                stan.europa.rozgrywki.LK.aktywni = ['Pogoń Szczecin'].filter(n => stan.kluby[n]);
-            }
+      <div class="header">
 
-            // Zaplecze 3. Ligi — kluby te są poza głównym widokiem, ale walczą o awans do 2. Ligi.
-            const zaplecze3Ligi = ['Unia Skierniewice','Rekord Bielsko-Biała','Podhale Nowy Targ','Avia Świdnik','Świt Nowy Dwór Mazowiecki','Star Starachowice','Sokół Kleczew','Legionovia Legionowo'];
-            zaplecze3Ligi.forEach((nazwa, i) => {
-                if (!stan.kluby[nazwa]) stan.kluby[nazwa] = { punkty:0, bramki_strzelone:0, bramki_stracone:0, budzet:1800000 + i*120000, forma:2 + (i%3), licencja:true, liga:'3. Liga', morale:65, akademia:1, infrastruktura:1, kibice:35 };
-            });
+        <div>
 
-            stan.kluby && Object.values(stan.kluby).forEach(k => {
-                if (typeof k.morale !== 'number') k.morale = 70;
-                if (typeof k.akademia !== 'number') k.akademia = 1;
-                if (typeof k.infrastruktura !== 'number') k.infrastruktura = 1;
-                if (typeof k.kibice !== 'number') k.kibice = 50;
-                if (typeof k.forma !== 'number') k.forma = 3;
-            });
-            if (!stan.puchar.uczestnicy.length) przygotujPuchar();
+          <div class="eyebrow">
+            Nowa rozgrywka
+          </div>
+
+          <h2>
+            Wybierz kraj i tryb
+          </h2>
+
+        </div>
+
+        <button
+          id="setupBackButton"
+          class="ghost-button"
+        >
+          Wróć
+        </button>
+
+      </div>
+
+      <div class="glass">
+
+        <div class="section-title">
+          1. Wybierz kraj
+        </div>
+
+        <div
+          id="countryGrid"
+          class="country-grid"
+        ></div>
+
+        <div class="separator"></div>
+
+        <div class="section-title">
+          2. Tryb gry
+        </div>
+
+        <div class="mode-grid">
+
+          <button
+            class="choice mode-choice selected"
+            data-mode="career"
+          >
+
+            <span class="choice-check">
+              ✓
+            </span>
+
+            <strong>
+              Pełna kariera
+            </strong>
+
+            <div class="choice-description">
+              Kampania → wybory → prezydentura.
+            </div>
+
+          </button>
+
+          <button
+            class="choice mode-choice"
+            data-mode="election"
+          >
+
+            <span class="choice-check">
+              ✓
+            </span>
+
+            <strong>
+              Tylko wybory
+            </strong>
+
+            <div class="choice-description">
+              Gra kończy się po wyborach.
+            </div>
+
+          </button>
+
+          <button
+            class="choice mode-choice"
+            data-mode="president"
+          >
+
+            <span class="choice-check">
+              ✓
+            </span>
+
+            <strong>
+              Prezydent
+            </strong>
+
+            <div class="choice-description">
+              Zaczynasz od razu po objęciu urzędu.
+            </div>
+
+          </button>
+
+        </div>
+
+        <div class="separator"></div>
+
+        <div class="section-title">
+          3. Tryb specjalny
+        </div>
+
+        <button
+          id="sandboxChoice"
+          class="choice sandbox"
+        >
+
+          <span class="choice-check">
+            ✓
+          </span>
+
+          <div class="sandbox-top">
+
+            <div>
+
+              <div class="sandbox-title">
+                Piaskownica MAX
+                <span class="tag">
+                  ∞
+                </span>
+              </div>
+
+              <div class="choice-description">
+                Brak standardowych limitów,
+                edycja statystyk,
+                dowolne przechodzenie między etapami
+                i większa kontrola nad symulacją.
+              </div>
+
+            </div>
+
+            <div style="font-size:34px">
+              ∞
+            </div>
+
+          </div>
+
+        </button>
+
+      </div>
+
+      <div class="glass selection-summary">
+
+        <div>
+
+          <div class="muted">
+            Wybrano
+          </div>
+
+          <strong id="setupSummary">
+            Polska · Pełna kariera
+          </strong>
+
+        </div>
+
+        <button
+          id="setupNextButton"
+          class="button"
+        >
+          Dalej
+        </button>
+
+      </div>
+
+    </section>
+
+    <!-- =======================
+         KANDYDAT
+    ======================== -->
+
+    <section
+      id="screenCandidate"
+      class="hidden"
+    >
+
+      <div class="header">
+
+        <div>
+
+          <div class="eyebrow">
+            Krok 2
+          </div>
+
+          <h2>
+            Stwórz kandydata
+          </h2>
+
+        </div>
+
+        <button
+          id="candidateBackButton"
+          class="ghost-button"
+        >
+          Wróć
+        </button>
+
+      </div>
+
+      <div class="candidate-layout">
+
+        <div class="glass">
+
+          <div class="form-grid">
+
+            <label>
+
+              <span>
+                Imię
+              </span>
+
+              <input
+                id="candidateFirstName"
+                class="field"
+                value="Alex"
+                maxlength="22"
+              >
+
+            </label>
+
+            <label>
+
+              <span>
+                Nazwisko
+              </span>
+
+              <input
+                id="candidateLastName"
+                class="field"
+                value="Nowak"
+                maxlength="28"
+              >
+
+            </label>
+
+            <label>
+
+              <span>
+                Wiek
+              </span>
+
+              <input
+                id="candidateAge"
+                class="field"
+                type="number"
+                min="30"
+                max="90"
+                value="45"
+              >
+
+            </label>
+
+            <label>
+
+              <span>
+                Partia / komitet
+              </span>
+
+              <input
+                id="candidateParty"
+                class="field"
+                value="Nowa Droga"
+                maxlength="30"
+              >
+
+            </label>
+
+            <label class="full-column">
+
+              <span>
+                Hasło kampanii
+              </span>
+
+              <input
+                id="candidateSlogan"
+                class="field"
+                value="Przyszłość zaczyna się dziś"
+                maxlength="60"
+              >
+
+            </label>
+
+            <label>
+
+              <span>
+                Doświadczenie
+              </span>
+
+              <select
+                id="candidateBackground"
+                class="field"
+              >
+
+                <option>
+                  Samorząd
+                </option>
+
+                <option>
+                  Parlament
+                </option>
+
+                <option>
+                  Administracja
+                </option>
+
+                <option>
+                  Biznes
+                </option>
+
+                <option>
+                  Nauka
+                </option>
+
+                <option>
+                  Nowa twarz
+                </option>
+
+              </select>
+
+            </label>
+
+            <label>
+
+              <span>
+                Główny temat
+              </span>
+
+              <select
+                id="candidateFocus"
+                class="field"
+              >
+
+                <option>
+                  Gospodarka
+                </option>
+
+                <option>
+                  Usługi publiczne
+                </option>
+
+                <option>
+                  Bezpieczeństwo
+                </option>
+
+                <option>
+                  Środowisko
+                </option>
+
+                <option>
+                  Infrastruktura
+                </option>
+
+                <option>
+                  Sprawy społeczne
+                </option>
+
+              </select>
+
+            </label>
+
+          </div>
+
+        </div>
+
+        <aside class="glass">
+
+          <div class="eyebrow">
+            Podgląd
+          </div>
+
+          <div
+            id="previewCandidateName"
+            class="preview-name"
+          >
+            Alex Nowak
+          </div>
+
+          <div
+            id="previewCandidateParty"
+            class="muted"
+          >
+            Nowa Droga
+          </div>
+
+          <div class="preview-info">
+
+            <div class="preview-row">
+
+              <span class="muted">
+                Kraj
+              </span>
+
+              <strong id="previewCountry">
+                Polska
+              </strong>
+
+            </div>
+
+            <div class="preview-row">
+
+              <span class="muted">
+                Tryb
+              </span>
+
+              <strong id="previewMode">
+                Pełna kariera
+              </strong>
+
+            </div>
+
+            <div class="preview-row">
+
+              <span class="muted">
+                Specjalny
+              </span>
+
+              <strong id="previewSandbox">
+                Wyłączony
+              </strong>
+
+            </div>
+
+          </div>
+
+          <div class="quote-box">
+
+            <div class="eyebrow">
+              Hasło
+            </div>
+
+            <strong id="previewSlogan">
+              „Przyszłość zaczyna się dziś”
+            </strong>
+
+          </div>
+
+        </aside>
+
+      </div>
+
+      <div
+        style="
+          display:flex;
+          justify-content:flex-end;
+          margin-top:16px;
+        "
+      >
+
+        <button
+          id="startGameButton"
+          class="button"
+        >
+          Rozpocznij grę
+        </button>
+
+      </div>
+
+    </section>
+
+    <!-- =======================
+         ROZGRYWKA
+    ======================== -->
+
+    <section
+      id="screenGameplay"
+      class="hidden"
+    >
+
+      <div class="header">
+
+        <div>
+
+          <div
+            id="gamePhaseLabel"
+            class="eyebrow"
+          ></div>
+
+          <h2 id="gameHeading"></h2>
+
+          <div
+            id="gameSubheading"
+            class="muted"
+          ></div>
+
+        </div>
+
+        <button
+          id="exitGameButton"
+          class="ghost-button"
+        >
+          Menu
+        </button>
+
+      </div>
+
+      <div
+        id="sandboxActiveBanner"
+        class="sandbox-panel hidden"
+      >
+
+        <strong>
+          ∞ Piaskownica MAX aktywna
+        </strong>
+
+        <div class="choice-description">
+          Możesz zmieniać parametry
+          i omijać standardowe limity.
+        </div>
+
+      </div>
+
+      <div id="gameplayBody"></div>
+
+    </section>
+
+    <!-- =======================
+         USTAWIENIA
+    ======================== -->
+
+    <section
+      id="screenSettings"
+      class="hidden"
+    >
+
+      <div class="header">
+
+        <h2>
+          Ustawienia
+        </h2>
+
+        <button
+          id="settingsBackButton"
+          class="ghost-button"
+        >
+          Wróć
+        </button>
+
+      </div>
+
+      <div class="glass">
+
+        <strong>
+          Szybkość animacji
+        </strong>
+
+        <div
+          id="animationSpeedText"
+          class="muted"
+          style="margin-top:5px"
+        >
+          Normalna
+        </div>
+
+        <input
+          id="animationSpeed"
+          type="range"
+          min="0"
+          max="100"
+          value="50"
+          style="margin-top:20px"
+        >
+
+      </div>
+
+    </section>
+
+  </div>
+
+  <!-- =======================
+       O GRZE
+  ======================== -->
+
+  <div
+    id="aboutModal"
+    class="modal-background hidden"
+  >
+
+    <div class="modal">
+
+      <div class="header">
+
+        <div>
+
+          <div class="eyebrow">
+            O grze
+          </div>
+
+          <h2>
+            MANDAT
+          </h2>
+
+        </div>
+
+        <button
+          id="aboutCloseX"
+          class="ghost-button"
+        >
+          ×
+        </button>
+
+      </div>
+
+      <p
+        style="
+          line-height:1.7;
+          color:rgba(255,255,255,.65);
+        "
+      >
+        Strategiczny symulator kampanii wyborczej
+        i sprawowania urzędu prezydenta.
+        Wybrany tryb określa przebieg rozgrywki.
+      </p>
+
+      <button
+        id="aboutCloseButton"
+        class="button full"
+      >
+        Zamknij
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+<script type="module">
+
+/* =========================================================
+   DANE GRY
+========================================================= */
+
+const countries = [
+  ["Polska", "616", "PL"],
+  ["Stany Zjednoczone", "840", "USA"],
+  ["Francja", "250", "FR"],
+  ["Niemcy", "276", "DE"],
+  ["Wielka Brytania", "826", "UK"],
+  ["Rosja", "643", "RU"],
+  ["Włochy", "380", "IT"],
+  ["Hiszpania", "724", "ES"],
+  ["Brazylia", "076", "BR"]
+];
+
+const modeNames = {
+  career: "Pełna kariera",
+  election: "Tylko wybory",
+  president: "Prezydent"
+};
+
+let selectedCountry = "Polska";
+let selectedIso = "616";
+
+let selectedMode = "career";
+
+let sandboxEnabled = false;
+
+let state = {};
+
+let d3 = null;
+let worldFeatures = [];
+
+
+/* =========================================================
+   DOM
+========================================================= */
+
+const $ = selector =>
+  document.querySelector(selector);
+
+const $$ = selector =>
+  [...document.querySelectorAll(selector)];
+
+
+const screens = {
+  home: $("#screenHome"),
+  setup: $("#screenSetup"),
+  candidate: $("#screenCandidate"),
+  gameplay: $("#screenGameplay"),
+  settings: $("#screenSettings")
+};
+
+
+/* =========================================================
+   NAWIGACJA
+========================================================= */
+
+function showScreen(name) {
+
+  Object.entries(screens).forEach(
+    ([key, element]) => {
+
+      element.classList.toggle(
+        "hidden",
+        key !== name
+      );
+
+    }
+  );
+
+}
+
+
+/* =========================================================
+   KRAJE
+========================================================= */
+
+const countryGrid =
+  $("#countryGrid");
+
+
+countries.forEach(
+  ([name, iso, code], index) => {
+
+    const button =
+      document.createElement("button");
+
+    button.type = "button";
+
+    button.className =
+      "choice country-choice" +
+      (index === 0 ? " selected" : "");
+
+    button.dataset.country = name;
+    button.dataset.iso = iso;
+
+    button.innerHTML = `
+
+      <span class="choice-check">
+        ✓
+      </span>
+
+      <div class="country-content">
+
+        <div
+          class="country-map"
+          data-map="${iso}"
+        >
+          …
+        </div>
+
+        <div>
+
+          <strong>
+            ${name}
+          </strong>
+
+          <div class="country-code">
+            ${code}
+          </div>
+
+        </div>
+
+      </div>
+    `;
+
+    countryGrid.appendChild(button);
+
+  }
+);
+
+
+$$(".country-choice").forEach(
+  button => {
+
+    button.addEventListener(
+      "click",
+      () => {
+
+        $$(".country-choice")
+          .forEach(
+            x =>
+              x.classList.remove("selected")
+          );
+
+        button.classList.add("selected");
+
+        selectedCountry =
+          button.dataset.country;
+
+        selectedIso =
+          button.dataset.iso;
+
+        updateSetupSummary();
+
+      }
+    );
+
+  }
+);
+
+
+/* =========================================================
+   TRYBY GRY
+========================================================= */
+
+$$(".mode-choice").forEach(
+  button => {
+
+    button.addEventListener(
+      "click",
+      () => {
+
+        $$(".mode-choice")
+          .forEach(
+            x =>
+              x.classList.remove("selected")
+          );
+
+        button.classList.add("selected");
+
+        selectedMode =
+          button.dataset.mode;
+
+        updateSetupSummary();
+
+      }
+    );
+
+  }
+);
+
+
+/* =========================================================
+   PIASKOWNICA MAX
+========================================================= */
+
+$("#sandboxChoice")
+  .addEventListener(
+    "click",
+    () => {
+
+      sandboxEnabled =
+        !sandboxEnabled;
+
+      $("#sandboxChoice")
+        .classList.toggle(
+          "selected",
+          sandboxEnabled
+        );
+
+      updateSetupSummary();
+
+    }
+  );
+
+
+function updateSetupSummary() {
+
+  $("#setupSummary").textContent =
+
+    selectedCountry +
+    " · " +
+    modeNames[selectedMode] +
+
+    (
+      sandboxEnabled
+        ? " · Piaskownica MAX"
+        : ""
+    );
+
+}
+
+
+/* =========================================================
+   KANDYDAT
+========================================================= */
+
+function updateCandidatePreview() {
+
+  const first =
+    $("#candidateFirstName")
+      .value
+      .trim() || "Kandydat";
+
+  const last =
+    $("#candidateLastName")
+      .value
+      .trim();
+
+  $("#previewCandidateName")
+    .textContent =
+      `${first} ${last}`.trim();
+
+  $("#previewCandidateParty")
+    .textContent =
+      $("#candidateParty")
+        .value
+        .trim() ||
+      "Bez nazwy";
+
+  $("#previewCountry")
+    .textContent =
+      selectedCountry;
+
+  $("#previewMode")
+    .textContent =
+      modeNames[selectedMode];
+
+  $("#previewSandbox")
+    .textContent =
+      sandboxEnabled
+        ? "Piaskownica MAX"
+        : "Wyłączony";
+
+  $("#previewSlogan")
+    .textContent =
+      "„" +
+      (
+        $("#candidateSlogan")
+          .value
+          .trim() ||
+        "Bez hasła"
+      ) +
+      "”";
+
+}
+
+
+[
+  "#candidateFirstName",
+  "#candidateLastName",
+  "#candidateParty",
+  "#candidateSlogan",
+  "#candidateFocus",
+  "#candidateBackground"
+]
+.forEach(
+  selector => {
+
+    $(selector).addEventListener(
+      "input",
+      updateCandidatePreview
+    );
+
+  }
+);
+
+
+/* =========================================================
+   ROZPOCZĘCIE GRY
+========================================================= */
+
+function startGame() {
+
+  state = {
+
+    phase:
+      selectedMode === "president"
+        ? "presidency"
+        : "campaign",
+
+    week: 1,
+
+    month: 1,
+
+    support: 32,
+
+    rivalA: 36,
+
+    rivalB: 32,
+
+    campaignMoney:
+      sandboxEnabled
+        ? 999
+        : 100,
+
+    momentum: 50,
+
+    approval: 55,
+
+    economy: 50,
+
+    services: 50,
+
+    stability: 50,
+
+    stateBudget:
+      sandboxEnabled
+        ? 999
+        : 100,
+
+    eventIndex: 0
+
+  };
+
+  $("#sandboxActiveBanner")
+    .classList.toggle(
+      "hidden",
+      !sandboxEnabled
+    );
+
+  showScreen("gameplay");
+
+  renderGame();
+
+}
+
+
+/* =========================================================
+   HELPERS
+========================================================= */
+
+function clamp(value, min, max) {
+
+  return Math.max(
+    min,
+    Math.min(max, value)
+  );
+
+}
+
+
+function normalizePoll() {
+
+  state.support =
+    clamp(
+      state.support,
+      5,
+      85
+    );
+
+  const remaining =
+    100 - state.support;
+
+  const total =
+    Math.max(
+      1,
+      state.rivalA +
+      state.rivalB
+    );
+
+  state.rivalA =
+    Math.round(
+      remaining *
+      (
+        state.rivalA /
+        total
+      )
+    );
+
+  state.rivalB =
+    100 -
+    state.support -
+    state.rivalA;
+
+}
+
+
+function statCard(
+  label,
+  value,
+  suffix = "%"
+) {
+
+  return `
+
+    <div class="stat">
+
+      <div class="stat-header">
+
+        <span class="muted">
+          ${label}
+        </span>
+
+        <strong>
+          ${value}${suffix}
+        </strong>
+
+      </div>
+
+      <div class="bar">
+
+        <div
+          class="bar-inner"
+          style="
+            width:
+            ${clamp(value,0,100)}%
+          "
+        ></div>
+
+      </div>
+
+    </div>
+  `;
+
+}
+
+
+function pollRow(
+  name,
+  value
+) {
+
+  return `
+
+    <div style="margin-bottom:15px">
+
+      <div class="stat-header">
+
+        <span>
+          ${name}
+        </span>
+
+        <strong>
+          ${value}%
+        </strong>
+
+      </div>
+
+      <div class="bar">
+
+        <div
+          class="bar-inner"
+          style="width:${value}%"
+        ></div>
+
+      </div>
+
+    </div>
+  `;
+
+}
+
+
+/* =========================================================
+   KAMPANIA
+========================================================= */
+
+function renderCampaign() {
+
+  normalizePoll();
+
+  $("#gamePhaseLabel")
+    .textContent =
+
+      selectedMode === "career"
+        ? "Pełna kariera · Kampania"
+        : "Tryb wyborczy";
+
+
+  $("#gameHeading")
+    .textContent =
+      "Kampania wyborcza";
+
+
+  $("#gameSubheading")
+    .textContent =
+
+      selectedCountry +
+
+      " · tydzień " +
+
+      state.week +
+
+      (
+        sandboxEnabled
+          ? " · bez limitu"
+          : " / 8"
+      );
+
+
+  $("#gameplayBody")
+    .innerHTML = `
+
+      <div class="game-layout">
+
+        <div class="glass">
+
+          <div class="stats-grid">
+
+            ${statCard(
+              "Twoje poparcie",
+              state.support
+            )}
+
+            ${statCard(
+              "Impuls kampanii",
+              state.momentum
+            )}
+
+          </div>
+
+
+          <div class="event">
+
+            <strong>
+              Działanie kampanii
+            </strong>
+
+            <div class="actions-grid">
+
+              <button
+                class="action campaign-action"
+                data-action="local"
+              >
+                Spotkania lokalne
+
+                <small>
+                  Koszt 8
+                </small>
+              </button>
+
+
+              <button
+                class="action campaign-action"
+                data-action="debate"
+              >
+                Debata
+
+                <small>
+                  Koszt 10
+                </small>
+              </button>
+
+
+              <button
+                class="action campaign-action"
+                data-action="media"
+              >
+                Kampania medialna
+
+                <small>
+                  Koszt 24
+                </small>
+              </button>
+
+
+              <button
+                class="action campaign-action"
+                data-action="tour"
+              >
+                Trasa kampanijna
+
+                <small>
+                  Koszt 15
+                </small>
+              </button>
+
+            </div>
+
+
+            <div
+              id="gameMessage"
+              class="muted"
+              style="margin-top:14px"
+            ></div>
+
+          </div>
+
+        </div>
+
+
+        <aside class="glass">
+
+          <strong>
+            Sondaż
+          </strong>
+
+          <div style="margin-top:18px">
+
+            ${pollRow(
+              $("#candidateLastName")
+                .value ||
+              "Kandydat",
+
+              state.support
+            )}
+
+            ${pollRow(
+              "Rywal A",
+              state.rivalA
+            )}
+
+            ${pollRow(
+              "Rywal B",
+              state.rivalB
+            )}
+
+          </div>
+
+
+          <div class="quote-box">
+
+            <div class="muted">
+              Budżet kampanii
+            </div>
+
+            <div
+              style="
+                font-size:28px;
+                font-weight:900;
+                margin-top:5px
+              "
+            >
+              ${state.campaignMoney}
+            </div>
+
+          </div>
+
+        </aside>
+
+      </div>
+
+
+      ${renderCampaignSandbox()}
+    `;
+
+
+  $$(".campaign-action")
+    .forEach(
+      button => {
+
+        button.addEventListener(
+          "click",
+          () =>
+            campaignAction(
+              button.dataset.action
+            )
+        );
+
+      }
+    );
+
+
+  bindCampaignSandbox();
+
+}
+
+
+function campaignAction(type) {
+
+  const actions = {
+
+    local: {
+      cost: 8,
+      min: 2,
+      max: 4
+    },
+
+    debate: {
+      cost: 10,
+      min: -2,
+      max: 7
+    },
+
+    media: {
+      cost: 24,
+      min: 1,
+      max: 6
+    },
+
+    tour: {
+      cost: 15,
+      min: 0,
+      max: 5
+    }
+
+  };
+
+
+  const action =
+    actions[type];
+
+
+  if (
+    !sandboxEnabled &&
+    state.campaignMoney <
+    action.cost
+  ) {
+
+    $("#gameMessage")
+      .textContent =
+        "Za mało środków.";
+
+    return;
+
+  }
+
+
+  if (!sandboxEnabled) {
+
+    state.campaignMoney -=
+      action.cost;
+
+  }
+
+
+  const change =
+
+    Math.floor(
+      Math.random() *
+      (
+        action.max -
+        action.min +
+        1
+      )
+    ) +
+
+    action.min;
+
+
+  state.support += change;
+
+  state.rivalA +=
+    Math.floor(
+      Math.random() * 5
+    ) - 2;
+
+  state.rivalB +=
+    Math.floor(
+      Math.random() * 5
+    ) - 2;
+
+
+  state.momentum =
+    clamp(
+      state.momentum +
+      change * 3,
+      0,
+      100
+    );
+
+
+  normalizePoll();
+
+
+  state.week++;
+
+
+  if (
+    !sandboxEnabled &&
+    state.week > 8
+  ) {
+
+    finishElection();
+
+    return;
+
+  }
+
+
+  renderCampaign();
+
+}
+
+
+/* =========================================================
+   WYNIK WYBORÓW
+========================================================= */
+
+function finishElection() {
+
+  normalizePoll();
+
+  const win =
+
+    state.support >
+      state.rivalA &&
+
+    state.support >
+      state.rivalB;
+
+
+  if (
+    selectedMode ===
+    "election"
+  ) {
+
+    renderElectionResult(win);
+
+    return;
+
+  }
+
+
+  if (
+    selectedMode ===
+    "career"
+  ) {
+
+    if (win) {
+
+      state.phase =
+        "presidency";
+
+      state.month = 1;
+
+      renderGame();
+
+    }
+
+    else {
+
+      renderElectionResult(false);
+
+    }
+
+  }
+
+}
+
+
+function renderElectionResult(win) {
+
+  $("#gamePhaseLabel")
+    .textContent =
+      "Wynik wyborów";
+
+
+  $("#gameHeading")
+    .textContent =
+      win
+        ? "Zwycięstwo"
+        : "Koniec kampanii";
+
+
+  $("#gameSubheading")
+    .textContent =
+      selectedCountry;
+
+
+  $("#gameplayBody")
+    .innerHTML = `
+
+      <div
+        class="glass"
+        style="
+          max-width:600px;
+          margin:auto;
+          text-align:center;
+          padding:35px
+        "
+      >
+
+        <div
+          style="
+            font-size:60px;
+            font-weight:950
+          "
+        >
+          ${state.support}%
+        </div>
+
+        <div class="muted">
+          Twój wynik
+        </div>
+
+
+        <h3 style="margin-top:25px">
+
+          ${
+            win
+              ? "Zdobyłeś najwyższe poparcie."
+              : "Inny kandydat zdobył najwyższe poparcie."
+          }
+
+        </h3>
+
+
+        <button
+          id="resultMenuButton"
+          class="button"
+          style="margin-top:22px"
+        >
+          Menu główne
+        </button>
+
+      </div>
+    `;
+
+
+  $("#resultMenuButton")
+    .addEventListener(
+      "click",
+      () =>
+        showScreen("home")
+    );
+
+}
+
+
+/* =========================================================
+   PREZYDENTURA
+========================================================= */
+
+const presidentEvents = [
+
+  {
+    text:
+      "Rząd proponuje duży program inwestycji infrastrukturalnych.",
+
+    options: [
+
+      [
+        "Poprzyj szeroki program",
+        {
+          stateBudget: -14,
+          economy: 6,
+          approval: 2
+        }
+      ],
+
+      [
+        "Ogranicz program",
+        {
+          stateBudget: -7,
+          economy: 3,
+          approval: 1
+        }
+      ],
+
+      [
+        "Nie zwiększaj wydatków",
+        {
+          stateBudget: 4,
+          economy: -2,
+          approval: -2
+        }
+      ]
+
+    ]
+  },
+
+
+  {
+    text:
+      "Samorządy proszą o dodatkowe finansowanie usług publicznych.",
+
+    options: [
+
+      [
+        "Zwiększ finansowanie",
+        {
+          stateBudget: -12,
+          services: 7,
+          approval: 3
+        }
+      ],
+
+      [
+        "Pomoc częściowa",
+        {
+          stateBudget: -6,
+          services: 3,
+          approval: 1
+        }
+      ],
+
+      [
+        "Bez dodatkowych środków",
+        {
+          stateBudget: 3,
+          services: -2,
+          approval: -2
+        }
+      ]
+
+    ]
+  },
+
+
+  {
+    text:
+      "Narasta spór między rządem a parlamentem.",
+
+    options: [
+
+      [
+        "Rozpocznij negocjacje",
+        {
+          stability: 5,
+          approval: 2
+        }
+      ],
+
+      [
+        "Poprzyj rząd",
+        {
+          stability: -2,
+          approval: 1
+        }
+      ],
+
+      [
+        "Zachowaj dystans",
+        {
+          stability: 1,
+          approval: -1
+        }
+      ]
+
+    ]
+  }
+
+];
+
+
+function renderPresidency() {
+
+  const event =
+
+    presidentEvents[
+      state.eventIndex %
+      presidentEvents.length
+    ];
+
+
+  $("#gamePhaseLabel")
+    .textContent =
+
+      selectedMode ===
+      "president"
+
+        ? "Tryb prezydenta"
+
+        : "Pełna kariera · Prezydentura";
+
+
+  $("#gameHeading")
+    .textContent =
+      "Urząd prezydenta";
+
+
+  $("#gameSubheading")
+    .textContent =
+
+      selectedCountry +
+
+      " · miesiąc " +
+
+      state.month +
+
+      (
+        sandboxEnabled
+          ? " · bez limitu"
+          : " / 12"
+      );
+
+
+  $("#gameplayBody")
+    .innerHTML = `
+
+      <div class="game-layout">
+
+        <div class="glass">
+
+          <div class="stats-grid">
+
+            ${statCard(
+              "Poparcie",
+              state.approval
+            )}
+
+            ${statCard(
+              "Gospodarka",
+              state.economy,
+              ""
+            )}
+
+            ${statCard(
+              "Usługi publiczne",
+              state.services,
+              ""
+            )}
+
+            ${statCard(
+              "Stabilność",
+              state.stability,
+              ""
+            )}
+
+          </div>
+
+
+          <div class="quote-box">
+
+            <div class="muted">
+              Budżet państwa
+            </div>
+
+            <div
+              style="
+                margin-top:5px;
+                font-size:28px;
+                font-weight:900
+              "
+            >
+              ${state.stateBudget}
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <aside class="event">
+
+          <div class="eyebrow">
+            Decyzja miesiąca
+          </div>
+
+          <h3>
+            ${event.text}
+          </h3>
+
+          <div
+            id="presidentOptions"
+            style="
+              display:grid;
+              gap:9px;
+              margin-top:18px
+            "
+          ></div>
+
+        </aside>
+
+      </div>
+
+
+      ${renderPresidentSandbox()}
+    `;
+
+
+  const options =
+    $("#presidentOptions");
+
+
+  event.options.forEach(
+    ([label, changes]) => {
+
+      const button =
+        document.createElement("button");
+
+      button.className =
+        "action";
+
+      button.textContent =
+        label;
+
+
+      button.addEventListener(
+        "click",
+        () =>
+          applyPresidentDecision(
+            changes
+          )
+      );
+
+
+      options.appendChild(button);
+
+    }
+  );
+
+
+  bindPresidentSandbox();
+
+}
+
+
+function applyPresidentDecision(
+  changes
+) {
+
+  Object.entries(changes)
+    .forEach(
+      ([key,value]) => {
+
+        state[key] =
+          clamp(
+            state[key] + value,
+            0,
+            key ===
+            "stateBudget"
+              ? 9999
+              : 100
+          );
+
+      }
+    );
+
+
+  state.month++;
+
+  state.eventIndex++;
+
+
+  if (
+    !sandboxEnabled &&
+    state.month > 12
+  ) {
+
+    renderTermResult();
+
+    return;
+
+  }
+
+
+  renderPresidency();
+
+}
+
+
+function renderTermResult() {
+
+  $("#gamePhaseLabel")
+    .textContent =
+      "Koniec kadencji";
+
+
+  $("#gameHeading")
+    .textContent =
+      "Podsumowanie prezydentury";
+
+
+  $("#gameplayBody")
+    .innerHTML = `
+
+      <div class="glass">
+
+        <div class="stats-grid">
+
+          ${statCard(
+            "Poparcie",
+            state.approval
+          )}
+
+          ${statCard(
+            "Gospodarka",
+            state.economy,
+            ""
+          )}
+
+          ${statCard(
+            "Usługi",
+            state.services,
+            ""
+          )}
+
+          ${statCard(
+            "Stabilność",
+            state.stability,
+            ""
+          )}
+
+        </div>
+
+
+        <button
+          id="termMenuButton"
+          class="button full"
+          style="margin-top:20px"
+        >
+          Menu główne
+        </button>
+
+      </div>
+    `;
+
+
+  $("#termMenuButton")
+    .addEventListener(
+      "click",
+      () =>
+        showScreen("home")
+    );
+
+}
+
+
+/* =========================================================
+   PIASKOWNICA — KAMPANIA
+========================================================= */
+
+function renderCampaignSandbox() {
+
+  if (!sandboxEnabled)
+    return "";
+
+
+  return `
+
+    <div class="sandbox-panel">
+
+      <strong>
+        ∞ Panel Piaskownicy MAX
+      </strong>
+
+
+      <div class="sandbox-control-grid">
+
+        <div class="sandbox-control">
+
+          <label>
+
+            Poparcie:
+            <strong id="sandboxSupportValue">
+              ${state.support}%
+            </strong>
+
+          </label>
+
+          <input
+            id="sandboxSupport"
+            type="range"
+            min="5"
+            max="85"
+            value="${state.support}"
+          >
+
+        </div>
+
+
+        <div class="sandbox-control">
+
+          <label>
+            Budżet kampanii
+          </label>
+
+          <input
+            id="sandboxMoney"
+            type="number"
+            class="field"
+            min="0"
+            max="9999"
+            value="${state.campaignMoney}"
+          >
+
+        </div>
+
+      </div>
+
+
+      <div class="actions-grid">
+
+        <button
+          id="sandboxNextWeek"
+          class="action"
+        >
+          Następna tura
+        </button>
+
+        <button
+          id="sandboxWin"
+          class="action"
+        >
+          Ustaw wysokie poparcie
+        </button>
+
+        ${
+          selectedMode ===
+          "career"
+
+            ? `
+
+              <button
+                id="sandboxPresident"
+                class="action"
+              >
+                Przejdź do prezydentury
+              </button>
+
+            `
+
+            : ""
         }
 
-        function przygotujPuchar() {
-            if (!stan.puchar) stan.puchar = { runda: 1, aktywny: true, uczestnicy: [], historia: [], zwyciezca: null };
-            stan.puchar.uczestnicy = Object.keys(stan.kluby).filter(k => stan.kluby[k].licencja);
-            for (let i = stan.puchar.uczestnicy.length - 1; i > 0; i--) {
-                let j = Math.floor(Math.random() * (i + 1));
-                [stan.puchar.uczestnicy[i], stan.puchar.uczestnicy[j]] = [stan.puchar.uczestnicy[j], stan.puchar.uczestnicy[i]];
-            }
-            stan.puchar.runda = 1;
-            stan.puchar.aktywny = true;
-            stan.puchar.historia = [];
-            stan.puchar.zwyciezca = null;
+      </div>
+
+    </div>
+  `;
+
+}
+
+
+function bindCampaignSandbox() {
+
+  if (!sandboxEnabled)
+    return;
+
+
+  $("#sandboxSupport")
+    .addEventListener(
+      "input",
+      event => {
+
+        state.support =
+          Number(
+            event.target.value
+          );
+
+        normalizePoll();
+
+        $("#sandboxSupportValue")
+          .textContent =
+            state.support + "%";
+
+      }
+    );
+
+
+  $("#sandboxMoney")
+    .addEventListener(
+      "change",
+      event => {
+
+        state.campaignMoney =
+          clamp(
+            Number(
+              event.target.value
+            ) || 0,
+            0,
+            9999
+          );
+
+      }
+    );
+
+
+  $("#sandboxNextWeek")
+    .addEventListener(
+      "click",
+      () => {
+
+        state.week++;
+
+        renderCampaign();
+
+      }
+    );
+
+
+  $("#sandboxWin")
+    .addEventListener(
+      "click",
+      () => {
+
+        state.support = 70;
+        state.rivalA = 18;
+        state.rivalB = 12;
+
+        renderCampaign();
+
+      }
+    );
+
+
+  const presidentButton =
+    $("#sandboxPresident");
+
+
+  if (presidentButton) {
+
+    presidentButton
+      .addEventListener(
+        "click",
+        () => {
+
+          state.phase =
+            "presidency";
+
+          state.month = 1;
+
+          renderGame();
+
         }
+      );
 
-        function zmienWidok(widok) {
-            stan.aktywnyWidok = widok;
-            document.querySelectorAll('aside nav button').forEach(b => {
-                b.classList.remove('bg-emerald-600', 'font-semibold');
-                b.classList.add('bg-slate-800', 'font-medium');
-            });
-            let aktywnyBtn = document.getElementById('nav-' + widok);
-            if (aktywnyBtn) {
-                aktywnyBtn.classList.remove('bg-slate-800', 'font-medium');
-                aktywnyBtn.classList.add('bg-emerald-600', 'font-semibold');
-            }
-            renderujWidok();
-        }
-
-        function odswiezUI() {
-            document.getElementById('stat-sezon').innerText = stan.sezon;
-            document.getElementById('stat-kolejka').innerText = `${stan.kolejka} / 34`;
-            document.getElementById('stat-reputacja').innerText = `${stan.reputacja}/100`;
-            document.getElementById('stat-budzet').innerText = stan.budzet_centralny.toLocaleString() + " PLN";
-            document.getElementById('tytul-ligi').innerText = stan.aktualnaLiga;
-            renderujWidok();
-        }
-
-        function dodajLog(tekst) {
-            stan.logi.unshift(tekst);
-            if (stan.logi.length > 25) stan.logi.pop();
-        }
-
-        function dodajWydarzenieMeczowe(tekst) {
-            stan.meczoweWydarzenia.unshift(tekst);
-            if (stan.meczoweWydarzenia.length > 100) stan.meczoweWydarzenia.pop();
-        }
-
-        function zmienLige(nowaLiga) {
-            stan.aktualnaLiga = nowaLiga;
-            renderujWidok();
-        }
-
-        function generujParyDlaLigi(nazwaLigi) {
-            let kluby = Object.keys(stan.kluby).filter(k => stan.kluby[k].liga === nazwaLigi && stan.kluby[k].licencja);
-            let pary = [];
-            for (let i = 0; i < kluby.length; i += 2) {
-                if (i + 1 < kluby.length) {
-                    pary.push([kluby[i], kluby[i+1]]);
-                }
-            }
-            return pary;
-        }
-
-        function strefyDlaPozycji(liga, idx, liczba, nazwaKlubu, posortowane) {
-            let strefy = [];
-            if (liga === 'Ekstraklasa') {
-                const zdobywcaPP = stan.puchar && stan.puchar.zwyciezca;
-                const top4 = posortowane.slice(0,4).map(x => x[0]);
-                const slotPP = zdobywcaPP && top4.includes(zdobywcaPP)
-                    ? (posortowane.find(([nazwa]) => !top4.includes(nazwa)) || [null])[0]
-                    : zdobywcaPP;
-
-                if (idx === 0) strefy.push({tekst:'IV runda el. Ligi Mistrzów', klasa:'bg-sky-900/60 text-sky-200 border-sky-700', wiersz:'bg-sky-950/25'});
-                if (idx === 1) strefy.push({tekst:'II runda el. Ligi Mistrzów', klasa:'bg-cyan-900/60 text-cyan-200 border-cyan-700', wiersz:'bg-cyan-950/20'});
-                if (idx === 2) strefy.push({tekst:'II runda el. Ligi Europy', klasa:'bg-orange-900/60 text-orange-200 border-orange-700', wiersz:'bg-orange-950/20'});
-                if (idx === 3) strefy.push({tekst:'II runda el. Ligi Konferencji Europy', klasa:'bg-emerald-900/60 text-emerald-200 border-emerald-700', wiersz:'bg-emerald-950/20'});
-
-                if (slotPP && nazwaKlubu === slotPP && !top4.includes(nazwaKlubu)) {
-                    strefy.push({tekst: zdobywcaPP === slotPP ? 'IV runda el. Ligi Europy — Puchar Polski' : 'IV runda el. Ligi Europy — slot Pucharu Polski', klasa:'bg-amber-900/60 text-amber-200 border-amber-700', wiersz:'bg-amber-950/20'});
-                }
-                if (idx >= liczba - 3) strefy.push({tekst:'Spadek do 1. Ligi', klasa:'bg-rose-900/60 text-rose-200 border-rose-700', wiersz:'bg-rose-950/30'});
-            } else if (liga === '1. Liga') {
-                if (idx < 3) strefy.push({tekst:'Awans do Ekstraklasy', klasa:'bg-emerald-900/60 text-emerald-200 border-emerald-700', wiersz:'bg-emerald-950/20'});
-                if (idx >= liczba - 3) strefy.push({tekst:'Spadek do 2. Ligi', klasa:'bg-rose-900/60 text-rose-200 border-rose-700', wiersz:'bg-rose-950/30'});
-            } else if (liga === '2. Liga') {
-                if (idx < 3) strefy.push({tekst:'Awans do 1. Ligi', klasa:'bg-emerald-900/60 text-emerald-200 border-emerald-700', wiersz:'bg-emerald-950/20'});
-                if (idx >= liczba - 3) strefy.push({tekst:'Spadek do 3. Ligi', klasa:'bg-rose-900/60 text-rose-200 border-rose-700', wiersz:'bg-rose-950/30'});
-            }
-            // Zdobywca Pucharu Polski z niższej ligi wchodzi do IV rundy eliminacji Ligi Europy.
-            if (liga !== 'Ekstraklasa' && stan.puchar && stan.puchar.zwyciezca === nazwaKlubu) {
-                strefy.unshift({tekst:'IV runda el. Ligi Europy — Puchar Polski', klasa:'bg-amber-900/60 text-amber-200 border-amber-700', wiersz:'bg-amber-950/20'});
-            }
-            return strefy;
-        }
-
-        function legendaStref(liga) {
-            if (liga === 'Ekstraklasa') return `
-                <div class="flex flex-wrap gap-2 text-[10px]">
-                    <span class="px-2 py-1 rounded border bg-sky-900/50 text-sky-200 border-sky-700">Mistrz → IV runda el. Ligi Mistrzów</span>
-                    <span class="px-2 py-1 rounded border bg-cyan-900/50 text-cyan-200 border-cyan-700">Wicemistrz → II runda el. Ligi Mistrzów</span>
-                    <span class="px-2 py-1 rounded border bg-amber-900/50 text-amber-200 border-amber-700">Puchar Polski → IV runda el. Ligi Europy</span>
-                    <span class="px-2 py-1 rounded border bg-orange-900/50 text-orange-200 border-orange-700">3. miejsce → II runda el. Ligi Europy</span>
-                    <span class="px-2 py-1 rounded border bg-emerald-900/50 text-emerald-200 border-emerald-700">4. miejsce → II runda el. Ligi Konferencji Europy</span>
-                    <span class="px-2 py-1 rounded border bg-rose-900/50 text-rose-200 border-rose-700">3 ostatnie → 1. Liga</span>
-                </div>`;
-            if (liga === '1. Liga') return `<div class="flex flex-wrap gap-2 text-[10px]"><span class="px-2 py-1 rounded border bg-emerald-900/50 text-emerald-200 border-emerald-700">TOP 3 → Ekstraklasa</span><span class="px-2 py-1 rounded border bg-rose-900/50 text-rose-200 border-rose-700">3 ostatnie → 2. Liga</span></div>`;
-            if (liga === '2. Liga') return `<div class="flex flex-wrap gap-2 text-[10px]"><span class="px-2 py-1 rounded border bg-emerald-900/50 text-emerald-200 border-emerald-700">TOP 3 → 1. Liga</span><span class="px-2 py-1 rounded border bg-rose-900/50 text-rose-200 border-rose-700">3 ostatnie → 3. Liga</span></div>`;
-            return '';
-        }
-
-        function renderujWidok() {
-            let kontener = document.getElementById('widok-kontener');
-            kontener.innerHTML = '';
-
-            if (stan.aktywnyWidok === 'tabela') {
-                let klubyW1Lidze = Object.entries(stan.kluby).filter(([k, d]) => d.liga === stan.aktualnaLiga);
-                let posortowane = klubyW1Lidze.sort((a, b) => {
-                    if (b[1].punkty !== a[1].punkty) return b[1].punkty - a[1].punkty;
-                    let bilansA = a[1].bramki_strzelone - a[1].bramki_stracone;
-                    let bilansB = b[1].bramki_strzelone - b[1].bramki_stracone;
-                    if (bilansB !== bilansA) return bilansB - bilansA;
-                    return b[1].bramki_strzelone - a[1].bramki_strzelone;
-                });
-
-                let wierszeTabeli = posortowane.map(([nazwa, dane], idx) => {
-                    let bilans = dane.bramki_strzelone - dane.bramki_stracone;
-                    let strefy = strefyDlaPozycji(stan.aktualnaLiga, idx, posortowane.length, nazwa, posortowane);
-                    let klasaWiersza = strefy.length ? strefy[strefy.length - 1].wiersz : '';
-                    return `
-                        <tr class="border-b border-slate-800/50 hover:bg-slate-800/40 ${klasaWiersza}">
-                            <td class="py-3 px-2 font-semibold text-slate-400">${idx + 1}</td>
-                            <td class="py-3 px-2 font-medium text-slate-200">${nazwa}</td>
-                            <td class="py-3 px-2 text-center text-slate-400">${stan.kolejka - 1}</td>
-                            <td class="py-3 px-2 text-center font-bold text-emerald-400">${dane.punkty}</td>
-                            <td class="py-3 px-2 text-center text-slate-300">${dane.bramki_strzelone}:${dane.bramki_stracone} (${bilans > 0 ? '+' + bilans : bilans})</td>
-                            <td class="py-3 px-2"><div class="flex flex-wrap gap-1">${strefy.map(s => `<span class="px-2 py-0.5 rounded text-[9px] font-semibold border ${s.klasa}">${s.tekst}</span>`).join('') || '<span class="text-slate-600 text-[10px]">—</span>'}</div></td>
-                            <td class="py-3 px-2 text-right">
-                                <span class="px-2 py-0.5 rounded text-[10px] font-semibold ${dane.licencja ? 'bg-emerald-900/50 text-emerald-300 border border-emerald-700' : 'bg-rose-900/50 text-rose-300 border border-rose-700'}">
-                                    ${dane.licencja ? 'Aktywna' : 'Brak'}
-                                </span>
-                            </td>
-                        </tr>
-                    `;
-                }).join('');
-
-                kontener.innerHTML = `
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <div class="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
-                            <div class="flex justify-between items-center mb-4">
-                                <h2 class="text-lg font-bold text-slate-200">Tabela: ${stan.aktualnaLiga}</h2>
-                                <select onchange="zmienLige(this.value)" class="bg-slate-800 border border-slate-700 text-sm rounded-lg px-3 py-1.5 text-slate-200">
-                                    ${stan.ligi.map(l => `<option value="${l}" ${l === stan.aktualnaLiga ? 'selected' : ''}>${l}</option>`).join('')}
-                                </select>
-                            </div>
-                            <div class="mb-4">${legendaStref(stan.aktualnaLiga)}</div>
-                            <div class="overflow-x-auto">
-                                <table class="w-full text-left border-collapse text-sm">
-                                    <thead>
-                                        <tr class="border-b border-slate-800 text-slate-400">
-                                            <th class="py-2 px-2">Poz</th>
-                                            <th class="py-2 px-2">Klub</th>
-                                            <th class="py-2 px-2 text-center">M</th>
-                                            <th class="py-2 px-2 text-center">Pkt</th>
-                                            <th class="py-2 px-2 text-center">Bilans</th>
-                                            <th class="py-2 px-2">Strefa</th>
-                                            <th class="py-2 px-2 text-right">Licencja</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        ${wierszeTabeli || '<tr><td colspan="7" class="py-4 text-center text-slate-500">Brak klubów w tej lidze</td></tr>'}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col">
-                            <h2 class="text-lg font-bold mb-4 text-slate-200">Dziennik Związku</h2>
-                            <div class="bg-slate-950 border border-slate-800 rounded-xl p-4 flex-1 text-xs text-slate-300 space-y-2 overflow-y-auto max-h-[380px]">
-                                ${stan.logi.map(l => `<p class="border-l-2 border-emerald-500 pl-2 py-0.5">${l}</p>`).join('')}
-                            </div>
-                        </div>
-                    </div>
-                `;
-            } else if (stan.aktywnyWidok === 'wydarzenia') {
-                kontener.innerHTML = `
-                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-                        <h2 class="text-xl font-bold text-slate-100">Kronika Wydarzeń i Meczów Piłkarskich</h2>
-                        <p class="text-xs text-slate-400">Tutaj pojawiają się szczegółowe relacje ze spotkań ligowych, gole, kartki oraz najważniejsze wydarzenia.</p>
-                        <div class="bg-slate-950 border border-slate-800 rounded-xl p-4 text-xs text-slate-300 space-y-3 overflow-y-auto max-h-[500px]">
-                            ${stan.meczoweWydarzenia.length > 0 ? stan.meczoweWydarzenia.map(w => `<div class="border-b border-slate-800/80 pb-2">${w}</div>`).join('') : '<p class="text-slate-500">Brak zarejestrowanych wydarzeń z meczów. Rozegraj pierwszą kolejkę!</p>'}
-                        </div>
-                    </div>
-                `;
-            } else if (stan.aktywnyWidok === 'finanse') {
-                kontener.innerHTML = `
-                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-6">
-                        <h2 class="text-xl font-bold text-slate-100">Zarządzanie Finansami i Marketingiem</h2>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div class="bg-slate-800/50 border border-slate-700 p-4 rounded-xl">
-                                <h3 class="font-semibold text-emerald-400 mb-2">Pakiet Medialny TV</h3>
-                                <p class="text-xs text-slate-300 mb-4">Zainwestuj w nowoczesny sprzęt transmisyjny, aby podnieść atrakcyjność ligi.</p>
-                                <button onclick="inwestujFinanse('tv')" class="w-full bg-emerald-600 hover:bg-emerald-500 py-2 rounded-lg text-sm font-medium">Inwestuj (1.000.000 PLN)</button>
-                            </div>
-                            <div class="bg-slate-800/50 border border-slate-700 p-4 rounded-xl">
-                                <h3 class="font-semibold text-sky-400 mb-2">Kampania Wizerunkowa</h3>
-                                <p class="text-xs text-slate-300 mb-4">Ogólnokrajowa akcja marketingowa zwiększająca reputację organizacji (+8 pkt).</p>
-                                <button onclick="inwestujFinanse('marketing')" class="w-full bg-sky-600 hover:bg-sky-500 py-2 rounded-lg text-sm font-medium">Kup Kampanię (750.000 PLN)</button>
-                            </div>
-                            <div class="bg-slate-800/50 border border-slate-700 p-4 rounded-xl">
-                                <h3 class="font-semibold text-amber-400 mb-2">Gala Sezonu</h3>
-                                <p class="text-xs text-slate-300 mb-4">Organizacja prestiżowej gali nagród dla najlepszych zawodników i klubów.</p>
-                                <button onclick="inwestujFinanse('gala')" class="w-full bg-amber-600 hover:bg-amber-500 py-2 rounded-lg text-sm font-medium">Zorganizuj Galę (500.000 PLN)</button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            } else if (stan.aktywnyWidok === 'kontrakty') {
-                kontener.innerHTML = `
-                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-6">
-                        <h2 class="text-xl font-bold text-slate-100">Aktywne Kontrakty i Nowe Oferty</h2>
-                        <p class="text-xs text-slate-400">Zarządzaj trwającymi umowami oraz przeglądaj automatycznie generowane propozycje rynkowe.</p>
-                        
-                        <div class="space-y-3">
-                            <h3 class="font-semibold text-sm text-slate-300">Podpisane Kontrakty:</h3>
-                            ${stan.kontrakty.map(k => `
-                                <div class="bg-slate-800 border border-slate-700 p-4 rounded-xl flex justify-between items-center">
-                                    <div>
-                                        <h4 class="font-bold text-slate-200">${k.nazwa}</h4>
-                                        <p class="text-xs text-emerald-400">Przychód: +${k.zyskNaKolejke.toLocaleString()} PLN / kolejkę</p>
-                                        <p class="text-xs text-amber-400">Pozostało kolejek: ${k.pozostałoKolejek}</p>
-                                    </div>
-                                    <button onclick="negocjujKontrakt(${k.id})" class="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-lg text-sm font-medium">Przedłuż (+5 kolejek)</button>
-                                </div>
-                            `).join('')}
-                        </div>
-
-                        <div class="pt-4 border-t border-slate-800 space-y-3">
-                            <h3 class="font-semibold text-sm text-slate-300">Dostępne Nowe Oferty na Rynku:</h3>
-                            ${stan.ofertyKontraktow.length > 0 ? stan.ofertyKontraktow.map(o => `
-                                <div class="bg-slate-950 border border-slate-800 p-4 rounded-xl flex justify-between items-center">
-                                    <div>
-                                        <h4 class="font-bold text-emerald-400">${o.nazwa}</h4>
-                                        <p class="text-xs text-slate-300">Zysk: +${o.zyskNaKolejke.toLocaleString()} PLN/kolejkę \vert{} Czas: ${o.kolejek} kolejek</p>
-                                        <p class="text-xs text-slate-400">Koszt podpisania: ${o.kosztPodpisania.toLocaleString()} PLN</p>
-                                    </div>
-                                    <button onclick="podpiszOfertu(${o.id})" class="bg-emerald-600 hover:bg-emerald-500 px-4 py-2 rounded-lg text-sm font-medium">Podpisz Umowę</button>
-                                </div>
-                            `).join('') : '<p class="text-xs text-slate-500">Brak nowych ofert. Pojawią się w kolejnych kolejkach.</p>'}
-                        </div>
-                    </div>
-                `;
-            } else if (stan.aktywnyWidok === 'sedziowie') {
-                kontener.innerHTML = `
-                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-6">
-                        <h2 class="text-xl font-bold text-slate-100">Obsada Sędziowska na Kolejkę ${stan.kolejka} (Wszystkie Ligi)</h2>
-                        <p class="text-xs text-slate-400">Przypisz sędziów do meczów ze wszystkich prowadzonych lig.</p>
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div class="space-y-4">
-                                ${stan.ligi.map(liga => {
-                                    let pary = generujParyDlaLigi(liga);
-                                    if(pary.length === 0) return '';
-                                    return `
-                                        <div class="bg-slate-950 border border-slate-800 p-4 rounded-xl space-y-2">
-                                            <h3 class="font-bold text-emerald-400 text-sm border-b border-slate-800 pb-1">Liga: ${liga}</h3>${pary.map((para, pIdx) => {
-                                                let globalnyID = `${liga}_${pIdx}`;
-                                                return `
-                                                    <div class="bg-slate-900 border border-slate-800 p-2.5 rounded-lg text-xs space-y-1">
-                                                        <p class="font-medium text-slate-200">${para[0]} vs ${para[1]}</p>
-                                                        <div class="flex items-center gap-2">
-                                                            <span class="text-slate-400">Sędzia:</span>
-                                                            <select onchange="przypiszSedziego('${globalnyID}', this.value)" class="bg-slate-950 border border-slate-700 rounded px-2 py-1 flex-1 text-slate-200">
-                                                                <option value="">-- Wybierz sędziego --</option>
-                                                                ${stan.sedziowie.filter(s => s.przypisanyMecz === null || s.przypisanyMecz === globalnyID).map(s => `
-                                                                    <option value="${s.id}" ${s.przypisanyMecz === globalnyID ? 'selected' : ''}>${s.imie} (${s.poziom})</option>
-                                                                `).join('')}
-                                                            </select>
-                                                        </div>
-                                                    </div>
-                                                `;
-                                            }).join('')}
-                                        </div>
-                                    `;
-                                }).join('')}
-                            </div>
-
-                            <div class="bg-slate-950 border border-slate-800 p-4 rounded-xl space-y-3 h-fit">
-                                <h3 class="font-semibold text-sm text-slate-300">Wszyscy Sędziowie Związku:</h3>
-                                <div class="space-y-2 max-h-[450px] overflow-y-auto">
-                                    ${stan.sedziowie.map(s => `
-                                        <div class="bg-slate-900 border border-slate-800 p-2 rounded-lg text-xs flex justify-between items-center">
-                                            <div>
-                                                <span class="font-medium text-slate-200">${s.imie}</span>
-                                                <p class="text-[10px] text-slate-400">Poziom: ${s.poziom} \vert{} Kontrowersje:${s.kontrowersje}</p>
-                                            </div>
-                                            <span class="px-2 py-1 rounded text-[10px] ${s.przypisanyMecz !== null ? 'bg-amber-900/50 text-amber-300 border border-amber-800' : 'bg-emerald-900/50 text-emerald-300 border border-emerald-800'}">
-                                                ${s.przypisanyMecz !== null ? 'Delegowany' : 'Wolny'}
-                                            </span>
-                                        </div>
-                                    `).join('')}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            } else if (stan.aktywnyWidok === 'kary') {
-                kontener.innerHTML = `
-                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-6 max-w-xl">
-                        <h2 class="text-xl font-bold text-slate-100">Komisja Dyscyplinarna - Nakładanie Kar</h2>
-                        <p class="text-xs text-slate-400">Wprowadź sankcje regulaminowe dla wybranego klubu. Kara finansowa trafia bezpośrednio do budżetu związku, a punkty są odejmowane w tabeli.</p>
-                        
-                        <div class="space-y-4">
-                            <div>
-                                <label class="block text-xs text-slate-300 mb-1">Wybierz Klub:</label>
-                                <select id="kara-klub" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-sm text-slate-200">
-                                    ${Object.keys(stan.kluby).map(k => `<option value="${k}">${k} (${stan.kluby[k].liga})</option>`).join('')}
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-xs text-slate-300 mb-1">Odejmowane punkty:</label>
-                                <input type="number" id="kara-pkt" value="1" min="0" max="20" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-sm text-slate-200">
-                            </div>
-                            <div>
-                                <label class="block text-xs text-slate-300 mb-1">Kara finansowa (pieniądze trafiają do Związku) (PLN):</label>
-                                <input type="number" id="kara-kasa" value="50000" step="10000" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-sm text-slate-200">
-                            </div>
-                            <button onclick="zastosujKare()" class="w-full bg-rose-700 hover:bg-rose-600 py-3 rounded-xl font-medium text-sm transition">Nałóż Oficjalną Karę</button>
-                        </div>
-                    </div>
-                `;
-            } else if (stan.aktywnyWidok === 'licencje') {
-                kontener.innerHTML = `
-                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-6">
-                        <h2 class="text-xl font-bold text-slate-100">Zarządzanie Licencjami Klubowymi</h2>
-                        <p class="text-xs text-slate-400">Kluby bez ważnej licencji nie mogą brać udziału w oficjalnych rozgrywkach związku.</p>
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            ${Object.entries(stan.kluby).map(([nazwa, dane]) => `
-                                <div class="bg-slate-800 border border-slate-700 p-4 rounded-xl flex justify-between items-center">
-                                    <div>
-                                        <h4 class="font-bold text-slate-200">${nazwa}</h4>
-                                        <p class="text-xs text-slate-400">Liga: ${dane.liga}</p>
-                                        <span class="inline-block mt-2 px-2 py-0.5 rounded text-[10px] font-semibold ${dane.licencja ? 'bg-emerald-900/50 text-emerald-300 border border-emerald-700' : 'bg-rose-900/50 text-rose-300 border border-rose-700'}">
-                                            ${dane.licencja ? 'Licencja aktywna' : 'Brak licencji'}
-                                        </span>
-                                    </div>
-                                    <button onclick="przelaczLicencje('${nazwa}')" class="px-4 py-2 rounded-lg text-xs font-medium ${dane.licencja ? 'bg-rose-800 hover:bg-rose-700 text-slate-100' : 'bg-emerald-700 hover:bg-emerald-600 text-slate-100'}">
-                                        ${dane.licencja ? 'Odbierz' : 'Przyznaj'}
-                                    </button>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                `;
-            } else if (stan.aktywnyWidok === 'puchar') {
-                let uczestnicy = stan.puchar.uczestnicy || [];
-                kontener.innerHTML = `
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <div class="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-                            <div class="flex justify-between items-center gap-3">
-                                <div>
-                                    <h2 class="text-xl font-bold text-slate-100">🏅 Puchar Polski</h2>
-                                    <p class="text-xs text-slate-400">Mecze pucharowe są rozgrywane automatycznie co 5 kolejek ligowych.</p>
-                                </div>
-                                <span class="px-3 py-1 rounded-lg text-xs border ${stan.puchar.aktywny ? 'bg-emerald-900/40 text-emerald-300 border-emerald-800' : 'bg-amber-900/40 text-amber-300 border-amber-800'}">
-                                    ${stan.puchar.aktywny ? `Runda ${stan.puchar.runda}` : `Zwycięzca: ${stan.puchar.zwyciezca || '-'}`}
-                                </span>
-                            </div>
-                            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                <div class="bg-slate-800/60 p-3 rounded-xl"><p class="text-[10px] uppercase text-slate-500">W grze</p><p class="text-xl font-bold">${uczestnicy.length}</p></div>
-                                <div class="bg-slate-800/60 p-3 rounded-xl"><p class="text-[10px] uppercase text-slate-500">Rozegrane rundy</p><p class="text-xl font-bold">${stan.puchar.historia.length}</p></div>
-                                <div class="bg-slate-800/60 p-3 rounded-xl"><p class="text-[10px] uppercase text-slate-500">Nagroda</p><p class="text-sm font-bold text-emerald-400">2,5 mln PLN</p></div>
-                                <div class="bg-slate-800/60 p-3 rounded-xl"><p class="text-[10px] uppercase text-slate-500">Następna runda</p><p class="text-sm font-bold text-amber-400">co 5 kolejek</p></div>
-                            </div>
-                            <div class="bg-slate-950 border border-slate-800 rounded-xl p-4 text-xs space-y-2 max-h-[420px] overflow-y-auto">
-                                ${stan.puchar.historia.length ? stan.puchar.historia.map(r => `<div class="border-b border-slate-800 pb-2"><b class="text-amber-300">Runda ${r.runda}</b><br>${r.wyniki.join('<br>')}</div>`).join('') : '<p class="text-slate-500">Puchar jeszcze się nie rozpoczął.</p>'}
-                            </div>
-                        </div>
-                        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
-                            <h3 class="font-bold mb-3">Pozostali uczestnicy</h3>
-                            <div class="space-y-2 text-xs max-h-[520px] overflow-y-auto">${uczestnicy.map(k => `<div class="bg-slate-800 rounded-lg p-2 flex justify-between"><span>${k}</span><span class="text-slate-500">${stan.kluby[k]?.liga || ''}</span></div>`).join('') || '<p class="text-slate-500">Turniej zakończony.</p>'}</div>
-                        </div>
-                    </div>`;
-            } else if (stan.aktywnyWidok === 'europa') {
-                const etapy = etapyEuropejskie();
-                const kolory = {LM:'sky', LE:'orange', LK:'emerald'};
-                const opisy = {
-                    LM:'Mistrz Ekstraklasy startuje od IV rundy eliminacji, a wicemistrz od II rundy eliminacji.',
-                    LE:'Zdobywca Pucharu Polski startuje od IV rundy eliminacji, a 3. zespół Ekstraklasy od II rundy eliminacji.',
-                    LK:'4. zespół Ekstraklasy startuje od II rundy eliminacji Ligi Konferencji Europy.'
-                };
-                kontener.innerHTML = `
-                    <div class="space-y-6">
-                        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
-                            <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
-                                <div><h2 class="text-xl font-bold">🌍 Europejskie Puchary — sezon ${stan.sezon}</h2><p class="text-xs text-slate-400 mt-1">Uproszczony system pucharowy. Rundy europejskie są rozgrywane automatycznie co 4 kolejki ligowe.</p></div>
-                                <span class="text-xs px-3 py-1 rounded-lg bg-slate-800 border border-slate-700">Kolejna runda: ${stan.kolejka <= 32 ? (Math.ceil(stan.kolejka/4)*4) + '. kolejka' : 'zakończona'}</span>
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-1 xl:grid-cols-3 gap-5">
-                            ${['LM','LE','LK'].map(kod => {
-                                const r = stan.europa.rozgrywki[kod];
-                                const aktywni = r.aktywni || [];
-                                const oczekujacy = r.oczekujacy || [];
-                                const etapTekst = r.zwyciezca ? 'Zakończona' : (aktywni.length ? (etapy[r.etap] || 'Finał') : (oczekujacy.length ? `Oczekiwanie na ${etapy[Math.min(...oczekujacy.map(w => w.startEtap))]}` : 'Brak polskich klubów'));
-                                return `<div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
-                                    <div><h3 class="font-bold text-lg ${kod==='LM'?'text-sky-300':kod==='LE'?'text-orange-300':'text-emerald-300'}">${r.nazwa}</h3><p class="text-[11px] text-slate-400 mt-1">${opisy[kod]}</p></div>
-                                    <div class="bg-slate-950 border border-slate-800 rounded-xl p-3"><p class="text-[10px] uppercase text-slate-500">Aktualny etap</p><p class="font-semibold mt-1">${etapTekst}</p></div>
-                                    <div><p class="text-xs text-slate-400 mb-2">Polskie kluby w grze:</p>${aktywni.length ? aktywni.map(n => `<div class="bg-slate-800 border border-slate-700 rounded-lg p-2 mb-2 text-sm flex justify-between"><span>${n}</span><span class="text-emerald-300">aktywny</span></div>`).join('') : `<p class="text-xs text-slate-600">${r.zwyciezca ? 'Zwycięzca: '+r.zwyciezca : 'Brak aktywnego klubu w tej rundzie.'}</p>`}</div>
-                                    ${oczekujacy.length ? `<div><p class="text-xs text-slate-400 mb-2">Kluby czekające na swoją rundę:</p>${oczekujacy.map(w => `<div class="bg-slate-800/60 border border-slate-700 rounded-lg p-2 mb-2 text-xs flex justify-between gap-2"><span>${w.klub}</span><span class="text-amber-300">${etapy[w.startEtap]}</span></div>`).join('')}</div>` : ''}
-                                    <div class="bg-slate-950 border border-slate-800 rounded-xl p-3 max-h-[300px] overflow-y-auto text-[11px] space-y-2">${r.historia.length ? r.historia.slice().reverse().map(h => `<div class="border-b border-slate-800 pb-2"><b>${h.etap}</b><br>${h.wyniki.join('<br>')}</div>`).join('') : '<p class="text-slate-600">Brak rozegranych meczów.</p>'}</div>
-                                </div>`;
-                            }).join('')}
-                        </div>
-                    </div>`;
-            } else if (stan.aktywnyWidok === 'rozwoj') {
-                let lista = Object.entries(stan.kluby).sort((a,b) => b[1].budzet - a[1].budzet);
-                kontener.innerHTML = `
-                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-                        <div><h2 class="text-xl font-bold">📈 Rozwój Klubów</h2><p class="text-xs text-slate-400">Dotuj akademie i infrastrukturę. Lepszy rozwój zwiększa formę, morale i potencjał klubu.</p></div>
-                        <div class="overflow-x-auto"><table class="w-full text-xs"><thead><tr class="text-slate-400 border-b border-slate-800"><th class="text-left py-2">Klub</th><th>Forma</th><th>Morale</th><th>Akademia</th><th>Infrastr.</th><th>Kibice</th><th class="text-right">Działania</th></tr></thead>
-                        <tbody>${lista.map(([n,d]) => `<tr class="border-b border-slate-800/50"><td class="py-3"><b>${n}</b><br><span class="text-slate-500">${d.liga}</span></td><td class="text-center">${d.forma}/5</td><td class="text-center">${d.morale}</td><td class="text-center">${d.akademia}/5</td><td class="text-center">${d.infrastruktura}/5</td><td class="text-center">${d.kibice}</td><td class="text-right space-x-1"><button onclick="inwestujWKlub('${n.replace(/'/g,"\\'")}', 'akademia')" class="bg-sky-800 hover:bg-sky-700 px-2 py-1 rounded">Akademia</button><button onclick="inwestujWKlub('${n.replace(/'/g,"\\'")}', 'infrastruktura')" class="bg-violet-800 hover:bg-violet-700 px-2 py-1 rounded">Stadion</button></td></tr>`).join('')}</tbody></table></div>
-                    </div>`;
-            } else if (stan.aktywnyWidok === 'archiwum') {
-                kontener.innerHTML = `
-                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-5">
-                        <div class="flex justify-between items-center"><div><h2 class="text-xl font-bold">📚 Archiwum Sezonów</h2><p class="text-xs text-slate-400">Mistrzowie, zwycięzcy pucharu i stan federacji po zakończonych sezonach.</p></div><span class="text-xs bg-violet-900/40 border border-violet-800 text-violet-300 px-3 py-1 rounded-lg">Aktualny sezon: ${stan.sezon}</span></div>
-                        ${stan.historiaSezonow.length ? `<div class="grid grid-cols-1 md:grid-cols-2 gap-4">${stan.historiaSezonow.slice().reverse().map(h => `<div class="bg-slate-800 border border-slate-700 rounded-xl p-4"><div class="flex justify-between"><b>Sezon ${h.sezon}</b><span class="text-xs text-slate-400">Rep. ${h.reputacja}</span></div><p class="mt-2 text-emerald-300">🏆 Mistrz: ${h.mistrz}</p><p class="text-amber-300">🏅 Puchar: ${h.puchar || 'nierozstrzygnięty'}</p>${h.europa ? `<p class="text-xs text-sky-300 mt-2">🌍 Europa: LM ${h.europa.LM || '—'} • LE ${h.europa.LE || '—'} • LK ${h.europa.LK || '—'}</p>` : ''}<p class="text-xs text-slate-400 mt-2">Budżet związku: ${h.budzet.toLocaleString()} PLN</p></div>`).join('')}</div>` : '<div class="bg-slate-950 border border-slate-800 rounded-xl p-8 text-center text-slate-500">Zakończ pierwszy sezon, aby utworzyć archiwum.</div>'}
-                    </div>`;
-            } else if (stan.aktywnyWidok === 'zarzadzanie') {
-                kontener.innerHTML = `
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-                            <h2 class="text-xl font-bold text-slate-100">Dodaj Nowy Klub</h2>
-                            <div class="space-y-3">
-                                <input type="text" id="nowy-klub-nazwa" placeholder="Nazwa klubu" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-sm text-slate-200">
-                                <select id="nowy-klub-liga" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-sm text-slate-200">
-                                    ${stan.ligi.map(l => `<option value="${l}">${l}</option>`).join('')}
-                                </select>
-                                <button onclick="dodajKlub()" class="w-full bg-emerald-600 hover:bg-emerald-500 py-2.5 rounded-xl text-sm font-medium">Zarejestruj Klub</button>
-                            </div>
-                        </div>
-                        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-                            <h2 class="text-xl font-bold text-slate-100">Zarządzanie Ligami (Tworzenie, Edycja, Usuwanie)</h2>
-                            <div class="space-y-3">
-                                <input type="text" id="nowa-liga-nazwa" placeholder="Nazwa nowej ligi" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-sm text-slate-200">
-                                <button onclick="dodajLige()" class="w-full bg-sky-600 hover:bg-sky-500 py-2.5 rounded-xl text-sm font-medium">Utwórz Rozgrywki</button>
-                            </div>
-                            <div class="pt-3 border-t border-slate-800 space-y-2">
-                                <p class="text-xs text-slate-400">Edytuj lub usuń istniejące ligi:</p>
-                                ${stan.ligi.map((l, index) => `
-                                    <div class="flex gap-2 items-center">
-                                        <input type="text" id="edit-liga-${index}" value="${l}" class="bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs text-slate-200 flex-1">
-                                        <button onclick="zapiszNazweLigi(${index})" class="bg-slate-700 hover:bg-slate-600 px-3 py-1 rounded text-xs">Zmień</button>
-                                        <button onclick="usunLige(${index})" class="bg-rose-900/60 hover:bg-rose-900 text-rose-300 px-3 py-1 rounded text-xs">Usuń</button>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        </div>
-                        <div class="md:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-                            <h2 class="text-xl font-bold text-slate-100">Istniejące Kluby (Usuwanie)</h2>
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                                ${Object.keys(stan.kluby).map(k => `
-                                    <div class="bg-slate-800 p-3 rounded-xl flex justify-between items-center text-xs">
-                                        <span class="font-medium text-slate-200">${k}</span>
-                                        <button onclick="usunKlub('${k}')" class="text-rose-400 hover:text-rose-300 font-bold px-2 py-1">Usuń</button>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
-        }
-
-        function inwestujFinanse(typ) {
-            if (typ === 'tv' && stan.budzet_centralny >= 1000000) {
-                stan.budzet_centralny -= 1000000;
-                stan.reputacja = Math.min(100, stan.reputacja + 5);
-                dodajLog("📺 Zakupiono nowoczesny pakiet medialny TV. Reputacja ligi wzrosła.");
-            } else if (typ === 'marketing' && stan.budzet_centralny >= 750000) {
-                stan.budzet_centralny -= 750000;
-                stan.reputacja = Math.min(100, stan.reputacja + 8);
-                dodajLog("📈 Przeprowadzono ogólnokrajową kampanię wizerunkową.");
-            } else if (typ === 'gala' && stan.budzet_centralny >= 500000) {
-                stan.budzet_centralny -= 500000;
-                stan.reputacja = Math.min(100, stan.reputacja + 4);
-                dodajLog("✨ Zorganizowano prestiżową galę sezonu.");
-            } else {
-                alert("Brak wystarczających środków w budżecie centralnym!");
-            }
-            odswiezUI();
-        }
-
-        function negocjujKontrakt(id) {
-            let k = stan.kontrakty.find(x => x.id === id);
-            if (k) {
-                k.pozostałoKolejek += 5;
-                k.zyskNaKolejke += 50000;
-                dodajLog(`📝 Przedłużono kontrakt "${k.nazwa}". Nowy zysk: +${k.zyskNaKolejke.toLocaleString()} PLN/kolejkę.`);
-                odswiezUI();
-            }
-        }
-
-        function podpiszOfertu(id) {
-            let oferta = stan.ofertyKontraktow.find(o => o.id === id);
-            if (oferta) {
-                if (stan.budzet_centralny >= oferta.kosztPodpisania) {
-                    stan.budzet_centralny -= oferta.kosztPodpisania;
-                    stan.kontrakty.push({
-                        id: Date.now(),
-                        nazwa: oferta.nazwa,
-                        typ: "sponsor",
-                        zyskNaKolejke: oferta.zyskNaKolejke,
-                        pozostałoKolejek: oferta.kolejek
-                    });
-                    stan.ofertyKontraktow = stan.ofertyKontraktow.filter(o => o.id !== id);
-                    dodajLog(`🤝 Podpisano nową umowę: "${oferta.nazwa}" (+${oferta.zyskNaKolejke.toLocaleString()} PLN/kolejkę).`);
-                    odswiezUI();
-                } else {
-                    alert("Brak środków na pokrycie kosztów podpisania umowy!");
-                }
-            }
-        }
-
-        function generujLosowaOfertaKontraktu() {
-            if (Math.random() < 0.7 && stan.ofertyKontraktow.length < 3) {
-                let firmy = ["Lotos", "Orlen", "Żywiec", "T-Mobile", "Pekao SA", "4F", "Superbet"];
-                let losowaFirma = firmy[Math.floor(Math.random() * firmy.length)];
-                let zysk = Math.floor(Math.random() * 300000) + 150000;
-                let koszt = Math.floor(zysk * 0.5);
-                stan.ofertyKontraktow.push({
-                    id: Date.now(),
-                    nazwa: `Sponsor / Partner (${losowaFirma})`,
-                    zyskNaKolejke: zysk,
-                    kolejek: 34,
-                    kosztPodpisania: koszt
-                });
-                dodajLog(`📢 Na rynku pojawiła się nowa oferta sponsorska od ${losowaFirma}! Sprawdź zakładkę Kontrakty.`);
-            }
-        }
-
-        function przypiszSedziego(globalnyID, idSedziego) {
-            stan.sedziowie.forEach(s => {
-                if (s.przypisanyMecz === globalnyID) s.przypisanyMecz = null;
-            });
-            if (idSedziego !== "") {
-                let sedzia = stan.sedziowie.find(s => s.id == idSedziego);
-                if (sedzia) sedzia.przypisanyMecz = globalnyID;
-            }
-            renderujWidok();
-        }
-
-        function zastosujKare() {
-            let klub = document.getElementById('kara-klub').value;
-            let pkt = parseInt(document.getElementById('kara-pkt').value) || 0;
-            let kasa = parseInt(document.getElementById('kara-kasa').value) || 0;
-
-            if (stan.kluby[klub]) {
-                // Poprawka: Bezpośrednie odjęcie punktów od stanu klubu, co automatycznie aktualizuje tabelę
-                stan.kluby[klub].punkty -= pkt;
-                // Poprawka: Pieniądze z kary trafiają bezpośrednio do budżetu centralnego (Związku)
-                stan.budzet_centralny += kasa;
-                
-                let komunikat = `⚖️ Komisja Dyscyplinarna ukarala klub ${klub}: -${pkt} pkt oraz grzywna finansowa ${kasa.toLocaleString()} PLN wpłynęła do budżetu związku.`;
-                dodajLog(komunikat);
-                dodajWydarzenieMeczowe(`[SANKCJA] ${komunikat}`);
-                odswiezUI();
-            }
-        }
-
-        function przelaczLicencje(nazwa) {
-            stan.kluby[nazwa].licencja = !stan.kluby[nazwa].licencja;
-            dodajLog(`🛡️ Zmieniono status licencji dla klubu ${nazwa} na: ${stan.kluby[nazwa].licencja ? 'Aktywna' : 'Odebrana'}.`);
-            renderujWidok();
-        }
-
-        function dodajKlub() {
-            let nazwa = document.getElementById('nowy-klub-nazwa').value.trim();
-            let liga = document.getElementById('nowy-klub-liga').value;
-            if (nazwa && !stan.kluby[nazwa]) {
-                stan.kluby[nazwa] = { punkty: 0, bramki_strzelone: 0, bramki_stracone: 0, budzet: 3000000, forma: 3, licencja: true, liga: liga };
-                dodajLog(`🏢 Zarejestrowano nowy klub ${nazwa} w lidze ${liga}.`);
-                zmienWidok('tabela');
-            } else {
-                alert("Podaj poprawną lub unikalną nazwę klubu.");
-            }
-        }
-
-        function usunKlub(nazwa) {
-            delete stan.kluby[nazwa];
-            dodajLog(`🗑️ Usunięto klub ${nazwa} ze struktur związku.`);
-            renderujWidok();
-        }
-
-        function dodajLige() {
-            let nazwa = document.getElementById('nowa-liga-nazwa').value.trim();
-            if (nazwa && !stan.ligi.includes(nazwa)) {
-                stan.ligi.push(nazwa);
-                dodajLog(`⚙️ Utworzono nowe rozgrywki ligowe: ${nazwa}.`);
-                zmienWidok('tabela');
-            } else {
-                alert("Podaj poprawną lub unikalną nazwę ligi.");
-            }
-        }
-
-        function usunLige(index) {
-            let ligaDoUsuniecia = stan.ligi[index];
-            if (stan.ligi.length <= 1) {
-                alert("Musisz zostawić przynajmniej jedną ligę!");
-                return;
-            }
-            if (confirm(`Czy na pewno chcesz usunąć ligę "${ligaDoUsuniecia}"? Kluby z tej ligi zostaną przeniesione.`)) {
-                stan.ligi.splice(index, 1);
-                let nowaDomyslna = stan.ligi[0];
-                for (let k in stan.kluby) {
-                    if (stan.kluby[k].liga === ligaDoUsuniecia) {
-                        stan.kluby[k].liga = nowaDomyslna;
-                    }
-                }
-                if (stan.aktualnaLiga === ligaDoUsuniecia) {
-                    stan.aktualnaLiga = nowaDomyslna;
-                }
-                dodajLog(`🗑️ Usunięto ligę "${ligaDoUsuniecia}". Kluby przeniesiono do: ${nowaDomyslna}.`);
-                odswiezUI();
-            }
-        }
-
-        function zapiszNazweLigi(index) {
-            let inputEl = document.getElementById(`edit-liga-${index}`);
-            if (!inputEl) return;
-            let inputVal = inputEl.value.trim();
-            if (inputVal) {
-                let staraNazwa = stan.ligi[index];
-                if (staraNazwa === inputVal) return;
-                
-                stan.ligi[index] = inputVal;
-                for (let k in stan.kluby) {
-                    if (stan.kluby[k].liga === staraNazwa) {
-                        stan.kluby[k].liga = inputVal;
-                    }
-                }
-                if (stan.aktualnaLiga === staraNazwa) {
-                    stan.aktualnaLiga = inputVal;
-                }
-                dodajLog(`⚙️ Zmieniono nazwę ligi z "${staraNazwa}" na "${inputVal}".`);
-                odswiezUI();
-            }
-        }
-
-        function inwestujWKlub(nazwa, typ) {
-            let klub = stan.kluby[nazwa];
-            if (!klub) return;
-            let poziom = klub[typ] || 1;
-            if (poziom >= 5) return alert('Ten element jest już na maksymalnym poziomie.');
-            let koszt = 250000 * poziom;
-            if (stan.budzet_centralny < koszt) return alert('Brak środków w budżecie związku.');
-            stan.budzet_centralny -= koszt;
-            klub[typ]++;
-            klub.morale = Math.min(100, klub.morale + 4);
-            klub.kibice = Math.min(100, klub.kibice + (typ === 'infrastruktura' ? 4 : 2));
-            dodajLog(`📈 Związek dofinansował ${typ === 'akademia' ? 'akademię' : 'infrastrukturę'} klubu ${nazwa} za ${koszt.toLocaleString()} PLN.`);
-            zapiszGre(false); odswiezUI();
-        }
-
-        function aktualizujRozwojKlubow() {
-            Object.values(stan.kluby).forEach(k => {
-                let impuls = (k.akademia - 1) * 0.08 + (k.infrastruktura - 1) * 0.05 + (k.morale - 50) / 500;
-                if (Math.random() < 0.18 + impuls) k.forma = Math.min(5, k.forma + 1);
-                else if (Math.random() < 0.12 && k.morale < 45) k.forma = Math.max(1, k.forma - 1);
-                k.morale = Math.max(25, Math.min(100, k.morale + Math.floor(Math.random()*7)-3));
-            });
-        }
-
-        function losoweWydarzenieFederacji() {
-            if (Math.random() > 0.35) return;
-            const wydarzenia = [
-                {t:'📺 Rekordowa oglądalność kolejki', kasa:450000, rep:2},
-                {t:'🎟️ Wzrost frekwencji na stadionach', kasa:250000, rep:3},
-                {t:'⚠️ Kryzys organizacyjny po kontrowersjach', kasa:-300000, rep:-4},
-                {t:'🤝 Program szkolenia młodzieży otrzymał dotację', kasa:600000, rep:2},
-                {t:'🌧️ Problemy pogodowe zwiększyły koszty organizacji', kasa:-200000, rep:-1}
-            ];
-            let e = wydarzenia[Math.floor(Math.random()*wydarzenia.length)];
-            stan.budzet_centralny = Math.max(0, stan.budzet_centralny + e.kasa);
-            stan.reputacja = Math.max(0, Math.min(100, stan.reputacja + e.rep));
-            stan.ostatnieWydarzenie = e.t;
-            dodajLog(`${e.t}: ${e.kasa >= 0 ? '+' : ''}${e.kasa.toLocaleString()} PLN, reputacja ${e.rep >= 0 ? '+' : ''}${e.rep}.`);
-        }
-
-        function rozegrajRundePucharu() {
-            if (!stan.puchar.aktywny || stan.puchar.uczestnicy.length < 2) return;
-            let gracze = [...stan.puchar.uczestnicy];
-            let awans = [];
-            let wyniki = [];
-            if (gracze.length % 2 === 1) {
-                let wolny = gracze.pop();
-                awans.push(wolny);
-                wyniki.push(`🎫 Wolny los: ${wolny}`);
-            }
-            for (let i=0; i<gracze.length; i+=2) {
-                let a=gracze[i], b=gracze[i+1];
-                let fa=stan.kluby[a].forma + stan.kluby[a].morale/50 + Math.random()*2;
-                let fb=stan.kluby[b].forma + stan.kluby[b].morale/50 + Math.random()*2;
-                let ga=Math.floor(Math.random()*3)+(fa>fb?1:0), gb=Math.floor(Math.random()*3)+(fb>fa?1:0);
-                if (ga===gb) { if (Math.random()<.5) ga++; else gb++; }
-                let wygrany=ga>gb?a:b;
-                awans.push(wygrany);
-                stan.kluby[wygrany].morale=Math.min(100,stan.kluby[wygrany].morale+5);
-                wyniki.push(`${a} ${ga}:${gb} ${b} → <b>${wygrany}</b>`);
-            }
-            stan.puchar.historia.push({runda:stan.puchar.runda, wyniki});
-            stan.puchar.uczestnicy=awans;
-            if (awans.length===1) {
-                stan.puchar.aktywny=false; stan.puchar.zwyciezca=awans[0];
-                stan.kluby[awans[0]].budzet += 2500000;
-                stan.kluby[awans[0]].morale=100;
-                stan.reputacja=Math.min(100,stan.reputacja+4);
-                dodajLog(`🏅 ${awans[0]} zdobywa Puchar Polski i otrzymuje 2,5 mln PLN premii!`);
-            } else {
-                dodajLog(`🏅 Rozegrano rundę ${stan.puchar.runda} Pucharu Polski. W grze pozostało ${awans.length} klubów.`);
-                stan.puchar.runda++;
-            }
-        }
-
-        function etapyEuropejskie() {
-            return ['I runda eliminacji','II runda eliminacji','III runda eliminacji','IV runda eliminacji','Play-off','Faza ligowa','1/8 finału','Ćwierćfinał','Półfinał','Finał'];
-        }
-
-        function wyznaczKwalifikacjeEuropejskie(ekstr) {
-            const top = ekstr.map(x => x[0]);
-            const wynik = { LM: [], LE: [], LK: [] };
-            const zajete = new Set();
-
-            const dodaj = (kod, klub, startEtap, zrodlo) => {
-                if (!klub || zajete.has(klub)) return false;
-                wynik[kod].push({klub, startEtap, zrodlo});
-                zajete.add(klub);
-                return true;
-            };
-
-            // Ekstraklasa: miejsca ligowe według zasad użytkownika.
-            dodaj('LM', top[0], 3, 'Mistrz Ekstraklasy — IV runda eliminacji');
-            dodaj('LM', top[1], 1, 'Wicemistrz Ekstraklasy — II runda eliminacji');
-            dodaj('LE', top[2], 1, '3. miejsce Ekstraklasy — II runda eliminacji');
-            dodaj('LK', top[3], 1, '4. miejsce Ekstraklasy — II runda eliminacji');
-
-            // Puchar Polski: IV runda eliminacji LE. Jeśli zdobywca ma już slot z tabeli,
-            // miejsce przechodzi na najwyżej sklasyfikowany klub bez europejskiej kwalifikacji.
-            const pp = stan.puchar && stan.puchar.zwyciezca;
-            if (pp) {
-                if (!dodaj('LE', pp, 3, 'Zdobywca Pucharu Polski — IV runda eliminacji')) {
-                    const zastepca = top.find(klub => klub && !zajete.has(klub));
-                    dodaj('LE', zastepca, 3, 'Slot Pucharu Polski — IV runda eliminacji');
-                }
-            }
-            return wynik;
-        }
-
-        function przygotujEuropejskiePuchary(kwalifikacje) {
-            const nazwy = {LM:'Liga Mistrzów', LE:'Liga Europy', LK:'Liga Konferencji Europy'};
-            stan.europa = { sezon: stan.sezon, rozgrywki: {} };
-            ['LM','LE','LK'].forEach(kod => {
-                const wpisy = (kwalifikacje[kod] || []).map(w => typeof w === 'string' ? {klub:w,startEtap:0,zrodlo:''} : w);
-                const start = wpisy.length ? Math.min(...wpisy.map(w => w.startEtap ?? 0)) : 0;
-                const aktywni = wpisy.filter(w => (w.startEtap ?? 0) === start).map(w => w.klub);
-                const oczekujacy = wpisy.filter(w => (w.startEtap ?? 0) > start);
-                stan.europa.rozgrywki[kod] = { nazwa:nazwy[kod], kod, etap:start, aktywni, oczekujacy, kwalifikacje:wpisy, historia:[], zwyciezca:null };
-            });
-            const wszyscy = ['LM','LE','LK'].flatMap(kod => (kwalifikacje[kod] || []).map(w => typeof w === 'string' ? w : w.klub));
-            if (wszyscy.length) dodajLog(`🌍 Europejskie puchary: ${wszyscy.join(', ')} otrzymali miejsca w rozgrywkach UEFA na kolejny sezon.`);
-        }
-
-        function losowyRywalEuropejski(kod) {
-            const rywale = {
-                LM:['Real Madrid','Manchester City','Bayern Monachium','Inter Mediolan','Paris SG','FC Barcelona','Arsenal','Borussia Dortmund','Benfica','PSV Eindhoven'],
-                LE:['AS Roma','Tottenham','Real Sociedad','Lazio','Feyenoord','FC Porto','Lyon','Real Betis','Eintracht Frankfurt','Rangers'],
-                LK:['Fiorentina','AZ Alkmaar','Rapid Wiedeń','Gent','Hearts','Djurgården','Molde','Lugano','Hajduk Split','Omonia Nikozja']
-            };
-            const pula = rywale[kod];
-            return pula[Math.floor(Math.random()*pula.length)];
-        }
-
-        function rozegrajRundeEuropejska() {
-            if (!stan.europa || !stan.europa.rozgrywki) return;
-            const etapy = etapyEuropejskie();
-            const bazowaSila = {LM:6.4, LE:5.7, LK:5.0};
-            const premie = [500000,700000,1000000,1500000,2200000,3500000,5000000,9000000];
-
-            ['LM','LE','LK'].forEach(kod => {
-                const r = stan.europa.rozgrywki[kod];
-                if (!r || r.zwyciezca || r.etap >= etapy.length) return;
-                r.aktywni = r.aktywni || [];
-                r.oczekujacy = r.oczekujacy || [];
-
-                // Dołącz kluby dokładnie w rundzie, od której mają rozpocząć eliminacje.
-                if (!r.aktywni.length && r.oczekujacy.length) {
-                    const najblizszyStart = Math.min(...r.oczekujacy.map(w => w.startEtap));
-                    if (r.etap < najblizszyStart) r.etap = najblizszyStart;
-                }
-                const dolaczajacy = r.oczekujacy.filter(w => w.startEtap === r.etap);
-                dolaczajacy.forEach(w => { if (!r.aktywni.includes(w.klub)) r.aktywni.push(w.klub); });
-                r.oczekujacy = r.oczekujacy.filter(w => w.startEtap !== r.etap);
-                if (!r.aktywni.length) return;
-
-                const etapNazwa = etapy[r.etap];
-                let wyniki = [];
-                let awans = [];
-
-                // Jeśli dwa polskie kluby dotarły do finału LK, grają finał między sobą.
-                if (r.etap === etapy.length - 1 && r.aktywni.length === 2) {
-                    const [a,b] = r.aktywni;
-                    const ka=stan.kluby[a], kb=stan.kluby[b];
-                    let sa=(ka?.forma||3)+(ka?.morale||60)/45+Math.random()*2;
-                    let sb=(kb?.forma||3)+(kb?.morale||60)/45+Math.random()*2;
-                    let ga=Math.floor(Math.random()*3)+(sa>sb?1:0), gb=Math.floor(Math.random()*3)+(sb>sa?1:0);
-                    if (ga===gb) { if (Math.random()<.5) ga++; else gb++; }
-                    const wygrany=ga>gb?a:b;
-                    r.zwyciezca=wygrany;
-                    r.aktywni=[];
-                    stan.kluby[wygrany].budzet += premie[r.etap];
-                    stan.kluby[wygrany].morale=100;
-                    stan.reputacja=Math.min(100,stan.reputacja+7);
-                    wyniki.push(`🏆 ${a} ${ga}:${gb} ${b} → <b>${wygrany} zdobywa ${r.nazwa}</b>`);
-                    dodajLog(`🏆 ${wygrany} zdobywa ${r.nazwa}!`);
-                } else {
-                    r.aktywni.forEach(klubNazwa => {
-                        const klub=stan.kluby[klubNazwa];
-                        if (!klub) return;
-                        const rywal=losowyRywalEuropejski(kod);
-                        const sila=(klub.forma||3)*1.05+(klub.morale||60)/50+(klub.infrastruktura||1)*0.18+Math.random()*2.2;
-                        const silaRywala=bazowaSila[kod]+r.etap*0.22+Math.random()*2.0;
-                        let gk=Math.floor(Math.random()*3)+(sila>silaRywala?1:0);
-                        let gr=Math.floor(Math.random()*3)+(silaRywala>sila?1:0);
-                        if (gk===gr) { if (sila+Math.random()>silaRywala+Math.random()) gk++; else gr++; }
-                        if (gk>gr) {
-                            klub.budzet += premie[r.etap];
-                            klub.morale=Math.min(100,klub.morale+6);
-                            stan.reputacja=Math.min(100,stan.reputacja+1);
-                            if (r.etap === etapy.length - 1) {
-                                r.zwyciezca=klubNazwa;
-                                stan.reputacja=Math.min(100,stan.reputacja+6);
-                                wyniki.push(`🏆 ${klubNazwa} ${gk}:${gr} ${rywal} → <b>${klubNazwa} zdobywa ${r.nazwa}</b>`);
-                                dodajLog(`🏆 ${klubNazwa} zdobywa ${r.nazwa}!`);
-                            } else {
-                                awans.push(klubNazwa);
-                                wyniki.push(`✅ ${klubNazwa} ${gk}:${gr} ${rywal} → awans`);
-                            }
-                        } else {
-                            klub.morale=Math.max(25,klub.morale-5);
-                            wyniki.push(`❌ ${klubNazwa} ${gk}:${gr} ${rywal} → odpadnięcie`);
-                        }
-                    });
-                    r.aktywni = r.zwyciezca ? [] : awans;
-                }
-                r.historia.push({etap:etapNazwa, wyniki});
-                if (!r.zwyciezca) r.etap++;
-                if (wyniki.length) dodajWydarzenieMeczowe(`[EUROPA — ${r.nazwa}, ${etapNazwa}] ${wyniki.join(' | ')}`);
-            });
-        }
-
-        function zapiszGre(pokazKomunikat=true) {
-            try { localStorage.setItem('symulatorPolskichLig_save_v2', JSON.stringify(stan)); if (pokazKomunikat) alert('Gra została zapisana w tej przeglądarce.'); } catch(e) { if (pokazKomunikat) alert('Nie udało się zapisać gry.'); }
-        }
-
-        function wczytajGre(pokazKomunikat=true) {
-            try {
-                let dane = localStorage.getItem('symulatorPolskichLig_save_v2');
-                if (!dane) { if (pokazKomunikat) alert('Brak zapisu gry.'); return; }
-                stan = JSON.parse(dane); uzupelnijStan(); odswiezUI();
-                if (pokazKomunikat) alert('Zapis wczytany.');
-            } catch(e) { if (pokazKomunikat) alert('Zapis jest uszkodzony lub niezgodny.'); }
-        }
-
-        function symulujKolejke() {
-            if (stan.kolejka > 34) return;
-
-            let sumaPrzychodow = 0;
-            stan.kontrakty.forEach(k => {
-                sumaPrzychodow += k.zyskNaKolejke;
-                k.pozostałoKolejek--;
-            });
-            stan.budzet_centralny += sumaPrzychodow;
-            stan.kontrakty = stan.kontrakty.filter(k => k.pozostałoKolejek > 0);
-
-            stan.ligi.forEach(liga => {
-                let klubyW2Lidze = Object.keys(stan.kluby).filter(k => stan.kluby[k].liga === liga && stan.kluby[k].licencja);
-                for (let i = klubyW2Lidze.length - 1; i > 0; i--) {
-                    let j = Math.floor(Math.random() * (i + 1));
-                    [klubyW2Lidze[i], klubyW2Lidze[j]] = [klubyW2Lidze[j], klubyW2Lidze[i]];
-                }
-
-                let wynikiTekst = `<strong>Wyniki kolejki ${stan.kolejka} (${liga}):</strong><br>`;
-                let rozegranoMecze = false;
-                for (let i = 0; i < klubyW2Lidze.length; i += 2) {
-                    if (i + 1 >= klubyW2Lidze.length) break;
-                    rozegranoMecze = true;
-                    let g = klubyW2Lidze[i];
-                    let as = klubyW2Lidze[i+1];
-
-                    let gBramki = Math.floor(Math.random() * 4) + (stan.kluby[g].forma > 3 ? 1 : 0);
-                    let asBramki = Math.floor(Math.random() * 4) + (stan.kluby[as].forma > 3 ? 1 : 0);
-
-                    stan.kluby[g].bramki_strzelone += gBramki;
-                    stan.kluby[g].bramki_stracone += asBramki;
-                    stan.kluby[as].bramki_strzelone += asBramki;
-                    stan.kluby[as].bramki_stracone += gBramki;
-
-                    if (gBramki > asBramki) {
-                        stan.kluby[g].punkty += 3;
-                    } else if (asBramki > gBramki) {
-                        stan.kluby[as].punkty += 3;
-                    } else {
-                        stan.kluby[g].punkty += 1;
-                        stan.kluby[as].punkty += 1;
-                    }
-
-                    wynikiTekst += `⚽ ${g} ${gBramki} : ${asBramki} ${as}<br>`;
-                    
-                    let opisMeczu = `[Kolejka ${stan.kolejka} | ${liga}] ${g} ${gBramki}:${asBramki} ${as} — Emocjonujące starcie na murawie. Kibice obejrzeli ${gBramki + asBramki} bramek.`;
-                    dodajWydarzenieMeczowe(opisMeczu);
-                }
-                if (rozegranoMecze) {
-                    dodajLog(wynikiTekst);
-                }
-            });
-
-            dodajLog(`💰 Zasilenie budżetu z aktywnych kontraktów: +${sumaPrzychodow.toLocaleString()} PLN.`);
-
-            stan.sedziowie.forEach(s => s.przypisanyMecz = null);
-            generujLosowaOfertaKontraktu();
-            aktualizujRozwojKlubow();
-            losoweWydarzenieFederacji();
-            if (stan.kolejka % 5 === 0) rozegrajRundePucharu();
-            if (stan.kolejka % 4 === 0) rozegrajRundeEuropejska();
-
-            stan.kolejka++;
-
-            if (stan.kolejka > 34) {
-                rozstrzygnijAwansISpadek();
-            }
-
-            zapiszGre(false);
-            odswiezUI();
-        }
-
-        function rozstrzygnijAwansISpadek() {
-            dodajLog("🏆 Koniec 34. kolejki! Sezon dobiegł końca. Przeprowadzanie awansów i spadków między ligami.");
-            
-            let ekstr = Object.entries(stan.kluby).filter(([k, d]) => d.liga === "Ekstraklasa");
-            let liga1 = Object.entries(stan.kluby).filter(([k, d]) => d.liga === "1. Liga");
-            let liga2 = Object.entries(stan.kluby).filter(([k, d]) => d.liga === "2. Liga");
-
-            ekstr.sort((a, b) => b[1].punkty - a[1].punkty);
-            liga1.sort((a, b) => b[1].punkty - a[1].punkty);
-            liga2.sort((a, b) => b[1].punkty - a[1].punkty);
-
-            // Kwalifikacje europejskie liczymy na podstawie końcowej tabeli przed awansami i spadkami.
-            const kwalifikacjeEuropa = wyznaczKwalifikacjeEuropejskie(ekstr);
-
-            if (ekstr.length >= 3 && liga1.length > 0) {
-                let s1 = ekstr[ekstr.length - 1][0];
-                let s2 = ekstr[ekstr.length - 2][0];
-                let s3 = ekstr[ekstr.length - 3][0];
-                stan.kluby[s1].liga = "1. Liga";
-                stan.kluby[s2].liga = "1. Liga";
-                stan.kluby[s3].liga = "1. Liga";
-                dodajLog(`🔻 Spadek z Ekstraklasy do 1. Ligi: ${s1}, ${s2}, ${s3}`);
-            }
-
-            if (liga1.length >= 3) {
-                let a1 = liga1[0][0];
-                let a2 = liga1[1][0];
-                let a3 = liga1[2][0];
-                stan.kluby[a1].liga = "Ekstraklasa";
-                stan.kluby[a2].liga = "Ekstraklasa";
-                stan.kluby[a3].liga = "Ekstraklasa";
-                dodajLog(`🚀 Awans z 1. Ligi do Ekstraklasy: ${a1}, ${a2}, ${a3}`);
-
-                let s1_1l = liga1[liga1.length - 1][0];
-                let s2_1l = liga1[liga1.length - 2][0];
-                let s3_1l = liga1[liga1.length - 3][0];
-                stan.kluby[s1_1l].liga = "2. Liga";
-                stan.kluby[s2_1l].liga = "2. Liga";
-                stan.kluby[s3_1l].liga = "2. Liga";
-                dodajLog(`🔻 Spadek z 1. Ligi do 2. Ligi: ${s1_1l}, ${s2_1l}, ${s3_1l}`);
-            }
-
-            if (liga2.length >= 3) {
-                let a1_2l = liga2[0][0];
-                let a2_2l = liga2[1][0];
-                let a3_2l = liga2[2][0];
-                stan.kluby[a1_2l].liga = "1. Liga";
-                stan.kluby[a2_2l].liga = "1. Liga";
-                stan.kluby[a3_2l].liga = "1. Liga";
-                dodajLog(`🚀 Awans z 2. Ligi do 1. Ligi: ${a1_2l}, ${a2_2l}, ${a3_2l}`);
-
-                const spadek2 = liga2.slice(-3).map(x => x[0]);
-                spadek2.forEach(n => stan.kluby[n].liga = '3. Liga');
-                dodajLog(`🔻 Spadek z 2. Ligi do 3. Ligi: ${spadek2.join(', ')}`);
-
-                let kandydaci3 = Object.entries(stan.kluby).filter(([n,d]) => d.liga === '3. Liga' && !spadek2.includes(n));
-                kandydaci3.sort((a,b) => ((b[1].forma||3)+(b[1].morale||60)/50+Math.random()*2) - ((a[1].forma||3)+(a[1].morale||60)/50+Math.random()*2));
-                const awans3 = kandydaci3.slice(0,3).map(x => x[0]);
-                awans3.forEach(n => stan.kluby[n].liga = '2. Liga');
-                if (awans3.length) dodajLog(`⬆️ Awans z 3. Ligi do 2. Ligi: ${awans3.join(', ')}`);
-            }
-
-            let mistrz = ekstr.length ? ekstr[0][0] : 'Brak';
-            const europaWyniki = {
-                LM: stan.europa?.rozgrywki?.LM?.zwyciezca || null,
-                LE: stan.europa?.rozgrywki?.LE?.zwyciezca || null,
-                LK: stan.europa?.rozgrywki?.LK?.zwyciezca || null
-            };
-            stan.historiaSezonow.push({ sezon: stan.sezon, mistrz, puchar: stan.puchar.zwyciezca, europa: europaWyniki, reputacja: stan.reputacja, budzet: stan.budzet_centralny });
-            stan.sezon++;
-
-            for (let k in stan.kluby) {
-                stan.kluby[k].punkty = 0;
-                stan.kluby[k].bramki_strzelone = 0;
-                stan.kluby[k].bramki_stracone = 0;
-            }
-            stan.kolejka = 1;
-            przygotujPuchar();
-            przygotujEuropejskiePuchary(kwalifikacjeEuropa);
-            const fmtKwal = arr => (arr||[]).map(w => `${w.klub} (${etapyEuropejskie()[w.startEtap]})`).join(', ') || 'brak';
-            dodajLog(`🌍 Kwalifikacje do Europy: LM — ${fmtKwal(kwalifikacjeEuropa.LM)}; LE — ${fmtKwal(kwalifikacjeEuropa.LE)}; LK — ${fmtKwal(kwalifikacjeEuropa.LK)}.`);
-            dodajLog(`🔄 Rozpoczęto sezon ${stan.sezon}. Tabele wyzerowano, a Puchar Polski otrzymał nową drabinkę.`);
-        }
-
-        function resetujGre() {
-            if (confirm("Czy na pewno chcesz rozpocząć całkowicie nową grę? Zapis lokalny zostanie usunięty.")) {
-                localStorage.removeItem('symulatorPolskichLig_save_v2');
-                location.reload();
-            }
-        }
-
-        uzupelnijStan();
-        // Automatycznie wczytaj poprzednią karierę, jeśli istnieje.
-        if (localStorage.getItem('symulatorPolskichLig_save_v2')) wczytajGre(false);
-        else odswiezUI();
-    </script>
+  }
+
+}
+
+
+/* =========================================================
+   PIASKOWNICA — PREZYDENTURA
+========================================================= */
+
+function renderPresidentSandbox() {
+
+  if (!sandboxEnabled)
+    return "";
+
+
+  return `
+
+    <div class="sandbox-panel">
+
+      <strong>
+        ∞ Panel Piaskownicy MAX
+      </strong>
+
+
+      <div class="sandbox-control-grid">
+
+        <div class="sandbox-control">
+
+          <label>
+
+            Poparcie:
+            <strong id="sandboxApprovalValue">
+              ${state.approval}%
+            </strong>
+
+          </label>
+
+          <input
+            id="sandboxApproval"
+            type="range"
+            min="0"
+            max="100"
+            value="${state.approval}"
+          >
+
+        </div>
+
+
+        <div class="sandbox-control">
+
+          <label>
+            Budżet państwa
+          </label>
+
+          <input
+            id="sandboxStateBudget"
+            class="field"
+            type="number"
+            min="0"
+            max="9999"
+            value="${state.stateBudget}"
+          >
+
+        </div>
+
+      </div>
+
+
+      <div class="actions-grid">
+
+        <button
+          id="sandboxNextMonth"
+          class="action"
+        >
+          Następny miesiąc
+        </button>
+
+
+        <button
+          id="sandboxBoost"
+          class="action"
+        >
+          +10 do wskaźników
+        </button>
+
+      </div>
+
+    </div>
+  `;
+
+}
+
+
+function bindPresidentSandbox() {
+
+  if (!sandboxEnabled)
+    return;
+
+
+  $("#sandboxApproval")
+    .addEventListener(
+      "input",
+      event => {
+
+        state.approval =
+          Number(
+            event.target.value
+          );
+
+        $("#sandboxApprovalValue")
+          .textContent =
+            state.approval + "%";
+
+      }
+    );
+
+
+  $("#sandboxStateBudget")
+    .addEventListener(
+      "change",
+      event => {
+
+        state.stateBudget =
+          clamp(
+            Number(
+              event.target.value
+            ) || 0,
+            0,
+            9999
+          );
+
+      }
+    );
+
+
+  $("#sandboxNextMonth")
+    .addEventListener(
+      "click",
+      () => {
+
+        state.month++;
+        state.eventIndex++;
+
+        renderPresidency();
+
+      }
+    );
+
+
+  $("#sandboxBoost")
+    .addEventListener(
+      "click",
+      () => {
+
+        [
+          "approval",
+          "economy",
+          "services",
+          "stability"
+        ]
+        .forEach(
+          key => {
+
+            state[key] =
+              clamp(
+                state[key] + 10,
+                0,
+                100
+              );
+
+          }
+        );
+
+        renderPresidency();
+
+      }
+    );
+
+}
+
+
+/* =========================================================
+   RENDER TRYBU
+========================================================= */
+
+function renderGame() {
+
+  if (
+    state.phase ===
+    "campaign"
+  ) {
+
+    renderCampaign();
+
+  }
+
+  else {
+
+    renderPresidency();
+
+  }
+
+}
+
+
+/* =========================================================
+   MENU EVENTS
+========================================================= */
+
+$("#newGameButton")
+  .addEventListener(
+    "click",
+    () =>
+      showScreen("setup")
+  );
+
+
+$("#setupBackButton")
+  .addEventListener(
+    "click",
+    () =>
+      showScreen("home")
+  );
+
+
+$("#setupNextButton")
+  .addEventListener(
+    "click",
+    () => {
+
+      updateCandidatePreview();
+
+      showScreen("candidate");
+
+    }
+  );
+
+
+$("#candidateBackButton")
+  .addEventListener(
+    "click",
+    () =>
+      showScreen("setup")
+  );
+
+
+$("#startGameButton")
+  .addEventListener(
+    "click",
+    startGame
+  );
+
+
+$("#exitGameButton")
+  .addEventListener(
+    "click",
+    () =>
+      showScreen("home")
+  );
+
+
+/* =========================================================
+   USTAWIENIA
+========================================================= */
+
+$("#settingsButton")
+  .addEventListener(
+    "click",
+    () =>
+      showScreen("settings")
+  );
+
+
+$("#settingsBackButton")
+  .addEventListener(
+    "click",
+    () =>
+      showScreen("home")
+  );
+
+
+$("#animationSpeed")
+  .addEventListener(
+    "input",
+    event => {
+
+      const value =
+        Number(
+          event.target.value
+        );
+
+
+      const seconds =
+        16 -
+        value * .11;
+
+
+      $("#game")
+        .style
+        .setProperty(
+          "--bg-speed",
+          seconds + "s"
+        );
+
+
+      $("#animationSpeedText")
+        .textContent =
+
+          value < 34
+            ? "Wolna"
+
+          : value < 67
+            ? "Normalna"
+
+          : "Szybka";
+
+    }
+  );
+
+
+/* =========================================================
+   O GRZE
+========================================================= */
+
+function openAbout() {
+
+  $("#aboutModal")
+    .classList
+    .remove("hidden");
+
+}
+
+
+function closeAbout() {
+
+  $("#aboutModal")
+    .classList
+    .add("hidden");
+
+}
+
+
+$("#aboutButton")
+  .addEventListener(
+    "click",
+    openAbout
+  );
+
+
+$("#aboutCloseButton")
+  .addEventListener(
+    "click",
+    closeAbout
+  );
+
+
+$("#aboutCloseX")
+  .addEventListener(
+    "click",
+    closeAbout
+  );
+
+
+$("#aboutModal")
+  .addEventListener(
+    "click",
+    event => {
+
+      if (
+        event.target ===
+        $("#aboutModal")
+      ) {
+
+        closeAbout();
+
+      }
+
+    }
+  );
+
+
+/* =========================================================
+   PRAWDZIWE KONTURY PAŃSTW
+========================================================= */
+
+try {
+
+  const [
+    d3Module,
+    topojson,
+    worldAtlas
+  ] = await Promise.all([
+
+    import(
+      "https://cdn.jsdelivr.net/npm/d3@7.9.0/+esm"
+    ),
+
+    import(
+      "https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/+esm"
+    ),
+
+    import(
+      "https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-50m.json/+esm"
+    )
+
+  ]);
+
+
+  d3 = d3Module;
+
+
+  worldFeatures =
+
+    topojson.feature(
+      worldAtlas.default,
+      worldAtlas.default.objects.countries
+    )
+    .features;
+
+
+  $$("[data-map]")
+    .forEach(
+      container => {
+
+        const iso =
+          container.dataset.map;
+
+
+        const country =
+
+          worldFeatures.find(
+            feature =>
+
+              String(feature.id)
+                .padStart(3,"0") ===
+              iso
+          );
+
+
+        if (!country)
+          return;
+
+
+        container.innerHTML = "";
+
+
+        const svg =
+
+          d3
+            .create("svg")
+            .attr(
+              "viewBox",
+              "0 0 70 52"
+            );
+
+
+        const projection =
+
+          d3
+            .geoMercator()
+            .fitExtent(
+              [
+                [4,4],
+                [66,48]
+              ],
+              country
+            );
+
+
+        svg
+          .append("path")
+          .datum(country)
+          .attr(
+            "d",
+            d3.geoPath(
+              projection
+            )
+          );
+
+
+        container
+          .appendChild(
+            svg.node()
+          );
+
+      }
+    );
+
+}
+
+catch(error) {
+
+  console.warn(
+    "Nie udało się załadować konturów państw.",
+    error
+  );
+
+}
+
+
+/* =========================================================
+   START
+========================================================= */
+
+updateSetupSummary();
+updateCandidatePreview();
+
+</script>
+
 </body>
 </html>
