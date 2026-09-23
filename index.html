@@ -1,1680 +1,2383 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <title>MANDAT — Political Strategy</title>
-
-  <style>
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      min-height: 100vh;
-      font-family: Inter, Arial, sans-serif;
-      color: white;
-      background: #0e1636;
-    }
-
-    button,
-    input,
-    select {
-      font: inherit;
-    }
-
-    button {
-      cursor: pointer;
-    }
-
-    #game {
-      --bg-speed: 10s;
-
-      min-height: 100vh;
-      padding: 32px 20px;
-
-      background:
-        linear-gradient(
-          125deg,
-          #101b42,
-          #65206d
-        );
-
-      background-size: 230% 230%;
-      animation: backgroundFlow var(--bg-speed) ease-in-out infinite;
-    }
-
-    .container {
-      width: min(1050px, 100%);
-      margin: auto;
-    }
-
-    .hidden {
-      display: none !important;
-    }
-
-    .center {
-      min-height: calc(100vh - 64px);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-    }
-
-    /* =========================
-       LOGO
-    ========================= */
-
-    .game-title {
-      margin: 0;
-
-      font-size: clamp(64px, 13vw, 120px);
-      font-weight: 950;
-
-      line-height: .85;
-      letter-spacing: -6px;
-
-      background:
-        linear-gradient(
-          90deg,
-          #ffffff,
-          #d6cbff,
-          #ffb8e8,
-          #ffffff
-        );
-
-      background-size: 260% auto;
-
-      -webkit-background-clip: text;
-      background-clip: text;
-
-      color: transparent;
-
-      animation: titleFlow 4.5s linear infinite;
-    }
-
-    .subtitle {
-      margin-top: 20px;
-
-      font-size: 12px;
-      font-weight: 700;
-
-      letter-spacing: 5px;
-
-      color: rgba(255,255,255,.5);
-    }
-
-    /* =========================
-       BUTTONS
-    ========================= */
-
-    .button {
-      min-height: 52px;
-
-      padding: 0 24px;
-
-      border: none;
-      border-radius: 999px;
-
-      background: rgba(255,255,255,.96);
-      color: #18181b;
-
-      font-weight: 800;
-
-      box-shadow: 0 12px 30px rgba(0,0,0,.16);
-
-      transition:
-        transform .2s ease,
-        box-shadow .2s ease,
-        background .2s ease;
-    }
-
-    .button:hover {
-      transform: translateY(-2px);
-
-      background: white;
-
-      box-shadow: 0 16px 36px rgba(0,0,0,.22);
-    }
-
-    .button.full {
-      width: 100%;
-    }
-
-    .button.secondary {
-      min-height: 46px;
-      background: rgba(255,255,255,.86);
-    }
-
-    .ghost-button {
-      min-height: 44px;
-
-      padding: 0 18px;
-
-      color: white;
-
-      border:
-        1px solid rgba(255,255,255,.16);
-
-      border-radius: 999px;
-
-      background:
-        rgba(255,255,255,.08);
-    }
-
-    .ghost-button:hover {
-      background:
-        rgba(255,255,255,.14);
-    }
-
-    /* =========================
-       HOME
-    ========================= */
-
-    .main-menu {
-      width: min(380px, 100%);
-      margin: 42px auto 0;
-    }
-
-    .main-menu .button {
-      margin-bottom: 12px;
-    }
-
-    .menu-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
-
-    /* =========================
-       GENERIC UI
-    ========================= */
-
-    .header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-
-      gap: 16px;
-
-      margin-bottom: 24px;
-    }
-
-    .eyebrow {
-      font-size: 12px;
-      font-weight: 800;
-
-      letter-spacing: 3px;
-
-      color: rgba(255,255,255,.45);
-
-      text-transform: uppercase;
-    }
-
-    h2 {
-      margin: 5px 0 0;
-
-      font-size: clamp(28px, 5vw, 42px);
-
-      letter-spacing: -1.5px;
-    }
-
-    .glass {
-      padding: 18px;
-
-      border:
-        1px solid rgba(255,255,255,.13);
-
-      border-radius: 26px;
-
-      background:
-        rgba(7,9,27,.25);
-
-      backdrop-filter: blur(18px);
-    }
-
-    .section-title {
-      margin-bottom: 13px;
-
-      font-size: 13px;
-      font-weight: 800;
-
-      letter-spacing: 2px;
-
-      color:
-        rgba(255,255,255,.55);
-
-      text-transform: uppercase;
-    }
-
-    .separator {
-      height: 1px;
-
-      margin: 22px 0;
-
-      background:
-        rgba(255,255,255,.1);
-    }
-
-    /* =========================
-       CHOICES
-    ========================= */
-
-    .choice {
-      position: relative;
-
-      width: 100%;
-      min-width: 0;
-
-      padding: 15px;
-
-      text-align: left;
-
-      color: white;
-
-      border:
-        1px solid rgba(255,255,255,.12);
-
-      border-radius: 19px;
-
-      background:
-        rgba(255,255,255,.07);
-
-      transition:
-        background .2s,
-        border-color .2s;
-    }
-
-    .choice:hover {
-      background:
-        rgba(255,255,255,.12);
-    }
-
-    .choice.selected {
-      background:
-        rgba(255,255,255,.17);
-
-      border-color:
-        rgba(255,255,255,.62);
-    }
-
-    .choice-check {
-      position: absolute;
-
-      top: 10px;
-      right: 10px;
-
-      width: 23px;
-      height: 23px;
-
-      display: grid;
-      place-items: center;
-
-      border-radius: 50%;
-
-      background: white;
-      color: #17171a;
-
-      font-size: 12px;
-      font-weight: 900;
-
-      opacity: 0;
-
-      transform: scale(.75);
-
-      transition: .2s;
-    }
-
-    .choice.selected .choice-check {
-      opacity: 1;
-      transform: scale(1);
-    }
-
-    .choice-description {
-      margin-top: 5px;
-
-      font-size: 14px;
-      line-height: 1.4;
-
-      color:
-        rgba(255,255,255,.5);
-    }
-
-    /* =========================
-       COUNTRIES
-    ========================= */
-
-    .country-grid {
-      display: grid;
-      grid-template-columns:
-        repeat(3, minmax(0,1fr));
-
-      gap: 12px;
-    }
-
-    .country-content {
-      display: flex;
-      align-items: center;
-
-      gap: 12px;
-
-      padding-right: 16px;
-    }
-
-    .country-map {
-      width: 76px;
-      height: 58px;
-
-      flex-shrink: 0;
-
-      display: grid;
-      place-items: center;
-
-      overflow: hidden;
-
-      border-radius: 14px;
-
-      background:
-        rgba(255,255,255,.07);
-    }
-
-    .country-map svg {
-      width: 70px;
-      height: 52px;
-    }
-
-    .country-map path {
-      fill:
-        rgba(255,255,255,.9);
-
-      stroke: white;
-
-      stroke-width: .45;
-
-      vector-effect:
-        non-scaling-stroke;
-    }
-
-    .country-code {
-      margin-top: 3px;
-
-      font-size: 13px;
-
-      color:
-        rgba(255,255,255,.4);
-    }
-
-    /* =========================
-       MODE
-    ========================= */
-
-    .mode-grid {
-      display: grid;
-      grid-template-columns:
-        repeat(3,1fr);
-
-      gap: 12px;
-    }
-
-    .sandbox {
-      background:
-        linear-gradient(
-          135deg,
-          rgba(255,255,255,.18),
-          rgba(255,255,255,.06)
-        );
-    }
-
-    .sandbox-top {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-
-      gap: 20px;
-
-      padding-right: 26px;
-    }
-
-    .sandbox-title {
-      font-size: 21px;
-      font-weight: 900;
-    }
-
-    .tag {
-      display: inline-flex;
-      align-items: center;
-
-      min-height: 27px;
-
-      padding: 0 10px;
-
-      border:
-        1px solid rgba(255,255,255,.11);
-
-      border-radius: 999px;
-
-      background:
-        rgba(255,255,255,.11);
-
-      font-size: 12px;
-      font-weight: 700;
-    }
-
-    /* =========================
-       SUMMARY
-    ========================= */
-
-    .selection-summary {
-      margin-top: 15px;
-
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-
-      gap: 15px;
-    }
-
-    .muted {
-      color:
-        rgba(255,255,255,.48);
-    }
-
-    /* =========================
-       CANDIDATE
-    ========================= */
-
-    .candidate-layout {
-      display: grid;
-
-      grid-template-columns:
-        1.15fr .85fr;
-
-      gap: 16px;
-    }
-
-    .form-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-
-      gap: 15px;
-    }
-
-    label span {
-      display: block;
-
-      margin-bottom: 7px;
-
-      font-size: 14px;
-      font-weight: 700;
-    }
-
-    .full-column {
-      grid-column: 1 / -1;
-    }
-
-    .field {
-      width: 100%;
-      min-height: 48px;
-
-      padding: 0 13px;
-
-      color: white;
-
-      border:
-        1px solid rgba(255,255,255,.14);
-
-      border-radius: 14px;
-
-      outline: none;
-
-      background:
-        rgba(255,255,255,.09);
-    }
-
-    .field::placeholder {
-      color:
-        rgba(255,255,255,.35);
-    }
-
-    select.field option {
-      color: #111;
-      background: white;
-    }
-
-    .preview-name {
-      margin-top: 5px;
-
-      font-size: 30px;
-      font-weight: 900;
-    }
-
-    .preview-info {
-      margin-top: 22px;
-    }
-
-    .preview-row {
-      display: flex;
-      justify-content: space-between;
-
-      gap: 15px;
-
-      padding: 8px 0;
-
-      font-size: 14px;
-    }
-
-    .quote-box {
-      margin-top: 15px;
-
-      padding: 14px;
-
-      border:
-        1px solid rgba(255,255,255,.1);
-
-      border-radius: 17px;
-
-      background:
-        rgba(255,255,255,.05);
-    }
-
-    /* =========================
-       GAME
-    ========================= */
-
-    .game-layout {
-      display: grid;
-
-      grid-template-columns:
-        1.1fr .9fr;
-
-      gap: 16px;
-    }
-
-    .stats-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-
-      gap: 12px;
-    }
-
-    .stat {
-      padding: 13px;
-
-      border:
-        1px solid rgba(255,255,255,.1);
-
-      border-radius: 17px;
-
-      background:
-        rgba(255,255,255,.07);
-    }
-
-    .stat-header {
-      display: flex;
-      justify-content: space-between;
-
-      gap: 10px;
-
-      font-size: 14px;
-    }
-
-    .bar {
-      height: 8px;
-
-      margin-top: 9px;
-
-      overflow: hidden;
-
-      border-radius: 999px;
-
-      background:
-        rgba(255,255,255,.11);
-    }
-
-    .bar-inner {
-      height: 100%;
-
-      border-radius: 999px;
-
-      background: white;
-
-      transition: width .25s;
-    }
-
-    .event {
-      margin-top: 16px;
-
-      padding: 17px;
-
-      border:
-        1px solid rgba(255,255,255,.13);
-
-      border-radius: 21px;
-
-      background:
-        rgba(0,0,0,.12);
-    }
-
-    .actions-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-
-      gap: 9px;
-
-      margin-top: 13px;
-    }
-
-    .action {
-      min-height: 50px;
-
-      padding: 10px 12px;
-
-      text-align: left;
-
-      color: white;
-
-      border:
-        1px solid rgba(255,255,255,.13);
-
-      border-radius: 15px;
-
-      background:
-        rgba(255,255,255,.08);
-
-      font-weight: 700;
-    }
-
-    .action:hover {
-      background:
-        rgba(255,255,255,.14);
-    }
-
-    .action small {
-      display: block;
-
-      margin-top: 3px;
-
-      font-weight: 400;
-
-      color:
-        rgba(255,255,255,.45);
-    }
-
-    /* =========================
-       SANDBOX GAME PANEL
-    ========================= */
-
-    .sandbox-panel {
-      margin-top: 16px;
-
-      padding: 16px;
-
-      border:
-        1px solid rgba(255,255,255,.19);
-
-      border-radius: 23px;
-
-      background:
-        linear-gradient(
-          135deg,
-          rgba(255,255,255,.15),
-          rgba(255,255,255,.05)
-        );
-    }
-
-    .sandbox-control-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-
-      gap: 10px;
-
-      margin-top: 13px;
-    }
-
-    .sandbox-control {
-      padding: 12px;
-
-      border:
-        1px solid rgba(255,255,255,.1);
-
-      border-radius: 15px;
-
-      background:
-        rgba(0,0,0,.13);
-    }
-
-    input[type="range"] {
-      width: 100%;
-      accent-color: white;
-    }
-
-    /* =========================
-       ABOUT MODAL
-    ========================= */
-
-    .modal-background {
-      position: absolute;
-
-      inset: 0;
-
-      z-index: 50;
-
-      display: flex;
-      align-items: center;
-      justify-content: center;
-
-      padding: 20px;
-
-      background:
-        rgba(0,0,0,.58);
-
-      backdrop-filter:
-        blur(8px);
-    }
-
-    .modal {
-      width: min(430px,100%);
-
-      padding: 24px;
-
-      border:
-        1px solid rgba(255,255,255,.14);
-
-      border-radius: 28px;
-
-      background:
-        rgba(12,13,35,.95);
-    }
-
-    /* =========================
-       ANIMATION
-    ========================= */
-
-    @keyframes backgroundFlow {
-      0% {
-        background-position: 0% 50%;
-      }
-
-      50% {
-        background-position: 100% 50%;
-      }
-
-      100% {
-        background-position: 0% 50%;
-      }
-    }
-
-    @keyframes titleFlow {
-      from {
-        background-position: 0 center;
-      }
-
-      to {
-        background-position: 260% center;
-      }
-    }
-
-    /* =========================
-       MOBILE
-    ========================= */
-
-    @media(max-width:800px) {
-      .country-grid {
-        grid-template-columns:
-          1fr 1fr;
-      }
-
-      .candidate-layout,
-      .game-layout {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    @media(max-width:600px) {
-      #game {
-        padding: 22px 14px;
-      }
-
-      .country-grid,
-      .mode-grid,
-      .stats-grid,
-      .actions-grid,
-      .form-grid,
-      .sandbox-control-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .selection-summary {
-        align-items: stretch;
-        flex-direction: column;
-      }
-
-      .selection-summary .button {
-        width: 100%;
-      }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MANDAT — Political Strategy</title>
+
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;
+  min-height:100vh;
+  font-family:Inter,Arial,sans-serif;
+  background:#10162f;
+  color:white
+}
+button,input,select{font:inherit}
+button{cursor:pointer}
+.hidden{display:none!important}
+
+#app{
+  --bg-speed:10s;
+  min-height:100vh;
+  padding:28px 18px;
+  background:linear-gradient(125deg,#101b42,#65206d);
+  background-size:230% 230%;
+  animation:bgMove var(--bg-speed) ease-in-out infinite
+}
+
+.container{width:min(1120px,100%);margin:auto}
+
+.glass{
+  background:rgba(8,10,30,.27);
+  border:1px solid rgba(255,255,255,.12);
+  backdrop-filter:blur(18px);
+  border-radius:24px
+}
+
+.hidden{display:none!important}
+
+.center-screen{
+  min-height:calc(100vh - 56px);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center
+}
+
+.logo{
+  font-size:clamp(65px,13vw,125px);
+  font-weight:950;
+  line-height:.85;
+  letter-spacing:-.065em;
+  background:linear-gradient(90deg,#fff,#d8cbff,#ffb9ea,#fff);
+  background-size:260% auto;
+  color:transparent;
+  -webkit-background-clip:text;
+  background-clip:text;
+  animation:titleFlow 4.5s linear infinite
+}
+
+.logo-sub{
+  margin-top:20px;
+  font-size:12px;
+  font-weight:800;
+  letter-spacing:.34em;
+  color:rgba(255,255,255,.48)
+}
+
+.btn{
+  min-height:50px;
+  padding:0 23px;
+  border:0;
+  border-radius:999px;
+  background:rgba(255,255,255,.96);
+  color:#18181c;
+  font-weight:800;
+  box-shadow:0 12px 28px rgba(0,0,0,.15);
+  transition:.18s ease
+}
+.btn:hover{transform:translateY(-2px);background:white}
+.btn.full{width:100%}
+
+.btn-soft{
+  min-height:46px;
+  padding:0 18px;
+  border:1px solid rgba(255,255,255,.14);
+  border-radius:999px;
+  background:rgba(255,255,255,.09);
+  color:white;
+  font-weight:700
+}
+.btn-soft:hover{background:rgba(255,255,255,.14)}
+
+.main-menu{
+  width:min(370px,100%);
+  margin:42px auto 0;
+  display:grid;
+  gap:12px
+}
+
+.main-row{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px
+}
+
+.top{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:16px;
+  margin-bottom:20px
+}
+
+.eyebrow{
+  font-size:11px;
+  font-weight:800;
+  letter-spacing:.2em;
+  text-transform:uppercase;
+  color:rgba(255,255,255,.44)
+}
+
+h2{
+  margin:5px 0 0;
+  font-size:clamp(28px,4vw,40px);
+  letter-spacing:-.04em
+}
+
+.muted{color:rgba(255,255,255,.5)}
+
+.panel{padding:18px}
+.separator{
+  height:1px;
+  margin:22px 0;
+  background:rgba(255,255,255,.09)
+}
+
+.section-name{
+  margin-bottom:12px;
+  font-size:12px;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:.17em;
+  color:rgba(255,255,255,.52)
+}
+
+/* SETUP */
+
+.country-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:11px
+}
+
+.choice{
+  position:relative;
+  min-width:0;
+  padding:14px;
+  border:1px solid rgba(255,255,255,.11);
+  border-radius:18px;
+  background:rgba(255,255,255,.065);
+  color:white;
+  text-align:left;
+  transition:.18s
+}
+.choice:hover{background:rgba(255,255,255,.11)}
+.choice.selected{
+  background:rgba(255,255,255,.17);
+  border-color:rgba(255,255,255,.58)
+}
+
+.check{
+  position:absolute;
+  top:9px;
+  right:9px;
+  width:22px;
+  height:22px;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  background:#fff;
+  color:#15151a;
+  opacity:0;
+  transform:scale(.7);
+  transition:.18s;
+  font-size:11px;
+  font-weight:900
+}
+.choice.selected .check{
+  opacity:1;
+  transform:scale(1)
+}
+
+.country-inside{
+  display:flex;
+  align-items:center;
+  gap:11px;
+  padding-right:14px
+}
+
+.country-map{
+  width:70px;
+  height:53px;
+  flex:0 0 70px;
+  display:grid;
+  place-items:center;
+  overflow:hidden;
+  border-radius:13px;
+  background:rgba(255,255,255,.07)
+}
+.country-map svg{width:65px;height:48px}
+.country-map path{
+  fill:rgba(255,255,255,.9);
+  stroke:white;
+  stroke-width:.45;
+  vector-effect:non-scaling-stroke
+}
+
+.mode-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:11px
+}
+
+.choice-desc{
+  margin-top:5px;
+  font-size:13px;
+  line-height:1.45;
+  color:rgba(255,255,255,.48)
+}
+
+.sandbox-choice{
+  background:linear-gradient(135deg,rgba(255,255,255,.16),rgba(255,255,255,.055))
+}
+
+.tag{
+  display:inline-flex;
+  align-items:center;
+  min-height:26px;
+  padding:0 9px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.1);
+  background:rgba(255,255,255,.1);
+  font-size:11px;
+  font-weight:800
+}
+
+/* CANDIDATE */
+
+.candidate-layout{
+  display:grid;
+  grid-template-columns:1.15fr .85fr;
+  gap:15px
+}
+
+.form-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px
+}
+.full-field{grid-column:1/-1}
+
+label>span{
+  display:block;
+  margin-bottom:6px;
+  font-size:13px;
+  font-weight:700
+}
+
+.field{
+  width:100%;
+  min-height:47px;
+  padding:0 13px;
+  border:1px solid rgba(255,255,255,.14);
+  border-radius:14px;
+  background:rgba(255,255,255,.08);
+  color:white;
+  outline:none
+}
+.field::placeholder{color:rgba(255,255,255,.3)}
+select.field option{color:#15151a;background:white}
+
+.preview-name{
+  margin-top:6px;
+  font-size:29px;
+  font-weight:900
+}
+
+.info-row{
+  display:flex;
+  justify-content:space-between;
+  gap:15px;
+  padding:7px 0;
+  font-size:14px
+}
+
+/* GAME HEADER */
+
+.game-header{
+  margin-bottom:14px;
+  padding:15px 17px
+}
+
+.game-header-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:15px;
+  flex-wrap:wrap
+}
+
+.game-clock{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  align-items:center
+}
+
+.clock-box{
+  padding:8px 12px;
+  border:1px solid rgba(255,255,255,.11);
+  border-radius:13px;
+  background:rgba(255,255,255,.065)
+}
+
+.clock-main{
+  font-weight:900;
+  font-size:17px
+}
+
+.speed-buttons{
+  display:flex;
+  gap:5px
+}
+
+.speed{
+  min-height:36px;
+  min-width:42px;
+  padding:0 10px;
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:11px;
+  background:rgba(255,255,255,.07);
+  color:white;
+  font-size:12px;
+  font-weight:800
+}
+.speed.active{background:white;color:#17171b}
+
+/* TABS */
+
+.tabs{
+  display:flex;
+  gap:7px;
+  overflow-x:auto;
+  padding:3px 0 11px;
+  scrollbar-width:none
+}
+.tabs::-webkit-scrollbar{display:none}
+
+.tab{
+  white-space:nowrap;
+  min-height:42px;
+  padding:0 15px;
+  border:1px solid rgba(255,255,255,.11);
+  border-radius:999px;
+  background:rgba(255,255,255,.06);
+  color:rgba(255,255,255,.65);
+  font-weight:700
+}
+.tab.active{
+  background:white;
+  color:#17171b;
+  border-color:white
+}
+
+/* GAME */
+
+.dashboard{
+  display:grid;
+  grid-template-columns:1.15fr .85fr;
+  gap:14px
+}
+
+.stats-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px
+}
+
+.stat{
+  padding:13px;
+  border:1px solid rgba(255,255,255,.09);
+  border-radius:16px;
+  background:rgba(255,255,255,.055)
+}
+
+.stat-head{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  font-size:13px
+}
+
+.bar{
+  height:8px;
+  margin-top:9px;
+  overflow:hidden;
+  border-radius:999px;
+  background:rgba(255,255,255,.1)
+}
+.bar>div{
+  height:100%;
+  border-radius:999px;
+  background:white;
+  transition:.2s
+}
+
+.large-number{
+  font-size:31px;
+  font-weight:950
+}
+
+.actions{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:9px
+}
+
+.action{
+  min-height:66px;
+  padding:11px 12px;
+  border:1px solid rgba(255,255,255,.11);
+  border-radius:15px;
+  background:rgba(255,255,255,.065);
+  color:white;
+  text-align:left;
+  font-weight:800
+}
+.action:hover{background:rgba(255,255,255,.12)}
+.action small{
+  display:block;
+  margin-top:4px;
+  color:rgba(255,255,255,.43);
+  font-weight:400;
+  line-height:1.3
+}
+
+.news-item,.calendar-item,.staff-item,.finance-item{
+  padding:13px;
+  border-bottom:1px solid rgba(255,255,255,.08)
+}
+.news-item:last-child,
+.calendar-item:last-child,
+.staff-item:last-child,
+.finance-item:last-child{border-bottom:0}
+
+.event-card{
+  padding:17px;
+  border:1px solid rgba(255,255,255,.11);
+  border-radius:19px;
+  background:rgba(0,0,0,.11)
+}
+
+.poll-row{margin-bottom:14px}
+.poll-row:last-child{margin-bottom:0}
+
+.two-columns{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:13px
+}
+
+/* SANDBOX */
+
+.sandbox-panel{
+  padding:16px;
+  border:1px solid rgba(255,255,255,.19);
+  border-radius:22px;
+  background:linear-gradient(135deg,rgba(255,255,255,.15),rgba(255,255,255,.045))
+}
+
+.sandbox-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:11px
+}
+
+.control-box{
+  padding:12px;
+  border:1px solid rgba(255,255,255,.09);
+  border-radius:14px;
+  background:rgba(0,0,0,.11)
+}
+
+input[type=range]{width:100%;accent-color:white}
+
+/* MODAL */
+
+.modal-bg{
+  position:fixed;
+  inset:0;
+  z-index:100;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  background:rgba(0,0,0,.6);
+  backdrop-filter:blur(7px)
+}
+.modal{
+  width:min(450px,100%);
+  padding:23px;
+  border:1px solid rgba(255,255,255,.13);
+  border-radius:26px;
+  background:rgba(16,17,41,.97)
+}
+
+/* MOBILE */
+
+@media(max-width:850px){
+  .country-grid{grid-template-columns:1fr 1fr}
+  .candidate-layout,.dashboard{grid-template-columns:1fr}
+}
+
+@media(max-width:600px){
+  #app{padding:20px 12px}
+  .country-grid,.mode-grid,.form-grid,.stats-grid,
+  .actions,.two-columns,.sandbox-grid{grid-template-columns:1fr}
+  .main-row{grid-template-columns:1fr 1fr}
+}
+
+@keyframes bgMove{
+  0%{background-position:0% 50%}
+  50%{background-position:100% 50%}
+  100%{background-position:0% 50%}
+}
+@keyframes titleFlow{
+  from{background-position:0 center}
+  to{background-position:260% center}
+}
+</style>
 </head>
 
 <body>
 
-<div id="game">
+<div id="app">
+<div class="container">
 
-  <div class="container">
+<!-- HOME -->
 
-    <!-- =======================
-         MENU GŁÓWNE
-    ======================== -->
+<section id="homeScreen" class="center-screen">
+  <div>
+    <div class="logo">MANDAT</div>
+    <div class="logo-sub">POLITICAL STRATEGY</div>
 
-    <section id="screenHome" class="center">
+    <div class="main-menu">
+      <button id="newGameBtn" class="btn full">Nowa gra</button>
 
-      <div>
+      <div class="main-row">
+        <button id="settingsBtn" class="btn secondary">Ustawienia</button>
+        <button id="aboutBtn" class="btn secondary">O grze</button>
+      </div>
+    </div>
+  </div>
+</section>
 
-        <h1 class="game-title">
-          MANDAT
-        </h1>
 
-        <div class="subtitle">
-          POLITICAL STRATEGY
+<!-- SETUP -->
+
+<section id="setupScreen" class="hidden">
+
+  <div class="top">
+    <div>
+      <div class="eyebrow">Nowa rozgrywka</div>
+      <h2>Wybierz rozgrywkę</h2>
+    </div>
+
+    <button id="setupBack" class="btn-soft">Wróć</button>
+  </div>
+
+  <div class="glass panel">
+
+    <div class="section-name">1. Kraj</div>
+
+    <div id="countryGrid" class="country-grid"></div>
+
+    <div class="separator"></div>
+
+    <div class="section-name">2. Tryb gry</div>
+
+    <div class="mode-grid">
+
+      <button class="choice mode selected" data-mode="career">
+        <span class="check">✓</span>
+        <strong>Pełna kariera</strong>
+        <div class="choice-desc">
+          Kampania → wybory → prezydentura.
         </div>
+      </button>
 
-        <div class="main-menu">
-
-          <button
-            id="newGameButton"
-            class="button full"
-          >
-            Nowa gra
-          </button>
-
-          <div class="menu-row">
-
-            <button
-              id="settingsButton"
-              class="button secondary"
-            >
-              Ustawienia
-            </button>
-
-            <button
-              id="aboutButton"
-              class="button secondary"
-            >
-              O grze
-            </button>
-
-          </div>
-
+      <button class="choice mode" data-mode="election">
+        <span class="check">✓</span>
+        <strong>Tylko wybory</strong>
+        <div class="choice-desc">
+          Kampania kończy się wynikiem wyborów.
         </div>
+      </button>
 
+      <button class="choice mode" data-mode="president">
+        <span class="check">✓</span>
+        <strong>Prezydent</strong>
+        <div class="choice-desc">
+          Rozpoczynasz bezpośrednio na urzędzie.
+        </div>
+      </button>
+
+    </div>
+
+    <div class="separator"></div>
+
+    <div class="section-name">3. Tryb specjalny</div>
+
+    <button id="sandboxChoice" class="choice sandbox-choice">
+
+      <span class="check">✓</span>
+
+      <strong style="font-size:20px">
+        Piaskownica MAX
+      </strong>
+
+      <span class="tag">∞ SWOBODA</span>
+
+      <div class="choice-desc">
+        Edycja statystyk, nieograniczone środki,
+        kontrola czasu i możliwość ręcznej zmiany etapu gry.
       </div>
 
-    </section>
-
-    <!-- =======================
-         WYBÓR GRY
-    ======================== -->
-
-    <section
-      id="screenSetup"
-      class="hidden"
-    >
-
-      <div class="header">
-
-        <div>
-
-          <div class="eyebrow">
-            Nowa rozgrywka
-          </div>
-
-          <h2>
-            Wybierz kraj i tryb
-          </h2>
-
-        </div>
-
-        <button
-          id="setupBackButton"
-          class="ghost-button"
-        >
-          Wróć
-        </button>
-
-      </div>
-
-      <div class="glass">
-
-        <div class="section-title">
-          1. Wybierz kraj
-        </div>
-
-        <div
-          id="countryGrid"
-          class="country-grid"
-        ></div>
-
-        <div class="separator"></div>
-
-        <div class="section-title">
-          2. Tryb gry
-        </div>
-
-        <div class="mode-grid">
-
-          <button
-            class="choice mode-choice selected"
-            data-mode="career"
-          >
-
-            <span class="choice-check">
-              ✓
-            </span>
-
-            <strong>
-              Pełna kariera
-            </strong>
-
-            <div class="choice-description">
-              Kampania → wybory → prezydentura.
-            </div>
-
-          </button>
-
-          <button
-            class="choice mode-choice"
-            data-mode="election"
-          >
-
-            <span class="choice-check">
-              ✓
-            </span>
-
-            <strong>
-              Tylko wybory
-            </strong>
-
-            <div class="choice-description">
-              Gra kończy się po wyborach.
-            </div>
-
-          </button>
-
-          <button
-            class="choice mode-choice"
-            data-mode="president"
-          >
-
-            <span class="choice-check">
-              ✓
-            </span>
-
-            <strong>
-              Prezydent
-            </strong>
-
-            <div class="choice-description">
-              Zaczynasz od razu po objęciu urzędu.
-            </div>
-
-          </button>
-
-        </div>
-
-        <div class="separator"></div>
-
-        <div class="section-title">
-          3. Tryb specjalny
-        </div>
-
-        <button
-          id="sandboxChoice"
-          class="choice sandbox"
-        >
-
-          <span class="choice-check">
-            ✓
-          </span>
-
-          <div class="sandbox-top">
-
-            <div>
-
-              <div class="sandbox-title">
-                Piaskownica MAX
-                <span class="tag">
-                  ∞
-                </span>
-              </div>
-
-              <div class="choice-description">
-                Brak standardowych limitów,
-                edycja statystyk,
-                dowolne przechodzenie między etapami
-                i większa kontrola nad symulacją.
-              </div>
-
-            </div>
-
-            <div style="font-size:34px">
-              ∞
-            </div>
-
-          </div>
-
-        </button>
-
-      </div>
-
-      <div class="glass selection-summary">
-
-        <div>
-
-          <div class="muted">
-            Wybrano
-          </div>
-
-          <strong id="setupSummary">
-            Polska · Pełna kariera
-          </strong>
-
-        </div>
-
-        <button
-          id="setupNextButton"
-          class="button"
-        >
-          Dalej
-        </button>
-
-      </div>
-
-    </section>
-
-    <!-- =======================
-         KANDYDAT
-    ======================== -->
-
-    <section
-      id="screenCandidate"
-      class="hidden"
-    >
-
-      <div class="header">
-
-        <div>
-
-          <div class="eyebrow">
-            Krok 2
-          </div>
-
-          <h2>
-            Stwórz kandydata
-          </h2>
-
-        </div>
-
-        <button
-          id="candidateBackButton"
-          class="ghost-button"
-        >
-          Wróć
-        </button>
-
-      </div>
-
-      <div class="candidate-layout">
-
-        <div class="glass">
-
-          <div class="form-grid">
-
-            <label>
-
-              <span>
-                Imię
-              </span>
-
-              <input
-                id="candidateFirstName"
-                class="field"
-                value="Alex"
-                maxlength="22"
-              >
-
-            </label>
-
-            <label>
-
-              <span>
-                Nazwisko
-              </span>
-
-              <input
-                id="candidateLastName"
-                class="field"
-                value="Nowak"
-                maxlength="28"
-              >
-
-            </label>
-
-            <label>
-
-              <span>
-                Wiek
-              </span>
-
-              <input
-                id="candidateAge"
-                class="field"
-                type="number"
-                min="30"
-                max="90"
-                value="45"
-              >
-
-            </label>
-
-            <label>
-
-              <span>
-                Partia / komitet
-              </span>
-
-              <input
-                id="candidateParty"
-                class="field"
-                value="Nowa Droga"
-                maxlength="30"
-              >
-
-            </label>
-
-            <label class="full-column">
-
-              <span>
-                Hasło kampanii
-              </span>
-
-              <input
-                id="candidateSlogan"
-                class="field"
-                value="Przyszłość zaczyna się dziś"
-                maxlength="60"
-              >
-
-            </label>
-
-            <label>
-
-              <span>
-                Doświadczenie
-              </span>
-
-              <select
-                id="candidateBackground"
-                class="field"
-              >
-
-                <option>
-                  Samorząd
-                </option>
-
-                <option>
-                  Parlament
-                </option>
-
-                <option>
-                  Administracja
-                </option>
-
-                <option>
-                  Biznes
-                </option>
-
-                <option>
-                  Nauka
-                </option>
-
-                <option>
-                  Nowa twarz
-                </option>
-
-              </select>
-
-            </label>
-
-            <label>
-
-              <span>
-                Główny temat
-              </span>
-
-              <select
-                id="candidateFocus"
-                class="field"
-              >
-
-                <option>
-                  Gospodarka
-                </option>
-
-                <option>
-                  Usługi publiczne
-                </option>
-
-                <option>
-                  Bezpieczeństwo
-                </option>
-
-                <option>
-                  Środowisko
-                </option>
-
-                <option>
-                  Infrastruktura
-                </option>
-
-                <option>
-                  Sprawy społeczne
-                </option>
-
-              </select>
-
-            </label>
-
-          </div>
-
-        </div>
-
-        <aside class="glass">
-
-          <div class="eyebrow">
-            Podgląd
-          </div>
-
-          <div
-            id="previewCandidateName"
-            class="preview-name"
-          >
-            Alex Nowak
-          </div>
-
-          <div
-            id="previewCandidateParty"
-            class="muted"
-          >
-            Nowa Droga
-          </div>
-
-          <div class="preview-info">
-
-            <div class="preview-row">
-
-              <span class="muted">
-                Kraj
-              </span>
-
-              <strong id="previewCountry">
-                Polska
-              </strong>
-
-            </div>
-
-            <div class="preview-row">
-
-              <span class="muted">
-                Tryb
-              </span>
-
-              <strong id="previewMode">
-                Pełna kariera
-              </strong>
-
-            </div>
-
-            <div class="preview-row">
-
-              <span class="muted">
-                Specjalny
-              </span>
-
-              <strong id="previewSandbox">
-                Wyłączony
-              </strong>
-
-            </div>
-
-          </div>
-
-          <div class="quote-box">
-
-            <div class="eyebrow">
-              Hasło
-            </div>
-
-            <strong id="previewSlogan">
-              „Przyszłość zaczyna się dziś”
-            </strong>
-
-          </div>
-
-        </aside>
-
-      </div>
-
-      <div
-        style="
-          display:flex;
-          justify-content:flex-end;
-          margin-top:16px;
-        "
-      >
-
-        <button
-          id="startGameButton"
-          class="button"
-        >
-          Rozpocznij grę
-        </button>
-
-      </div>
-
-    </section>
-
-    <!-- =======================
-         ROZGRYWKA
-    ======================== -->
-
-    <section
-      id="screenGameplay"
-      class="hidden"
-    >
-
-      <div class="header">
-
-        <div>
-
-          <div
-            id="gamePhaseLabel"
-            class="eyebrow"
-          ></div>
-
-          <h2 id="gameHeading"></h2>
-
-          <div
-            id="gameSubheading"
-            class="muted"
-          ></div>
-
-        </div>
-
-        <button
-          id="exitGameButton"
-          class="ghost-button"
-        >
-          Menu
-        </button>
-
-      </div>
-
-      <div
-        id="sandboxActiveBanner"
-        class="sandbox-panel hidden"
-      >
-
-        <strong>
-          ∞ Piaskownica MAX aktywna
-        </strong>
-
-        <div class="choice-description">
-          Możesz zmieniać parametry
-          i omijać standardowe limity.
-        </div>
-
-      </div>
-
-      <div id="gameplayBody"></div>
-
-    </section>
-
-    <!-- =======================
-         USTAWIENIA
-    ======================== -->
-
-    <section
-      id="screenSettings"
-      class="hidden"
-    >
-
-      <div class="header">
-
-        <h2>
-          Ustawienia
-        </h2>
-
-        <button
-          id="settingsBackButton"
-          class="ghost-button"
-        >
-          Wróć
-        </button>
-
-      </div>
-
-      <div class="glass">
-
-        <strong>
-          Szybkość animacji
-        </strong>
-
-        <div
-          id="animationSpeedText"
-          class="muted"
-          style="margin-top:5px"
-        >
-          Normalna
-        </div>
-
-        <input
-          id="animationSpeed"
-          type="range"
-          min="0"
-          max="100"
-          value="50"
-          style="margin-top:20px"
-        >
-
-      </div>
-
-    </section>
+    </button>
 
   </div>
 
-  <!-- =======================
-       O GRZE
-  ======================== -->
+  <div class="glass panel" style="margin-top:14px">
 
-  <div
-    id="aboutModal"
-    class="modal-background hidden"
-  >
+    <div style="
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:15px;
+      flex-wrap:wrap
+    ">
 
-    <div class="modal">
-
-      <div class="header">
-
-        <div>
-
-          <div class="eyebrow">
-            O grze
-          </div>
-
-          <h2>
-            MANDAT
-          </h2>
-
-        </div>
-
-        <button
-          id="aboutCloseX"
-          class="ghost-button"
-        >
-          ×
-        </button>
-
+      <div>
+        <div class="muted">Wybrano</div>
+        <strong id="setupSummary"></strong>
       </div>
 
-      <p
-        style="
-          line-height:1.7;
-          color:rgba(255,255,255,.65);
-        "
-      >
-        Strategiczny symulator kampanii wyborczej
-        i sprawowania urzędu prezydenta.
-        Wybrany tryb określa przebieg rozgrywki.
-      </p>
-
-      <button
-        id="aboutCloseButton"
-        class="button full"
-      >
-        Zamknij
+      <button id="toCandidate" class="btn">
+        Dalej
       </button>
 
     </div>
 
   </div>
 
+</section>
+
+
+<!-- CANDIDATE -->
+
+<section id="candidateScreen" class="hidden">
+
+  <div class="top">
+
+    <div>
+      <div class="eyebrow">Krok 2</div>
+      <h2>Stwórz kandydata</h2>
+    </div>
+
+    <button id="candidateBack" class="btn-soft">
+      Wróć
+    </button>
+
+  </div>
+
+  <div class="candidate-layout">
+
+    <div class="glass panel">
+
+      <div class="form-grid">
+
+        <label>
+          <span>Imię</span>
+          <input id="firstName" class="field" value="Alex">
+        </label>
+
+        <label>
+          <span>Nazwisko</span>
+          <input id="lastName" class="field" value="Nowak">
+        </label>
+
+        <label>
+          <span>Wiek</span>
+          <input id="age" class="field" type="number" min="18" max="90" value="45">
+        </label>
+
+        <label>
+          <span>Partia / komitet</span>
+          <input id="party" class="field" value="Nowa Droga">
+        </label>
+
+        <label class="full-field">
+          <span>Hasło</span>
+          <input id="slogan" class="field" value="Przyszłość zaczyna się dziś">
+        </label>
+
+        <label>
+          <span>Doświadczenie</span>
+
+          <select id="background" class="field">
+            <option>Samorząd</option>
+            <option>Parlament</option>
+            <option>Administracja</option>
+            <option>Biznes</option>
+            <option>Nauka</option>
+            <option>Nowa twarz</option>
+          </select>
+        </label>
+
+        <label>
+          <span>Główny temat kampanii</span>
+
+          <select id="focus" class="field">
+            <option>Gospodarka</option>
+            <option>Usługi publiczne</option>
+            <option>Bezpieczeństwo</option>
+            <option>Infrastruktura</option>
+            <option>Środowisko</option>
+            <option>Sprawy społeczne</option>
+          </select>
+        </label>
+
+      </div>
+
+    </div>
+
+    <aside class="glass panel">
+
+      <div class="eyebrow">Podgląd</div>
+
+      <div id="candidatePreviewName" class="preview-name">
+        Alex Nowak
+      </div>
+
+      <div id="candidatePreviewParty" class="muted">
+        Nowa Droga
+      </div>
+
+      <div style="margin-top:18px">
+
+        <div class="info-row">
+          <span class="muted">Kraj</span>
+          <strong id="previewCountry"></strong>
+        </div>
+
+        <div class="info-row">
+          <span class="muted">Tryb</span>
+          <strong id="previewMode"></strong>
+        </div>
+
+        <div class="info-row">
+          <span class="muted">Specjalny</span>
+          <strong id="previewSandbox"></strong>
+        </div>
+
+      </div>
+
+      <div class="event-card" style="margin-top:16px">
+
+        <div class="eyebrow">Hasło</div>
+
+        <strong id="previewSlogan"></strong>
+
+      </div>
+
+    </aside>
+
+  </div>
+
+  <div style="
+    margin-top:15px;
+    display:flex;
+    justify-content:flex-end
+  ">
+    <button id="startGame" class="btn">
+      Rozpocznij grę
+    </button>
+  </div>
+
+</section>
+
+
+<!-- GAME -->
+
+<section id="gameScreen" class="hidden">
+
+  <div class="game-header glass">
+
+    <div class="game-header-row">
+
+      <div>
+        <div id="phaseLabel" class="eyebrow"></div>
+        <h2 id="gameTitle"></h2>
+        <div id="gameSubTitle" class="muted"></div>
+      </div>
+
+      <div class="game-clock">
+
+        <div class="clock-box">
+          <div class="eyebrow">Data i godzina</div>
+          <div id="dateDisplay" class="clock-main"></div>
+        </div>
+
+        <div id="daysBox" class="clock-box">
+          <div class="eyebrow">Do wyborów</div>
+          <div id="daysDisplay" class="clock-main"></div>
+        </div>
+
+        <div class="speed-buttons">
+
+          <button id="pauseTime" class="speed">
+            II
+          </button>
+
+          <button class="speed active" data-speed="1">
+            ×1
+          </button>
+
+          <button class="speed" data-speed="4">
+            ×4
+          </button>
+
+          <button class="speed" data-speed="12">
+            ×12
+          </button>
+
+        </div>
+
+        <button id="leaveGame" class="btn-soft">
+          Menu
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <div id="sandboxBanner" class="sandbox-panel hidden" style="margin-bottom:13px">
+
+    <strong>
+      ∞ Piaskownica MAX
+    </strong>
+
+    <div class="choice-desc">
+      Specjalne narzędzia są dostępne w zakładce „Piaskownica”.
+    </div>
+
+  </div>
+
+  <div id="tabs" class="tabs"></div>
+
+  <div id="gameContent"></div>
+
+</section>
+
+
+<!-- SETTINGS -->
+
+<section id="settingsScreen" class="hidden">
+
+  <div class="top">
+
+    <div>
+      <div class="eyebrow">Menu</div>
+      <h2>Ustawienia</h2>
+    </div>
+
+    <button id="settingsBack" class="btn-soft">
+      Wróć
+    </button>
+
+  </div>
+
+  <div class="glass panel">
+
+    <strong>Szybkość animacji menu</strong>
+
+    <div id="menuAnimationLabel" class="muted" style="margin-top:5px">
+      Normalna
+    </div>
+
+    <input
+      id="menuAnimation"
+      type="range"
+      min="0"
+      max="100"
+      value="50"
+      style="margin-top:18px"
+    >
+
+  </div>
+
+</section>
+
 </div>
+
+
+<!-- ABOUT -->
+
+<div id="aboutModal" class="modal-bg hidden">
+
+  <div class="modal">
+
+    <div class="top">
+
+      <div>
+        <div class="eyebrow">O grze</div>
+        <h2>MANDAT</h2>
+      </div>
+
+      <button id="aboutX" class="btn-soft">×</button>
+
+    </div>
+
+    <p class="muted" style="line-height:1.7">
+      MANDAT to strategiczny symulator kampanii wyborczej
+      i sprawowania urzędu. Przebieg gry zależy od wybranego trybu.
+    </p>
+
+    <button id="aboutClose" class="btn full">
+      Zamknij
+    </button>
+
+  </div>
+
+</div>
+
+</div>
+
 
 <script type="module">
 
-/* =========================================================
-   DANE GRY
-========================================================= */
+/* ======================================================
+   PODSTAWY
+====================================================== */
+
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+
+const screens = {
+  home: $("#homeScreen"),
+  setup: $("#setupScreen"),
+  candidate: $("#candidateScreen"),
+  game: $("#gameScreen"),
+  settings: $("#settingsScreen")
+};
+
+let currentScreen = "home";
+
+function showScreen(name){
+  currentScreen = name;
+
+  Object.entries(screens).forEach(([key,el])=>{
+    el.classList.toggle("hidden",key !== name);
+  });
+}
+
+
+/* ======================================================
+   KONFIGURACJA
+====================================================== */
 
 const countries = [
-  ["Polska", "616", "PL"],
-  ["Stany Zjednoczone", "840", "USA"],
-  ["Francja", "250", "FR"],
-  ["Niemcy", "276", "DE"],
-  ["Wielka Brytania", "826", "UK"],
-  ["Rosja", "643", "RU"],
-  ["Włochy", "380", "IT"],
-  ["Hiszpania", "724", "ES"],
-  ["Brazylia", "076", "BR"]
+  ["Polska","616","PL"],
+  ["Stany Zjednoczone","840","USA"],
+  ["Francja","250","FR"],
+  ["Niemcy","276","DE"],
+  ["Wielka Brytania","826","UK"],
+  ["Rosja","643","RU"],
+  ["Włochy","380","IT"],
+  ["Hiszpania","724","ES"],
+  ["Brazylia","076","BR"]
 ];
 
 const modeNames = {
-  career: "Pełna kariera",
-  election: "Tylko wybory",
-  president: "Prezydent"
+  career:"Pełna kariera",
+  election:"Tylko wybory",
+  president:"Prezydent"
 };
 
 let selectedCountry = "Polska";
 let selectedIso = "616";
-
 let selectedMode = "career";
+let sandbox = false;
 
-let sandboxEnabled = false;
+const countryGrid = $("#countryGrid");
 
-let state = {};
+countries.forEach(([name,iso,code],index)=>{
 
-let d3 = null;
-let worldFeatures = [];
+  const button = document.createElement("button");
 
+  button.className =
+    "choice country" +
+    (index === 0 ? " selected" : "");
 
-/* =========================================================
-   DOM
-========================================================= */
+  button.dataset.country = name;
+  button.dataset.iso = iso;
 
-const $ = selector =>
-  document.querySelector(selector);
+  button.innerHTML = `
+    <span class="check">✓</span>
 
-const $$ = selector =>
-  [...document.querySelectorAll(selector)];
+    <div class="country-inside">
 
+      <div class="country-map" data-map="${iso}">
+        …
+      </div>
 
-const screens = {
-  home: $("#screenHome"),
-  setup: $("#screenSetup"),
-  candidate: $("#screenCandidate"),
-  gameplay: $("#screenGameplay"),
-  settings: $("#screenSettings")
-};
+      <div>
+        <strong>${name}</strong>
+        <div class="muted" style="font-size:12px;margin-top:3px">
+          ${code}
+        </div>
+      </div>
 
+    </div>
+  `;
 
-/* =========================================================
-   NAWIGACJA
-========================================================= */
+  countryGrid.appendChild(button);
+});
 
-function showScreen(name) {
+$$(".country").forEach(button=>{
 
-  Object.entries(screens).forEach(
-    ([key, element]) => {
+  button.addEventListener("click",()=>{
 
-      element.classList.toggle(
-        "hidden",
-        key !== name
-      );
+    $$(".country").forEach(x=>x.classList.remove("selected"));
 
-    }
-  );
+    button.classList.add("selected");
 
+    selectedCountry = button.dataset.country;
+    selectedIso = button.dataset.iso;
+
+    updateSetup();
+  });
+
+});
+
+$$(".mode").forEach(button=>{
+
+  button.addEventListener("click",()=>{
+
+    $$(".mode").forEach(x=>x.classList.remove("selected"));
+
+    button.classList.add("selected");
+
+    selectedMode = button.dataset.mode;
+
+    updateSetup();
+  });
+
+});
+
+$("#sandboxChoice").addEventListener("click",()=>{
+
+  sandbox = !sandbox;
+
+  $("#sandboxChoice").classList.toggle("selected",sandbox);
+
+  updateSetup();
+});
+
+function updateSetup(){
+
+  $("#setupSummary").textContent =
+    selectedCountry +
+    " · " +
+    modeNames[selectedMode] +
+    (sandbox ? " · Piaskownica MAX" : "");
 }
 
 
-/* =========================================================
-   KRAJE
-========================================================= */
+/* ======================================================
+   KANDYDAT
+====================================================== */
 
-const countryGrid =
-  $("#countryGrid");
+function updateCandidate(){
+
+  const first =
+    $("#firstName").value.trim() || "Kandydat";
+
+  const last =
+    $("#lastName").value.trim();
+
+  $("#candidatePreviewName").textContent =
+    `${first} ${last}`.trim();
+
+  $("#candidatePreviewParty").textContent =
+    $("#party").value.trim() || "Bez nazwy";
+
+  $("#previewCountry").textContent =
+    selectedCountry;
+
+  $("#previewMode").textContent =
+    modeNames[selectedMode];
+
+  $("#previewSandbox").textContent =
+    sandbox ? "Piaskownica MAX" : "Wyłączony";
+
+  $("#previewSlogan").textContent =
+    `„${$("#slogan").value.trim() || "Bez hasła"}”`;
+}
+
+[
+  "#firstName",
+  "#lastName",
+  "#party",
+  "#slogan",
+  "#focus",
+  "#background"
+].forEach(selector=>{
+  $(selector).addEventListener("input",updateCandidate);
+});
 
 
-countries.forEach(
-  ([name, iso, code], index) => {
+/* ======================================================
+   STAN GRY
+====================================================== */
+
+let game = null;
+
+let timer = null;
+
+let activeTab = "overview";
+
+function createGame(){
+
+  const start =
+    new Date(2026,8,1,8,0,0);
+
+  const election =
+    new Date(start);
+
+  election.setDate(
+    election.getDate() + 60
+  );
+
+  game = {
+
+    phase:
+      selectedMode === "president"
+        ? "president"
+        : "campaign",
+
+    date:start,
+
+    electionDate:election,
+
+    speed:1,
+
+    paused:false,
+
+    lastDay:
+      start.toDateString(),
+
+    support:30,
+
+    rivalA:37,
+
+    rivalB:33,
+
+    money:
+      sandbox ? 999999 : 150,
+
+    momentum:50,
+
+    reputation:50,
+
+    organization:35,
+
+    media:35,
+
+    energy:85,
+
+    volunteers:120,
+
+    staff:{
+      manager:1,
+      media:1,
+      field:1,
+      finance:1
+    },
+
+    dailyExpenses:3,
+
+    news:[],
+
+    calendar:[],
+
+    approval:55,
+
+    economy:50,
+
+    services:50,
+
+    stability:50,
+
+    foreignRelations:50,
+
+    stateBudget:
+      sandbox ? 999999 : 120,
+
+    presidentEvent:null,
+
+    lastPresidentEventDay:0,
+
+    daysInOffice:0,
+
+    finished:false
+  };
+
+  game.news.unshift({
+    date:formatShortDate(game.date),
+    text:"Rozgrywka rozpoczęta."
+  });
+
+  activeTab = "overview";
+
+  startClock();
+
+  renderGame();
+}
+
+
+/* ======================================================
+   CZAS
+====================================================== */
+
+function startClock(){
+
+  if(timer){
+    clearInterval(timer);
+  }
+
+  timer = setInterval(()=>{
+
+    if(
+      !game ||
+      game.paused ||
+      currentScreen !== "game" ||
+      game.finished
+    ){
+      return;
+    }
+
+    const oldDay =
+      game.date.toDateString();
+
+    /*
+      x1 = 1 godzina na sekundę
+      x4 = 4 godziny
+      x12 = 12 godzin
+    */
+
+    game.date = new Date(
+      game.date.getTime() +
+      game.speed * 60 * 60 * 1000
+    );
+
+    const newDay =
+      game.date.toDateString();
+
+    if(oldDay !== newDay){
+      processNewDay();
+    }
+
+    updateClockUI();
+
+  },1000);
+}
+
+function processNewDay(){
+
+  if(game.phase === "campaign"){
+    campaignNewDay();
+  }
+
+  if(game.phase === "president"){
+    presidentNewDay();
+  }
+
+  game.lastDay =
+    game.date.toDateString();
+
+  renderCurrentTab();
+}
+
+function campaignNewDay(){
+
+  if(!sandbox){
+
+    game.money =
+      Math.max(
+        0,
+        game.money -
+        game.dailyExpenses
+      );
+  }
+
+  game.energy =
+    clamp(
+      game.energy + 8,
+      0,
+      100
+    );
+
+  /*
+    Organizacja sztabu stopniowo pomaga.
+  */
+
+  const organic =
+    (
+      game.organization +
+      game.reputation +
+      game.momentum
+    ) / 300;
+
+  if(Math.random() < organic * .35){
+    game.support += .2;
+  }
+
+  /*
+    Rywale też działają.
+  */
+
+  game.rivalA +=
+    random(-0.35,.35);
+
+  game.rivalB +=
+    random(-0.35,.35);
+
+  normalizePolls();
+
+  /*
+    Losowe wydarzenie co kilka dni.
+  */
+
+  if(Math.random() < .25){
+    generateCampaignEvent();
+  }
+
+  /*
+    Raz na 7 dni aktualizacja medialna.
+  */
+
+  const days =
+    daysSinceCampaignStart();
+
+  if(days > 0 && days % 7 === 0){
+
+    addNews(
+      `Opublikowano nową serię sondaży. Twoje poparcie wynosi ${game.support.toFixed(1)}%.`
+    );
+  }
+
+  if(campaignDaysLeft() <= 0){
+
+    resolveElection();
+  }
+}
+
+function presidentNewDay(){
+
+  game.daysInOffice++;
+
+  /*
+    Naturalne zmiany symulacji.
+  */
+
+  game.economy =
+    clamp(
+      game.economy +
+      random(-.25,.3),
+      0,
+      100
+    );
+
+  game.approval =
+    clamp(
+      game.approval +
+      random(-.18,.18),
+      0,
+      100
+    );
+
+  /*
+    Wydarzenie średnio co 4-7 dni.
+  */
+
+  if(
+    !game.presidentEvent &&
+    game.daysInOffice -
+    game.lastPresidentEventDay >=
+    randomInt(4,7)
+  ){
+    generatePresidentEvent();
+  }
+
+  /*
+    Co 30 dni koszt administracji.
+  */
+
+  if(
+    game.daysInOffice > 0 &&
+    game.daysInOffice % 30 === 0
+  ){
+
+    if(!sandbox){
+      game.stateBudget =
+        Math.max(
+          0,
+          game.stateBudget - 5
+        );
+    }
+
+    addNews(
+      "Zakończył się kolejny miesiąc urzędowania."
+    );
+  }
+}
+
+function updateClockUI(){
+
+  if(!game) return;
+
+  $("#dateDisplay").textContent =
+    formatDateTime(game.date);
+
+  if(game.phase === "campaign"){
+
+    $("#daysBox").classList.remove("hidden");
+
+    $("#daysDisplay").textContent =
+      campaignDaysLeft() + " dni";
+
+  }else{
+
+    $("#daysBox").classList.remove("hidden");
+
+    $("#daysBox .eyebrow").textContent =
+      "Dni urzędu";
+
+    $("#daysDisplay").textContent =
+      game.daysInOffice;
+  }
+}
+
+function campaignDaysLeft(){
+
+  const diff =
+    game.electionDate -
+    game.date;
+
+  return Math.max(
+    0,
+    Math.ceil(
+      diff /
+      (1000*60*60*24)
+    )
+  );
+}
+
+function daysSinceCampaignStart(){
+
+  const total = 60;
+
+  return total - campaignDaysLeft();
+}
+
+
+/* ======================================================
+   TABS
+====================================================== */
+
+function availableTabs(){
+
+  if(game.phase === "campaign"){
+
+    const tabs = [
+      ["overview","Pulpit"],
+      ["campaign","Kampania"],
+      ["calendar","Kalendarz"],
+      ["polls","Sondaże"],
+      ["staff","Sztab"],
+      ["finances","Finanse"]
+    ];
+
+    if(sandbox){
+      tabs.push([
+        "sandbox",
+        "Piaskownica"
+      ]);
+    }
+
+    return tabs;
+  }
+
+  const tabs = [
+    ["overview","Pulpit"],
+    ["agenda","Agenda"],
+    ["state","Państwo"],
+    ["opinion","Opinia"],
+    ["calendar","Kalendarz"],
+    ["cabinet","Gabinet"]
+  ];
+
+  if(sandbox){
+    tabs.push([
+      "sandbox",
+      "Piaskownica"
+    ]);
+  }
+
+  return tabs;
+}
+
+function renderTabs(){
+
+  const tabs =
+    $("#tabs");
+
+  tabs.innerHTML = "";
+
+  availableTabs().forEach(([id,label])=>{
 
     const button =
       document.createElement("button");
 
-    button.type = "button";
-
     button.className =
-      "choice country-choice" +
-      (index === 0 ? " selected" : "");
+      "tab" +
+      (activeTab === id ? " active" : "");
 
-    button.dataset.country = name;
-    button.dataset.iso = iso;
+    button.textContent =
+      label;
 
-    button.innerHTML = `
+    button.addEventListener("click",()=>{
 
-      <span class="choice-check">
-        ✓
-      </span>
+      activeTab = id;
 
-      <div class="country-content">
+      renderTabs();
+      renderCurrentTab();
+    });
 
-        <div
-          class="country-map"
-          data-map="${iso}"
-        >
-          …
+    tabs.appendChild(button);
+  });
+}
+
+
+/* ======================================================
+   RENDER GŁÓWNY
+====================================================== */
+
+function renderGame(){
+
+  if(!game) return;
+
+  $("#sandboxBanner")
+    .classList.toggle(
+      "hidden",
+      !sandbox
+    );
+
+  if(game.phase === "campaign"){
+
+    $("#phaseLabel").textContent =
+      selectedMode === "career"
+        ? "Pełna kariera · kampania"
+        : "Kampania wyborcza";
+
+    $("#gameTitle").textContent =
+      "Kampania";
+
+    $("#gameSubTitle").textContent =
+      `${selectedCountry} · ${$("#candidatePreviewName").textContent}`;
+
+  }else{
+
+    $("#phaseLabel").textContent =
+      selectedMode === "career"
+        ? "Pełna kariera · prezydentura"
+        : "Tryb prezydenta";
+
+    $("#gameTitle").textContent =
+      "Prezydentura";
+
+    $("#gameSubTitle").textContent =
+      `${selectedCountry} · ${$("#candidatePreviewName").textContent}`;
+  }
+
+  renderTabs();
+  updateClockUI();
+  renderCurrentTab();
+}
+
+function renderCurrentTab(){
+
+  if(!game) return;
+
+  const content =
+    $("#gameContent");
+
+  if(game.phase === "campaign"){
+
+    if(activeTab === "overview")
+      renderCampaignOverview(content);
+
+    if(activeTab === "campaign")
+      renderCampaignActions(content);
+
+    if(activeTab === "calendar")
+      renderCalendar(content);
+
+    if(activeTab === "polls")
+      renderPolls(content);
+
+    if(activeTab === "staff")
+      renderStaff(content);
+
+    if(activeTab === "finances")
+      renderFinances(content);
+
+    if(activeTab === "sandbox")
+      renderSandbox(content);
+
+  }else{
+
+    if(activeTab === "overview")
+      renderPresidentOverview(content);
+
+    if(activeTab === "agenda")
+      renderPresidentAgenda(content);
+
+    if(activeTab === "state")
+      renderState(content);
+
+    if(activeTab === "opinion")
+      renderOpinion(content);
+
+    if(activeTab === "calendar")
+      renderCalendar(content);
+
+    if(activeTab === "cabinet")
+      renderCabinet(content);
+
+    if(activeTab === "sandbox")
+      renderSandbox(content);
+  }
+}
+
+
+/* ======================================================
+   KAMPANIA — PULPIT
+====================================================== */
+
+function renderCampaignOverview(content){
+
+  content.innerHTML = `
+
+    <div class="dashboard">
+
+      <div class="glass panel">
+
+        <div class="section-name">
+          Stan kampanii
         </div>
 
-        <div>
+        <div class="stats-grid">
+
+          ${statCard(
+            "Poparcie",
+            game.support,
+            "%"
+          )}
+
+          ${statCard(
+            "Momentum",
+            game.momentum,
+            ""
+          )}
+
+          ${statCard(
+            "Organizacja",
+            game.organization,
+            ""
+          )}
+
+          ${statCard(
+            "Reputacja",
+            game.reputation,
+            ""
+          )}
+
+        </div>
+
+        <div class="event-card" style="margin-top:14px">
+
+          <div class="muted">
+            Środki kampanii
+          </div>
+
+          <div class="large-number">
+            ${formatMoney(game.money)}
+          </div>
+
+          <div class="muted">
+            Dzienne wydatki:
+            ${game.dailyExpenses}
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <div class="glass panel">
+
+        <div class="section-name">
+          Ostatnie wydarzenia
+        </div>
+
+        ${
+          game.news.length
+            ? game.news
+                .slice(0,6)
+                .map(n=>`
+                  <div class="news-item">
+
+                    <div class="eyebrow">
+                      ${n.date}
+                    </div>
+
+                    <div style="margin-top:4px">
+                      ${n.text}
+                    </div>
+
+                  </div>
+                `)
+                .join("")
+
+            : `
+              <div class="muted">
+                Brak wydarzeń.
+              </div>
+            `
+        }
+
+      </div>
+
+    </div>
+  `;
+}
+
+
+/* ======================================================
+   KAMPANIA — AKCJE
+====================================================== */
+
+function renderCampaignActions(content){
+
+  content.innerHTML = `
+
+    <div class="glass panel">
+
+      <div class="section-name">
+        Działania kampanii
+      </div>
+
+      <div class="actions">
+
+        ${campaignActionButton(
+          "rally",
+          "Wiec",
+          "Koszt 12 · energia 15"
+        )}
+
+        ${campaignActionButton(
+          "local",
+          "Spotkania lokalne",
+          "Koszt 7 · energia 8"
+        )}
+
+        ${campaignActionButton(
+          "media",
+          "Kampania medialna",
+          "Koszt 22 · zwiększa zasięg"
+        )}
+
+        ${campaignActionButton(
+          "debate",
+          "Przygotowanie do debaty",
+          "Koszt 10 · wzrost reputacji"
+        )}
+
+        ${campaignActionButton(
+          "volunteers",
+          "Mobilizacja wolontariuszy",
+          "Koszt 8 · rozwija organizację"
+        )}
+
+        ${campaignActionButton(
+          "fundraiser",
+          "Zbiórka funduszy",
+          "Energia 12 · zwiększa budżet"
+        )}
+
+      </div>
+
+      <div id="campaignActionMessage"
+        class="muted"
+        style="margin-top:14px">
+      </div>
+
+    </div>
+  `;
+
+  $$(".campaign-do").forEach(button=>{
+
+    button.addEventListener("click",()=>{
+
+      doCampaignAction(
+        button.dataset.action
+      );
+
+    });
+  });
+}
+
+function campaignActionButton(id,title,desc){
+
+  return `
+    <button
+      class="action campaign-do"
+      data-action="${id}"
+    >
+      ${title}
+      <small>${desc}</small>
+    </button>
+  `;
+}
+
+function doCampaignAction(type){
+
+  const actions = {
+
+    rally:{
+      money:12,
+      energy:15,
+      support:[.3,1.4],
+      momentum:4,
+      reputation:0
+    },
+
+    local:{
+      money:7,
+      energy:8,
+      support:[.2,.8],
+      momentum:2,
+      organization:2
+    },
+
+    media:{
+      money:22,
+      energy:3,
+      support:[-.2,1.5],
+      media:5,
+      momentum:3
+    },
+
+    debate:{
+      money:10,
+      energy:10,
+      support:[-.3,.9],
+      reputation:5,
+      momentum:2
+    },
+
+    volunteers:{
+      money:8,
+      energy:6,
+      organization:6,
+      volunteers:randomInt(15,40)
+    },
+
+    fundraiser:{
+      money:0,
+      energy:12,
+      funds:randomInt(12,35),
+      reputation:1
+    }
+  };
+
+  const a =
+    actions[type];
+
+  if(
+    !sandbox &&
+    a.money &&
+    game.money < a.money
+  ){
+    messageCampaign(
+      "Brakuje pieniędzy."
+    );
+    return;
+  }
+
+  if(
+    game.energy <
+    (a.energy || 0)
+  ){
+    messageCampaign(
+      "Kandydat jest zbyt zmęczony."
+    );
+    return;
+  }
+
+  if(!sandbox){
+    game.money -=
+      a.money || 0;
+  }
+
+  game.energy =
+    clamp(
+      game.energy -
+      (a.energy || 0),
+      0,
+      100
+    );
+
+  if(a.support){
+
+    game.support +=
+      random(
+        a.support[0],
+        a.support[1]
+      );
+  }
+
+  if(a.momentum)
+    game.momentum =
+      clamp(
+        game.momentum + a.momentum,
+        0,
+        100
+      );
+
+  if(a.organization)
+    game.organization =
+      clamp(
+        game.organization + a.organization,
+        0,
+        100
+      );
+
+  if(a.media)
+    game.media =
+      clamp(
+        game.media + a.media,
+        0,
+        100
+      );
+
+  if(a.reputation)
+    game.reputation =
+      clamp(
+        game.reputation + a.reputation,
+        0,
+        100
+      );
+
+  if(a.volunteers)
+    game.volunteers +=
+      a.volunteers;
+
+  if(a.funds)
+    game.money +=
+      a.funds;
+
+  normalizePolls();
+
+  addNews(
+    "Sztab przeprowadził nowe działanie kampanijne."
+  );
+
+  renderCurrentTab();
+}
+
+
+/* ======================================================
+   SONDAŻE
+====================================================== */
+
+function renderPolls(content){
+
+  normalizePolls();
+
+  content.innerHTML = `
+
+    <div class="dashboard">
+
+      <div class="glass panel">
+
+        <div class="section-name">
+          Aktualny sondaż
+        </div>
+
+        ${pollRow(
+          $("#lastName").value || "Twój kandydat",
+          game.support
+        )}
+
+        ${pollRow(
+          "Kandydat A",
+          game.rivalA
+        )}
+
+        ${pollRow(
+          "Kandydat B",
+          game.rivalB
+        )}
+
+      </div>
+
+
+      <div class="glass panel">
+
+        <div class="section-name">
+          Czynniki kampanii
+        </div>
+
+        ${smallStat("Media",game.media)}
+        ${smallStat("Organizacja",game.organization)}
+        ${smallStat("Reputacja",game.reputation)}
+        ${smallStat("Momentum",game.momentum)}
+
+      </div>
+
+    </div>
+  `;
+}
+
+
+/* ======================================================
+   SZTAB
+====================================================== */
+
+function renderStaff(content){
+
+  const roles = [
+    ["manager","Szef kampanii"],
+    ["media","Zespół medialny"],
+    ["field","Koordynator terenowy"],
+    ["finance","Finanse kampanii"]
+  ];
+
+  content.innerHTML = `
+
+    <div class="glass panel">
+
+      <div class="section-name">
+        Sztab kampanii
+      </div>
+
+      ${roles.map(([id,name])=>`
+
+        <div class="staff-item">
+
+          <div style="
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            gap:14px
+          ">
+
+            <div>
+              <strong>${name}</strong>
+              <div class="muted">
+                Poziom ${game.staff[id]}
+              </div>
+            </div>
+
+            <button
+              class="btn-soft upgrade-staff"
+              data-role="${id}"
+            >
+              Ulepsz · ${10*game.staff[id]}
+            </button>
+
+          </div>
+
+        </div>
+
+      `).join("")}
+
+    </div>
+  `;
+
+  $$(".upgrade-staff")
+    .forEach(button=>{
+
+      button.addEventListener("click",()=>{
+
+        const role =
+          button.dataset.role;
+
+        const cost =
+          10 * game.staff[role];
+
+        if(
+          !sandbox &&
+          game.money < cost
+        ){
+          return;
+        }
+
+        if(!sandbox){
+          game.money -= cost;
+        }
+
+        game.staff[role]++;
+
+        if(role === "media")
+          game.media =
+            clamp(game.media+5,0,100);
+
+        if(role === "field")
+          game.organization =
+            clamp(game.organization+5,0,100);
+
+        if(role === "manager")
+          game.momentum =
+            clamp(game.momentum+4,0,100);
+
+        renderStaff(content);
+      });
+    });
+}
+
+
+/* ======================================================
+   FINANSE
+====================================================== */
+
+function renderFinances(content){
+
+  content.innerHTML = `
+
+    <div class="two-columns">
+
+      <div class="glass panel">
+
+        <div class="section-name">
+          Stan środków
+        </div>
+
+        <div class="large-number">
+          ${formatMoney(game.money)}
+        </div>
+
+        <div class="muted">
+          Dzienne koszty:
+          ${formatMoney(game.dailyExpenses)}
+        </div>
+
+      </div>
+
+
+      <div class="glass panel">
+
+        <div class="section-name">
+          Finanse
+        </div>
+
+        <button
+          id="financeFundraiser"
+          class="action"
+          style="width:100%"
+        >
+          Zorganizuj zbiórkę
+          <small>
+            Zwiększa środki, kosztuje energię.
+          </small>
+        </button>
+
+      </div>
+
+    </div>
+  `;
+
+  $("#financeFundraiser")
+    .addEventListener("click",()=>{
+
+      doCampaignAction("fundraiser");
+      renderFinances(content);
+    });
+}
+
+
+/* ======================================================
+   KALENDARZ
+====================================================== */
+
+function renderCalendar(content){
+
+  content.innerHTML = `
+
+    <div class="glass panel">
+
+      <div class="section-name">
+        Kalendarz
+      </div>
+
+      ${
+        game.calendar.length
+
+          ? game.calendar
+              .slice()
+              .sort(
+                (a,b)=>
+                  a.date-b.date
+              )
+              .map(item=>`
+
+                <div class="calendar-item">
+
+                  <div class="eyebrow">
+                    ${formatDateTime(item.date)}
+                  </div>
+
+                  <strong>
+                    ${item.title}
+                  </strong>
+
+                </div>
+
+              `)
+              .join("")
+
+          : `
+            <div class="muted">
+              Brak zaplanowanych wydarzeń.
+            </div>
+          `
+      }
+
+    </div>
+  `;
+}
+
+
+/* ======================================================
+   PREZYDENTURA
+====================================================== */
+
+function renderPresidentOverview(content){
+
+  content.innerHTML = `
+
+    <div class="dashboard">
+
+      <div class="glass panel">
+
+        <div class="section-name">
+          Państwo
+        </div>
+
+        <div class="stats-grid">
+
+          ${statCard(
+            "Poparcie",
+            game.approval
+          )}
+
+          ${statCard(
+            "Gospodarka",
+            game.economy,
+            ""
+          )}
+
+          ${statCard(
+            "Usługi publiczne",
+            game.services,
+            ""
+          )}
+
+          ${statCard(
+            "Stabilność",
+            game.stability,
+            ""
+          )}
+
+        </div>
+
+        <div class="event-card" style="margin-top:14px">
+
+          <div class="muted">
+            Budżet państwa
+          </div>
+
+          <div class="large-number">
+            ${formatMoney(game.stateBudget)}
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <div class="glass panel">
+
+        <div class="section-name">
+          Ostatnie wydarzenia
+        </div>
+
+        ${
+          game.news
+            .slice(0,7)
+            .map(n=>`
+
+              <div class="news-item">
+
+                <div class="eyebrow">
+                  ${n.date}
+                </div>
+
+                <div>
+                  ${n.text}
+                </div>
+
+              </div>
+
+            `)
+            .join("")
+        }
+
+      </div>
+
+    </div>
+  `;
+}
+
+function renderPresidentAgenda(content){
+
+  if(!game.presidentEvent){
+
+    content.innerHTML = `
+
+      <div class="glass panel">
+
+        <div class="section-name">
+          Agenda
+        </div>
+
+        <div class="event-card">
 
           <strong>
-            ${name}
+            Brak pilnej decyzji.
           </strong>
 
-          <div class="country-code">
-            ${code}
+          <div class="choice-desc">
+            Czas płynie automatycznie.
+            Nowe sprawy będą pojawiały się w trakcie urzędowania.
           </div>
 
         </div>
@@ -1682,1811 +2385,1217 @@ countries.forEach(
       </div>
     `;
 
-    countryGrid.appendChild(button);
-
+    return;
   }
-);
+
+  const ev =
+    game.presidentEvent;
+
+  content.innerHTML = `
+
+    <div class="glass panel">
+
+      <div class="section-name">
+        Decyzja wymagająca uwagi
+      </div>
+
+      <div class="event-card">
+
+        <h3 style="margin-top:0">
+          ${ev.title}
+        </h3>
+
+        <div class="muted">
+          ${ev.description}
+        </div>
+
+        <div
+          id="presidentChoices"
+          style="
+            display:grid;
+            gap:9px;
+            margin-top:16px
+          "
+        ></div>
+
+      </div>
+
+    </div>
+  `;
+
+  ev.options.forEach(option=>{
+
+    const button =
+      document.createElement("button");
+
+    button.className =
+      "action";
+
+    button.innerHTML =
+      option.label;
+
+    button.addEventListener("click",()=>{
+
+      applyPresidentEffects(
+        option.effects
+      );
+
+      addNews(
+        "Prezydent podjął decyzję w sprawie: " +
+        ev.title
+      );
+
+      game.presidentEvent = null;
+
+      renderCurrentTab();
+    });
+
+    $("#presidentChoices")
+      .appendChild(button);
+  });
+}
+
+function renderState(content){
+
+  content.innerHTML = `
+
+    <div class="glass panel">
+
+      <div class="section-name">
+        Wskaźniki państwa
+      </div>
+
+      <div class="stats-grid">
+
+        ${statCard(
+          "Gospodarka",
+          game.economy,
+          ""
+        )}
+
+        ${statCard(
+          "Usługi publiczne",
+          game.services,
+          ""
+        )}
+
+        ${statCard(
+          "Stabilność",
+          game.stability,
+          ""
+        )}
+
+        ${statCard(
+          "Relacje zewnętrzne",
+          game.foreignRelations,
+          ""
+        )}
+
+      </div>
+
+    </div>
+  `;
+}
+
+function renderOpinion(content){
+
+  content.innerHTML = `
+
+    <div class="two-columns">
+
+      <div class="glass panel">
+
+        <div class="section-name">
+          Poparcie społeczne
+        </div>
+
+        ${statCard(
+          "Poparcie",
+          game.approval
+        )}
+
+      </div>
+
+      <div class="glass panel">
+
+        <div class="section-name">
+          Ocena sytuacji
+        </div>
+
+        ${smallStat(
+          "Gospodarka",
+          game.economy
+        )}
+
+        ${smallStat(
+          "Usługi",
+          game.services
+        )}
+
+        ${smallStat(
+          "Stabilność",
+          game.stability
+        )}
+
+      </div>
+
+    </div>
+  `;
+}
+
+function renderCabinet(content){
+
+  content.innerHTML = `
+
+    <div class="glass panel">
+
+      <div class="section-name">
+        Współpraca z administracją
+      </div>
+
+      <div class="staff-item">
+        <strong>Koordynacja gospodarcza</strong>
+        <div class="choice-desc">
+          Wpływa na szybkość reagowania na problemy gospodarcze.
+        </div>
+      </div>
+
+      <div class="staff-item">
+        <strong>Polityka społeczna</strong>
+        <div class="choice-desc">
+          Wpływa na usługi publiczne i reakcje społeczne.
+        </div>
+      </div>
+
+      <div class="staff-item">
+        <strong>Administracja</strong>
+        <div class="choice-desc">
+          Wpływa na stabilność działania państwa.
+        </div>
+      </div>
+
+    </div>
+  `;
+}
 
 
-$$(".country-choice").forEach(
-  button => {
+/* ======================================================
+   PIASKOWNICA
+====================================================== */
 
-    button.addEventListener(
-      "click",
-      () => {
+function renderSandbox(content){
 
-        $$(".country-choice")
-          .forEach(
-            x =>
-              x.classList.remove("selected")
-          );
-
-        button.classList.add("selected");
-
-        selectedCountry =
-          button.dataset.country;
-
-        selectedIso =
-          button.dataset.iso;
-
-        updateSetupSummary();
-
-      }
-    );
-
+  if(!sandbox){
+    return;
   }
-);
 
+  if(game.phase === "campaign"){
 
-/* =========================================================
-   TRYBY GRY
-========================================================= */
+    content.innerHTML = `
 
-$$(".mode-choice").forEach(
-  button => {
+      <div class="sandbox-panel">
 
-    button.addEventListener(
-      "click",
-      () => {
+        <div class="section-name">
+          Piaskownica MAX · Kampania
+        </div>
 
-        $$(".mode-choice")
-          .forEach(
-            x =>
-              x.classList.remove("selected")
-          );
+        <div class="sandbox-grid">
 
-        button.classList.add("selected");
+          ${sandboxSlider(
+            "sbSupport",
+            "Poparcie",
+            game.support,
+            0,
+            100
+          )}
 
-        selectedMode =
-          button.dataset.mode;
+          ${sandboxSlider(
+            "sbMomentum",
+            "Momentum",
+            game.momentum,
+            0,
+            100
+          )}
 
-        updateSetupSummary();
+          ${sandboxSlider(
+            "sbOrg",
+            "Organizacja",
+            game.organization,
+            0,
+            100
+          )}
 
-      }
-    );
+          <div class="control-box">
 
+            <label>
+              <span>Budżet</span>
+            </label>
+
+            <input
+              id="sbMoney"
+              class="field"
+              type="number"
+              value="${Math.round(game.money)}"
+              min="0"
+              max="99999999"
+            >
+
+          </div>
+
+        </div>
+
+        <div class="actions" style="margin-top:12px">
+
+          <button id="sbElectionNow" class="action">
+            Uruchom wybory teraz
+          </button>
+
+          ${
+            selectedMode === "career"
+
+              ? `
+                <button id="sbPresidentNow" class="action">
+                  Przejdź do prezydentury
+                </button>
+              `
+
+              : ""
+          }
+
+          <button id="sbAdd30Days" class="action">
+            +30 dni kampanii
+          </button>
+
+          <button id="sbRandomEvent" class="action">
+            Wygeneruj wydarzenie
+          </button>
+
+        </div>
+
+      </div>
+    `;
+
+    bindCampaignSandbox();
+
+  }else{
+
+    content.innerHTML = `
+
+      <div class="sandbox-panel">
+
+        <div class="section-name">
+          Piaskownica MAX · Prezydentura
+        </div>
+
+        <div class="sandbox-grid">
+
+          ${sandboxSlider(
+            "sbApproval",
+            "Poparcie",
+            game.approval,
+            0,
+            100
+          )}
+
+          ${sandboxSlider(
+            "sbEconomy",
+            "Gospodarka",
+            game.economy,
+            0,
+            100
+          )}
+
+          ${sandboxSlider(
+            "sbServices",
+            "Usługi",
+            game.services,
+            0,
+            100
+          )}
+
+          ${sandboxSlider(
+            "sbStability",
+            "Stabilność",
+            game.stability,
+            0,
+            100
+          )}
+
+        </div>
+
+        <div class="actions" style="margin-top:12px">
+
+          <button id="sbPresidentEvent" class="action">
+            Wygeneruj decyzję
+          </button>
+
+          <button id="sbWeek" class="action">
+            Przeskocz 7 dni
+          </button>
+
+        </div>
+
+      </div>
+    `;
+
+    bindPresidentSandbox();
   }
-);
+}
 
+function sandboxSlider(
+  id,
+  label,
+  value,
+  min,
+  max
+){
 
-/* =========================================================
-   PIASKOWNICA MAX
-========================================================= */
+  return `
 
-$("#sandboxChoice")
-  .addEventListener(
-    "click",
-    () => {
+    <div class="control-box">
 
-      sandboxEnabled =
-        !sandboxEnabled;
+      <label>
+        <span>
+          ${label}:
+          <b id="${id}Value">
+            ${Math.round(value)}
+          </b>
+        </span>
+      </label>
 
-      $("#sandboxChoice")
-        .classList.toggle(
-          "selected",
-          sandboxEnabled
-        );
+      <input
+        id="${id}"
+        type="range"
+        min="${min}"
+        max="${max}"
+        value="${value}"
+      >
 
-      updateSetupSummary();
+    </div>
+  `;
+}
 
+function bindCampaignSandbox(){
+
+  bindSlider(
+    "sbSupport",
+    value=>{
+      game.support = value;
+      normalizePolls();
     }
   );
 
-
-function updateSetupSummary() {
-
-  $("#setupSummary").textContent =
-
-    selectedCountry +
-    " · " +
-    modeNames[selectedMode] +
-
-    (
-      sandboxEnabled
-        ? " · Piaskownica MAX"
-        : ""
-    );
-
-}
-
-
-/* =========================================================
-   KANDYDAT
-========================================================= */
-
-function updateCandidatePreview() {
-
-  const first =
-    $("#candidateFirstName")
-      .value
-      .trim() || "Kandydat";
-
-  const last =
-    $("#candidateLastName")
-      .value
-      .trim();
-
-  $("#previewCandidateName")
-    .textContent =
-      `${first} ${last}`.trim();
-
-  $("#previewCandidateParty")
-    .textContent =
-      $("#candidateParty")
-        .value
-        .trim() ||
-      "Bez nazwy";
-
-  $("#previewCountry")
-    .textContent =
-      selectedCountry;
-
-  $("#previewMode")
-    .textContent =
-      modeNames[selectedMode];
-
-  $("#previewSandbox")
-    .textContent =
-      sandboxEnabled
-        ? "Piaskownica MAX"
-        : "Wyłączony";
-
-  $("#previewSlogan")
-    .textContent =
-      "„" +
-      (
-        $("#candidateSlogan")
-          .value
-          .trim() ||
-        "Bez hasła"
-      ) +
-      "”";
-
-}
-
-
-[
-  "#candidateFirstName",
-  "#candidateLastName",
-  "#candidateParty",
-  "#candidateSlogan",
-  "#candidateFocus",
-  "#candidateBackground"
-]
-.forEach(
-  selector => {
-
-    $(selector).addEventListener(
-      "input",
-      updateCandidatePreview
-    );
-
-  }
-);
-
-
-/* =========================================================
-   ROZPOCZĘCIE GRY
-========================================================= */
-
-function startGame() {
-
-  state = {
-
-    phase:
-      selectedMode === "president"
-        ? "presidency"
-        : "campaign",
-
-    week: 1,
-
-    month: 1,
-
-    support: 32,
-
-    rivalA: 36,
-
-    rivalB: 32,
-
-    campaignMoney:
-      sandboxEnabled
-        ? 999
-        : 100,
-
-    momentum: 50,
-
-    approval: 55,
-
-    economy: 50,
-
-    services: 50,
-
-    stability: 50,
-
-    stateBudget:
-      sandboxEnabled
-        ? 999
-        : 100,
-
-    eventIndex: 0
-
-  };
-
-  $("#sandboxActiveBanner")
-    .classList.toggle(
-      "hidden",
-      !sandboxEnabled
-    );
-
-  showScreen("gameplay");
-
-  renderGame();
-
-}
-
-
-/* =========================================================
-   HELPERS
-========================================================= */
-
-function clamp(value, min, max) {
-
-  return Math.max(
-    min,
-    Math.min(max, value)
+  bindSlider(
+    "sbMomentum",
+    value=>{
+      game.momentum = value;
+    }
   );
 
+  bindSlider(
+    "sbOrg",
+    value=>{
+      game.organization = value;
+    }
+  );
+
+  $("#sbMoney")
+    .addEventListener("input",e=>{
+
+      game.money =
+        Math.max(
+          0,
+          Number(e.target.value)||0
+        );
+    });
+
+  $("#sbElectionNow")
+    .addEventListener("click",()=>{
+      resolveElection();
+    });
+
+  const president =
+    $("#sbPresidentNow");
+
+  if(president){
+
+    president.addEventListener("click",()=>{
+      startPresidency();
+    });
+  }
+
+  $("#sbAdd30Days")
+    .addEventListener("click",()=>{
+
+      game.electionDate.setDate(
+        game.electionDate.getDate()+30
+      );
+
+      updateClockUI();
+    });
+
+  $("#sbRandomEvent")
+    .addEventListener("click",()=>{
+      generateCampaignEvent();
+      renderCurrentTab();
+    });
+}
+
+function bindPresidentSandbox(){
+
+  bindSlider(
+    "sbApproval",
+    value=>game.approval=value
+  );
+
+  bindSlider(
+    "sbEconomy",
+    value=>game.economy=value
+  );
+
+  bindSlider(
+    "sbServices",
+    value=>game.services=value
+  );
+
+  bindSlider(
+    "sbStability",
+    value=>game.stability=value
+  );
+
+  $("#sbPresidentEvent")
+    .addEventListener("click",()=>{
+      generatePresidentEvent();
+      activeTab="agenda";
+      renderGame();
+    });
+
+  $("#sbWeek")
+    .addEventListener("click",()=>{
+
+      for(let i=0;i<7;i++){
+        game.date.setDate(
+          game.date.getDate()+1
+        );
+        presidentNewDay();
+      }
+
+      renderCurrentTab();
+      updateClockUI();
+    });
+}
+
+function bindSlider(id,callback){
+
+  const input =
+    $("#"+id);
+
+  input.addEventListener("input",e=>{
+
+    const value =
+      Number(e.target.value);
+
+    $("#"+id+"Value")
+      .textContent =
+        Math.round(value);
+
+    callback(value);
+  });
 }
 
 
-function normalizePoll() {
+/* ======================================================
+   WYDARZENIA
+====================================================== */
 
-  state.support =
-    clamp(
-      state.support,
-      5,
-      85
-    );
+function generateCampaignEvent(){
 
-  const remaining =
-    100 - state.support;
+  const events = [
 
-  const total =
-    Math.max(
-      1,
-      state.rivalA +
-      state.rivalB
-    );
+    {
+      text:
+        "Lokalne media szeroko komentują ostatnie wystąpienie kandydata.",
+      effect:()=>{
+        game.media =
+          clamp(game.media+2,0,100);
 
-  state.rivalA =
-    Math.round(
-      remaining *
-      (
-        state.rivalA /
-        total
+        game.support +=
+          random(-.4,.7);
+      }
+    },
+
+    {
+      text:
+        "Do sztabu zgłosiła się nowa grupa wolontariuszy.",
+      effect:()=>{
+        game.volunteers +=
+          randomInt(15,45);
+
+        game.organization =
+          clamp(
+            game.organization+2,
+            0,
+            100
+          );
+      }
+    },
+
+    {
+      text:
+        "Rywal uruchomił intensywną kampanię medialną.",
+      effect:()=>{
+        game.support -=
+          random(0,.6);
+      }
+    },
+
+    {
+      text:
+        "Udane wydarzenie lokalne poprawiło energię kampanii.",
+      effect:()=>{
+        game.momentum =
+          clamp(game.momentum+4,0,100);
+      }
+    }
+
+  ];
+
+  const event =
+    events[
+      randomInt(
+        0,
+        events.length-1
       )
-    );
+    ];
 
-  state.rivalB =
-    100 -
-    state.support -
-    state.rivalA;
+  event.effect();
 
+  normalizePolls();
+
+  addNews(event.text);
+}
+
+function generatePresidentEvent(){
+
+  const events = [
+
+    {
+      title:"Program infrastrukturalny",
+
+      description:
+        "Administracja przedstawia plan nowych inwestycji.",
+
+      options:[
+        {
+          label:"Duży program inwestycji",
+          effects:{
+            stateBudget:-12,
+            economy:6,
+            approval:2
+          }
+        },
+
+        {
+          label:"Ograniczony program",
+          effects:{
+            stateBudget:-6,
+            economy:3,
+            approval:1
+          }
+        },
+
+        {
+          label:"Bez dodatkowych wydatków",
+          effects:{
+            stateBudget:3,
+            economy:-2,
+            approval:-2
+          }
+        }
+      ]
+    },
+
+    {
+      title:"Finansowanie usług publicznych",
+
+      description:
+        "Administracja proponuje zwiększenie środków na usługi publiczne.",
+
+      options:[
+        {
+          label:"Zwiększ finansowanie",
+          effects:{
+            stateBudget:-10,
+            services:7,
+            approval:3
+          }
+        },
+
+        {
+          label:"Umiarkowane zwiększenie",
+          effects:{
+            stateBudget:-5,
+            services:3,
+            approval:1
+          }
+        },
+
+        {
+          label:"Bez zmian",
+          effects:{
+            services:-2,
+            approval:-1
+          }
+        }
+      ]
+    },
+
+    {
+      title:"Spór instytucjonalny",
+
+      description:
+        "Pojawiło się napięcie między najważniejszymi instytucjami państwa.",
+
+      options:[
+        {
+          label:"Rozpocznij negocjacje",
+          effects:{
+            stability:5,
+            approval:2
+          }
+        },
+
+        {
+          label:"Zachowaj dystans",
+          effects:{
+            stability:1
+          }
+        },
+
+        {
+          label:"Podejmij zdecydowaną interwencję",
+          effects:{
+            stability:-2,
+            approval:randomInt(-2,2)
+          }
+        }
+      ]
+    }
+
+  ];
+
+  game.presidentEvent =
+    events[
+      randomInt(
+        0,
+        events.length-1
+      )
+    ];
+
+  game.lastPresidentEventDay =
+    game.daysInOffice;
+
+  addNews(
+    "Pojawiła się nowa sprawa wymagająca decyzji."
+  );
+}
+
+function applyPresidentEffects(effects){
+
+  Object.entries(effects)
+    .forEach(([key,value])=>{
+
+      if(key === "stateBudget"){
+
+        game[key] =
+          Math.max(
+            0,
+            game[key]+value
+          );
+
+      }else{
+
+        game[key] =
+          clamp(
+            game[key]+value,
+            0,
+            100
+          );
+      }
+    });
 }
 
 
-function statCard(
-  label,
-  value,
-  suffix = "%"
-) {
+/* ======================================================
+   WYBORY / PRZEJŚCIE DO PREZYDENTURY
+====================================================== */
+
+function resolveElection(){
+
+  normalizePolls();
+
+  game.paused = true;
+
+  const won =
+    game.support >
+      game.rivalA &&
+    game.support >
+      game.rivalB;
+
+  game.finished = true;
+
+  $("#tabs").innerHTML="";
+
+  $("#phaseLabel").textContent =
+    "Wynik wyborów";
+
+  $("#gameTitle").textContent =
+    won
+      ? "Zwycięstwo"
+      : "Koniec kampanii";
+
+  $("#gameContent").innerHTML = `
+
+    <div class="glass panel" style="
+      max-width:650px;
+      margin:auto;
+      text-align:center
+    ">
+
+      <div class="large-number" style="font-size:60px">
+        ${game.support.toFixed(1)}%
+      </div>
+
+      <div class="muted">
+        Twój wynik
+      </div>
+
+      <h3 style="margin-top:25px">
+
+        ${
+          won
+            ? "Twój kandydat uzyskał najwyższe poparcie w symulacji."
+            : "Inny kandydat uzyskał najwyższe poparcie w symulacji."
+        }
+
+      </h3>
+
+      ${
+        won &&
+        selectedMode === "career"
+
+          ? `
+            <button
+              id="continuePresident"
+              class="btn"
+              style="margin-top:20px"
+            >
+              Rozpocznij prezydenturę
+            </button>
+          `
+
+          : `
+            <button
+              id="resultMenu"
+              class="btn"
+              style="margin-top:20px"
+            >
+              Menu główne
+            </button>
+          `
+      }
+
+    </div>
+  `;
+
+  const continueBtn =
+    $("#continuePresident");
+
+  if(continueBtn){
+
+    continueBtn
+      .addEventListener("click",()=>{
+        startPresidency();
+      });
+
+  }else{
+
+    $("#resultMenu")
+      .addEventListener("click",()=>{
+        showScreen("home");
+      });
+  }
+}
+
+function startPresidency(){
+
+  game.phase =
+    "president";
+
+  game.finished = false;
+  game.paused = false;
+
+  game.daysInOffice = 0;
+
+  activeTab =
+    "overview";
+
+  addNews(
+    "Rozpoczęła się prezydentura."
+  );
+
+  renderGame();
+}
+
+
+/* ======================================================
+   UI HELPERS
+====================================================== */
+
+function statCard(label,value,suffix="%"){
 
   return `
 
     <div class="stat">
 
-      <div class="stat-header">
+      <div class="stat-head">
 
         <span class="muted">
           ${label}
         </span>
 
         <strong>
-          ${value}${suffix}
+          ${Math.round(value)}
+          ${suffix}
         </strong>
 
       </div>
 
       <div class="bar">
-
-        <div
-          class="bar-inner"
-          style="
-            width:
-            ${clamp(value,0,100)}%
-          "
-        ></div>
-
+        <div style="width:${clamp(value,0,100)}%"></div>
       </div>
 
     </div>
   `;
-
 }
 
-
-function pollRow(
-  name,
-  value
-) {
+function smallStat(label,value){
 
   return `
 
-    <div style="margin-bottom:15px">
+    <div class="poll-row">
 
-      <div class="stat-header">
+      <div class="stat-head">
 
-        <span>
-          ${name}
-        </span>
+        <span>${label}</span>
 
         <strong>
-          ${value}%
+          ${Math.round(value)}
         </strong>
 
       </div>
 
       <div class="bar">
-
-        <div
-          class="bar-inner"
-          style="width:${value}%"
-        ></div>
-
+        <div style="width:${clamp(value,0,100)}%"></div>
       </div>
 
     </div>
   `;
-
 }
 
+function pollRow(name,value){
 
-/* =========================================================
-   KAMPANIA
-========================================================= */
+  return `
 
-function renderCampaign() {
+    <div class="poll-row">
 
-  normalizePoll();
+      <div class="stat-head">
 
-  $("#gamePhaseLabel")
-    .textContent =
+        <span>${name}</span>
 
-      selectedMode === "career"
-        ? "Pełna kariera · Kampania"
-        : "Tryb wyborczy";
-
-
-  $("#gameHeading")
-    .textContent =
-      "Kampania wyborcza";
-
-
-  $("#gameSubheading")
-    .textContent =
-
-      selectedCountry +
-
-      " · tydzień " +
-
-      state.week +
-
-      (
-        sandboxEnabled
-          ? " · bez limitu"
-          : " / 8"
-      );
-
-
-  $("#gameplayBody")
-    .innerHTML = `
-
-      <div class="game-layout">
-
-        <div class="glass">
-
-          <div class="stats-grid">
-
-            ${statCard(
-              "Twoje poparcie",
-              state.support
-            )}
-
-            ${statCard(
-              "Impuls kampanii",
-              state.momentum
-            )}
-
-          </div>
-
-
-          <div class="event">
-
-            <strong>
-              Działanie kampanii
-            </strong>
-
-            <div class="actions-grid">
-
-              <button
-                class="action campaign-action"
-                data-action="local"
-              >
-                Spotkania lokalne
-
-                <small>
-                  Koszt 8
-                </small>
-              </button>
-
-
-              <button
-                class="action campaign-action"
-                data-action="debate"
-              >
-                Debata
-
-                <small>
-                  Koszt 10
-                </small>
-              </button>
-
-
-              <button
-                class="action campaign-action"
-                data-action="media"
-              >
-                Kampania medialna
-
-                <small>
-                  Koszt 24
-                </small>
-              </button>
-
-
-              <button
-                class="action campaign-action"
-                data-action="tour"
-              >
-                Trasa kampanijna
-
-                <small>
-                  Koszt 15
-                </small>
-              </button>
-
-            </div>
-
-
-            <div
-              id="gameMessage"
-              class="muted"
-              style="margin-top:14px"
-            ></div>
-
-          </div>
-
-        </div>
-
-
-        <aside class="glass">
-
-          <strong>
-            Sondaż
-          </strong>
-
-          <div style="margin-top:18px">
-
-            ${pollRow(
-              $("#candidateLastName")
-                .value ||
-              "Kandydat",
-
-              state.support
-            )}
-
-            ${pollRow(
-              "Rywal A",
-              state.rivalA
-            )}
-
-            ${pollRow(
-              "Rywal B",
-              state.rivalB
-            )}
-
-          </div>
-
-
-          <div class="quote-box">
-
-            <div class="muted">
-              Budżet kampanii
-            </div>
-
-            <div
-              style="
-                font-size:28px;
-                font-weight:900;
-                margin-top:5px
-              "
-            >
-              ${state.campaignMoney}
-            </div>
-
-          </div>
-
-        </aside>
+        <strong>
+          ${value.toFixed(1)}%
+        </strong>
 
       </div>
 
+      <div class="bar">
+        <div style="width:${clamp(value,0,100)}%"></div>
+      </div>
 
-      ${renderCampaignSandbox()}
-    `;
-
-
-  $$(".campaign-action")
-    .forEach(
-      button => {
-
-        button.addEventListener(
-          "click",
-          () =>
-            campaignAction(
-              button.dataset.action
-            )
-        );
-
-      }
-    );
-
-
-  bindCampaignSandbox();
-
+    </div>
+  `;
 }
 
+function normalizePolls(){
 
-function campaignAction(type) {
-
-  const actions = {
-
-    local: {
-      cost: 8,
-      min: 2,
-      max: 4
-    },
-
-    debate: {
-      cost: 10,
-      min: -2,
-      max: 7
-    },
-
-    media: {
-      cost: 24,
-      min: 1,
-      max: 6
-    },
-
-    tour: {
-      cost: 15,
-      min: 0,
-      max: 5
-    }
-
-  };
-
-
-  const action =
-    actions[type];
-
-
-  if (
-    !sandboxEnabled &&
-    state.campaignMoney <
-    action.cost
-  ) {
-
-    $("#gameMessage")
-      .textContent =
-        "Za mało środków.";
-
-    return;
-
-  }
-
-
-  if (!sandboxEnabled) {
-
-    state.campaignMoney -=
-      action.cost;
-
-  }
-
-
-  const change =
-
-    Math.floor(
-      Math.random() *
-      (
-        action.max -
-        action.min +
-        1
-      )
-    ) +
-
-    action.min;
-
-
-  state.support += change;
-
-  state.rivalA +=
-    Math.floor(
-      Math.random() * 5
-    ) - 2;
-
-  state.rivalB +=
-    Math.floor(
-      Math.random() * 5
-    ) - 2;
-
-
-  state.momentum =
+  game.support =
     clamp(
-      state.momentum +
-      change * 3,
-      0,
-      100
+      game.support,
+      2,
+      90
     );
 
+  const remaining =
+    100-game.support;
 
-  normalizePoll();
+  const total =
+    Math.max(
+      .1,
+      game.rivalA+game.rivalB
+    );
 
+  game.rivalA =
+    remaining*
+    game.rivalA/
+    total;
 
-  state.week++;
-
-
-  if (
-    !sandboxEnabled &&
-    state.week > 8
-  ) {
-
-    finishElection();
-
-    return;
-
-  }
-
-
-  renderCampaign();
-
+  game.rivalB =
+    100-
+    game.support-
+    game.rivalA;
 }
 
+function addNews(text){
 
-/* =========================================================
-   WYNIK WYBORÓW
-========================================================= */
+  game.news.unshift({
+    date:formatShortDate(game.date),
+    text
+  });
 
-function finishElection() {
-
-  normalizePoll();
-
-  const win =
-
-    state.support >
-      state.rivalA &&
-
-    state.support >
-      state.rivalB;
-
-
-  if (
-    selectedMode ===
-    "election"
-  ) {
-
-    renderElectionResult(win);
-
-    return;
-
+  if(game.news.length>25){
+    game.news.length=25;
   }
+}
 
+function messageCampaign(text){
 
-  if (
-    selectedMode ===
-    "career"
-  ) {
+  const el =
+    $("#campaignActionMessage");
 
-    if (win) {
+  if(el){
+    el.textContent=text;
+  }
+}
 
-      state.phase =
-        "presidency";
+function formatDateTime(date){
 
-      state.month = 1;
-
-      renderGame();
-
+  return new Intl.DateTimeFormat(
+    "pl-PL",
+    {
+      day:"2-digit",
+      month:"2-digit",
+      year:"numeric",
+      hour:"2-digit",
+      minute:"2-digit"
     }
+  ).format(date);
+}
 
-    else {
+function formatShortDate(date){
 
-      renderElectionResult(false);
-
+  return new Intl.DateTimeFormat(
+    "pl-PL",
+    {
+      day:"2-digit",
+      month:"2-digit"
     }
+  ).format(date);
+}
 
-  }
+function formatMoney(value){
 
+  return Math.round(value)
+    .toLocaleString("pl-PL") +
+    " mln";
+}
+
+function clamp(v,min,max){
+  return Math.max(min,Math.min(max,v));
+}
+
+function random(min,max){
+  return Math.random()*(max-min)+min;
+}
+
+function randomInt(min,max){
+  return Math.floor(
+    Math.random()*(max-min+1)
+  )+min;
 }
 
 
-function renderElectionResult(win) {
+/* ======================================================
+   PRĘDKOŚĆ CZASU
+====================================================== */
 
-  $("#gamePhaseLabel")
-    .textContent =
-      "Wynik wyborów";
+$$(".speed[data-speed]")
+  .forEach(button=>{
 
+    button.addEventListener("click",()=>{
 
-  $("#gameHeading")
-    .textContent =
-      win
-        ? "Zwycięstwo"
-        : "Koniec kampanii";
+      if(!game) return;
 
-
-  $("#gameSubheading")
-    .textContent =
-      selectedCountry;
-
-
-  $("#gameplayBody")
-    .innerHTML = `
-
-      <div
-        class="glass"
-        style="
-          max-width:600px;
-          margin:auto;
-          text-align:center;
-          padding:35px
-        "
-      >
-
-        <div
-          style="
-            font-size:60px;
-            font-weight:950
-          "
-        >
-          ${state.support}%
-        </div>
-
-        <div class="muted">
-          Twój wynik
-        </div>
-
-
-        <h3 style="margin-top:25px">
-
-          ${
-            win
-              ? "Zdobyłeś najwyższe poparcie."
-              : "Inny kandydat zdobył najwyższe poparcie."
-          }
-
-        </h3>
-
-
-        <button
-          id="resultMenuButton"
-          class="button"
-          style="margin-top:22px"
-        >
-          Menu główne
-        </button>
-
-      </div>
-    `;
-
-
-  $("#resultMenuButton")
-    .addEventListener(
-      "click",
-      () =>
-        showScreen("home")
-    );
-
-}
-
-
-/* =========================================================
-   PREZYDENTURA
-========================================================= */
-
-const presidentEvents = [
-
-  {
-    text:
-      "Rząd proponuje duży program inwestycji infrastrukturalnych.",
-
-    options: [
-
-      [
-        "Poprzyj szeroki program",
-        {
-          stateBudget: -14,
-          economy: 6,
-          approval: 2
-        }
-      ],
-
-      [
-        "Ogranicz program",
-        {
-          stateBudget: -7,
-          economy: 3,
-          approval: 1
-        }
-      ],
-
-      [
-        "Nie zwiększaj wydatków",
-        {
-          stateBudget: 4,
-          economy: -2,
-          approval: -2
-        }
-      ]
-
-    ]
-  },
-
-
-  {
-    text:
-      "Samorządy proszą o dodatkowe finansowanie usług publicznych.",
-
-    options: [
-
-      [
-        "Zwiększ finansowanie",
-        {
-          stateBudget: -12,
-          services: 7,
-          approval: 3
-        }
-      ],
-
-      [
-        "Pomoc częściowa",
-        {
-          stateBudget: -6,
-          services: 3,
-          approval: 1
-        }
-      ],
-
-      [
-        "Bez dodatkowych środków",
-        {
-          stateBudget: 3,
-          services: -2,
-          approval: -2
-        }
-      ]
-
-    ]
-  },
-
-
-  {
-    text:
-      "Narasta spór między rządem a parlamentem.",
-
-    options: [
-
-      [
-        "Rozpocznij negocjacje",
-        {
-          stability: 5,
-          approval: 2
-        }
-      ],
-
-      [
-        "Poprzyj rząd",
-        {
-          stability: -2,
-          approval: 1
-        }
-      ],
-
-      [
-        "Zachowaj dystans",
-        {
-          stability: 1,
-          approval: -1
-        }
-      ]
-
-    ]
-  }
-
-];
-
-
-function renderPresidency() {
-
-  const event =
-
-    presidentEvents[
-      state.eventIndex %
-      presidentEvents.length
-    ];
-
-
-  $("#gamePhaseLabel")
-    .textContent =
-
-      selectedMode ===
-      "president"
-
-        ? "Tryb prezydenta"
-
-        : "Pełna kariera · Prezydentura";
-
-
-  $("#gameHeading")
-    .textContent =
-      "Urząd prezydenta";
-
-
-  $("#gameSubheading")
-    .textContent =
-
-      selectedCountry +
-
-      " · miesiąc " +
-
-      state.month +
-
-      (
-        sandboxEnabled
-          ? " · bez limitu"
-          : " / 12"
-      );
-
-
-  $("#gameplayBody")
-    .innerHTML = `
-
-      <div class="game-layout">
-
-        <div class="glass">
-
-          <div class="stats-grid">
-
-            ${statCard(
-              "Poparcie",
-              state.approval
-            )}
-
-            ${statCard(
-              "Gospodarka",
-              state.economy,
-              ""
-            )}
-
-            ${statCard(
-              "Usługi publiczne",
-              state.services,
-              ""
-            )}
-
-            ${statCard(
-              "Stabilność",
-              state.stability,
-              ""
-            )}
-
-          </div>
-
-
-          <div class="quote-box">
-
-            <div class="muted">
-              Budżet państwa
-            </div>
-
-            <div
-              style="
-                margin-top:5px;
-                font-size:28px;
-                font-weight:900
-              "
-            >
-              ${state.stateBudget}
-            </div>
-
-          </div>
-
-        </div>
-
-
-        <aside class="event">
-
-          <div class="eyebrow">
-            Decyzja miesiąca
-          </div>
-
-          <h3>
-            ${event.text}
-          </h3>
-
-          <div
-            id="presidentOptions"
-            style="
-              display:grid;
-              gap:9px;
-              margin-top:18px
-            "
-          ></div>
-
-        </aside>
-
-      </div>
-
-
-      ${renderPresidentSandbox()}
-    `;
-
-
-  const options =
-    $("#presidentOptions");
-
-
-  event.options.forEach(
-    ([label, changes]) => {
-
-      const button =
-        document.createElement("button");
-
-      button.className =
-        "action";
-
-      button.textContent =
-        label;
-
-
-      button.addEventListener(
-        "click",
-        () =>
-          applyPresidentDecision(
-            changes
-          )
-      );
-
-
-      options.appendChild(button);
-
-    }
-  );
-
-
-  bindPresidentSandbox();
-
-}
-
-
-function applyPresidentDecision(
-  changes
-) {
-
-  Object.entries(changes)
-    .forEach(
-      ([key,value]) => {
-
-        state[key] =
-          clamp(
-            state[key] + value,
-            0,
-            key ===
-            "stateBudget"
-              ? 9999
-              : 100
-          );
-
-      }
-    );
-
-
-  state.month++;
-
-  state.eventIndex++;
-
-
-  if (
-    !sandboxEnabled &&
-    state.month > 12
-  ) {
-
-    renderTermResult();
-
-    return;
-
-  }
-
-
-  renderPresidency();
-
-}
-
-
-function renderTermResult() {
-
-  $("#gamePhaseLabel")
-    .textContent =
-      "Koniec kadencji";
-
-
-  $("#gameHeading")
-    .textContent =
-      "Podsumowanie prezydentury";
-
-
-  $("#gameplayBody")
-    .innerHTML = `
-
-      <div class="glass">
-
-        <div class="stats-grid">
-
-          ${statCard(
-            "Poparcie",
-            state.approval
-          )}
-
-          ${statCard(
-            "Gospodarka",
-            state.economy,
-            ""
-          )}
-
-          ${statCard(
-            "Usługi",
-            state.services,
-            ""
-          )}
-
-          ${statCard(
-            "Stabilność",
-            state.stability,
-            ""
-          )}
-
-        </div>
-
-
-        <button
-          id="termMenuButton"
-          class="button full"
-          style="margin-top:20px"
-        >
-          Menu główne
-        </button>
-
-      </div>
-    `;
-
-
-  $("#termMenuButton")
-    .addEventListener(
-      "click",
-      () =>
-        showScreen("home")
-    );
-
-}
-
-
-/* =========================================================
-   PIASKOWNICA — KAMPANIA
-========================================================= */
-
-function renderCampaignSandbox() {
-
-  if (!sandboxEnabled)
-    return "";
-
-
-  return `
-
-    <div class="sandbox-panel">
-
-      <strong>
-        ∞ Panel Piaskownicy MAX
-      </strong>
-
-
-      <div class="sandbox-control-grid">
-
-        <div class="sandbox-control">
-
-          <label>
-
-            Poparcie:
-            <strong id="sandboxSupportValue">
-              ${state.support}%
-            </strong>
-
-          </label>
-
-          <input
-            id="sandboxSupport"
-            type="range"
-            min="5"
-            max="85"
-            value="${state.support}"
-          >
-
-        </div>
-
-
-        <div class="sandbox-control">
-
-          <label>
-            Budżet kampanii
-          </label>
-
-          <input
-            id="sandboxMoney"
-            type="number"
-            class="field"
-            min="0"
-            max="9999"
-            value="${state.campaignMoney}"
-          >
-
-        </div>
-
-      </div>
-
-
-      <div class="actions-grid">
-
-        <button
-          id="sandboxNextWeek"
-          class="action"
-        >
-          Następna tura
-        </button>
-
-        <button
-          id="sandboxWin"
-          class="action"
-        >
-          Ustaw wysokie poparcie
-        </button>
-
-        ${
-          selectedMode ===
-          "career"
-
-            ? `
-
-              <button
-                id="sandboxPresident"
-                class="action"
-              >
-                Przejdź do prezydentury
-              </button>
-
-            `
-
-            : ""
-        }
-
-      </div>
-
-    </div>
-  `;
-
-}
-
-
-function bindCampaignSandbox() {
-
-  if (!sandboxEnabled)
-    return;
-
-
-  $("#sandboxSupport")
-    .addEventListener(
-      "input",
-      event => {
-
-        state.support =
-          Number(
-            event.target.value
-          );
-
-        normalizePoll();
-
-        $("#sandboxSupportValue")
-          .textContent =
-            state.support + "%";
-
-      }
-    );
-
-
-  $("#sandboxMoney")
-    .addEventListener(
-      "change",
-      event => {
-
-        state.campaignMoney =
-          clamp(
-            Number(
-              event.target.value
-            ) || 0,
-            0,
-            9999
-          );
-
-      }
-    );
-
-
-  $("#sandboxNextWeek")
-    .addEventListener(
-      "click",
-      () => {
-
-        state.week++;
-
-        renderCampaign();
-
-      }
-    );
-
-
-  $("#sandboxWin")
-    .addEventListener(
-      "click",
-      () => {
-
-        state.support = 70;
-        state.rivalA = 18;
-        state.rivalB = 12;
-
-        renderCampaign();
-
-      }
-    );
-
-
-  const presidentButton =
-    $("#sandboxPresident");
-
-
-  if (presidentButton) {
-
-    presidentButton
-      .addEventListener(
-        "click",
-        () => {
-
-          state.phase =
-            "presidency";
-
-          state.month = 1;
-
-          renderGame();
-
-        }
-      );
-
-  }
-
-}
-
-
-/* =========================================================
-   PIASKOWNICA — PREZYDENTURA
-========================================================= */
-
-function renderPresidentSandbox() {
-
-  if (!sandboxEnabled)
-    return "";
-
-
-  return `
-
-    <div class="sandbox-panel">
-
-      <strong>
-        ∞ Panel Piaskownicy MAX
-      </strong>
-
-
-      <div class="sandbox-control-grid">
-
-        <div class="sandbox-control">
-
-          <label>
-
-            Poparcie:
-            <strong id="sandboxApprovalValue">
-              ${state.approval}%
-            </strong>
-
-          </label>
-
-          <input
-            id="sandboxApproval"
-            type="range"
-            min="0"
-            max="100"
-            value="${state.approval}"
-          >
-
-        </div>
-
-
-        <div class="sandbox-control">
-
-          <label>
-            Budżet państwa
-          </label>
-
-          <input
-            id="sandboxStateBudget"
-            class="field"
-            type="number"
-            min="0"
-            max="9999"
-            value="${state.stateBudget}"
-          >
-
-        </div>
-
-      </div>
-
-
-      <div class="actions-grid">
-
-        <button
-          id="sandboxNextMonth"
-          class="action"
-        >
-          Następny miesiąc
-        </button>
-
-
-        <button
-          id="sandboxBoost"
-          class="action"
-        >
-          +10 do wskaźników
-        </button>
-
-      </div>
-
-    </div>
-  `;
-
-}
-
-
-function bindPresidentSandbox() {
-
-  if (!sandboxEnabled)
-    return;
-
-
-  $("#sandboxApproval")
-    .addEventListener(
-      "input",
-      event => {
-
-        state.approval =
-          Number(
-            event.target.value
-          );
-
-        $("#sandboxApprovalValue")
-          .textContent =
-            state.approval + "%";
-
-      }
-    );
-
-
-  $("#sandboxStateBudget")
-    .addEventListener(
-      "change",
-      event => {
-
-        state.stateBudget =
-          clamp(
-            Number(
-              event.target.value
-            ) || 0,
-            0,
-            9999
-          );
-
-      }
-    );
-
-
-  $("#sandboxNextMonth")
-    .addEventListener(
-      "click",
-      () => {
-
-        state.month++;
-        state.eventIndex++;
-
-        renderPresidency();
-
-      }
-    );
-
-
-  $("#sandboxBoost")
-    .addEventListener(
-      "click",
-      () => {
-
-        [
-          "approval",
-          "economy",
-          "services",
-          "stability"
-        ]
-        .forEach(
-          key => {
-
-            state[key] =
-              clamp(
-                state[key] + 10,
-                0,
-                100
-              );
-
-          }
-        );
-
-        renderPresidency();
-
-      }
-    );
-
-}
-
-
-/* =========================================================
-   RENDER TRYBU
-========================================================= */
-
-function renderGame() {
-
-  if (
-    state.phase ===
-    "campaign"
-  ) {
-
-    renderCampaign();
-
-  }
-
-  else {
-
-    renderPresidency();
-
-  }
-
-}
-
-
-/* =========================================================
-   MENU EVENTS
-========================================================= */
-
-$("#newGameButton")
-  .addEventListener(
-    "click",
-    () =>
-      showScreen("setup")
-  );
-
-
-$("#setupBackButton")
-  .addEventListener(
-    "click",
-    () =>
-      showScreen("home")
-  );
-
-
-$("#setupNextButton")
-  .addEventListener(
-    "click",
-    () => {
-
-      updateCandidatePreview();
-
-      showScreen("candidate");
-
-    }
-  );
-
-
-$("#candidateBackButton")
-  .addEventListener(
-    "click",
-    () =>
-      showScreen("setup")
-  );
-
-
-$("#startGameButton")
-  .addEventListener(
-    "click",
-    startGame
-  );
-
-
-$("#exitGameButton")
-  .addEventListener(
-    "click",
-    () =>
-      showScreen("home")
-  );
-
-
-/* =========================================================
-   USTAWIENIA
-========================================================= */
-
-$("#settingsButton")
-  .addEventListener(
-    "click",
-    () =>
-      showScreen("settings")
-  );
-
-
-$("#settingsBackButton")
-  .addEventListener(
-    "click",
-    () =>
-      showScreen("home")
-  );
-
-
-$("#animationSpeed")
-  .addEventListener(
-    "input",
-    event => {
-
-      const value =
+      game.speed =
         Number(
-          event.target.value
+          button.dataset.speed
         );
 
+      game.paused = false;
 
-      const seconds =
-        16 -
-        value * .11;
-
-
-      $("#game")
-        .style
-        .setProperty(
-          "--bg-speed",
-          seconds + "s"
+      $$(".speed[data-speed]")
+        .forEach(x=>
+          x.classList.remove("active")
         );
 
+      button.classList.add("active");
 
-      $("#animationSpeedText")
-        .textContent =
+      $("#pauseTime")
+        .classList.remove("active");
+    });
+  });
 
-          value < 34
-            ? "Wolna"
+$("#pauseTime")
+  .addEventListener("click",()=>{
 
-          : value < 67
-            ? "Normalna"
+    if(!game) return;
 
-          : "Szybka";
+    game.paused =
+      !game.paused;
 
+    $("#pauseTime")
+      .classList.toggle(
+        "active",
+        game.paused
+      );
+  });
+
+
+/* ======================================================
+   MENU
+====================================================== */
+
+$("#newGameBtn")
+  .addEventListener("click",()=>{
+    showScreen("setup");
+  });
+
+$("#setupBack")
+  .addEventListener("click",()=>{
+    showScreen("home");
+  });
+
+$("#toCandidate")
+  .addEventListener("click",()=>{
+
+    updateCandidate();
+    showScreen("candidate");
+  });
+
+$("#candidateBack")
+  .addEventListener("click",()=>{
+    showScreen("setup");
+  });
+
+$("#startGame")
+  .addEventListener("click",()=>{
+
+    createGame();
+    showScreen("game");
+    renderGame();
+  });
+
+$("#leaveGame")
+  .addEventListener("click",()=>{
+
+    if(game){
+      game.paused=true;
     }
-  );
+
+    showScreen("home");
+  });
 
 
-/* =========================================================
-   O GRZE
-========================================================= */
+/* ======================================================
+   SETTINGS
+====================================================== */
 
-function openAbout() {
+$("#settingsBtn")
+  .addEventListener("click",()=>{
+    showScreen("settings");
+  });
 
-  $("#aboutModal")
-    .classList
-    .remove("hidden");
+$("#settingsBack")
+  .addEventListener("click",()=>{
+    showScreen("home");
+  });
 
+$("#menuAnimation")
+  .addEventListener("input",e=>{
+
+    const value =
+      Number(e.target.value);
+
+    const seconds =
+      16-value*.11;
+
+    $("#app")
+      .style
+      .setProperty(
+        "--bg-speed",
+        seconds+"s"
+      );
+
+    $("#menuAnimationLabel")
+      .textContent =
+        value<34
+          ? "Wolna"
+          : value<67
+            ? "Normalna"
+            : "Szybka";
+  });
+
+
+/* ======================================================
+   ABOUT
+====================================================== */
+
+function openAbout(){
+  $("#aboutModal").classList.remove("hidden");
 }
 
-
-function closeAbout() {
-
-  $("#aboutModal")
-    .classList
-    .add("hidden");
-
+function closeAbout(){
+  $("#aboutModal").classList.add("hidden");
 }
 
+$("#aboutBtn")
+  .addEventListener("click",openAbout);
 
-$("#aboutButton")
-  .addEventListener(
-    "click",
-    openAbout
-  );
+$("#aboutClose")
+  .addEventListener("click",closeAbout);
 
-
-$("#aboutCloseButton")
-  .addEventListener(
-    "click",
-    closeAbout
-  );
-
-
-$("#aboutCloseX")
-  .addEventListener(
-    "click",
-    closeAbout
-  );
-
+$("#aboutX")
+  .addEventListener("click",closeAbout);
 
 $("#aboutModal")
-  .addEventListener(
-    "click",
-    event => {
+  .addEventListener("click",e=>{
 
-      if (
-        event.target ===
-        $("#aboutModal")
-      ) {
-
-        closeAbout();
-
-      }
-
+    if(e.target === $("#aboutModal")){
+      closeAbout();
     }
-  );
+  });
 
 
-/* =========================================================
-   PRAWDZIWE KONTURY PAŃSTW
-========================================================= */
+/* ======================================================
+   REALNE KONTURY PAŃSTW
+====================================================== */
 
-try {
+try{
 
   const [
-    d3Module,
-    topojson,
-    worldAtlas
+    d3,
+    topo,
+    {default:world}
   ] = await Promise.all([
 
     import(
@@ -3503,105 +3612,74 @@ try {
 
   ]);
 
-
-  d3 = d3Module;
-
-
-  worldFeatures =
-
-    topojson.feature(
-      worldAtlas.default,
-      worldAtlas.default.objects.countries
-    )
-    .features;
-
+  const features =
+    topo.feature(
+      world,
+      world.objects.countries
+    ).features;
 
   $$("[data-map]")
-    .forEach(
-      container => {
+    .forEach(holder=>{
 
-        const iso =
-          container.dataset.map;
+      const feature =
+        features.find(
+          f=>
+            String(f.id)
+              .padStart(3,"0") ===
+            holder.dataset.map
+        );
 
-
-        const country =
-
-          worldFeatures.find(
-            feature =>
-
-              String(feature.id)
-                .padStart(3,"0") ===
-              iso
-          );
-
-
-        if (!country)
-          return;
-
-
-        container.innerHTML = "";
-
-
-        const svg =
-
-          d3
-            .create("svg")
-            .attr(
-              "viewBox",
-              "0 0 70 52"
-            );
-
-
-        const projection =
-
-          d3
-            .geoMercator()
-            .fitExtent(
-              [
-                [4,4],
-                [66,48]
-              ],
-              country
-            );
-
-
-        svg
-          .append("path")
-          .datum(country)
-          .attr(
-            "d",
-            d3.geoPath(
-              projection
-            )
-          );
-
-
-        container
-          .appendChild(
-            svg.node()
-          );
-
+      if(!feature){
+        holder.textContent="—";
+        return;
       }
-    );
 
-}
+      holder.innerHTML="";
 
-catch(error) {
+      const svg =
+        d3.create("svg")
+          .attr(
+            "viewBox",
+            "0 0 65 48"
+          );
+
+      const projection =
+        d3.geoMercator()
+          .fitExtent(
+            [
+              [3,3],
+              [62,45]
+            ],
+            feature
+          );
+
+      svg.append("path")
+        .datum(feature)
+        .attr(
+          "d",
+          d3.geoPath(projection)
+        );
+
+      holder.appendChild(
+        svg.node()
+      );
+    });
+
+}catch(error){
 
   console.warn(
-    "Nie udało się załadować konturów państw.",
+    "Nie udało się załadować map.",
     error
   );
-
 }
 
 
-/* =========================================================
+/* ======================================================
    START
-========================================================= */
+====================================================== */
 
-updateSetupSummary();
-updateCandidatePreview();
+updateSetup();
+updateCandidate();
 
 </script>
 
