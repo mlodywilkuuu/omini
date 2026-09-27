@@ -2,922 +2,563 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <title>Parcel Empire</title>
-
-  <style>
-    * {
-      box-sizing: border-box;
-    }
-
-    :root {
-      --bg: #07111f;
-      --panel: #101c2d;
-      --panel2: #17263b;
-      --line: #29405e;
-      --text: #f8fafc;
-      --muted: #94a3b8;
-      --green: #22c55e;
-      --red: #ef4444;
-      --blue: #3b82f6;
-      --yellow: #facc15;
-      --purple: #a855f7;
-    }
-
-    body {
-      margin: 0;
-      font-family: Arial, Helvetica, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      overflow: hidden;
-    }
-
-    button {
-      font: inherit;
-    }
-
-    #app {
-      height: 100vh;
-      display: grid;
-      grid-template-columns: 270px 1fr 320px;
-      grid-template-rows: 72px 1fr;
-    }
-
-    header {
-      grid-column: 1 / 4;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 22px;
-      background: #091525;
-      border-bottom: 1px solid var(--line);
-      z-index: 100;
-    }
-
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .logo-icon {
-      width: 44px;
-      height: 44px;
-      border-radius: 12px;
-      background: linear-gradient(135deg, #facc15, #f97316);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 24px;
-    }
-
-    h1 {
-      font-size: 20px;
-      margin: 0;
-    }
-
-    .subtitle {
-      color: var(--muted);
-      font-size: 12px;
-      margin-top: 3px;
-    }
-
-    .header-stats {
-      display: flex;
-      gap: 14px;
-      align-items: center;
-    }
-
-    .top-stat {
-      background: var(--panel);
-      padding: 9px 14px;
-      border-radius: 10px;
-      border: 1px solid var(--line);
-      min-width: 105px;
-      text-align: center;
-    }
-
-    .top-stat small {
-      display: block;
-      color: var(--muted);
-      font-size: 10px;
-      margin-bottom: 3px;
-    }
-
-    #moneyWrap {
-      position: relative;
-    }
-
-    #money {
-      color: #4ade80;
-      font-weight: 800;
-      font-size: 18px;
-    }
-
-    .money-animation {
-      position: absolute;
-      left: 50%;
-      top: 35px;
-      transform: translateX(-50%);
-      font-size: 17px;
-      font-weight: 900;
-      pointer-events: none;
-      animation: moneyFloat 1.2s ease-out forwards;
-      white-space: nowrap;
-      z-index: 999;
-    }
-
-    .money-animation.plus {
-      color: #4ade80;
-    }
-
-    .money-animation.minus {
-      color: #f87171;
-    }
-
-    @keyframes moneyFloat {
-      0% {
-        opacity: 0;
-        transform: translate(-50%, 8px) scale(.8);
-      }
-
-      20% {
-        opacity: 1;
-        transform: translate(-50%, 0) scale(1.1);
-      }
-
-      100% {
-        opacity: 0;
-        transform: translate(-50%, 45px) scale(.95);
-      }
-    }
-
-    aside {
-      background: var(--panel);
-      overflow-y: auto;
-      padding: 15px;
-    }
-
-    #leftPanel {
-      border-right: 1px solid var(--line);
-    }
-
-    #rightPanel {
-      border-left: 1px solid var(--line);
-    }
-
-    .section-title {
-      color: #7dd3fc;
-      text-transform: uppercase;
-      font-size: 11px;
-      font-weight: bold;
-      letter-spacing: 1px;
-      margin: 16px 0 8px;
-    }
-
-    .panel-button {
-      width: 100%;
-      border: 1px solid #334e70;
-      background: var(--panel2);
-      color: white;
-      padding: 10px;
-      margin-bottom: 7px;
-      border-radius: 10px;
-      cursor: pointer;
-      text-align: left;
-      transition: .15s;
-    }
-
-    .panel-button:hover {
-      transform: translateY(-1px);
-      background: #203654;
-      border-color: #4d6d97;
-    }
-
-    .panel-button.active {
-      background: #1d4ed8;
-      border-color: #60a5fa;
-    }
-
-    .panel-button .price {
-      display: block;
-      margin-top: 4px;
-      color: #cbd5e1;
-      font-size: 11px;
-    }
-
-    .panel-button.green {
-      border-color: #166534;
-    }
-
-    .panel-button.purple {
-      border-color: #6b21a8;
-    }
-
-    .panel-button.orange {
-      border-color: #9a3412;
-    }
-
-    #mapContainer {
-      position: relative;
-      overflow: hidden;
-      background: #8295a7;
-    }
-
-    #map {
-      position: absolute;
-      inset: 0;
-      overflow: hidden;
-      background:
-        linear-gradient(rgba(255,255,255,.11) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,.11) 1px, transparent 1px),
-        #8ea1b0;
-      background-size: 42px 42px;
-    }
-
-    .district {
-      position: absolute;
-      background: rgba(226, 232, 240, .35);
-      border: 2px solid rgba(255,255,255,.35);
-      border-radius: 18px;
-      color: #1e293b;
-      padding: 10px;
-      font-size: 13px;
-      font-weight: bold;
-      pointer-events: none;
-    }
-
-    .road {
-      position: absolute;
-      background: #475569;
-      box-shadow:
-        inset 0 3px #64748b,
-        inset 0 -3px #334155;
-    }
-
-    .road.horizontal {
-      height: 34px;
-    }
-
-    .road.vertical {
-      width: 34px;
-    }
-
-    .building {
-      position: absolute;
-      width: 48px;
-      height: 48px;
-      transform: translate(-50%, -50%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 23px;
-      border-radius: 13px;
-      border: 3px solid rgba(255,255,255,.95);
-      cursor: pointer;
-      box-shadow: 0 5px 15px rgba(0,0,0,.32);
-      z-index: 10;
-      animation: buildingSpawn .35s ease-out;
-      user-select: none;
-    }
-
-    @keyframes buildingSpawn {
-      from {
-        transform: translate(-50%, -50%) scale(.1) rotate(-10deg);
-        opacity: 0;
-      }
-
-      to {
-        transform: translate(-50%, -50%) scale(1);
-        opacity: 1;
-      }
-    }
-
-    .building:hover {
-      scale: 1.08;
-    }
-
-    .locker {
-      background: #f59e0b;
-    }
-
-    .depot {
-      background: #2563eb;
-    }
-
-    .sorter {
-      background: #7c3aed;
-    }
-
-    .hub {
-      background: #dc2626;
-    }
-
-    .garage {
-      background: #16a34a;
-    }
-
-    .server {
-      background: #0891b2;
-    }
-
-    .parcel {
-      position: absolute;
-      width: 13px;
-      height: 13px;
-      border-radius: 3px;
-      background: #fde047;
-      border: 2px solid #713f12;
-      transform: translate(-50%, -50%);
-      z-index: 20;
-      transition: left 1.2s linear, top 1.2s linear;
-      box-shadow: 0 2px 5px rgba(0,0,0,.3);
-    }
-
-    .van {
-      position: absolute;
-      z-index: 19;
-      font-size: 24px;
-      transform: translate(-50%, -50%);
-      transition: left 1.4s ease-in-out, top 1.4s ease-in-out;
-      filter: drop-shadow(0 2px 2px rgba(0,0,0,.4));
-    }
-
-    #hint {
-      position: absolute;
-      left: 50%;
-      bottom: 16px;
-      transform: translateX(-50%);
-      padding: 10px 16px;
-      background: rgba(7, 17, 31, .92);
-      border: 1px solid #334155;
-      border-radius: 11px;
-      font-size: 12px;
-      pointer-events: none;
-      z-index: 80;
-    }
-
-    .stat {
-      background: #0a1525;
-      border: 1px solid #263b57;
-      border-radius: 10px;
-      padding: 9px 10px;
-      margin-bottom: 7px;
-      font-size: 13px;
-    }
-
-    .stat span {
-      float: right;
-      font-weight: bold;
-      color: #e2e8f0;
-    }
-
-    .progress {
-      height: 7px;
-      margin-top: 7px;
-      background: #263449;
-      border-radius: 999px;
-      overflow: hidden;
-    }
-
-    .progress-bar {
-      height: 100%;
-      background: linear-gradient(90deg, #3b82f6, #22c55e);
-      width: 0%;
-      transition: width .4s;
-    }
-
-    .tech-card {
-      background: #0b1727;
-      border: 1px solid #344d6b;
-      border-radius: 11px;
-      padding: 10px;
-      margin-bottom: 8px;
-    }
-
-    .tech-card strong {
-      display: block;
-      font-size: 13px;
-      margin-bottom: 4px;
-    }
-
-    .tech-card small {
-      color: var(--muted);
-      line-height: 1.4;
-    }
-
-    .tech-card button {
-      margin-top: 8px;
-      width: 100%;
-      border: 0;
-      background: #334155;
-      color: white;
-      border-radius: 7px;
-      padding: 7px;
-      cursor: pointer;
-    }
-
-    .tech-card button:hover {
-      background: #475569;
-    }
-
-    .tech-card.unlocked {
-      border-color: #15803d;
-      background: #0b1f19;
-    }
-
-    .tech-card.unlocked button {
-      background: #166534;
-    }
-
-    #log {
-      background: #081220;
-      padding: 9px;
-      border-radius: 9px;
-      font-size: 11px;
-      max-height: 210px;
-      overflow-y: auto;
-      border: 1px solid #23364f;
-    }
-
-    .log-item {
-      border-bottom: 1px solid #172638;
-      padding: 5px 0;
-      color: #cbd5e1;
-      line-height: 1.35;
-    }
-
-    .good {
-      color: #4ade80;
-    }
-
-    .bad {
-      color: #f87171;
-    }
-
-    .info {
-      color: #60a5fa;
-    }
-
-    .modal {
-      display: none;
-      position: absolute;
-      inset: 0;
-      z-index: 500;
-      background: rgba(2, 6, 23, .75);
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
-
-    .modal.show {
-      display: flex;
-    }
-
-    .modal-box {
-      background: #101c2d;
-      width: min(700px, 95%);
-      max-height: 85vh;
-      overflow-y: auto;
-      border-radius: 18px;
-      border: 1px solid #3b536f;
-      padding: 20px;
-      box-shadow: 0 30px 80px rgba(0,0,0,.55);
-    }
-
-    .modal-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 20px;
-    }
-
-    .close {
-      width: auto;
-      padding: 7px 11px;
-      border: 0;
-      border-radius: 8px;
-      background: #334155;
-      color: white;
-      cursor: pointer;
-    }
-
-    .app-screen {
-      margin-top: 15px;
-      padding: 15px;
-      border: 1px solid #344d6b;
-      border-radius: 13px;
-      background: #091525;
-    }
-
-    .app-version {
-      font-size: 26px;
-      font-weight: bold;
-      color: #38bdf8;
-    }
-
-    .badge {
-      display: inline-block;
-      padding: 4px 7px;
-      background: #1e293b;
-      border-radius: 999px;
-      font-size: 10px;
-      margin: 3px;
-      color: #cbd5e1;
-    }
-
-    .notification {
-      position: absolute;
-      right: 20px;
-      top: 20px;
-      z-index: 800;
-      background: #0f172a;
-      border: 1px solid #475569;
-      padding: 12px 15px;
-      border-radius: 11px;
-      min-width: 230px;
-      animation: notificationIn .25s ease-out;
-      box-shadow: 0 12px 35px rgba(0,0,0,.4);
-    }
-
-    @keyframes notificationIn {
-      from {
-        opacity: 0;
-        transform: translateX(30px);
-      }
-
-      to {
-        opacity: 1;
-        transform: translateX(0);
-      }
-    }
-
-    @media (max-width: 1000px) {
-      #app {
-        grid-template-columns: 220px 1fr;
-      }
-
-      #rightPanel {
-        display: none;
-      }
-
-      header {
-        grid-column: 1 / 3;
-      }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Parcel Empire</title>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
+<style>
+*{box-sizing:border-box}
+:root{
+  --bg:#07111f;
+  --panel:#101c2d;
+  --panel2:#17263b;
+  --line:#29405e;
+  --text:#f8fafc;
+  --muted:#94a3b8;
+  --green:#22c55e;
+  --red:#ef4444;
+  --blue:#3b82f6;
+  --yellow:#facc15;
+  --purple:#a855f7;
+}
+html,body{
+  margin:0;
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  font-family:Arial,Helvetica,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+}
+button,input{font:inherit}
+button{cursor:pointer}
+#app{
+  height:100vh;
+  display:grid;
+  grid-template-columns:285px 1fr 325px;
+  grid-template-rows:72px 1fr;
+}
+header{
+  grid-column:1/4;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:0 20px;
+  background:#091525;
+  border-bottom:1px solid var(--line);
+  z-index:3000;
+}
+.logo{display:flex;align-items:center;gap:12px}
+.logo-icon{
+  width:44px;height:44px;border-radius:12px;
+  display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,#facc15,#f97316);
+  font-size:24px;
+}
+h1{margin:0;font-size:20px}
+.subtitle{font-size:12px;color:var(--muted);margin-top:3px}
+.header-stats{display:flex;gap:10px}
+.top-stat{
+  min-width:105px;
+  text-align:center;
+  padding:8px 12px;
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:10px;
+}
+.top-stat small{display:block;color:var(--muted);font-size:10px}
+#moneyWrap{position:relative}
+#money{font-size:18px;font-weight:bold;color:#4ade80}
+
+aside{
+  min-height:0;
+  overflow:auto;
+  background:var(--panel);
+  padding:15px;
+  z-index:2000;
+}
+#leftPanel{border-right:1px solid var(--line)}
+#rightPanel{border-left:1px solid var(--line)}
+.section-title{
+  margin:17px 0 8px;
+  font-size:11px;
+  text-transform:uppercase;
+  letter-spacing:1px;
+  color:#7dd3fc;
+  font-weight:bold;
+}
+.panel-button{
+  width:100%;
+  text-align:left;
+  color:white;
+  padding:10px;
+  margin-bottom:7px;
+  background:var(--panel2);
+  border:1px solid #334e70;
+  border-radius:10px;
+  transition:.15s;
+}
+.panel-button:hover{background:#203654;transform:translateY(-1px)}
+.panel-button.active{background:#1d4ed8;border-color:#60a5fa}
+.panel-button .price{display:block;font-size:11px;color:#cbd5e1;margin-top:4px}
+.green{border-color:#166534!important}
+.purple{border-color:#6b21a8!important}
+.orange{border-color:#9a3412!important}
+
+#mapContainer{position:relative;min-width:0;min-height:0;overflow:hidden}
+#map{position:absolute;inset:0}
+.map-info,.map-hint{
+  position:absolute;
+  z-index:1200;
+  background:rgba(7,17,31,.92);
+  border:1px solid #475569;
+  border-radius:10px;
+  padding:9px 12px;
+  font-size:11px;
+  pointer-events:none;
+}
+.map-info{top:14px;left:14px}
+.map-hint{bottom:16px;left:50%;transform:translateX(-50%)}
+
+.building-marker{
+  width:44px;height:44px;
+  display:flex;align-items:center;justify-content:center;
+  border:3px solid white;
+  border-radius:13px;
+  box-shadow:0 5px 17px rgba(0,0,0,.45);
+  font-size:22px;
+  animation:spawn .3s ease-out;
+}
+@keyframes spawn{
+  from{opacity:0;transform:scale(.1)}
+  to{opacity:1;transform:scale(1)}
+}
+.locker{background:#f59e0b}
+.depot{background:#2563eb}
+.sorter{background:#7c3aed}
+.hub{background:#dc2626}
+.garage{background:#16a34a}
+.server{background:#0891b2}
+.office{background:#334155}
+
+.stat{
+  padding:9px 10px;
+  margin-bottom:7px;
+  background:#0a1525;
+  border:1px solid #263b57;
+  border-radius:10px;
+  font-size:13px;
+}
+.stat span{float:right;font-weight:bold}
+.progress{
+  height:7px;
+  background:#263449;
+  border-radius:999px;
+  overflow:hidden;
+  margin-top:8px;
+}
+.progress-bar{
+  height:100%;
+  width:0%;
+  background:linear-gradient(90deg,#3b82f6,#22c55e);
+  transition:.3s;
+}
+#log{
+  max-height:220px;
+  overflow:auto;
+  background:#081220;
+  border:1px solid #23364f;
+  border-radius:9px;
+  padding:8px;
+  font-size:11px;
+}
+.log-item{padding:5px 0;border-bottom:1px solid #172638;color:#cbd5e1}
+.good{color:#4ade80}
+.bad{color:#f87171}
+.info{color:#60a5fa}
+
+.money-animation{
+  position:absolute;
+  left:50%;
+  top:36px;
+  transform:translateX(-50%);
+  font-size:17px;
+  font-weight:900;
+  pointer-events:none;
+  z-index:9999;
+  animation:moneyFloat 1.3s ease-out forwards;
+}
+.money-animation.plus{color:#4ade80}
+.money-animation.minus{color:#f87171}
+@keyframes moneyFloat{
+  0%{opacity:0;transform:translate(-50%,10px)}
+  20%{opacity:1}
+  100%{opacity:0;transform:translate(-50%,45px)}
+}
+
+.notification{
+  position:absolute;
+  right:18px;
+  top:18px;
+  z-index:6000;
+  min-width:230px;
+  padding:12px 15px;
+  background:#0f172a;
+  border:1px solid #475569;
+  border-radius:11px;
+  box-shadow:0 12px 35px rgba(0,0,0,.4);
+}
+
+.modal{
+  display:none;
+  position:absolute;
+  inset:0;
+  z-index:5000;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  background:rgba(2,6,23,.8);
+}
+.modal.show{display:flex}
+.modal-box{
+  width:min(720px,96%);
+  max-height:88vh;
+  overflow:auto;
+  background:#101c2d;
+  border:1px solid #3b536f;
+  border-radius:18px;
+  padding:20px;
+}
+.modal-top{display:flex;justify-content:space-between;align-items:center}
+.close{
+  color:white;
+  background:#334155;
+  border:0;
+  border-radius:8px;
+  padding:8px 11px;
+}
+.card{
+  background:#0b1727;
+  border:1px solid #344d6b;
+  border-radius:11px;
+  padding:11px;
+  margin:8px 0;
+}
+.card strong{display:block;margin-bottom:5px}
+.card small{color:var(--muted);line-height:1.4}
+.card button{
+  width:100%;
+  margin-top:8px;
+  padding:8px;
+  background:#334155;
+  color:white;
+  border:0;
+  border-radius:8px;
+}
+.card.done{border-color:#15803d;background:#0b1f19}
+.row{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+}
+.vehicle-row{
+  display:grid;
+  grid-template-columns:1fr auto auto;
+  gap:8px;
+  align-items:center;
+  padding:8px;
+  background:#0b1727;
+  border:1px solid #344d6b;
+  border-radius:10px;
+  margin-bottom:8px;
+}
+.small-btn{
+  padding:7px 10px;
+  border:0;
+  border-radius:7px;
+  color:white;
+  background:#334155;
+}
+.sell-btn{background:#991b1b}
+.buy-btn{background:#166534}
+
+#cheatConsole{
+  display:none;
+  position:absolute;
+  left:50%;
+  top:95px;
+  transform:translateX(-50%);
+  width:min(560px,90%);
+  z-index:9999;
+  background:#030712;
+  border:1px solid #475569;
+  border-radius:10px;
+  padding:12px;
+  box-shadow:0 20px 50px rgba(0,0,0,.6);
+}
+#cheatConsole.show{display:block}
+#cheatInput{
+  width:100%;
+  background:#111827;
+  color:#4ade80;
+  border:1px solid #374151;
+  border-radius:7px;
+  padding:10px;
+  outline:none;
+  font-family:monospace;
+}
+.cheat-help{font-size:11px;color:#94a3b8;margin-top:7px}
+
+@media(max-width:1100px){
+  #app{grid-template-columns:230px 1fr}
+  #rightPanel{display:none}
+  header{grid-column:1/3}
+}
+</style>
 </head>
 
 <body>
 
 <div id="app">
 
-  <header>
-    <div class="logo">
-      <div class="logo-icon">📦</div>
+<header>
+  <div class="logo">
+    <div class="logo-icon">📦</div>
+    <div>
+      <h1>Parcel Empire</h1>
+      <div class="subtitle">Global Logistics Simulator</div>
+    </div>
+  </div>
 
-      <div>
-        <h1>Parcel Empire</h1>
-        <div class="subtitle">Symulator firmy logistycznej</div>
-      </div>
+  <div class="header-stats">
+    <div class="top-stat">
+      <small>DZIEŃ</small>
+      <strong id="day">1</strong>
     </div>
 
-    <div class="header-stats">
-
-      <div class="top-stat">
-        <small>DZIEŃ</small>
-        <strong id="day">1</strong>
-      </div>
-
-      <div class="top-stat">
-        <small>REPUTACJA</small>
-        <strong id="reputation">50%</strong>
-      </div>
-
-      <div class="top-stat" id="moneyWrap">
-        <small>KONTO</small>
-        <div id="money">75 000 zł</div>
-      </div>
-
-    </div>
-  </header>
-
-
-  <aside id="leftPanel">
-
-    <div class="section-title">Budowa sieci</div>
-
-    <button class="panel-button"
-      onclick="selectBuild('locker', 5000, this)">
-      📦 Automat paczkowy
-      <span class="price">5 000 zł</span>
-    </button>
-
-    <button class="panel-button"
-      onclick="selectBuild('depot', 18000, this)">
-      🏭 Magazyn lokalny
-      <span class="price">18 000 zł</span>
-    </button>
-
-    <button class="panel-button"
-      onclick="selectBuild('sorter', 45000, this)">
-      ⚙️ Sortownia
-      <span class="price">45 000 zł</span>
-    </button>
-
-    <button class="panel-button"
-      onclick="selectBuild('hub', 90000, this)">
-      🌐 Centrum logistyczne
-      <span class="price">90 000 zł</span>
-    </button>
-
-    <button class="panel-button"
-      onclick="selectBuild('garage', 15000, this)">
-      🚐 Garaż
-      <span class="price">15 000 zł</span>
-    </button>
-
-    <button class="panel-button"
-      onclick="selectBuild('server', 30000, this)">
-      🖥️ Serwerownia
-      <span class="price">30 000 zł</span>
-    </button>
-
-
-    <div class="section-title">Pracownicy i flota</div>
-
-    <button class="panel-button green" onclick="hireDriver()">
-      👨‍✈️ Zatrudnij kierowcę
-      <span class="price">2 500 zł</span>
-    </button>
-
-    <button class="panel-button" onclick="buyVan()">
-      🚐 Kup vana
-      <span class="price">12 000 zł</span>
-    </button>
-
-    <button class="panel-button" onclick="hireDeveloper()">
-      👨‍💻 Programista
-      <span class="price">4 000 zł</span>
-    </button>
-
-    <button class="panel-button" onclick="hireTester()">
-      🧪 Tester
-      <span class="price">3 000 zł</span>
-    </button>
-
-
-    <div class="section-title">Technologia</div>
-
-    <button class="panel-button purple" onclick="openTech()">
-      🤖 AI / R&D
-    </button>
-
-    <button class="panel-button orange" onclick="openAppManager()">
-      📱 Aplikacja firmy
-    </button>
-
-
-    <div class="section-title">Czas</div>
-
-    <button class="panel-button green" onclick="nextDay()">
-      ⏩ Następny dzień
-    </button>
-
-    <button class="panel-button" onclick="saveGame()">
-      💾 Zapisz grę
-    </button>
-
-    <button class="panel-button" onclick="loadGame()">
-      📂 Wczytaj zapis
-    </button>
-
-  </aside>
-
-
-  <main id="mapContainer">
-
-    <div id="map">
-
-      <div class="district"
-        style="left:5%;top:6%;width:28%;height:27%">
-        Centrum
-      </div>
-
-      <div class="district"
-        style="left:63%;top:7%;width:30%;height:26%">
-        Północ
-      </div>
-
-      <div class="district"
-        style="left:7%;top:62%;width:30%;height:28%">
-        Zachód
-      </div>
-
-      <div class="district"
-        style="left:61%;top:62%;width:31%;height:28%">
-        Południe
-      </div>
-
-      <div class="road horizontal"
-        style="left:0;top:47%;width:100%"></div>
-
-      <div class="road vertical"
-        style="left:48%;top:0;height:100%"></div>
-
-      <div class="road horizontal"
-        style="left:15%;top:27%;width:70%;height:22px"></div>
-
-      <div class="road vertical"
-        style="left:27%;top:15%;height:70%;width:22px"></div>
-
-      <div id="hint">
-        Wybierz budynek po lewej stronie.
-      </div>
-
+    <div class="top-stat">
+      <small>REPUTACJA</small>
+      <strong id="reputation">0%</strong>
     </div>
 
+    <div class="top-stat" id="moneyWrap">
+      <small>KONTO</small>
+      <div id="money">75 000 zł</div>
+    </div>
+  </div>
+</header>
 
-    <div class="modal" id="techModal">
+<aside id="leftPanel">
 
-      <div class="modal-box">
+  <div class="section-title">Budowa</div>
 
-        <div class="modal-top">
-          <div>
-            <h2>🤖 Technologia i AI</h2>
-            <div class="subtitle">
-              Rozwijaj system logistyczny firmy.
-            </div>
-          </div>
+  <button class="panel-button" onclick="selectBuild('locker',5000,this)">
+    📦 Automat paczkowy
+    <span class="price">5 000 zł</span>
+  </button>
 
-          <button class="close"
-            onclick="closeModal('techModal')">
-            ✕
-          </button>
+  <button class="panel-button" onclick="selectBuild('depot',18000,this)">
+    🏭 Magazyn
+    <span class="price">18 000 zł</span>
+  </button>
+
+  <button class="panel-button" onclick="selectBuild('sorter',45000,this)">
+    ⚙️ Sortownia
+    <span class="price">45 000 zł</span>
+  </button>
+
+  <button class="panel-button" onclick="selectBuild('hub',90000,this)">
+    🌐 Centrum logistyczne
+    <span class="price">90 000 zł</span>
+  </button>
+
+  <button class="panel-button" onclick="selectBuild('garage',15000,this)">
+    🚗 Garaż
+    <span class="price">15 000 zł</span>
+  </button>
+
+  <button class="panel-button" onclick="selectBuild('office',22000,this)">
+    🏢 Biuro firmy
+    <span class="price">22 000 zł</span>
+  </button>
+
+  <button class="panel-button" onclick="selectBuild('server',30000,this)">
+    🖥️ Serwerownia
+    <span class="price">30 000 zł</span>
+  </button>
+
+  <div class="section-title">Firma</div>
+
+  <button class="panel-button green" onclick="hireDriver()">
+    👨‍✈️ Zatrudnij kierowcę
+    <span class="price">2 500 zł</span>
+  </button>
+
+  <button class="panel-button" onclick="hireDeveloper()">
+    👨‍💻 Programista
+    <span class="price">4 000 zł</span>
+  </button>
+
+  <button class="panel-button" onclick="hireTester()">
+    🧪 Tester
+    <span class="price">3 000 zł</span>
+  </button>
+
+  <button class="panel-button orange" onclick="openFleet()">
+    🚘 Flota pojazdów
+  </button>
+
+  <div class="section-title">Rozwój</div>
+
+  <button class="panel-button purple" onclick="openTech()">
+    🤖 AI / R&D
+  </button>
+
+  <button class="panel-button orange" onclick="openCompany()">
+    🏢 Biura i centra
+  </button>
+
+  <div class="section-title">Mapa</div>
+
+  <button class="panel-button" onclick="map.flyTo([52.1,19.4],6)">
+    🇵🇱 Polska
+  </button>
+
+  <button class="panel-button" onclick="map.flyTo([25,5],2)">
+    🌍 Cały świat
+  </button>
+
+  <div class="section-title">Gra</div>
+
+  <button class="panel-button green" onclick="nextDay()">
+    ⏩ Następny dzień
+  </button>
+
+  <button class="panel-button" onclick="saveGame()">
+    💾 Zapisz
+  </button>
+
+  <button class="panel-button" onclick="loadGame()">
+    📂 Wczytaj
+  </button>
+
+</aside>
+
+<main id="mapContainer">
+
+  <div id="map"></div>
+
+  <div class="map-info">
+    🖱️ przeciąganie mapy<br>
+    🔎 kółko = zoom<br>
+    ~ = konsola kodów
+  </div>
+
+  <div class="map-hint" id="hint">
+    Wybierz obiekt i kliknij miejsce na mapie.
+  </div>
+
+  <div id="cheatConsole">
+    <input id="cheatInput" placeholder="Wpisz kod i Enter">
+    <div class="cheat-help">
+      Konsola deweloperska gry. Zamknij klawiszem ~ lub Esc.
+    </div>
+  </div>
+
+  <div class="modal" id="techModal">
+    <div class="modal-box">
+      <div class="modal-top">
+        <div>
+          <h2>🤖 AI / R&D</h2>
+          <div class="subtitle">Badania technologiczne firmy</div>
         </div>
-
-        <div id="techList"></div>
-
+        <button class="close" onclick="closeModal('techModal')">✕</button>
       </div>
-
+      <div id="techList"></div>
     </div>
+  </div>
 
-
-    <div class="modal" id="appModal">
-
-      <div class="modal-box">
-
-        <div class="modal-top">
-
-          <div>
-            <h2>📱 Aplikacja firmy</h2>
-            <div class="subtitle">
-              Projektuj, rozwijaj i aktualizuj aplikację.
-            </div>
-          </div>
-
-          <button class="close"
-            onclick="closeModal('appModal')">
-            ✕
-          </button>
-
+  <div class="modal" id="fleetModal">
+    <div class="modal-box">
+      <div class="modal-top">
+        <div>
+          <h2>🚘 Flota</h2>
+          <div class="subtitle">Kupuj i sprzedawaj pojazdy</div>
         </div>
+        <button class="close" onclick="closeModal('fleetModal')">✕</button>
+      </div>
+      <div id="fleetList"></div>
+    </div>
+  </div>
 
-        <div class="app-screen">
-
-          <div class="app-version"
-            id="appVersion">
-            v1.0
-          </div>
-
-          <p>
-            Popularność:
-            <strong id="appPopularity">20%</strong>
-          </p>
-
-          <p>
-            Stabilność:
-            <strong id="appStability">80%</strong>
-          </p>
-
-          <p>
-            Funkcje:
-          </p>
-
-          <div id="appFeatures"></div>
-
+  <div class="modal" id="companyModal">
+    <div class="modal-box">
+      <div class="modal-top">
+        <div>
+          <h2>🏢 Biura i centra</h2>
+          <div class="subtitle">Ulepszaj budynki swojej firmy</div>
         </div>
-
-        <div id="updateList"></div>
-
+        <button class="close" onclick="closeModal('companyModal')">✕</button>
       </div>
-
+      <div id="companyList"></div>
     </div>
+  </div>
 
-  </main>
+</main>
 
+<aside id="rightPanel">
 
-  <aside id="rightPanel">
+  <div class="section-title">Sieć</div>
 
-    <div class="section-title">Sieć</div>
+  <div class="stat">Automaty <span id="lockerCount">0</span></div>
+  <div class="stat">Magazyny <span id="depotCount">0</span></div>
+  <div class="stat">Sortownie <span id="sorterCount">0</span></div>
+  <div class="stat">Huby <span id="hubCount">0</span></div>
+  <div class="stat">Biura <span id="officeCount">0</span></div>
 
-    <div class="stat">
-      Automaty
-      <span id="lockerCount">0</span>
+  <div class="section-title">Pracownicy</div>
+
+  <div class="stat">Kierowcy <span id="drivers">1</span></div>
+  <div class="stat">Programiści <span id="developers">0</span></div>
+  <div class="stat">Testerzy <span id="testers">0</span></div>
+
+  <div class="section-title">Flota</div>
+
+  <div class="stat">Vany <span id="vanCount">1</span></div>
+  <div class="stat">Ciężarówki <span id="truckCount">0</span></div>
+  <div class="stat">E-vany <span id="evanCount">0</span></div>
+
+  <div class="section-title">Logistyka</div>
+
+  <div class="stat">Paczki dziś <span id="packagesToday">0</span></div>
+  <div class="stat">Dostarczone <span id="delivered">0</span></div>
+  <div class="stat">Terminowość <span id="onTime">100%</span></div>
+
+  <div class="stat">
+    Wydajność
+    <div class="progress">
+      <div class="progress-bar" id="efficiencyBar"></div>
     </div>
+  </div>
 
-    <div class="stat">
-      Magazyny
-      <span id="depotCount">0</span>
-    </div>
+  <div class="section-title">Historia</div>
+  <div id="log"></div>
 
-    <div class="stat">
-      Sortownie
-      <span id="sorterCount">0</span>
-    </div>
-
-    <div class="stat">
-      Huby
-      <span id="hubCount">0</span>
-    </div>
-
-    <div class="stat">
-      Garaże
-      <span id="garageCount">0</span>
-    </div>
-
-
-    <div class="section-title">Firma</div>
-
-    <div class="stat">
-      Kierowcy
-      <span id="drivers">1</span>
-    </div>
-
-    <div class="stat">
-      Vany
-      <span id="vans">1</span>
-    </div>
-
-    <div class="stat">
-      Programiści
-      <span id="developers">0</span>
-    </div>
-
-    <div class="stat">
-      Testerzy
-      <span id="testers">0</span>
-    </div>
-
-
-    <div class="section-title">Logistyka</div>
-
-    <div class="stat">
-      Paczki dziś
-      <span id="packagesToday">0</span>
-    </div>
-
-    <div class="stat">
-      Dostarczone razem
-      <span id="delivered">0</span>
-    </div>
-
-    <div class="stat">
-      Terminowość
-      <span id="onTime">100%</span>
-    </div>
-
-    <div class="stat">
-      Wydajność sieci
-
-      <div class="progress">
-        <div class="progress-bar"
-          id="efficiencyBar"></div>
-      </div>
-    </div>
-
-
-    <div class="section-title">Historia</div>
-
-    <div id="log"></div>
-
-  </aside>
+</aside>
 
 </div>
 
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
 
-const map = document.getElementById("map");
-
 let money = 75000;
 let day = 1;
-let reputation = 50;
+let reputation = 0;
 
 let drivers = 1;
-let vans = 1;
 let developers = 0;
 let testers = 0;
 
@@ -927,1298 +568,947 @@ let delivered = 0;
 let buildMode = null;
 let buildCost = 0;
 
-let appVersion = 1.0;
-let appPopularity = 20;
-let appStability = 80;
-
-let appFeatures = [
-  "Śledzenie paczki"
-];
-
 const buildings = [];
+const mapMarkers = [];
 
-const buildingInfo = {
-
-  locker: {
-    name: "Automat paczkowy",
-    icon: "📦"
-  },
-
-  depot: {
-    name: "Magazyn lokalny",
-    icon: "🏭"
-  },
-
-  sorter: {
-    name: "Sortownia",
-    icon: "⚙️"
-  },
-
-  hub: {
-    name: "Centrum logistyczne",
-    icon: "🌐"
-  },
-
-  garage: {
-    name: "Garaż",
-    icon: "🚐"
-  },
-
-  server: {
-    name: "Serwerownia",
-    icon: "🖥️"
-  }
-
+const fleet = {
+  van: 1,
+  truck: 0,
+  evan: 0
 };
 
+const vehicleTypes = {
+  van: {
+    name:"Van",
+    icon:"🚐",
+    buy:12000,
+    sell:7000,
+    capacity:35,
+    daily:95
+  },
+  truck: {
+    name:"Ciężarówka",
+    icon:"🚚",
+    buy:45000,
+    sell:28000,
+    capacity:120,
+    daily:260
+  },
+  evan: {
+    name:"E-Van",
+    icon:"⚡🚐",
+    buy:28000,
+    sell:17000,
+    capacity:45,
+    daily:55
+  }
+};
+
+const buildingInfo = {
+  locker:{name:"Automat paczkowy",icon:"📦"},
+  depot:{name:"Magazyn",icon:"🏭"},
+  sorter:{name:"Sortownia",icon:"⚙️"},
+  hub:{name:"Centrum logistyczne",icon:"🌐"},
+  garage:{name:"Garaż",icon:"🚗"},
+  server:{name:"Serwerownia",icon:"🖥️"},
+  office:{name:"Biuro",icon:"🏢"}
+};
+
+const upgradeData = {
+  locker:{
+    base:6000,
+    effect:"Większa pojemność i popyt"
+  },
+  depot:{
+    base:20000,
+    effect:"Większa przepustowość magazynu"
+  },
+  sorter:{
+    base:50000,
+    effect:"Większa wydajność sortowania"
+  },
+  hub:{
+    base:100000,
+    effect:"Znacznie większa przepustowość sieci"
+  },
+  garage:{
+    base:25000,
+    effect:"Niższe koszty utrzymania pojazdów"
+  },
+  server:{
+    base:40000,
+    effect:"Większa stabilność systemów"
+  },
+  office:{
+    base:30000,
+    effect:"Większy limit pracowników"
+  }
+};
 
 const technologies = [
-
   {
-    id: "routing",
-    name: "AI Routing",
-    cost: 35000,
-    description:
-      "AI optymalizuje trasy kurierów. +15% wydajności.",
-    unlocked: false
+    id:"routing",
+    name:"AI Routing",
+    cost:35000,
+    description:"+15% wydajności kierowców",
+    unlocked:false
   },
-
   {
-    id: "forecast",
-    name: "AI Demand Forecast",
-    cost: 55000,
-    description:
-      "Prognozuje popyt i zwiększa efektywność sieci.",
-    unlocked: false
+    id:"sorting",
+    name:"AI Sorting",
+    cost:80000,
+    description:"+30% wydajności sortowni",
+    unlocked:false
   },
-
   {
-    id: "sorting",
-    name: "AI Sorting",
-    cost: 80000,
-    description:
-      "Automatyzuje sortowanie. +30% wydajności sortowni.",
-    unlocked: false
+    id:"forecast",
+    name:"AI Demand Forecast",
+    cost:55000,
+    description:"+8% popytu",
+    unlocked:false
   },
-
   {
-    id: "regions",
-    name: "AI Region Planner",
-    cost: 65000,
-    description:
-      "Automatyczne planowanie rejonów kurierskich.",
-    unlocked: false
-  },
-
-  {
-    id: "maintenance",
-    name: "Predictive Maintenance",
-    cost: 45000,
-    description:
-      "AI przewiduje awarie pojazdów i zmniejsza koszty.",
-    unlocked: false
+    id:"maintenance",
+    name:"Predictive Maintenance",
+    cost:45000,
+    description:"-10% kosztów floty",
+    unlocked:false
   }
-
 ];
 
+const map = L.map("map",{
+  zoomControl:true,
+  minZoom:2,
+  maxZoom:19,
+  worldCopyJump:true
+});
 
-const appUpdates = [
+map.setView([52.1,19.4],6);
 
+L.tileLayer(
+  "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
   {
-    id: "notifications",
-    version: 1.1,
-    name: "Powiadomienia push",
-    cost: 12000,
-    developers: 1,
-    feature: "Powiadomienia push",
-    done: false
-  },
+    maxZoom:19,
+    attribution:"&copy; OpenStreetMap contributors"
+  }
+).addTo(map);
 
-  {
-    id: "redirect",
-    version: 1.2,
-    name: "Przekierowanie paczki",
-    cost: 18000,
-    developers: 1,
-    feature: "Przekierowanie paczki",
-    done: false
-  },
+map.on("click",e=>{
+  if(!buildMode) return;
 
-  {
-    id: "qr",
-    version: 1.3,
-    name: "Odbiór QR",
-    cost: 25000,
-    developers: 2,
-    feature: "Kody QR",
-    done: false
-  },
-
-  {
-    id: "courierMap",
-    version: 1.5,
-    name: "Mapa kuriera live",
-    cost: 35000,
-    developers: 2,
-    feature: "Mapa kuriera",
-    done: false
-  },
-
-  {
-    id: "aiAssistant",
-    version: 2.0,
-    name: "Asystent AI",
-    cost: 70000,
-    developers: 3,
-    feature: "Asystent AI",
-    done: false
+  if(money < buildCost){
+    notify("Brak pieniędzy.");
+    return;
   }
 
-];
+  const building = {
+    id:Date.now()+Math.random(),
+    type:buildMode,
+    lat:e.latlng.lat,
+    lng:e.latlng.lng,
+    level:1
+  };
 
+  buildings.push(building);
+  createBuildingMarker(building);
 
-function formatMoney(value) {
+  changeMoney(
+    -buildCost,
+    "Budowa: "+buildingInfo[building.type].name
+  );
 
-  return Math.round(value)
-    .toLocaleString("pl-PL") + " zł";
+  buildMode=null;
+  buildCost=0;
 
-}
+  document.querySelectorAll(".panel-button")
+    .forEach(b=>b.classList.remove("active"));
 
-
-function changeMoney(amount, reason = "") {
-
-  money += amount;
-
-  const animation =
-    document.createElement("div");
-
-  animation.className =
-    "money-animation " +
-    (amount >= 0 ? "plus" : "minus");
-
-  animation.textContent =
-    (amount >= 0 ? "+" : "") +
-    formatMoney(amount);
-
-  document
-    .getElementById("moneyWrap")
-    .appendChild(animation);
-
-  setTimeout(() => animation.remove(), 1300);
+  document.getElementById("hint").textContent=
+    "Obiekt zbudowany.";
 
   updateUI();
+});
 
-  if (reason) {
+function formatMoney(value){
+  return Math.round(value).toLocaleString("pl-PL")+" zł";
+}
 
+function changeMoney(amount,reason=""){
+  money+=amount;
+
+  const el=document.createElement("div");
+  el.className=
+    "money-animation "+
+    (amount>=0?"plus":"minus");
+
+  el.textContent=
+    (amount>=0?"+":"")+
+    formatMoney(amount);
+
+  document.getElementById("moneyWrap")
+    .appendChild(el);
+
+  setTimeout(()=>el.remove(),1300);
+
+  if(reason){
     addLog(
-      reason + " " +
-      (amount >= 0 ? "+" : "") +
-      formatMoney(amount),
-      amount >= 0 ? "good" : "bad"
+      reason+" "+(amount>=0?"+":"")+formatMoney(amount),
+      amount>=0?"good":"bad"
     );
-
   }
 
+  updateUI();
 }
 
+function notify(text){
+  const n=document.createElement("div");
+  n.className="notification";
+  n.textContent=text;
 
-function notify(text) {
+  document.getElementById("mapContainer")
+    .appendChild(n);
 
-  const notification =
-    document.createElement("div");
-
-  notification.className = "notification";
-  notification.textContent = text;
-
-  document
-    .getElementById("mapContainer")
-    .appendChild(notification);
-
-  setTimeout(() => {
-    notification.remove();
-  }, 2800);
-
+  setTimeout(()=>n.remove(),2500);
 }
 
-
-function addLog(text, type = "") {
-
-  const item =
-    document.createElement("div");
-
-  item.className =
-    "log-item " + type;
-
-  item.textContent =
-    "Dzień " + day + ": " + text;
-
-  document
-    .getElementById("log")
-    .prepend(item);
-
+function addLog(text,type=""){
+  const el=document.createElement("div");
+  el.className="log-item "+type;
+  el.textContent="Dzień "+day+": "+text;
+  document.getElementById("log").prepend(el);
 }
 
+function selectBuild(type,cost,button){
+  buildMode=type;
+  buildCost=cost;
 
-function selectBuild(type, cost, button) {
-
-  buildMode = type;
-  buildCost = cost;
-
-  document
-    .querySelectorAll(".panel-button")
-    .forEach(btn =>
-      btn.classList.remove("active")
-    );
+  document.querySelectorAll(".panel-button")
+    .forEach(b=>b.classList.remove("active"));
 
   button.classList.add("active");
 
-  document.getElementById("hint").textContent =
-    "Kliknij na mapie: " +
-    buildingInfo[type].name +
-    " (" + formatMoney(cost) + ")";
-
+  document.getElementById("hint").textContent=
+    "Kliknij miejsce na mapie: "+
+    buildingInfo[type].name+
+    " — "+
+    formatMoney(cost);
 }
 
+function makeBuildingIcon(building){
+  return L.divIcon({
+    className:"",
+    html:`
+      <div class="building-marker ${building.type}">
+        ${buildingInfo[building.type].icon}
+      </div>
+    `,
+    iconSize:[44,44],
+    iconAnchor:[22,22]
+  });
+}
 
-map.addEventListener("click", event => {
+function createBuildingMarker(building){
+  if(!building.level) building.level=1;
 
-  if (!buildMode) return;
+  const marker=L.marker(
+    [building.lat,building.lng],
+    {
+      icon:makeBuildingIcon(building)
+    }
+  ).addTo(map);
 
-  if (
-    event.target.classList.contains("building")
-  ) return;
+  marker.bindPopup(()=>`
+    <b>
+      ${buildingInfo[building.type].icon}
+      ${buildingInfo[building.type].name}
+    </b>
+    <br><br>
+    Poziom: <b>${building.level}</b>
+    <br>
+    ${building.lat.toFixed(4)},
+    ${building.lng.toFixed(4)}
+    <br><br>
+    <button
+      onclick="upgradeBuilding('${building.id}')"
+      style="
+        padding:7px;
+        width:100%;
+        cursor:pointer;
+      "
+    >
+      ⬆️ Ulepsz
+    </button>
+  `);
 
-  if (money < buildCost) {
+  building.marker=marker;
+  mapMarkers.push(marker);
+}
 
-    notify("Brak pieniędzy.");
+function getStaffLimit(){
+  let officeLevels=0;
+
+  buildings
+    .filter(b=>b.type==="office")
+    .forEach(b=>{
+      officeLevels+=b.level;
+    });
+
+  return 10 + officeLevels*20;
+}
+
+function totalStaff(){
+  return drivers+developers+testers;
+}
+
+function hireDriver(){
+  hireWorker("driver",2500);
+}
+
+function hireDeveloper(){
+  hireWorker("developer",4000);
+}
+
+function hireTester(){
+  hireWorker("tester",3000);
+}
+
+function hireWorker(type,cost){
+
+  if(totalStaff()>=getStaffLimit()){
+    notify(
+      "Limit pracowników. Ulepsz biuro."
+    );
     return;
-
   }
 
-  const rect =
-    map.getBoundingClientRect();
+  if(money<cost){
+    notify("Brak pieniędzy.");
+    return;
+  }
 
-  const x =
-    ((event.clientX - rect.left) /
-    rect.width) * 100;
+  if(type==="driver") drivers++;
+  if(type==="developer") developers++;
+  if(type==="tester") testers++;
 
-  const y =
-    ((event.clientY - rect.top) /
-    rect.height) * 100;
+  changeMoney(-cost,"Zatrudniono pracownika.");
+}
 
-  const type = buildMode;
-  const cost = buildCost;
-
-  buildings.push({
-
-    id: Date.now() + Math.random(),
-    type,
-    x,
-    y
-
-  });
-
-  createBuilding(
-    buildings[buildings.length - 1]
-  );
-
-  changeMoney(
-    -cost,
-    "Budowa: " +
-    buildingInfo[type].name
-  );
-
-  buildMode = null;
-  buildCost = 0;
+function openFleet(){
+  renderFleet();
 
   document
-    .querySelectorAll(".panel-button")
-    .forEach(btn =>
-      btn.classList.remove("active")
-    );
+    .getElementById("fleetModal")
+    .classList.add("show");
+}
 
-  document.getElementById("hint")
-    .textContent =
-    "Wybierz kolejny budynek.";
+function renderFleet(){
+  const box=document.getElementById("fleetList");
+  box.innerHTML="";
 
+  Object.entries(vehicleTypes)
+    .forEach(([id,v])=>{
+
+      const row=document.createElement("div");
+      row.className="vehicle-row";
+
+      row.innerHTML=`
+        <div>
+          <b>${v.icon} ${v.name}</b><br>
+          <small>
+            Ilość: ${fleet[id]} •
+            Pojemność: ${v.capacity}
+          </small>
+        </div>
+
+        <button
+          class="small-btn buy-btn"
+          onclick="buyVehicle('${id}')"
+        >
+          Kup ${formatMoney(v.buy)}
+        </button>
+
+        <button
+          class="small-btn sell-btn"
+          onclick="sellVehicle('${id}')"
+        >
+          Sprzedaj ${formatMoney(v.sell)}
+        </button>
+      `;
+
+      box.appendChild(row);
+    });
+}
+
+function buyVehicle(type){
+  const v=vehicleTypes[type];
+
+  if(money<v.buy){
+    notify("Brak pieniędzy.");
+    return;
+  }
+
+  fleet[type]++;
+
+  changeMoney(
+    -v.buy,
+    "Kupiono "+v.name+"."
+  );
+
+  renderFleet();
   updateUI();
+}
 
-});
+function sellVehicle(type){
+  const v=vehicleTypes[type];
 
+  if(fleet[type]<=0){
+    notify("Nie masz takiego pojazdu.");
+    return;
+  }
 
-function createBuilding(building) {
+  if(type==="van" && fleet.van===1){
+    notify("Musisz zachować przynajmniej jednego vana.");
+    return;
+  }
 
-  const element =
-    document.createElement("div");
+  fleet[type]--;
 
-  element.className =
-    "building " + building.type;
+  changeMoney(
+    v.sell,
+    "Sprzedano "+v.name+"."
+  );
 
-  element.style.left =
-    building.x + "%";
+  renderFleet();
+  updateUI();
+}
 
-  element.style.top =
-    building.y + "%";
+function openCompany(){
+  renderCompany();
 
-  element.textContent =
-    buildingInfo[building.type].icon;
+  document
+    .getElementById("companyModal")
+    .classList.add("show");
+}
 
-  element.title =
-    buildingInfo[building.type].name;
+function renderCompany(){
+  const box=document.getElementById("companyList");
+  box.innerHTML="";
 
-  element.onclick = event => {
+  if(buildings.length===0){
+    box.innerHTML=`
+      <div class="card">
+        Nie masz jeszcze żadnych budynków.
+      </div>
+    `;
+    return;
+  }
 
-    event.stopPropagation();
+  buildings.forEach(b=>{
 
-    notify(
-      buildingInfo[building.type].name
+    const up=upgradeData[b.type];
+    const nextCost=
+      Math.floor(
+        up.base*
+        Math.pow(1.7,b.level-1)
+      );
+
+    const card=document.createElement("div");
+    card.className="card";
+
+    card.innerHTML=`
+      <strong>
+        ${buildingInfo[b.type].icon}
+        ${buildingInfo[b.type].name}
+        — poziom ${b.level}
+      </strong>
+
+      <small>
+        ${up.effect}
+      </small>
+
+      <button
+        onclick="upgradeBuilding('${b.id}')"
+      >
+        ⬆️ Ulepsz do poziomu ${b.level+1}
+        — ${formatMoney(nextCost)}
+      </button>
+    `;
+
+    box.appendChild(card);
+  });
+
+  const info=document.createElement("div");
+  info.className="card";
+
+  info.innerHTML=`
+    <strong>👥 Limit zatrudnienia</strong>
+    <small>
+      ${totalStaff()} / ${getStaffLimit()}
+      pracowników.
+      Każdy poziom biura daje
+      dodatkowe 20 miejsc.
+    </small>
+  `;
+
+  box.prepend(info);
+}
+
+function upgradeBuilding(id){
+  const building=
+    buildings.find(
+      b=>String(b.id)===String(id)
     );
 
-  };
+  if(!building) return;
 
-  map.appendChild(element);
+  const data=upgradeData[building.type];
 
-}
+  const cost=
+    Math.floor(
+      data.base*
+      Math.pow(
+        1.7,
+        building.level-1
+      )
+    );
 
-
-function hireDriver() {
-
-  const cost = 2500;
-
-  if (money < cost) {
-
+  if(money<cost){
     notify("Brak pieniędzy.");
     return;
-
   }
 
-  drivers++;
+  building.level++;
 
   changeMoney(
     -cost,
-    "Zatrudniono kierowcę."
+    "Ulepszono "+
+    buildingInfo[building.type].name+
+    " do poziomu "+
+    building.level+"."
   );
 
-}
-
-
-function buyVan() {
-
-  const cost = 12000;
-
-  if (money < cost) {
-
-    notify("Brak pieniędzy.");
-    return;
-
+  if(building.marker){
+    building.marker.setIcon(
+      makeBuildingIcon(building)
+    );
   }
 
-  vans++;
-
-  changeMoney(
-    -cost,
-    "Kupiono vana."
+  notify(
+    buildingInfo[building.type].name+
+    " ma teraz poziom "+
+    building.level+"."
   );
 
+  renderCompany();
+  updateUI();
 }
 
-
-function hireDeveloper() {
-
-  const cost = 4000;
-
-  if (money < cost) {
-
-    notify("Brak pieniędzy.");
-    return;
-
-  }
-
-  developers++;
-
-  changeMoney(
-    -cost,
-    "Zatrudniono programistę."
-  );
-
-}
-
-
-function hireTester() {
-
-  const cost = 3000;
-
-  if (money < cost) {
-
-    notify("Brak pieniędzy.");
-    return;
-
-  }
-
-  testers++;
-
-  changeMoney(
-    -cost,
-    "Zatrudniono testera."
-  );
-
-}
-
-
-function getTech(id) {
-
-  return technologies.find(
-    tech => tech.id === id
-  );
-
-}
-
-
-function techUnlocked(id) {
-
-  const tech = getTech(id);
-
-  return tech && tech.unlocked;
-
-}
-
-
-function openTech() {
-
+function openTech(){
   renderTech();
 
   document
     .getElementById("techModal")
     .classList.add("show");
-
 }
 
+function renderTech(){
+  const box=document.getElementById("techList");
+  box.innerHTML="";
 
-function renderTech() {
+  technologies.forEach(t=>{
 
-  const container =
-    document.getElementById("techList");
+    const card=document.createElement("div");
 
-  container.innerHTML = "";
+    card.className=
+      "card "+
+      (t.unlocked?"done":"");
 
-  technologies.forEach(tech => {
-
-    const card =
-      document.createElement("div");
-
-    card.className =
-      "tech-card" +
-      (tech.unlocked
-        ? " unlocked"
-        : "");
-
-    card.innerHTML = `
-      <strong>${tech.name}</strong>
+    card.innerHTML=`
+      <strong>${t.name}</strong>
 
       <small>
-        ${tech.description}
+        ${t.description}
       </small>
 
       <button
-        onclick="buyTechnology('${tech.id}')"
-        ${tech.unlocked
-          ? "disabled"
-          : ""}
+        onclick="buyTech('${t.id}')"
+        ${t.unlocked?"disabled":""}
       >
         ${
-          tech.unlocked
-          ? "✓ Opracowano"
-          : "Opracuj — " +
-            formatMoney(tech.cost)
+          t.unlocked
+          ?"✓ Opracowano"
+          :"Opracuj — "+formatMoney(t.cost)
         }
       </button>
     `;
 
-    container.appendChild(card);
-
+    box.appendChild(card);
   });
-
 }
 
+function buyTech(id){
+  const tech=
+    technologies.find(t=>t.id===id);
 
-function buyTechnology(id) {
+  if(!tech || tech.unlocked) return;
 
-  const tech = getTech(id);
-
-  if (!tech || tech.unlocked) return;
-
-  if (developers < 1) {
-
-    notify(
-      "Potrzebujesz przynajmniej 1 programisty."
-    );
-
+  if(developers<1){
+    notify("Potrzebujesz programisty.");
     return;
-
   }
 
-  if (money < tech.cost) {
-
+  if(money<tech.cost){
     notify("Brak pieniędzy.");
     return;
-
   }
 
-  tech.unlocked = true;
+  tech.unlocked=true;
 
   changeMoney(
     -tech.cost,
-    "R&D: " + tech.name
+    "R&D: "+tech.name
   );
 
-  reputation =
-    Math.min(100, reputation + 2);
-
-  notify(
-    "Technologia odblokowana: " +
-    tech.name
-  );
+  reputation=
+    Math.min(
+      100,
+      reputation+2
+    );
 
   renderTech();
   updateUI();
-
 }
 
+function techUnlocked(id){
+  const t=
+    technologies.find(x=>x.id===id);
 
-function openAppManager() {
-
-  renderApp();
-
-  document
-    .getElementById("appModal")
-    .classList.add("show");
-
+  return !!(t&&t.unlocked);
 }
 
-
-function renderApp() {
-
-  document.getElementById(
-    "appVersion"
-  ).textContent =
-    "v" + appVersion.toFixed(1);
-
-  document.getElementById(
-    "appPopularity"
-  ).textContent =
-    Math.round(appPopularity) + "%";
-
-  document.getElementById(
-    "appStability"
-  ).textContent =
-    Math.round(appStability) + "%";
-
-  const featureBox =
-    document.getElementById(
-      "appFeatures"
-    );
-
-  featureBox.innerHTML = "";
-
-  appFeatures.forEach(feature => {
-
-    const badge =
-      document.createElement("span");
-
-    badge.className = "badge";
-
-    badge.textContent = feature;
-
-    featureBox.appendChild(badge);
-
-  });
-
-
-  const updateBox =
-    document.getElementById(
-      "updateList"
-    );
-
-  updateBox.innerHTML = "";
-
-  appUpdates.forEach(update => {
-
-    const card =
-      document.createElement("div");
-
-    card.className =
-      "tech-card" +
-      (update.done
-        ? " unlocked"
-        : "");
-
-    card.innerHTML = `
-
-      <strong>
-        v${update.version.toFixed(1)}
-        — ${update.name}
-      </strong>
-
-      <small>
-        Wymaga:
-        ${update.developers}
-        programistów.
-      </small>
-
-      <button
-        onclick="developUpdate('${update.id}')"
-        ${update.done
-          ? "disabled"
-          : ""}
-      >
-        ${
-          update.done
-          ? "✓ Wydano"
-          : "Stwórz aktualizację — " +
-            formatMoney(update.cost)
-        }
-      </button>
-    `;
-
-    updateBox.appendChild(card);
-
-  });
-
-}
-
-
-function developUpdate(id) {
-
-  const update =
-    appUpdates.find(
-      item => item.id === id
-    );
-
-  if (!update || update.done) return;
-
-  if (
-    developers <
-    update.developers
-  ) {
-
-    notify(
-      "Za mało programistów."
-    );
-
-    return;
-
-  }
-
-  if (money < update.cost) {
-
-    notify("Brak pieniędzy.");
-    return;
-
-  }
-
-  changeMoney(
-    -update.cost,
-    "Rozwój aplikacji."
-  );
-
-  update.done = true;
-
-  appVersion =
-    update.version;
-
-  appFeatures.push(
-    update.feature
-  );
-
-  appPopularity +=
-    5 + developers * 1.5;
-
-  let stabilityChange =
-    testers * 2 -
-    Math.random() * 7;
-
-  appStability +=
-    stabilityChange;
-
-  appStability =
-    Math.max(
-      40,
-      Math.min(
-        100,
-        appStability
-      )
-    );
-
-  reputation =
-    Math.min(
-      100,
-      reputation + 3
-    );
-
-  notify(
-    "Wydano aplikację v" +
-    appVersion.toFixed(1)
-  );
-
-  addLog(
-    "Wydano aktualizację aplikacji v" +
-    appVersion.toFixed(1),
-    "info"
-  );
-
-  renderApp();
-  updateUI();
-
-}
-
-
-function closeModal(id) {
-
+function closeModal(id){
   document
     .getElementById(id)
     .classList.remove("show");
-
 }
 
+function buildingPower(type){
+  return buildings
+    .filter(b=>b.type===type)
+    .reduce(
+      (sum,b)=>
+        sum+
+        Math.pow(
+          1.5,
+          b.level-1
+        ),
+      0
+    );
+}
 
-function calculateCapacity() {
+function calculateVehicleCapacity(){
 
-  let capacity =
+  let capacity=
+    fleet.van*
+    vehicleTypes.van.capacity;
+
+  capacity+=
+    fleet.truck*
+    vehicleTypes.truck.capacity;
+
+  capacity+=
+    fleet.evan*
+    vehicleTypes.evan.capacity;
+
+  return capacity;
+}
+
+function calculateCapacity(){
+
+  let capacity=
     Math.min(
-      drivers,
-      vans
-    ) * 35;
-
-  const sorters =
-    buildings.filter(
-      building =>
-        building.type === "sorter"
-    ).length;
-
-  const hubs =
-    buildings.filter(
-      building =>
-        building.type === "hub"
-    ).length;
-
-  capacity += sorters * 100;
-  capacity += hubs * 180;
-
-  if (
-    techUnlocked("routing")
-  ) capacity *= 1.15;
-
-  if (
-    techUnlocked("sorting")
-  ) capacity *= 1.30;
-
-  if (
-    techUnlocked("regions")
-  ) capacity *= 1.10;
-
-  return Math.floor(capacity);
-
-}
-
-
-function calculateDemand() {
-
-  const lockers =
-    buildings.filter(
-      building =>
-        building.type === "locker"
-    ).length;
-
-  const depots =
-    buildings.filter(
-      building =>
-        building.type === "depot"
-    ).length;
-
-  let demand =
-    15 +
-    lockers * 20 +
-    depots * 35;
-
-  demand *=
-    1 +
-    appPopularity / 250;
-
-  demand *=
-    1 +
-    reputation / 500;
-
-  if (
-    techUnlocked("forecast")
-  ) demand *= 1.08;
-
-  demand +=
-    Math.floor(
-      Math.random() * 30
+      drivers*40,
+      calculateVehicleCapacity()
     );
 
-  return Math.floor(demand);
+  capacity+=
+    buildingPower("depot")*45;
 
+  capacity+=
+    buildingPower("sorter")*110;
+
+  capacity+=
+    buildingPower("hub")*220;
+
+  if(techUnlocked("routing"))
+    capacity*=1.15;
+
+  if(techUnlocked("sorting"))
+    capacity*=1.30;
+
+  return Math.floor(capacity);
 }
 
+function calculateDemand(){
 
-function calculateMaintenance() {
+  let demand=
+    4+
+    buildingPower("locker")*18+
+    buildingPower("depot")*25;
 
-  let cost =
-    drivers * 220 +
-    vans * 95 +
-    developers * 350 +
-    testers * 270;
+  demand*=
+    .35+
+    reputation/100;
 
-  buildings.forEach(building => {
+  if(techUnlocked("forecast"))
+    demand*=1.08;
 
-    const dailyCosts = {
+  demand+=Math.floor(Math.random()*10);
 
-      locker: 30,
-      depot: 130,
-      sorter: 320,
-      hub: 650,
-      garage: 90,
-      server: 300
+  return Math.max(
+    0,
+    Math.floor(demand)
+  );
+}
 
-    };
+function garageDiscount(){
+  const power=
+    buildingPower("garage");
 
-    cost +=
-      dailyCosts[
-        building.type
-      ] || 0;
+  return Math.min(
+    .35,
+    power*.025
+  );
+}
 
+function calculateMaintenance(){
+
+  let cost=
+    drivers*220+
+    developers*350+
+    testers*270;
+
+  let vehicleCost=
+    fleet.van*
+    vehicleTypes.van.daily;
+
+  vehicleCost+=
+    fleet.truck*
+    vehicleTypes.truck.daily;
+
+  vehicleCost+=
+    fleet.evan*
+    vehicleTypes.evan.daily;
+
+  vehicleCost*=
+    1-garageDiscount();
+
+  if(techUnlocked("maintenance"))
+    vehicleCost*=.9;
+
+  cost+=vehicleCost;
+
+  buildings.forEach(b=>{
+
+    const base={
+      locker:30,
+      depot:130,
+      sorter:320,
+      hub:650,
+      garage:90,
+      server:300,
+      office:250
+    }[b.type]||0;
+
+    cost+=
+      base*
+      Math.pow(
+        1.35,
+        b.level-1
+      );
   });
 
-  if (
-    techUnlocked("maintenance")
-  ) cost *= .9;
-
   return Math.floor(cost);
-
 }
 
-
-function nextDay() {
+function nextDay(){
 
   day++;
 
-  const demand =
+  const demand=
     calculateDemand();
 
-  const capacity =
+  const capacity=
     calculateCapacity();
 
-  const todayDelivered =
+  const done=
     Math.min(
       demand,
       capacity
     );
 
-  packagesToday =
-    demand;
+  packagesToday=demand;
 
-  delivered +=
-    todayDelivered;
+  delivered+=done;
 
-  let revenue =
-    todayDelivered * 10;
-
-  revenue *=
-    1 +
-    appPopularity / 800;
-
-  revenue =
-    Math.floor(revenue);
-
-  const maintenance =
-    calculateMaintenance();
-
-  const serverCount =
-    buildings.filter(
-      building =>
-        building.type === "server"
-    ).length;
-
-  if (
-    appPopularity > 50 &&
-    serverCount === 0
-  ) {
-
-    appStability -= 3;
-
-    addLog(
-      "Aplikacja przeciążona. Potrzebna serwerownia.",
-      "bad"
+  const income=
+    Math.floor(
+      done*10
     );
 
-  }
+  const costs=
+    calculateMaintenance();
 
-  if (
-    serverCount > 0
-  ) {
+  const punctuality=
+    demand===0
+    ?100
+    :done/demand*100;
 
-    appStability +=
-      serverCount * .5;
+  if(done>0 && punctuality>=95)
+    reputation+=1;
 
-  }
+  else if(done>0 && punctuality>=80)
+    reputation+=.4;
 
-  appStability =
+  else if(punctuality<60)
+    reputation-=1;
+
+  reputation=
     Math.max(
-      30,
+      0,
       Math.min(
         100,
-        appStability
+        reputation
       )
     );
 
-  const punctuality =
-    demand === 0
-      ? 100
-      : todayDelivered /
-        demand * 100;
-
-  if (
-    punctuality > 90
-  ) {
-
-    reputation =
-      Math.min(
-        100,
-        reputation + .7
-      );
-
-  } else {
-
-    reputation =
-      Math.max(
-        0,
-        reputation - 1.5
-      );
-
-  }
-
   changeMoney(
-    revenue,
-    "Przychód z dostaw."
+    income,
+    "Przychód."
   );
 
   changeMoney(
-    -maintenance,
+    -costs,
     "Koszty dzienne."
   );
 
   addLog(
-    "Obsłużono " +
-    todayDelivered +
-    " / " +
-    demand +
+    "Obsłużono "+
+    done+
+    " / "+
+    demand+
     " paczek.",
-    punctuality >= 90
-      ? "good"
-      : "bad"
+    punctuality>=90
+    ?"good"
+    :"bad"
   );
 
-  animateLogistics();
-
   updateUI();
-
 }
 
+function updateUI(){
 
-function animateLogistics() {
-
-  const logistics =
-    buildings.filter(
-      building =>
-        [
-          "locker",
-          "depot",
-          "sorter",
-          "hub"
-        ].includes(
-          building.type
-        )
-    );
-
-  if (
-    logistics.length < 2
-  ) return;
-
-  const animations =
-    Math.min(
-      12,
-      packagesToday
-    );
-
-  for (
-    let i = 0;
-    i < animations;
-    i++
-  ) {
-
-    const start =
-      logistics[
-        Math.floor(
-          Math.random() *
-          logistics.length
-        )
-      ];
-
-    let end =
-      logistics[
-        Math.floor(
-          Math.random() *
-          logistics.length
-        )
-      ];
-
-    if (
-      start.id === end.id
-    ) continue;
-
-    const parcel =
-      document.createElement(
-        "div"
-      );
-
-    parcel.className =
-      "parcel";
-
-    parcel.style.left =
-      start.x + "%";
-
-    parcel.style.top =
-      start.y + "%";
-
-    map.appendChild(parcel);
-
-    setTimeout(() => {
-
-      parcel.style.left =
-        end.x + "%";
-
-      parcel.style.top =
-        end.y + "%";
-
-    }, 60);
-
-    setTimeout(() => {
-
-      parcel.remove();
-
-    }, 1350);
-
-  }
-
-
-  const vehicleCount =
-    Math.min(vans, 4);
-
-  for (
-    let i = 0;
-    i < vehicleCount;
-    i++
-  ) {
-
-    const start =
-      logistics[
-        Math.floor(
-          Math.random() *
-          logistics.length
-        )
-      ];
-
-    const end =
-      logistics[
-        Math.floor(
-          Math.random() *
-          logistics.length
-        )
-      ];
-
-    const van =
-      document.createElement(
-        "div"
-      );
-
-    van.className = "van";
-    van.textContent = "🚐";
-
-    van.style.left =
-      start.x + "%";
-
-    van.style.top =
-      start.y + "%";
-
-    map.appendChild(van);
-
-    setTimeout(() => {
-
-      van.style.left =
-        end.x + "%";
-
-      van.style.top =
-        end.y + "%";
-
-    }, 80);
-
-    setTimeout(() => {
-
-      van.remove();
-
-    }, 1600);
-
-  }
-
-}
-
-
-function updateUI() {
-
-  document.getElementById(
-    "money"
-  ).textContent =
+  document.getElementById("money").textContent=
     formatMoney(money);
 
-  document.getElementById(
-    "day"
-  ).textContent =
+  document.getElementById("day").textContent=
     day;
 
-  document.getElementById(
-    "reputation"
-  ).textContent =
-    Math.round(reputation) + "%";
+  document.getElementById("reputation").textContent=
+    Math.round(reputation)+"%";
 
-  document.getElementById(
-    "drivers"
-  ).textContent =
+  document.getElementById("drivers").textContent=
     drivers;
 
-  document.getElementById(
-    "vans"
-  ).textContent =
-    vans;
-
-  document.getElementById(
-    "developers"
-  ).textContent =
+  document.getElementById("developers").textContent=
     developers;
 
-  document.getElementById(
-    "testers"
-  ).textContent =
+  document.getElementById("testers").textContent=
     testers;
 
-  document.getElementById(
-    "packagesToday"
-  ).textContent =
+  document.getElementById("vanCount").textContent=
+    fleet.van;
+
+  document.getElementById("truckCount").textContent=
+    fleet.truck;
+
+  document.getElementById("evanCount").textContent=
+    fleet.evan;
+
+  document.getElementById("packagesToday").textContent=
     packagesToday;
 
-  document.getElementById(
-    "delivered"
-  ).textContent =
+  document.getElementById("delivered").textContent=
     delivered;
 
+  const count=t=>
+    buildings.filter(
+      b=>b.type===t
+    ).length;
 
-  const count =
-    type =>
-      buildings.filter(
-        building =>
-          building.type === type
-      ).length;
-
-
-  document.getElementById(
-    "lockerCount"
-  ).textContent =
+  document.getElementById("lockerCount").textContent=
     count("locker");
 
-  document.getElementById(
-    "depotCount"
-  ).textContent =
+  document.getElementById("depotCount").textContent=
     count("depot");
 
-  document.getElementById(
-    "sorterCount"
-  ).textContent =
+  document.getElementById("sorterCount").textContent=
     count("sorter");
 
-  document.getElementById(
-    "hubCount"
-  ).textContent =
+  document.getElementById("hubCount").textContent=
     count("hub");
 
-  document.getElementById(
-    "garageCount"
-  ).textContent =
-    count("garage");
+  document.getElementById("officeCount").textContent=
+    count("office");
 
+  const efficiency=
+    packagesToday===0
+    ?100
+    :Math.min(
+      100,
+      calculateCapacity()/
+      packagesToday*
+      100
+    );
 
-  const capacity =
-    calculateCapacity();
+  document.getElementById("onTime").textContent=
+    Math.round(efficiency)+"%";
 
-  const efficiency =
-    packagesToday === 0
-      ? 100
-      : Math.min(
-          100,
-          capacity /
-          packagesToday *
-          100
-        );
-
-  document.getElementById(
-    "efficiencyBar"
-  ).style.width =
-    efficiency + "%";
-
-
-  const onTime =
-    packagesToday === 0
-      ? 100
-      : Math.min(
-          100,
-          capacity /
-          packagesToday *
-          100
-        );
-
-  document.getElementById(
-    "onTime"
-  ).textContent =
-    Math.round(onTime) + "%";
-
+  document.getElementById("efficiencyBar").style.width=
+    efficiency+"%";
 }
 
+function saveGame(){
 
-function saveGame() {
+  const cleanBuildings=
+    buildings.map(b=>({
+      id:b.id,
+      type:b.type,
+      lat:b.lat,
+      lng:b.lng,
+      level:b.level
+    }));
 
-  const save = {
+  const center=
+    map.getCenter();
 
+  const save={
     money,
     day,
     reputation,
-
     drivers,
-    vans,
     developers,
     testers,
-
     packagesToday,
     delivered,
-
-    buildings,
-
+    fleet,
+    buildings:cleanBuildings,
     technologies,
-
-    appVersion,
-    appPopularity,
-    appStability,
-    appFeatures,
-    appUpdates
-
+    mapView:{
+      lat:center.lat,
+      lng:center.lng,
+      zoom:map.getZoom()
+    }
   };
 
   localStorage.setItem(
@@ -2227,189 +1517,252 @@ function saveGame() {
   );
 
   notify("Gra zapisana.");
-
 }
 
+function loadGame(){
 
-function loadGame() {
-
-  const raw =
+  const raw=
     localStorage.getItem(
       "parcelEmpireSave"
     );
 
-  if (!raw) {
-
-    notify(
-      "Nie znaleziono zapisu."
-    );
-
+  if(!raw){
+    notify("Brak zapisu.");
     return;
-
   }
 
-  const save =
+  const save=
     JSON.parse(raw);
 
-  money =
-    save.money ?? money;
+  money=save.money??75000;
+  day=save.day??1;
+  reputation=save.reputation??0;
 
-  day =
-    save.day ?? day;
+  drivers=save.drivers??1;
+  developers=save.developers??0;
+  testers=save.testers??0;
 
-  reputation =
-    save.reputation ??
-    reputation;
+  packagesToday=save.packagesToday??0;
+  delivered=save.delivered??0;
 
-  drivers =
-    save.drivers ??
-    drivers;
-
-  vans =
-    save.vans ??
-    vans;
-
-  developers =
-    save.developers ??
-    developers;
-
-  testers =
-    save.testers ??
-    testers;
-
-  packagesToday =
-    save.packagesToday ?? 0;
-
-  delivered =
-    save.delivered ?? 0;
-
-  appVersion =
-    save.appVersion ?? 1;
-
-  appPopularity =
-    save.appPopularity ?? 20;
-
-  appStability =
-    save.appStability ?? 80;
-
-  appFeatures =
-    save.appFeatures ??
-    ["Śledzenie paczki"];
-
-
-  if (save.technologies) {
-
-    save.technologies.forEach(
-      savedTech => {
-
-        const tech =
-          technologies.find(
-            item =>
-              item.id ===
-              savedTech.id
-          );
-
-        if (tech) {
-
-          tech.unlocked =
-            savedTech.unlocked;
-
-        }
-
-      }
-    );
-
+  if(save.fleet){
+    fleet.van=save.fleet.van??1;
+    fleet.truck=save.fleet.truck??0;
+    fleet.evan=save.fleet.evan??0;
   }
 
+  if(save.technologies){
+    save.technologies.forEach(st=>{
+      const tech=
+        technologies.find(
+          t=>t.id===st.id
+        );
 
-  if (save.appUpdates) {
-
-    save.appUpdates.forEach(
-      savedUpdate => {
-
-        const update =
-          appUpdates.find(
-            item =>
-              item.id ===
-              savedUpdate.id
-          );
-
-        if (update) {
-
-          update.done =
-            savedUpdate.done;
-
-        }
-
-      }
-    );
-
+      if(tech)
+        tech.unlocked=st.unlocked;
+    });
   }
 
+  mapMarkers.forEach(marker=>{
+    if(map.hasLayer(marker))
+      map.removeLayer(marker);
+  });
 
-  document
-    .querySelectorAll(
-      ".building"
-    )
-    .forEach(
-      element =>
-        element.remove()
+  mapMarkers.length=0;
+  buildings.length=0;
+
+  (save.buildings||[]).forEach(b=>{
+    if(!b.level) b.level=1;
+
+    buildings.push(b);
+    createBuildingMarker(b);
+  });
+
+  if(save.mapView){
+    map.setView(
+      [
+        save.mapView.lat,
+        save.mapView.lng
+      ],
+      save.mapView.zoom
     );
-
-  buildings.length = 0;
-
-  if (save.buildings) {
-
-    save.buildings.forEach(
-      building => {
-
-        buildings.push(
-          building
-        );
-
-        createBuilding(
-          building
-        );
-
-      }
-    );
-
   }
 
   updateUI();
-
   notify("Zapis wczytany.");
-
 }
 
+/* ============================
+   CHEAT CONSOLE
+============================ */
 
-const starterDepot = {
+const cheatConsole=
+  document.getElementById("cheatConsole");
 
-  id: 1,
-  type: "depot",
-  x: 48,
-  y: 48
+const cheatInput=
+  document.getElementById("cheatInput");
 
-};
+document.addEventListener(
+  "keydown",
+  e=>{
 
-buildings.push(
-  starterDepot
+    if(
+      e.key==="`" ||
+      e.key==="~"
+    ){
+      e.preventDefault();
+      toggleCheatConsole();
+    }
+
+    if(
+      e.key==="Escape" &&
+      cheatConsole.classList.contains("show")
+    ){
+      closeCheatConsole();
+    }
+  }
 );
 
-createBuilding(
-  starterDepot
+cheatInput.addEventListener(
+  "keydown",
+  e=>{
+
+    if(e.key==="Enter"){
+      runCheat(
+        cheatInput.value
+          .trim()
+          .toLowerCase()
+      );
+
+      cheatInput.value="";
+    }
+  }
 );
+
+function toggleCheatConsole(){
+
+  cheatConsole.classList.toggle("show");
+
+  if(
+    cheatConsole.classList.contains("show")
+  ){
+    setTimeout(
+      ()=>cheatInput.focus(),
+      20
+    );
+  }
+}
+
+function closeCheatConsole(){
+  cheatConsole.classList.remove("show");
+}
+
+function runCheat(code){
+
+  if(code==="cash"){
+    changeMoney(
+      1000000,
+      "CHEAT: gotówka."
+    );
+
+    notify("+1 000 000 zł");
+    return;
+  }
+
+  if(code==="rich"){
+    money=100000000;
+
+    notify(
+      "Stan konta: 100 000 000 zł"
+    );
+
+    updateUI();
+    return;
+  }
+
+  if(code==="maxstaff"){
+
+    drivers=100;
+    developers=100;
+    testers=100;
+
+    notify(
+      "Pracownicy ustawieni na 100."
+    );
+
+    updateUI();
+    return;
+  }
+
+  if(code==="rep100"){
+
+    reputation=100;
+
+    notify(
+      "Reputacja 100%."
+    );
+
+    updateUI();
+    return;
+  }
+
+  if(code==="unlockai"){
+
+    technologies.forEach(
+      t=>t.unlocked=true
+    );
+
+    notify(
+      "Wszystkie technologie odblokowane."
+    );
+
+    updateUI();
+    return;
+  }
+
+  if(code==="fleet"){
+
+    fleet.van+=20;
+    fleet.truck+=20;
+    fleet.evan+=20;
+
+    notify(
+      "Dodano po 20 pojazdów."
+    );
+
+    updateUI();
+    return;
+  }
+
+  if(code==="help"){
+
+    notify(
+      "cash, rich, maxstaff, rep100, unlockai, fleet"
+    );
+
+    return;
+  }
+
+  notify(
+    "Nieznany kod. Wpisz: help"
+  );
+}
 
 addLog(
-  "Firma rozpoczęła działalność.",
+  "Firma wystartowała z reputacją 0%.",
   "info"
 );
 
 addLog(
-  "Masz magazyn, 1 vana i 1 kierowcę."
+  "Postaw pierwsze centrum swojej sieci."
 );
 
 updateUI();
+
+setTimeout(
+  ()=>map.invalidateSize(),
+  200
+);
 
 </script>
 
