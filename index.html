@@ -3,13 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-
-<title>Parcel Empire</title>
-
-<link
-  rel="stylesheet"
-  href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-/>
+<title>City Balance</title>
 
 <style>
 *{
@@ -17,16 +11,17 @@
 }
 
 :root{
-  --bg:#07101d;
-  --panel:#0d1929;
-  --panel2:#13243a;
-  --line:#29425f;
+  --bg:#08111d;
+  --panel:#0f1b2b;
+  --panel2:#14243a;
+  --line:#2b4667;
   --text:#f8fafc;
-  --muted:#90a4ba;
+  --muted:#93a7bd;
   --green:#22c55e;
   --red:#ef4444;
-  --blue:#3b82f6;
   --yellow:#facc15;
+  --blue:#3b82f6;
+  --purple:#a855f7;
 }
 
 html,
@@ -41,8 +36,7 @@ body{
 }
 
 button,
-input,
-select{
+input{
   font:inherit;
 }
 
@@ -53,24 +47,37 @@ button{
 #app{
   width:100%;
   height:100vh;
+
   display:grid;
-  grid-template-columns:300px minmax(350px,1fr) 390px;
-  grid-template-rows:82px minmax(0,1fr);
+
+  grid-template-columns:
+    285px
+    minmax(500px,1fr)
+    365px;
+
+  grid-template-rows:
+    78px
+    minmax(0,1fr);
 }
 
-/* =========================
+/* =====================================================
    HEADER
-========================= */
+===================================================== */
 
 header{
   grid-column:1/4;
+
   display:flex;
   align-items:center;
   justify-content:space-between;
-  padding:0 20px;
-  background:#081321;
+
+  padding:0 18px;
+
   border-bottom:1px solid var(--line);
-  z-index:5000;
+
+  background:#091522;
+
+  z-index:10;
 }
 
 .brand{
@@ -82,12 +89,21 @@ header{
 .logo{
   width:48px;
   height:48px;
+
   display:flex;
   align-items:center;
   justify-content:center;
+
   border-radius:14px;
-  font-size:26px;
-  background:linear-gradient(135deg,#facc15,#f97316);
+
+  font-size:25px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #22c55e,
+      #0ea5e9
+    );
 }
 
 .brand h1{
@@ -105,47 +121,54 @@ header{
 }
 
 .headerCard{
-  min-width:108px;
-  padding:8px 11px;
+  min-width:105px;
+
+  padding:8px 10px;
+
   text-align:center;
+
   border:1px solid var(--line);
-  border-radius:11px;
+  border-radius:10px;
+
   background:var(--panel);
 }
 
 .headerCard.wide{
-  min-width:170px;
+  min-width:160px;
 }
 
 .headerCard small{
   display:block;
+
   margin-bottom:3px;
+
   color:var(--muted);
+
   font-size:9px;
 }
 
-#money{
+.headerCard strong{
+  font-size:13px;
+}
+
+#budget{
   color:#4ade80;
-  font-weight:900;
 }
 
-#dateTime{
-  color:#7dd3fc;
-  font-weight:bold;
-}
-
-#reputation{
+#happiness{
   color:#fde047;
 }
 
-/* =========================
-   PANELS
-========================= */
+/* =====================================================
+   SIDE PANELS
+===================================================== */
 
 aside{
   min-height:0;
   overflow-y:auto;
-  padding:14px;
+
+  padding:13px;
+
   background:var(--panel);
 }
 
@@ -158,203 +181,298 @@ aside{
 }
 
 .group{
-  margin-bottom:13px;
+  margin-bottom:12px;
+
   padding:10px;
-  border:1px solid #203650;
-  border-radius:14px;
+
+  border:1px solid #233c5a;
+  border-radius:13px;
+
   background:#122034;
 }
 
 .groupTitle{
-  margin:2px 3px 9px;
+  margin:2px 3px 8px;
+
   color:#7dd3fc;
+
   font-size:10px;
   font-weight:900;
+
   text-transform:uppercase;
   letter-spacing:1px;
 }
 
-.menuButton{
+.buildButton{
   width:100%;
-  margin-bottom:7px;
-  padding:10px;
-  color:white;
+
+  margin-bottom:6px;
+
+  padding:9px 10px;
+
   text-align:left;
-  border:1px solid #304b6c;
-  border-radius:10px;
-  background:linear-gradient(#1b304d,#172941);
+
+  color:white;
+
+  border:1px solid #345170;
+  border-radius:9px;
+
+  background:#182c46;
 }
 
-.menuButton:hover{
-  background:#223b5c;
+.buildButton:hover{
+  background:#213a59;
 }
 
-.menuButton .sub{
+.buildButton.active{
+  border-color:#60a5fa;
+  background:#1d4ed8;
+}
+
+.buildButton span{
   display:block;
-  margin-top:4px;
-  color:#a8b8c9;
-  font-size:10px;
+
+  margin-top:3px;
+
+  color:#b9c6d6;
+
+  font-size:9px;
 }
 
 .two{
   display:grid;
   grid-template-columns:1fr 1fr;
-  gap:7px;
+  gap:6px;
 }
 
-.two .menuButton{
+.two button{
   text-align:center;
 }
 
-/* =========================
-   MAP
-========================= */
+/* =====================================================
+   CITY AREA
+===================================================== */
 
-#mapContainer{
+#cityArea{
   position:relative;
+
   min-width:0;
   min-height:0;
+
+  overflow:auto;
+
+  background:
+    linear-gradient(
+      45deg,
+      #0b1724 25%,
+      #0c1a29 25%,
+      #0c1a29 50%,
+      #0b1724 50%,
+      #0b1724 75%,
+      #0c1a29 75%
+    );
+
+  background-size:36px 36px;
 }
 
-#map{
-  position:absolute;
-  inset:0;
-}
+#cityWrap{
+  min-width:100%;
+  min-height:100%;
 
-#hint{
-  position:absolute;
-  left:50%;
-  bottom:16px;
-  z-index:1500;
-  transform:translateX(-50%);
-  min-width:340px;
-  max-width:80%;
-  padding:10px 16px;
-  text-align:center;
-  border:1px solid #425873;
-  border-radius:11px;
-  background:rgba(7,16,29,.96);
-  font-size:11px;
-  pointer-events:none;
-}
-
-/* =========================
-   MARKERS
-========================= */
-
-.buildingMarker{
-  width:44px;
-  height:44px;
   display:flex;
   align-items:center;
   justify-content:center;
-  border:3px solid white;
-  border-radius:13px;
-  font-size:22px;
-  box-shadow:0 5px 16px rgba(0,0,0,.5);
+
+  padding:50px;
 }
 
-.center{background:#2563eb}
-.locker{background:#f59e0b}
-.office{background:#475569}
-.garage{background:#16a34a}
+#cityGrid{
+  display:grid;
 
-.vehicleMarker{
+  grid-template-columns:
+    repeat(24,34px);
+
+  grid-template-rows:
+    repeat(18,34px);
+
+  gap:2px;
+
+  padding:8px;
+
+  border:1px solid #314d6d;
+  border-radius:10px;
+
+  background:#0a1623;
+
+  box-shadow:
+    0 20px 60px
+    rgba(0,0,0,.35);
+}
+
+.tile{
   width:34px;
   height:34px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  border:2px solid white;
-  border-radius:50%;
-  background:#07111d;
-  font-size:18px;
-  box-shadow:0 4px 12px rgba(0,0,0,.5);
-}
 
-.competitorCenterMarker{
-  min-width:38px;
-  height:38px;
   display:flex;
   align-items:center;
   justify-content:center;
-  padding:0 5px;
-  border:3px solid white;
-  border-radius:50%;
-  background:#7c3aed;
-  font-size:9px;
-  font-weight:900;
-}
 
-.competitorLockerMarker{
-  min-width:28px;
-  height:28px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  padding:0 4px;
-  border:2px solid white;
-  border-radius:8px;
-  background:#9333ea;
-  font-size:8px;
-  font-weight:900;
-}
+  position:relative;
 
-.competitorVehicleMarker{
-  width:30px;
-  height:30px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  border:2px solid white;
-  border-radius:50%;
-  background:#4c1d95;
+  border:1px solid rgba(255,255,255,.06);
+  border-radius:4px;
+
+  user-select:none;
+
   font-size:16px;
+
+  transition:
+    transform .08s,
+    filter .08s;
 }
 
-/* =========================
-   MONEY ANIMATION
-========================= */
+.tile:hover{
+  transform:scale(1.08);
+  filter:brightness(1.18);
+  z-index:4;
+}
 
-.moneyAnimation{
+.tile.empty{
+  background:#1b4332;
+}
+
+.tile.road{
+  background:#475569;
+}
+
+.tile.residential{
+  background:#166534;
+}
+
+.tile.commercial{
+  background:#1d4ed8;
+}
+
+.tile.industrial{
+  background:#a16207;
+}
+
+.tile.school{
+  background:#7c3aed;
+}
+
+.tile.hospital{
+  background:#be123c;
+}
+
+.tile.police{
+  background:#1e40af;
+}
+
+.tile.fire{
+  background:#c2410c;
+}
+
+.tile.park{
+  background:#15803d;
+}
+
+.tile.power{
+  background:#854d0e;
+}
+
+.tile.water{
+  background:#0369a1;
+}
+
+.tile.cityhall{
+  background:#334155;
+}
+
+.tile .level{
   position:absolute;
-  top:90px;
+
+  right:2px;
+  bottom:1px;
+
+  font-size:8px;
+  font-weight:bold;
+
+  color:white;
+
+  text-shadow:
+    0 1px 3px black;
+}
+
+/* =====================================================
+   MAP FLOAT UI
+===================================================== */
+
+#toolInfo{
+  position:absolute;
+
+  top:14px;
   left:50%;
-  z-index:10000;
+
   transform:translateX(-50%);
-  padding:9px 15px;
+
+  z-index:20;
+
+  padding:9px 14px;
+
+  border:1px solid #3c5877;
   border-radius:10px;
-  background:rgba(5,15,28,.94);
+
+  background:rgba(6,14,25,.94);
+
+  font-size:11px;
+
+  pointer-events:none;
+}
+
+#cashFloatContainer{
+  position:absolute;
+
+  inset:0;
+
+  pointer-events:none;
+
+  z-index:30;
+}
+
+.moneyFloat{
+  position:absolute;
+
+  left:50%;
+  top:95px;
+
+  transform:translateX(-50%);
+
   font-size:20px;
   font-weight:900;
-  pointer-events:none;
-  text-shadow:0 2px 8px rgba(0,0,0,.7);
-  animation:moneyFly 1.6s ease-out forwards;
+
+  text-shadow:
+    0 2px 6px black;
+
+  animation:
+    moneyFloat
+    1.5s
+    ease-out
+    forwards;
 }
 
-.moneyAnimation.plus{
+.moneyFloat.plus{
   color:#4ade80;
-  border:1px solid #22c55e;
 }
 
-.moneyAnimation.minus{
+.moneyFloat.minus{
   color:#f87171;
-  border:1px solid #ef4444;
 }
 
-.moneyAnimation.package{
-  color:#86efac;
-}
-
-.moneyAnimation.dividend{
-  color:#fde047;
-  border-color:#eab308;
-}
-
-@keyframes moneyFly{
+@keyframes moneyFloat{
   0%{
     opacity:0;
-    transform:translate(-50%,20px) scale(.8);
+    transform:translate(-50%,15px) scale(.85);
   }
 
   15%{
@@ -362,34 +480,37 @@ aside{
     transform:translate(-50%,0) scale(1.12);
   }
 
-  70%{
-    opacity:1;
-    transform:translate(-50%,-25px) scale(1);
-  }
-
   100%{
     opacity:0;
-    transform:translate(-50%,-55px) scale(.9);
+    transform:translate(-50%,-45px) scale(.95);
   }
 }
 
-/* =========================
-   RIGHT
-========================= */
+/* =====================================================
+   RIGHT PANEL
+===================================================== */
 
 .tabs{
   display:grid;
-  grid-template-columns:1fr 1fr 1fr;
+
+  grid-template-columns:
+    1fr 1fr 1fr;
+
   gap:5px;
+
   margin-bottom:12px;
 }
 
 .tabButton{
   padding:8px 4px;
-  color:#b8c7d8;
-  border:1px solid #334e70;
+
+  color:#c4d0dd;
+
+  border:1px solid #345170;
   border-radius:8px;
-  background:#15263c;
+
+  background:#162941;
+
   font-size:10px;
 }
 
@@ -407,21 +528,28 @@ aside{
 }
 
 .section{
-  margin:15px 2px 7px;
+  margin:14px 2px 7px;
+
   color:#7dd3fc;
+
   font-size:10px;
-  font-weight:bold;
+  font-weight:900;
+
   text-transform:uppercase;
   letter-spacing:1px;
 }
 
 .stat{
-  margin-bottom:7px;
+  margin-bottom:6px;
+
   padding:9px 10px;
-  border:1px solid #223b58;
-  border-radius:9px;
+
+  border:1px solid #233d5b;
+  border-radius:8px;
+
   background:#091522;
-  font-size:12px;
+
+  font-size:11px;
 }
 
 .stat span{
@@ -429,307 +557,153 @@ aside{
   font-weight:bold;
 }
 
-.good{color:#4ade80}
-.bad{color:#f87171}
-
-/* =========================
-   MODAL
-========================= */
-
-.modal{
-  display:none;
-  position:absolute;
-  inset:0;
-  z-index:6000;
-  align-items:center;
-  justify-content:center;
-  padding:18px;
-  background:rgba(2,6,23,.84);
+.good{
+  color:#4ade80;
 }
 
-.modal.show{
-  display:flex;
+.bad{
+  color:#f87171;
 }
 
-.modalBox{
-  width:min(900px,96%);
-  max-height:88vh;
-  overflow:auto;
-  padding:18px;
-  border:1px solid #3a526d;
-  border-radius:17px;
-  background:#101c2d;
+.warning{
+  color:#facc15;
 }
 
-.modalTop{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:15px;
-}
+.progress{
+  height:8px;
 
-.modalTop h2{
-  margin:0;
-}
+  margin-top:6px;
 
-.modalTop small{
-  color:#90a4ba;
-}
+  overflow:hidden;
 
-.close{
-  padding:8px 11px;
-  color:white;
-  border:0;
-  border-radius:8px;
-  background:#334155;
-}
-
-.card{
-  margin-top:9px;
-  padding:12px;
-  border:1px solid #344d6b;
-  border-radius:11px;
-  background:#0b1727;
-}
-
-.card strong{
-  display:block;
-  margin-bottom:5px;
-}
-
-.card small{
-  color:#94a8bd;
-  line-height:1.45;
-}
-
-.card button{
-  width:100%;
-  margin-top:8px;
-  padding:9px;
-  color:white;
-  border:0;
-  border-radius:8px;
-  background:#334155;
-}
-
-.formRow{
-  margin-top:9px;
-}
-
-.formRow label{
-  display:block;
-  margin-bottom:4px;
-  color:#b7c5d4;
-  font-size:10px;
-}
-
-.formRow input,
-.formRow select{
-  width:100%;
-  padding:9px;
-  color:white;
-  border:1px solid #425975;
-  border-radius:8px;
-  background:#091522;
-}
-
-.grid2{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:9px;
-}
-
-.assignBox{
-  margin-top:10px;
-  padding:13px;
-  border:1px solid #2c4869;
-  border-radius:12px;
-  background:#0b1828;
-}
-
-.assignBox h3{
-  margin:0 0 8px;
-}
-
-.primary{background:#1d4ed8 !important}
-.success{background:#166534 !important}
-.danger{background:#7f1d1d !important}
-
-.infoBox{
-  margin-top:8px;
-  padding:9px;
-  border:1px solid #1f3854;
-  border-radius:8px;
-  color:#9fb3c8;
-  background:#081522;
-  font-size:10px;
-  line-height:1.5;
-}
-
-/* =========================
-   COMPANY
-========================= */
-
-.companyCard{
-  margin-bottom:10px;
-  padding:13px;
-  border:1px solid #304a68;
-  border-radius:13px;
-  background:linear-gradient(150deg,#0b1727,#10213a);
-}
-
-.companyTop{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:8px;
-}
-
-.companyName{
-  font-weight:900;
-}
-
-.companyOwnership{
-  padding:5px 8px;
   border-radius:999px;
-  color:#93c5fd;
-  background:#1e3a5f;
-  font-size:10px;
-  font-weight:bold;
+
+  background:#172639;
 }
 
-.companyGrid{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:6px;
-  margin-top:10px;
+.progressFill{
+  height:100%;
+
+  width:0%;
+
+  background:#22c55e;
+
+  transition:width .3s;
 }
 
-.companyMetric{
-  padding:7px;
-  border:1px solid #1e3551;
-  border-radius:8px;
-  background:#081522;
+/* =====================================================
+   TAX
+===================================================== */
+
+.taxBox{
+  margin-bottom:8px;
+
+  padding:10px;
+
+  border:1px solid #294562;
+  border-radius:9px;
+
+  background:#0a1726;
 }
 
-.companyMetric small{
-  display:block;
-  color:#7990a8;
-  font-size:8px;
-}
+.taxBox label{
+  display:flex;
+  justify-content:space-between;
 
-.companyMetric strong{
-  display:block;
-  margin-top:3px;
+  margin-bottom:6px;
+
   font-size:11px;
 }
 
-.shareActions{
-  display:grid;
-  grid-template-columns:1fr 1fr 1fr;
-  gap:5px;
-  margin-top:9px;
-}
-
-.shareActions button{
-  padding:8px;
-  color:white;
-  border:0;
-  border-radius:8px;
-}
-
-.buy{background:#166534}
-.sell{background:#7f1d1d}
-
-.takeoverButton{
+.taxBox input{
   width:100%;
-  margin-top:8px;
-  padding:10px;
-  color:white;
-  border:0;
-  border-radius:8px;
-  font-weight:bold;
-  background:linear-gradient(90deg,#6d28d9,#9333ea);
 }
 
-/* =========================
+/* =====================================================
    LOG
-========================= */
+===================================================== */
 
 #log{
-  max-height:250px;
+  max-height:240px;
+
   overflow:auto;
+
   padding:8px;
-  border:1px solid #223b58;
+
+  border:1px solid #233d5b;
   border-radius:9px;
+
   background:#07111d;
 }
 
 .logItem{
   padding:5px 0;
-  border-bottom:1px solid #152537;
+
+  border-bottom:1px solid #152536;
+
+  font-size:9px;
+
   color:#cbd5e1;
-  font-size:10px;
 }
 
-/* =========================
-   NOTIFICATION
-========================= */
+/* =====================================================
+   POPUP
+===================================================== */
 
-.notification{
-  position:absolute;
-  right:18px;
-  z-index:9000;
-  min-width:240px;
-  max-width:360px;
-  padding:12px 14px;
-  border:1px solid #475569;
-  border-radius:10px;
-  background:#0f172a;
-}
-
-/* =========================
-   CHEAT
-========================= */
-
-#cheatConsole{
+#tilePanel{
   display:none;
+
   position:absolute;
-  top:100px;
-  left:50%;
-  z-index:9999;
-  transform:translateX(-50%);
-  width:min(590px,92%);
-  padding:12px;
-  border:1px solid #475569;
-  border-radius:10px;
-  background:#020617;
+
+  right:18px;
+  bottom:18px;
+
+  z-index:50;
+
+  width:270px;
+
+  padding:13px;
+
+  border:1px solid #425d7c;
+  border-radius:12px;
+
+  background:rgba(7,17,29,.97);
 }
 
-#cheatConsole.show{
+#tilePanel.show{
   display:block;
 }
 
-#cheatInput{
-  width:100%;
-  padding:10px;
-  color:#4ade80;
-  outline:none;
-  border:1px solid #334155;
-  border-radius:8px;
-  background:#111827;
-  font-family:monospace;
+#tilePanel h3{
+  margin:0 0 8px;
 }
 
-.cheatHelp{
+.tilePanelButton{
+  width:100%;
+
   margin-top:7px;
-  color:#8496aa;
-  font-size:10px;
+
+  padding:8px;
+
+  color:white;
+
+  border:0;
+  border-radius:8px;
+
+  background:#334155;
+}
+
+.tilePanelButton.upgrade{
+  background:#166534;
+}
+
+.tilePanelButton.destroy{
+  background:#7f1d1d;
 }
 
 @media(max-width:1150px){
   #app{
-    grid-template-columns:260px 1fr;
+    grid-template-columns:250px 1fr;
   }
 
   header{
@@ -750,150 +724,237 @@ aside{
 <header>
 
   <div class="brand">
-    <div class="logo">📦</div>
+
+    <div class="logo">
+      🏙️
+    </div>
 
     <div>
-      <h1>Parcel Empire</h1>
-      <small>Global Logistics Tycoon</small>
+      <h1>City Balance</h1>
+      <small>City Budget Simulator</small>
     </div>
+
   </div>
 
   <div class="headerStats">
 
     <div class="headerCard wide">
-      <small>DATA I CZAS</small>
-      <div id="dateTime"></div>
+      <small>DATA</small>
+      <strong id="dateDisplay"></strong>
     </div>
 
     <div class="headerCard">
-      <small>PRĘDKOŚĆ</small>
-      <strong id="speedLabel">1x</strong>
+      <small>BUDŻET</small>
+      <strong id="budget"></strong>
     </div>
 
     <div class="headerCard">
-      <small>REPUTACJA</small>
-      <strong id="reputation">0%</strong>
+      <small>MIESZKAŃCY</small>
+      <strong id="population">0</strong>
     </div>
 
     <div class="headerCard">
-      <small>KONTO</small>
-      <div id="money"></div>
+      <small>ZADOWOLENIE</small>
+      <strong id="happiness">50%</strong>
     </div>
 
   </div>
 
 </header>
 
-<!-- LEFT -->
+<!-- =====================================================
+     LEFT PANEL
+===================================================== -->
 
 <aside id="leftPanel">
 
   <div class="group">
 
-    <div class="groupTitle">🏗️ Budowa</div>
+    <div class="groupTitle">
+      🛣️ Infrastruktura
+    </div>
 
     <button
-      class="menuButton"
-      onclick="selectBuild('center',30000)"
+      class="buildButton"
+      data-tool="road"
+      onclick="selectTool('road')"
     >
-      🏭 Centrum logistyczne
-      <span class="sub">30 000 zł</span>
-    </button>
-
-    <button
-      class="menuButton"
-      onclick="selectBuild('locker',5000)"
-    >
-      📦 Automat paczkowy
-      <span class="sub">5 000 zł</span>
-    </button>
-
-    <button
-      class="menuButton"
-      onclick="selectBuild('office',22000)"
-    >
-      🏢 Biuro
-      <span class="sub">22 000 zł</span>
-    </button>
-
-    <button
-      class="menuButton"
-      onclick="selectBuild('garage',15000)"
-    >
-      🔧 Garaż
-      <span class="sub">15 000 zł</span>
+      🛣️ Droga
+      <span>1 000 zł / kafelek</span>
     </button>
 
   </div>
 
   <div class="group">
 
-    <div class="groupTitle">🚘 Flota</div>
+    <div class="groupTitle">
+      🏘️ Zabudowa
+    </div>
 
     <button
-      class="menuButton"
-      onclick="openFleet()"
+      class="buildButton"
+      data-tool="residential"
+      onclick="selectTool('residential')"
     >
-      🚐 Kup / sprzedaj pojazdy
+      🏠 Mieszkalna
+      <span>5 000 zł • mieszkańcy i podatki</span>
+    </button>
+
+    <button
+      class="buildButton"
+      data-tool="commercial"
+      onclick="selectTool('commercial')"
+    >
+      🏪 Handlowa
+      <span>8 000 zł • miejsca pracy</span>
+    </button>
+
+    <button
+      class="buildButton"
+      data-tool="industrial"
+      onclick="selectTool('industrial')"
+    >
+      🏭 Przemysłowa
+      <span>10 000 zł • dużo miejsc pracy</span>
     </button>
 
   </div>
 
   <div class="group">
 
-    <div class="groupTitle">👨‍✈️ Kierowcy</div>
+    <div class="groupTitle">
+      🏛️ Usługi
+    </div>
 
     <button
-      class="menuButton"
-      onclick="openDriverManagement()"
+      class="buildButton"
+      data-tool="school"
+      onclick="selectTool('school')"
     >
-      👥 Zarządzaj kierowcami
+      🏫 Szkoła
+      <span>45 000 zł • edukacja</span>
+    </button>
+
+    <button
+      class="buildButton"
+      data-tool="hospital"
+      onclick="selectTool('hospital')"
+    >
+      🏥 Szpital
+      <span>75 000 zł • zdrowie</span>
+    </button>
+
+    <button
+      class="buildButton"
+      data-tool="police"
+      onclick="selectTool('police')"
+    >
+      🚓 Policja
+      <span>55 000 zł • bezpieczeństwo</span>
+    </button>
+
+    <button
+      class="buildButton"
+      data-tool="fire"
+      onclick="selectTool('fire')"
+    >
+      🚒 Straż pożarna
+      <span>50 000 zł • bezpieczeństwo</span>
+    </button>
+
+    <button
+      class="buildButton"
+      data-tool="park"
+      onclick="selectTool('park')"
+    >
+      🌳 Park
+      <span>15 000 zł • zadowolenie</span>
     </button>
 
   </div>
 
   <div class="group">
 
-    <div class="groupTitle">🏦 Biznes</div>
+    <div class="groupTitle">
+      ⚡ Media
+    </div>
 
     <button
-      class="menuButton"
-      onclick="setRightTab('companies')"
+      class="buildButton"
+      data-tool="power"
+      onclick="selectTool('power')"
     >
-      📈 Rynek udziałów
+      ⚡ Elektrownia
+      <span>120 000 zł • energia</span>
+    </button>
+
+    <button
+      class="buildButton"
+      data-tool="water"
+      onclick="selectTool('water')"
+    >
+      💧 Wodociągi
+      <span>90 000 zł • woda</span>
     </button>
 
   </div>
 
   <div class="group">
 
-    <div class="groupTitle">⏱️ Czas</div>
+    <div class="groupTitle">
+      🧰 Narzędzia
+    </div>
+
+    <button
+      class="buildButton"
+      data-tool="inspect"
+      onclick="selectTool('inspect')"
+    >
+      🔎 Informacje
+    </button>
+
+    <button
+      class="buildButton"
+      data-tool="bulldoze"
+      onclick="selectTool('bulldoze')"
+    >
+      🧨 Wyburz
+      <span>Zwrot 25% kosztu</span>
+    </button>
+
+  </div>
+
+  <div class="group">
+
+    <div class="groupTitle">
+      ⏱️ Czas
+    </div>
 
     <div class="two">
 
       <button
-        class="menuButton"
+        class="buildButton"
         onclick="setSpeed(0)"
       >
         ⏸
       </button>
 
       <button
-        class="menuButton"
+        class="buildButton"
         onclick="setSpeed(1)"
       >
         1x
       </button>
 
       <button
-        class="menuButton"
+        class="buildButton"
         onclick="setSpeed(2)"
       >
         2x
       </button>
 
       <button
-        class="menuButton"
+        class="buildButton"
         onclick="setSpeed(5)"
       >
         5x
@@ -905,384 +966,373 @@ aside{
 
 </aside>
 
-<!-- MAP -->
+<!-- =====================================================
+     CITY
+===================================================== -->
 
-<main id="mapContainer">
+<main id="cityArea">
 
-  <div id="map"></div>
-
-  <div id="hint">
-    Zacznij od budowy centrum logistycznego.
+  <div id="toolInfo">
+    Narzędzie: Informacje
   </div>
 
-  <div id="cheatConsole">
+  <div id="cashFloatContainer"></div>
 
-    <input
-      id="cheatInput"
-      placeholder="np. cash 500000"
+  <div id="cityWrap">
+    <div id="cityGrid"></div>
+  </div>
+
+  <div id="tilePanel">
+
+    <h3 id="tilePanelTitle">
+      Budynek
+    </h3>
+
+    <div id="tilePanelText"></div>
+
+    <button
+      id="upgradeTileButton"
+      class="tilePanelButton upgrade"
+      onclick="upgradeSelectedTile()"
     >
+      ⬆️ Rozbuduj
+    </button>
 
-    <div class="cheatHelp">
-      cash 500000 • fleet 10 • rep100 • company • shares SwiftBox 51
-    </div>
+    <button
+      class="tilePanelButton destroy"
+      onclick="destroySelectedTile()"
+    >
+      🧨 Wyburz
+    </button>
 
-  </div>
-
-  <!-- DRIVERS -->
-
-  <div
-    class="modal"
-    id="driversModal"
-  >
-
-    <div class="modalBox">
-
-      <div class="modalTop">
-
-        <div>
-          <h2>👨‍✈️ Kierowcy</h2>
-          <small>Kurierzy lokalni i transport między centrami.</small>
-        </div>
-
-        <button
-          class="close"
-          onclick="closeModal('driversModal')"
-        >
-          ✕
-        </button>
-
-      </div>
-
-      <div class="assignBox">
-
-        <h3>Nowy przydział</h3>
-
-        <div class="grid2">
-
-          <div class="formRow">
-
-            <label>Rodzaj</label>
-
-            <select
-              id="driverAssignmentType"
-              onchange="refreshDriverAssignmentForm()"
-            >
-              <option value="local">
-                🚐 Kurier lokalny
-              </option>
-
-              <option value="linehaul">
-                🚚 Transport między centrami
-              </option>
-            </select>
-
-          </div>
-
-          <div class="formRow">
-
-            <label>Ilość</label>
-
-            <input
-              id="driverAssignmentCount"
-              type="number"
-              min="1"
-              max="100"
-              value="1"
-            >
-
-          </div>
-
-        </div>
-
-        <div id="localAssignmentFields">
-
-          <div class="formRow">
-            <label>Centrum</label>
-            <select id="driverLocalCenter"></select>
-          </div>
-
-        </div>
-
-        <div
-          id="linehaulAssignmentFields"
-          style="display:none"
-        >
-
-          <div class="grid2">
-
-            <div class="formRow">
-              <label>Centrum A</label>
-              <select id="driverCenterA"></select>
-            </div>
-
-            <div class="formRow">
-              <label>Centrum B</label>
-              <select id="driverCenterB"></select>
-            </div>
-
-          </div>
-
-        </div>
-
-        <div class="formRow">
-
-          <label>
-            <input
-              id="assignmentAutoHire"
-              type="checkbox"
-              checked
-              style="width:auto"
-            >
-            Zatrudnij brakujących
-          </label>
-
-        </div>
-
-        <div class="formRow">
-
-          <label>
-            <input
-              id="assignmentAutoBuy"
-              type="checkbox"
-              checked
-              style="width:auto"
-            >
-            Kup brakujące pojazdy
-          </label>
-
-        </div>
-
-        <button
-          class="primary"
-          onclick="assignDriverGroup()"
-        >
-          ✅ Przydziel
-        </button>
-
-      </div>
-
-      <div class="section">Kadra</div>
-
-      <div id="driverManagementSummary"></div>
-
-    </div>
-
-  </div>
-
-  <!-- FLEET -->
-
-  <div
-    class="modal"
-    id="fleetModal"
-  >
-
-    <div class="modalBox">
-
-      <div class="modalTop">
-
-        <div>
-          <h2>🚘 Flota</h2>
-          <small>Pojazdy lokalne i liniowe.</small>
-        </div>
-
-        <button
-          class="close"
-          onclick="closeModal('fleetModal')"
-        >
-          ✕
-        </button>
-
-      </div>
-
-      <div id="fleetList"></div>
-
-    </div>
+    <button
+      class="tilePanelButton"
+      onclick="closeTilePanel()"
+    >
+      Zamknij
+    </button>
 
   </div>
 
 </main>
 
-<!-- RIGHT -->
+<!-- =====================================================
+     RIGHT PANEL
+===================================================== -->
 
 <aside id="rightPanel">
 
   <div class="tabs">
 
     <button
-      id="operationsBtn"
+      id="overviewBtn"
       class="tabButton active"
-      onclick="setRightTab('operations')"
+      onclick="setTab('overview')"
     >
-      📦 Operacje
+      🏙️ Miasto
     </button>
 
     <button
-      id="statisticsBtn"
+      id="financeBtn"
       class="tabButton"
-      onclick="setRightTab('statistics')"
+      onclick="setTab('finance')"
     >
-      📊 Stat.
+      💰 Budżet
     </button>
 
     <button
-      id="companiesBtn"
+      id="policyBtn"
       class="tabButton"
-      onclick="setRightTab('companies')"
+      onclick="setTab('policy')"
     >
-      📈 Firmy
+      ⚙️ Podatki
     </button>
 
   </div>
 
+  <!-- CITY -->
+
   <div
     class="tabPage active"
-    id="operationsTab"
+    id="overviewTab"
   >
 
-    <div class="section">Paczki</div>
-
-    <div class="stat">
-      Do odebrania
-      <span id="waitingPackages">0</span>
+    <div class="section">
+      Mieszkańcy
     </div>
 
     <div class="stat">
-      U lokalnych kurierów
-      <span id="localCourierPackages">0</span>
+      Populacja
+      <span id="populationStat">0</span>
     </div>
 
     <div class="stat">
-      W centrach
-      <span id="centerPackages">0</span>
+      Miejsca pracy
+      <span id="jobsStat">0</span>
     </div>
 
     <div class="stat">
-      W ciężarówkach
-      <span id="linehaulCargoPackages">0</span>
+      Bezrobocie
+      <span id="unemploymentStat">0%</span>
+    </div>
+
+    <div class="section">
+      Potrzeby
     </div>
 
     <div class="stat">
-      Między centrami
-      <span id="interCenterPackages">0</span>
+      Energia
+      <span id="powerStat">0 / 0</span>
+
+      <div class="progress">
+        <div
+          id="powerBar"
+          class="progressFill"
+        ></div>
+      </div>
+
     </div>
 
     <div class="stat">
-      Dostarczone
-      <span id="delivered">0</span>
-    </div>
+      Woda
+      <span id="waterStat">0 / 0</span>
 
-    <div class="section">Sieć</div>
+      <div class="progress">
+        <div
+          id="waterBar"
+          class="progressFill"
+        ></div>
+      </div>
 
-    <div class="stat">
-      Centra
-      <span id="centerCount">0</span>
-    </div>
-
-    <div class="stat">
-      Automaty
-      <span id="lockerCount">0</span>
     </div>
 
     <div class="stat">
-      Połączenia liniowe
-      <span id="linehaulConnectionCount">0</span>
-    </div>
-
-    <div class="section">Kierowcy</div>
-
-    <div class="stat">
-      Łącznie
-      <span id="driverCount">0</span>
+      Edukacja
+      <span id="educationStat">0%</span>
     </div>
 
     <div class="stat">
-      Lokalni
-      <span id="localDriverCount">0</span>
+      Zdrowie
+      <span id="healthStat">0%</span>
     </div>
 
     <div class="stat">
-      Liniowi
-      <span id="linehaulDriverCount">0</span>
-    </div>
-
-    <div class="section">Finanse dziś</div>
-
-    <div class="stat">
-      Przychody
-      <span class="good" id="todayIncome">0 zł</span>
+      Bezpieczeństwo
+      <span id="safetyStat">0%</span>
     </div>
 
     <div class="stat">
-      Z paczek
-      <span class="good" id="todayPackageIncome">0 zł</span>
+      Zieleń
+      <span id="parksStat">0%</span>
     </div>
 
-    <div class="stat">
-      Dywidendy
-      <span class="good" id="todayDividends">0 zł</span>
+    <div class="section">
+      Historia
     </div>
-
-    <div class="stat">
-      Wydatki
-      <span class="bad" id="todayExpenses">0 zł</span>
-    </div>
-
-    <div class="section">Historia</div>
 
     <div id="log"></div>
 
   </div>
 
+  <!-- FINANCE -->
+
   <div
     class="tabPage"
-    id="statisticsTab"
+    id="financeTab"
   >
 
-    <div class="stat">
-      Cały przychód z paczek
-      <span class="good" id="totalPackageIncome">0 zł</span>
+    <div class="section">
+      Przychody / miesiąc
     </div>
 
     <div class="stat">
-      Średni przychód / paczka
-      <span id="averagePackageRevenue">0 zł</span>
+      Podatek mieszkańców
+      <span
+        class="good"
+        id="incomeResidential"
+      >
+        0 zł
+      </span>
     </div>
 
     <div class="stat">
-      Wartość udziałów
-      <span id="portfolioValue">0 zł</span>
+      Podatek handlowy
+      <span
+        class="good"
+        id="incomeCommercial"
+      >
+        0 zł
+      </span>
     </div>
 
     <div class="stat">
-      Pojazdy
-      <span id="playerVehicleCount">0</span>
+      Podatek przemysłowy
+      <span
+        class="good"
+        id="incomeIndustrial"
+      >
+        0 zł
+      </span>
+    </div>
+
+    <div class="section">
+      Wydatki / miesiąc
     </div>
 
     <div class="stat">
-      Firmy
-      <span id="competitorCount">0</span>
+      Drogi
+      <span
+        class="bad"
+        id="expenseRoads"
+      >
+        0 zł
+      </span>
+    </div>
+
+    <div class="stat">
+      Edukacja
+      <span
+        class="bad"
+        id="expenseEducation"
+      >
+        0 zł
+      </span>
+    </div>
+
+    <div class="stat">
+      Zdrowie
+      <span
+        class="bad"
+        id="expenseHealth"
+      >
+        0 zł
+      </span>
+    </div>
+
+    <div class="stat">
+      Bezpieczeństwo
+      <span
+        class="bad"
+        id="expenseSafety"
+      >
+        0 zł
+      </span>
+    </div>
+
+    <div class="stat">
+      Media
+      <span
+        class="bad"
+        id="expenseUtilities"
+      >
+        0 zł
+      </span>
+    </div>
+
+    <div class="stat">
+      Parki
+      <span
+        class="bad"
+        id="expenseParks"
+      >
+        0 zł
+      </span>
+    </div>
+
+    <div class="section">
+      Bilans
+    </div>
+
+    <div class="stat">
+      Bilans miesięczny
+      <span id="monthlyBalance">
+        0 zł
+      </span>
+    </div>
+
+    <div class="stat">
+      Ostatnie rozliczenie
+      <span id="lastSettlement">
+        —
+      </span>
     </div>
 
   </div>
 
+  <!-- TAX -->
+
   <div
     class="tabPage"
-    id="companiesTab"
+    id="policyTab"
   >
 
     <div class="section">
-      Rynek udziałów
+      Podatki
+    </div>
+
+    <div class="taxBox">
+
+      <label>
+        <span>🏠 Mieszkańcy</span>
+        <strong id="resTaxLabel">10%</strong>
+      </label>
+
+      <input
+        id="resTax"
+        type="range"
+        min="1"
+        max="25"
+        value="10"
+        oninput="updateTaxes()"
+      >
+
+    </div>
+
+    <div class="taxBox">
+
+      <label>
+        <span>🏪 Handel</span>
+        <strong id="comTaxLabel">12%</strong>
+      </label>
+
+      <input
+        id="comTax"
+        type="range"
+        min="1"
+        max="25"
+        value="12"
+        oninput="updateTaxes()"
+      >
+
+    </div>
+
+    <div class="taxBox">
+
+      <label>
+        <span>🏭 Przemysł</span>
+        <strong id="indTaxLabel">11%</strong>
+      </label>
+
+      <input
+        id="indTax"
+        type="range"
+        min="1"
+        max="25"
+        value="11"
+        oninput="updateTaxes()"
+      >
+
     </div>
 
     <div class="infoBox">
-      Firmy rozliczają wynik co 6 godzin gry.
-      <br>
-      Udziały dają dywidendy.
-      <br>
-      Od 51% można przejąć firmę.
-    </div>
 
-    <div id="companiesList"></div>
+      Wyższe podatki zwiększają przychody, ale obniżają atrakcyjność miasta.
+
+      <br><br>
+
+      Przy bardzo wysokich podatkach mieszkańcy mogą zacząć wyjeżdżać.
+
+    </div>
 
   </div>
 
@@ -1290,16 +1340,145 @@ aside{
 
 </div>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
 <script>
+
+/* =====================================================
+   CONSTANTS
+===================================================== */
+
+const WIDTH=24;
+const HEIGHT=18;
+
+const TILE_DEFS={
+
+  empty:{
+    name:"Pusty teren",
+    icon:"",
+    cost:0,
+    upkeep:0
+  },
+
+  road:{
+    name:"Droga",
+    icon:"━",
+    cost:1000,
+    upkeep:80
+  },
+
+  residential:{
+    name:"Strefa mieszkalna",
+    icon:"🏠",
+    cost:5000,
+    upkeep:50,
+    capacity:45
+  },
+
+  commercial:{
+    name:"Strefa handlowa",
+    icon:"🏪",
+    cost:8000,
+    upkeep:100,
+    jobs:35
+  },
+
+  industrial:{
+    name:"Strefa przemysłowa",
+    icon:"🏭",
+    cost:10000,
+    upkeep:140,
+    jobs:65
+  },
+
+  school:{
+    name:"Szkoła",
+    icon:"🏫",
+    cost:45000,
+    upkeep:3200,
+    service:300
+  },
+
+  hospital:{
+    name:"Szpital",
+    icon:"🏥",
+    cost:75000,
+    upkeep:5200,
+    service:500
+  },
+
+  police:{
+    name:"Komisariat",
+    icon:"🚓",
+    cost:55000,
+    upkeep:3800,
+    service:450
+  },
+
+  fire:{
+    name:"Straż pożarna",
+    icon:"🚒",
+    cost:50000,
+    upkeep:3500,
+    service:450
+  },
+
+  park:{
+    name:"Park",
+    icon:"🌳",
+    cost:15000,
+    upkeep:900,
+    service:180
+  },
+
+  power:{
+    name:"Elektrownia",
+    icon:"⚡",
+    cost:120000,
+    upkeep:7500,
+    production:850
+  },
+
+  water:{
+    name:"Wodociągi",
+    icon:"💧",
+    cost:90000,
+    upkeep:5500,
+    production:850
+  },
+
+  cityhall:{
+    name:"Ratusz",
+    icon:"🏛️",
+    cost:0,
+    upkeep:1500
+  }
+
+};
 
 /* =====================================================
    STATE
 ===================================================== */
 
-let money=100000;
-let reputation=0;
+let budget=750000;
+
+let population=0;
+let happiness=55;
+
+let jobs=0;
+
+let powerUsed=0;
+let powerCapacity=0;
+
+let waterUsed=0;
+let waterCapacity=0;
+
+let education=0;
+let health=0;
+let safety=0;
+let parks=0;
+
+let residentialTax=10;
+let commercialTax=12;
+let industrialTax=11;
 
 let gameDate=
   new Date(
@@ -1308,4838 +1487,1245 @@ let gameDate=
 
 let gameSpeed=1;
 
-let todayIncome=0;
-let todayExpenses=0;
-let todayDividends=0;
-let todayPackageIncome=0;
+let selectedTool="inspect";
 
-let totalPackageIncome=0;
+let selectedTile=null;
 
-let delivered=0;
-
-let lastPackageGeneration=0;
-
-let lastCompanyFinanceTick=
-  gameDate.getTime();
-
-const COMPANY_FINANCE_INTERVAL=
-  6*
-  60*
-  60*
-  1000;
-
-let nextBuildingId=1;
-let nextVehicleId=1;
-let nextDriverId=1;
-let nextPackageId=1;
-
-let buildMode=null;
-let buildCost=0;
-
-let interCenterPairCursor=0;
-
-const buildings=[];
-const vehicles=[];
-const drivers=[];
-const packages=[];
-
-const MAX_PACKAGES=1500;
-const MAX_LOCAL_STOPS=30;
-
-/* =====================================================
-   MAP
-===================================================== */
-
-const map=
-  L.map(
-    "map",
-    {
-      minZoom:2,
-      maxZoom:19,
-      worldCopyJump:true
-    }
+let lastMonthKey=
+  monthKey(
+    gameDate
   );
 
-map.setView(
-  [45,10],
-  3
-);
+let lastSettlementValue=0;
 
-L.tileLayer(
-  "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-  {
-    maxZoom:19,
-    attribution:"&copy; OpenStreetMap contributors"
-  }
-).addTo(map);
+let monthlyFinance={
+  residential:0,
+  commercial:0,
+  industrial:0,
 
-/* =====================================================
-   BUILDINGS
-===================================================== */
+  roads:0,
+  education:0,
+  health:0,
+  safety:0,
+  utilities:0,
+  parks:0,
 
-const buildingInfo={
-
-  center:{
-    name:"Centrum logistyczne",
-    icon:"🏭"
-  },
-
-  locker:{
-    name:"Automat paczkowy",
-    icon:"📦"
-  },
-
-  office:{
-    name:"Biuro",
-    icon:"🏢"
-  },
-
-  garage:{
-    name:"Garaż",
-    icon:"🔧"
-  }
-
+  balance:0
 };
 
-function selectBuild(
-  type,
-  cost
-){
+const tiles=[];
 
-  buildMode=type;
-  buildCost=cost;
+/* =====================================================
+   INITIAL CITY
+===================================================== */
 
-  setText(
-    "hint",
-    "Kliknij miejsce na mapie."
-  );
-}
+function createGrid(){
 
-map.on(
-  "click",
-  event=>{
+  const grid=
+    document.getElementById(
+      "cityGrid"
+    );
 
-    if(!buildMode){
-      return;
-    }
+  for(
+    let y=0;
+    y<HEIGHT;
+    y++
+  ){
 
-    if(money<buildCost){
-
-      notify(
-        "Brak pieniędzy."
-      );
-
-      return;
-    }
-
-    let name=
-      buildingInfo[
-        buildMode
-      ].name;
-
-    if(
-      buildMode==="center"
+    for(
+      let x=0;
+      x<WIDTH;
+      x++
     ){
 
-      name=
-        prompt(
-          "Nazwa centrum:",
-          "Centrum "+
-          nextBuildingId
-        )
-        ||
-        "Centrum "+
-        nextBuildingId;
-    }
+      const tile={
+        x,
+        y,
+        type:"empty",
+        level:1,
+        population:0
+      };
 
-    const building={
-
-      id:
-        nextBuildingId++,
-
-      type:
-        buildMode,
-
-      name,
-
-      lat:
-        event.latlng.lat,
-
-      lng:
-        event.latlng.lng,
-
-      level:1,
-
-      serviceRadius:
-        buildMode==="center"
-        ?30
-        :null,
-
-      radiusCircle:null
-    };
-
-    buildings.push(
-      building
-    );
-
-    createBuildingMarker(
-      building
-    );
-
-    spendMoney(
-      buildCost,
-      "Budowa: "+
-      name
-    );
-
-    buildMode=null;
-    buildCost=0;
-
-    updateUI();
-  }
-);
-
-function getCenterRadius(
-  center
-){
-
-  return Math.max(
-    5,
-    Number(
-      center.serviceRadius
-    )
-    ||
-    30
-  );
-}
-
-function createBuildingMarker(
-  building
-){
-
-  const icon=
-    L.divIcon({
-
-      className:"",
-
-      html:`
-        <div class="buildingMarker ${building.type}">
-          ${buildingInfo[building.type].icon}
-        </div>
-      `,
-
-      iconSize:[44,44],
-      iconAnchor:[22,22]
-    });
-
-  building.marker=
-    L.marker(
-      [
-        building.lat,
-        building.lng
-      ],
-      {icon}
-    )
-    .addTo(map);
-
-  if(
-    building.type==="center"
-  ){
-
-    building.radiusCircle=
-      L.circle(
-        [
-          building.lat,
-          building.lng
-        ],
-        {
-          radius:
-            getCenterRadius(
-              building
-            )*
-            1000,
-
-          weight:2,
-
-          opacity:.45,
-
-          fillOpacity:.07
-        }
-      )
-      .addTo(map);
-
-    building.radiusCircle
-      .bringToBack();
-  }
-
-  building.marker.bindPopup(
-    ()=>getBuildingPopup(
-      building
-    ),
-    {
-      maxWidth:390
-    }
-  );
-}
-
-/* =====================================================
-   CENTER RADIUS
-===================================================== */
-
-function setCenterRadius(
-  centerId,
-  value
-){
-
-  const center=
-    getBuilding(
-      centerId
-    );
-
-  if(
-    !center ||
-    center.type!=="center"
-  ){
-    return;
-  }
-
-  center.serviceRadius=
-    Math.max(
-      5,
-      Math.min(
-        100,
-        Number(
-          value
-        )
-        ||
-        30
-      )
-    );
-
-  if(
-    center.radiusCircle
-  ){
-
-    center.radiusCircle
-      .setRadius(
-        center.serviceRadius*
-        1000
+      tiles.push(
+        tile
       );
-  }
 
-  const label=
-    document.getElementById(
-      "radiusValue-"+
-      center.id
-    );
-
-  if(label){
-
-    label.textContent=
-      center.serviceRadius+
-      " km";
-  }
-
-  updateUI();
-}
-
-/* =====================================================
-   CENTER POPUP
-===================================================== */
-
-function getBuildingPopup(
-  building
-){
-
-  if(
-    building.type!=="center"
-  ){
-
-    return `
-      <b>
-        ${buildingInfo[building.type].icon}
-        ${escapeHtml(building.name)}
-      </b>
-    `;
-  }
-
-  const allInCenter=
-    packages.filter(
-      pkg=>
-
-        pkg.currentCenterId===
-        building.id
-
-        &&
-
-        pkg.status!=="delivered"
-    );
-
-  const localDelivery=
-    allInCenter.filter(
-      pkg=>
-
-        pkg.destinationCenterId===
-        building.id
-
-        &&
-
-        pkg.status===
-        "atDestinationCenter"
-    );
-
-  const outbound=
-    allInCenter.filter(
-      pkg=>
-
-        pkg.destinationCenterId!==
-        building.id
-
-        &&
-
-        pkg.status===
-        "atOriginCenter"
-    );
-
-  const waitingPickup=
-    packages.filter(
-      pkg=>
-
-        pkg.originCenterId===
-        building.id
-
-        &&
-
-        pkg.status===
-        "waitingPickup"
-    ).length;
-
-  const destinationCounts={};
-
-  outbound.forEach(
-    pkg=>{
-
-      destinationCounts[
-        pkg.destinationCenterId
-      ]=
-        (
-          destinationCounts[
-            pkg.destinationCenterId
-          ]
-          ||
-          0
-        )
-        +
-        1;
-    }
-  );
-
-  let destinationHtml="";
-
-  Object.entries(
-    destinationCounts
-  )
-  .sort(
-    (
-      a,
-      b
-    )=>b[1]-a[1]
-  )
-  .forEach(
-    (
-      [
-        centerId,
-        count
-      ]
-    )=>{
-
-      const destination=
-        getBuilding(
-          Number(
-            centerId
-          )
-        );
-
-      if(!destination){
-        return;
-      }
-
-      const nextHop=
-        getNextCenterForPackage(
-          building.id,
-          destination.id
-        );
-
-      const nextCenter=
-        nextHop
-        ?getBuilding(nextHop)
-        :null;
-
-      destinationHtml+=`
-
-        <div style="
-          margin-top:4px;
-          padding:6px 8px;
-          border-radius:6px;
-          background:#eef2ff;
-        ">
-
-          📦 Do:
-          <b>
-            ${escapeHtml(destination.name)}
-          </b>
-
-          <span style="
-            float:right;
-            font-weight:bold;
-          ">
-            ${count}
-          </span>
-
-          ${
-            nextCenter &&
-            nextCenter.id!==destination.id
-            ?`
-              <br>
-              <small>
-                Następny hub:
-                ${escapeHtml(nextCenter.name)}
-              </small>
-            `
-            :""
-          }
-
-        </div>
-      `;
-    }
-  );
-
-  if(!destinationHtml){
-
-    destinationHtml=`
-      <div style="
-        margin-top:5px;
-        color:#64748b;
-      ">
-        Brak paczek do innych centrów.
-      </div>
-    `;
-  }
-
-  return `
-
-    <div style="
-      min-width:280px;
-      font-size:12px;
-      line-height:1.45;
-    ">
-
-      <b style="font-size:14px;">
-        🏭 ${escapeHtml(building.name)}
-      </b>
-
-      <hr>
-
-      📍 Zasięg:
-      <b id="radiusValue-${building.id}">
-        ${getCenterRadius(building)} km
-      </b>
-
-      <br><br>
-
-      <input
-        type="range"
-        min="5"
-        max="100"
-        step="5"
-        value="${getCenterRadius(building)}"
-        style="width:100%"
-        oninput="setCenterRadius(${building.id},this.value)"
-      >
-
-      <div style="
-        display:flex;
-        justify-content:space-between;
-        color:#64748b;
-        font-size:10px;
-      ">
-        <span>5 km</span>
-        <span>100 km</span>
-      </div>
-
-      <hr>
-
-      📦 Wszystkie w centrum:
-      <b>
-        ${allInCenter.length}
-      </b>
-
-      <br>
-
-      🏙️ Do rozwiezienia lokalnie:
-      <b>
-        ${localDelivery.length}
-      </b>
-
-      <br>
-
-      🚛 Do innych centrów:
-      <b>
-        ${outbound.length}
-      </b>
-
-      <br>
-
-      🏠 Jeszcze do odebrania:
-      <b>
-        ${waitingPickup}
-      </b>
-
-      <hr>
-
-      <b>
-        Kierunki paczek:
-      </b>
-
-      ${destinationHtml}
-
-      <br>
-
-      <button
-        onclick="renameCenter(${building.id})"
-        style="
-          width:100%;
-          padding:7px;
-          cursor:pointer;
-        "
-      >
-        ✏️ Zmień nazwę
-      </button>
-
-    </div>
-  `;
-}
-
-function renameCenter(id){
-
-  const center=
-    getBuilding(
-      id
-    );
-
-  if(!center){
-    return;
-  }
-
-  const name=
-    prompt(
-      "Nowa nazwa:",
-      center.name
-    );
-
-  if(
-    name &&
-    name.trim()
-  ){
-
-    center.name=
-      name.trim();
-  }
-}
-
-/* =====================================================
-   VEHICLES
-===================================================== */
-
-const vehicleTypes={
-
-  citycar:{
-    name:"Auto kurierskie",
-    icon:"🚗",
-    price:7000,
-    sell:4000,
-    capacity:12,
-    daily:45,
-    speed:1.15,
-    role:"local"
-  },
-
-  minivan:{
-    name:"Mały Van",
-    icon:"🚐",
-    price:9500,
-    sell:5500,
-    capacity:24,
-    daily:65,
-    speed:1.08,
-    role:"local"
-  },
-
-  van:{
-    name:"Van",
-    icon:"🚐",
-    price:15000,
-    sell:8500,
-    capacity:45,
-    daily:95,
-    speed:1,
-    role:"local"
-  },
-
-  evan:{
-    name:"E-Van",
-    icon:"⚡🚐",
-    price:28000,
-    sell:16500,
-    capacity:55,
-    daily:55,
-    speed:1.05,
-    role:"local"
-  },
-
-  longvan:{
-    name:"Van XL",
-    icon:"🚐",
-    price:34000,
-    sell:20000,
-    capacity:80,
-    daily:135,
-    speed:.92,
-    role:"local"
-  },
-
-  boxtruck:{
-    name:"Ciężarówka miejska",
-    icon:"🚚",
-    price:48000,
-    sell:29000,
-    capacity:140,
-    daily:210,
-    speed:.82,
-    role:"both"
-  },
-
-  truck:{
-    name:"Ciężarówka liniowa",
-    icon:"🚛",
-    price:75000,
-    sell:45000,
-    capacity:260,
-    daily:330,
-    speed:.72,
-    role:"linehaul"
-  },
-
-  semitruck:{
-    name:"Ciągnik + naczepa",
-    icon:"🚛",
-    price:125000,
-    sell:75000,
-    capacity:520,
-    daily:520,
-    speed:.65,
-    role:"linehaul"
-  }
-
-};
-
-function openFleet(){
-
-  renderFleet();
-
-  document
-    .getElementById(
-      "fleetModal"
-    )
-    .classList
-    .add(
-      "show"
-    );
-}
-
-function renderFleet(){
-
-  const box=
-    document.getElementById(
-      "fleetList"
-    );
-
-  box.innerHTML="";
-
-  Object.entries(
-    vehicleTypes
-  )
-  .forEach(
-    ([type,data])=>{
-
-      const owned=
-        vehicles.filter(
-          vehicle=>
-            vehicle.type===
-            type
-        );
-
-      const free=
-        owned.filter(
-          vehicle=>
-            !vehicle.driverId
-        );
-
-      const card=
+      const element=
         document.createElement(
           "div"
         );
 
-      card.className=
-        "card";
-
-      card.innerHTML=`
-
-        <strong>
-          ${data.icon}
-          ${data.name}
-        </strong>
-
-        <small>
-          Posiadasz:
-          ${owned.length}
-
-          <br>
-
-          Wolne:
-          ${free.length}
-
-          <br>
-
-          Pojemność:
-          ${data.capacity}
-
-          <br>
-
-          Koszt dzienny:
-          ${formatMoney(data.daily)}
-        </small>
-
-        <button
-          class="success"
-          onclick="buyVehicle('${type}')"
-        >
-          Kup —
-          ${formatMoney(data.price)}
-        </button>
-
-        <button
-          class="danger"
-          onclick="sellVehicle('${type}')"
-        >
-          Sprzedaj —
-          ${formatMoney(data.sell)}
-        </button>
-      `;
-
-      box.appendChild(
-        card
-      );
-    }
-  );
-}
-
-function buyVehicle(type){
-
-  const data=
-    vehicleTypes[type];
-
-  if(
-    !data ||
-    money<data.price
-  ){
-
-    notify(
-      "Brak pieniędzy."
-    );
-
-    return null;
-  }
-
-  const vehicle={
-
-    id:
-      nextVehicleId++,
-
-    type,
-
-    driverId:null
-  };
-
-  vehicles.push(
-    vehicle
-  );
-
-  spendMoney(
-    data.price,
-    "Kupiono "+
-    data.name
-  );
-
-  renderFleet();
-
-  updateUI();
-
-  return vehicle;
-}
-
-function sellVehicle(type){
-
-  const index=
-    vehicles.findIndex(
-      vehicle=>
-
-        vehicle.type===
-        type
-
-        &&
-
-        !vehicle.driverId
-    );
-
-  if(index<0){
-
-    notify(
-      "Brak wolnego pojazdu."
-    );
-
-    return;
-  }
-
-  vehicles.splice(
-    index,
-    1
-  );
-
-  receiveMoney(
-    vehicleTypes[type].sell,
-    "Sprzedano pojazd"
-  );
-
-  renderFleet();
-
-  updateUI();
-}
-
-/* =====================================================
-   DRIVERS
-===================================================== */
-
-function createDriver(){
-
-  const id=
-    nextDriverId++;
-
-  const center=
-    getCenters()[0];
-
-  return{
-
-    id,
-
-    name:
-      "Kierowca "+
-      id,
-
-    earned:0,
-
-    role:"idle",
-
-    centerId:null,
-
-    centerAId:null,
-
-    centerBId:null,
-
-    vehicleId:null,
-
-    lat:
-      center
-      ?center.lat
-      :52.1,
-
-    lng:
-      center
-      ?center.lng
-      :19.4,
-
-    state:"Wolny",
-
-    target:null,
-
-    cargo:[],
-
-    routeStops:[],
-
-    routeIndex:0,
-
-    marker:null
-  };
-}
-
-function hireOneDriver(){
-
-  if(money<2500){
-    return null;
-  }
-
-  const driver=
-    createDriver();
-
-  drivers.push(
-    driver
-  );
-
-  spendMoney(
-    2500,
-    "Zatrudniono "+
-    driver.name
-  );
-
-  return driver;
-}
-
-/* =====================================================
-   DRIVER MANAGEMENT
-===================================================== */
-
-function openDriverManagement(){
-
-  if(
-    !getCenters().length
-  ){
-
-    notify(
-      "Najpierw zbuduj centrum."
-    );
-
-    return;
-  }
-
-  refreshDriverManagementCenters();
-
-  refreshDriverAssignmentForm();
-
-  renderDriverManagementSummary();
-
-  document
-    .getElementById(
-      "driversModal"
-    )
-    .classList
-    .add(
-      "show"
-    );
-}
-
-function refreshDriverManagementCenters(){
-
-  const options=
-    getCenters()
-      .map(
-        center=>`
-          <option value="${center.id}">
-            ${escapeHtml(center.name)}
-          </option>
-        `
-      )
-      .join("");
-
-  document.getElementById(
-    "driverLocalCenter"
-  ).innerHTML=
-    options;
-
-  document.getElementById(
-    "driverCenterA"
-  ).innerHTML=
-    options;
-
-  document.getElementById(
-    "driverCenterB"
-  ).innerHTML=
-    options;
-}
-
-function refreshDriverAssignmentForm(){
-
-  const type=
-    document
-      .getElementById(
-        "driverAssignmentType"
-      )
-      .value;
-
-  document
-    .getElementById(
-      "localAssignmentFields"
-    )
-    .style
-    .display=
-      type==="local"
-      ?"block"
-      :"none";
-
-  document
-    .getElementById(
-      "linehaulAssignmentFields"
-    )
-    .style
-    .display=
-      type==="linehaul"
-      ?"block"
-      :"none";
-}
-
-function getAvailableDrivers(){
-
-  return drivers.filter(
-    driver=>
-      driver.role===
-      "idle"
-  );
-}
-
-function getFreeLocalVehicle(){
-
-  for(
-    const type
-    of [
-      "longvan",
-      "evan",
-      "van",
-      "minivan",
-      "citycar",
-      "boxtruck"
-    ]
-  ){
-
-    const vehicle=
-      vehicles.find(
-        vehicle=>
-
-          !vehicle.driverId
-
-          &&
-
-          vehicle.type===
-          type
-      );
-
-    if(vehicle){
-      return vehicle;
-    }
-  }
-
-  return null;
-}
-
-function getFreeLinehaulVehicle(){
-
-  for(
-    const type
-    of [
-      "semitruck",
-      "truck",
-      "boxtruck"
-    ]
-  ){
-
-    const vehicle=
-      vehicles.find(
-        vehicle=>
-
-          !vehicle.driverId
-
-          &&
-
-          vehicle.type===
-          type
-      );
-
-    if(vehicle){
-      return vehicle;
-    }
-  }
-
-  return null;
-}
-
-function buyVehicleForRole(role){
-
-  const types=
-    role==="local"
-    ?[
-      "van",
-      "minivan",
-      "citycar"
-    ]
-    :[
-      "truck",
-      "boxtruck"
-    ];
-
-  for(
-    const type
-    of types
-  ){
-
-    if(
-      money>=
-      vehicleTypes[type].price
-    ){
-
-      return buyVehicle(
-        type
-      );
-    }
-  }
-
-  return null;
-}
-
-function assignDriverGroup(){
-
-  const type=
-    document
-      .getElementById(
-        "driverAssignmentType"
-      )
-      .value;
-
-  const count=
-    Math.max(
-      1,
-      Math.min(
-        100,
-        Math.floor(
-          Number(
-            document
-              .getElementById(
-                "driverAssignmentCount"
-              )
-              .value
-          )
-          ||
-          1
-        )
-      )
-    );
-
-  const autoHire=
-    document
-      .getElementById(
-        "assignmentAutoHire"
-      )
-      .checked;
-
-  const autoBuy=
-    document
-      .getElementById(
-        "assignmentAutoBuy"
-      )
-      .checked;
-
-  let center=null;
-  let centerA=null;
-  let centerB=null;
-
-  if(type==="local"){
-
-    center=
-      getBuilding(
-        Number(
-          document
-            .getElementById(
-              "driverLocalCenter"
-            )
-            .value
+      element.className=
+        "tile empty";
+
+      element.dataset.x=x;
+      element.dataset.y=y;
+
+      element.addEventListener(
+        "click",
+        ()=>handleTileClick(
+          tile
         )
       );
 
-    if(!center){
-      return;
-    }
-  }
-  else{
-
-    centerA=
-      getBuilding(
-        Number(
-          document
-            .getElementById(
-              "driverCenterA"
-            )
-            .value
-        )
-      );
-
-    centerB=
-      getBuilding(
-        Number(
-          document
-            .getElementById(
-              "driverCenterB"
-            )
-            .value
-        )
-      );
-
-    if(
-      !centerA ||
-      !centerB ||
-      centerA.id===
-      centerB.id
-    ){
-
-      notify(
-        "Wybierz dwa różne centra."
-      );
-
-      return;
-    }
-  }
-
-  let assigned=0;
-
-  for(
-    let i=0;
-    i<count;
-    i++
-  ){
-
-    let driver=
-      getAvailableDrivers()[0];
-
-    let newlyHired=false;
-
-    if(
-      !driver &&
-      autoHire
-    ){
-
-      driver=
-        hireOneDriver();
-
-      newlyHired=
-        !!driver;
-    }
-
-    if(!driver){
-      break;
-    }
-
-    let vehicle=
-      type==="local"
-      ?getFreeLocalVehicle()
-      :getFreeLinehaulVehicle();
-
-    if(
-      !vehicle &&
-      autoBuy
-    ){
-
-      vehicle=
-        buyVehicleForRole(
-          type
-        );
-    }
-
-    if(!vehicle){
-
-      if(
-        newlyHired
-      ){
-
-        driver.state=
-          "Wolny";
-      }
-
-      break;
-    }
-
-    vehicle.driverId=
-      driver.id;
-
-    driver.vehicleId=
-      vehicle.id;
-
-    driver.target=null;
-
-    driver.cargo=[];
-
-    driver.routeStops=[];
-
-    driver.routeIndex=0;
-
-    if(type==="local"){
-
-      driver.role=
-        "local";
-
-      driver.centerId=
-        center.id;
-
-      driver.centerAId=null;
-      driver.centerBId=null;
-
-      driver.lat=
-        center.lat;
-
-      driver.lng=
-        center.lng;
-
-      driver.state=
-        "Czeka w centrum";
-    }
-    else{
-
-      driver.role=
-        "linehaul";
-
-      driver.centerId=null;
-
-      driver.centerAId=
-        centerA.id;
-
-      driver.centerBId=
-        centerB.id;
-
-      driver.lat=
-        centerA.lat;
-
-      driver.lng=
-        centerA.lng;
-
-      driver.state=
-        "Czeka na ładunek";
-    }
-
-    createDriverMarker(
-      driver
-    );
-
-    driver.marker.setLatLng(
-      [
-        driver.lat,
-        driver.lng
-      ]
-    );
-
-    assigned++;
-  }
-
-  notify(
-    "Przydzielono "+
-    assigned+
-    " kierowców."
-  );
-
-  renderDriverManagementSummary();
-
-  updateUI();
-}
-
-function renderDriverManagementSummary(){
-
-  const box=
-    document.getElementById(
-      "driverManagementSummary"
-    );
-
-  box.innerHTML="";
-
-  drivers.forEach(
-    driver=>{
-
-      const vehicle=
-        getVehicle(
-          driver.vehicleId
-        );
-
-      const card=
-        document.createElement(
-          "div"
-        );
-
-      card.className=
-        "card";
-
-      let assignment=
-        "Wolny";
-
-      if(
-        driver.role==="local"
-      ){
-
-        const center=
-          getBuilding(
-            driver.centerId
-          );
-
-        assignment=
-          "Lokalny • "+
-          (
-            center
-            ?center.name
-            :"?"
-          );
-      }
-
-      if(
-        driver.role==="linehaul"
-      ){
-
-        const a=
-          getBuilding(
-            driver.centerAId
-          );
-
-        const b=
-          getBuilding(
-            driver.centerBId
-          );
-
-        assignment=
-          (
-            a
-            ?a.name
-            :"?"
-          )
-          +
-          " ↔ "
-          +
-          (
-            b
-            ?b.name
-            :"?"
-          );
-      }
-
-      card.innerHTML=`
-
-        <strong>
-          ${escapeHtml(driver.name)}
-        </strong>
-
-        <small>
-
-          ${escapeHtml(assignment)}
-
-          <br>
-
-          Pojazd:
-          ${
-            vehicle
-            ?vehicleTypes[
-              vehicle.type
-            ].name
-            :"brak"
-          }
-
-          <br>
-
-          Status:
-          ${escapeHtml(driver.state)}
-
-          <br>
-
-          Ładunek:
-          ${driver.cargo.length}
-
-          <br>
-
-          Zarobił:
-          ${formatMoney(driver.earned)}
-        </small>
-      `;
-
-      box.appendChild(
-        card
+      tile.element=
+        element;
+
+      grid.appendChild(
+        element
       );
     }
-  );
-}
-
-/* =====================================================
-   DRIVER MARKERS
-===================================================== */
-
-function createDriverMarker(
-  driver
-){
-
-  if(driver.marker){
-    return;
   }
 
-  const vehicle=
-    getVehicle(
-      driver.vehicleId
-    );
+  /*
+    Startowy ratusz.
+  */
 
-  const emoji=
-    vehicle
-    ?vehicleTypes[
-      vehicle.type
-    ].icon
-    :"🚐";
-
-  const icon=
-    L.divIcon({
-
-      className:"",
-
-      html:`
-        <div class="vehicleMarker">
-          ${emoji}
-        </div>
-      `,
-
-      iconSize:[34,34],
-      iconAnchor:[17,17]
-    });
-
-  driver.marker=
-    L.marker(
-      [
-        driver.lat,
-        driver.lng
-      ],
-      {
-        icon,
-        zIndexOffset:1000
-      }
-    )
-    .addTo(map);
-
-  driver.marker.bindTooltip(
-    "",
-    {
-      direction:"top"
-    }
-  );
-
-  refreshDriverTooltip(
-    driver
-  );
-}
-
-function refreshDriverTooltip(
-  driver
-){
-
-  if(
-    !driver ||
-    !driver.marker
-  ){
-    return;
-  }
-
-  const vehicle=
-    getVehicle(
-      driver.vehicleId
-    );
-
-  const capacity=
-    vehicle
-    ?vehicleTypes[
-      vehicle.type
-    ].capacity
-    :0;
-
-  driver.marker
-    .setTooltipContent(`
-
-      <b>
-        ${escapeHtml(driver.name)}
-      </b>
-
-      <br>
-
-      ${
-        vehicle
-        ?escapeHtml(
-          vehicleTypes[
-            vehicle.type
-          ].name
-        )
-        :"Brak pojazdu"
-      }
-
-      <br>
-
-      ${escapeHtml(driver.state)}
-
-      <br>
-
-      Ładunek:
-      ${driver.cargo.length}
-      /
-      ${capacity}
-
-      <br>
-
-      Zarobił:
-      ${formatMoney(driver.earned)}
-    `);
-}
-
-/* =====================================================
-   PACKAGE GENERATION
-===================================================== */
-
-function generatePackages(){
-
-  const centers=
-    getCenters();
-
-  if(!centers.length){
-    return;
-  }
-
-  const active=
-    packages.filter(
-      pkg=>
-        pkg.status!==
-        "delivered"
-    ).length;
-
-  if(
-    active>=
-    MAX_PACKAGES
-  ){
-    return;
-  }
-
-  if(
-    gameDate.getTime()-
-    lastPackageGeneration
-    <
-    30*
-    60*
-    1000
-  ){
-    return;
-  }
-
-  lastPackageGeneration=
-    gameDate.getTime();
-
-  let amount=
-    centers.length*
-    7;
-
-  amount+=
-    buildings.filter(
-      b=>
-        b.type===
-        "locker"
-    ).length;
-
-  amount+=
-    Math.floor(
-      reputation/
+  const cityHall=
+    getTile(
+      11,
       8
     );
 
-  amount=
-    Math.max(
-      5,
-      Math.min(
-        80,
-        amount
-      )
-    );
+  cityHall.type=
+    "cityhall";
 
   /*
-    80% między centrami,
-    jeśli istnieją minimum dwa.
+    Startowe drogi.
   */
 
-  const interCenterCount=
-    centers.length>=2
-    ?Math.max(
-      2,
-      Math.floor(
-        amount*
-        .8
-      )
-    )
-    :0;
+  for(
+    let x=8;
+    x<=14;
+    x++
+  ){
+
+    const tile=
+      getTile(
+        x,
+        9
+      );
+
+    tile.type=
+      "road";
+  }
 
   for(
-    let i=0;
-    i<amount;
-    i++
+    let y=6;
+    y<=12;
+    y++
+  ){
+
+    const tile=
+      getTile(
+        11,
+        y
+      );
+
+    if(
+      tile.type===
+      "empty"
+    ){
+
+      tile.type=
+        "road";
+    }
+  }
+
+  renderGrid();
+}
+
+/* =====================================================
+   TILE INTERACTION
+===================================================== */
+
+function handleTileClick(
+  tile
+){
+
+  if(
+    selectedTool===
+    "inspect"
+  ){
+
+    inspectTile(
+      tile
+    );
+
+    return;
+  }
+
+  if(
+    selectedTool===
+    "bulldoze"
+  ){
+
+    bulldozeTile(
+      tile
+    );
+
+    return;
+  }
+
+  buildOnTile(
+    tile,
+    selectedTool
+  );
+}
+
+function buildOnTile(
+  tile,
+  type
+){
+
+  const def=
+    TILE_DEFS[type];
+
+  if(!def){
+    return;
+  }
+
+  if(
+    tile.type!==
+    "empty"
+  ){
+
+    notify(
+      "To pole jest już zajęte."
+    );
+
+    return;
+  }
+
+  if(
+    budget<
+    def.cost
+  ){
+
+    notify(
+      "Brakuje pieniędzy."
+    );
+
+    return;
+  }
+
+  /*
+    Zabudowa wymaga drogi obok.
+  */
+
+  if(
+    [
+      "residential",
+      "commercial",
+      "industrial",
+      "school",
+      "hospital",
+      "police",
+      "fire",
+      "park"
+    ].includes(
+      type
+    )
   ){
 
     if(
-      i<
-      interCenterCount
+      !hasAdjacentRoad(
+        tile
+      )
     ){
 
-      createGuaranteedInterCenterPackage();
-    }
-    else{
-
-      createLocalPackage();
-    }
-  }
-
-  updateUI();
-}
-
-function createGuaranteedInterCenterPackage(){
-
-  const centers=
-    getCenters();
-
-  if(
-    centers.length<2
-  ){
-    return;
-  }
-
-  const pairs=[];
-
-  for(
-    let i=0;
-    i<centers.length;
-    i++
-  ){
-
-    for(
-      let j=0;
-      j<centers.length;
-      j++
-    ){
-
-      if(i===j){
-        continue;
-      }
-
-      pairs.push({
-        origin:
-          centers[i],
-
-        destination:
-          centers[j]
-      });
-    }
-  }
-
-  const pair=
-    pairs[
-      interCenterPairCursor%
-      pairs.length
-    ];
-
-  interCenterPairCursor++;
-
-  createPackageBetweenCenters(
-    pair.origin,
-    pair.destination
-  );
-}
-
-function createLocalPackage(){
-
-  const center=
-    randomItem(
-      getCenters()
-    );
-
-  if(!center){
-    return;
-  }
-
-  createPackageBetweenCenters(
-    center,
-    center
-  );
-}
-
-function createPackageBetweenCenters(
-  originCenter,
-  destinationCenter
-){
-
-  const originRadius=
-    getCenterRadius(
-      originCenter
-    );
-
-  const destinationRadius=
-    getCenterRadius(
-      destinationCenter
-    );
-
-  const originLockers=
-    getNearbyPlayerLockers(
-      originCenter
-    );
-
-  const destinationLockers=
-    getNearbyPlayerLockers(
-      destinationCenter
-    );
-
-  let origin=
-    randomNear(
-      originCenter.lat,
-      originCenter.lng,
-      originRadius*
-      .9
-    );
-
-  let destination=
-    randomNear(
-      destinationCenter.lat,
-      destinationCenter.lng,
-      destinationRadius*
-      .9
-    );
-
-  let originType=
-    "home";
-
-  let destinationType=
-    "home";
-
-  let originLockerId=null;
-  let destinationLockerId=null;
-
-  if(
-    originLockers.length &&
-    Math.random()<.5
-  ){
-
-    const locker=
-      randomItem(
-        originLockers
+      notify(
+        "Budynek musi stać obok drogi."
       );
 
-    origin={
-      lat:locker.lat,
-      lng:locker.lng
-    };
-
-    originType=
-      "locker";
-
-    originLockerId=
-      locker.id;
-  }
-
-  if(
-    destinationLockers.length &&
-    Math.random()<.5
-  ){
-
-    const locker=
-      randomItem(
-        destinationLockers
-      );
-
-    destination={
-      lat:locker.lat,
-      lng:locker.lng
-    };
-
-    destinationType=
-      "locker";
-
-    destinationLockerId=
-      locker.id;
-  }
-
-  packages.push({
-
-    id:
-      nextPackageId++,
-
-    status:
-      "waitingPickup",
-
-    originType,
-
-    destinationType,
-
-    originLockerId,
-
-    destinationLockerId,
-
-    originLat:
-      origin.lat,
-
-    originLng:
-      origin.lng,
-
-    destinationLat:
-      destination.lat,
-
-    destinationLng:
-      destination.lng,
-
-    originCenterId:
-      originCenter.id,
-
-    destinationCenterId:
-      destinationCenter.id,
-
-    currentCenterId:null,
-
-    assignedDriverId:null
-  });
-}
-
-/* =====================================================
-   PACKAGE REVENUE
-===================================================== */
-
-function calculatePackageRevenue(
-  pkg
-){
-
-  const a=
-    getBuilding(
-      pkg.originCenterId
-    );
-
-  const b=
-    getBuilding(
-      pkg.destinationCenterId
-    );
-
-  let distance=0;
-
-  if(
-    a &&
-    b
-  ){
-
-    distance=
-      distanceKm(
-        a.lat,
-        a.lng,
-        b.lat,
-        b.lng
-      );
-  }
-
-  let revenue=28;
-
-  revenue+=
-    Math.min(
-      180,
-      distance*
-      .045
-    );
-
-  if(
-    pkg.originType==="home"
-  ){
-    revenue+=5;
-  }
-
-  if(
-    pkg.destinationType==="home"
-  ){
-    revenue+=7;
-  }
-
-  revenue*=
-    1+
-    reputation/
-    400;
-
-  return Math.max(
-    25,
-    Math.round(
-      revenue
-    )
-  );
-}
-
-function completePackageDelivery(
-  pkg,
-  driver
-){
-
-  if(
-    !pkg ||
-    pkg.status===
-    "delivered"
-  ){
-    return 0;
-  }
-
-  const revenue=
-    calculatePackageRevenue(
-      pkg
-    );
-
-  pkg.status=
-    "delivered";
-
-  pkg.assignedDriverId=null;
-
-  pkg.currentCenterId=null;
-
-  delivered++;
-
-  reputation=
-    Math.min(
-      100,
-      reputation+
-      .04
-    );
-
-  money+=
-    revenue;
-
-  todayIncome+=
-    revenue;
-
-  todayPackageIncome+=
-    revenue;
-
-  totalPackageIncome+=
-    revenue;
-
-  if(driver){
-
-    driver.earned+=
-      revenue;
-  }
-
-  return revenue;
-}
-
-/* =====================================================
-   DRIVER SIMULATION
-===================================================== */
-
-function simulateDrivers(){
-
-  drivers.forEach(
-    driver=>{
-
-      if(!driver.vehicleId){
-        return;
-      }
-
-      createDriverMarker(
-        driver
-      );
-
-      if(driver.target){
-
-        moveDriver(
-          driver
-        );
-
-        return;
-      }
-
-      if(
-        driver.role==="local"
-      ){
-
-        runLocalDriver(
-          driver
-        );
-      }
-
-      if(
-        driver.role==="linehaul"
-      ){
-
-        runLinehaulDriver(
-          driver
-        );
-      }
-
-      refreshDriverTooltip(
-        driver
-      );
+      return;
     }
-  );
-}
-
-/* =====================================================
-   LOCAL DRIVER
-===================================================== */
-
-function runLocalDriver(
-  driver
-){
-
-  const center=
-    getBuilding(
-      driver.centerId
-    );
-
-  if(!center){
-    return;
   }
 
-  if(
-    driver.routeStops.length &&
-    driver.routeIndex<
-    driver.routeStops.length
-  ){
+  budget-=
+    def.cost;
 
-    const stop=
-      driver.routeStops[
-        driver.routeIndex
-      ];
-
-    driver.state=
-      "Trasa "+
-      (
-        driver.routeIndex+
-        1
-      )
-      +
-      "/"+
-      driver.routeStops.length;
-
-    setTarget(
-      driver,
-      stop.lat,
-      stop.lng,
-      "localRouteStop"
-    );
-
-    return;
-  }
-
-  if(
-    driver.routeStops.length
-  ){
-
-    driver.state=
-      "Wraca do centrum";
-
-    setTarget(
-      driver,
-      center.lat,
-      center.lng,
-      "finishLocalRoute"
-    );
-
-    return;
-  }
-
-  buildLocalCourierRoute(
-    driver,
-    center
-  );
-}
-
-function buildLocalCourierRoute(
-  driver,
-  center
-){
-
-  const vehicle=
-    getVehicle(
-      driver.vehicleId
-    );
-
-  if(!vehicle){
-    return;
-  }
-
-  const capacity=
-    vehicleTypes[
-      vehicle.type
-    ].capacity;
-
-  const deliveries=
-    packages.filter(
-      pkg=>
-
-        pkg.status===
-        "atDestinationCenter"
-
-        &&
-
-        pkg.currentCenterId===
-        center.id
-
-        &&
-
-        !pkg.assignedDriverId
-    );
-
-  const pickups=
-    packages.filter(
-      pkg=>
-
-        pkg.status===
-        "waitingPickup"
-
-        &&
-
-        pkg.originCenterId===
-        center.id
-
-        &&
-
-        !pkg.assignedDriverId
-    );
-
-  const selectedDeliveries=
-    deliveries.slice(
-      0,
-      capacity
-    );
-
-  selectedDeliveries.forEach(
-    pkg=>{
-
-      pkg.status=
-        "outForDelivery";
-
-      pkg.currentCenterId=
-        null;
-
-      pkg.assignedDriverId=
-        driver.id;
-
-      driver.cargo.push(
-        pkg.id
-      );
-    }
+  showMoneyFloat(
+    -def.cost
   );
 
-  const selectedPickups=
-    pickups.slice(
-      0,
-      MAX_LOCAL_STOPS*
-      5
-    );
+  tile.type=
+    type;
 
-  selectedPickups.forEach(
-    pkg=>{
+  tile.level=1;
 
-      pkg.assignedDriverId=
-        driver.id;
-    }
+  tile.population=0;
+
+  renderTile(
+    tile
   );
-
-  const stops=[];
-
-  function getStop(
-    lat,
-    lng,
-    type,
-    lockerId
-  ){
-
-    let stop=null;
-
-    if(
-      type==="locker" &&
-      lockerId
-    ){
-
-      stop=
-        stops.find(
-          item=>
-            item.lockerId===
-            lockerId
-        );
-    }
-    else{
-
-      stop=
-        stops.find(
-          item=>
-
-            !item.lockerId
-
-            &&
-
-            distanceKm(
-              item.lat,
-              item.lng,
-              lat,
-              lng
-            )
-            <
-            .04
-        );
-    }
-
-    if(!stop){
-
-      stop={
-        lat,
-        lng,
-        type,
-        lockerId:
-          lockerId||
-          null,
-        deliveries:[],
-        pickups:[]
-      };
-
-      stops.push(
-        stop
-      );
-    }
-
-    return stop;
-  }
-
-  selectedDeliveries.forEach(
-    pkg=>{
-
-      getStop(
-        pkg.destinationLat,
-        pkg.destinationLng,
-        pkg.destinationType,
-        pkg.destinationLockerId
-      )
-      .deliveries
-      .push(
-        pkg.id
-      );
-    }
-  );
-
-  selectedPickups.forEach(
-    pkg=>{
-
-      getStop(
-        pkg.originLat,
-        pkg.originLng,
-        pkg.originType,
-        pkg.originLockerId
-      )
-      .pickups
-      .push(
-        pkg.id
-      );
-    }
-  );
-
-  if(!stops.length){
-
-    driver.state=
-      "Czeka w centrum";
-
-    return;
-  }
-
-  driver.routeStops=
-    sortCourierStops(
-      stops,
-      center.lat,
-      center.lng
-    )
-    .slice(
-      0,
-      MAX_LOCAL_STOPS
-    );
-
-  const activeIds=
-    new Set();
-
-  driver.routeStops.forEach(
-    stop=>{
-
-      stop.deliveries.forEach(
-        id=>
-          activeIds.add(id)
-      );
-
-      stop.pickups.forEach(
-        id=>
-          activeIds.add(id)
-      );
-    }
-  );
-
-  selectedDeliveries.forEach(
-    pkg=>{
-
-      if(
-        !activeIds.has(
-          pkg.id
-        )
-      ){
-
-        removeCargo(
-          driver,
-          pkg.id
-        );
-
-        pkg.status=
-          "atDestinationCenter";
-
-        pkg.currentCenterId=
-          center.id;
-
-        pkg.assignedDriverId=
-          null;
-      }
-    }
-  );
-
-  selectedPickups.forEach(
-    pkg=>{
-
-      if(
-        !activeIds.has(
-          pkg.id
-        )
-      ){
-
-        pkg.assignedDriverId=
-          null;
-      }
-    }
-  );
-
-  driver.routeIndex=0;
-
-  driver.state=
-    "Rozpoczyna trasę";
-
-  const first=
-    driver.routeStops[0];
-
-  setTarget(
-    driver,
-    first.lat,
-    first.lng,
-    "localRouteStop"
-  );
-}
-
-function sortCourierStops(
-  stops,
-  startLat,
-  startLng
-){
-
-  const remaining=[
-    ...stops
-  ];
-
-  const ordered=[];
-
-  let currentLat=
-    startLat;
-
-  let currentLng=
-    startLng;
-
-  while(
-    remaining.length
-  ){
-
-    let bestIndex=0;
-
-    let bestDistance=
-      Infinity;
-
-    remaining.forEach(
-      (
-        stop,
-        index
-      )=>{
-
-        const distance=
-          distanceKm(
-            currentLat,
-            currentLng,
-            stop.lat,
-            stop.lng
-          );
-
-        if(
-          distance<
-          bestDistance
-        ){
-
-          bestDistance=
-            distance;
-
-          bestIndex=
-            index;
-        }
-      }
-    );
-
-    const next=
-      remaining.splice(
-        bestIndex,
-        1
-      )[0];
-
-    ordered.push(
-      next
-    );
-
-    currentLat=
-      next.lat;
-
-    currentLng=
-      next.lng;
-  }
-
-  return ordered;
-}
-
-function processLocalRouteStop(
-  driver
-){
-
-  const stop=
-    driver.routeStops[
-      driver.routeIndex
-    ];
-
-  if(!stop){
-    return;
-  }
-
-  const vehicle=
-    getVehicle(
-      driver.vehicleId
-    );
-
-  if(!vehicle){
-    return;
-  }
-
-  const capacity=
-    vehicleTypes[
-      vehicle.type
-    ].capacity;
-
-  let deliveredHere=0;
-  let pickedHere=0;
-  let earned=0;
-
-  /*
-    NAJPIERW DOSTAWY
-  */
-
-  stop.deliveries.forEach(
-    id=>{
-
-      const pkg=
-        getPackage(id);
-
-      if(
-        !pkg ||
-        pkg.status===
-        "delivered"
-      ){
-        return;
-      }
-
-      removeCargo(
-        driver,
-        pkg.id
-      );
-
-      const revenue=
-        completePackageDelivery(
-          pkg,
-          driver
-        );
-
-      if(revenue>0){
-
-        deliveredHere++;
-
-        earned+=
-          revenue;
-      }
-    }
-  );
-
-  /*
-    POTEM ODBIORY
-  */
-
-  stop.pickups.forEach(
-    id=>{
-
-      const pkg=
-        getPackage(id);
-
-      if(
-        !pkg ||
-        pkg.status!==
-        "waitingPickup"
-      ){
-        return;
-      }
-
-      if(
-        driver.cargo.length>=
-        capacity
-      ){
-
-        pkg.assignedDriverId=
-          null;
-
-        return;
-      }
-
-      pkg.status=
-        "withLocalCourier";
-
-      pkg.assignedDriverId=
-        driver.id;
-
-      driver.cargo.push(
-        pkg.id
-      );
-
-      pickedHere++;
-    }
-  );
-
-  if(earned>0){
-
-    showMoneyAnimation(
-      earned,
-      "package"
-    );
-  }
-
-  if(
-    deliveredHere ||
-    pickedHere
-  ){
-
-    addLog(
-      (
-        stop.type==="locker"
-        ?"📦 Automat"
-        :"🏠 Punkt"
-      )
-      +
-      ": dostawa "+
-      deliveredHere+
-      ", odbiór "+
-      pickedHere+
-      (
-        earned
-        ?" • +"+
-        formatMoney(
-          earned
-        )
-        :""
-      ),
-      "good"
-    );
-  }
-
-  driver.routeIndex++;
-
-  updateUI();
-
-  if(
-    driver.routeIndex<
-    driver.routeStops.length
-  ){
-
-    const next=
-      driver.routeStops[
-        driver.routeIndex
-      ];
-
-    driver.state=
-      "Jedzie do kolejnego punktu";
-
-    setTarget(
-      driver,
-      next.lat,
-      next.lng,
-      "localRouteStop"
-    );
-  }
-  else{
-
-    const center=
-      getBuilding(
-        driver.centerId
-      );
-
-    driver.state=
-      "Wraca do centrum";
-
-    setTarget(
-      driver,
-      center.lat,
-      center.lng,
-      "finishLocalRoute"
-    );
-  }
-}
-
-function finishLocalCourierRoute(
-  driver
-){
-
-  const center=
-    getBuilding(
-      driver.centerId
-    );
-
-  if(!center){
-    return;
-  }
-
-  const cargo=[
-    ...driver.cargo
-  ];
-
-  cargo.forEach(
-    id=>{
-
-      const pkg=
-        getPackage(id);
-
-      if(!pkg){
-        return;
-      }
-
-      removeCargo(
-        driver,
-        id
-      );
-
-      pkg.assignedDriverId=
-        null;
-
-      pkg.currentCenterId=
-        center.id;
-
-      if(
-        pkg.destinationCenterId===
-        center.id
-      ){
-
-        pkg.status=
-          "atDestinationCenter";
-      }
-      else{
-
-        pkg.status=
-          "atOriginCenter";
-      }
-    }
-  );
-
-  driver.routeStops=[];
-  driver.routeIndex=0;
-
-  driver.state=
-    "Czeka w centrum";
 
   addLog(
-    "🚐 "+
-    driver.name+
-    " oddał "+
-    cargo.length+
-    " paczek do "+
-    center.name+
+    "🏗️ Zbudowano: "+
+    def.name+
     "."
   );
 
-  updateUI();
-}
-
-/* =====================================================
-   HUB / LINEHAUL ROUTING
-===================================================== */
-
-function buildLinehaulGraph(){
-
-  const graph={};
-
-  getCenters().forEach(
-    center=>{
-
-      graph[
-        center.id
-      ]=[];
-    }
-  );
-
-  drivers
-    .filter(
-      driver=>
-        driver.role===
-        "linehaul"
-    )
-    .forEach(
-      driver=>{
-
-        const a=
-          driver.centerAId;
-
-        const b=
-          driver.centerBId;
-
-        if(
-          !graph[a] ||
-          !graph[b]
-        ){
-          return;
-        }
-
-        if(
-          !graph[a].includes(
-            b
-          )
-        ){
-
-          graph[a].push(
-            b
-          );
-        }
-
-        if(
-          !graph[b].includes(
-            a
-          )
-        ){
-
-          graph[b].push(
-            a
-          );
-        }
-      }
-    );
-
-  return graph;
-}
-
-function getNextCenterForPackage(
-  startCenterId,
-  destinationCenterId
-){
-
-  if(
-    startCenterId===
-    destinationCenterId
-  ){
-
-    return destinationCenterId;
-  }
-
-  const graph=
-    buildLinehaulGraph();
-
-  if(
-    !graph[startCenterId] ||
-    !graph[destinationCenterId]
-  ){
-
-    return null;
-  }
-
-  const queue=[
-    startCenterId
-  ];
-
-  const visited=
-    new Set([
-      startCenterId
-    ]);
-
-  const previous={};
-
-  while(
-    queue.length
-  ){
-
-    const current=
-      queue.shift();
-
-    if(
-      current===
-      destinationCenterId
-    ){
-      break;
-    }
-
-    for(
-      const next
-      of graph[current]
-    ){
-
-      if(
-        visited.has(
-          next
-        )
-      ){
-        continue;
-      }
-
-      visited.add(
-        next
-      );
-
-      previous[next]=
-        current;
-
-      queue.push(
-        next
-      );
-    }
-  }
-
-  if(
-    !visited.has(
-      destinationCenterId
-    )
-  ){
-
-    return null;
-  }
-
-  let step=
-    destinationCenterId;
-
-  let prev=
-    previous[step];
-
-  while(
-    prev!==undefined &&
-    prev!==startCenterId
-  ){
-
-    step=
-      prev;
-
-    prev=
-      previous[step];
-  }
-
-  return step;
-}
-
-function shouldPackageTravelOnRoute(
-  pkg,
-  currentCenter,
-  nextCenter
-){
-
-  if(
-    !pkg ||
-    pkg.status!==
-    "atOriginCenter"
-  ){
-    return false;
-  }
-
-  if(
-    pkg.currentCenterId!==
-    currentCenter.id
-  ){
-    return false;
-  }
-
-  if(
-    pkg.destinationCenterId===
-    currentCenter.id
-  ){
-    return false;
-  }
-
-  return (
-    getNextCenterForPackage(
-      currentCenter.id,
-      pkg.destinationCenterId
-    )
-    ===
-    nextCenter.id
-  );
-}
-
-/* =====================================================
-   LINEHAUL DRIVER
-===================================================== */
-
-function runLinehaulDriver(
-  driver
-){
-
-  const centerA=
-    getBuilding(
-      driver.centerAId
-    );
-
-  const centerB=
-    getBuilding(
-      driver.centerBId
-    );
-
-  if(
-    !centerA ||
-    !centerB
-  ){
-    return;
-  }
-
-  const distanceA=
-    distanceKm(
-      driver.lat,
-      driver.lng,
-      centerA.lat,
-      centerA.lng
-    );
-
-  const distanceB=
-    distanceKm(
-      driver.lat,
-      driver.lng,
-      centerB.lat,
-      centerB.lng
-    );
-
-  let current=null;
-  let other=null;
-
-  if(distanceA<.5){
-
-    current=
-      centerA;
-
-    other=
-      centerB;
-  }
-  else if(distanceB<.5){
-
-    current=
-      centerB;
-
-    other=
-      centerA;
-  }
-  else{
-
-    const nearest=
-      distanceA<
-      distanceB
-      ?centerA
-      :centerB;
-
-    driver.state=
-      "Wraca do centrum";
-
-    setTarget(
-      driver,
-      nearest.lat,
-      nearest.lng,
-      "linehaulArrive"
-    );
-
-    return;
-  }
-
-  /*
-    WYŁADUNEK CAŁEGO ŁADUNKU
-  */
-
-  let unloaded=0;
-
-  [...driver.cargo].forEach(
-    id=>{
-
-      const pkg=
-        getPackage(id);
-
-      if(!pkg){
-        return;
-      }
-
-      removeCargo(
-        driver,
-        id
-      );
-
-      pkg.assignedDriverId=
-        null;
-
-      pkg.currentCenterId=
-        current.id;
-
-      if(
-        pkg.destinationCenterId===
-        current.id
-      ){
-
-        pkg.status=
-          "atDestinationCenter";
-      }
-      else{
-
-        /*
-          Paczka nie kończy tu drogi.
-          Czeka na następny hub.
-        */
-
-        pkg.status=
-          "atOriginCenter";
-      }
-
-      unloaded++;
-    }
-  );
-
-  const vehicle=
-    getVehicle(
-      driver.vehicleId
-    );
-
-  if(!vehicle){
-    return;
-  }
-
-  const capacity=
-    vehicleTypes[
-      vehicle.type
-    ].capacity;
-
-  /*
-    PACZKI, KTÓRYCH NASTĘPNYM HUBEM
-    JEST "OTHER".
-
-    Przykład:
-
-    Warszawa -> Białystok
-
-    zabierze:
-    Warszawa -> Białystok
-    Warszawa -> Suwałki
-    Warszawa -> Augustów
-
-    jeśli ich następny etap
-    prowadzi przez Białystok.
-  */
-
-  const waiting=
-    packages
-      .filter(
-        pkg=>
-          shouldPackageTravelOnRoute(
-            pkg,
-            current,
-            other
-          )
-      )
-      .sort(
-        (
-          a,
-          b
-        )=>{
-
-          /*
-            Najpierw bezpośrednie
-            do other.
-          */
-
-          const aDirect=
-            a.destinationCenterId===
-            other.id
-            ?0
-            :1;
-
-          const bDirect=
-            b.destinationCenterId===
-            other.id
-            ?0
-            :1;
-
-          return (
-            aDirect-
-            bDirect
-          );
-        }
-      )
-      .slice(
-        0,
-        capacity
-      );
-
-  waiting.forEach(
-    pkg=>{
-
-      pkg.status=
-        "linehaul";
-
-      pkg.currentCenterId=
-        null;
-
-      pkg.assignedDriverId=
-        driver.id;
-
-      driver.cargo.push(
-        pkg.id
-      );
-    }
-  );
-
-  if(
-    unloaded ||
-    waiting.length
-  ){
-
-    addLog(
-      "🚚 "+
-      driver.name+
-      " @ "+
-      current.name+
-      ": wyładunek "+
-      unloaded+
-      ", załadunek "+
-      waiting.length+
-      "."
-    );
-  }
-
-  updateUI();
-
-  /*
-    NIE JEDZIE NA PUSTO
-  */
-
-  if(
-    driver.cargo.length===
-    0
-  ){
-
-    driver.state=
-      "Czeka w "+
-      current.name+
-      " na ładunek";
-
-    return;
-  }
-
-  driver.state=
-    current.name+
-    " → "+
-    other.name+
-    " • "+
-    driver.cargo.length+
-    " paczek";
-
-  setTarget(
-    driver,
-    other.lat,
-    other.lng,
-    "linehaulArrive"
-  );
-}
-
-/* =====================================================
-   MOVEMENT
-===================================================== */
-
-function setTarget(
-  driver,
-  lat,
-  lng,
-  action
-){
-
-  driver.target={
-    lat,
-    lng,
-    action
-  };
-}
-
-function moveDriver(
-  driver
-){
-
-  const target=
-    driver.target;
-
-  const vehicle=
-    getVehicle(
-      driver.vehicleId
-    );
-
-  if(
-    !target ||
-    !vehicle
-  ){
-    return;
-  }
-
-  const distance=
-    distanceKm(
-      driver.lat,
-      driver.lng,
-      target.lat,
-      target.lng
-    );
-
-  if(distance<.12){
-
-    driver.lat=
-      target.lat;
-
-    driver.lng=
-      target.lng;
-
-    const action=
-      target.action;
-
-    driver.target=
-      null;
-
-    driver.marker
-      .setLatLng(
-        [
-          driver.lat,
-          driver.lng
-        ]
-      );
-
-    driverArrived(
-      driver,
-      action
-    );
-
-    return;
-  }
-
-  let step=
-    .20*
-    vehicleTypes[
-      vehicle.type
-    ].speed*
-    Math.max(
-      1,
-      gameSpeed
-    );
-
-  if(distance>1000){
-    step*=45;
-  }
-  else if(distance>500){
-    step*=28;
-  }
-  else if(distance>200){
-    step*=18;
-  }
-  else if(distance>80){
-    step*=10;
-  }
-  else if(distance>30){
-    step*=6;
-  }
-  else if(distance>10){
-    step*=3;
-  }
-
-  const ratio=
-    Math.min(
-      1,
-      step/
-      distance
-    );
-
-  driver.lat+=
-    (
-      target.lat-
-      driver.lat
-    )*
-    ratio;
-
-  driver.lng+=
-    (
-      target.lng-
-      driver.lng
-    )*
-    ratio;
-
-  driver.marker
-    .setLatLng(
-      [
-        driver.lat,
-        driver.lng
-      ]
-    );
-
-  refreshDriverTooltip(
-    driver
-  );
-}
-
-function driverArrived(
-  driver,
-  action
-){
-
-  if(
-    action==="localRouteStop"
-  ){
-
-    processLocalRouteStop(
-      driver
-    );
-
-    return;
-  }
-
-  if(
-    action==="finishLocalRoute"
-  ){
-
-    finishLocalCourierRoute(
-      driver
-    );
-
-    return;
-  }
-
-  if(
-    action==="linehaulArrive"
-  ){
-
-    driver.state=
-      "Przyjechał do centrum";
-
-    return;
-  }
-}
-
-/* =====================================================
-   COMPETITORS
-===================================================== */
-
-const competitorVehicles=[];
-
-const companies=[
-
-  createCompany(
-    "swiftbox",
-    "SwiftBox",
-    "SB",
-    "Polska",
-    550000,
-    [
-      "Warszawa",
-      52.2297,
-      21.0122
-    ]
-  ),
-
-  createCompany(
-    "parcelgo",
-    "ParcelGo",
-    "PG",
-    "Niemcy",
-    720000,
-    [
-      "Berlin",
-      52.52,
-      13.405
-    ]
-  ),
-
-  createCompany(
-    "hexapost",
-    "HexaPost",
-    "HP",
-    "Francja",
-    680000,
-    [
-      "Paryż",
-      48.8566,
-      2.3522
-    ]
-  ),
-
-  createCompany(
-    "americargo",
-    "AmeriCargo",
-    "AC",
-    "USA",
-    950000,
-    [
-      "Nowy Jork",
-      40.7128,
-      -74.006
-    ]
-  )
-
-];
-
-function createCompany(
-  id,
-  name,
-  short,
-  country,
-  cash,
-  startCity
-){
-
-  return{
-    id,
-    name,
-    short,
-    country,
-    cash,
-    value:cash*2,
-    employees:20,
-    vehicles:6,
-    playerShares:0,
-    centers:[],
-    lockers:[],
-    lastProfit:0,
-    lastDividend:0,
-    takenOver:false,
-    startCity
-  };
-}
-
-function seedCompanies(){
-
-  companies.forEach(
-    company=>{
-
-      const city=
-        company.startCity;
-
-      addCompanyCenter(
-        company,
-        city[1],
-        city[2],
-        city[0]
-      );
-
-      for(
-        let i=0;
-        i<3;
-        i++
-      ){
-
-        addCompanyLockerNearCenter(
-          company
-        );
-      }
-
-      for(
-        let i=0;
-        i<company.vehicles;
-        i++
-      ){
-
-        spawnCompetitorVehicle(
-          company
-        );
-      }
-    }
-  );
-}
-
-function addCompanyCenter(
-  company,
-  lat,
-  lng,
-  name
-){
-
-  const asset={
-    lat,
-    lng,
-    name
-  };
-
-  company.centers.push(
-    asset
-  );
-
-  const icon=
-    L.divIcon({
-      className:"",
-      html:`
-        <div class="competitorCenterMarker">
-          ${company.short}
-        </div>
-      `,
-      iconSize:[38,38],
-      iconAnchor:[19,19]
-    });
-
-  asset.marker=
-    L.marker(
-      [
-        lat,
-        lng
-      ],
-      {icon}
-    )
-    .addTo(map);
-}
-
-function addCompanyLockerNearCenter(
-  company
-){
-
-  const center=
-    randomItem(
-      company.centers
-    );
-
-  if(!center){
-    return;
-  }
-
-  const p=
-    randomNear(
-      center.lat,
-      center.lng,
-      16
-    );
-
-  const asset={
-    lat:p.lat,
-    lng:p.lng
-  };
-
-  company.lockers.push(
-    asset
-  );
-
-  const icon=
-    L.divIcon({
-      className:"",
-      html:`
-        <div class="competitorLockerMarker">
-          ${company.short}
-        </div>
-      `,
-      iconSize:[28,28],
-      iconAnchor:[14,14]
-    });
-
-  asset.marker=
-    L.marker(
-      [
-        p.lat,
-        p.lng
-      ],
-      {icon}
-    )
-    .addTo(map);
-}
-
-function spawnCompetitorVehicle(
-  company
-){
-
-  const start=
-    randomItem(
-      company.centers
-    );
-
-  if(!start){
-    return;
-  }
-
-  const icon=
-    L.divIcon({
-      className:"",
-      html:`
-        <div class="competitorVehicleMarker">
-          🚚
-        </div>
-      `,
-      iconSize:[30,30],
-      iconAnchor:[15,15]
-    });
-
-  competitorVehicles.push({
-
-    companyId:
-      company.id,
-
-    lat:
-      start.lat,
-
-    lng:
-      start.lng,
-
-    target:null,
-
-    marker:
-      L.marker(
-        [
-          start.lat,
-          start.lng
-        ],
-        {icon}
-      )
-      .addTo(map)
-  });
-}
-
-function simulateCompetitorVehicles(){
-
-  competitorVehicles.forEach(
-    vehicle=>{
-
-      const company=
-        companies.find(
-          c=>
-            c.id===
-            vehicle.companyId
-        );
-
-      if(
-        !company ||
-        company.takenOver
-      ){
-        return;
-      }
-
-      if(!vehicle.target){
-
-        const targets=[
-          ...company.centers,
-          ...company.lockers
-        ];
-
-        vehicle.target=
-          randomItem(
-            targets
-          );
-
-        return;
-      }
-
-      const distance=
-        distanceKm(
-          vehicle.lat,
-          vehicle.lng,
-          vehicle.target.lat,
-          vehicle.target.lng
-        );
-
-      if(distance<.2){
-
-        vehicle.target=
-          null;
-
-        return;
-      }
-
-      const step=
-        Math.min(
-          distance,
-          .5*
-          Math.max(
-            1,
-            gameSpeed
-          )
-        );
-
-      const ratio=
-        step/
-        distance;
-
-      vehicle.lat+=
-        (
-          vehicle.target.lat-
-          vehicle.lat
-        )*
-        ratio;
-
-      vehicle.lng+=
-        (
-          vehicle.target.lng-
-          vehicle.lng
-        )*
-        ratio;
-
-      vehicle.marker
-        .setLatLng(
-          [
-            vehicle.lat,
-            vehicle.lng
-          ]
-        );
-    }
-  );
-}
-
-/* =====================================================
-   COMPANY FINANCES
-===================================================== */
-
-function simulateCompanies(){
-
-  companies.forEach(
-    company=>{
-
-      if(company.takenOver){
-        return;
-      }
-
-      const revenue=
-
-        company.centers.length*
-        11000
-
-        +
-
-        company.lockers.length*
-        1700
-
-        +
-
-        company.employees*
-        260
-
-        +
-
-        company.vehicles*
-        520;
-
-      const expenses=
-
-        company.centers.length*
-        800
-
-        +
-
-        company.lockers.length*
-        40
-
-        +
-
-        company.employees*
-        165
-
-        +
-
-        company.vehicles*
-        110;
-
-      const profit=
-        Math.round(
-          revenue*
-          (
-            .9+
-            Math.random()*
-            .3
-          )
-          -
-          expenses
-        );
-
-      company.lastProfit=
-        profit;
-
-      company.lastDividend=
-        0;
-
-      company.cash+=
-        profit;
-
-      if(
-        profit>0 &&
-        company.playerShares>0 &&
-        company.cash>0
-      ){
-
-        const pool=
-          Math.min(
-            company.cash,
-            Math.round(
-              profit*
-              .30
-            )
-          );
-
-        let dividend=
-          Math.round(
-            pool*
-            company.playerShares/
-            100
-          );
-
-        if(
-          dividend>0 &&
-          dividend<10
-        ){
-          dividend=10;
-        }
-
-        dividend=
-          Math.min(
-            dividend,
-            company.cash
-          );
-
-        if(dividend>0){
-
-          company.cash-=
-            dividend;
-
-          company.lastDividend=
-            dividend;
-
-          receiveMoney(
-            dividend,
-            "Dywidenda "+
-            company.name,
-            "dividend"
-          );
-
-          todayDividends+=
-            dividend;
-        }
-      }
-
-      company.value=
-        Math.max(
-          120000,
-
-          company.cash
-
-          +
-
-          company.centers.length*
-          140000
-
-          +
-
-          company.lockers.length*
-          15000
-
-          +
-
-          company.vehicles*
-          18000
-
-          +
-
-          company.employees*
-          7500
-        );
-    }
-  );
-
-  renderCompanies();
-}
-
-/* =====================================================
-   SHARES
-===================================================== */
-
-function sharePrice(
-  company
-){
-
-  return Math.max(
-    500,
-    Math.round(
-      company.value/
-      100
-    )
-  );
-}
-
-function buyShares(
-  id,
-  amount
-){
-
-  const company=
-    companies.find(
-      c=>
-        c.id===
-        id
-    );
-
-  if(
-    !company ||
-    company.takenOver
-  ){
-    return;
-  }
-
-  amount=
-    Math.min(
-      amount,
-      100-
-      company.playerShares
-    );
-
-  if(amount<=0){
-    return;
-  }
-
-  const cost=
-    Math.round(
-      sharePrice(
-        company
-      )*
-      amount
-    );
-
-  if(money<cost){
-
-    notify(
-      "Brak pieniędzy."
-    );
-
-    return;
-  }
-
-  spendMoney(
-    cost,
-    "Kupiono "+
-    amount+
-    "% "+
-    company.name
-  );
-
-  company.playerShares+=
-    amount;
-
-  renderCompanies();
+  simulateCity();
 
   updateUI();
 }
 
-function sellShares(
-  id,
-  amount
+function bulldozeTile(
+  tile
 ){
 
-  const company=
-    companies.find(
-      c=>
-        c.id===
-        id
-    );
-
-  if(!company){
-    return;
-  }
-
-  amount=
-    Math.min(
-      amount,
-      company.playerShares
-    );
-
-  if(amount<=0){
-    return;
-  }
-
-  company.playerShares-=
-    amount;
-
-  receiveMoney(
-    sharePrice(
-      company
-    )*
-    amount*
-    .97,
-    "Sprzedano udziały"
-  );
-
-  renderCompanies();
-
-  updateUI();
-}
-
-function takeoverCompany(id){
-
-  const company=
-    companies.find(
-      c=>
-        c.id===
-        id
-    );
-
   if(
-    !company ||
-    company.takenOver
+    tile.type===
+    "empty"
   ){
     return;
   }
 
   if(
-    company.playerShares<
-    51
+    tile.type===
+    "cityhall"
   ){
 
     notify(
-      "Potrzebujesz 51% udziałów."
+      "Nie możesz zburzyć ratusza."
     );
 
     return;
   }
 
-  const remaining=
-    100-
-    company.playerShares;
+  const def=
+    TILE_DEFS[
+      tile.type
+    ];
 
-  const cost=
+  const refund=
     Math.round(
-      sharePrice(
-        company
-      )*
-      remaining*
-      1.15
+      def.cost*
+      .25*
+      tile.level
     );
 
-  if(money<cost){
+  budget+=
+    refund;
 
-    notify(
-      "Potrzebujesz "+
-      formatMoney(
-        cost
-      )
-    );
-
-    return;
-  }
-
-  if(cost>0){
-
-    spendMoney(
-      cost,
-      "Przejęcie "+
-      company.name
-    );
-  }
-
-  company.takenOver=
-    true;
-
-  company.playerShares=
-    100;
-
-  competitorVehicles
-    .filter(
-      v=>
-        v.companyId===
-        company.id
-    )
-    .forEach(
-      v=>{
-
-        if(
-          v.marker &&
-          map.hasLayer(
-            v.marker
-          )
-        ){
-
-          map.removeLayer(
-            v.marker
-          );
-        }
-      }
-    );
-
-  company.centers.forEach(
-    asset=>{
-
-      if(
-        asset.marker &&
-        map.hasLayer(
-          asset.marker
-        )
-      ){
-
-        map.removeLayer(
-          asset.marker
-        );
-      }
-
-      const center={
-
-        id:
-          nextBuildingId++,
-
-        type:"center",
-
-        name:
-          company.name+
-          " - "+
-          asset.name,
-
-        lat:
-          asset.lat,
-
-        lng:
-          asset.lng,
-
-        level:1,
-
-        serviceRadius:30,
-
-        radiusCircle:null
-      };
-
-      buildings.push(
-        center
-      );
-
-      createBuildingMarker(
-        center
-      );
-    }
+  showMoneyFloat(
+    refund
   );
 
-  company.lockers.forEach(
-    asset=>{
-
-      if(
-        asset.marker &&
-        map.hasLayer(
-          asset.marker
-        )
-      ){
-
-        map.removeLayer(
-          asset.marker
-        );
-      }
-
-      const locker={
-
-        id:
-          nextBuildingId++,
-
-        type:"locker",
-
-        name:
-          "Automat "+
-          company.name,
-
-        lat:
-          asset.lat,
-
-        lng:
-          asset.lng,
-
-        level:1,
-
-        serviceRadius:null,
-
-        radiusCircle:null
-      };
-
-      buildings.push(
-        locker
-      );
-
-      createBuildingMarker(
-        locker
-      );
-    }
-  );
-
-  for(
-    let i=0;
-    i<company.vehicles;
-    i++
-  ){
-
-    vehicles.push({
-
-      id:
-        nextVehicleId++,
-
-      type:
-        i%5===0
-        ?"truck"
-        :"van",
-
-      driverId:null
-    });
-  }
-
-  if(company.cash>0){
-
-    const cash=
-      Math.round(
-        company.cash
-      );
-
-    company.cash=0;
-
-    receiveMoney(
-      cash,
-      "Gotówka przejętej firmy"
-    );
-  }
-
-  notify(
-    "👑 Przejęto "+
-    company.name
-  );
-
-  renderCompanies();
-
-  updateUI();
-}
-
-function renderCompanies(){
-
-  const box=
-    document.getElementById(
-      "companiesList"
-    );
-
-  box.innerHTML="";
-
-  companies
-    .filter(
-      c=>
-        !c.takenOver
-    )
-    .forEach(
-      company=>{
-
-        const remaining=
-          100-
-          company.playerShares;
-
-        const takeoverCost=
-          Math.round(
-            sharePrice(
-              company
-            )*
-            remaining*
-            1.15
-          );
-
-        const card=
-          document.createElement(
-            "div"
-          );
-
-        card.className=
-          "companyCard";
-
-        card.innerHTML=`
-
-          <div class="companyTop">
-
-            <div>
-
-              <div class="companyName">
-                🏢
-                ${escapeHtml(company.name)}
-              </div>
-
-              <small>
-                ${escapeHtml(company.country)}
-              </small>
-
-            </div>
-
-            <div class="companyOwnership">
-              ${company.playerShares.toFixed(0)}%
-            </div>
-
-          </div>
-
-          <div class="companyGrid">
-
-            <div class="companyMetric">
-
-              <small>
-                Wartość
-              </small>
-
-              <strong>
-                ${formatMoney(company.value)}
-              </strong>
-
-            </div>
-
-            <div class="companyMetric">
-
-              <small>
-                Cena 1%
-              </small>
-
-              <strong>
-                ${formatMoney(sharePrice(company))}
-              </strong>
-
-            </div>
-
-            <div class="companyMetric">
-
-              <small>
-                Zysk
-              </small>
-
-              <strong>
-                ${formatMoney(company.lastProfit)}
-              </strong>
-
-            </div>
-
-            <div class="companyMetric">
-
-              <small>
-                Dywidenda
-              </small>
-
-              <strong class="good">
-                ${formatMoney(company.lastDividend)}
-              </strong>
-
-            </div>
-
-          </div>
-
-          <div class="shareActions">
-
-            <button
-              class="buy"
-              onclick="buyShares('${company.id}',1)"
-            >
-              +1%
-            </button>
-
-            <button
-              class="buy"
-              onclick="buyShares('${company.id}',5)"
-            >
-              +5%
-            </button>
-
-            <button
-              class="sell"
-              onclick="sellShares('${company.id}',1)"
-            >
-              -1%
-            </button>
-
-          </div>
-
-          ${
-            company.playerShares>=51
-            ?`
-
-              <button
-                class="takeoverButton"
-                onclick="takeoverCompany('${company.id}')"
-              >
-                👑 Przejmij firmę
-
-                <br>
-
-                ${formatMoney(takeoverCost)}
-              </button>
-            `
-            :""
-          }
-        `;
-
-        box.appendChild(
-          card
-        );
-      }
-    );
-}
-
-/* =====================================================
-   MONEY
-===================================================== */
-
-function showMoneyAnimation(
-  amount,
-  type=""
-){
-
-  const element=
-    document.createElement(
-      "div"
-    );
-
-  element.className=
-    "moneyAnimation "+
-    (
-      amount>=0
-      ?"plus "
-      :"minus "
-    )
-    +
-    type;
-
-  element.textContent=
-    (
-      amount>=0
-      ?"+"
-      :""
-    )
-    +
+  addLog(
+    "🧨 Wyburzono "+
+    def.name+
+    ". Zwrot: "+
     formatMoney(
-      amount
+      refund
+    )
+  );
+
+  tile.type=
+    "empty";
+
+  tile.level=1;
+
+  tile.population=0;
+
+  renderTile(
+    tile
+  );
+
+  closeTilePanel();
+
+  simulateCity();
+
+  updateUI();
+}
+
+function inspectTile(
+  tile
+){
+
+  selectedTile=
+    tile;
+
+  const panel=
+    document.getElementById(
+      "tilePanel"
     );
+
+  const title=
+    document.getElementById(
+      "tilePanelTitle"
+    );
+
+  const text=
+    document.getElementById(
+      "tilePanelText"
+    );
+
+  const upgradeButton=
+    document.getElementById(
+      "upgradeTileButton"
+    );
+
+  const def=
+    TILE_DEFS[
+      tile.type
+    ];
+
+  title.textContent=
+    def.icon+
+    " "+
+    def.name;
+
+  let html=`
+
+    <div style="
+      color:#a8b8c9;
+      font-size:11px;
+      line-height:1.6;
+    ">
+
+      Poziom:
+      <b>${tile.level}</b>
+
+      <br>
+
+      Pozycja:
+      ${tile.x},
+      ${tile.y}
+
+  `;
+
+  if(
+    tile.type===
+    "residential"
+  ){
+
+    html+=`
+
+      <br>
+
+      Mieszkańcy:
+      <b>
+        ${tile.population}
+      </b>
+
+      /
+
+      ${
+        residentialCapacity(
+          tile
+        )
+      }
+    `;
+  }
+
+  if(
+    tile.type===
+    "commercial" ||
+    tile.type===
+    "industrial"
+  ){
+
+    html+=`
+
+      <br>
+
+      Miejsca pracy:
+      <b>
+        ${jobsForTile(tile)}
+      </b>
+    `;
+  }
+
+  html+="</div>";
+
+  text.innerHTML=
+    html;
+
+  upgradeButton.style.display=
+    canUpgrade(
+      tile
+    )
+    ?"block"
+    :"none";
+
+  panel.classList.add(
+    "show"
+  );
+}
+
+function closeTilePanel(){
 
   document
     .getElementById(
-      "mapContainer"
+      "tilePanel"
     )
-    .appendChild(
-      element
+    .classList
+    .remove(
+      "show"
     );
 
-  setTimeout(
-    ()=>{
-      element.remove();
-    },
-    1700
-  );
+  selectedTile=null;
 }
 
-function receiveMoney(
-  amount,
-  reason="",
-  type=""
+function canUpgrade(
+  tile
 ){
 
-  amount=
-    Math.round(
-      amount
-    );
+  return [
+    "residential",
+    "commercial",
+    "industrial",
+    "school",
+    "hospital",
+    "police",
+    "fire",
+    "park",
+    "power",
+    "water"
+  ].includes(
+    tile.type
+  )
+  &&
+  tile.level<
+  5;
+}
 
-  if(amount<=0){
+function upgradeSelectedTile(){
+
+  if(
+    !selectedTile ||
+    !canUpgrade(
+      selectedTile
+    )
+  ){
     return;
   }
 
-  money+=
-    amount;
+  const def=
+    TILE_DEFS[
+      selectedTile.type
+    ];
 
-  todayIncome+=
-    amount;
-
-  showMoneyAnimation(
-    amount,
-    type
-  );
-
-  if(reason){
-
-    addLog(
-      reason+
-      " +"+
-      formatMoney(
-        amount
-      ),
-      "good"
-    );
-  }
-
-  updateUI();
-}
-
-function spendMoney(
-  amount,
-  reason=""
-){
-
-  amount=
+  const price=
     Math.round(
-      amount
+      def.cost*
+      .65*
+      selectedTile.level
     );
 
-  if(amount<=0){
+  if(
+    budget<
+    price
+  ){
+
+    notify(
+      "Brakuje pieniędzy na rozbudowę."
+    );
+
     return;
   }
 
-  money-=
-    amount;
+  budget-=
+    price;
 
-  todayExpenses+=
-    amount;
-
-  showMoneyAnimation(
-    -amount
+  showMoneyFloat(
+    -price
   );
 
-  if(reason){
+  selectedTile.level++;
 
-    addLog(
-      reason+
-      " -"+
-      formatMoney(
-        amount
-      ),
-      "bad"
-    );
-  }
+  renderTile(
+    selectedTile
+  );
+
+  addLog(
+    "⬆️ Rozbudowano "+
+    def.name+
+    " do poziomu "+
+    selectedTile.level+
+    "."
+  );
+
+  simulateCity();
+
+  inspectTile(
+    selectedTile
+  );
 
   updateUI();
 }
 
 /* =====================================================
-   COSTS
+   TOOLS
 ===================================================== */
 
-function dailyCosts(){
+function selectTool(
+  tool
+){
 
-  const salaries=
-    drivers.length*
-    350;
+  selectedTool=
+    tool;
 
-  let garageDiscount=
-    buildings.filter(
-      b=>
-        b.type===
-        "garage"
-    ).length*
-    .05;
+  document
+    .querySelectorAll(
+      ".buildButton[data-tool]"
+    )
+    .forEach(
+      button=>{
 
-  garageDiscount=
-    Math.min(
-      .40,
-      garageDiscount
+        button.classList.toggle(
+          "active",
+          button.dataset.tool===
+          tool
+        );
+      }
     );
 
-  const fleetCost=
+  const def=
+    TILE_DEFS[
+      tool
+    ];
+
+  let name=
+    "Informacje";
+
+  if(
+    tool===
+    "bulldoze"
+  ){
+
+    name=
+      "Wyburzanie";
+  }
+  else if(def){
+
+    name=
+      def.name;
+  }
+
+  setText(
+    "toolInfo",
+    "Narzędzie: "+
+    name
+  );
+}
+
+/* =====================================================
+   CITY SIMULATION
+===================================================== */
+
+function simulateCity(){
+
+  const residentialTiles=
+    getTilesByType(
+      "residential"
+    );
+
+  const commercialTiles=
+    getTilesByType(
+      "commercial"
+    );
+
+  const industrialTiles=
+    getTilesByType(
+      "industrial"
+    );
+
+  jobs=
+    commercialTiles.reduce(
+      (
+        sum,
+        tile
+      )=>
+        sum+
+        jobsForTile(
+          tile
+        ),
+      0
+    )
+    +
+    industrialTiles.reduce(
+      (
+        sum,
+        tile
+      )=>
+        sum+
+        jobsForTile(
+          tile
+        ),
+      0
+    );
+
+  powerCapacity=
+    getTilesByType(
+      "power"
+    )
+    .reduce(
+      (
+        sum,
+        tile
+      )=>
+        sum+
+        850*
+        tile.level,
+      0
+    );
+
+  waterCapacity=
+    getTilesByType(
+      "water"
+    )
+    .reduce(
+      (
+        sum,
+        tile
+      )=>
+        sum+
+        850*
+        tile.level,
+      0
+    );
+
+  /*
+    Potencjalna liczba mieszkańców.
+  */
+
+  const maxPopulation=
+    residentialTiles.reduce(
+      (
+        sum,
+        tile
+      )=>
+        sum+
+        residentialCapacity(
+          tile
+        ),
+      0
+    );
+
+  /*
+    Usługi.
+  */
+
+  const educationCapacity=
+    serviceCapacity(
+      "school"
+    );
+
+  const healthCapacity=
+    serviceCapacity(
+      "hospital"
+    );
+
+  const policeCapacity=
+    serviceCapacity(
+      "police"
+    );
+
+  const fireCapacity=
+    serviceCapacity(
+      "fire"
+    );
+
+  const parkCapacity=
+    serviceCapacity(
+      "park"
+    );
+
+  /*
+    Zapotrzebowanie.
+  */
+
+  powerUsed=
+    Math.round(
+      population*
+      .8
+      +
+      commercialTiles.length*
+      18
+      +
+      industrialTiles.length*
+      28
+    );
+
+  waterUsed=
+    Math.round(
+      population*
+      .65
+      +
+      commercialTiles.length*
+      14
+      +
+      industrialTiles.length*
+      22
+    );
+
+  const powerRatio=
+    powerUsed>0
+    ?Math.min(
+      1,
+      powerCapacity/
+      powerUsed
+    )
+    :1;
+
+  const waterRatio=
+    waterUsed>0
+    ?Math.min(
+      1,
+      waterCapacity/
+      waterUsed
+    )
+    :1;
+
+  education=
+    population>0
+    ?Math.min(
+      100,
+      educationCapacity/
+      population*
+      100
+    )
+    :100;
+
+  health=
+    population>0
+    ?Math.min(
+      100,
+      healthCapacity/
+      population*
+      100
+    )
+    :100;
+
+  safety=
+    population>0
+    ?Math.min(
+      100,
+      (
+        policeCapacity+
+        fireCapacity
+      )
+      /
+      (
+        population*
+        1.5
+      )
+      *
+      100
+    )
+    :100;
+
+  parks=
+    population>0
+    ?Math.min(
+      100,
+      parkCapacity/
+      population*
+      100
+    )
+    :100;
+
+  const unemployment=
+    population>0
+    ?Math.max(
+      0,
+      (
+        population-
+        jobs
+      )
+      /
+      population
+      *
+      100
+    )
+    :0;
+
+  const taxPenalty=
+    Math.max(
+      0,
+      residentialTax-
+      10
+    )
+    *
+    1.6;
+
+  /*
+    Zadowolenie.
+  */
+
+  happiness=
+    45;
+
+  happiness+=
+    powerRatio*
+    10;
+
+  happiness+=
+    waterRatio*
+    10;
+
+  happiness+=
+    education*
+    .08;
+
+  happiness+=
+    health*
+    .08;
+
+  happiness+=
+    safety*
+    .07;
+
+  happiness+=
+    parks*
+    .05;
+
+  happiness-=
+    unemployment*
+    .22;
+
+  happiness-=
+    taxPenalty;
+
+  happiness=
+    Math.max(
+      0,
+      Math.min(
+        100,
+        happiness
+      )
+    );
+
+  /*
+    Wzrost / spadek mieszkańców.
+  */
+
+  let targetPopulation=
+    maxPopulation*
+    (
+      happiness/
+      100
+    );
+
+  targetPopulation*=
+    Math.min(
+      1,
+      powerRatio
+    );
+
+  targetPopulation*=
+    Math.min(
+      1,
+      waterRatio
+    );
+
+  /*
+    Jeśli brak pracy, ograniczamy wzrost.
+  */
+
+  if(
+    jobs<
+    targetPopulation*
+    .45
+  ){
+
+    targetPopulation*=
+      .75;
+  }
+
+  /*
+    Łagodna zmiana, żeby mieszkańcy
+    nie teleportowali się natychmiast.
+  */
+
+  population+=
+    Math.round(
+      (
+        targetPopulation-
+        population
+      )
+      *
+      .12
+    );
+
+  population=
+    Math.max(
+      0,
+      population
+    );
+
+  /*
+    Rozdzielamy mieszkańców na budynki.
+  */
+
+  let remaining=
+    population;
+
+  residentialTiles.forEach(
+    tile=>{
+
+      const capacity=
+        residentialCapacity(
+          tile
+        );
+
+      tile.population=
+        Math.min(
+          capacity,
+          remaining
+        );
+
+      remaining-=
+        tile.population;
+    }
+  );
+
+  renderGrid();
+
+  calculateMonthlyFinance();
+
+  updateUI();
+}
+
+/* =====================================================
+   MONTHLY FINANCES
+===================================================== */
+
+function calculateMonthlyFinance(){
+
+  const residentialIncome=
+    Math.round(
+      population*
+      110*
+      residentialTax/
+      100
+    );
+
+  const commercialIncome=
     Math.round(
 
-      vehicles.reduce(
+      getTilesByType(
+        "commercial"
+      )
+      .reduce(
         (
           sum,
-          vehicle
+          tile
         )=>
-
           sum+
-          vehicleTypes[
-            vehicle.type
-          ].daily,
-
+          jobsForTile(
+            tile
+          ),
         0
       )
 
       *
 
-      (
-        1-
-        garageDiscount
+      180
+
+      *
+
+      commercialTax/
+      100
+    );
+
+  const industrialIncome=
+    Math.round(
+
+      getTilesByType(
+        "industrial"
+      )
+      .reduce(
+        (
+          sum,
+          tile
+        )=>
+          sum+
+          jobsForTile(
+            tile
+          ),
+        0
+      )
+
+      *
+
+      230
+
+      *
+
+      industrialTax/
+      100
+    );
+
+  const roads=
+    getTilesByType(
+      "road"
+    ).length*
+    TILE_DEFS.road.upkeep;
+
+  const educationExpense=
+    upkeepForType(
+      "school"
+    );
+
+  const healthExpense=
+    upkeepForType(
+      "hospital"
+    );
+
+  const safetyExpense=
+    upkeepForType(
+      "police"
+    )
+    +
+    upkeepForType(
+      "fire"
+    );
+
+  const utilityExpense=
+    upkeepForType(
+      "power"
+    )
+    +
+    upkeepForType(
+      "water"
+    );
+
+  const parksExpense=
+    upkeepForType(
+      "park"
+    );
+
+  const cityHallExpense=
+    TILE_DEFS.cityhall.upkeep;
+
+  const income=
+    residentialIncome+
+    commercialIncome+
+    industrialIncome;
+
+  const expenses=
+    roads+
+    educationExpense+
+    healthExpense+
+    safetyExpense+
+    utilityExpense+
+    parksExpense+
+    cityHallExpense;
+
+  monthlyFinance={
+
+    residential:
+      residentialIncome,
+
+    commercial:
+      commercialIncome,
+
+    industrial:
+      industrialIncome,
+
+    roads,
+
+    education:
+      educationExpense,
+
+    health:
+      healthExpense,
+
+    safety:
+      safetyExpense,
+
+    utilities:
+      utilityExpense,
+
+    parks:
+      parksExpense,
+
+    balance:
+      income-
+      expenses
+  };
+}
+
+function settleMonth(){
+
+  calculateMonthlyFinance();
+
+  const amount=
+    monthlyFinance.balance;
+
+  budget+=
+    amount;
+
+  lastSettlementValue=
+    amount;
+
+  showMoneyFloat(
+    amount
+  );
+
+  if(amount>=0){
+
+    addLog(
+      "💰 Miesięczny bilans: +"+
+      formatMoney(
+        amount
       )
     );
+  }
+  else{
 
-  const buildingsCost=
-    buildings.reduce(
-      (
-        sum,
-        building
-      )=>{
-
-        if(
-          building.type==="center"
-        ){
-          return sum+450;
-        }
-
-        if(
-          building.type==="locker"
-        ){
-          return sum+25;
-        }
-
-        if(
-          building.type==="office"
-        ){
-          return sum+180;
-        }
-
-        if(
-          building.type==="garage"
-        ){
-          return sum+140;
-        }
-
-        return sum;
-      },
-      0
-    );
-
-  if(salaries){
-
-    spendMoney(
-      salaries,
-      "Pensje"
+    addLog(
+      "📉 Miesięczny bilans: "+
+      formatMoney(
+        amount
+      )
     );
   }
 
-  if(fleetCost){
+  /*
+    Dług obniża zadowolenie.
+  */
 
-    spendMoney(
-      fleetCost,
-      "Flota"
-    );
-  }
+  if(
+    budget<0
+  ){
 
-  if(buildingsCost){
+    happiness=
+      Math.max(
+        0,
+        happiness-
+        8
+      );
 
-    spendMoney(
-      buildingsCost,
-      "Infrastruktura"
+    addLog(
+      "⚠️ Miasto ma ujemny budżet."
     );
   }
 }
 
 /* =====================================================
-   TIME
+   GAME LOOP
 ===================================================== */
 
-function setSpeed(speed){
+function setSpeed(
+  speed
+){
 
   gameSpeed=
     speed;
-
-  setText(
-    "speedLabel",
-    speed===0
-    ?"PAUZA"
-    :speed+"x"
-  );
 }
-
-let currentDay=
-  dayKey(
-    gameDate
-  );
 
 setInterval(
   ()=>{
 
-    if(gameSpeed===0){
+    if(
+      gameSpeed===
+      0
+    ){
       return;
     }
 
@@ -6147,50 +2733,29 @@ setInterval(
       new Date(
         gameDate.getTime()
         +
-        5*
+        12*
+        60*
         60*
         1000*
         gameSpeed
       );
 
-    generatePackages();
+    simulateCity();
 
-    simulateDrivers();
-
-    simulateCompetitorVehicles();
-
-    if(
-      gameDate.getTime()-
-      lastCompanyFinanceTick
-      >=
-      COMPANY_FINANCE_INTERVAL
-    ){
-
-      lastCompanyFinanceTick=
-        gameDate.getTime();
-
-      simulateCompanies();
-    }
-
-    const day=
-      dayKey(
+    const currentMonth=
+      monthKey(
         gameDate
       );
 
     if(
-      day!==
-      currentDay
+      currentMonth!==
+      lastMonthKey
     ){
 
-      currentDay=
-        day;
+      lastMonthKey=
+        currentMonth;
 
-      todayIncome=0;
-      todayExpenses=0;
-      todayDividends=0;
-      todayPackageIncome=0;
-
-      dailyCosts();
+      settleMonth();
     }
 
     updateUI();
@@ -6199,769 +2764,594 @@ setInterval(
   1000
 );
 
-setInterval(
-  ()=>{
-
-    updateLiveUI();
-
-    drivers.forEach(
-      refreshDriverTooltip
-    );
-
-  },
-  250
-);
-
 /* =====================================================
-   UI
+   TAX
 ===================================================== */
 
-let activeRightTab=
-  "operations";
+function updateTaxes(){
 
-function setRightTab(tab){
+  residentialTax=
+    Number(
+      document
+        .getElementById(
+          "resTax"
+        )
+        .value
+    );
 
-  activeRightTab=
-    tab;
+  commercialTax=
+    Number(
+      document
+        .getElementById(
+          "comTax"
+        )
+        .value
+    );
+
+  industrialTax=
+    Number(
+      document
+        .getElementById(
+          "indTax"
+        )
+        .value
+    );
+
+  setText(
+    "resTaxLabel",
+    residentialTax+
+    "%"
+  );
+
+  setText(
+    "comTaxLabel",
+    commercialTax+
+    "%"
+  );
+
+  setText(
+    "indTaxLabel",
+    industrialTax+
+    "%"
+  );
+
+  simulateCity();
+}
+
+/* =====================================================
+   TABS
+===================================================== */
+
+function setTab(
+  tab
+){
 
   [
-    "operations",
-    "statistics",
-    "companies"
+    "overview",
+    "finance",
+    "policy"
   ]
   .forEach(
     name=>{
 
       document
         .getElementById(
-          name+"Tab"
+          name+
+          "Tab"
         )
         .classList
         .toggle(
           "active",
-          name===tab
+          name===
+          tab
         );
 
       document
         .getElementById(
-          name+"Btn"
+          name+
+          "Btn"
         )
         .classList
         .toggle(
           "active",
-          name===tab
+          name===
+          tab
         );
     }
   );
+}
+
+/* =====================================================
+   RENDER
+===================================================== */
+
+function renderGrid(){
+
+  tiles.forEach(
+    tile=>
+      renderTile(
+        tile
+      )
+  );
+}
+
+function renderTile(
+  tile
+){
+
+  const element=
+    tile.element;
+
+  const def=
+    TILE_DEFS[
+      tile.type
+    ];
+
+  element.className=
+    "tile "+
+    tile.type;
+
+  element.innerHTML=
+    def.icon;
 
   if(
-    tab==="companies"
+    tile.type!==
+    "empty" &&
+    tile.type!==
+    "road" &&
+    tile.type!==
+    "cityhall"
   ){
 
-    renderCompanies();
-  }
-}
+    const level=
+      document.createElement(
+        "span"
+      );
 
-function updateLiveUI(){
+    level.className=
+      "level";
 
-  setText(
-    "money",
-    formatMoney(
-      money
-    )
-  );
+    level.textContent=
+      "L"+
+      tile.level;
 
-  setText(
-    "reputation",
-    reputation.toFixed(1)+
-    "%"
-  );
-
-  setText(
-    "waitingPackages",
-
-    packages.filter(
-      pkg=>
-        pkg.status===
-        "waitingPickup"
-    ).length
-  );
-
-  setText(
-    "centerPackages",
-
-    packages.filter(
-      pkg=>
-
-        pkg.currentCenterId!==
-        null
-
-        &&
-
-        pkg.status!==
-        "delivered"
-    ).length
-  );
-
-  setText(
-    "localCourierPackages",
-
-    drivers
-      .filter(
-        d=>
-          d.role===
-          "local"
-      )
-      .reduce(
-        (
-          sum,
-          d
-        )=>
-          sum+
-          d.cargo.length,
-        0
-      )
-  );
-
-  setText(
-    "linehaulCargoPackages",
-
-    drivers
-      .filter(
-        d=>
-          d.role===
-          "linehaul"
-      )
-      .reduce(
-        (
-          sum,
-          d
-        )=>
-          sum+
-          d.cargo.length,
-        0
-      )
-  );
-
-  setText(
-    "interCenterPackages",
-
-    packages.filter(
-      pkg=>
-
-        pkg.status!==
-        "delivered"
-
-        &&
-
-        pkg.originCenterId!==
-        pkg.destinationCenterId
-    ).length
-  );
-
-  setText(
-    "delivered",
-    delivered
-  );
-
-  setText(
-    "driverCount",
-    drivers.length
-  );
-
-  setText(
-    "localDriverCount",
-
-    drivers.filter(
-      d=>
-        d.role===
-        "local"
-    ).length
-  );
-
-  setText(
-    "linehaulDriverCount",
-
-    drivers.filter(
-      d=>
-        d.role===
-        "linehaul"
-    ).length
-  );
-
-  setText(
-    "todayIncome",
-    formatMoney(
-      todayIncome
-    )
-  );
-
-  setText(
-    "todayPackageIncome",
-    formatMoney(
-      todayPackageIncome
-    )
-  );
-
-  setText(
-    "todayDividends",
-    formatMoney(
-      todayDividends
-    )
-  );
-
-  setText(
-    "todayExpenses",
-    formatMoney(
-      todayExpenses
-    )
-  );
-}
-
-function updateUI(){
-
-  updateLiveUI();
-
-  setText(
-    "dateTime",
-
-    gameDate.toLocaleString(
-      "pl-PL",
-      {
-        day:"2-digit",
-        month:"2-digit",
-        year:"numeric",
-        hour:"2-digit",
-        minute:"2-digit"
-      }
-    )
-  );
-
-  setText(
-    "centerCount",
-    getCenters().length
-  );
-
-  setText(
-    "lockerCount",
-
-    buildings.filter(
-      b=>
-        b.type===
-        "locker"
-    ).length
-  );
-
-  setText(
-    "linehaulConnectionCount",
-    getLinehaulConnectionCount()
-  );
-
-  setText(
-    "totalPackageIncome",
-    formatMoney(
-      totalPackageIncome
-    )
-  );
-
-  setText(
-    "averagePackageRevenue",
-
-    delivered>0
-    ?formatMoney(
-      totalPackageIncome/
-      delivered
-    )
-    :"0 zł"
-  );
-
-  setText(
-    "playerVehicleCount",
-    vehicles.length
-  );
-
-  const activeCompanies=
-    companies.filter(
-      c=>
-        !c.takenOver
+    element.appendChild(
+      level
     );
-
-  setText(
-    "competitorCount",
-    activeCompanies.length
-  );
-
-  setText(
-    "portfolioValue",
-
-    formatMoney(
-
-      activeCompanies.reduce(
-        (
-          sum,
-          c
-        )=>
-
-          sum+
-          c.value*
-          c.playerShares/
-          100,
-
-        0
-      )
-    )
-  );
+  }
 
   if(
-    activeRightTab===
-    "companies"
+    tile.type===
+    "residential"
   ){
 
-    renderCompanies();
+    element.title=
+      def.name+
+      " • "+
+      tile.population+
+      "/"+
+      residentialCapacity(
+        tile
+      )+
+      " mieszkańców";
+  }
+  else{
+
+    element.title=
+      def.name;
   }
 }
 
 /* =====================================================
-   CHEATS
+   UI
 ===================================================== */
 
-const cheatConsole=
-  document.getElementById(
-    "cheatConsole"
-  );
+function updateUI(){
 
-const cheatInput=
-  document.getElementById(
-    "cheatInput"
-  );
+  setText(
+    "dateDisplay",
 
-document.addEventListener(
-  "keydown",
-  event=>{
-
-    if(
-      event.code==="Backquote" ||
-      event.key==="`" ||
-      event.key==="~"
-    ){
-
-      event.preventDefault();
-
-      cheatConsole
-        .classList
-        .toggle(
-          "show"
-        );
-
-      if(
-        cheatConsole
-          .classList
-          .contains(
-            "show"
-          )
-      ){
-
-        cheatInput.focus();
+    gameDate.toLocaleDateString(
+      "pl-PL",
+      {
+        month:"long",
+        year:"numeric"
       }
-    }
-  }
-);
+    )
+  );
 
-cheatInput.addEventListener(
-  "keydown",
-  event=>{
+  setText(
+    "budget",
+    formatMoney(
+      budget
+    )
+  );
 
-    if(
-      event.key==="Enter"
-    ){
+  document
+    .getElementById(
+      "budget"
+    )
+    .style
+    .color=
+      budget>=0
+      ?"#4ade80"
+      :"#f87171";
 
-      runCheat(
-        cheatInput.value.trim()
-      );
+  setText(
+    "population",
+    population.toLocaleString(
+      "pl-PL"
+    )
+  );
 
-      cheatInput.value="";
-    }
-  }
-);
+  setText(
+    "populationStat",
+    population.toLocaleString(
+      "pl-PL"
+    )
+  );
 
-function runCheat(input){
+  setText(
+    "happiness",
+    happiness.toFixed(0)+
+    "%"
+  );
 
-  const parts=
-    input.split(
-      /\s+/
+  setText(
+    "jobsStat",
+    jobs.toLocaleString(
+      "pl-PL"
+    )
+  );
+
+  const unemployment=
+    population>0
+    ?Math.max(
+      0,
+      (
+        population-
+        jobs
+      )
+      /
+      population
+      *
+      100
+    )
+    :0;
+
+  setText(
+    "unemploymentStat",
+    unemployment.toFixed(1)+
+    "%"
+  );
+
+  setText(
+    "powerStat",
+    powerUsed+
+    " / "+
+    powerCapacity
+  );
+
+  setText(
+    "waterStat",
+    waterUsed+
+    " / "+
+    waterCapacity
+  );
+
+  setProgress(
+    "powerBar",
+
+    powerUsed>0
+    ?powerCapacity/
+      powerUsed*
+      100
+    :100
+  );
+
+  setProgress(
+    "waterBar",
+
+    waterUsed>0
+    ?waterCapacity/
+      waterUsed*
+      100
+    :100
+  );
+
+  setText(
+    "educationStat",
+    education.toFixed(0)+
+    "%"
+  );
+
+  setText(
+    "healthStat",
+    health.toFixed(0)+
+    "%"
+  );
+
+  setText(
+    "safetyStat",
+    safety.toFixed(0)+
+    "%"
+  );
+
+  setText(
+    "parksStat",
+    parks.toFixed(0)+
+    "%"
+  );
+
+  /*
+    Finanse.
+  */
+
+  setText(
+    "incomeResidential",
+    formatMoney(
+      monthlyFinance.residential
+    )
+  );
+
+  setText(
+    "incomeCommercial",
+    formatMoney(
+      monthlyFinance.commercial
+    )
+  );
+
+  setText(
+    "incomeIndustrial",
+    formatMoney(
+      monthlyFinance.industrial
+    )
+  );
+
+  setText(
+    "expenseRoads",
+    formatMoney(
+      monthlyFinance.roads
+    )
+  );
+
+  setText(
+    "expenseEducation",
+    formatMoney(
+      monthlyFinance.education
+    )
+  );
+
+  setText(
+    "expenseHealth",
+    formatMoney(
+      monthlyFinance.health
+    )
+  );
+
+  setText(
+    "expenseSafety",
+    formatMoney(
+      monthlyFinance.safety
+    )
+  );
+
+  setText(
+    "expenseUtilities",
+    formatMoney(
+      monthlyFinance.utilities
+    )
+  );
+
+  setText(
+    "expenseParks",
+    formatMoney(
+      monthlyFinance.parks
+    )
+  );
+
+  const monthlyBalance=
+    document.getElementById(
+      "monthlyBalance"
     );
 
-  const command=
-    (
-      parts[0]||
-      ""
-    ).toLowerCase();
+  monthlyBalance.textContent=
+    formatMoney(
+      monthlyFinance.balance
+    );
 
-  if(
-    command==="cash"
-  ){
+  monthlyBalance.className=
+    monthlyFinance.balance>=0
+    ?"good"
+    :"bad";
 
-    const amount=
-      Number(
-        parts[1]
-      );
+  setText(
+    "lastSettlement",
 
-    if(
-      Number.isFinite(
-        amount
-      )
-    ){
-
-      receiveMoney(
-        amount,
-        "Cheat"
-      );
-    }
-  }
-
-  else if(
-    command==="fleet"
-  ){
-
-    const amount=
-      Number(
-        parts[1]
-      )
-      ||
-      10;
-
-    for(
-      let i=0;
-      i<amount;
-      i++
-    ){
-
-      vehicles.push({
-        id:nextVehicleId++,
-        type:"van",
-        driverId:null
-      });
-    }
-  }
-
-  else if(
-    command==="rep100"
-  ){
-
-    reputation=100;
-  }
-
-  else if(
-    command==="shares"
-  ){
-
-    const amount=
-      Number(
-        parts.at(-1)
-      );
-
-    const name=
-      parts
-        .slice(
-          1,
-          -1
-        )
-        .join(" ")
-        .toLowerCase();
-
-    const company=
-      companies.find(
-        c=>
-          c.name
-            .toLowerCase()
-          ===
-          name
-      );
-
-    if(
-      company &&
-      Number.isFinite(
-        amount
-      )
-    ){
-
-      company.playerShares=
-        Math.max(
-          0,
-          Math.min(
-            100,
-            amount
-          )
-        );
-
-      renderCompanies();
-    }
-  }
-
-  updateUI();
+    lastSettlementValue===0
+    ?"—"
+    :formatMoney(
+      lastSettlementValue
+    )
+  );
 }
 
 /* =====================================================
    HELPERS
 ===================================================== */
 
-function getBuilding(id){
-
-  return buildings.find(
-    b=>
-      b.id===
-      id
-  );
-}
-
-function getCenters(){
-
-  return buildings.filter(
-    b=>
-      b.type===
-      "center"
-  );
-}
-
-function getVehicle(id){
-
-  return vehicles.find(
-    v=>
-      v.id===
-      id
-  );
-}
-
-function getPackage(id){
-
-  return packages.find(
-    p=>
-      p.id===
-      id
-  );
-}
-
-function getNearbyPlayerLockers(
-  center
+function getTile(
+  x,
+  y
 ){
 
-  const radius=
-    getCenterRadius(
-      center
-    );
+  return tiles.find(
+    tile=>
+      tile.x===
+      x
+      &&
+      tile.y===
+      y
+  );
+}
 
-  return buildings.filter(
-    building=>
+function getTilesByType(
+  type
+){
 
-      building.type===
-      "locker"
+  return tiles.filter(
+    tile=>
+      tile.type===
+      type
+  );
+}
+
+function hasAdjacentRoad(
+  tile
+){
+
+  const neighbours=[
+
+    getTile(
+      tile.x+1,
+      tile.y
+    ),
+
+    getTile(
+      tile.x-1,
+      tile.y
+    ),
+
+    getTile(
+      tile.x,
+      tile.y+1
+    ),
+
+    getTile(
+      tile.x,
+      tile.y-1
+    )
+
+  ];
+
+  return neighbours.some(
+    neighbour=>
+
+      neighbour
 
       &&
 
-      distanceKm(
-        center.lat,
-        center.lng,
-        building.lat,
-        building.lng
+      (
+        neighbour.type===
+        "road"
+
+        ||
+
+        neighbour.type===
+        "cityhall"
       )
-      <=
-      radius
   );
 }
 
-function removeCargo(
-  driver,
-  id
+function residentialCapacity(
+  tile
 ){
-
-  driver.cargo=
-    driver.cargo.filter(
-      cargoId=>
-        cargoId!==
-        id
-    );
-}
-
-function getLinehaulConnectionCount(){
-
-  const routes=
-    new Set();
-
-  drivers
-    .filter(
-      d=>
-        d.role===
-        "linehaul"
-    )
-    .forEach(
-      d=>{
-
-        const a=
-          Math.min(
-            d.centerAId,
-            d.centerBId
-          );
-
-        const b=
-          Math.max(
-            d.centerAId,
-            d.centerBId
-          );
-
-        routes.add(
-          a+"-"+b
-        );
-      }
-    );
-
-  return routes.size;
-}
-
-function randomItem(array){
-
-  if(
-    !array ||
-    !array.length
-  ){
-    return null;
-  }
-
-  return array[
-    Math.floor(
-      Math.random()*
-      array.length
-    )
-  ];
-}
-
-function randomNear(
-  lat,
-  lng,
-  km
-){
-
-  const angle=
-    Math.random()*
-    Math.PI*
-    2;
-
-  const distance=
-    Math.sqrt(
-      Math.random()
-    )*
-    km;
-
-  const latOffset=
-    (
-      distance/
-      111
-    )*
-    Math.cos(
-      angle
-    );
-
-  const cosLat=
-    Math.max(
-      .15,
-      Math.abs(
-        Math.cos(
-          lat*
-          Math.PI/
-          180
-        )
-      )
-    );
-
-  const lngOffset=
-    (
-      distance/
-      (
-        111*
-        cosLat
-      )
-    )*
-    Math.sin(
-      angle
-    );
-
-  return{
-    lat:
-      lat+
-      latOffset,
-
-    lng:
-      lng+
-      lngOffset
-  };
-}
-
-function distanceKm(
-  lat1,
-  lon1,
-  lat2,
-  lon2
-){
-
-  const R=6371;
-
-  const dLat=
-    (
-      lat2-
-      lat1
-    )*
-    Math.PI/
-    180;
-
-  const dLon=
-    (
-      lon2-
-      lon1
-    )*
-    Math.PI/
-    180;
-
-  const a=
-
-    Math.sin(
-      dLat/
-      2
-    )**
-    2
-
-    +
-
-    Math.cos(
-      lat1*
-      Math.PI/
-      180
-    )
-
-    *
-
-    Math.cos(
-      lat2*
-      Math.PI/
-      180
-    )
-
-    *
-
-    Math.sin(
-      dLon/
-      2
-    )**
-    2;
 
   return (
-    R*
-    2*
-    Math.atan2(
-      Math.sqrt(a),
-      Math.sqrt(
-        1-a
-      )
-    )
+    TILE_DEFS
+      .residential
+      .capacity
+    *
+    tile.level
   );
+}
+
+function jobsForTile(
+  tile
+){
+
+  const def=
+    TILE_DEFS[
+      tile.type
+    ];
+
+  return (
+    def.jobs||
+    0
+  )
+  *
+  tile.level;
+}
+
+function serviceCapacity(
+  type
+){
+
+  return getTilesByType(
+    type
+  )
+  .reduce(
+    (
+      sum,
+      tile
+    )=>
+
+      sum+
+      TILE_DEFS[
+        type
+      ].service*
+      tile.level,
+
+    0
+  );
+}
+
+function upkeepForType(
+  type
+){
+
+  return getTilesByType(
+    type
+  )
+  .reduce(
+    (
+      sum,
+      tile
+    )=>
+
+      sum+
+      TILE_DEFS[
+        type
+      ].upkeep*
+      tile.level,
+
+    0
+  );
+}
+
+function monthKey(
+  date
+){
+
+  return (
+    date.getFullYear()+
+    "-"+
+    date.getMonth()
+  );
+}
+
+function formatMoney(
+  value
+){
+
+  return Math.round(
+    value
+  )
+  .toLocaleString(
+    "pl-PL"
+  )
+  +
+  " zł";
 }
 
 function setText(
@@ -6981,53 +3371,53 @@ function setText(
   }
 }
 
-function formatMoney(value){
+function setProgress(
+  id,
+  value
+){
 
-  return Math.round(
-    value
-  )
-  .toLocaleString(
-    "pl-PL"
-  )
-  +
-  " zł";
-}
-
-function escapeHtml(text){
-
-  return String(text)
-    .replaceAll("&","&amp;")
-    .replaceAll("<","&lt;")
-    .replaceAll(">","&gt;")
-    .replaceAll('"',"&quot;");
-}
-
-function dayKey(date){
-
-  return (
-    date.getFullYear()+
-    "-"+
-    date.getMonth()+
-    "-"+
-    date.getDate()
-  );
-}
-
-function closeModal(id){
-
-  document
-    .getElementById(
+  const element=
+    document.getElementById(
       id
-    )
-    .classList
-    .remove(
-      "show"
     );
+
+  if(!element){
+    return;
+  }
+
+  value=
+    Math.max(
+      0,
+      Math.min(
+        100,
+        value
+      )
+    );
+
+  element.style.width=
+    value+
+    "%";
+
+  if(value<50){
+
+    element.style.background=
+      "#ef4444";
+  }
+  else if(value<85){
+
+    element.style.background=
+      "#facc15";
+  }
+  else{
+
+    element.style.background=
+      "#22c55e";
+  }
 }
 
-let notificationIndex=0;
-
-function notify(text){
+function showMoneyFloat(
+  amount
+){
 
   const element=
     document.createElement(
@@ -7035,26 +3425,27 @@ function notify(text){
     );
 
   element.className=
-    "notification";
+    "moneyFloat "+
+    (
+      amount>=0
+      ?"plus"
+      :"minus"
+    );
 
   element.textContent=
-    text;
-
-  element.style.top=
     (
-      18+
-      (
-        notificationIndex++%
-        5
-      )*
-      58
+      amount>=0
+      ?"+"
+      :""
     )
     +
-    "px";
+    formatMoney(
+      amount
+    );
 
   document
     .getElementById(
-      "mapContainer"
+      "cashFloatContainer"
     )
     .appendChild(
       element
@@ -7064,13 +3455,64 @@ function notify(text){
     ()=>{
       element.remove();
     },
-    2600
+    1600
+  );
+}
+
+function notify(
+  text
+){
+
+  const element=
+    document.createElement(
+      "div"
+    );
+
+  element.style.position=
+    "absolute";
+
+  element.style.right=
+    "18px";
+
+  element.style.top=
+    "18px";
+
+  element.style.zIndex=
+    "100";
+
+  element.style.padding=
+    "10px 13px";
+
+  element.style.border=
+    "1px solid #475569";
+
+  element.style.borderRadius=
+    "9px";
+
+  element.style.background=
+    "#0f172a";
+
+  element.textContent=
+    text;
+
+  document
+    .getElementById(
+      "cityArea"
+    )
+    .appendChild(
+      element
+    );
+
+  setTimeout(
+    ()=>{
+      element.remove();
+    },
+    2200
   );
 }
 
 function addLog(
-  text,
-  type=""
+  text
 ){
 
   const element=
@@ -7079,17 +3521,14 @@ function addLog(
     );
 
   element.className=
-    "logItem "+
-    type;
+    "logItem";
 
   element.textContent=
-    gameDate.toLocaleString(
+    gameDate.toLocaleDateString(
       "pl-PL",
       {
-        day:"2-digit",
-        month:"2-digit",
-        hour:"2-digit",
-        minute:"2-digit"
+        month:"short",
+        year:"numeric"
       }
     )
     +
@@ -7108,7 +3547,7 @@ function addLog(
 
   while(
     log.children.length>
-    120
+    100
   ){
 
     log.lastChild.remove();
@@ -7119,37 +3558,30 @@ function addLog(
    START
 ===================================================== */
 
-seedCompanies();
+createGrid();
 
-addLog(
-  "🏭 Centra mają regulowany zasięg 5–100 km.",
-  "good"
+selectTool(
+  "inspect"
 );
 
-addLog(
-  "🔵 Zasięg centrum jest pokazywany jako okrąg na mapie.",
-  "good"
-);
+simulateCity();
 
-addLog(
-  "🚚 Transport liniowy działa hubowo — paczka może przejechać przez kilka centrów.",
-  "good"
-);
+calculateMonthlyFinance();
 
-addLog(
-  "📦 Kliknij centrum, aby zobaczyć liczbę paczek lokalnych i paczki do konkretnych miast.",
-  "good"
-);
-
-setSpeed(1);
+updateTaxes();
 
 updateUI();
 
-setTimeout(
-  ()=>{
-    map.invalidateSize();
-  },
-  200
+addLog(
+  "🏛️ Zostałeś burmistrzem nowego miasta."
+);
+
+addLog(
+  "🛣️ Budynki mieszkalne, handlowe i przemysłowe muszą mieć dostęp do drogi."
+);
+
+addLog(
+  "⚡ Rozwój miasta wymaga energii, wody, pracy i usług."
 );
 
 </script>
