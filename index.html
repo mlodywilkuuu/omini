@@ -51,14 +51,66 @@ input,select{background:#0b1220;color:var(--text);border:1px solid var(--border)
 .scrollbar::-webkit-scrollbar-thumb{background:#475569;border-radius:999px}
 #worldMap{height:620px;width:100%;border-radius:12px;overflow:hidden}
 .leaflet-container{background:#0b1220;font-family:Inter,Arial,sans-serif}
-.store-icon,.hub-icon,.build-icon{display:grid;place-items:center;position:relative;filter:drop-shadow(0 4px 5px rgba(0,0,0,.35))}
-.store-icon,.hub-icon{width:28px;height:28px;border-radius:50% 50% 50% 8px;transform:rotate(-45deg);border:2px solid #0f172a}
-.store-icon{background:#facc15;color:#111827}
-.hub-icon{background:#60a5fa;color:#08111f}
-.store-icon::before{content:"🏪";font-size:14px;transform:rotate(45deg)}
-.hub-icon::before{content:"🚚";font-size:14px;transform:rotate(45deg)}
-.build-icon{width:24px;height:24px;border-radius:50%;background:white;border:5px solid #22c55e;box-shadow:0 0 0 2px rgba(0,0,0,.35)}
-.city-result{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px;border:1px solid var(--border);border-radius:9px;background:#0b1220;cursor:pointer}
+
+.store-icon,.hub-icon,.build-icon{
+  display:grid;
+  place-items:center;
+  position:relative;
+  filter:drop-shadow(0 4px 5px rgba(0,0,0,.35))
+}
+
+.store-icon,.hub-icon{
+  width:28px;
+  height:28px;
+  border-radius:50% 50% 50% 8px;
+  transform:rotate(-45deg);
+  border:2px solid #0f172a
+}
+
+.store-icon{
+  background:#facc15;
+  color:#111827
+}
+
+.hub-icon{
+  background:#60a5fa;
+  color:#08111f;
+  top:18px
+}
+
+.store-icon::before{
+  content:"🏪";
+  font-size:14px;
+  transform:rotate(45deg)
+}
+
+.hub-icon::before{
+  content:"🚚";
+  font-size:14px;
+  transform:rotate(45deg)
+}
+
+.build-icon{
+  width:24px;
+  height:24px;
+  border-radius:50%;
+  background:white;
+  border:5px solid #22c55e;
+  box-shadow:0 0 0 2px rgba(0,0,0,.35)
+}
+
+.city-result{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding:10px;
+  border:1px solid var(--border);
+  border-radius:9px;
+  background:#0b1220;
+  cursor:pointer
+}
+
 .city-result:hover{filter:brightness(1.12)}
 .country-badge{display:inline-flex;align-items:center;gap:6px;font-weight:800}
 .search-spinner{opacity:.75;font-size:12px}
@@ -152,7 +204,11 @@ input,select{background:#0b1220;color:var(--text);border:1px solid var(--border)
         <input id="citySearchInput" class="flex-1" placeholder="Wpisz miasto, np. Białystok, Chicago, Berlin">
         <button id="citySearchBtn" class="btn">🔎 Szukaj miasta</button>
       </div>
-      <div id="citySearchStatus" class="text-xs muted mt-2">Możesz też kliknąć bezpośrednio na mapie.</div>
+
+      <div id="citySearchStatus" class="text-xs muted mt-2">
+        Możesz też kliknąć bezpośrednio na mapie.
+      </div>
+
       <div id="citySearchResults" class="grid md:grid-cols-2 gap-2 mt-2"></div>
     </div>
 
@@ -796,14 +852,12 @@ const $ =
   id =>
     document.getElementById(id);
 
-
 const money =
   n =>
     Math.round(n)
       .toLocaleString("pl-PL")
     +
     " zł";
-
 
 const uid =
   () =>
@@ -812,7 +866,6 @@ const uid =
       : Math.random().toString(36).slice(2)
         +
         Date.now().toString(36);
-
 
 const categories = [
   "Chipsy",
@@ -828,7 +881,6 @@ const categories = [
   "Chemia domowa"
 ];
 
-
 const brands = [
   "Nova",
   "Freshio",
@@ -842,7 +894,6 @@ const brands = [
   "Lumo"
 ];
 
-
 const variants = [
   "Classic",
   "Max",
@@ -855,7 +906,6 @@ const variants = [
   "Original",
   "Premium"
 ];
-
 
 const ownBrandFamilies = [
 
@@ -902,7 +952,6 @@ const ownBrandFamilies = [
 
 ];
 
-
 const storeTypes = {
 
 mini:{
@@ -938,7 +987,6 @@ supermarket:{
 }
 
 };
-
 
 const factoryProducts = [
 
@@ -992,18 +1040,14 @@ const factoryProducts = [
 
 ];
 
-
 const GENERIC_FACTORY_COST =
   650000;
-
 
 const HUB_COST =
   500000;
 
-
 const HUB_MAINTENANCE =
   600;
-
 
 const acquisitionLocations = [
 
@@ -1099,7 +1143,6 @@ const acquisitionLocations = [
 
 ];
 
-
 let state = {
 
 cash:2200000,
@@ -1120,6 +1163,8 @@ paused:false,
 reputation:55,
 
 mapBuildPoint:null,
+
+mapLocationLookupId:0,
 
 stores:[],
 
@@ -1159,11 +1204,21 @@ deposit:{
 
 };
 
-
 const COUNTRY_CODE_ALIASES = {
-  USA:"US", UK:"GB", ENG:"GB", POL:"PL", GER:"DE", DEU:"DE",
-  CZE:"CZ", FRA:"FR", ESP:"ES", ITA:"IT", CAN:"CA", AUS:"AU",
-  JPN:"JP", KOR:"KR"
+  USA:"US",
+  UK:"GB",
+  ENG:"GB",
+  POL:"PL",
+  GER:"DE",
+  DEU:"DE",
+  CZE:"CZ",
+  FRA:"FR",
+  ESP:"ES",
+  ITA:"IT",
+  CAN:"CA",
+  AUS:"AU",
+  JPN:"JP",
+  KOR:"KR"
 };
 
 const BULK_LIMITS = {
@@ -1172,154 +1227,928 @@ const BULK_LIMITS = {
 };
 
 const FALLBACK_COUNTRY_CITIES = {
+
   PL:[
-    ["Warszawa",52.2297,21.0122],["Kraków",50.0647,19.9450],["Łódź",51.7592,19.4560],
-    ["Wrocław",51.1079,17.0385],["Poznań",52.4064,16.9252],["Gdańsk",54.3520,18.6466],
-    ["Szczecin",53.4285,14.5528],["Bydgoszcz",53.1235,18.0084],["Lublin",51.2465,22.5684],
-    ["Białystok",53.1325,23.1688],["Katowice",50.2649,19.0238],["Gdynia",54.5189,18.5305],
-    ["Częstochowa",50.8118,19.1203],["Rzeszów",50.0412,21.9991],["Toruń",53.0138,18.5984],
-    ["Olsztyn",53.7784,20.4801],["Opole",50.6751,17.9213],["Kielce",50.8661,20.6286],
-    ["Zielona Góra",51.9356,15.5062],["Radom",51.4027,21.1471]
+    ["Warszawa",52.2297,21.0122],
+    ["Kraków",50.0647,19.9450],
+    ["Łódź",51.7592,19.4560],
+    ["Wrocław",51.1079,17.0385],
+    ["Poznań",52.4064,16.9252],
+    ["Gdańsk",54.3520,18.6466],
+    ["Szczecin",53.4285,14.5528],
+    ["Bydgoszcz",53.1235,18.0084],
+    ["Lublin",51.2465,22.5684],
+    ["Białystok",53.1325,23.1688],
+    ["Katowice",50.2649,19.0238],
+    ["Gdynia",54.5189,18.5305],
+    ["Częstochowa",50.8118,19.1203],
+    ["Rzeszów",50.0412,21.9991],
+    ["Toruń",53.0138,18.5984],
+    ["Olsztyn",53.7784,20.4801],
+    ["Opole",50.6751,17.9213],
+    ["Kielce",50.8661,20.6286],
+    ["Zielona Góra",51.9356,15.5062],
+    ["Radom",51.4027,21.1471]
   ],
+
   US:[
-    ["New York",40.7128,-74.0060],["Los Angeles",34.0522,-118.2437],["Chicago",41.8781,-87.6298],
-    ["Houston",29.7604,-95.3698],["Phoenix",33.4484,-112.0740],["Philadelphia",39.9526,-75.1652],
-    ["San Antonio",29.4241,-98.4936],["San Diego",32.7157,-117.1611],["Dallas",32.7767,-96.7970],
-    ["Austin",30.2672,-97.7431],["Jacksonville",30.3322,-81.6557],["Fort Worth",32.7555,-97.3308],
-    ["Columbus",39.9612,-82.9988],["Indianapolis",39.7684,-86.1581],["Charlotte",35.2271,-80.8431],
-    ["Seattle",47.6062,-122.3321],["Denver",39.7392,-104.9903],["Boston",42.3601,-71.0589],
-    ["Nashville",36.1627,-86.7816],["Detroit",42.3314,-83.0458],["Portland",45.5152,-122.6784],
-    ["Las Vegas",36.1699,-115.1398],["Baltimore",39.2904,-76.6122],["Milwaukee",43.0389,-87.9065],
-    ["Albuquerque",35.0844,-106.6504],["Tucson",32.2226,-110.9747],["Fresno",36.7378,-119.7871],
-    ["Sacramento",38.5816,-121.4944],["Atlanta",33.7490,-84.3880],["Kansas City",39.0997,-94.5786]
+    ["New York",40.7128,-74.0060],
+    ["Los Angeles",34.0522,-118.2437],
+    ["Chicago",41.8781,-87.6298],
+    ["Houston",29.7604,-95.3698],
+    ["Phoenix",33.4484,-112.0740],
+    ["Philadelphia",39.9526,-75.1652],
+    ["San Antonio",29.4241,-98.4936],
+    ["San Diego",32.7157,-117.1611],
+    ["Dallas",32.7767,-96.7970],
+    ["Austin",30.2672,-97.7431],
+    ["Jacksonville",30.3322,-81.6557],
+    ["Fort Worth",32.7555,-97.3308],
+    ["Columbus",39.9612,-82.9988],
+    ["Indianapolis",39.7684,-86.1581],
+    ["Charlotte",35.2271,-80.8431],
+    ["Seattle",47.6062,-122.3321],
+    ["Denver",39.7392,-104.9903],
+    ["Boston",42.3601,-71.0589],
+    ["Nashville",36.1627,-86.7816],
+    ["Detroit",42.3314,-83.0458],
+    ["Portland",45.5152,-122.6784],
+    ["Las Vegas",36.1699,-115.1398],
+    ["Baltimore",39.2904,-76.6122],
+    ["Milwaukee",43.0389,-87.9065],
+    ["Albuquerque",35.0844,-106.6504],
+    ["Tucson",32.2226,-110.9747],
+    ["Fresno",36.7378,-119.7871],
+    ["Sacramento",38.5816,-121.4944],
+    ["Atlanta",33.7490,-84.3880],
+    ["Kansas City",39.0997,-94.5786]
   ]
 };
 
 function normalizeCountryCode(value){
-  const raw=(value||"").trim().toUpperCase();
+
+  const raw =
+    (value||"")
+      .trim()
+      .toUpperCase();
+
   return COUNTRY_CODE_ALIASES[raw] || raw;
+
 }
 
 function countryCodeToFlag(code){
-  const c=normalizeCountryCode(code);
-  if(!/^[A-Z]{2}$/.test(c)) return "🌍";
-  return String.fromCodePoint(...[...c].map(ch=>127397+ch.charCodeAt(0)));
+
+  const c =
+    normalizeCountryCode(code);
+
+  if(
+    !/^[A-Z]{2}$/.test(c)
+  )
+    return "🌍";
+
+  return String.fromCodePoint(
+    ...[...c].map(
+      ch =>
+        127397+ch.charCodeAt(0)
+    )
+  );
+
 }
 
 function countryNameFromCode(code){
-  const c=normalizeCountryCode(code);
-  try{ return new Intl.DisplayNames(["pl"],{type:"region"}).of(c) || c; }
-  catch(e){ return c; }
+
+  const c =
+    normalizeCountryCode(code);
+
+  try{
+
+    return (
+      new Intl.DisplayNames(
+        ["pl"],
+        {
+          type:"region"
+        }
+      )
+      .of(c)
+      ||
+      c
+    );
+
+  }
+
+  catch(e){
+
+    return c;
+
+  }
+
 }
 
 function placeLabel(place){
-  const city=place.city || place.town || place.village || place.municipality || place.county || "Wybrane miejsce";
-  const country=place.country || place.countryName || place.country_code?.toUpperCase() || place.countryCode || "";
-  const code=normalizeCountryCode(place.country_code || place.countryCode || "");
+
+  const city =
+    place.city
+    ||
+    place.town
+    ||
+    place.village
+    ||
+    place.municipality
+    ||
+    place.county
+    ||
+    "Wybrane miejsce";
+
+  const country =
+    place.country
+    ||
+    place.countryName
+    ||
+    place.country_code?.toUpperCase()
+    ||
+    place.countryCode
+    ||
+    "";
+
+  const code =
+    normalizeCountryCode(
+      place.country_code
+      ||
+      place.countryCode
+      ||
+      ""
+    );
+
   return `${city}${country ? `, ${country}` : ""} ${countryCodeToFlag(code)}`.trim();
+
 }
 
-async function reverseGeocodePoint(lat,lng){
-  const url=`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lng)}&zoom=10&addressdetails=1`;
-  const res=await fetch(url,{headers:{"Accept":"application/json","Accept-Language":"pl,en;q=0.8"}});
-  if(!res.ok) throw new Error("Nie udało się sprawdzić punktu.");
-  const data=await res.json();
-  const a=data.address || {};
-  if(!a.country_code) throw new Error("To miejsce nie należy do rozpoznanego kraju. Wybierz ląd.");
+async function reverseGeocodePoint(
+  lat,
+  lng
+){
+
+  const url =
+    `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lng)}&zoom=10&addressdetails=1`;
+
+  const res =
+    await fetch(
+      url,
+      {
+        headers:{
+          "Accept":"application/json",
+          "Accept-Language":"pl,en;q=0.8"
+        }
+      }
+    );
+
+  if(
+    !res.ok
+  )
+    throw new Error(
+      "Nie udało się sprawdzić punktu."
+    );
+
+  const data =
+    await res.json();
+
+  const a =
+    data.address || {};
+
+  if(
+    !a.country_code
+  )
+    throw new Error(
+      "To miejsce nie należy do rozpoznanego kraju. Wybierz ląd."
+    );
+
   return {
-    lat:Number(data.lat ?? lat), lng:Number(data.lon ?? lng),
-    city:a.city || a.town || a.village || a.municipality || a.county || data.name || "Wybrane miejsce",
-    country:a.country || "", countryCode:(a.country_code||"").toUpperCase(),
-    displayName:data.display_name || ""
+
+    lat:
+      Number(
+        data.lat ?? lat
+      ),
+
+    lng:
+      Number(
+        data.lon ?? lng
+      ),
+
+    city:
+      a.city
+      ||
+      a.town
+      ||
+      a.village
+      ||
+      a.municipality
+      ||
+      a.county
+      ||
+      data.name
+      ||
+      "Wybrane miejsce",
+
+    country:
+      a.country || "",
+
+    countryCode:
+      (a.country_code||"")
+        .toUpperCase(),
+
+    displayName:
+      data.display_name || ""
+
   };
+
 }
 
-async function selectBuildPoint(lat,lng,knownPlace=null){
-  const lookupId=++state.mapLocationLookupId;
-  state.mapBuildPoint=null;
-  $("mapPointInfo").innerHTML='<span class="search-spinner">Sprawdzam miasto i kraj…</span>';
+async function selectBuildPoint(
+  lat,
+  lng,
+  knownPlace=null
+){
+
+  const lookupId =
+    ++state.mapLocationLookupId;
+
+  state.mapBuildPoint =
+    null;
+
+  $("mapPointInfo").innerHTML =
+    '<span class="search-spinner">Sprawdzam miasto i kraj…</span>';
+
   renderBuildPanel();
+
   try{
-    const place=knownPlace || await reverseGeocodePoint(lat,lng);
-    if(lookupId!==state.mapLocationLookupId) return;
-    state.mapBuildPoint={lat:Number(place.lat ?? lat),lng:Number(place.lng ?? lng),city:place.city,country:place.country,countryCode:normalizeCountryCode(place.countryCode)};
-    renderBuildPanel(); renderNearestHub(); renderMapMarkers();
-  }catch(err){
-    if(lookupId!==state.mapLocationLookupId) return;
-    state.mapBuildPoint=null;
-    $("mapPointInfo").innerHTML=`<span class="bad">${err.message || "Nie można budować w tym miejscu."}</span>`;
-    renderBuildPanel(); renderNearestHub(); renderMapMarkers();
+
+    const place =
+      knownPlace
+      ||
+      await reverseGeocodePoint(
+        lat,
+        lng
+      );
+
+    if(
+      lookupId!==state.mapLocationLookupId
+    )
+      return;
+
+    state.mapBuildPoint = {
+
+      lat:
+        Number(
+          place.lat ?? lat
+        ),
+
+      lng:
+        Number(
+          place.lng ?? lng
+        ),
+
+      city:
+        place.city,
+
+      country:
+        place.country,
+
+      countryCode:
+        normalizeCountryCode(
+          place.countryCode
+        )
+
+    };
+
+    renderBuildPanel();
+    renderNearestHub();
+    renderMapMarkers();
+
   }
+
+  catch(err){
+
+    if(
+      lookupId!==state.mapLocationLookupId
+    )
+      return;
+
+    state.mapBuildPoint =
+      null;
+
+    $("mapPointInfo").innerHTML =
+      `<span class="bad">${err.message || "Nie można budować w tym miejscu."}</span>`;
+
+    renderBuildPanel();
+    renderNearestHub();
+    renderMapMarkers();
+
+  }
+
 }
 
 async function searchCities(){
-  const q=$("citySearchInput").value.trim();
-  if(q.length<2){ $("citySearchStatus").textContent="Wpisz co najmniej 2 znaki."; return; }
-  $("citySearchStatus").textContent="Szukam miasta…";
-  $("citySearchResults").innerHTML="";
+
+  const q =
+    $("citySearchInput")
+      .value
+      .trim();
+
+  if(
+    q.length<2
+  ){
+
+    $("citySearchStatus").textContent =
+      "Wpisz co najmniej 2 znaki.";
+
+    return;
+
+  }
+
+  $("citySearchStatus").textContent =
+    "Szukam miasta…";
+
+  $("citySearchResults").innerHTML =
+    "";
+
   try{
-    const url=`https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=8&featuretype=city&q=${encodeURIComponent(q)}`;
-    const res=await fetch(url,{headers:{"Accept":"application/json","Accept-Language":"pl,en;q=0.8"}});
-    if(!res.ok) throw new Error("Błąd wyszukiwania.");
-    const rows=(await res.json()).filter(r=>r.address?.country_code);
-    $("citySearchStatus").textContent=rows.length ? `Znaleziono: ${rows.length}` : "Brak wyników.";
-    $("citySearchResults").innerHTML=rows.map((r,i)=>{
-      const a=r.address||{};
-      const code=(a.country_code||"").toUpperCase();
-      const city=a.city||a.town||a.village||a.municipality||r.name;
-      return `<button type="button" class="city-result" data-city-result="${i}"><span><strong>${city}</strong><br><span class="muted text-xs">${a.state||a.county||""}</span></span><span class="country-badge">${countryCodeToFlag(code)} ${a.country||code}</span></button>`;
-    }).join("");
-    $("citySearchResults").querySelectorAll("[data-city-result]").forEach(btn=>btn.addEventListener("click",()=>{
-      const r=rows[Number(btn.dataset.cityResult)], a=r.address||{}, code=(a.country_code||"").toUpperCase();
-      const place={lat:Number(r.lat),lng:Number(r.lon),city:a.city||a.town||a.village||a.municipality||r.name,country:a.country||code,countryCode:code};
-      realMap.setView([place.lat,place.lng],11);
-      selectBuildPoint(place.lat,place.lng,place);
-      $("citySearchResults").innerHTML="";
-      $("citySearchStatus").textContent=`Wybrano: ${placeLabel(place)}`;
-    }));
-  }catch(err){ $("citySearchStatus").textContent=err.message || "Nie udało się wyszukać miasta."; }
+
+    const url =
+      `https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=8&featuretype=city&q=${encodeURIComponent(q)}`;
+
+    const res =
+      await fetch(
+        url,
+        {
+          headers:{
+            "Accept":"application/json",
+            "Accept-Language":"pl,en;q=0.8"
+          }
+        }
+      );
+
+    if(
+      !res.ok
+    )
+      throw new Error(
+        "Błąd wyszukiwania."
+      );
+
+    const rows =
+      (await res.json())
+        .filter(
+          r =>
+            r.address?.country_code
+        );
+
+    $("citySearchStatus").textContent =
+      rows.length
+        ? `Znaleziono: ${rows.length}`
+        : "Brak wyników.";
+
+    $("citySearchResults").innerHTML =
+      rows
+        .map(
+          (r,i) => {
+
+            const a =
+              r.address || {};
+
+            const code =
+              (a.country_code||"")
+                .toUpperCase();
+
+            const city =
+              a.city
+              ||
+              a.town
+              ||
+              a.village
+              ||
+              a.municipality
+              ||
+              r.name;
+
+            return `
+            <button
+              type="button"
+              class="city-result"
+              data-city-result="${i}"
+            >
+              <span>
+                <strong>${city}</strong>
+                <br>
+                <span class="muted text-xs">
+                  ${a.state||a.county||""}
+                </span>
+              </span>
+
+              <span class="country-badge">
+                ${countryCodeToFlag(code)}
+                ${a.country||code}
+              </span>
+            </button>
+            `;
+
+          }
+        )
+        .join("");
+
+    $("citySearchResults")
+      .querySelectorAll(
+        "[data-city-result]"
+      )
+      .forEach(
+        btn =>
+          btn.addEventListener(
+            "click",
+            () => {
+
+              const r =
+                rows[
+                  Number(
+                    btn.dataset.cityResult
+                  )
+                ];
+
+              const a =
+                r.address || {};
+
+              const code =
+                (a.country_code||"")
+                  .toUpperCase();
+
+              const place = {
+
+                lat:
+                  Number(
+                    r.lat
+                  ),
+
+                lng:
+                  Number(
+                    r.lon
+                  ),
+
+                city:
+                  a.city
+                  ||
+                  a.town
+                  ||
+                  a.village
+                  ||
+                  a.municipality
+                  ||
+                  r.name,
+
+                country:
+                  a.country || code,
+
+                countryCode:
+                  code
+
+              };
+
+              realMap.setView(
+                [
+                  place.lat,
+                  place.lng
+                ],
+                11
+              );
+
+              selectBuildPoint(
+                place.lat,
+                place.lng,
+                place
+              );
+
+              $("citySearchResults").innerHTML =
+                "";
+
+              $("citySearchStatus").textContent =
+                `Wybrano: ${placeLabel(place)}`;
+
+            }
+          )
+      );
+
+  }
+
+  catch(err){
+
+    $("citySearchStatus").textContent =
+      err.message
+      ||
+      "Nie udało się wyszukać miasta.";
+
+  }
+
 }
 
 async function fetchCountryPlaces(countryCode){
-  const cc=normalizeCountryCode(countryCode);
-  if(!/^[A-Z]{2}$/.test(cc)) throw new Error("Podaj kod kraju, np. PL albo USA/US.");
-  const query=`[out:json][timeout:25];area[\"ISO3166-1\"=\"${cc}\"][admin_level=2]->.a;(node[\"place\"~\"city|town\"](area.a););out tags center;`;
+
+  const cc =
+    normalizeCountryCode(
+      countryCode
+    );
+
+  if(
+    !/^[A-Z]{2}$/.test(cc)
+  )
+    throw new Error(
+      "Podaj kod kraju, np. PL albo USA/US."
+    );
+
+  const query =
+    `[out:json][timeout:25];area["ISO3166-1"="${cc}"][admin_level=2]->.a;(node["place"~"city|town"](area.a););out tags center;`;
+
   try{
-    const res=await fetch("https://overpass-api.de/api/interpreter",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded;charset=UTF-8"},body:"data="+encodeURIComponent(query)});
-    if(!res.ok) throw new Error("Overpass unavailable");
-    const data=await res.json();
-    const seen=new Set();
-    const rows=(data.elements||[]).map(x=>({
-      city:x.tags?.["name:pl"] || x.tags?.name || "Miasto",
-      lat:Number(x.lat), lng:Number(x.lon),
-      countryCode:cc, country:countryNameFromCode(cc),
-      population:Number(String(x.tags?.population||"0").replace(/\D/g,""))||0
-    })).filter(x=>Number.isFinite(x.lat)&&Number.isFinite(x.lng)&&!seen.has(`${x.lat.toFixed(4)},${x.lng.toFixed(4)}`)&&seen.add(`${x.lat.toFixed(4)},${x.lng.toFixed(4)}`));
-    if(rows.length) return rows.sort((a,b)=>b.population-a.population);
-  }catch(e){}
-  return (FALLBACK_COUNTRY_CITIES[cc]||[]).map(([city,lat,lng])=>({city,lat,lng,countryCode:cc,country:countryNameFromCode(cc),population:0}));
+
+    const res =
+      await fetch(
+        "https://overpass-api.de/api/interpreter",
+        {
+          method:"POST",
+          headers:{
+            "Content-Type":
+              "application/x-www-form-urlencoded;charset=UTF-8"
+          },
+          body:
+            "data="
+            +
+            encodeURIComponent(
+              query
+            )
+        }
+      );
+
+    if(
+      !res.ok
+    )
+      throw new Error(
+        "Overpass unavailable"
+      );
+
+    const data =
+      await res.json();
+
+    const seen =
+      new Set();
+
+    const rows =
+      (data.elements||[])
+        .map(
+          x => ({
+
+            city:
+              x.tags?.["name:pl"]
+              ||
+              x.tags?.name
+              ||
+              "Miasto",
+
+            lat:
+              Number(
+                x.lat
+              ),
+
+            lng:
+              Number(
+                x.lon
+              ),
+
+            countryCode:
+              cc,
+
+            country:
+              countryNameFromCode(
+                cc
+              ),
+
+            population:
+              Number(
+                String(
+                  x.tags?.population
+                  ||
+                  "0"
+                )
+                .replace(
+                  /\D/g,
+                  ""
+                )
+              )
+              ||
+              0
+
+          })
+        )
+        .filter(
+          x => {
+
+            if(
+              !Number.isFinite(x.lat)
+              ||
+              !Number.isFinite(x.lng)
+            )
+              return false;
+
+            const key =
+              `${x.lat.toFixed(4)},${x.lng.toFixed(4)}`;
+
+            if(
+              seen.has(key)
+            )
+              return false;
+
+            seen.add(key);
+
+            return true;
+
+          }
+        );
+
+    if(
+      rows.length
+    )
+      return rows.sort(
+        (a,b) =>
+          b.population-a.population
+      );
+
+  }
+
+  catch(e){}
+
+  return (
+    FALLBACK_COUNTRY_CITIES[cc]
+    ||
+    []
+  )
+  .map(
+    ([city,lat,lng]) => ({
+
+      city,
+      lat,
+      lng,
+
+      countryCode:
+        cc,
+
+      country:
+        countryNameFromCode(
+          cc
+        ),
+
+      population:0
+
+    })
+  );
+
 }
 
 function addCheatStoreAt(place){
-  const typeKey="standard", type=storeTypes[typeKey];
-  state.stores.push({id:uid(),name:`${type.name} #${state.stores.length+1}`,locationName:placeLabel(place),lat:place.lat,lng:place.lng,type:typeKey,level:1,levelMultiplier:1,marketFactor:.95+Math.random()*.15,stock:{},depositMachineLevel:0,countryCode:place.countryCode||""});
+
+  const typeKey =
+    "standard";
+
+  const type =
+    storeTypes[typeKey];
+
+  state.stores.push({
+
+    id:
+      uid(),
+
+    name:
+      `${type.name} #${state.stores.length+1}`,
+
+    locationName:
+      placeLabel(place),
+
+    lat:
+      place.lat,
+
+    lng:
+      place.lng,
+
+    type:
+      typeKey,
+
+    level:1,
+
+    levelMultiplier:1,
+
+    marketFactor:
+      .95
+      +
+      Math.random()*.15,
+
+    stock:{},
+
+    depositMachineLevel:0,
+
+    countryCode:
+      place.countryCode || ""
+
+  });
+
 }
 
 function addCheatHubAt(place){
-  state.hubs.push({id:uid(),name:`Centrum logistyczne #${state.hubs.length+1}`,locationName:placeLabel(place),lat:place.lat,lng:place.lng,maintenance:HUB_MAINTENANCE,countryCode:place.countryCode||""});
+
+  state.hubs.push({
+
+    id:
+      uid(),
+
+    name:
+      `Centrum logistyczne #${state.hubs.length+1}`,
+
+    locationName:
+      placeLabel(place),
+
+    lat:
+      place.lat,
+
+    lng:
+      place.lng,
+
+    maintenance:
+      HUB_MAINTENANCE,
+
+    countryCode:
+      place.countryCode || ""
+
+  });
+
 }
 
-async function bulkPlaceInCountry(kind,countryArg,countArg){
-  const cc=normalizeCountryCode(countryArg);
-  const places=await fetchCountryPlaces(cc);
-  if(!places.length){ consolePrint(`Brak bezpiecznych punktów dla kraju ${cc}.`); return; }
-  const max=kind==="store" ? BULK_LIMITS.stores : BULK_LIMITS.hubs;
-  const requested=countArg ? Math.max(1,Math.min(max,Number(countArg)||max)) : max;
-  const chosen=places.slice(0,Math.min(requested,places.length));
-  chosen.forEach(p=>kind==="store" ? addCheatStoreAt(p) : addCheatHubAt(p));
-  consolePrint(`${kind==="store"?"Sklepy":"Centra"}: dodano ${chosen.length} w ${countryCodeToFlag(cc)} ${cc}${chosen.length<requested?" (tyle znaleziono bezpiecznych miast)":""}.`);
-  if(chosen.length){ const group=L.featureGroup(chosen.map(p=>L.marker([p.lat,p.lng]))); realMap.fitBounds(group.getBounds().pad(.15),{maxZoom:6}); }
+async function bulkPlaceInCountry(
+  kind,
+  countryArg,
+  countArg
+){
+
+  const cc =
+    normalizeCountryCode(
+      countryArg
+    );
+
+  const places =
+    await fetchCountryPlaces(
+      cc
+    );
+
+  if(
+    !places.length
+  ){
+
+    consolePrint(
+      `Brak bezpiecznych punktów dla kraju ${cc}.`
+    );
+
+    return;
+
+  }
+
+  const max =
+    kind==="store"
+      ? BULK_LIMITS.stores
+      : BULK_LIMITS.hubs;
+
+  const amount =
+    Number(
+      countArg
+    );
+
+  if(
+    !Number.isInteger(amount)
+    ||
+    amount<1
+  ){
+
+    consolePrint(
+      `Podaj ilość, np. ${kind==="store"?"SHOP":"HUB"} ${cc} 25`
+    );
+
+    return;
+
+  }
+
+  const requested =
+    Math.min(
+      max,
+      amount
+    );
+
+  const chosen=[];
+
+  /*
+    Zawsze dodaj dokładnie żądaną liczbę do limitu komendy.
+    Jeżeli miast jest mniej niż obiektów, ponownie używane są
+    prawdziwe miasta zamiast losowych punktów.
+  */
+
+  for(
+    let i=0;
+    i<requested;
+    i++
+  ){
+
+    const base =
+      places[
+        i
+        %
+        places.length
+      ];
+
+    chosen.push({
+      ...base
+    });
+
+  }
+
+  chosen.forEach(
+    p =>
+      kind==="store"
+        ? addCheatStoreAt(p)
+        : addCheatHubAt(p)
+  );
+
+  consolePrint(
+    `${kind==="store"?"Sklepy":"Centra logistyczne"}: dodano ${chosen.length} w ${countryCodeToFlag(cc)} ${cc}.`
+  );
+
+  if(
+    amount>max
+  ){
+
+    consolePrint(
+      `Limit jednej komendy: ${max}. Wpisz komendę ponownie, aby dodać następne.`
+    );
+
+  }
+
+  if(
+    chosen.length
+    &&
+    realMap
+  ){
+
+    const unique=[];
+    const seen=new Set();
+
+    for(
+      const p of chosen
+    ){
+
+      const key =
+        `${p.lat},${p.lng}`;
+
+      if(
+        !seen.has(key)
+      ){
+
+        seen.add(key);
+        unique.push(p);
+
+      }
+
+    }
+
+    const group =
+      L.featureGroup(
+        unique.map(
+          p =>
+            L.marker(
+              [
+                p.lat,
+                p.lng
+              ]
+            )
+        )
+      );
+
+    if(
+      unique.length
+    ){
+
+      realMap.fitBounds(
+        group
+          .getBounds()
+          .pad(.15),
+        {
+          maxZoom:6
+        }
+      );
+
+    }
+
+  }
+
   renderAll();
+
 }
 
 function formatDate(d){
@@ -1333,7 +2162,6 @@ function formatDate(d){
 
 }
 
-
 function allProducts(){
 
   return [
@@ -1342,7 +2170,6 @@ function allProducts(){
   ];
 
 }
-
 
 function getProduct(id){
 
@@ -1354,7 +2181,6 @@ function getProduct(id){
 
 }
 
-
 function getStore(id){
 
   return state.stores
@@ -1364,7 +2190,6 @@ function getStore(id){
     );
 
 }
-
 
 function createProduct(
   own=false,
@@ -1383,7 +2208,6 @@ function createProduct(
       )
     ];
 
-
   const family =
     familyId
       ? ownBrandFamilies.find(
@@ -1392,25 +2216,20 @@ function createProduct(
         )
       : null;
 
-
   const cost =
     own
       ? .6+Math.random()*2.5
       : 1.2+Math.random()*8;
 
-
   return {
 
-    id:uid(),
+    id:
+      uid(),
 
     name:
       own
 
-        ? `${
-            family
-              ? family.name
-              : "PRIVATE"
-          } ${
+        ? `${family ? family.name : "PRIVATE"} ${
             variants[
               Math.floor(
                 Math.random()
@@ -1466,7 +2285,6 @@ function createProduct(
 
 }
 
-
 function generateProducts(
   n=10
 ){
@@ -1485,7 +2303,6 @@ function generateProducts(
 
 }
 
-
 function generateCompanies(){
 
   const names = [
@@ -1496,7 +2313,6 @@ function generateCompanies(){
     "Daily Corner",
     "Urban Stop"
   ];
-
 
   state.companies =
     names
@@ -1519,10 +2335,10 @@ function generateCompanies(){
               Math.random()*8
             );
 
-
           return {
 
-            id:uid(),
+            id:
+              uid(),
 
             name,
 
@@ -1553,7 +2369,6 @@ function generateCompanies(){
 
 }
 
-
 function demandWithPrice(p){
 
   const markup =
@@ -1563,7 +2378,6 @@ function demandWithPrice(p){
       .01,
       p.buyPrice
     );
-
 
   let factor =
     Math.max(
@@ -1578,7 +2392,6 @@ function demandWithPrice(p){
       .22
     );
 
-
   if(
     state.upgrades.loyalty
   ){
@@ -1587,7 +2400,6 @@ function demandWithPrice(p){
       1.10;
 
   }
-
 
   if(
     p.own
@@ -1598,7 +2410,6 @@ function demandWithPrice(p){
 
   }
 
-
   return (
     p.demand
     *
@@ -1607,12 +2418,10 @@ function demandWithPrice(p){
 
 }
 
-
 function productBuyPrice(p){
 
   let price =
     p.buyPrice;
-
 
   if(
     state.upgrades.procurement
@@ -1625,11 +2434,9 @@ function productBuyPrice(p){
 
   }
 
-
   return price;
 
 }
-
 
 function distanceKm(
   aLat,
@@ -1641,7 +2448,6 @@ function distanceKm(
   const R =
     6371;
 
-
   const dLat =
     (
       bLat-aLat
@@ -1650,7 +2456,6 @@ function distanceKm(
     Math.PI
     /
     180;
-
 
   const dLng =
     (
@@ -1661,7 +2466,6 @@ function distanceKm(
     /
     180;
 
-
   const lat1 =
     aLat
     *
@@ -1669,14 +2473,12 @@ function distanceKm(
     /
     180;
 
-
   const lat2 =
     bLat
     *
     Math.PI
     /
     180;
-
 
   const a =
     Math.sin(dLat/2)**2
@@ -1686,7 +2488,6 @@ function distanceKm(
     Math.cos(lat2)
     *
     Math.sin(dLng/2)**2;
-
 
   return (
     R
@@ -1701,7 +2502,6 @@ function distanceKm(
 
 }
 
-
 function nearestHubFor(
   lat,
   lng
@@ -1715,14 +2515,11 @@ function nearestHubFor(
 
   }
 
-
   let best =
     null;
 
-
   let bestDistance =
     Infinity;
-
 
   for(
     const hub
@@ -1737,14 +2534,12 @@ function nearestHubFor(
         hub.lng
       );
 
-
     if(
       d<bestDistance
     ){
 
       bestDistance =
         d;
-
 
       best =
         hub;
@@ -1753,10 +2548,10 @@ function nearestHubFor(
 
   }
 
-
   return {
 
-    hub:best,
+    hub:
+      best,
 
     distance:
       bestDistance
@@ -1764,7 +2559,6 @@ function nearestHubFor(
   };
 
 }
-
 
 function logisticsForStore(
   store
@@ -1776,7 +2570,6 @@ function logisticsForStore(
       store.lng
     );
 
-
   if(
     !nearest
   ){
@@ -1785,7 +2578,8 @@ function logisticsForStore(
 
       eta:7,
 
-      shippingMultiplier:1.15,
+      shippingMultiplier:
+        1.15,
 
       distance:null
 
@@ -1793,27 +2587,31 @@ function logisticsForStore(
 
   }
 
-
   const d =
     nearest.distance;
-
 
   let eta =
     5;
 
-
-  if(d<300)
+  if(
+    d<300
+  )
     eta=1;
 
-  else if(d<900)
+  else if(
+    d<900
+  )
     eta=2;
 
-  else if(d<1800)
+  else if(
+    d<1800
+  )
     eta=3;
 
-  else if(d<3500)
+  else if(
+    d<3500
+  )
     eta=4;
-
 
   const shippingMultiplier =
     Math.max(
@@ -1821,14 +2619,14 @@ function logisticsForStore(
       .70+d/10000
     );
 
-
   return {
 
     eta,
 
     shippingMultiplier,
 
-    distance:d,
+    distance:
+      d,
 
     hub:
       nearest.hub
@@ -1836,7 +2634,6 @@ function logisticsForStore(
   };
 
 }
-
 
 function expectedStoreDay(
   store
@@ -1847,11 +2644,8 @@ function expectedStoreDay(
       store.type
     ];
 
-
   let revenue=0;
-
   let cogs=0;
-
 
   for(
     const [pid,qty]
@@ -1863,14 +2657,12 @@ function expectedStoreDay(
     const p =
       getProduct(pid);
 
-
     if(
       !p
       ||
       qty<=0
     )
       continue;
-
 
     const sales =
       Math.min(
@@ -1897,7 +2689,6 @@ function expectedStoreDay(
 
       );
 
-
     revenue +=
       sales
       *
@@ -1909,7 +2700,6 @@ function expectedStoreDay(
           : 1
       );
 
-
     cogs +=
       sales
       *
@@ -1917,12 +2707,10 @@ function expectedStoreDay(
 
   }
 
-
   const fixed =
     type.fixedCost
     *
     store.levelMultiplier;
-
 
   return {
 
@@ -1942,13 +2730,10 @@ function expectedStoreDay(
 
 }
 
-
 function expectedCompanyDay(){
 
   let revenue=0;
-
   let cost=0;
-
 
   state.stores.forEach(
     store => {
@@ -1958,17 +2743,14 @@ function expectedCompanyDay(){
           store
         );
 
-
       revenue +=
         r.revenue;
-
 
       cost +=
         r.cost;
 
     }
   );
-
 
   state.factories.forEach(
     f => {
@@ -1979,7 +2761,6 @@ function expectedCompanyDay(){
     }
   );
 
-
   state.hubs.forEach(
     h => {
 
@@ -1988,7 +2769,6 @@ function expectedCompanyDay(){
 
     }
   );
-
 
   return {
 
@@ -2005,7 +2785,6 @@ function expectedCompanyDay(){
 
 }
 
-
 function simulateStoreDay(
   store
 ){
@@ -2015,11 +2794,8 @@ function simulateStoreDay(
       store.type
     ];
 
-
   let revenue=0;
-
   let cogs=0;
-
 
   for(
     const pid
@@ -2031,16 +2807,15 @@ function simulateStoreDay(
     const p =
       getProduct(pid);
 
-
-    if(!p)
+    if(
+      !p
+    )
       continue;
-
 
     const qty =
       store.stock[pid]
       ||
       0;
-
 
     const sales =
       Math.min(
@@ -2073,16 +2848,13 @@ function simulateStoreDay(
 
       );
 
-
     if(
       sales<=0
     )
       continue;
 
-
     store.stock[pid] -=
       sales;
-
 
     revenue +=
       sales
@@ -2095,12 +2867,10 @@ function simulateStoreDay(
           : 1
       );
 
-
     cogs +=
       sales
       *
       productBuyPrice(p);
-
 
     if(
       state.deposit.enabled
@@ -2117,12 +2887,10 @@ function simulateStoreDay(
         *
         state.deposit.rate;
 
-
       const machineLevel =
         store.depositMachineLevel
         ||
         0;
-
 
       const returnRate =
         Math.min(
@@ -2132,7 +2900,6 @@ function simulateStoreDay(
           machineLevel*.18
         );
 
-
       const returned =
         Math.floor(
           sales
@@ -2140,20 +2907,16 @@ function simulateStoreDay(
           returnRate
         );
 
-
       state.deposit.collected +=
         depositIncome;
-
 
       state.deposit.refunded +=
         returned
         *
         state.deposit.rate;
 
-
       state.deposit.containers +=
         returned;
-
 
       revenue +=
         depositIncome
@@ -2165,7 +2928,6 @@ function simulateStoreDay(
     }
 
   }
-
 
   return (
     revenue
@@ -2179,7 +2941,6 @@ function simulateStoreDay(
 
 }
 
-
 function placeOrder(
   store,
   p,
@@ -2191,12 +2952,10 @@ function placeOrder(
       store
     );
 
-
   const goods =
     productBuyPrice(p)
     *
     qty;
-
 
   const transport =
     Math.max(
@@ -2208,26 +2967,23 @@ function placeOrder(
       logistics.shippingMultiplier
     );
 
-
   const total =
     goods
     +
     transport;
-
 
   if(
     state.cash<total
   )
     return false;
 
-
   state.cash -=
     total;
 
-
   state.shipments.push({
 
-    id:uid(),
+    id:
+      uid(),
 
     storeId:
       store.id,
@@ -2245,11 +3001,9 @@ function placeOrder(
 
   });
 
-
   return true;
 
 }
-
 
 function processShipments(){
 
@@ -2261,13 +3015,11 @@ function processShipments(){
     }
   );
 
-
   const arrived =
     state.shipments.filter(
       sh =>
         sh.eta<=0
     );
-
 
   arrived.forEach(
     sh => {
@@ -2277,8 +3029,9 @@ function processShipments(){
           sh.storeId
         );
 
-
-      if(store){
+      if(
+        store
+      ){
 
         store.stock[sh.productId] =
           (
@@ -2294,7 +3047,6 @@ function processShipments(){
     }
   );
 
-
   state.shipments =
     state.shipments.filter(
       sh =>
@@ -2302,7 +3054,6 @@ function processShipments(){
     );
 
 }
-
 
 function runAutomaticOrders(){
 
@@ -2312,7 +3063,6 @@ function runAutomaticOrders(){
     !state.stores.length
   )
     return;
-
 
   const products =
     allProducts()
@@ -2325,7 +3075,6 @@ function runAutomaticOrders(){
         0,
         16
       );
-
 
   for(
     const store
@@ -2351,7 +3100,6 @@ function runAutomaticOrders(){
             0
           );
 
-
       const have =
         (
           store.stock[p.id]
@@ -2361,12 +3109,10 @@ function runAutomaticOrders(){
         +
         inTransit;
 
-
       if(
         have>=state.autoOrderMin
       )
         continue;
-
 
       const target =
         Math.max(
@@ -2376,13 +3122,11 @@ function runAutomaticOrders(){
           )
         );
 
-
       const qty =
         Math.max(
           0,
           target-have
         );
-
 
       if(
         qty>0
@@ -2402,7 +3146,6 @@ function runAutomaticOrders(){
 
 }
 
-
 function weeklyUpdate(){
 
   state.products.forEach(
@@ -2419,7 +3162,6 @@ function weeklyUpdate(){
             Math.random()*.06
           )
         );
-
 
       p.demand =
         Math.max(
@@ -2439,7 +3181,6 @@ function weeklyUpdate(){
     }
   );
 
-
   generateProducts(
     2
     +
@@ -2450,7 +3191,6 @@ function weeklyUpdate(){
 
 }
 
-
 function monthlyUpdate(){
 
   generateProducts(5);
@@ -2459,11 +3199,9 @@ function monthlyUpdate(){
 
 }
 
-
 function simulateDay(){
 
   let profit=0;
-
 
   state.stores.forEach(
     store => {
@@ -2476,7 +3214,6 @@ function simulateDay(){
     }
   );
 
-
   state.factories.forEach(
     f => {
 
@@ -2485,7 +3222,6 @@ function simulateDay(){
 
     }
   );
-
 
   state.hubs.forEach(
     h => {
@@ -2496,10 +3232,8 @@ function simulateDay(){
     }
   );
 
-
   state.cash +=
     profit;
-
 
   state.date =
     new Date(
@@ -2508,12 +3242,9 @@ function simulateDay(){
       86400000
     );
 
-
   state.dayCounter++;
 
-
   processShipments();
-
 
   if(
     state.deposit.enabled
@@ -2529,18 +3260,15 @@ function simulateDay(){
         )
       );
 
-
     state.cash +=
       settle
       *
       state.deposit.rate;
 
-
     state.deposit.containers -=
       settle;
 
   }
-
 
   if(
     state.dayCounter%2===0
@@ -2550,7 +3278,6 @@ function simulateDay(){
 
   }
 
-
   if(
     state.dayCounter%7===0
   ){
@@ -2558,7 +3285,6 @@ function simulateDay(){
     weeklyUpdate();
 
   }
-
 
   if(
     state.dayCounter%30===0
@@ -2570,34 +3296,27 @@ function simulateDay(){
 
 }
 
-
 function renderTop(){
 
   const e =
     expectedCompanyDay();
-
 
   $("cash").textContent =
     money(
       state.cash
     );
 
-
   $("storesStat").textContent =
     state.stores.length;
-
 
   $("hubsStat").textContent =
     state.hubs.length;
 
-
   $("factoriesStat").textContent =
     state.factories.length;
 
-
   $("privateStat").textContent =
     state.privateProducts.length;
-
 
   $("repStat").textContent =
     Math.round(
@@ -2606,12 +3325,10 @@ function renderTop(){
     +
     "/100";
 
-
   $("dateStat").textContent =
     formatDate(
       state.date
     );
-
 
   $("profitStat").textContent =
     (
@@ -2624,7 +3341,6 @@ function renderTop(){
       e.profit
     );
 
-
   $("profitStat").className =
     "font-bold "
     +
@@ -2634,7 +3350,6 @@ function renderTop(){
         : "bad"
     );
 
-
   $("timeState").textContent =
     state.paused
       ? "Czas zatrzymany"
@@ -2642,12 +3357,10 @@ function renderTop(){
 
 }
 
-
 function renderBuildPanel(){
 
   const mode =
     $("mapBuildMode").value;
-
 
   $("storeBuildControls")
     .classList
@@ -2655,7 +3368,6 @@ function renderBuildPanel(){
       "hidden",
       mode!=="store"
     );
-
 
   if(
     state.mapBuildPoint
@@ -2665,7 +3377,11 @@ function renderBuildPanel(){
       `
       Wybrano:
       <strong>${placeLabel(state.mapBuildPoint)}</strong>
-      <br><span class="muted">${state.mapBuildPoint.lat.toFixed(5)}, ${state.mapBuildPoint.lng.toFixed(5)}</span>
+      <br>
+      <span class="muted">
+        ${state.mapBuildPoint.lat.toFixed(5)},
+        ${state.mapBuildPoint.lng.toFixed(5)}
+      </span>
       `;
 
   }
@@ -2677,7 +3393,6 @@ function renderBuildPanel(){
 
   }
 
-
   if(
     mode==="store"
   ){
@@ -2686,7 +3401,6 @@ function renderBuildPanel(){
       storeTypes[
         $("buildStoreType").value
       ];
-
 
     $("buildInfo").innerHTML =
       `
@@ -2717,14 +3431,11 @@ function renderBuildPanel(){
 
   }
 
-
   const ready =
     !!state.mapBuildPoint;
 
-
   $("buildMapObjectBtn").disabled =
     !ready;
-
 
   $("buildMapObjectBtn").textContent =
     ready
@@ -2736,7 +3447,6 @@ function renderBuildPanel(){
       : "Najpierw kliknij mapę";
 
 }
-
 
 function renderNearestHub(){
 
@@ -2751,17 +3461,14 @@ function renderNearestHub(){
 
   }
 
-
   const p =
     state.mapBuildPoint;
-
 
   const nearest =
     nearestHubFor(
       p.lat,
       p.lng
     );
-
 
   if(
     !nearest
@@ -2779,7 +3486,6 @@ function renderNearestHub(){
 
   }
 
-
   const tempStore = {
 
     lat:
@@ -2790,12 +3496,10 @@ function renderNearestHub(){
 
   };
 
-
   const logistics =
     logisticsForStore(
       tempStore
     );
-
 
   $("nearestHubInfo").innerHTML =
     `
@@ -2813,7 +3517,6 @@ function renderNearestHub(){
 
 }
 
-
 function renderStores(){
 
   $("storesList").innerHTML =
@@ -2827,12 +3530,10 @@ function renderStores(){
                 store.type
               ];
 
-
             const e =
               expectedStoreDay(
                 store
               );
-
 
             const stock =
               Object.values(
@@ -2844,12 +3545,10 @@ function renderStores(){
                 0
               );
 
-
             const logistics =
               logisticsForStore(
                 store
               );
-
 
             const refund =
               type.cost
@@ -2861,7 +3560,6 @@ function renderStores(){
               )
               *
               15000;
-
 
             return `
             <div class="card p-4">
@@ -2919,9 +3617,7 @@ function renderStores(){
 
                 ${
                   logistics.distance!==null
-
                     ? `· ${Math.round(logistics.distance)} km od centrum`
-
                     : "· brak centrum"
                 }
 
@@ -2964,16 +3660,13 @@ function renderStores(){
 
 }
 
-
 function renderOrderSelectors(){
 
   const oldStore =
     $("orderStore").value;
 
-
   const oldProduct =
     $("orderProduct").value;
-
 
   $("orderStore").innerHTML =
     state.stores
@@ -2987,7 +3680,6 @@ function renderOrderSelectors(){
       )
       .join("");
 
-
   if(
     state.stores.some(
       s =>
@@ -3000,7 +3692,6 @@ function renderOrderSelectors(){
 
   }
 
-
   const products =
     allProducts()
       .slice()
@@ -3008,7 +3699,6 @@ function renderOrderSelectors(){
         (a,b) =>
           b.demand-a.demand
       );
-
 
   $("orderProduct").innerHTML =
     products
@@ -3022,7 +3712,6 @@ function renderOrderSelectors(){
       )
       .join("");
 
-
   if(
     products.some(
       p =>
@@ -3034,7 +3723,6 @@ function renderOrderSelectors(){
       oldProduct;
 
   }
-
 
   $("inventoryStoreFilter").innerHTML =
     `
@@ -3054,11 +3742,9 @@ function renderOrderSelectors(){
       )
       .join("");
 
-
   renderOrderCost();
 
 }
-
 
 function renderOrderCost(){
 
@@ -3067,12 +3753,10 @@ function renderOrderCost(){
       $("orderStore").value
     );
 
-
   const p =
     getProduct(
       $("orderProduct").value
     );
-
 
   const qty =
     Math.max(
@@ -3084,7 +3768,6 @@ function renderOrderCost(){
       1
     );
 
-
   if(
     !store
     ||
@@ -3094,27 +3777,22 @@ function renderOrderCost(){
     $("orderCost").textContent =
       "—";
 
-
     $("orderEta").textContent =
       "—";
-
 
     return;
 
   }
-
 
   const logistics =
     logisticsForStore(
       store
     );
 
-
   const goods =
     productBuyPrice(p)
     *
     qty;
-
 
   const transport =
     Math.max(
@@ -3126,7 +3804,6 @@ function renderOrderCost(){
       logistics.shippingMultiplier
     );
 
-
   $("orderCost").textContent =
     money(
       goods
@@ -3134,14 +3811,12 @@ function renderOrderCost(){
       transport
     );
 
-
   $("orderEta").textContent =
     logistics.eta
     +
     " dni";
 
 }
-
 
 function renderShipments(){
 
@@ -3162,12 +3837,10 @@ function renderShipments(){
                   sh.storeId
                 );
 
-
               const p =
                 getProduct(
                   sh.productId
                 );
-
 
               return `
               <div class="card p-3 flex justify-between gap-3">
@@ -3213,12 +3886,10 @@ function renderShipments(){
 
 }
 
-
 function renderInventory(){
 
   const filter =
     $("inventoryStoreFilter").value;
-
 
   const stores =
     filter==="all"
@@ -3227,7 +3898,6 @@ function renderInventory(){
           s =>
             s.id===filter
         );
-
 
   if(
     !stores.length
@@ -3244,7 +3914,6 @@ function renderInventory(){
 
   }
 
-
   const products =
     allProducts()
       .slice()
@@ -3256,7 +3925,6 @@ function renderInventory(){
         0,
         35
       );
-
 
   let html =
     `
@@ -3271,7 +3939,6 @@ function renderInventory(){
           </th>
     `;
 
-
   stores.forEach(
     store => {
 
@@ -3285,7 +3952,6 @@ function renderInventory(){
     }
   );
 
-
   html +=
     `
         </tr>
@@ -3293,7 +3959,6 @@ function renderInventory(){
 
       <tbody>
     `;
-
 
   products.forEach(
     p => {
@@ -3306,7 +3971,6 @@ function renderInventory(){
             ${p.name}
           </td>
         `;
-
 
       stores.forEach(
         store => {
@@ -3321,7 +3985,6 @@ function renderInventory(){
         }
       );
 
-
       html +=
         `
         </tr>
@@ -3330,19 +3993,16 @@ function renderInventory(){
     }
   );
 
-
   html +=
     `
       </tbody>
     </table>
     `;
 
-
   $("inventoryTable").innerHTML =
     html;
 
 }
-
 
 function renderLogistics(){
 
@@ -3359,6 +4019,10 @@ function renderLogistics(){
               </div>
 
               <div class="text-sm muted">
+                ${hub.locationName || ""}
+              </div>
+
+              <div class="text-xs muted mt-1">
                 ${hub.lat.toFixed(4)},
                 ${hub.lng.toFixed(4)}
               </div>
@@ -3387,7 +4051,6 @@ function renderLogistics(){
         `;
 
 }
-
 
 function renderProducts(){
 
@@ -3458,7 +4121,6 @@ function renderProducts(){
 
 }
 
-
 function renderDeposit(){
 
   $("depositCollected").textContent =
@@ -3466,25 +4128,20 @@ function renderDeposit(){
       state.deposit.collected
     );
 
-
   $("depositRefunded").textContent =
     money(
       state.deposit.refunded
     );
 
-
   $("depositContainers").textContent =
     state.deposit.containers
       .toLocaleString("pl-PL");
 
-
   $("depositToggle").checked =
     state.deposit.enabled;
 
-
   $("depositRate").value =
     state.deposit.rate.toFixed(2);
-
 
   $("depositMachines").innerHTML =
     state.stores.length
@@ -3497,12 +4154,10 @@ function renderDeposit(){
               ||
               0;
 
-
             const cost =
               level===0
                 ? 65000
                 : 90000*level;
-
 
             return `
             <div class="card p-3">
@@ -3565,7 +4220,6 @@ function renderDeposit(){
 
 }
 
-
 function renderBrands(){
 
   $("brandFamilies").innerHTML =
@@ -3582,7 +4236,6 @@ function renderBrands(){
                   f.category
                 )
             );
-
 
           return `
           <div class="card p-3">
@@ -3626,7 +4279,6 @@ function renderBrands(){
       )
       .join("");
 
-
   $("privateProducts").innerHTML =
     state.privateProducts.length
 
@@ -3668,7 +4320,6 @@ function renderBrands(){
 
 }
 
-
 function renderFactories(){
 
   $("factoriesGrid").innerHTML =
@@ -3695,7 +4346,6 @@ function renderFactories(){
                     `
                 )
                 .join("");
-
 
             return `
             <div class="card p-4">
@@ -3756,32 +4406,26 @@ function renderFactories(){
 
 }
 
-
 function renderManagement(){
 
   $("loyaltyBtn").disabled =
     state.upgrades.loyalty;
-
 
   $("loyaltyBtn").textContent =
     state.upgrades.loyalty
       ? "Aktywne"
       : "Kup — 180 000 zł";
 
-
   $("pricingBtn").disabled =
     state.upgrades.pricing;
-
 
   $("pricingBtn").textContent =
     state.upgrades.pricing
       ? "Aktywne"
       : "Kup — 220 000 zł";
 
-
   $("procurementBtn").disabled =
     state.upgrades.procurement;
-
 
   $("procurementBtn").textContent =
     state.upgrades.procurement
@@ -3789,7 +4433,6 @@ function renderManagement(){
       : "Kup — 260 000 zł";
 
 }
-
 
 function renderCompanies(){
 
@@ -3848,54 +4491,34 @@ function renderCompanies(){
 
 }
 
-
 function renderAll(){
 
   renderTop();
-
   renderBuildPanel();
-
   renderNearestHub();
-
   renderStores();
-
   renderOrderSelectors();
-
   renderShipments();
-
   renderInventory();
-
   renderLogistics();
-
   renderProducts();
-
   renderDeposit();
-
   renderBrands();
-
   renderFactories();
-
   renderManagement();
-
   renderCompanies();
-
   renderMapMarkers();
 
 }
-
 
 /* =========================
    PRAWDZIWA MAPA LEAFLET
 ========================= */
 
 let realMap=null;
-
 let storeLayer=null;
-
 let hubLayer=null;
-
 let buildLayer=null;
-
 
 const storeIcon =
   L.divIcon({
@@ -3917,7 +4540,6 @@ const storeIcon =
 
   });
 
-
 const hubIcon =
   L.divIcon({
 
@@ -3928,16 +4550,19 @@ const hubIcon =
 
     iconSize:[
       28,
-      28
+      46
     ],
 
+    /*
+      Kotwica nadal wskazuje dokładnie współrzędne miasta,
+      ale sam symbol jest wizualnie opuszczony pod sklep.
+    */
     iconAnchor:[
       14,
       28
     ]
 
   });
-
 
 const buildIcon =
   L.divIcon({
@@ -3958,7 +4583,6 @@ const buildIcon =
     ]
 
   });
-
 
 function initMap(){
 
@@ -3991,7 +4615,6 @@ function initMap(){
       }
     );
 
-
   L.tileLayer(
     "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
     {
@@ -4007,13 +4630,11 @@ function initMap(){
     realMap
   );
 
-
   storeLayer =
     L.layerGroup()
       .addTo(
         realMap
       );
-
 
   hubLayer =
     L.layerGroup()
@@ -4021,13 +4642,11 @@ function initMap(){
         realMap
       );
 
-
   buildLayer =
     L.layerGroup()
       .addTo(
         realMap
       );
-
 
   realMap.on(
     "click",
@@ -4041,7 +4660,6 @@ function initMap(){
     }
   );
 
-
   setTimeout(
     () =>
       realMap.invalidateSize(),
@@ -4050,7 +4668,6 @@ function initMap(){
 
 }
 
-
 function renderMapMarkers(){
 
   if(
@@ -4058,36 +4675,15 @@ function renderMapMarkers(){
   )
     return;
 
-
   storeLayer.clearLayers();
-
   hubLayer.clearLayers();
-
   buildLayer.clearLayers();
 
-
-  state.stores.forEach(
-    store => {
-
-      L.marker(
-        [
-          store.lat,
-          store.lng
-        ],
-        {
-          icon:storeIcon
-        }
-      )
-      .bindPopup(
-        `<strong>${store.name}</strong><br>${store.locationName}`
-      )
-      .addTo(
-        storeLayer
-      );
-
-    }
-  );
-
+  /*
+    Huby są dodawane najpierw i mają niższy z-index.
+    Sklepy renderują się nad nimi.
+    Nic nie jest usuwane z state.hubs ani state.stores.
+  */
 
   state.hubs.forEach(
     hub => {
@@ -4098,7 +4694,11 @@ function renderMapMarkers(){
           hub.lng
         ],
         {
-          icon:hubIcon
+          icon:
+            hubIcon,
+
+          zIndexOffset:
+            100
         }
       )
       .bindPopup(
@@ -4111,6 +4711,31 @@ function renderMapMarkers(){
     }
   );
 
+  state.stores.forEach(
+    store => {
+
+      L.marker(
+        [
+          store.lat,
+          store.lng
+        ],
+        {
+          icon:
+            storeIcon,
+
+          zIndexOffset:
+            1000
+        }
+      )
+      .bindPopup(
+        `<strong>${store.name}</strong><br>${store.locationName}`
+      )
+      .addTo(
+        storeLayer
+      );
+
+    }
+  );
 
   if(
     state.mapBuildPoint
@@ -4122,7 +4747,8 @@ function renderMapMarkers(){
         state.mapBuildPoint.lng
       ],
       {
-        icon:buildIcon
+        icon:
+          buildIcon
       }
     )
     .bindPopup(
@@ -4136,7 +4762,6 @@ function renderMapMarkers(){
 
 }
 
-
 function buildAtMapPoint(){
 
   if(
@@ -4144,18 +4769,14 @@ function buildAtMapPoint(){
   )
     return;
 
-
   const mode =
     $("mapBuildMode").value;
-
 
   const lat =
     state.mapBuildPoint.lat;
 
-
   const lng =
     state.mapBuildPoint.lng;
-
 
   if(
     mode==="store"
@@ -4164,38 +4785,36 @@ function buildAtMapPoint(){
     const typeKey =
       $("buildStoreType").value;
 
-
     const type =
       storeTypes[
         typeKey
       ];
-
 
     if(
       state.cash<type.cost
     )
       return;
 
-
     state.cash -=
       type.cost;
-
 
     const number =
       state.stores.length
       +
       1;
 
-
     state.stores.push({
 
-      id:uid(),
+      id:
+        uid(),
 
       name:
         `${type.name} #${number}`,
 
       locationName:
-        placeLabel(state.mapBuildPoint),
+        placeLabel(
+          state.mapBuildPoint
+        ),
 
       countryCode:
         state.mapBuildPoint.countryCode || "",
@@ -4222,7 +4841,6 @@ function buildAtMapPoint(){
 
     });
 
-
     state.reputation =
       Math.min(
         100,
@@ -4239,20 +4857,21 @@ function buildAtMapPoint(){
     )
       return;
 
-
     state.cash -=
       HUB_COST;
 
-
     state.hubs.push({
 
-      id:uid(),
+      id:
+        uid(),
 
       name:
         `Centrum logistyczne #${state.hubs.length+1}`,
 
       locationName:
-        placeLabel(state.mapBuildPoint),
+        placeLabel(
+          state.mapBuildPoint
+        ),
 
       countryCode:
         state.mapBuildPoint.countryCode || "",
@@ -4268,15 +4887,12 @@ function buildAtMapPoint(){
 
   }
 
-
   state.mapBuildPoint =
     null;
-
 
   renderAll();
 
 }
-
 
 function createAcquiredStores(
   company
@@ -4290,9 +4906,7 @@ function createAcquiredStores(
           Math.random()-.5
       );
 
-
   const stores=[];
-
 
   for(
     let i=0;
@@ -4307,16 +4921,16 @@ function createAcquiredStores(
         shuffled.length
       ];
 
+    const jitterLat =
+      loc.lat;
 
-    // Bez losowego przesuwania: pineska zostaje na pewnym punkcie miasta,
-    // więc nie wyląduje przypadkiem w morzu ani za granicą.
-    const jitterLat = loc.lat;
-    const jitterLng = loc.lng;
-
+    const jitterLng =
+      loc.lng;
 
     stores.push({
 
-      id:uid(),
+      id:
+        uid(),
 
       name:
         `${company.name} #${i+1}`,
@@ -4351,18 +4965,37 @@ function createAcquiredStores(
 
   }
 
-
   return stores;
 
 }
-
 
 /* =========================
    EVENTY
 ========================= */
 
-$("citySearchBtn").addEventListener("click",searchCities);
-$("citySearchInput").addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); searchCities(); } });
+$("citySearchBtn")
+  .addEventListener(
+    "click",
+    searchCities
+  );
+
+$("citySearchInput")
+  .addEventListener(
+    "keydown",
+    e => {
+
+      if(
+        e.key==="Enter"
+      ){
+
+        e.preventDefault();
+
+        searchCities();
+
+      }
+
+    }
+  );
 
 $("buildMapObjectBtn")
   .addEventListener(
@@ -4370,20 +5003,17 @@ $("buildMapObjectBtn")
     buildAtMapPoint
   );
 
-
 $("mapBuildMode")
   .addEventListener(
     "change",
     renderBuildPanel
   );
 
-
 $("buildStoreType")
   .addEventListener(
     "change",
     renderBuildPanel
   );
-
 
 $("pauseBtn")
   .addEventListener(
@@ -4393,18 +5023,15 @@ $("pauseBtn")
       state.paused =
         !state.paused;
 
-
       $("pauseBtn").textContent =
         state.paused
           ? "▶ Wznów"
           : "⏸ Pauza";
 
-
       renderTop();
 
     }
   );
-
 
 document
   .querySelectorAll(
@@ -4422,14 +5049,11 @@ document
               btn.dataset.speed
             );
 
-
           state.paused =
             false;
 
-
           $("pauseBtn").textContent =
             "⏸ Pauza";
-
 
           renderTop();
 
@@ -4438,7 +5062,6 @@ document
 
     }
   );
-
 
 document
   .querySelectorAll(
@@ -4462,11 +5085,9 @@ document
                 )
             );
 
-
           btn.classList.add(
             "active"
           );
-
 
           document
             .querySelectorAll(
@@ -4479,7 +5100,6 @@ document
                 )
             );
 
-
           $(
             "tab-"
             +
@@ -4489,7 +5109,6 @@ document
           .remove(
             "hidden"
           );
-
 
           if(
             btn.dataset.tab==="world"
@@ -4511,13 +5130,11 @@ document
     }
   );
 
-
 $("orderStore")
   .addEventListener(
     "change",
     renderOrderCost
   );
-
 
 $("orderProduct")
   .addEventListener(
@@ -4525,20 +5142,17 @@ $("orderProduct")
     renderOrderCost
   );
 
-
 $("orderQty")
   .addEventListener(
     "input",
     renderOrderCost
   );
 
-
 $("inventoryStoreFilter")
   .addEventListener(
     "change",
     renderInventory
   );
-
 
 $("orderForm")
   .addEventListener(
@@ -4547,18 +5161,15 @@ $("orderForm")
 
       e.preventDefault();
 
-
       const store =
         getStore(
           $("orderStore").value
         );
 
-
       const p =
         getProduct(
           $("orderProduct").value
         );
-
 
       const qty =
         Math.max(
@@ -4572,7 +5183,6 @@ $("orderForm")
             1
           )
         );
-
 
       if(
         store
@@ -4588,12 +5198,10 @@ $("orderForm")
 
       }
 
-
       renderAll();
 
     }
   );
-
 
 $("autoOrderBtn")
   .addEventListener(
@@ -4607,7 +5215,6 @@ $("autoOrderBtn")
     }
   );
 
-
 $("generateProductsBtn")
   .addEventListener(
     "click",
@@ -4620,7 +5227,6 @@ $("generateProductsBtn")
     }
   );
 
-
 $("autoOrdersToggle")
   .addEventListener(
     "change",
@@ -4631,7 +5237,6 @@ $("autoOrdersToggle")
 
     }
   );
-
 
 $("autoOrderMin")
   .addEventListener(
@@ -4654,7 +5259,6 @@ $("autoOrderMin")
     }
   );
 
-
 $("autoOrderTarget")
   .addEventListener(
     "change",
@@ -4676,7 +5280,6 @@ $("autoOrderTarget")
     }
   );
 
-
 $("depositToggle")
   .addEventListener(
     "change",
@@ -4685,12 +5288,10 @@ $("depositToggle")
       state.deposit.enabled =
         $("depositToggle").checked;
 
-
       renderAll();
 
     }
   );
-
 
 $("depositRate")
   .addEventListener(
@@ -4704,12 +5305,10 @@ $("depositRate")
         ||
         1;
 
-
       renderAll();
 
     }
   );
-
 
 $("buildFactoryBtn")
   .addEventListener(
@@ -4722,14 +5321,13 @@ $("buildFactoryBtn")
       )
         return;
 
-
       state.cash -=
         GENERIC_FACTORY_COST;
 
-
       state.factories.push({
 
-        id:uid(),
+        id:
+          uid(),
 
         category:null,
 
@@ -4737,12 +5335,10 @@ $("buildFactoryBtn")
 
       });
 
-
       renderAll();
 
     }
   );
-
 
 $("loyaltyBtn")
   .addEventListener(
@@ -4758,10 +5354,8 @@ $("loyaltyBtn")
         state.cash -=
           180000;
 
-
         state.upgrades.loyalty =
           true;
-
 
         renderAll();
 
@@ -4769,7 +5363,6 @@ $("loyaltyBtn")
 
     }
   );
-
 
 $("pricingBtn")
   .addEventListener(
@@ -4785,10 +5378,8 @@ $("pricingBtn")
         state.cash -=
           220000;
 
-
         state.upgrades.pricing =
           true;
-
 
         renderAll();
 
@@ -4796,7 +5387,6 @@ $("pricingBtn")
 
     }
   );
-
 
 $("procurementBtn")
   .addEventListener(
@@ -4812,10 +5402,8 @@ $("procurementBtn")
         state.cash -=
           260000;
 
-
         state.upgrades.procurement =
           true;
-
 
         renderAll();
 
@@ -4823,7 +5411,6 @@ $("procurementBtn")
 
     }
   );
-
 
 $("marketingBtn")
   .addEventListener(
@@ -4837,13 +5424,11 @@ $("marketingBtn")
         state.cash -=
           75000;
 
-
         state.reputation =
           Math.min(
             100,
             state.reputation+8
           );
-
 
         renderAll();
 
@@ -4851,7 +5436,6 @@ $("marketingBtn")
 
     }
   );
-
 
 document
   .addEventListener(
@@ -4863,41 +5447,37 @@ document
           ".upgrade-store"
         );
 
-
-      if(upgrade){
+      if(
+        upgrade
+      ){
 
         const store =
           getStore(
             upgrade.dataset.id
           );
 
-
-        if(!store)
+        if(
+          !store
+        )
           return;
-
 
         const cost =
           45000
           *
           store.level;
 
-
         if(
           state.cash<cost
         )
           return;
 
-
         state.cash -=
           cost;
 
-
         store.level++;
-
 
         store.levelMultiplier *=
           1.12;
-
 
         renderAll();
 
@@ -4905,20 +5485,19 @@ document
 
       }
 
-
       const focusStore =
         e.target.closest(
           ".focus-store"
         );
 
-
-      if(focusStore){
+      if(
+        focusStore
+      ){
 
         const store =
           getStore(
             focusStore.dataset.id
           );
-
 
         if(
           store
@@ -4932,7 +5511,6 @@ document
             )
             .click();
 
-
           realMap.setView(
             [
               store.lat,
@@ -4943,19 +5521,18 @@ document
 
         }
 
-
         return;
 
       }
-
 
       const focusHub =
         e.target.closest(
           ".focus-hub"
         );
 
-
-      if(focusHub){
+      if(
+        focusHub
+      ){
 
         const hub =
           state.hubs.find(
@@ -4963,7 +5540,6 @@ document
               h.id===
               focusHub.dataset.id
           );
-
 
         if(
           hub
@@ -4977,7 +5553,6 @@ document
             )
             .click();
 
-
           realMap.setView(
             [
               hub.lat,
@@ -4988,35 +5563,33 @@ document
 
         }
 
-
         return;
 
       }
-
 
       const closeStore =
         e.target.closest(
           ".close-store"
         );
 
-
-      if(closeStore){
+      if(
+        closeStore
+      ){
 
         const store =
           getStore(
             closeStore.dataset.id
           );
 
-
-        if(!store)
+        if(
+          !store
+        )
           return;
-
 
         const type =
           storeTypes[
             store.type
           ];
-
 
         const refund =
           type.cost
@@ -5029,10 +5602,8 @@ document
           *
           15000;
 
-
         state.cash +=
           refund;
-
 
         state.stores =
           state.stores.filter(
@@ -5040,13 +5611,11 @@ document
               s.id!==store.id
           );
 
-
         state.shipments =
           state.shipments.filter(
             s =>
               s.storeId!==store.id
           );
-
 
         renderAll();
 
@@ -5054,12 +5623,10 @@ document
 
       }
 
-
       const dep =
         e.target.closest(
           ".deposit-upgrade"
         );
-
 
       if(
         dep
@@ -5072,32 +5639,28 @@ document
             dep.dataset.id
           );
 
-
-        if(!store)
+        if(
+          !store
+        )
           return;
-
 
         const level =
           store.depositMachineLevel
           ||
           0;
 
-
         const cost =
           level===0
             ? 65000
             : 90000*level;
-
 
         if(
           state.cash<cost
         )
           return;
 
-
         state.cash -=
           cost;
-
 
         store.depositMachineLevel =
           Math.min(
@@ -5105,19 +5668,16 @@ document
             level+1
           );
 
-
         renderAll();
 
         return;
 
       }
 
-
       const privateBtn =
         e.target.closest(
           ".create-private"
         );
-
 
       if(
         privateBtn
@@ -5132,7 +5692,6 @@ document
               privateBtn.dataset.family
           );
 
-
         const matching =
           state.factories.filter(
             f =>
@@ -5143,7 +5702,6 @@ document
               )
           );
 
-
         if(
           !matching.length
           ||
@@ -5151,10 +5709,8 @@ document
         )
           return;
 
-
         state.cash -=
           30000;
-
 
         const factory =
           matching[
@@ -5164,7 +5720,6 @@ document
               matching.length
             )
           ];
-
 
         state.privateProducts.push(
 
@@ -5176,21 +5731,20 @@ document
 
         );
 
-
         renderAll();
 
         return;
 
       }
 
-
       const buyCompany =
         e.target.closest(
           ".buy-company"
         );
 
-
-      if(buyCompany){
+      if(
+        buyCompany
+      ){
 
         const company =
           state.companies.find(
@@ -5199,7 +5753,6 @@ document
               buyCompany.dataset.id
           );
 
-
         if(
           !company
           ||
@@ -5207,17 +5760,14 @@ document
         )
           return;
 
-
         state.cash -=
           company.price;
-
 
         state.stores.push(
           ...createAcquiredStores(
             company
           )
         );
-
 
         state.reputation =
           Math.min(
@@ -5230,13 +5780,11 @@ document
             )
           );
 
-
         state.companies =
           state.companies.filter(
             c =>
               c.id!==company.id
           );
-
 
         renderAll();
 
@@ -5246,7 +5794,6 @@ document
 
     }
   );
-
 
 document
   .addEventListener(
@@ -5264,8 +5811,9 @@ document
             e.target.dataset.id
           );
 
-
-        if(p){
+        if(
+          p
+        ){
 
           p.sellPrice =
             Math.max(
@@ -5279,11 +5827,9 @@ document
 
         }
 
-
         renderTop();
 
       }
-
 
       if(
         e.target.matches(
@@ -5298,33 +5844,31 @@ document
               e.target.dataset.id
           );
 
-
-        if(!factory)
+        if(
+          !factory
+        )
           return;
-
 
         const category =
           e.target.value
           ||
           null;
 
-
-        if(!category){
+        if(
+          !category
+        ){
 
           factory.category =
             null;
 
-
           factory.maintenance =
             180;
-
 
           renderAll();
 
           return;
 
         }
-
 
         const cfg =
           factoryProducts.find(
@@ -5333,10 +5877,10 @@ document
               category
           );
 
-
-        if(!cfg)
+        if(
+          !cfg
+        )
           return;
-
 
         if(
           factory.category!==category
@@ -5352,25 +5896,20 @@ document
               ||
               "";
 
-
             return;
 
           }
-
 
           state.cash -=
             cfg.setupCost;
 
         }
 
-
         factory.category =
           category;
 
-
         factory.maintenance =
           cfg.maintenance;
-
 
         renderAll();
 
@@ -5378,7 +5917,6 @@ document
 
     }
   );
-
 
 /* =========================
    KONSOLA
@@ -5389,27 +5927,22 @@ function consolePrint(text){
   const out =
     $("consoleOutput");
 
-
   const line =
     document.createElement(
       "div"
     );
 
-
   line.textContent =
     text;
-
 
   out.appendChild(
     line
   );
 
-
   out.scrollTop =
     out.scrollHeight;
 
 }
-
 
 function setConsole(open){
 
@@ -5420,8 +5953,9 @@ function setConsole(open){
       !open
     );
 
-
-  if(open){
+  if(
+    open
+  ){
 
     setTimeout(
       () =>
@@ -5432,7 +5966,6 @@ function setConsole(open){
   }
 
 }
-
 
 document
   .addEventListener(
@@ -5458,7 +5991,6 @@ document
 
         e.preventDefault();
 
-
         setConsole(
           $("cheatConsole")
             .classList
@@ -5472,14 +6004,12 @@ document
     }
   );
 
-
 $("closeConsoleBtn")
   .addEventListener(
     "click",
     () =>
       setConsole(false)
   );
-
 
 $("consoleForm")
   .addEventListener(
@@ -5488,27 +6018,24 @@ $("consoleForm")
 
       e.preventDefault();
 
-
       const raw =
         $("consoleInput")
           .value
           .trim();
 
-
       $("consoleInput").value =
         "";
 
-
-      if(!raw)
+      if(
+        !raw
+      )
         return;
-
 
       consolePrint(
         "> "
         +
         raw
       );
-
 
       const [
         cmd,
@@ -5518,10 +6045,8 @@ $("consoleForm")
           /\s+/
         );
 
-
       const c =
         cmd.toUpperCase();
-
 
       if(
         c==="HELP"
@@ -5534,19 +6059,17 @@ $("consoleForm")
           "PRODUCTS <liczba>",
           "REPUTATION <0-100>",
           "FACTORY <kategoria>",
-          "SHOP <kod kraju> [ile]  np. SHOP PL / SHOP USA / SHOP US 25",
-          "HUB <kod kraju> [ile]   np. HUB PL / HUB USA 10",
-          "HUB bez kraju = jedno centrum na środku aktualnego widoku"
+          "SHOP <kod kraju> <ile>  np. SHOP PL 50 / SHOP USA 100",
+          "HUB <kod kraju> <ile>   np. HUB PL 10 / HUB USA 25",
+          "SHOP i HUB tylko DODAJĄ — nie usuwają istniejących obiektów"
         ]
         .forEach(
           consolePrint
         );
 
-
         return;
 
       }
-
 
       if(
         c==="CASH"
@@ -5557,7 +6080,6 @@ $("consoleForm")
             args[0]
           );
 
-
         if(
           Number.isFinite(n)
         ){
@@ -5567,13 +6089,11 @@ $("consoleForm")
 
         }
 
-
         renderAll();
 
         return;
 
       }
-
 
       if(
         c==="SETCASH"
@@ -5583,7 +6103,6 @@ $("consoleForm")
           Number(
             args[0]
           );
-
 
         if(
           Number.isFinite(n)
@@ -5597,13 +6116,11 @@ $("consoleForm")
 
         }
 
-
         renderAll();
 
         return;
 
       }
-
 
       if(
         c==="AUTO"
@@ -5619,15 +6136,12 @@ $("consoleForm")
           ===
           "ON";
 
-
         $("autoOrdersToggle").checked =
           state.autoOrders;
-
 
         return;
 
       }
-
 
       if(
         c==="PRODUCTS"
@@ -5649,13 +6163,11 @@ $("consoleForm")
 
         );
 
-
         renderAll();
 
         return;
 
       }
-
 
       if(
         c==="REPUTATION"
@@ -5674,13 +6186,11 @@ $("consoleForm")
             )
           );
 
-
         renderAll();
 
         return;
 
       }
-
 
       if(
         c==="FACTORY"
@@ -5688,7 +6198,6 @@ $("consoleForm")
 
         const category =
           args.join(" ");
-
 
         const cfg =
           factoryProducts.find(
@@ -5699,10 +6208,10 @@ $("consoleForm")
               category.toLowerCase()
           );
 
-
         state.factories.push({
 
-          id:uid(),
+          id:
+            uid(),
 
           category:
             cfg?.category
@@ -5716,37 +6225,58 @@ $("consoleForm")
 
         });
 
-
         renderAll();
 
         return;
 
       }
 
-
       if(
         c==="SHOP"
       ){
 
-        const country = args[0];
+        const country =
+          args[0];
 
-        if(!country){
-          consolePrint("Użycie: SHOP <kod kraju> [ile], np. SHOP PL albo SHOP USA 40");
+        const amount =
+          args[1];
+
+        if(
+          !country
+          ||
+          !amount
+        ){
+
+          consolePrint(
+            "Użycie: SHOP <kod kraju> <ile>, np. SHOP PL 50 albo SHOP USA 100"
+          );
+
           return;
+
         }
 
-        consolePrint(`Szukam bezpiecznych miast w ${normalizeCountryCode(country)}…`);
-        await bulkPlaceInCountry("store",country,args[1]);
+        consolePrint(
+          `Dodaję ${amount} sklepów w ${normalizeCountryCode(country)}…`
+        );
+
+        await bulkPlaceInCountry(
+          "store",
+          country,
+          amount
+        );
+
         return;
 
       }
 
-
       if(
         c==="HUB"
-        || c==="LOGISTICS"
-        || c==="CENTER"
-        || c==="CENTRE"
+        ||
+        c==="LOGISTICS"
+        ||
+        c==="CENTER"
+        ||
+        c==="CENTRE"
       ){
 
         if(
@@ -5754,46 +6284,33 @@ $("consoleForm")
         )
           return;
 
+        if(
+          !args[0]
+          ||
+          !args[1]
+        ){
 
-        if(args[0]){
-          consolePrint(`Szukam bezpiecznych miast w ${normalizeCountryCode(args[0])}…`);
-          await bulkPlaceInCountry("hub",args[0],args[1]);
+          consolePrint(
+            "Użycie: HUB <kod kraju> <ile>, np. HUB PL 10 albo HUB USA 25"
+          );
+
           return;
+
         }
 
+        consolePrint(
+          `Dodaję ${args[1]} centrów logistycznych w ${normalizeCountryCode(args[0])}…`
+        );
 
-        const center =
-          realMap.getCenter();
-
-
-        state.hubs.push({
-
-          id:uid(),
-
-          name:
-            `Centrum logistyczne #${state.hubs.length+1}`,
-
-          locationName:
-            "Środek aktualnego widoku",
-
-          lat:
-            center.lat,
-
-          lng:
-            center.lng,
-
-          maintenance:
-            HUB_MAINTENANCE
-
-        });
-
-
-        renderAll();
+        await bulkPlaceInCountry(
+          "hub",
+          args[0],
+          args[1]
+        );
 
         return;
 
       }
-
 
       consolePrint(
         "Nieznany kod."
@@ -5801,7 +6318,6 @@ $("consoleForm")
 
     }
   );
-
 
 /* =========================
    START
@@ -5815,7 +6331,6 @@ initMap();
 
 renderAll();
 
-
 setInterval(
   () => {
 
@@ -5823,7 +6338,6 @@ setInterval(
       state.paused
     )
       return;
-
 
     for(
       let i=0;
@@ -5834,7 +6348,6 @@ setInterval(
       simulateDay();
 
     }
-
 
     renderAll();
 
