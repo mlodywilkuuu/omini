@@ -1,0 +1,5848 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Retail Empire Tycoon</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<link
+  rel="stylesheet"
+  href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+/>
+
+<script
+  src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+></script>
+
+<style>
+:root{
+  --bg:#0b1020;
+  --panel:#111827;
+  --card:#182235;
+  --border:#2f3d55;
+  --text:#f8fafc;
+  --muted:#94a3b8;
+  --accent:#22c55e;
+  --danger:#ef4444;
+  --warn:#f59e0b;
+  --blue:#60a5fa;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,Arial,sans-serif}
+button,select,input{font:inherit}
+button{cursor:pointer}
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:14px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px}
+.muted{color:var(--muted)}
+.good{color:#22c55e}
+.bad{color:#ef4444}
+.warn{color:#f59e0b}
+.btn{border:1px solid var(--border);background:var(--card);color:var(--text);border-radius:9px;padding:10px 14px}
+.btn:hover{filter:brightness(1.08)}
+.btn-primary{background:var(--accent);border-color:var(--accent);color:#052e16;font-weight:800}
+.btn-primary:hover{filter:brightness(1.1)}
+.btn-danger{background:var(--danger);border-color:var(--danger);color:#fff}
+.tab.active{background:var(--accent);border-color:var(--accent);color:#052e16;font-weight:800}
+input,select{background:#0b1220;color:var(--text);border:1px solid var(--border);border-radius:8px;padding:10px}
+.pill{display:inline-flex;align-items:center;border:1px solid var(--border);border-radius:999px;padding:4px 8px;font-size:12px}
+.scrollbar::-webkit-scrollbar{height:8px;width:8px}
+.scrollbar::-webkit-scrollbar-thumb{background:#475569;border-radius:999px}
+#worldMap{height:620px;width:100%;border-radius:12px;overflow:hidden}
+.leaflet-container{background:#0b1220;font-family:Inter,Arial,sans-serif}
+.store-icon,.hub-icon,.build-icon{display:grid;place-items:center;position:relative;filter:drop-shadow(0 4px 5px rgba(0,0,0,.35))}
+.store-icon,.hub-icon{width:28px;height:28px;border-radius:50% 50% 50% 8px;transform:rotate(-45deg);border:2px solid #0f172a}
+.store-icon{background:#facc15;color:#111827}
+.hub-icon{background:#60a5fa;color:#08111f}
+.store-icon::before{content:"🏪";font-size:14px;transform:rotate(45deg)}
+.hub-icon::before{content:"🚚";font-size:14px;transform:rotate(45deg)}
+.build-icon{width:24px;height:24px;border-radius:50%;background:white;border:5px solid #22c55e;box-shadow:0 0 0 2px rgba(0,0,0,.35)}
+.city-result{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px;border:1px solid var(--border);border-radius:9px;background:#0b1220;cursor:pointer}
+.city-result:hover{filter:brightness(1.12)}
+.country-badge{display:inline-flex;align-items:center;gap:6px;font-weight:800}
+.search-spinner{opacity:.75;font-size:12px}
+</style>
+</head>
+
+<body>
+<div class="max-w-[1750px] mx-auto p-3 md:p-5">
+
+<header class="mb-4">
+  <h1 class="text-2xl md:text-3xl font-bold">Retail Empire Tycoon</h1>
+  <p class="muted mt-1">
+    Buduj sklepy dokładnie na prawdziwej mapie, rozwijaj logistykę, fabryki, marki własne i przejmuj gotowe sieci.
+  </p>
+</header>
+
+<div class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-2 mb-4">
+  <div class="card p-3"><div class="text-xs muted">Gotówka</div><div id="cash" class="font-bold text-lg">—</div></div>
+  <div class="card p-3"><div class="text-xs muted">Sklepy</div><div id="storesStat" class="font-bold text-lg">—</div></div>
+  <div class="card p-3"><div class="text-xs muted">Centra logistyczne</div><div id="hubsStat" class="font-bold text-lg">—</div></div>
+  <div class="card p-3"><div class="text-xs muted">Fabryki</div><div id="factoriesStat" class="font-bold text-lg">—</div></div>
+  <div class="card p-3"><div class="text-xs muted">Marki własne</div><div id="privateStat" class="font-bold text-lg">—</div></div>
+  <div class="card p-3"><div class="text-xs muted">Reputacja</div><div id="repStat" class="font-bold text-lg">—</div></div>
+  <div class="card p-3"><div class="text-xs muted">Data</div><div id="dateStat" class="font-bold">—</div></div>
+  <div class="card p-3"><div class="text-xs muted">Prognoza / dzień</div><div id="profitStat" class="font-bold">—</div></div>
+</div>
+
+<div class="panel p-3 mb-4 flex flex-wrap items-center gap-2">
+  <strong>Czas</strong>
+  <button id="pauseBtn" class="btn">⏸ Pauza</button>
+  <button class="speed btn" data-speed="1">1×</button>
+  <button class="speed btn" data-speed="3">3×</button>
+  <button class="speed btn" data-speed="10">10×</button>
+  <button class="speed btn" data-speed="30">30×</button>
+  <span id="timeState" class="ml-auto text-sm muted">Tempo 1×</span>
+</div>
+
+<div class="panel p-3 mb-4 flex flex-wrap items-center gap-3">
+  <strong>Auto-zamówienia</strong>
+
+  <label class="flex items-center gap-2">
+    <input id="autoOrdersToggle" type="checkbox">
+    <span>Włącz</span>
+  </label>
+
+  <label class="text-sm">
+    Minimum
+    <input id="autoOrderMin" type="number" min="5" max="500" value="35" class="w-24 ml-1">
+  </label>
+
+  <label class="text-sm">
+    Cel
+    <input id="autoOrderTarget" type="number" min="10" max="1000" value="110" class="w-24 ml-1">
+  </label>
+
+  <span class="text-sm muted">
+    System sprawdza zapasy co 2 dni.
+  </span>
+</div>
+
+<div class="flex gap-2 overflow-x-auto scrollbar mb-4">
+  <button data-tab="world" class="tab btn active">🌍 Mapa</button>
+  <button data-tab="stores" class="tab btn">🏪 Sklepy</button>
+  <button data-tab="orders" class="tab btn">📦 Zamówienia</button>
+  <button data-tab="logistics" class="tab btn">🚚 Logistyka</button>
+  <button data-tab="products" class="tab btn">🥤 Produkty</button>
+  <button data-tab="deposit" class="tab btn">♻️ Kaucja</button>
+  <button data-tab="private" class="tab btn">🏷️ Marki własne</button>
+  <button data-tab="factories" class="tab btn">🏭 Fabryki</button>
+  <button data-tab="management" class="tab btn">📈 Rozwój</button>
+  <button data-tab="acquisitions" class="tab btn">💼 Przejęcia</button>
+</div>
+
+<section id="tab-world" class="game-tab">
+
+<div class="grid xl:grid-cols-[1.6fr_.65fr] gap-4">
+
+  <div class="panel p-3">
+
+    <h2 class="font-bold text-lg">
+      Prawdziwa mapa
+    </h2>
+
+    <p class="text-sm muted mb-3">
+      Przeciągaj mapę, przybliżaj rolką i kliknij dokładne miejsce budowy.
+      Pineski są przypisywane do rozpoznanego miasta i kraju.
+    </p>
+
+    <div class="card p-3 mb-3">
+      <div class="flex flex-col md:flex-row gap-2">
+        <input id="citySearchInput" class="flex-1" placeholder="Wpisz miasto, np. Białystok, Chicago, Berlin">
+        <button id="citySearchBtn" class="btn">🔎 Szukaj miasta</button>
+      </div>
+      <div id="citySearchStatus" class="text-xs muted mt-2">Możesz też kliknąć bezpośrednio na mapie.</div>
+      <div id="citySearchResults" class="grid md:grid-cols-2 gap-2 mt-2"></div>
+    </div>
+
+    <div id="worldMap"></div>
+
+  </div>
+
+  <div class="space-y-4">
+
+    <div class="panel p-4">
+
+      <h3 class="font-bold">
+        Budowa na mapie
+      </h3>
+
+      <div id="mapPointInfo" class="card p-3 text-sm mt-3">
+        Kliknij miejsce na mapie.
+      </div>
+
+      <label class="block mt-4 text-sm">
+        Co budujesz?
+      </label>
+
+      <select id="mapBuildMode" class="w-full mt-1">
+        <option value="store" selected>Sklep</option>
+        <option value="hub">Centrum logistyczne</option>
+      </select>
+
+      <div id="storeBuildControls">
+
+        <label class="block mt-3 text-sm">
+          Format sklepu
+        </label>
+
+        <select id="buildStoreType" class="w-full mt-1">
+          <option value="mini">Mini convenience</option>
+          <option value="standard" selected>Convenience</option>
+          <option value="discount">Dyskont miejski</option>
+          <option value="supermarket">Supermarket</option>
+        </select>
+
+      </div>
+
+      <div id="buildInfo" class="text-sm muted mt-3"></div>
+
+      <button
+        id="buildMapObjectBtn"
+        class="btn btn-primary w-full mt-4"
+        disabled
+      >
+        Najpierw kliknij mapę
+      </button>
+
+    </div>
+
+    <div class="panel p-4">
+
+      <h3 class="font-bold">
+        Najbliższa logistyka
+      </h3>
+
+      <div id="nearestHubInfo" class="mt-3 text-sm muted">
+        Brak wybranego punktu.
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+</section>
+
+<section id="tab-stores" class="game-tab hidden">
+
+<div class="panel p-4">
+
+  <h2 class="font-bold text-lg">
+    Twoje sklepy
+  </h2>
+
+  <p class="text-sm muted">
+    Możesz ulepszać, zamykać i sprawdzać rentowność każdej placówki.
+  </p>
+
+  <div
+    id="storesList"
+    class="grid md:grid-cols-2 xl:grid-cols-3 gap-3 mt-4"
+  ></div>
+
+</div>
+
+</section>
+
+<section id="tab-orders" class="game-tab hidden">
+
+<div class="grid xl:grid-cols-[.7fr_1.3fr] gap-4">
+
+  <div class="panel p-4">
+
+    <h2 class="font-bold text-lg">
+      Zamówienia
+    </h2>
+
+    <p class="text-sm muted mt-1">
+      Czas dostawy zależy od odległości sklepu od najbliższego centrum logistycznego.
+    </p>
+
+    <form id="orderForm" class="space-y-3 mt-4">
+
+      <label class="block text-sm">
+        Sklep
+        <select id="orderStore" class="w-full mt-1"></select>
+      </label>
+
+      <label class="block text-sm">
+        Produkt
+        <select id="orderProduct" class="w-full mt-1"></select>
+      </label>
+
+      <label class="block text-sm">
+        Ilość
+        <input
+          id="orderQty"
+          type="number"
+          min="1"
+          max="100000"
+          value="100"
+          class="w-full mt-1"
+        >
+      </label>
+
+      <div class="card p-3 text-sm">
+
+        <div>
+          Koszt:
+          <strong id="orderCost">—</strong>
+        </div>
+
+        <div class="muted mt-1">
+          Dostawa:
+          <span id="orderEta">—</span>
+        </div>
+
+      </div>
+
+      <button type="submit" class="btn btn-primary w-full">
+        Zamów
+      </button>
+
+    </form>
+
+    <button id="autoOrderBtn" class="btn w-full mt-3">
+      Auto-zamów teraz
+    </button>
+
+  </div>
+
+  <div class="space-y-4">
+
+    <div class="panel p-4">
+
+      <h2 class="font-bold text-lg">
+        Dostawy w trasie
+      </h2>
+
+      <div id="shipmentsList" class="mt-3 space-y-2"></div>
+
+    </div>
+
+    <div class="panel p-4">
+
+      <div class="flex justify-between gap-3 items-center">
+
+        <h2 class="font-bold text-lg">
+          Magazyny
+        </h2>
+
+        <select id="inventoryStoreFilter">
+          <option value="all">Wszystkie</option>
+        </select>
+
+      </div>
+
+      <div
+        id="inventoryTable"
+        class="mt-4 overflow-x-auto scrollbar"
+      ></div>
+
+    </div>
+
+  </div>
+
+</div>
+
+</section>
+
+<section id="tab-logistics" class="game-tab hidden">
+
+<div class="grid xl:grid-cols-[.8fr_1.2fr] gap-4">
+
+  <div class="panel p-4">
+
+    <h2 class="font-bold text-lg">
+      System logistyczny
+    </h2>
+
+    <p class="text-sm muted mt-1">
+      Im bliżej centrum znajduje się sklep, tym szybsza i tańsza dostawa.
+      Centrum budujesz bezpośrednio na mapie.
+    </p>
+
+    <div class="card p-3 mt-4 text-sm">
+
+      <div>
+        &lt; 300 km →
+        <strong>1 dzień</strong>
+      </div>
+
+      <div>
+        300–900 km →
+        <strong>2 dni</strong>
+      </div>
+
+      <div>
+        900–1800 km →
+        <strong>3 dni</strong>
+      </div>
+
+      <div>
+        1800–3500 km →
+        <strong>4 dni</strong>
+      </div>
+
+      <div>
+        &gt; 3500 km →
+        <strong>5 dni</strong>
+      </div>
+
+      <div class="muted mt-2">
+        Bez centrum logistycznego: 7 dni.
+      </div>
+
+    </div>
+
+  </div>
+
+  <div class="panel p-4">
+
+    <h2 class="font-bold text-lg">
+      Twoje centra
+    </h2>
+
+    <div
+      id="ownedHubs"
+      class="grid md:grid-cols-2 gap-3 mt-4"
+    ></div>
+
+  </div>
+
+</div>
+
+</section>
+
+<section id="tab-products" class="game-tab hidden">
+
+<div class="panel p-4">
+
+  <div class="flex flex-wrap justify-between gap-3">
+
+    <div>
+
+      <h2 class="font-bold text-lg">
+        Produkty
+      </h2>
+
+      <p class="text-sm muted">
+        Popyt i ceny hurtowe zmieniają się z czasem.
+      </p>
+
+    </div>
+
+    <button
+      id="generateProductsBtn"
+      class="btn"
+    >
+      + Odkryj 10 produktów
+    </button>
+
+  </div>
+
+  <div
+    id="productsGrid"
+    class="grid md:grid-cols-2 xl:grid-cols-3 gap-3 mt-4"
+  ></div>
+
+</div>
+
+</section>
+
+<section id="tab-deposit" class="game-tab hidden">
+
+<div class="grid xl:grid-cols-[.8fr_1.2fr] gap-4">
+
+  <div class="panel p-4">
+
+    <h2 class="font-bold text-lg">
+      System kaucyjny
+    </h2>
+
+    <label class="flex items-center gap-2 mt-3">
+
+      <input
+        id="depositToggle"
+        type="checkbox"
+        checked
+      >
+
+      <span>
+        Włącz system kaucyjny
+      </span>
+
+    </label>
+
+    <label class="block mt-3 text-sm">
+
+      Kaucja za opakowanie
+
+      <select
+        id="depositRate"
+        class="w-full mt-1"
+      >
+
+        <option value="0.50">
+          0,50 zł
+        </option>
+
+        <option value="1.00" selected>
+          1,00 zł
+        </option>
+
+        <option value="2.00">
+          2,00 zł
+        </option>
+
+      </select>
+
+    </label>
+
+    <div class="card p-3 mt-4 text-sm">
+
+      <div class="flex justify-between">
+        <span>Pobrane kaucje</span>
+        <strong id="depositCollected">—</strong>
+      </div>
+
+      <div class="flex justify-between mt-2">
+        <span>Zwroty klientom</span>
+        <strong id="depositRefunded">—</strong>
+      </div>
+
+      <div class="flex justify-between mt-2">
+        <span>Opakowania</span>
+        <strong id="depositContainers">—</strong>
+      </div>
+
+    </div>
+
+  </div>
+
+  <div class="panel p-4">
+
+    <h2 class="font-bold text-lg">
+      Automaty zwrotne
+    </h2>
+
+    <div
+      id="depositMachines"
+      class="grid md:grid-cols-2 gap-3 mt-4"
+    ></div>
+
+  </div>
+
+</div>
+
+</section>
+
+<section id="tab-private" class="game-tab hidden">
+
+<div class="grid xl:grid-cols-[.7fr_1.3fr] gap-4">
+
+  <div class="panel p-4">
+
+    <h2 class="font-bold text-lg">
+      Marki własne
+    </h2>
+
+    <p class="text-sm muted mt-1">
+      Potrzebujesz fabryki ustawionej na odpowiednią kategorię.
+    </p>
+
+    <div
+      id="brandFamilies"
+      class="space-y-3 mt-4"
+    ></div>
+
+  </div>
+
+  <div class="panel p-4">
+
+    <h2 class="font-bold text-lg">
+      Portfolio
+    </h2>
+
+    <div
+      id="privateProducts"
+      class="grid md:grid-cols-2 gap-3 mt-4"
+    ></div>
+
+  </div>
+
+</div>
+
+</section>
+
+<section id="tab-factories" class="game-tab hidden">
+
+<div class="panel p-4">
+
+  <div class="flex flex-wrap justify-between gap-3">
+
+    <div>
+
+      <h2 class="font-bold text-lg">
+        Fabryki
+      </h2>
+
+      <p class="text-sm muted">
+        Budujesz pustą fabrykę, potem sam wybierasz co produkuje.
+      </p>
+
+    </div>
+
+    <button
+      id="buildFactoryBtn"
+      class="btn btn-primary"
+    >
+      + Zbuduj fabrykę — 650 000 zł
+    </button>
+
+  </div>
+
+  <div
+    id="factoriesGrid"
+    class="grid md:grid-cols-2 xl:grid-cols-3 gap-3 mt-4"
+  ></div>
+
+</div>
+
+</section>
+
+<section id="tab-management" class="game-tab hidden">
+
+<div class="grid md:grid-cols-2 xl:grid-cols-4 gap-4">
+
+  <div class="card p-4">
+
+    <div class="font-bold">
+      Program lojalnościowy
+    </div>
+
+    <div class="text-sm muted mt-1">
+      +10% popytu.
+    </div>
+
+    <button
+      id="loyaltyBtn"
+      class="btn btn-primary w-full mt-3"
+    >
+      Kup — 180 000 zł
+    </button>
+
+  </div>
+
+  <div class="card p-4">
+
+    <div class="font-bold">
+      Lepszy system cen
+    </div>
+
+    <div class="text-sm muted mt-1">
+      +5% przychodów.
+    </div>
+
+    <button
+      id="pricingBtn"
+      class="btn btn-primary w-full mt-3"
+    >
+      Kup — 220 000 zł
+    </button>
+
+  </div>
+
+  <div class="card p-4">
+
+    <div class="font-bold">
+      Centralny zakup
+    </div>
+
+    <div class="text-sm muted mt-1">
+      -8% ceny zakupu.
+    </div>
+
+    <button
+      id="procurementBtn"
+      class="btn btn-primary w-full mt-3"
+    >
+      Kup — 260 000 zł
+    </button>
+
+  </div>
+
+  <div class="card p-4">
+
+    <div class="font-bold">
+      Marketing
+    </div>
+
+    <div class="text-sm muted mt-1">
+      +8 reputacji.
+    </div>
+
+    <button
+      id="marketingBtn"
+      class="btn w-full mt-3"
+    >
+      Kampania — 75 000 zł
+    </button>
+
+  </div>
+
+</div>
+
+</section>
+
+<section id="tab-acquisitions" class="game-tab hidden">
+
+<div class="panel p-4">
+
+  <h2 class="font-bold text-lg">
+    Przejęcia sieci
+  </h2>
+
+  <p class="text-sm muted">
+    Po przejęciu dostajesz gotowe sklepy stojące w prawdziwych lokalizacjach na mapie.
+  </p>
+
+  <div
+    id="companiesGrid"
+    class="grid md:grid-cols-2 xl:grid-cols-3 gap-3 mt-4"
+  ></div>
+
+</div>
+
+</section>
+
+</div>
+
+<div
+  id="cheatConsole"
+  class="hidden"
+  style="
+    position:fixed;
+    left:50%;
+    top:18%;
+    transform:translateX(-50%);
+    z-index:9999;
+    width:min(92vw,680px);
+    background:#050914;
+    border:1px solid #334155;
+    border-radius:14px;
+    padding:14px;
+    box-shadow:0 20px 60px rgba(0,0,0,.5)
+  "
+>
+
+  <div class="flex justify-between items-center gap-3 mb-3">
+
+    <div>
+
+      <div class="font-bold">
+        Konsola gry
+      </div>
+
+      <div class="text-xs muted">
+        ~ otwiera / zamyka
+      </div>
+
+    </div>
+
+    <button
+      id="closeConsoleBtn"
+      class="btn"
+    >
+      ✕
+    </button>
+
+  </div>
+
+  <div
+    id="consoleOutput"
+    class="card p-3 mb-3 text-sm font-mono"
+    style="height:180px;overflow:auto"
+  >
+    Wpisz HELP.
+  </div>
+
+  <form
+    id="consoleForm"
+    class="flex gap-2"
+  >
+
+    <input
+      id="consoleInput"
+      class="flex-1"
+      autocomplete="off"
+      placeholder="np. CASH 1000000"
+    >
+
+    <button class="btn btn-primary">
+      Wykonaj
+    </button>
+
+  </form>
+
+</div>
+
+<script>
+
+const $ =
+  id =>
+    document.getElementById(id);
+
+
+const money =
+  n =>
+    Math.round(n)
+      .toLocaleString("pl-PL")
+    +
+    " zł";
+
+
+const uid =
+  () =>
+    crypto.randomUUID
+      ? crypto.randomUUID()
+      : Math.random().toString(36).slice(2)
+        +
+        Date.now().toString(36);
+
+
+const categories = [
+  "Chipsy",
+  "Napoje",
+  "Energetyki",
+  "Słodycze",
+  "Kawa",
+  "Pieczywo",
+  "Nabiał",
+  "Kanapki",
+  "Gotowe posiłki",
+  "Mrożonki",
+  "Chemia domowa"
+];
+
+
+const brands = [
+  "Nova",
+  "Freshio",
+  "Snacko",
+  "Daily",
+  "Urban",
+  "Viva",
+  "Mondo",
+  "Baltic",
+  "Prime",
+  "Lumo"
+];
+
+
+const variants = [
+  "Classic",
+  "Max",
+  "Fresh",
+  "Gold",
+  "Zero",
+  "Mini",
+  "Mega",
+  "Street",
+  "Original",
+  "Premium"
+];
+
+
+const ownBrandFamilies = [
+
+{
+  id:"chrup",
+  name:"CHRUP!",
+  categories:[
+    "Chipsy",
+    "Słodycze"
+  ],
+  description:"Przekąski i słodycze."
+},
+
+{
+  id:"hop",
+  name:"HOP!",
+  categories:[
+    "Napoje",
+    "Energetyki"
+  ],
+  description:"Napoje i energetyki."
+},
+
+{
+  id:"mniam",
+  name:"MNIAM GO",
+  categories:[
+    "Kanapki",
+    "Gotowe posiłki",
+    "Pieczywo"
+  ],
+  description:"Jedzenie na szybko."
+},
+
+{
+  id:"daily",
+  name:"DAILY SELECT",
+  categories:[
+    "Kawa",
+    "Nabiał"
+  ],
+  description:"Kawa i nabiał."
+}
+
+];
+
+
+const storeTypes = {
+
+mini:{
+  name:"Mini convenience",
+  cost:70000,
+  fixedCost:100,
+  salesMultiplier:.85,
+  refund:.45
+},
+
+standard:{
+  name:"Convenience",
+  cost:155000,
+  fixedCost:230,
+  salesMultiplier:1.35,
+  refund:.50
+},
+
+discount:{
+  name:"Dyskont miejski",
+  cost:350000,
+  fixedCost:600,
+  salesMultiplier:2.6,
+  refund:.52
+},
+
+supermarket:{
+  name:"Supermarket",
+  cost:820000,
+  fixedCost:1350,
+  salesMultiplier:5,
+  refund:.55
+}
+
+};
+
+
+const factoryProducts = [
+
+{
+  category:"Chipsy",
+  maintenance:350,
+  setupCost:60000
+},
+
+{
+  category:"Napoje",
+  maintenance:450,
+  setupCost:80000
+},
+
+{
+  category:"Energetyki",
+  maintenance:500,
+  setupCost:95000
+},
+
+{
+  category:"Słodycze",
+  maintenance:380,
+  setupCost:65000
+},
+
+{
+  category:"Kawa",
+  maintenance:420,
+  setupCost:75000
+},
+
+{
+  category:"Pieczywo",
+  maintenance:520,
+  setupCost:110000
+},
+
+{
+  category:"Kanapki",
+  maintenance:650,
+  setupCost:135000
+},
+
+{
+  category:"Gotowe posiłki",
+  maintenance:800,
+  setupCost:180000
+}
+
+];
+
+
+const GENERIC_FACTORY_COST =
+  650000;
+
+
+const HUB_COST =
+  500000;
+
+
+const HUB_MAINTENANCE =
+  600;
+
+
+const acquisitionLocations = [
+
+{
+  name:"Warszawa",
+  lat:52.2297,
+  lng:21.0122
+},
+
+{
+  name:"Kraków",
+  lat:50.0647,
+  lng:19.9450
+},
+
+{
+  name:"Berlin",
+  lat:52.5200,
+  lng:13.4050
+},
+
+{
+  name:"Praga",
+  lat:50.0755,
+  lng:14.4378
+},
+
+{
+  name:"Wiedeń",
+  lat:48.2082,
+  lng:16.3738
+},
+
+{
+  name:"Paryż",
+  lat:48.8566,
+  lng:2.3522
+},
+
+{
+  name:"Madryt",
+  lat:40.4168,
+  lng:-3.7038
+},
+
+{
+  name:"Londyn",
+  lat:51.5074,
+  lng:-0.1278
+},
+
+{
+  name:"Nowy Jork",
+  lat:40.7128,
+  lng:-74.0060
+},
+
+{
+  name:"Chicago",
+  lat:41.8781,
+  lng:-87.6298
+},
+
+{
+  name:"Los Angeles",
+  lat:34.0522,
+  lng:-118.2437
+},
+
+{
+  name:"Toronto",
+  lat:43.6532,
+  lng:-79.3832
+},
+
+{
+  name:"Tokio",
+  lat:35.6762,
+  lng:139.6503
+},
+
+{
+  name:"Seul",
+  lat:37.5665,
+  lng:126.9780
+},
+
+{
+  name:"Sydney",
+  lat:-33.8688,
+  lng:151.2093
+}
+
+];
+
+
+let state = {
+
+cash:2200000,
+
+date:
+  new Date(
+    Date.UTC(
+      2026,
+      0,
+      1
+    )
+  ),
+
+speed:1,
+
+paused:false,
+
+reputation:55,
+
+mapBuildPoint:null,
+
+stores:[],
+
+hubs:[],
+
+factories:[],
+
+products:[],
+
+privateProducts:[],
+
+shipments:[],
+
+companies:[],
+
+dayCounter:0,
+
+autoOrders:false,
+
+autoOrderMin:35,
+
+autoOrderTarget:110,
+
+upgrades:{
+  loyalty:false,
+  pricing:false,
+  procurement:false
+},
+
+deposit:{
+  enabled:true,
+  rate:1,
+  collected:0,
+  refunded:0,
+  containers:0
+}
+
+};
+
+
+const COUNTRY_CODE_ALIASES = {
+  USA:"US", UK:"GB", ENG:"GB", POL:"PL", GER:"DE", DEU:"DE",
+  CZE:"CZ", FRA:"FR", ESP:"ES", ITA:"IT", CAN:"CA", AUS:"AU",
+  JPN:"JP", KOR:"KR"
+};
+
+const BULK_LIMITS = {
+  stores:250,
+  hubs:60
+};
+
+const FALLBACK_COUNTRY_CITIES = {
+  PL:[
+    ["Warszawa",52.2297,21.0122],["Kraków",50.0647,19.9450],["Łódź",51.7592,19.4560],
+    ["Wrocław",51.1079,17.0385],["Poznań",52.4064,16.9252],["Gdańsk",54.3520,18.6466],
+    ["Szczecin",53.4285,14.5528],["Bydgoszcz",53.1235,18.0084],["Lublin",51.2465,22.5684],
+    ["Białystok",53.1325,23.1688],["Katowice",50.2649,19.0238],["Gdynia",54.5189,18.5305],
+    ["Częstochowa",50.8118,19.1203],["Rzeszów",50.0412,21.9991],["Toruń",53.0138,18.5984],
+    ["Olsztyn",53.7784,20.4801],["Opole",50.6751,17.9213],["Kielce",50.8661,20.6286],
+    ["Zielona Góra",51.9356,15.5062],["Radom",51.4027,21.1471]
+  ],
+  US:[
+    ["New York",40.7128,-74.0060],["Los Angeles",34.0522,-118.2437],["Chicago",41.8781,-87.6298],
+    ["Houston",29.7604,-95.3698],["Phoenix",33.4484,-112.0740],["Philadelphia",39.9526,-75.1652],
+    ["San Antonio",29.4241,-98.4936],["San Diego",32.7157,-117.1611],["Dallas",32.7767,-96.7970],
+    ["Austin",30.2672,-97.7431],["Jacksonville",30.3322,-81.6557],["Fort Worth",32.7555,-97.3308],
+    ["Columbus",39.9612,-82.9988],["Indianapolis",39.7684,-86.1581],["Charlotte",35.2271,-80.8431],
+    ["Seattle",47.6062,-122.3321],["Denver",39.7392,-104.9903],["Boston",42.3601,-71.0589],
+    ["Nashville",36.1627,-86.7816],["Detroit",42.3314,-83.0458],["Portland",45.5152,-122.6784],
+    ["Las Vegas",36.1699,-115.1398],["Baltimore",39.2904,-76.6122],["Milwaukee",43.0389,-87.9065],
+    ["Albuquerque",35.0844,-106.6504],["Tucson",32.2226,-110.9747],["Fresno",36.7378,-119.7871],
+    ["Sacramento",38.5816,-121.4944],["Atlanta",33.7490,-84.3880],["Kansas City",39.0997,-94.5786]
+  ]
+};
+
+function normalizeCountryCode(value){
+  const raw=(value||"").trim().toUpperCase();
+  return COUNTRY_CODE_ALIASES[raw] || raw;
+}
+
+function countryCodeToFlag(code){
+  const c=normalizeCountryCode(code);
+  if(!/^[A-Z]{2}$/.test(c)) return "🌍";
+  return String.fromCodePoint(...[...c].map(ch=>127397+ch.charCodeAt(0)));
+}
+
+function countryNameFromCode(code){
+  const c=normalizeCountryCode(code);
+  try{ return new Intl.DisplayNames(["pl"],{type:"region"}).of(c) || c; }
+  catch(e){ return c; }
+}
+
+function placeLabel(place){
+  const city=place.city || place.town || place.village || place.municipality || place.county || "Wybrane miejsce";
+  const country=place.country || place.countryName || place.country_code?.toUpperCase() || place.countryCode || "";
+  const code=normalizeCountryCode(place.country_code || place.countryCode || "");
+  return `${city}${country ? `, ${country}` : ""} ${countryCodeToFlag(code)}`.trim();
+}
+
+async function reverseGeocodePoint(lat,lng){
+  const url=`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lng)}&zoom=10&addressdetails=1`;
+  const res=await fetch(url,{headers:{"Accept":"application/json","Accept-Language":"pl,en;q=0.8"}});
+  if(!res.ok) throw new Error("Nie udało się sprawdzić punktu.");
+  const data=await res.json();
+  const a=data.address || {};
+  if(!a.country_code) throw new Error("To miejsce nie należy do rozpoznanego kraju. Wybierz ląd.");
+  return {
+    lat:Number(data.lat ?? lat), lng:Number(data.lon ?? lng),
+    city:a.city || a.town || a.village || a.municipality || a.county || data.name || "Wybrane miejsce",
+    country:a.country || "", countryCode:(a.country_code||"").toUpperCase(),
+    displayName:data.display_name || ""
+  };
+}
+
+async function selectBuildPoint(lat,lng,knownPlace=null){
+  const lookupId=++state.mapLocationLookupId;
+  state.mapBuildPoint=null;
+  $("mapPointInfo").innerHTML='<span class="search-spinner">Sprawdzam miasto i kraj…</span>';
+  renderBuildPanel();
+  try{
+    const place=knownPlace || await reverseGeocodePoint(lat,lng);
+    if(lookupId!==state.mapLocationLookupId) return;
+    state.mapBuildPoint={lat:Number(place.lat ?? lat),lng:Number(place.lng ?? lng),city:place.city,country:place.country,countryCode:normalizeCountryCode(place.countryCode)};
+    renderBuildPanel(); renderNearestHub(); renderMapMarkers();
+  }catch(err){
+    if(lookupId!==state.mapLocationLookupId) return;
+    state.mapBuildPoint=null;
+    $("mapPointInfo").innerHTML=`<span class="bad">${err.message || "Nie można budować w tym miejscu."}</span>`;
+    renderBuildPanel(); renderNearestHub(); renderMapMarkers();
+  }
+}
+
+async function searchCities(){
+  const q=$("citySearchInput").value.trim();
+  if(q.length<2){ $("citySearchStatus").textContent="Wpisz co najmniej 2 znaki."; return; }
+  $("citySearchStatus").textContent="Szukam miasta…";
+  $("citySearchResults").innerHTML="";
+  try{
+    const url=`https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=8&featuretype=city&q=${encodeURIComponent(q)}`;
+    const res=await fetch(url,{headers:{"Accept":"application/json","Accept-Language":"pl,en;q=0.8"}});
+    if(!res.ok) throw new Error("Błąd wyszukiwania.");
+    const rows=(await res.json()).filter(r=>r.address?.country_code);
+    $("citySearchStatus").textContent=rows.length ? `Znaleziono: ${rows.length}` : "Brak wyników.";
+    $("citySearchResults").innerHTML=rows.map((r,i)=>{
+      const a=r.address||{};
+      const code=(a.country_code||"").toUpperCase();
+      const city=a.city||a.town||a.village||a.municipality||r.name;
+      return `<button type="button" class="city-result" data-city-result="${i}"><span><strong>${city}</strong><br><span class="muted text-xs">${a.state||a.county||""}</span></span><span class="country-badge">${countryCodeToFlag(code)} ${a.country||code}</span></button>`;
+    }).join("");
+    $("citySearchResults").querySelectorAll("[data-city-result]").forEach(btn=>btn.addEventListener("click",()=>{
+      const r=rows[Number(btn.dataset.cityResult)], a=r.address||{}, code=(a.country_code||"").toUpperCase();
+      const place={lat:Number(r.lat),lng:Number(r.lon),city:a.city||a.town||a.village||a.municipality||r.name,country:a.country||code,countryCode:code};
+      realMap.setView([place.lat,place.lng],11);
+      selectBuildPoint(place.lat,place.lng,place);
+      $("citySearchResults").innerHTML="";
+      $("citySearchStatus").textContent=`Wybrano: ${placeLabel(place)}`;
+    }));
+  }catch(err){ $("citySearchStatus").textContent=err.message || "Nie udało się wyszukać miasta."; }
+}
+
+async function fetchCountryPlaces(countryCode){
+  const cc=normalizeCountryCode(countryCode);
+  if(!/^[A-Z]{2}$/.test(cc)) throw new Error("Podaj kod kraju, np. PL albo USA/US.");
+  const query=`[out:json][timeout:25];area[\"ISO3166-1\"=\"${cc}\"][admin_level=2]->.a;(node[\"place\"~\"city|town\"](area.a););out tags center;`;
+  try{
+    const res=await fetch("https://overpass-api.de/api/interpreter",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded;charset=UTF-8"},body:"data="+encodeURIComponent(query)});
+    if(!res.ok) throw new Error("Overpass unavailable");
+    const data=await res.json();
+    const seen=new Set();
+    const rows=(data.elements||[]).map(x=>({
+      city:x.tags?.["name:pl"] || x.tags?.name || "Miasto",
+      lat:Number(x.lat), lng:Number(x.lon),
+      countryCode:cc, country:countryNameFromCode(cc),
+      population:Number(String(x.tags?.population||"0").replace(/\D/g,""))||0
+    })).filter(x=>Number.isFinite(x.lat)&&Number.isFinite(x.lng)&&!seen.has(`${x.lat.toFixed(4)},${x.lng.toFixed(4)}`)&&seen.add(`${x.lat.toFixed(4)},${x.lng.toFixed(4)}`));
+    if(rows.length) return rows.sort((a,b)=>b.population-a.population);
+  }catch(e){}
+  return (FALLBACK_COUNTRY_CITIES[cc]||[]).map(([city,lat,lng])=>({city,lat,lng,countryCode:cc,country:countryNameFromCode(cc),population:0}));
+}
+
+function addCheatStoreAt(place){
+  const typeKey="standard", type=storeTypes[typeKey];
+  state.stores.push({id:uid(),name:`${type.name} #${state.stores.length+1}`,locationName:placeLabel(place),lat:place.lat,lng:place.lng,type:typeKey,level:1,levelMultiplier:1,marketFactor:.95+Math.random()*.15,stock:{},depositMachineLevel:0,countryCode:place.countryCode||""});
+}
+
+function addCheatHubAt(place){
+  state.hubs.push({id:uid(),name:`Centrum logistyczne #${state.hubs.length+1}`,locationName:placeLabel(place),lat:place.lat,lng:place.lng,maintenance:HUB_MAINTENANCE,countryCode:place.countryCode||""});
+}
+
+async function bulkPlaceInCountry(kind,countryArg,countArg){
+  const cc=normalizeCountryCode(countryArg);
+  const places=await fetchCountryPlaces(cc);
+  if(!places.length){ consolePrint(`Brak bezpiecznych punktów dla kraju ${cc}.`); return; }
+  const max=kind==="store" ? BULK_LIMITS.stores : BULK_LIMITS.hubs;
+  const requested=countArg ? Math.max(1,Math.min(max,Number(countArg)||max)) : max;
+  const chosen=places.slice(0,Math.min(requested,places.length));
+  chosen.forEach(p=>kind==="store" ? addCheatStoreAt(p) : addCheatHubAt(p));
+  consolePrint(`${kind==="store"?"Sklepy":"Centra"}: dodano ${chosen.length} w ${countryCodeToFlag(cc)} ${cc}${chosen.length<requested?" (tyle znaleziono bezpiecznych miast)":""}.`);
+  if(chosen.length){ const group=L.featureGroup(chosen.map(p=>L.marker([p.lat,p.lng]))); realMap.fitBounds(group.getBounds().pad(.15),{maxZoom:6}); }
+  renderAll();
+}
+
+function formatDate(d){
+
+  return d.toLocaleDateString(
+    "pl-PL",
+    {
+      timeZone:"UTC"
+    }
+  );
+
+}
+
+
+function allProducts(){
+
+  return [
+    ...state.products,
+    ...state.privateProducts
+  ];
+
+}
+
+
+function getProduct(id){
+
+  return allProducts()
+    .find(
+      p =>
+        p.id===id
+    );
+
+}
+
+
+function getStore(id){
+
+  return state.stores
+    .find(
+      s =>
+        s.id===id
+    );
+
+}
+
+
+function createProduct(
+  own=false,
+  category=null,
+  familyId=null
+){
+
+  category =
+    category
+    ||
+    categories[
+      Math.floor(
+        Math.random()
+        *
+        categories.length
+      )
+    ];
+
+
+  const family =
+    familyId
+      ? ownBrandFamilies.find(
+          x =>
+            x.id===familyId
+        )
+      : null;
+
+
+  const cost =
+    own
+      ? .6+Math.random()*2.5
+      : 1.2+Math.random()*8;
+
+
+  return {
+
+    id:uid(),
+
+    name:
+      own
+
+        ? `${
+            family
+              ? family.name
+              : "PRIVATE"
+          } ${
+            variants[
+              Math.floor(
+                Math.random()
+                *
+                variants.length
+              )
+            ]
+          } ${category}`
+
+        : `${
+            brands[
+              Math.floor(
+                Math.random()
+                *
+                brands.length
+              )
+            ]
+          } ${
+            variants[
+              Math.floor(
+                Math.random()
+                *
+                variants.length
+              )
+            ]
+          } ${category}`,
+
+    category,
+
+    familyId:
+      familyId || null,
+
+    buyPrice:
+      cost,
+
+    sellPrice:
+      cost
+      *
+      (
+        own
+          ? 2.55
+          : 1.65+Math.random()*.55
+      ),
+
+    demand:
+      35
+      +
+      Math.random()*65,
+
+    own
+
+  };
+
+}
+
+
+function generateProducts(
+  n=10
+){
+
+  for(
+    let i=0;
+    i<n;
+    i++
+  ){
+
+    state.products.push(
+      createProduct()
+    );
+
+  }
+
+}
+
+
+function generateCompanies(){
+
+  const names = [
+    "QuickMart",
+    "CityGo",
+    "Fresh24",
+    "Pocket Market",
+    "Daily Corner",
+    "Urban Stop"
+  ];
+
+
+  state.companies =
+    names
+      .slice()
+      .sort(
+        () =>
+          Math.random()-.5
+      )
+      .slice(
+        0,
+        5
+      )
+      .map(
+        name => {
+
+          const stores =
+            3
+            +
+            Math.floor(
+              Math.random()*8
+            );
+
+
+          return {
+
+            id:uid(),
+
+            name,
+
+            stores,
+
+            quality:
+              .9
+              +
+              Math.random()*.2,
+
+            price:
+              Math.round(
+                stores
+                *
+                90000
+                *
+                (
+                  .9
+                  +
+                  Math.random()*.25
+                )
+              )
+
+          };
+
+        }
+      );
+
+}
+
+
+function demandWithPrice(p){
+
+  const markup =
+    p.sellPrice
+    /
+    Math.max(
+      .01,
+      p.buyPrice
+    );
+
+
+  let factor =
+    Math.max(
+      .25,
+      1
+      -
+      Math.max(
+        0,
+        markup-1.8
+      )
+      *
+      .22
+    );
+
+
+  if(
+    state.upgrades.loyalty
+  ){
+
+    factor *=
+      1.10;
+
+  }
+
+
+  if(
+    p.own
+  ){
+
+    factor *=
+      1.12;
+
+  }
+
+
+  return (
+    p.demand
+    *
+    factor
+  );
+
+}
+
+
+function productBuyPrice(p){
+
+  let price =
+    p.buyPrice;
+
+
+  if(
+    state.upgrades.procurement
+    &&
+    !p.own
+  ){
+
+    price *=
+      .92;
+
+  }
+
+
+  return price;
+
+}
+
+
+function distanceKm(
+  aLat,
+  aLng,
+  bLat,
+  bLng
+){
+
+  const R =
+    6371;
+
+
+  const dLat =
+    (
+      bLat-aLat
+    )
+    *
+    Math.PI
+    /
+    180;
+
+
+  const dLng =
+    (
+      bLng-aLng
+    )
+    *
+    Math.PI
+    /
+    180;
+
+
+  const lat1 =
+    aLat
+    *
+    Math.PI
+    /
+    180;
+
+
+  const lat2 =
+    bLat
+    *
+    Math.PI
+    /
+    180;
+
+
+  const a =
+    Math.sin(dLat/2)**2
+    +
+    Math.cos(lat1)
+    *
+    Math.cos(lat2)
+    *
+    Math.sin(dLng/2)**2;
+
+
+  return (
+    R
+    *
+    2
+    *
+    Math.atan2(
+      Math.sqrt(a),
+      Math.sqrt(1-a)
+    )
+  );
+
+}
+
+
+function nearestHubFor(
+  lat,
+  lng
+){
+
+  if(
+    !state.hubs.length
+  ){
+
+    return null;
+
+  }
+
+
+  let best =
+    null;
+
+
+  let bestDistance =
+    Infinity;
+
+
+  for(
+    const hub
+    of state.hubs
+  ){
+
+    const d =
+      distanceKm(
+        lat,
+        lng,
+        hub.lat,
+        hub.lng
+      );
+
+
+    if(
+      d<bestDistance
+    ){
+
+      bestDistance =
+        d;
+
+
+      best =
+        hub;
+
+    }
+
+  }
+
+
+  return {
+
+    hub:best,
+
+    distance:
+      bestDistance
+
+  };
+
+}
+
+
+function logisticsForStore(
+  store
+){
+
+  const nearest =
+    nearestHubFor(
+      store.lat,
+      store.lng
+    );
+
+
+  if(
+    !nearest
+  ){
+
+    return {
+
+      eta:7,
+
+      shippingMultiplier:1.15,
+
+      distance:null
+
+    };
+
+  }
+
+
+  const d =
+    nearest.distance;
+
+
+  let eta =
+    5;
+
+
+  if(d<300)
+    eta=1;
+
+  else if(d<900)
+    eta=2;
+
+  else if(d<1800)
+    eta=3;
+
+  else if(d<3500)
+    eta=4;
+
+
+  const shippingMultiplier =
+    Math.max(
+      .55,
+      .70+d/10000
+    );
+
+
+  return {
+
+    eta,
+
+    shippingMultiplier,
+
+    distance:d,
+
+    hub:
+      nearest.hub
+
+  };
+
+}
+
+
+function expectedStoreDay(
+  store
+){
+
+  const type =
+    storeTypes[
+      store.type
+    ];
+
+
+  let revenue=0;
+
+  let cogs=0;
+
+
+  for(
+    const [pid,qty]
+    of Object.entries(
+      store.stock
+    )
+  ){
+
+    const p =
+      getProduct(pid);
+
+
+    if(
+      !p
+      ||
+      qty<=0
+    )
+      continue;
+
+
+    const sales =
+      Math.min(
+
+        qty,
+
+        Math.floor(
+
+          demandWithPrice(p)
+          *
+          type.salesMultiplier
+          *
+          store.levelMultiplier
+          *
+          store.marketFactor
+          *
+          (
+            .55
+            +
+            state.reputation/100
+          )
+
+        )
+
+      );
+
+
+    revenue +=
+      sales
+      *
+      p.sellPrice
+      *
+      (
+        state.upgrades.pricing
+          ? 1.05
+          : 1
+      );
+
+
+    cogs +=
+      sales
+      *
+      productBuyPrice(p);
+
+  }
+
+
+  const fixed =
+    type.fixedCost
+    *
+    store.levelMultiplier;
+
+
+  return {
+
+    revenue,
+
+    cost:
+      cogs+fixed,
+
+    profit:
+      revenue
+      -
+      cogs
+      -
+      fixed
+
+  };
+
+}
+
+
+function expectedCompanyDay(){
+
+  let revenue=0;
+
+  let cost=0;
+
+
+  state.stores.forEach(
+    store => {
+
+      const r =
+        expectedStoreDay(
+          store
+        );
+
+
+      revenue +=
+        r.revenue;
+
+
+      cost +=
+        r.cost;
+
+    }
+  );
+
+
+  state.factories.forEach(
+    f => {
+
+      cost +=
+        f.maintenance;
+
+    }
+  );
+
+
+  state.hubs.forEach(
+    h => {
+
+      cost +=
+        h.maintenance;
+
+    }
+  );
+
+
+  return {
+
+    revenue,
+
+    cost,
+
+    profit:
+      revenue
+      -
+      cost
+
+  };
+
+}
+
+
+function simulateStoreDay(
+  store
+){
+
+  const type =
+    storeTypes[
+      store.type
+    ];
+
+
+  let revenue=0;
+
+  let cogs=0;
+
+
+  for(
+    const pid
+    of Object.keys(
+      store.stock
+    )
+  ){
+
+    const p =
+      getProduct(pid);
+
+
+    if(!p)
+      continue;
+
+
+    const qty =
+      store.stock[pid]
+      ||
+      0;
+
+
+    const sales =
+      Math.min(
+
+        qty,
+
+        Math.floor(
+
+          demandWithPrice(p)
+          *
+          type.salesMultiplier
+          *
+          store.levelMultiplier
+          *
+          store.marketFactor
+          *
+          (
+            .55
+            +
+            state.reputation/100
+          )
+          *
+          (
+            .8
+            +
+            Math.random()*.4
+          )
+
+        )
+
+      );
+
+
+    if(
+      sales<=0
+    )
+      continue;
+
+
+    store.stock[pid] -=
+      sales;
+
+
+    revenue +=
+      sales
+      *
+      p.sellPrice
+      *
+      (
+        state.upgrades.pricing
+          ? 1.05
+          : 1
+      );
+
+
+    cogs +=
+      sales
+      *
+      productBuyPrice(p);
+
+
+    if(
+      state.deposit.enabled
+      &&
+      (
+        p.category==="Napoje"
+        ||
+        p.category==="Energetyki"
+      )
+    ){
+
+      const depositIncome =
+        sales
+        *
+        state.deposit.rate;
+
+
+      const machineLevel =
+        store.depositMachineLevel
+        ||
+        0;
+
+
+      const returnRate =
+        Math.min(
+          .92,
+          .35
+          +
+          machineLevel*.18
+        );
+
+
+      const returned =
+        Math.floor(
+          sales
+          *
+          returnRate
+        );
+
+
+      state.deposit.collected +=
+        depositIncome;
+
+
+      state.deposit.refunded +=
+        returned
+        *
+        state.deposit.rate;
+
+
+      state.deposit.containers +=
+        returned;
+
+
+      revenue +=
+        depositIncome
+        -
+        returned
+        *
+        state.deposit.rate;
+
+    }
+
+  }
+
+
+  return (
+    revenue
+    -
+    cogs
+    -
+    type.fixedCost
+    *
+    store.levelMultiplier
+  );
+
+}
+
+
+function placeOrder(
+  store,
+  p,
+  qty
+){
+
+  const logistics =
+    logisticsForStore(
+      store
+    );
+
+
+  const goods =
+    productBuyPrice(p)
+    *
+    qty;
+
+
+  const transport =
+    Math.max(
+      20,
+      goods
+      *
+      .04
+      *
+      logistics.shippingMultiplier
+    );
+
+
+  const total =
+    goods
+    +
+    transport;
+
+
+  if(
+    state.cash<total
+  )
+    return false;
+
+
+  state.cash -=
+    total;
+
+
+  state.shipments.push({
+
+    id:uid(),
+
+    storeId:
+      store.id,
+
+    productId:
+      p.id,
+
+    qty,
+
+    cost:
+      total,
+
+    eta:
+      logistics.eta
+
+  });
+
+
+  return true;
+
+}
+
+
+function processShipments(){
+
+  state.shipments.forEach(
+    sh => {
+
+      sh.eta--;
+
+    }
+  );
+
+
+  const arrived =
+    state.shipments.filter(
+      sh =>
+        sh.eta<=0
+    );
+
+
+  arrived.forEach(
+    sh => {
+
+      const store =
+        getStore(
+          sh.storeId
+        );
+
+
+      if(store){
+
+        store.stock[sh.productId] =
+          (
+            store.stock[sh.productId]
+            ||
+            0
+          )
+          +
+          sh.qty;
+
+      }
+
+    }
+  );
+
+
+  state.shipments =
+    state.shipments.filter(
+      sh =>
+        sh.eta>0
+    );
+
+}
+
+
+function runAutomaticOrders(){
+
+  if(
+    !state.autoOrders
+    ||
+    !state.stores.length
+  )
+    return;
+
+
+  const products =
+    allProducts()
+      .slice()
+      .sort(
+        (a,b) =>
+          b.demand-a.demand
+      )
+      .slice(
+        0,
+        16
+      );
+
+
+  for(
+    const store
+    of state.stores
+  ){
+
+    for(
+      const p
+      of products
+    ){
+
+      const inTransit =
+        state.shipments
+          .filter(
+            s =>
+              s.storeId===store.id
+              &&
+              s.productId===p.id
+          )
+          .reduce(
+            (sum,s) =>
+              sum+s.qty,
+            0
+          );
+
+
+      const have =
+        (
+          store.stock[p.id]
+          ||
+          0
+        )
+        +
+        inTransit;
+
+
+      if(
+        have>=state.autoOrderMin
+      )
+        continue;
+
+
+      const target =
+        Math.max(
+          state.autoOrderTarget,
+          Math.round(
+            p.demand*2.2
+          )
+        );
+
+
+      const qty =
+        Math.max(
+          0,
+          target-have
+        );
+
+
+      if(
+        qty>0
+      ){
+
+        placeOrder(
+          store,
+          p,
+          qty
+        );
+
+      }
+
+    }
+
+  }
+
+}
+
+
+function weeklyUpdate(){
+
+  state.products.forEach(
+    p => {
+
+      p.buyPrice =
+        Math.max(
+          .2,
+          p.buyPrice
+          *
+          (
+            .97
+            +
+            Math.random()*.06
+          )
+        );
+
+
+      p.demand =
+        Math.max(
+          10,
+          Math.min(
+            100,
+            p.demand
+            +
+            (
+              Math.random()*10
+              -
+              5
+            )
+          )
+        );
+
+    }
+  );
+
+
+  generateProducts(
+    2
+    +
+    Math.floor(
+      Math.random()*3
+    )
+  );
+
+}
+
+
+function monthlyUpdate(){
+
+  generateProducts(5);
+
+  generateCompanies();
+
+}
+
+
+function simulateDay(){
+
+  let profit=0;
+
+
+  state.stores.forEach(
+    store => {
+
+      profit +=
+        simulateStoreDay(
+          store
+        );
+
+    }
+  );
+
+
+  state.factories.forEach(
+    f => {
+
+      profit -=
+        f.maintenance;
+
+    }
+  );
+
+
+  state.hubs.forEach(
+    h => {
+
+      profit -=
+        h.maintenance;
+
+    }
+  );
+
+
+  state.cash +=
+    profit;
+
+
+  state.date =
+    new Date(
+      state.date.getTime()
+      +
+      86400000
+    );
+
+
+  state.dayCounter++;
+
+
+  processShipments();
+
+
+  if(
+    state.deposit.enabled
+    &&
+    state.deposit.containers>0
+  ){
+
+    const settle =
+      Math.min(
+        state.deposit.containers,
+        Math.ceil(
+          state.deposit.containers*.45
+        )
+      );
+
+
+    state.cash +=
+      settle
+      *
+      state.deposit.rate;
+
+
+    state.deposit.containers -=
+      settle;
+
+  }
+
+
+  if(
+    state.dayCounter%2===0
+  ){
+
+    runAutomaticOrders();
+
+  }
+
+
+  if(
+    state.dayCounter%7===0
+  ){
+
+    weeklyUpdate();
+
+  }
+
+
+  if(
+    state.dayCounter%30===0
+  ){
+
+    monthlyUpdate();
+
+  }
+
+}
+
+
+function renderTop(){
+
+  const e =
+    expectedCompanyDay();
+
+
+  $("cash").textContent =
+    money(
+      state.cash
+    );
+
+
+  $("storesStat").textContent =
+    state.stores.length;
+
+
+  $("hubsStat").textContent =
+    state.hubs.length;
+
+
+  $("factoriesStat").textContent =
+    state.factories.length;
+
+
+  $("privateStat").textContent =
+    state.privateProducts.length;
+
+
+  $("repStat").textContent =
+    Math.round(
+      state.reputation
+    )
+    +
+    "/100";
+
+
+  $("dateStat").textContent =
+    formatDate(
+      state.date
+    );
+
+
+  $("profitStat").textContent =
+    (
+      e.profit>=0
+        ? "+"
+        : ""
+    )
+    +
+    money(
+      e.profit
+    );
+
+
+  $("profitStat").className =
+    "font-bold "
+    +
+    (
+      e.profit>=0
+        ? "good"
+        : "bad"
+    );
+
+
+  $("timeState").textContent =
+    state.paused
+      ? "Czas zatrzymany"
+      : `Tempo ${state.speed}×`;
+
+}
+
+
+function renderBuildPanel(){
+
+  const mode =
+    $("mapBuildMode").value;
+
+
+  $("storeBuildControls")
+    .classList
+    .toggle(
+      "hidden",
+      mode!=="store"
+    );
+
+
+  if(
+    state.mapBuildPoint
+  ){
+
+    $("mapPointInfo").innerHTML =
+      `
+      Wybrano:
+      <strong>${placeLabel(state.mapBuildPoint)}</strong>
+      <br><span class="muted">${state.mapBuildPoint.lat.toFixed(5)}, ${state.mapBuildPoint.lng.toFixed(5)}</span>
+      `;
+
+  }
+
+  else{
+
+    $("mapPointInfo").textContent =
+      "Kliknij miejsce na mapie.";
+
+  }
+
+
+  if(
+    mode==="store"
+  ){
+
+    const t =
+      storeTypes[
+        $("buildStoreType").value
+      ];
+
+
+    $("buildInfo").innerHTML =
+      `
+      Koszt:
+      <strong>${money(t.cost)}</strong>
+      <br>
+      Koszt dzienny:
+      ${money(t.fixedCost)}
+      <br>
+      Skala sprzedaży:
+      ${t.salesMultiplier.toFixed(2)}×
+      `;
+
+  }
+
+  else{
+
+    $("buildInfo").innerHTML =
+      `
+      Koszt centrum:
+      <strong>${money(HUB_COST)}</strong>
+      <br>
+      Utrzymanie:
+      ${money(HUB_MAINTENANCE)}/dzień
+      <br>
+      Centrum skraca dostawy według odległości.
+      `;
+
+  }
+
+
+  const ready =
+    !!state.mapBuildPoint;
+
+
+  $("buildMapObjectBtn").disabled =
+    !ready;
+
+
+  $("buildMapObjectBtn").textContent =
+    ready
+      ? (
+          mode==="store"
+            ? "Zbuduj sklep tutaj"
+            : "Zbuduj centrum tutaj"
+        )
+      : "Najpierw kliknij mapę";
+
+}
+
+
+function renderNearestHub(){
+
+  if(
+    !state.mapBuildPoint
+  ){
+
+    $("nearestHubInfo").textContent =
+      "Brak wybranego punktu.";
+
+    return;
+
+  }
+
+
+  const p =
+    state.mapBuildPoint;
+
+
+  const nearest =
+    nearestHubFor(
+      p.lat,
+      p.lng
+    );
+
+
+  if(
+    !nearest
+  ){
+
+    $("nearestHubInfo").innerHTML =
+      `
+      Brak centrów logistycznych.
+      <br>
+      Przewidywana dostawa do sklepu w tym miejscu:
+      <strong>7 dni</strong>.
+      `;
+
+    return;
+
+  }
+
+
+  const tempStore = {
+
+    lat:
+      p.lat,
+
+    lng:
+      p.lng
+
+  };
+
+
+  const logistics =
+    logisticsForStore(
+      tempStore
+    );
+
+
+  $("nearestHubInfo").innerHTML =
+    `
+    Najbliższe centrum:
+    <strong>${nearest.hub.name}</strong>
+    <br>
+
+    Odległość:
+    <strong>${Math.round(nearest.distance)} km</strong>
+    <br>
+
+    Dostawa:
+    <strong>${logistics.eta} dni</strong>.
+    `;
+
+}
+
+
+function renderStores(){
+
+  $("storesList").innerHTML =
+    state.stores.length
+
+      ? state.stores.map(
+          store => {
+
+            const type =
+              storeTypes[
+                store.type
+              ];
+
+
+            const e =
+              expectedStoreDay(
+                store
+              );
+
+
+            const stock =
+              Object.values(
+                store.stock
+              )
+              .reduce(
+                (a,b) =>
+                  a+b,
+                0
+              );
+
+
+            const logistics =
+              logisticsForStore(
+                store
+              );
+
+
+            const refund =
+              type.cost
+              *
+              type.refund
+              +
+              (
+                store.level-1
+              )
+              *
+              15000;
+
+
+            return `
+            <div class="card p-4">
+
+              <div class="flex justify-between gap-3">
+
+                <div>
+
+                  <div class="font-bold">
+                    ${store.name}
+                  </div>
+
+                  <div class="text-sm muted">
+                    ${store.locationName}
+                  </div>
+
+                </div>
+
+                <span class="pill">
+                  ${type.name}
+                </span>
+
+              </div>
+
+              <div class="grid grid-cols-2 gap-2 mt-3 text-sm">
+
+                <div>
+                  Poziom
+                  <strong>${store.level}</strong>
+                </div>
+
+                <div>
+                  Magazyn
+                  <strong>${stock}</strong>
+                </div>
+
+                <div>
+                  Przychód/d
+                  <strong>${money(e.revenue)}</strong>
+                </div>
+
+                <div>
+                  Zysk/d
+                  <strong class="${e.profit>=0?"good":"bad"}">
+                    ${money(e.profit)}
+                  </strong>
+                </div>
+
+              </div>
+
+              <div class="text-xs muted mt-2">
+
+                Dostawa:
+                ${logistics.eta} dni
+
+                ${
+                  logistics.distance!==null
+
+                    ? `· ${Math.round(logistics.distance)} km od centrum`
+
+                    : "· brak centrum"
+                }
+
+              </div>
+
+              <button
+                class="upgrade-store btn w-full mt-3"
+                data-id="${store.id}"
+              >
+                Ulepsz —
+                ${money(45000*store.level)}
+              </button>
+
+              <button
+                class="focus-store btn w-full mt-2"
+                data-id="${store.id}"
+              >
+                Pokaż na mapie
+              </button>
+
+              <button
+                class="close-store btn btn-danger w-full mt-2"
+                data-id="${store.id}"
+              >
+                Zamknij · odzyskaj ${money(refund)}
+              </button>
+
+            </div>
+            `;
+
+          }
+        )
+        .join("")
+
+      : `
+        <div class="muted">
+          Brak sklepów.
+        </div>
+        `;
+
+}
+
+
+function renderOrderSelectors(){
+
+  const oldStore =
+    $("orderStore").value;
+
+
+  const oldProduct =
+    $("orderProduct").value;
+
+
+  $("orderStore").innerHTML =
+    state.stores
+      .map(
+        s =>
+          `
+          <option value="${s.id}">
+            ${s.name} — ${s.locationName}
+          </option>
+          `
+      )
+      .join("");
+
+
+  if(
+    state.stores.some(
+      s =>
+        s.id===oldStore
+    )
+  ){
+
+    $("orderStore").value =
+      oldStore;
+
+  }
+
+
+  const products =
+    allProducts()
+      .slice()
+      .sort(
+        (a,b) =>
+          b.demand-a.demand
+      );
+
+
+  $("orderProduct").innerHTML =
+    products
+      .map(
+        p =>
+          `
+          <option value="${p.id}">
+            ${p.name} — ${productBuyPrice(p).toFixed(2)} zł
+          </option>
+          `
+      )
+      .join("");
+
+
+  if(
+    products.some(
+      p =>
+        p.id===oldProduct
+    )
+  ){
+
+    $("orderProduct").value =
+      oldProduct;
+
+  }
+
+
+  $("inventoryStoreFilter").innerHTML =
+    `
+    <option value="all">
+      Wszystkie
+    </option>
+    `
+    +
+    state.stores
+      .map(
+        s =>
+          `
+          <option value="${s.id}">
+            ${s.name}
+          </option>
+          `
+      )
+      .join("");
+
+
+  renderOrderCost();
+
+}
+
+
+function renderOrderCost(){
+
+  const store =
+    getStore(
+      $("orderStore").value
+    );
+
+
+  const p =
+    getProduct(
+      $("orderProduct").value
+    );
+
+
+  const qty =
+    Math.max(
+      1,
+      Number(
+        $("orderQty").value
+      )
+      ||
+      1
+    );
+
+
+  if(
+    !store
+    ||
+    !p
+  ){
+
+    $("orderCost").textContent =
+      "—";
+
+
+    $("orderEta").textContent =
+      "—";
+
+
+    return;
+
+  }
+
+
+  const logistics =
+    logisticsForStore(
+      store
+    );
+
+
+  const goods =
+    productBuyPrice(p)
+    *
+    qty;
+
+
+  const transport =
+    Math.max(
+      20,
+      goods
+      *
+      .04
+      *
+      logistics.shippingMultiplier
+    );
+
+
+  $("orderCost").textContent =
+    money(
+      goods
+      +
+      transport
+    );
+
+
+  $("orderEta").textContent =
+    logistics.eta
+    +
+    " dni";
+
+}
+
+
+function renderShipments(){
+
+  $("shipmentsList").innerHTML =
+    state.shipments.length
+
+      ? state.shipments
+          .slice()
+          .sort(
+            (a,b) =>
+              a.eta-b.eta
+          )
+          .map(
+            sh => {
+
+              const store =
+                getStore(
+                  sh.storeId
+                );
+
+
+              const p =
+                getProduct(
+                  sh.productId
+                );
+
+
+              return `
+              <div class="card p-3 flex justify-between gap-3">
+
+                <div>
+
+                  <div class="font-medium">
+                    ${p?.name || "Produkt"}
+                  </div>
+
+                  <div class="text-sm muted">
+                    ${store?.name || "Sklep"}
+                    ·
+                    ${sh.qty} szt.
+                  </div>
+
+                </div>
+
+                <div class="text-right">
+
+                  <strong>
+                    ${sh.eta} dni
+                  </strong>
+
+                  <div class="text-xs muted">
+                    ${money(sh.cost)}
+                  </div>
+
+                </div>
+
+              </div>
+              `;
+
+            }
+          )
+          .join("")
+
+      : `
+        <div class="muted">
+          Brak dostaw w trasie.
+        </div>
+        `;
+
+}
+
+
+function renderInventory(){
+
+  const filter =
+    $("inventoryStoreFilter").value;
+
+
+  const stores =
+    filter==="all"
+      ? state.stores
+      : state.stores.filter(
+          s =>
+            s.id===filter
+        );
+
+
+  if(
+    !stores.length
+  ){
+
+    $("inventoryTable").innerHTML =
+      `
+      <div class="muted">
+        Brak sklepów.
+      </div>
+      `;
+
+    return;
+
+  }
+
+
+  const products =
+    allProducts()
+      .slice()
+      .sort(
+        (a,b) =>
+          b.demand-a.demand
+      )
+      .slice(
+        0,
+        35
+      );
+
+
+  let html =
+    `
+    <table class="min-w-[760px] w-full text-sm">
+
+      <thead>
+
+        <tr class="border-b border-slate-700">
+
+          <th class="text-left p-2">
+            Produkt
+          </th>
+    `;
+
+
+  stores.forEach(
+    store => {
+
+      html +=
+        `
+        <th class="text-left p-2">
+          ${store.name}
+        </th>
+        `;
+
+    }
+  );
+
+
+  html +=
+    `
+        </tr>
+      </thead>
+
+      <tbody>
+    `;
+
+
+  products.forEach(
+    p => {
+
+      html +=
+        `
+        <tr class="border-b border-slate-800">
+
+          <td class="p-2">
+            ${p.name}
+          </td>
+        `;
+
+
+      stores.forEach(
+        store => {
+
+          html +=
+            `
+            <td class="p-2">
+              ${store.stock[p.id] || 0}
+            </td>
+            `;
+
+        }
+      );
+
+
+      html +=
+        `
+        </tr>
+        `;
+
+    }
+  );
+
+
+  html +=
+    `
+      </tbody>
+    </table>
+    `;
+
+
+  $("inventoryTable").innerHTML =
+    html;
+
+}
+
+
+function renderLogistics(){
+
+  $("ownedHubs").innerHTML =
+    state.hubs.length
+
+      ? state.hubs.map(
+          hub =>
+            `
+            <div class="card p-3">
+
+              <div class="font-bold">
+                ${hub.name}
+              </div>
+
+              <div class="text-sm muted">
+                ${hub.lat.toFixed(4)},
+                ${hub.lng.toFixed(4)}
+              </div>
+
+              <div class="text-sm mt-2">
+                Utrzymanie:
+                ${money(hub.maintenance)}/dzień
+              </div>
+
+              <button
+                class="focus-hub btn w-full mt-3"
+                data-id="${hub.id}"
+              >
+                Pokaż na mapie
+              </button>
+
+            </div>
+            `
+        )
+        .join("")
+
+      : `
+        <div class="muted">
+          Brak centrów logistycznych.
+        </div>
+        `;
+
+}
+
+
+function renderProducts(){
+
+  $("productsGrid").innerHTML =
+    allProducts()
+      .slice(-60)
+      .reverse()
+      .map(
+        p =>
+          `
+          <div class="card p-4">
+
+            <div class="flex justify-between gap-2">
+
+              <div class="font-bold">
+                ${p.name}
+              </div>
+
+              ${
+                p.own
+                  ? `<span class="pill">marka własna</span>`
+                  : ""
+              }
+
+            </div>
+
+            <div class="text-sm muted">
+              ${p.category}
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 mt-3 text-sm">
+
+              <div>
+                Zakup
+                <strong>
+                  ${productBuyPrice(p).toFixed(2)} zł
+                </strong>
+              </div>
+
+              <div>
+                Popyt
+                <strong>
+                  ${Math.round(p.demand)}/100
+                </strong>
+              </div>
+
+            </div>
+
+            <label class="block mt-3 text-sm">
+
+              Cena sprzedaży
+
+              <input
+                class="product-price w-full mt-1"
+                data-id="${p.id}"
+                type="number"
+                min=".01"
+                step=".01"
+                value="${p.sellPrice.toFixed(2)}"
+              >
+
+            </label>
+
+          </div>
+          `
+      )
+      .join("");
+
+}
+
+
+function renderDeposit(){
+
+  $("depositCollected").textContent =
+    money(
+      state.deposit.collected
+    );
+
+
+  $("depositRefunded").textContent =
+    money(
+      state.deposit.refunded
+    );
+
+
+  $("depositContainers").textContent =
+    state.deposit.containers
+      .toLocaleString("pl-PL");
+
+
+  $("depositToggle").checked =
+    state.deposit.enabled;
+
+
+  $("depositRate").value =
+    state.deposit.rate.toFixed(2);
+
+
+  $("depositMachines").innerHTML =
+    state.stores.length
+
+      ? state.stores.map(
+          store => {
+
+            const level =
+              store.depositMachineLevel
+              ||
+              0;
+
+
+            const cost =
+              level===0
+                ? 65000
+                : 90000*level;
+
+
+            return `
+            <div class="card p-3">
+
+              <div class="font-bold">
+                ${store.name}
+              </div>
+
+              <div class="text-sm muted">
+                ${store.locationName}
+              </div>
+
+              <div class="mt-2 text-sm">
+
+                Automat:
+                <strong>
+                  poziom ${level}
+                </strong>
+
+              </div>
+
+              <button
+                class="deposit-upgrade btn ${
+                  level<3
+                    ? "btn-primary"
+                    : ""
+                } w-full mt-3"
+
+                data-id="${store.id}"
+
+                ${
+                  level>=3
+                    ? "disabled"
+                    : ""
+                }
+              >
+
+                ${
+                  level===0
+                    ? `Kup automat — ${money(cost)}`
+                    : level<3
+                      ? `Ulepsz automat — ${money(cost)}`
+                      : "Maksymalny poziom"
+                }
+
+              </button>
+
+            </div>
+            `;
+
+          }
+        )
+        .join("")
+
+      : `
+        <div class="muted">
+          Brak sklepów.
+        </div>
+        `;
+
+}
+
+
+function renderBrands(){
+
+  $("brandFamilies").innerHTML =
+    ownBrandFamilies
+      .map(
+        family => {
+
+          const available =
+            state.factories.some(
+              f =>
+                f.category
+                &&
+                family.categories.includes(
+                  f.category
+                )
+            );
+
+
+          return `
+          <div class="card p-3">
+
+            <div class="font-bold">
+              ${family.name}
+            </div>
+
+            <div class="text-sm muted">
+              ${family.description}
+            </div>
+
+            <button
+              class="create-private btn ${
+                available
+                  ? "btn-primary"
+                  : ""
+              } w-full mt-3"
+
+              data-family="${family.id}"
+
+              ${
+                available
+                  ? ""
+                  : "disabled"
+              }
+            >
+
+              ${
+                available
+                  ? "Wprowadź nowy produkt"
+                  : "Potrzebujesz odpowiedniej fabryki"
+              }
+
+            </button>
+
+          </div>
+          `;
+
+        }
+      )
+      .join("");
+
+
+  $("privateProducts").innerHTML =
+    state.privateProducts.length
+
+      ? state.privateProducts.map(
+          p =>
+            `
+            <div class="card p-3">
+
+              <div class="font-bold">
+                ${p.name}
+              </div>
+
+              <div class="text-sm muted">
+                ${p.category}
+              </div>
+
+              <div class="text-sm mt-2">
+
+                Koszt
+                ${p.buyPrice.toFixed(2)} zł
+
+                ·
+
+                cena
+                ${p.sellPrice.toFixed(2)} zł
+
+              </div>
+
+            </div>
+            `
+        )
+        .join("")
+
+      : `
+        <div class="muted">
+          Brak produktów marki własnej.
+        </div>
+        `;
+
+}
+
+
+function renderFactories(){
+
+  $("factoriesGrid").innerHTML =
+    state.factories.length
+
+      ? state.factories.map(
+          (factory,index) => {
+
+            const options =
+              factoryProducts
+                .map(
+                  cfg =>
+                    `
+                    <option
+                      value="${cfg.category}"
+                      ${
+                        factory.category===cfg.category
+                          ? "selected"
+                          : ""
+                      }
+                    >
+                      ${cfg.category}
+                    </option>
+                    `
+                )
+                .join("");
+
+
+            return `
+            <div class="card p-4">
+
+              <div class="flex justify-between gap-2">
+
+                <div class="font-bold">
+                  Fabryka #${index+1}
+                </div>
+
+                <span class="pill">
+                  ${factory.category || "pusta"}
+                </span>
+
+              </div>
+
+              <label class="block mt-3 text-sm">
+
+                Co produkuje?
+
+                <select
+                  class="factory-production w-full mt-1"
+                  data-id="${factory.id}"
+                >
+
+                  <option value="">
+                    — brak produkcji —
+                  </option>
+
+                  ${options}
+
+                </select>
+
+              </label>
+
+              <div class="text-sm mt-3">
+
+                Utrzymanie:
+
+                <strong>
+                  ${money(factory.maintenance)}/dzień
+                </strong>
+
+              </div>
+
+            </div>
+            `;
+
+          }
+        )
+        .join("")
+
+      : `
+        <div class="muted">
+          Nie masz jeszcze fabryki.
+        </div>
+        `;
+
+}
+
+
+function renderManagement(){
+
+  $("loyaltyBtn").disabled =
+    state.upgrades.loyalty;
+
+
+  $("loyaltyBtn").textContent =
+    state.upgrades.loyalty
+      ? "Aktywne"
+      : "Kup — 180 000 zł";
+
+
+  $("pricingBtn").disabled =
+    state.upgrades.pricing;
+
+
+  $("pricingBtn").textContent =
+    state.upgrades.pricing
+      ? "Aktywne"
+      : "Kup — 220 000 zł";
+
+
+  $("procurementBtn").disabled =
+    state.upgrades.procurement;
+
+
+  $("procurementBtn").textContent =
+    state.upgrades.procurement
+      ? "Aktywne"
+      : "Kup — 260 000 zł";
+
+}
+
+
+function renderCompanies(){
+
+  $("companiesGrid").innerHTML =
+    state.companies
+      .map(
+        company =>
+          `
+          <div class="card p-4">
+
+            <div class="font-bold">
+              ${company.name}
+            </div>
+
+            <div class="text-sm muted">
+              Gotowa sieć sklepów
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 text-sm mt-3">
+
+              <div>
+                Sklepy
+                <strong>${company.stores}</strong>
+              </div>
+
+              <div>
+                Jakość
+                <strong>
+                  ${Math.round(company.quality*100)}%
+                </strong>
+              </div>
+
+            </div>
+
+            <div class="mt-3">
+
+              Cena:
+
+              <strong>
+                ${money(company.price)}
+              </strong>
+
+            </div>
+
+            <button
+              class="buy-company btn btn-primary w-full mt-3"
+              data-id="${company.id}"
+            >
+              Przejmij całą sieć
+            </button>
+
+          </div>
+          `
+      )
+      .join("");
+
+}
+
+
+function renderAll(){
+
+  renderTop();
+
+  renderBuildPanel();
+
+  renderNearestHub();
+
+  renderStores();
+
+  renderOrderSelectors();
+
+  renderShipments();
+
+  renderInventory();
+
+  renderLogistics();
+
+  renderProducts();
+
+  renderDeposit();
+
+  renderBrands();
+
+  renderFactories();
+
+  renderManagement();
+
+  renderCompanies();
+
+  renderMapMarkers();
+
+}
+
+
+/* =========================
+   PRAWDZIWA MAPA LEAFLET
+========================= */
+
+let realMap=null;
+
+let storeLayer=null;
+
+let hubLayer=null;
+
+let buildLayer=null;
+
+
+const storeIcon =
+  L.divIcon({
+
+    className:"",
+
+    html:
+      `<span class="store-icon"></span>`,
+
+    iconSize:[
+      28,
+      28
+    ],
+
+    iconAnchor:[
+      14,
+      28
+    ]
+
+  });
+
+
+const hubIcon =
+  L.divIcon({
+
+    className:"",
+
+    html:
+      `<span class="hub-icon"></span>`,
+
+    iconSize:[
+      28,
+      28
+    ],
+
+    iconAnchor:[
+      14,
+      28
+    ]
+
+  });
+
+
+const buildIcon =
+  L.divIcon({
+
+    className:"",
+
+    html:
+      `<span class="build-icon"></span>`,
+
+    iconSize:[
+      20,
+      20
+    ],
+
+    iconAnchor:[
+      10,
+      10
+    ]
+
+  });
+
+
+function initMap(){
+
+  realMap =
+    L.map(
+      "worldMap",
+      {
+
+        center:[
+          52.0,
+          19.0
+        ],
+
+        zoom:5,
+
+        dragging:true,
+
+        scrollWheelZoom:true,
+
+        doubleClickZoom:true,
+
+        touchZoom:true,
+
+        boxZoom:true,
+
+        keyboard:true,
+
+        zoomControl:true
+
+      }
+    );
+
+
+  L.tileLayer(
+    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+    {
+
+      maxZoom:19,
+
+      attribution:
+        '&copy; OpenStreetMap contributors'
+
+    }
+  )
+  .addTo(
+    realMap
+  );
+
+
+  storeLayer =
+    L.layerGroup()
+      .addTo(
+        realMap
+      );
+
+
+  hubLayer =
+    L.layerGroup()
+      .addTo(
+        realMap
+      );
+
+
+  buildLayer =
+    L.layerGroup()
+      .addTo(
+        realMap
+      );
+
+
+  realMap.on(
+    "click",
+    e => {
+
+      selectBuildPoint(
+        e.latlng.lat,
+        e.latlng.lng
+      );
+
+    }
+  );
+
+
+  setTimeout(
+    () =>
+      realMap.invalidateSize(),
+    50
+  );
+
+}
+
+
+function renderMapMarkers(){
+
+  if(
+    !realMap
+  )
+    return;
+
+
+  storeLayer.clearLayers();
+
+  hubLayer.clearLayers();
+
+  buildLayer.clearLayers();
+
+
+  state.stores.forEach(
+    store => {
+
+      L.marker(
+        [
+          store.lat,
+          store.lng
+        ],
+        {
+          icon:storeIcon
+        }
+      )
+      .bindPopup(
+        `<strong>${store.name}</strong><br>${store.locationName}`
+      )
+      .addTo(
+        storeLayer
+      );
+
+    }
+  );
+
+
+  state.hubs.forEach(
+    hub => {
+
+      L.marker(
+        [
+          hub.lat,
+          hub.lng
+        ],
+        {
+          icon:hubIcon
+        }
+      )
+      .bindPopup(
+        `<strong>${hub.name}</strong><br>${hub.locationName || "Centrum logistyczne"}`
+      )
+      .addTo(
+        hubLayer
+      );
+
+    }
+  );
+
+
+  if(
+    state.mapBuildPoint
+  ){
+
+    L.marker(
+      [
+        state.mapBuildPoint.lat,
+        state.mapBuildPoint.lng
+      ],
+      {
+        icon:buildIcon
+      }
+    )
+    .bindPopup(
+      "Wybrane miejsce budowy"
+    )
+    .addTo(
+      buildLayer
+    );
+
+  }
+
+}
+
+
+function buildAtMapPoint(){
+
+  if(
+    !state.mapBuildPoint
+  )
+    return;
+
+
+  const mode =
+    $("mapBuildMode").value;
+
+
+  const lat =
+    state.mapBuildPoint.lat;
+
+
+  const lng =
+    state.mapBuildPoint.lng;
+
+
+  if(
+    mode==="store"
+  ){
+
+    const typeKey =
+      $("buildStoreType").value;
+
+
+    const type =
+      storeTypes[
+        typeKey
+      ];
+
+
+    if(
+      state.cash<type.cost
+    )
+      return;
+
+
+    state.cash -=
+      type.cost;
+
+
+    const number =
+      state.stores.length
+      +
+      1;
+
+
+    state.stores.push({
+
+      id:uid(),
+
+      name:
+        `${type.name} #${number}`,
+
+      locationName:
+        placeLabel(state.mapBuildPoint),
+
+      countryCode:
+        state.mapBuildPoint.countryCode || "",
+
+      lat,
+
+      lng,
+
+      type:
+        typeKey,
+
+      level:1,
+
+      levelMultiplier:1,
+
+      marketFactor:
+        .95
+        +
+        Math.random()*.15,
+
+      stock:{},
+
+      depositMachineLevel:0
+
+    });
+
+
+    state.reputation =
+      Math.min(
+        100,
+        state.reputation+.4
+      );
+
+  }
+
+  else{
+
+    if(
+      state.cash<
+      HUB_COST
+    )
+      return;
+
+
+    state.cash -=
+      HUB_COST;
+
+
+    state.hubs.push({
+
+      id:uid(),
+
+      name:
+        `Centrum logistyczne #${state.hubs.length+1}`,
+
+      locationName:
+        placeLabel(state.mapBuildPoint),
+
+      countryCode:
+        state.mapBuildPoint.countryCode || "",
+
+      lat,
+
+      lng,
+
+      maintenance:
+        HUB_MAINTENANCE
+
+    });
+
+  }
+
+
+  state.mapBuildPoint =
+    null;
+
+
+  renderAll();
+
+}
+
+
+function createAcquiredStores(
+  company
+){
+
+  const shuffled =
+    acquisitionLocations
+      .slice()
+      .sort(
+        () =>
+          Math.random()-.5
+      );
+
+
+  const stores=[];
+
+
+  for(
+    let i=0;
+    i<company.stores;
+    i++
+  ){
+
+    const loc =
+      shuffled[
+        i
+        %
+        shuffled.length
+      ];
+
+
+    // Bez losowego przesuwania: pineska zostaje na pewnym punkcie miasta,
+    // więc nie wyląduje przypadkiem w morzu ani za granicą.
+    const jitterLat = loc.lat;
+    const jitterLng = loc.lng;
+
+
+    stores.push({
+
+      id:uid(),
+
+      name:
+        `${company.name} #${i+1}`,
+
+      locationName:
+        loc.name,
+
+      lat:
+        jitterLat,
+
+      lng:
+        jitterLng,
+
+      type:
+        i%5===0
+          ? "standard"
+          : "mini",
+
+      level:1,
+
+      levelMultiplier:
+        company.quality,
+
+      marketFactor:
+        company.quality,
+
+      stock:{},
+
+      depositMachineLevel:0
+
+    });
+
+  }
+
+
+  return stores;
+
+}
+
+
+/* =========================
+   EVENTY
+========================= */
+
+$("citySearchBtn").addEventListener("click",searchCities);
+$("citySearchInput").addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); searchCities(); } });
+
+$("buildMapObjectBtn")
+  .addEventListener(
+    "click",
+    buildAtMapPoint
+  );
+
+
+$("mapBuildMode")
+  .addEventListener(
+    "change",
+    renderBuildPanel
+  );
+
+
+$("buildStoreType")
+  .addEventListener(
+    "change",
+    renderBuildPanel
+  );
+
+
+$("pauseBtn")
+  .addEventListener(
+    "click",
+    () => {
+
+      state.paused =
+        !state.paused;
+
+
+      $("pauseBtn").textContent =
+        state.paused
+          ? "▶ Wznów"
+          : "⏸ Pauza";
+
+
+      renderTop();
+
+    }
+  );
+
+
+document
+  .querySelectorAll(
+    ".speed"
+  )
+  .forEach(
+    btn => {
+
+      btn.addEventListener(
+        "click",
+        () => {
+
+          state.speed =
+            Number(
+              btn.dataset.speed
+            );
+
+
+          state.paused =
+            false;
+
+
+          $("pauseBtn").textContent =
+            "⏸ Pauza";
+
+
+          renderTop();
+
+        }
+      );
+
+    }
+  );
+
+
+document
+  .querySelectorAll(
+    ".tab"
+  )
+  .forEach(
+    btn => {
+
+      btn.addEventListener(
+        "click",
+        () => {
+
+          document
+            .querySelectorAll(
+              ".tab"
+            )
+            .forEach(
+              t =>
+                t.classList.remove(
+                  "active"
+                )
+            );
+
+
+          btn.classList.add(
+            "active"
+          );
+
+
+          document
+            .querySelectorAll(
+              ".game-tab"
+            )
+            .forEach(
+              t =>
+                t.classList.add(
+                  "hidden"
+                )
+            );
+
+
+          $(
+            "tab-"
+            +
+            btn.dataset.tab
+          )
+          .classList
+          .remove(
+            "hidden"
+          );
+
+
+          if(
+            btn.dataset.tab==="world"
+            &&
+            realMap
+          ){
+
+            setTimeout(
+              () =>
+                realMap.invalidateSize(),
+              40
+            );
+
+          }
+
+        }
+      );
+
+    }
+  );
+
+
+$("orderStore")
+  .addEventListener(
+    "change",
+    renderOrderCost
+  );
+
+
+$("orderProduct")
+  .addEventListener(
+    "change",
+    renderOrderCost
+  );
+
+
+$("orderQty")
+  .addEventListener(
+    "input",
+    renderOrderCost
+  );
+
+
+$("inventoryStoreFilter")
+  .addEventListener(
+    "change",
+    renderInventory
+  );
+
+
+$("orderForm")
+  .addEventListener(
+    "submit",
+    e => {
+
+      e.preventDefault();
+
+
+      const store =
+        getStore(
+          $("orderStore").value
+        );
+
+
+      const p =
+        getProduct(
+          $("orderProduct").value
+        );
+
+
+      const qty =
+        Math.max(
+          1,
+          Math.min(
+            100000,
+            Number(
+              $("orderQty").value
+            )
+            ||
+            1
+          )
+        );
+
+
+      if(
+        store
+        &&
+        p
+      ){
+
+        placeOrder(
+          store,
+          p,
+          qty
+        );
+
+      }
+
+
+      renderAll();
+
+    }
+  );
+
+
+$("autoOrderBtn")
+  .addEventListener(
+    "click",
+    () => {
+
+      runAutomaticOrders();
+
+      renderAll();
+
+    }
+  );
+
+
+$("generateProductsBtn")
+  .addEventListener(
+    "click",
+    () => {
+
+      generateProducts(10);
+
+      renderAll();
+
+    }
+  );
+
+
+$("autoOrdersToggle")
+  .addEventListener(
+    "change",
+    () => {
+
+      state.autoOrders =
+        $("autoOrdersToggle").checked;
+
+    }
+  );
+
+
+$("autoOrderMin")
+  .addEventListener(
+    "change",
+    () => {
+
+      state.autoOrderMin =
+        Math.max(
+          5,
+          Math.min(
+            500,
+            Number(
+              $("autoOrderMin").value
+            )
+            ||
+            35
+          )
+        );
+
+    }
+  );
+
+
+$("autoOrderTarget")
+  .addEventListener(
+    "change",
+    () => {
+
+      state.autoOrderTarget =
+        Math.max(
+          state.autoOrderMin+1,
+          Math.min(
+            1000,
+            Number(
+              $("autoOrderTarget").value
+            )
+            ||
+            110
+          )
+        );
+
+    }
+  );
+
+
+$("depositToggle")
+  .addEventListener(
+    "change",
+    () => {
+
+      state.deposit.enabled =
+        $("depositToggle").checked;
+
+
+      renderAll();
+
+    }
+  );
+
+
+$("depositRate")
+  .addEventListener(
+    "change",
+    () => {
+
+      state.deposit.rate =
+        Number(
+          $("depositRate").value
+        )
+        ||
+        1;
+
+
+      renderAll();
+
+    }
+  );
+
+
+$("buildFactoryBtn")
+  .addEventListener(
+    "click",
+    () => {
+
+      if(
+        state.cash<
+        GENERIC_FACTORY_COST
+      )
+        return;
+
+
+      state.cash -=
+        GENERIC_FACTORY_COST;
+
+
+      state.factories.push({
+
+        id:uid(),
+
+        category:null,
+
+        maintenance:180
+
+      });
+
+
+      renderAll();
+
+    }
+  );
+
+
+$("loyaltyBtn")
+  .addEventListener(
+    "click",
+    () => {
+
+      if(
+        !state.upgrades.loyalty
+        &&
+        state.cash>=180000
+      ){
+
+        state.cash -=
+          180000;
+
+
+        state.upgrades.loyalty =
+          true;
+
+
+        renderAll();
+
+      }
+
+    }
+  );
+
+
+$("pricingBtn")
+  .addEventListener(
+    "click",
+    () => {
+
+      if(
+        !state.upgrades.pricing
+        &&
+        state.cash>=220000
+      ){
+
+        state.cash -=
+          220000;
+
+
+        state.upgrades.pricing =
+          true;
+
+
+        renderAll();
+
+      }
+
+    }
+  );
+
+
+$("procurementBtn")
+  .addEventListener(
+    "click",
+    () => {
+
+      if(
+        !state.upgrades.procurement
+        &&
+        state.cash>=260000
+      ){
+
+        state.cash -=
+          260000;
+
+
+        state.upgrades.procurement =
+          true;
+
+
+        renderAll();
+
+      }
+
+    }
+  );
+
+
+$("marketingBtn")
+  .addEventListener(
+    "click",
+    () => {
+
+      if(
+        state.cash>=75000
+      ){
+
+        state.cash -=
+          75000;
+
+
+        state.reputation =
+          Math.min(
+            100,
+            state.reputation+8
+          );
+
+
+        renderAll();
+
+      }
+
+    }
+  );
+
+
+document
+  .addEventListener(
+    "click",
+    e => {
+
+      const upgrade =
+        e.target.closest(
+          ".upgrade-store"
+        );
+
+
+      if(upgrade){
+
+        const store =
+          getStore(
+            upgrade.dataset.id
+          );
+
+
+        if(!store)
+          return;
+
+
+        const cost =
+          45000
+          *
+          store.level;
+
+
+        if(
+          state.cash<cost
+        )
+          return;
+
+
+        state.cash -=
+          cost;
+
+
+        store.level++;
+
+
+        store.levelMultiplier *=
+          1.12;
+
+
+        renderAll();
+
+        return;
+
+      }
+
+
+      const focusStore =
+        e.target.closest(
+          ".focus-store"
+        );
+
+
+      if(focusStore){
+
+        const store =
+          getStore(
+            focusStore.dataset.id
+          );
+
+
+        if(
+          store
+          &&
+          realMap
+        ){
+
+          document
+            .querySelector(
+              '[data-tab="world"]'
+            )
+            .click();
+
+
+          realMap.setView(
+            [
+              store.lat,
+              store.lng
+            ],
+            12
+          );
+
+        }
+
+
+        return;
+
+      }
+
+
+      const focusHub =
+        e.target.closest(
+          ".focus-hub"
+        );
+
+
+      if(focusHub){
+
+        const hub =
+          state.hubs.find(
+            h =>
+              h.id===
+              focusHub.dataset.id
+          );
+
+
+        if(
+          hub
+          &&
+          realMap
+        ){
+
+          document
+            .querySelector(
+              '[data-tab="world"]'
+            )
+            .click();
+
+
+          realMap.setView(
+            [
+              hub.lat,
+              hub.lng
+            ],
+            9
+          );
+
+        }
+
+
+        return;
+
+      }
+
+
+      const closeStore =
+        e.target.closest(
+          ".close-store"
+        );
+
+
+      if(closeStore){
+
+        const store =
+          getStore(
+            closeStore.dataset.id
+          );
+
+
+        if(!store)
+          return;
+
+
+        const type =
+          storeTypes[
+            store.type
+          ];
+
+
+        const refund =
+          type.cost
+          *
+          type.refund
+          +
+          (
+            store.level-1
+          )
+          *
+          15000;
+
+
+        state.cash +=
+          refund;
+
+
+        state.stores =
+          state.stores.filter(
+            s =>
+              s.id!==store.id
+          );
+
+
+        state.shipments =
+          state.shipments.filter(
+            s =>
+              s.storeId!==store.id
+          );
+
+
+        renderAll();
+
+        return;
+
+      }
+
+
+      const dep =
+        e.target.closest(
+          ".deposit-upgrade"
+        );
+
+
+      if(
+        dep
+        &&
+        !dep.disabled
+      ){
+
+        const store =
+          getStore(
+            dep.dataset.id
+          );
+
+
+        if(!store)
+          return;
+
+
+        const level =
+          store.depositMachineLevel
+          ||
+          0;
+
+
+        const cost =
+          level===0
+            ? 65000
+            : 90000*level;
+
+
+        if(
+          state.cash<cost
+        )
+          return;
+
+
+        state.cash -=
+          cost;
+
+
+        store.depositMachineLevel =
+          Math.min(
+            3,
+            level+1
+          );
+
+
+        renderAll();
+
+        return;
+
+      }
+
+
+      const privateBtn =
+        e.target.closest(
+          ".create-private"
+        );
+
+
+      if(
+        privateBtn
+        &&
+        !privateBtn.disabled
+      ){
+
+        const family =
+          ownBrandFamilies.find(
+            f =>
+              f.id===
+              privateBtn.dataset.family
+          );
+
+
+        const matching =
+          state.factories.filter(
+            f =>
+              f.category
+              &&
+              family.categories.includes(
+                f.category
+              )
+          );
+
+
+        if(
+          !matching.length
+          ||
+          state.cash<30000
+        )
+          return;
+
+
+        state.cash -=
+          30000;
+
+
+        const factory =
+          matching[
+            Math.floor(
+              Math.random()
+              *
+              matching.length
+            )
+          ];
+
+
+        state.privateProducts.push(
+
+          createProduct(
+            true,
+            factory.category,
+            family.id
+          )
+
+        );
+
+
+        renderAll();
+
+        return;
+
+      }
+
+
+      const buyCompany =
+        e.target.closest(
+          ".buy-company"
+        );
+
+
+      if(buyCompany){
+
+        const company =
+          state.companies.find(
+            c =>
+              c.id===
+              buyCompany.dataset.id
+          );
+
+
+        if(
+          !company
+          ||
+          state.cash<company.price
+        )
+          return;
+
+
+        state.cash -=
+          company.price;
+
+
+        state.stores.push(
+          ...createAcquiredStores(
+            company
+          )
+        );
+
+
+        state.reputation =
+          Math.min(
+            100,
+            state.reputation
+            +
+            Math.min(
+              5,
+              company.stores*.3
+            )
+          );
+
+
+        state.companies =
+          state.companies.filter(
+            c =>
+              c.id!==company.id
+          );
+
+
+        renderAll();
+
+        return;
+
+      }
+
+    }
+  );
+
+
+document
+  .addEventListener(
+    "change",
+    e => {
+
+      if(
+        e.target.matches(
+          ".product-price"
+        )
+      ){
+
+        const p =
+          getProduct(
+            e.target.dataset.id
+          );
+
+
+        if(p){
+
+          p.sellPrice =
+            Math.max(
+              .01,
+              Number(
+                e.target.value
+              )
+              ||
+              p.sellPrice
+            );
+
+        }
+
+
+        renderTop();
+
+      }
+
+
+      if(
+        e.target.matches(
+          ".factory-production"
+        )
+      ){
+
+        const factory =
+          state.factories.find(
+            f =>
+              f.id===
+              e.target.dataset.id
+          );
+
+
+        if(!factory)
+          return;
+
+
+        const category =
+          e.target.value
+          ||
+          null;
+
+
+        if(!category){
+
+          factory.category =
+            null;
+
+
+          factory.maintenance =
+            180;
+
+
+          renderAll();
+
+          return;
+
+        }
+
+
+        const cfg =
+          factoryProducts.find(
+            p =>
+              p.category===
+              category
+          );
+
+
+        if(!cfg)
+          return;
+
+
+        if(
+          factory.category!==category
+        ){
+
+          if(
+            state.cash<
+            cfg.setupCost
+          ){
+
+            e.target.value =
+              factory.category
+              ||
+              "";
+
+
+            return;
+
+          }
+
+
+          state.cash -=
+            cfg.setupCost;
+
+        }
+
+
+        factory.category =
+          category;
+
+
+        factory.maintenance =
+          cfg.maintenance;
+
+
+        renderAll();
+
+      }
+
+    }
+  );
+
+
+/* =========================
+   KONSOLA
+========================= */
+
+function consolePrint(text){
+
+  const out =
+    $("consoleOutput");
+
+
+  const line =
+    document.createElement(
+      "div"
+    );
+
+
+  line.textContent =
+    text;
+
+
+  out.appendChild(
+    line
+  );
+
+
+  out.scrollTop =
+    out.scrollHeight;
+
+}
+
+
+function setConsole(open){
+
+  $("cheatConsole")
+    .classList
+    .toggle(
+      "hidden",
+      !open
+    );
+
+
+  if(open){
+
+    setTimeout(
+      () =>
+        $("consoleInput").focus(),
+      0
+    );
+
+  }
+
+}
+
+
+document
+  .addEventListener(
+    "keydown",
+    e => {
+
+      if(
+        (
+          e.key==="`"
+          ||
+          e.key==="~"
+        )
+        &&
+        ![
+          "INPUT",
+          "TEXTAREA",
+          "SELECT"
+        ]
+        .includes(
+          document.activeElement?.tagName
+        )
+      ){
+
+        e.preventDefault();
+
+
+        setConsole(
+          $("cheatConsole")
+            .classList
+            .contains(
+              "hidden"
+            )
+        );
+
+      }
+
+    }
+  );
+
+
+$("closeConsoleBtn")
+  .addEventListener(
+    "click",
+    () =>
+      setConsole(false)
+  );
+
+
+$("consoleForm")
+  .addEventListener(
+    "submit",
+    async e => {
+
+      e.preventDefault();
+
+
+      const raw =
+        $("consoleInput")
+          .value
+          .trim();
+
+
+      $("consoleInput").value =
+        "";
+
+
+      if(!raw)
+        return;
+
+
+      consolePrint(
+        "> "
+        +
+        raw
+      );
+
+
+      const [
+        cmd,
+        ...args
+      ] =
+        raw.split(
+          /\s+/
+        );
+
+
+      const c =
+        cmd.toUpperCase();
+
+
+      if(
+        c==="HELP"
+      ){
+
+        [
+          "CASH <kwota>",
+          "SETCASH <kwota>",
+          "AUTO ON/OFF",
+          "PRODUCTS <liczba>",
+          "REPUTATION <0-100>",
+          "FACTORY <kategoria>",
+          "SHOP <kod kraju> [ile]  np. SHOP PL / SHOP USA / SHOP US 25",
+          "HUB <kod kraju> [ile]   np. HUB PL / HUB USA 10",
+          "HUB bez kraju = jedno centrum na środku aktualnego widoku"
+        ]
+        .forEach(
+          consolePrint
+        );
+
+
+        return;
+
+      }
+
+
+      if(
+        c==="CASH"
+      ){
+
+        const n =
+          Number(
+            args[0]
+          );
+
+
+        if(
+          Number.isFinite(n)
+        ){
+
+          state.cash +=
+            n;
+
+        }
+
+
+        renderAll();
+
+        return;
+
+      }
+
+
+      if(
+        c==="SETCASH"
+      ){
+
+        const n =
+          Number(
+            args[0]
+          );
+
+
+        if(
+          Number.isFinite(n)
+        ){
+
+          state.cash =
+            Math.max(
+              0,
+              n
+            );
+
+        }
+
+
+        renderAll();
+
+        return;
+
+      }
+
+
+      if(
+        c==="AUTO"
+      ){
+
+        state.autoOrders =
+          (
+            args[0]
+            ||
+            ""
+          )
+          .toUpperCase()
+          ===
+          "ON";
+
+
+        $("autoOrdersToggle").checked =
+          state.autoOrders;
+
+
+        return;
+
+      }
+
+
+      if(
+        c==="PRODUCTS"
+      ){
+
+        generateProducts(
+
+          Math.max(
+            1,
+            Math.min(
+              100,
+              Number(
+                args[0]
+              )
+              ||
+              10
+            )
+          )
+
+        );
+
+
+        renderAll();
+
+        return;
+
+      }
+
+
+      if(
+        c==="REPUTATION"
+      ){
+
+        state.reputation =
+          Math.max(
+            0,
+            Math.min(
+              100,
+              Number(
+                args[0]
+              )
+              ||
+              50
+            )
+          );
+
+
+        renderAll();
+
+        return;
+
+      }
+
+
+      if(
+        c==="FACTORY"
+      ){
+
+        const category =
+          args.join(" ");
+
+
+        const cfg =
+          factoryProducts.find(
+            p =>
+              p.category
+                .toLowerCase()
+              ===
+              category.toLowerCase()
+          );
+
+
+        state.factories.push({
+
+          id:uid(),
+
+          category:
+            cfg?.category
+            ||
+            null,
+
+          maintenance:
+            cfg?.maintenance
+            ||
+            180
+
+        });
+
+
+        renderAll();
+
+        return;
+
+      }
+
+
+      if(
+        c==="SHOP"
+      ){
+
+        const country = args[0];
+
+        if(!country){
+          consolePrint("Użycie: SHOP <kod kraju> [ile], np. SHOP PL albo SHOP USA 40");
+          return;
+        }
+
+        consolePrint(`Szukam bezpiecznych miast w ${normalizeCountryCode(country)}…`);
+        await bulkPlaceInCountry("store",country,args[1]);
+        return;
+
+      }
+
+
+      if(
+        c==="HUB"
+        || c==="LOGISTICS"
+        || c==="CENTER"
+        || c==="CENTRE"
+      ){
+
+        if(
+          !realMap
+        )
+          return;
+
+
+        if(args[0]){
+          consolePrint(`Szukam bezpiecznych miast w ${normalizeCountryCode(args[0])}…`);
+          await bulkPlaceInCountry("hub",args[0],args[1]);
+          return;
+        }
+
+
+        const center =
+          realMap.getCenter();
+
+
+        state.hubs.push({
+
+          id:uid(),
+
+          name:
+            `Centrum logistyczne #${state.hubs.length+1}`,
+
+          locationName:
+            "Środek aktualnego widoku",
+
+          lat:
+            center.lat,
+
+          lng:
+            center.lng,
+
+          maintenance:
+            HUB_MAINTENANCE
+
+        });
+
+
+        renderAll();
+
+        return;
+
+      }
+
+
+      consolePrint(
+        "Nieznany kod."
+      );
+
+    }
+  );
+
+
+/* =========================
+   START
+========================= */
+
+generateProducts(30);
+
+generateCompanies();
+
+initMap();
+
+renderAll();
+
+
+setInterval(
+  () => {
+
+    if(
+      state.paused
+    )
+      return;
+
+
+    for(
+      let i=0;
+      i<state.speed;
+      i++
+    ){
+
+      simulateDay();
+
+    }
+
+
+    renderAll();
+
+  },
+  1000
+);
+
+</script>
+
+</body>
+</html>
