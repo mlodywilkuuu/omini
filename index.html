@@ -4,9 +4,31 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Retail Empire Tycoon</title>
+
 <script src="https://cdn.tailwindcss.com"></script>
+
+<link
+  rel="stylesheet"
+  href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+/>
+
+<script
+  src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+></script>
+
 <style>
-:root{--bg:#0b1020;--panel:#111827;--card:#182235;--border:#2f3d55;--text:#f8fafc;--muted:#94a3b8;--accent:#22c55e;--accent2:#16a34a;--danger:#ef4444;--warn:#f59e0b}
+:root{
+  --bg:#0b1020;
+  --panel:#111827;
+  --card:#182235;
+  --border:#2f3d55;
+  --text:#f8fafc;
+  --muted:#94a3b8;
+  --accent:#22c55e;
+  --danger:#ef4444;
+  --warn:#f59e0b;
+  --blue:#60a5fa;
+}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,Arial,sans-serif}
 button,select,input{font:inherit}
@@ -14,100 +36,60 @@ button{cursor:pointer}
 .panel{background:var(--panel);border:1px solid var(--border);border-radius:14px}
 .card{background:var(--card);border:1px solid var(--border);border-radius:12px}
 .muted{color:var(--muted)}
-.btn{border:1px solid var(--border);background:var(--card);color:var(--text);border-radius:9px;padding:10px 14px}
-.btn:hover{filter:brightness(1.08)}
-.btn-primary{background:var(--accent);border-color:var(--accent);color:#052e16;font-weight:800}
-.btn-primary:hover{background:var(--accent2);color:#fff}
-.btn-danger{background:var(--danger);border-color:var(--danger);color:white}
-.tab.active{background:var(--accent);border-color:var(--accent);color:#052e16;font-weight:800}
-input,select{background:#0b1220;color:var(--text);border:1px solid var(--border);border-radius:8px;padding:10px}
-.scrollbar::-webkit-scrollbar{height:8px;width:8px}
-.scrollbar::-webkit-scrollbar-thumb{background:#475569;border-radius:999px}
-.country{cursor:pointer;transition:.12s}
-.country:hover{filter:brightness(1.25)}
-.pill{display:inline-flex;align-items:center;border:1px solid var(--border);border-radius:999px;padding:4px 8px;font-size:12px}
 .good{color:#22c55e}
 .bad{color:#ef4444}
 .warn{color:#f59e0b}
+.btn{border:1px solid var(--border);background:var(--card);color:var(--text);border-radius:9px;padding:10px 14px}
+.btn:hover{filter:brightness(1.08)}
+.btn-primary{background:var(--accent);border-color:var(--accent);color:#052e16;font-weight:800}
+.btn-primary:hover{filter:brightness(1.1)}
+.btn-danger{background:var(--danger);border-color:var(--danger);color:#fff}
+.tab.active{background:var(--accent);border-color:var(--accent);color:#052e16;font-weight:800}
+input,select{background:#0b1220;color:var(--text);border:1px solid var(--border);border-radius:8px;padding:10px}
+.pill{display:inline-flex;align-items:center;border:1px solid var(--border);border-radius:999px;padding:4px 8px;font-size:12px}
+.scrollbar::-webkit-scrollbar{height:8px;width:8px}
+.scrollbar::-webkit-scrollbar-thumb{background:#475569;border-radius:999px}
+#worldMap{height:620px;width:100%;border-radius:12px;overflow:hidden}
+.leaflet-container{background:#0b1220;font-family:Inter,Arial,sans-serif}
+.store-icon,.hub-icon,.build-icon{display:block}
+.store-icon{width:14px;height:14px;border-radius:50%;background:#facc15;border:2px solid #111827;box-shadow:0 0 0 1px rgba(255,255,255,.25)}
+.hub-icon{width:16px;height:16px;border-radius:4px;background:#60a5fa;border:2px solid #111827;box-shadow:0 0 0 1px rgba(255,255,255,.25)}
+.build-icon{width:20px;height:20px;border-radius:50%;background:white;border:4px solid #22c55e;box-shadow:0 0 0 2px rgba(0,0,0,.35)}
 </style>
 </head>
 
 <body>
-
-<div class="max-w-[1700px] mx-auto p-3 md:p-5">
+<div class="max-w-[1750px] mx-auto p-3 md:p-5">
 
 <header class="mb-4">
   <h1 class="text-2xl md:text-3xl font-bold">Retail Empire Tycoon</h1>
   <p class="muted mt-1">
-    Buduj sieć convenience, centra logistyczne, marki własne i własne fabryki.
+    Buduj sklepy dokładnie na prawdziwej mapie, rozwijaj logistykę, fabryki, marki własne i przejmuj gotowe sieci.
   </p>
 </header>
 
 <div class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-2 mb-4">
-
-  <div class="card p-3">
-    <div class="text-xs muted">Gotówka</div>
-    <div id="cash" class="font-bold text-lg">—</div>
-  </div>
-
-  <div class="card p-3">
-    <div class="text-xs muted">Sklepy</div>
-    <div id="storesStat" class="font-bold text-lg">—</div>
-  </div>
-
-  <div class="card p-3">
-    <div class="text-xs muted">Centra logistyczne</div>
-    <div id="hubsStat" class="font-bold text-lg">—</div>
-  </div>
-
-  <div class="card p-3">
-    <div class="text-xs muted">Fabryki</div>
-    <div id="factoriesStat" class="font-bold text-lg">—</div>
-  </div>
-
-  <div class="card p-3">
-    <div class="text-xs muted">Marki własne</div>
-    <div id="privateStat" class="font-bold text-lg">—</div>
-  </div>
-
-  <div class="card p-3">
-    <div class="text-xs muted">Reputacja</div>
-    <div id="repStat" class="font-bold text-lg">—</div>
-  </div>
-
-  <div class="card p-3">
-    <div class="text-xs muted">Data</div>
-    <div id="dateStat" class="font-bold">—</div>
-  </div>
-
-  <div class="card p-3">
-    <div class="text-xs muted">Prognoza / dzień</div>
-    <div id="profitStat" class="font-bold">—</div>
-  </div>
-
+  <div class="card p-3"><div class="text-xs muted">Gotówka</div><div id="cash" class="font-bold text-lg">—</div></div>
+  <div class="card p-3"><div class="text-xs muted">Sklepy</div><div id="storesStat" class="font-bold text-lg">—</div></div>
+  <div class="card p-3"><div class="text-xs muted">Centra logistyczne</div><div id="hubsStat" class="font-bold text-lg">—</div></div>
+  <div class="card p-3"><div class="text-xs muted">Fabryki</div><div id="factoriesStat" class="font-bold text-lg">—</div></div>
+  <div class="card p-3"><div class="text-xs muted">Marki własne</div><div id="privateStat" class="font-bold text-lg">—</div></div>
+  <div class="card p-3"><div class="text-xs muted">Reputacja</div><div id="repStat" class="font-bold text-lg">—</div></div>
+  <div class="card p-3"><div class="text-xs muted">Data</div><div id="dateStat" class="font-bold">—</div></div>
+  <div class="card p-3"><div class="text-xs muted">Prognoza / dzień</div><div id="profitStat" class="font-bold">—</div></div>
 </div>
 
 <div class="panel p-3 mb-4 flex flex-wrap items-center gap-2">
-
   <strong>Czas</strong>
-
-  <button id="pauseBtn" class="btn">
-    ⏸ Pauza
-  </button>
-
+  <button id="pauseBtn" class="btn">⏸ Pauza</button>
   <button class="speed btn" data-speed="1">1×</button>
   <button class="speed btn" data-speed="3">3×</button>
   <button class="speed btn" data-speed="10">10×</button>
   <button class="speed btn" data-speed="30">30×</button>
-
-  <span id="timeState" class="ml-auto text-sm muted">
-    1 dzień = 1 sekunda
-  </span>
-
+  <span id="timeState" class="ml-auto text-sm muted">Tempo 1×</span>
 </div>
 
 <div class="panel p-3 mb-4 flex flex-wrap items-center gap-3">
-
   <strong>Auto-zamówienia</strong>
 
   <label class="flex items-center gap-2">
@@ -117,101 +99,48 @@ input,select{background:#0b1220;color:var(--text);border:1px solid var(--border)
 
   <label class="text-sm">
     Minimum
-    <input
-      id="autoOrderMin"
-      type="number"
-      min="5"
-      max="500"
-      value="35"
-      class="w-24 ml-1"
-    >
+    <input id="autoOrderMin" type="number" min="5" max="500" value="35" class="w-24 ml-1">
   </label>
 
   <label class="text-sm">
     Cel
-    <input
-      id="autoOrderTarget"
-      type="number"
-      min="10"
-      max="1000"
-      value="110"
-      class="w-24 ml-1"
-    >
+    <input id="autoOrderTarget" type="number" min="10" max="1000" value="110" class="w-24 ml-1">
   </label>
 
   <span class="text-sm muted">
-    Kontrola zapasów co 2 dni.
+    System sprawdza zapasy co 2 dni.
   </span>
-
 </div>
 
 <div class="flex gap-2 overflow-x-auto scrollbar mb-4">
-
-  <button data-tab="world" class="tab btn active">
-    🌍 Mapa
-  </button>
-
-  <button data-tab="stores" class="tab btn">
-    🏪 Sklepy
-  </button>
-
-  <button data-tab="orders" class="tab btn">
-    📦 Zamówienia
-  </button>
-
-  <button data-tab="logistics" class="tab btn">
-    🚚 Logistyka
-  </button>
-
-  <button data-tab="products" class="tab btn">
-    🥤 Produkty
-  </button>
-
-  <button data-tab="deposit" class="tab btn">
-    ♻️ Kaucja
-  </button>
-
-  <button data-tab="private" class="tab btn">
-    🏷️ Marki własne
-  </button>
-
-  <button data-tab="factories" class="tab btn">
-    🏭 Fabryki
-  </button>
-
-  <button data-tab="management" class="tab btn">
-    📈 Rozwój
-  </button>
-
-  <button data-tab="acquisitions" class="tab btn">
-    💼 Przejęcia
-  </button>
-
+  <button data-tab="world" class="tab btn active">🌍 Mapa</button>
+  <button data-tab="stores" class="tab btn">🏪 Sklepy</button>
+  <button data-tab="orders" class="tab btn">📦 Zamówienia</button>
+  <button data-tab="logistics" class="tab btn">🚚 Logistyka</button>
+  <button data-tab="products" class="tab btn">🥤 Produkty</button>
+  <button data-tab="deposit" class="tab btn">♻️ Kaucja</button>
+  <button data-tab="private" class="tab btn">🏷️ Marki własne</button>
+  <button data-tab="factories" class="tab btn">🏭 Fabryki</button>
+  <button data-tab="management" class="tab btn">📈 Rozwój</button>
+  <button data-tab="acquisitions" class="tab btn">💼 Przejęcia</button>
 </div>
 
 <section id="tab-world" class="game-tab">
 
-<div class="grid xl:grid-cols-[1.55fr_.65fr] gap-4">
+<div class="grid xl:grid-cols-[1.6fr_.65fr] gap-4">
 
   <div class="panel p-3">
 
     <h2 class="font-bold text-lg">
-      Mapa ekspansji
+      Prawdziwa mapa
     </h2>
 
     <p class="text-sm muted mb-3">
-      Kliknij dokładne miejsce na mapie, a następnie wybierz sklep albo centrum logistyczne.
+      Przeciągaj mapę, przybliżaj rolką i kliknij dokładne miejsce budowy.
+      Żółte kropki = sklepy, niebieskie kwadraty = centra logistyczne.
     </p>
 
-    <div class="rounded-xl overflow-hidden bg-[#08111f]">
-
-      <svg
-        id="worldMap"
-        viewBox="0 0 1000 520"
-        class="w-full h-auto"
-      ></svg>
-
-    </div>
+    <div id="worldMap"></div>
 
   </div>
 
@@ -220,15 +149,11 @@ input,select{background:#0b1220;color:var(--text);border:1px solid var(--border)
     <div class="panel p-4">
 
       <h3 class="font-bold">
-        Wybrany rynek
+        Budowa na mapie
       </h3>
 
-      <div id="selectedCountryName" class="text-xl font-bold mt-2">
-        Wybierz punkt
-      </div>
-
-      <div id="selectedCountryInfo" class="text-sm muted mt-2">
-        Kliknij dokładne miejsce na mapie.
+      <div id="mapPointInfo" class="card p-3 text-sm mt-3">
+        Kliknij miejsce na mapie.
       </div>
 
       <label class="block mt-4 text-sm">
@@ -236,15 +161,8 @@ input,select{background:#0b1220;color:var(--text);border:1px solid var(--border)
       </label>
 
       <select id="mapBuildMode" class="w-full mt-1">
-
-        <option value="store" selected>
-          Sklep
-        </option>
-
-        <option value="hub">
-          Centrum logistyczne
-        </option>
-
+        <option value="store" selected>Sklep</option>
+        <option value="hub">Centrum logistyczne</option>
       </select>
 
       <div id="storeBuildControls">
@@ -254,39 +172,22 @@ input,select{background:#0b1220;color:var(--text);border:1px solid var(--border)
         </label>
 
         <select id="buildStoreType" class="w-full mt-1">
-
-          <option value="mini">
-            Mini convenience
-          </option>
-
-          <option value="standard" selected>
-            Convenience
-          </option>
-
-          <option value="discount">
-            Dyskont miejski
-          </option>
-
-          <option value="supermarket">
-            Supermarket
-          </option>
-
+          <option value="mini">Mini convenience</option>
+          <option value="standard" selected>Convenience</option>
+          <option value="discount">Dyskont miejski</option>
+          <option value="supermarket">Supermarket</option>
         </select>
 
       </div>
 
-      <div id="buildStoreInfo" class="text-sm muted mt-3"></div>
-
-      <div id="mapPointInfo" class="card p-3 text-sm mt-3">
-        Kliknij dokładne miejsce na mapie.
-      </div>
+      <div id="buildInfo" class="text-sm muted mt-3"></div>
 
       <button
-        id="buildStoreBtn"
+        id="buildMapObjectBtn"
         class="btn btn-primary w-full mt-4"
         disabled
       >
-        Zbuduj w zaznaczonym miejscu
+        Najpierw kliknij mapę
       </button>
 
     </div>
@@ -294,10 +195,12 @@ input,select{background:#0b1220;color:var(--text);border:1px solid var(--border)
     <div class="panel p-4">
 
       <h3 class="font-bold">
-        Twoje rynki
+        Najbliższa logistyka
       </h3>
 
-      <div id="marketList" class="mt-3 space-y-2 text-sm"></div>
+      <div id="nearestHubInfo" class="mt-3 text-sm muted">
+        Brak wybranego punktu.
+      </div>
 
     </div>
 
@@ -316,12 +219,12 @@ input,select{background:#0b1220;color:var(--text);border:1px solid var(--border)
   </h2>
 
   <p class="text-sm muted">
-    Sklep zarabia więcej, jeśli ma towar, wysoki poziom i wsparcie logistyki.
+    Możesz ulepszać, zamykać i sprawdzać rentowność każdej placówki.
   </p>
 
   <div
     id="storesList"
-    class="mt-4 grid md:grid-cols-2 xl:grid-cols-3 gap-3"
+    class="grid md:grid-cols-2 xl:grid-cols-3 gap-3 mt-4"
   ></div>
 
 </div>
@@ -330,7 +233,7 @@ input,select{background:#0b1220;color:var(--text);border:1px solid var(--border)
 
 <section id="tab-orders" class="game-tab hidden">
 
-<div class="grid xl:grid-cols-[.72fr_1.28fr] gap-4">
+<div class="grid xl:grid-cols-[.7fr_1.3fr] gap-4">
 
   <div class="panel p-4">
 
@@ -339,33 +242,23 @@ input,select{background:#0b1220;color:var(--text);border:1px solid var(--border)
     </h2>
 
     <p class="text-sm muted mt-1">
-      Towar nie trafia od razu do sklepu.
-      Czas dostawy zależy od regionu i centrum logistycznego.
+      Czas dostawy zależy od odległości sklepu od najbliższego centrum logistycznego.
     </p>
 
     <form id="orderForm" class="space-y-3 mt-4">
 
       <label class="block text-sm">
         Sklep
-
-        <select
-          id="orderStore"
-          class="w-full mt-1"
-        ></select>
+        <select id="orderStore" class="w-full mt-1"></select>
       </label>
 
       <label class="block text-sm">
         Produkt
-
-        <select
-          id="orderProduct"
-          class="w-full mt-1"
-        ></select>
+        <select id="orderProduct" class="w-full mt-1"></select>
       </label>
 
       <label class="block text-sm">
         Ilość
-
         <input
           id="orderQty"
           type="number"
@@ -384,25 +277,19 @@ input,select{background:#0b1220;color:var(--text);border:1px solid var(--border)
         </div>
 
         <div class="muted mt-1">
-          Szacowana dostawa:
+          Dostawa:
           <span id="orderEta">—</span>
         </div>
 
       </div>
 
-      <button
-        type="submit"
-        class="btn btn-primary w-full"
-      >
+      <button type="submit" class="btn btn-primary w-full">
         Zamów
       </button>
 
     </form>
 
-    <button
-      id="autoOrderBtn"
-      class="btn w-full mt-3"
-    >
+    <button id="autoOrderBtn" class="btn w-full mt-3">
       Auto-zamów teraz
     </button>
 
@@ -416,10 +303,7 @@ input,select{background:#0b1220;color:var(--text);border:1px solid var(--border)
         Dostawy w trasie
       </h2>
 
-      <div
-        id="shipmentsList"
-        class="mt-3 space-y-2"
-      ></div>
+      <div id="shipmentsList" class="mt-3 space-y-2"></div>
 
     </div>
 
@@ -432,9 +316,7 @@ input,select{background:#0b1220;color:var(--text);border:1px solid var(--border)
         </h2>
 
         <select id="inventoryStoreFilter">
-          <option value="all">
-            Wszystkie
-          </option>
+          <option value="all">Wszystkie</option>
         </select>
 
       </div>
@@ -459,27 +341,58 @@ input,select{background:#0b1220;color:var(--text);border:1px solid var(--border)
   <div class="panel p-4">
 
     <h2 class="font-bold text-lg">
-      Centra logistyczne
+      System logistyczny
     </h2>
 
     <p class="text-sm muted mt-1">
-      Centrum logistyczne budujesz bezpośrednio na mapie:
-      wybierz tryb „Centrum logistyczne”, kliknij miejsce i zatwierdź budowę.
+      Im bliżej centrum znajduje się sklep, tym szybsza i tańsza dostawa.
+      Centrum budujesz bezpośrednio na mapie.
     </p>
 
-    <div id="hubOffers" class="mt-4 space-y-3"></div>
+    <div class="card p-3 mt-4 text-sm">
+
+      <div>
+        &lt; 300 km →
+        <strong>1 dzień</strong>
+      </div>
+
+      <div>
+        300–900 km →
+        <strong>2 dni</strong>
+      </div>
+
+      <div>
+        900–1800 km →
+        <strong>3 dni</strong>
+      </div>
+
+      <div>
+        1800–3500 km →
+        <strong>4 dni</strong>
+      </div>
+
+      <div>
+        &gt; 3500 km →
+        <strong>5 dni</strong>
+      </div>
+
+      <div class="muted mt-2">
+        Bez centrum logistycznego: 7 dni.
+      </div>
+
+    </div>
 
   </div>
 
   <div class="panel p-4">
 
     <h2 class="font-bold text-lg">
-      Posiadana infrastruktura
+      Twoje centra
     </h2>
 
     <div
       id="ownedHubs"
-      class="mt-4 grid md:grid-cols-2 gap-3"
+      class="grid md:grid-cols-2 gap-3 mt-4"
     ></div>
 
   </div>
@@ -497,11 +410,11 @@ input,select{background:#0b1220;color:var(--text);border:1px solid var(--border)
     <div>
 
       <h2 class="font-bold text-lg">
-        Rynek produktów
+        Produkty
       </h2>
 
       <p class="text-sm muted">
-        Popyt i ceny hurtowe zmieniają się co tydzień.
+        Popyt i ceny hurtowe zmieniają się z czasem.
       </p>
 
     </div>
@@ -534,31 +447,7 @@ input,select{background:#0b1220;color:var(--text);border:1px solid var(--border)
       System kaucyjny
     </h2>
 
-    <p class="text-sm muted mt-1">
-      Butelki i puszki objęte kaucją zwiększają ruch klientów,
-      ale wymagają obsługi zwrotów.
-    </p>
-
-    <div class="card p-3 mt-4">
-
-      <div class="flex justify-between gap-3">
-        <span>Saldo kaucji pobranej od klientów</span>
-        <strong id="depositCollected">—</strong>
-      </div>
-
-      <div class="flex justify-between gap-3 mt-2">
-        <span>Zwroty wypłacone klientom</span>
-        <strong id="depositRefunded">—</strong>
-      </div>
-
-      <div class="flex justify-between gap-3 mt-2">
-        <span>Opakowania do rozliczenia</span>
-        <strong id="depositContainers">—</strong>
-      </div>
-
-    </div>
-
-    <label class="flex items-center gap-2 mt-4">
+    <label class="flex items-center gap-2 mt-3">
 
       <input
         id="depositToggle"
@@ -567,12 +456,13 @@ input,select{background:#0b1220;color:var(--text);border:1px solid var(--border)
       >
 
       <span>
-        Włącz system kaucyjny w sieci
+        Włącz system kaucyjny
       </span>
 
     </label>
 
     <label class="block mt-3 text-sm">
+
       Kaucja za opakowanie
 
       <select
@@ -596,8 +486,23 @@ input,select{background:#0b1220;color:var(--text);border:1px solid var(--border)
 
     </label>
 
-    <div class="text-sm muted mt-3">
-      Produkty kategorii Napoje i Energetyki automatycznie naliczają kaucję.
+    <div class="card p-3 mt-4 text-sm">
+
+      <div class="flex justify-between">
+        <span>Pobrane kaucje</span>
+        <strong id="depositCollected">—</strong>
+      </div>
+
+      <div class="flex justify-between mt-2">
+        <span>Zwroty klientom</span>
+        <strong id="depositRefunded">—</strong>
+      </div>
+
+      <div class="flex justify-between mt-2">
+        <span>Opakowania</span>
+        <strong id="depositContainers">—</strong>
+      </div>
+
     </div>
 
   </div>
@@ -608,13 +513,9 @@ input,select{background:#0b1220;color:var(--text);border:1px solid var(--border)
       Automaty zwrotne
     </h2>
 
-    <p class="text-sm muted">
-      Automat przyspiesza obsługę zwrotów i zwiększa popyt w sklepie.
-    </p>
-
     <div
       id="depositMachines"
-      class="mt-4 grid md:grid-cols-2 gap-3"
+      class="grid md:grid-cols-2 gap-3 mt-4"
     ></div>
 
   </div>
@@ -634,12 +535,12 @@ input,select{background:#0b1220;color:var(--text);border:1px solid var(--border)
     </h2>
 
     <p class="text-sm muted mt-1">
-      Własne produkty mają lepszą marżę i bonus sprzedaży.
+      Potrzebujesz fabryki ustawionej na odpowiednią kategorię.
     </p>
 
     <div
       id="brandFamilies"
-      class="mt-4 space-y-3"
+      class="space-y-3 mt-4"
     ></div>
 
   </div>
@@ -674,9 +575,7 @@ input,select{background:#0b1220;color:var(--text);border:1px solid var(--border)
       </h2>
 
       <p class="text-sm muted">
-        Najpierw budujesz pustą fabrykę,
-        a potem sam wybierasz, co produkuje.
-        Profil produkcji możesz później zmienić.
+        Budujesz pustą fabrykę, potem sam wybierasz co produkuje.
       </p>
 
     </div>
@@ -710,7 +609,7 @@ input,select{background:#0b1220;color:var(--text);border:1px solid var(--border)
     </div>
 
     <div class="text-sm muted mt-1">
-      +10% popytu w całej sieci.
+      +10% popytu.
     </div>
 
     <button
@@ -729,7 +628,7 @@ input,select{background:#0b1220;color:var(--text);border:1px solid var(--border)
     </div>
 
     <div class="text-sm muted mt-1">
-      +5% przychodów dzięki lepszemu pricingowi.
+      +5% przychodów.
     </div>
 
     <button
@@ -748,7 +647,7 @@ input,select{background:#0b1220;color:var(--text);border:1px solid var(--border)
     </div>
 
     <div class="text-sm muted mt-1">
-      -8% ceny zakupu produktów zewnętrznych.
+      -8% ceny zakupu.
     </div>
 
     <button
@@ -763,11 +662,11 @@ input,select{background:#0b1220;color:var(--text);border:1px solid var(--border)
   <div class="card p-4">
 
     <div class="font-bold">
-      Marketing lokalny
+      Marketing
     </div>
 
     <div class="text-sm muted mt-1">
-      +8 reputacji od razu.
+      +8 reputacji.
     </div>
 
     <button
@@ -788,11 +687,11 @@ input,select{background:#0b1220;color:var(--text);border:1px solid var(--border)
 <div class="panel p-4">
 
   <h2 class="font-bold text-lg">
-    Rynek przejęć
+    Przejęcia sieci
   </h2>
 
   <p class="text-sm muted">
-    Kupujesz całą sieć i przejmujesz jej istniejące sklepy.
+    Po przejęciu dostajesz gotowe sklepy stojące w prawdziwych lokalizacjach na mapie.
   </p>
 
   <div
@@ -875,7 +774,7 @@ input,select{background:#0b1220;color:var(--text);border:1px solid var(--border)
 
 </div>
 
-<script type="module">
+<script>
 
 const $ =
   id =>
@@ -924,9 +823,7 @@ const brands = [
   "Mondo",
   "Baltic",
   "Prime",
-  "Lumo",
-  "Maxi",
-  "GoodDay"
+  "Lumo"
 ];
 
 
@@ -940,9 +837,7 @@ const variants = [
   "Mega",
   "Street",
   "Original",
-  "Premium",
-  "Hot",
-  "Light"
+  "Premium"
 ];
 
 
@@ -955,8 +850,7 @@ const ownBrandFamilies = [
     "Chipsy",
     "Słodycze"
   ],
-  description:
-    "Przekąski i słodycze."
+  description:"Przekąski i słodycze."
 },
 
 {
@@ -966,8 +860,7 @@ const ownBrandFamilies = [
     "Napoje",
     "Energetyki"
   ],
-  description:
-    "Napoje i energetyki."
+  description:"Napoje i energetyki."
 },
 
 {
@@ -978,8 +871,7 @@ const ownBrandFamilies = [
     "Gotowe posiłki",
     "Pieczywo"
   ],
-  description:
-    "Jedzenie na szybko."
+  description:"Jedzenie na szybko."
 },
 
 {
@@ -989,8 +881,7 @@ const ownBrandFamilies = [
     "Kawa",
     "Nabiał"
   ],
-  description:
-    "Kawa i codzienne produkty premium."
+  description:"Kawa i nabiał."
 }
 
 ];
@@ -1001,29 +892,33 @@ const storeTypes = {
 mini:{
   name:"Mini convenience",
   cost:70000,
-  fixedCost:110,
-  salesMultiplier:.8
+  fixedCost:100,
+  salesMultiplier:.85,
+  refund:.45
 },
 
 standard:{
   name:"Convenience",
   cost:155000,
-  fixedCost:250,
-  salesMultiplier:1.3
+  fixedCost:230,
+  salesMultiplier:1.35,
+  refund:.50
 },
 
 discount:{
   name:"Dyskont miejski",
   cost:350000,
-  fixedCost:650,
-  salesMultiplier:2.5
+  fixedCost:600,
+  salesMultiplier:2.6,
+  refund:.52
 },
 
 supermarket:{
   name:"Supermarket",
   cost:820000,
-  fixedCost:1450,
-  salesMultiplier:4.8
+  fixedCost:1350,
+  salesMultiplier:5,
+  refund:.55
 }
 
 };
@@ -1086,60 +981,104 @@ const GENERIC_FACTORY_COST =
   650000;
 
 
-const hubRegions = [
+const HUB_COST =
+  500000;
+
+
+const HUB_MAINTENANCE =
+  600;
+
+
+const acquisitionLocations = [
 
 {
-  id:"europe",
-  name:"Europa",
-  cost:500000,
-  maintenance:650,
-  days:2,
-  transportDiscount:.18
+  name:"Warszawa",
+  lat:52.2297,
+  lng:21.0122
 },
 
 {
-  id:"asia",
-  name:"Azja",
-  cost:700000,
-  maintenance:800,
-  days:3,
-  transportDiscount:.16
+  name:"Kraków",
+  lat:50.0647,
+  lng:19.9450
 },
 
 {
-  id:"northamerica",
-  name:"Ameryka Północna",
-  cost:650000,
-  maintenance:750,
-  days:3,
-  transportDiscount:.16
+  name:"Berlin",
+  lat:52.5200,
+  lng:13.4050
 },
 
 {
-  id:"southamerica",
-  name:"Ameryka Południowa",
-  cost:520000,
-  maintenance:650,
-  days:4,
-  transportDiscount:.14
+  name:"Praga",
+  lat:50.0755,
+  lng:14.4378
 },
 
 {
-  id:"africa",
-  name:"Afryka",
-  cost:480000,
-  maintenance:600,
-  days:4,
-  transportDiscount:.14
+  name:"Wiedeń",
+  lat:48.2082,
+  lng:16.3738
 },
 
 {
-  id:"oceania",
-  name:"Oceania",
-  cost:430000,
-  maintenance:550,
-  days:4,
-  transportDiscount:.12
+  name:"Paryż",
+  lat:48.8566,
+  lng:2.3522
+},
+
+{
+  name:"Madryt",
+  lat:40.4168,
+  lng:-3.7038
+},
+
+{
+  name:"Londyn",
+  lat:51.5074,
+  lng:-0.1278
+},
+
+{
+  name:"Nowy Jork",
+  lat:40.7128,
+  lng:-74.0060
+},
+
+{
+  name:"Chicago",
+  lat:41.8781,
+  lng:-87.6298
+},
+
+{
+  name:"Los Angeles",
+  lat:34.0522,
+  lng:-118.2437
+},
+
+{
+  name:"Toronto",
+  lat:43.6532,
+  lng:-79.3832
+},
+
+{
+  name:"Tokio",
+  lat:35.6762,
+  lng:139.6503
+},
+
+{
+  name:"Seul",
+  lat:37.5665,
+  lng:126.9780
+},
+
+{
+  name:"Sydney",
+  lat:-33.8688,
+  lng:151.2093
 }
 
 ];
@@ -1164,23 +1103,21 @@ paused:false,
 
 reputation:55,
 
-selectedCountry:null,
-
 mapBuildPoint:null,
 
 stores:[],
 
-products:[],
+hubs:[],
 
 factories:[],
 
-privateProducts:[],
+products:[],
 
-companies:[],
+privateProducts:[],
 
 shipments:[],
 
-hubs:[],
+companies:[],
 
 dayCounter:0,
 
@@ -1198,7 +1135,7 @@ upgrades:{
 
 deposit:{
   enabled:true,
-  rate:1.00,
+  rate:1,
   collected:0,
   refunded:0,
   containers:0
@@ -1251,39 +1188,6 @@ function getStore(id){
 }
 
 
-function getFactory(cat){
-
-  return state.factories
-    .find(
-      f =>
-        f.category===cat
-    );
-
-}
-
-
-function factoriesFor(cat){
-
-  return state.factories
-    .filter(
-      f =>
-        f.category===cat
-    );
-
-}
-
-
-function getHub(region){
-
-  return state.hubs
-    .find(
-      h =>
-        h.region===region
-    );
-
-}
-
-
 function createProduct(
   own=false,
   category=null,
@@ -1311,10 +1215,10 @@ function createProduct(
       : null;
 
 
-  const base =
+  const cost =
     own
-      ? .55 + Math.random()*2.5
-      : 1.2 + Math.random()*8;
+      ? .6+Math.random()*2.5
+      : 1.2+Math.random()*8;
 
 
   return {
@@ -1362,15 +1266,15 @@ function createProduct(
       familyId || null,
 
     buyPrice:
-      base,
+      cost,
 
     sellPrice:
-      base
+      cost
       *
       (
         own
-          ? 2.6
-          : 1.65 + Math.random()*.55
+          ? 2.55
+          : 1.65+Math.random()*.55
       ),
 
     demand:
@@ -1434,7 +1338,7 @@ function generateCompanies(){
             3
             +
             Math.floor(
-              Math.random()*9
+              Math.random()*8
             );
 
 
@@ -1444,28 +1348,25 @@ function generateCompanies(){
 
             name,
 
-            type:
-              "Sieć gotowych sklepów",
-
             stores,
+
+            quality:
+              .9
+              +
+              Math.random()*.2,
 
             price:
               Math.round(
                 stores
                 *
-                95000
+                90000
                 *
                 (
                   .9
                   +
-                  Math.random()*.35
+                  Math.random()*.25
                 )
-              ),
-
-            quality:
-              .85
-              +
-              Math.random()*.35
+              )
 
           };
 
@@ -1520,22 +1421,6 @@ function demandWithPrice(p){
   }
 
 
-  if(
-    state.deposit.enabled
-    &&
-    (
-      p.category==="Napoje"
-      ||
-      p.category==="Energetyki"
-    )
-  ){
-
-    factor *=
-      1.04;
-
-  }
-
-
   return (
     p.demand
     *
@@ -1568,11 +1453,220 @@ function productBuyPrice(p){
 }
 
 
-function expectedStoreDay(s){
+function distanceKm(
+  aLat,
+  aLng,
+  bLat,
+  bLng
+){
+
+  const R =
+    6371;
+
+
+  const dLat =
+    (
+      bLat-aLat
+    )
+    *
+    Math.PI
+    /
+    180;
+
+
+  const dLng =
+    (
+      bLng-aLng
+    )
+    *
+    Math.PI
+    /
+    180;
+
+
+  const lat1 =
+    aLat
+    *
+    Math.PI
+    /
+    180;
+
+
+  const lat2 =
+    bLat
+    *
+    Math.PI
+    /
+    180;
+
+
+  const a =
+    Math.sin(dLat/2)**2
+    +
+    Math.cos(lat1)
+    *
+    Math.cos(lat2)
+    *
+    Math.sin(dLng/2)**2;
+
+
+  return (
+    R
+    *
+    2
+    *
+    Math.atan2(
+      Math.sqrt(a),
+      Math.sqrt(1-a)
+    )
+  );
+
+}
+
+
+function nearestHubFor(
+  lat,
+  lng
+){
+
+  if(
+    !state.hubs.length
+  ){
+
+    return null;
+
+  }
+
+
+  let best =
+    null;
+
+
+  let bestDistance =
+    Infinity;
+
+
+  for(
+    const hub
+    of state.hubs
+  ){
+
+    const d =
+      distanceKm(
+        lat,
+        lng,
+        hub.lat,
+        hub.lng
+      );
+
+
+    if(
+      d<bestDistance
+    ){
+
+      bestDistance =
+        d;
+
+
+      best =
+        hub;
+
+    }
+
+  }
+
+
+  return {
+
+    hub:best,
+
+    distance:
+      bestDistance
+
+  };
+
+}
+
+
+function logisticsForStore(
+  store
+){
+
+  const nearest =
+    nearestHubFor(
+      store.lat,
+      store.lng
+    );
+
+
+  if(
+    !nearest
+  ){
+
+    return {
+
+      eta:7,
+
+      shippingMultiplier:1.15,
+
+      distance:null
+
+    };
+
+  }
+
+
+  const d =
+    nearest.distance;
+
+
+  let eta =
+    5;
+
+
+  if(d<300)
+    eta=1;
+
+  else if(d<900)
+    eta=2;
+
+  else if(d<1800)
+    eta=3;
+
+  else if(d<3500)
+    eta=4;
+
+
+  const shippingMultiplier =
+    Math.max(
+      .55,
+      .70+d/10000
+    );
+
+
+  return {
+
+    eta,
+
+    shippingMultiplier,
+
+    distance:d,
+
+    hub:
+      nearest.hub
+
+  };
+
+}
+
+
+function expectedStoreDay(
+  store
+){
 
   const type =
     storeTypes[
-      s.type
+      store.type
     ];
 
 
@@ -1584,7 +1678,7 @@ function expectedStoreDay(s){
   for(
     const [pid,qty]
     of Object.entries(
-      s.stock
+      store.stock
     )
   ){
 
@@ -1611,9 +1705,9 @@ function expectedStoreDay(s){
           *
           type.salesMultiplier
           *
-          s.levelMultiplier
+          store.levelMultiplier
           *
-          s.marketFactor
+          store.marketFactor
           *
           (
             .55
@@ -1626,18 +1720,16 @@ function expectedStoreDay(s){
       );
 
 
-    const revMult =
-      state.upgrades.pricing
-        ? 1.05
-        : 1;
-
-
     revenue +=
       sales
       *
       p.sellPrice
       *
-      revMult;
+      (
+        state.upgrades.pricing
+          ? 1.05
+          : 1
+      );
 
 
     cogs +=
@@ -1651,7 +1743,7 @@ function expectedStoreDay(s){
   const fixed =
     type.fixedCost
     *
-    s.levelMultiplier;
+    store.levelMultiplier;
 
 
   return {
@@ -1659,9 +1751,7 @@ function expectedStoreDay(s){
     revenue,
 
     cost:
-      cogs
-      +
-      fixed,
+      cogs+fixed,
 
     profit:
       revenue
@@ -1683,10 +1773,12 @@ function expectedCompanyDay(){
 
 
   state.stores.forEach(
-    s => {
+    store => {
 
       const r =
-        expectedStoreDay(s);
+        expectedStoreDay(
+          store
+        );
 
 
       revenue +=
@@ -1701,16 +1793,22 @@ function expectedCompanyDay(){
 
 
   state.factories.forEach(
-    f =>
+    f => {
+
       cost +=
-        f.maintenance
+        f.maintenance;
+
+    }
   );
 
 
   state.hubs.forEach(
-    h =>
+    h => {
+
       cost +=
-        h.maintenance
+        h.maintenance;
+
+    }
   );
 
 
@@ -1730,11 +1828,13 @@ function expectedCompanyDay(){
 }
 
 
-function simulateStoreDay(s){
+function simulateStoreDay(
+  store
+){
 
   const type =
     storeTypes[
-      s.type
+      store.type
     ];
 
 
@@ -1746,7 +1846,7 @@ function simulateStoreDay(s){
   for(
     const pid
     of Object.keys(
-      s.stock
+      store.stock
     )
   ){
 
@@ -1759,7 +1859,7 @@ function simulateStoreDay(s){
 
 
     const qty =
-      s.stock[pid]
+      store.stock[pid]
       ||
       0;
 
@@ -1775,9 +1875,9 @@ function simulateStoreDay(s){
           *
           type.salesMultiplier
           *
-          s.levelMultiplier
+          store.levelMultiplier
           *
-          s.marketFactor
+          store.marketFactor
           *
           (
             .55
@@ -1802,7 +1902,7 @@ function simulateStoreDay(s){
       continue;
 
 
-    s.stock[pid] -=
+    store.stock[pid] -=
       sales;
 
 
@@ -1834,24 +1934,24 @@ function simulateStoreDay(s){
       )
     ){
 
-      const depositIn =
+      const depositIncome =
         sales
         *
         state.deposit.rate;
 
 
+      const machineLevel =
+        store.depositMachineLevel
+        ||
+        0;
+
+
       const returnRate =
         Math.min(
-          .90,
+          .92,
           .35
           +
-          (
-            s.depositMachineLevel
-            ||
-            0
-          )
-          *
-          .18
+          machineLevel*.18
         );
 
 
@@ -1864,7 +1964,7 @@ function simulateStoreDay(s){
 
 
       state.deposit.collected +=
-        depositIn;
+        depositIncome;
 
 
       state.deposit.refunded +=
@@ -1878,7 +1978,7 @@ function simulateStoreDay(s){
 
 
       revenue +=
-        depositIn
+        depositIncome
         -
         returned
         *
@@ -1894,49 +1994,10 @@ function simulateStoreDay(s){
     -
     cogs
     -
-    (
-      type.fixedCost
-      *
-      s.levelMultiplier
-    )
+    type.fixedCost
+    *
+    store.levelMultiplier
   );
-
-}
-
-
-function shipmentEta(store){
-
-  const hub =
-    getHub(
-      store.region
-    );
-
-
-  return hub
-    ? hub.days
-    : Math.max(
-        5,
-        8
-        -
-        Math.floor(
-          state.reputation/25
-        )
-      );
-
-}
-
-
-function shippingMultiplier(store){
-
-  const hub =
-    getHub(
-      store.region
-    );
-
-
-  return hub
-    ? 1-hub.transportDiscount
-    : 1;
 
 }
 
@@ -1947,24 +2008,26 @@ function placeOrder(
   qty
 ){
 
-  const unit =
-    productBuyPrice(p);
+  const logistics =
+    logisticsForStore(
+      store
+    );
 
 
   const goods =
-    unit
+    productBuyPrice(p)
     *
     qty;
 
 
   const transport =
     Math.max(
-      25,
+      20,
       goods
       *
-      .035
+      .04
       *
-      shippingMultiplier(store)
+      logistics.shippingMultiplier
     );
 
 
@@ -2000,12 +2063,7 @@ function placeOrder(
       total,
 
     eta:
-      shipmentEta(store),
-
-    created:
-      formatDate(
-        state.date
-      )
+      logistics.eta
 
   });
 
@@ -2018,8 +2076,11 @@ function placeOrder(
 function processShipments(){
 
   state.shipments.forEach(
-    sh =>
-      sh.eta--
+    sh => {
+
+      sh.eta--;
+
+    }
   );
 
 
@@ -2033,17 +2094,17 @@ function processShipments(){
   arrived.forEach(
     sh => {
 
-      const s =
+      const store =
         getStore(
           sh.storeId
         );
 
 
-      if(s){
+      if(store){
 
-        s.stock[sh.productId] =
+        store.stock[sh.productId] =
           (
-            s.stock[sh.productId]
+            store.stock[sh.productId]
             ||
             0
           )
@@ -2089,7 +2150,7 @@ function runAutomaticOrders(){
 
 
   for(
-    const s
+    const store
     of state.stores
   ){
 
@@ -2098,25 +2159,29 @@ function runAutomaticOrders(){
       of products
     ){
 
+      const inTransit =
+        state.shipments
+          .filter(
+            s =>
+              s.storeId===store.id
+              &&
+              s.productId===p.id
+          )
+          .reduce(
+            (sum,s) =>
+              sum+s.qty,
+            0
+          );
+
+
       const have =
         (
-          s.stock[p.id]
+          store.stock[p.id]
           ||
           0
         )
         +
-        state.shipments
-          .filter(
-            x =>
-              x.storeId===s.id
-              &&
-              x.productId===p.id
-          )
-          .reduce(
-            (a,b) =>
-              a+b.qty,
-            0
-          );
+        inTransit;
 
 
       if(
@@ -2146,7 +2211,7 @@ function runAutomaticOrders(){
       ){
 
         placeOrder(
-          s,
+          store,
           p,
           qty
         );
@@ -2154,106 +2219,6 @@ function runAutomaticOrders(){
       }
 
     }
-
-  }
-
-}
-
-
-function simulateDay(){
-
-  let profit=0;
-
-
-  state.stores.forEach(
-    s =>
-      profit +=
-        simulateStoreDay(s)
-  );
-
-
-  state.factories.forEach(
-    f =>
-      profit -=
-        f.maintenance
-  );
-
-
-  state.hubs.forEach(
-    h =>
-      profit -=
-        h.maintenance
-  );
-
-
-  state.cash +=
-    profit;
-
-
-  state.date =
-    new Date(
-      state.date.getTime()
-      +
-      86400000
-    );
-
-
-  state.dayCounter++;
-
-
-  processShipments();
-
-
-  if(
-    state.deposit.enabled
-    &&
-    state.deposit.containers>0
-  ){
-
-    const settle =
-      Math.min(
-        state.deposit.containers,
-        Math.ceil(
-          state.deposit.containers*.5
-        )
-      );
-
-
-    state.cash +=
-      settle
-      *
-      state.deposit.rate;
-
-
-    state.deposit.containers -=
-      settle;
-
-  }
-
-
-  if(
-    state.dayCounter%2===0
-  ){
-
-    runAutomaticOrders();
-
-  }
-
-
-  if(
-    state.dayCounter%7===0
-  ){
-
-    weeklyUpdate();
-
-  }
-
-
-  if(
-    state.dayCounter%30===0
-  ){
-
-    monthlyUpdate();
 
   }
 
@@ -2317,67 +2282,113 @@ function monthlyUpdate(){
 }
 
 
-function regionFromFeature(feature){
+function simulateDay(){
 
-  const c =
-    geoPath
-      ? geoPath.centroid(feature)
-      : [500,250];
+  let profit=0;
 
 
-  const x =
-    c[0];
+  state.stores.forEach(
+    store => {
+
+      profit +=
+        simulateStoreDay(
+          store
+        );
+
+    }
+  );
 
 
-  const y =
-    c[1];
+  state.factories.forEach(
+    f => {
+
+      profit -=
+        f.maintenance;
+
+    }
+  );
+
+
+  state.hubs.forEach(
+    h => {
+
+      profit -=
+        h.maintenance;
+
+    }
+  );
+
+
+  state.cash +=
+    profit;
+
+
+  state.date =
+    new Date(
+      state.date.getTime()
+      +
+      86400000
+    );
+
+
+  state.dayCounter++;
+
+
+  processShipments();
 
 
   if(
-    x<290
+    state.deposit.enabled
     &&
-    y<250
-  )
-    return "northamerica";
+    state.deposit.containers>0
+  ){
+
+    const settle =
+      Math.min(
+        state.deposit.containers,
+        Math.ceil(
+          state.deposit.containers*.45
+        )
+      );
+
+
+    state.cash +=
+      settle
+      *
+      state.deposit.rate;
+
+
+    state.deposit.containers -=
+      settle;
+
+  }
 
 
   if(
-    x<360
-    &&
-    y>=250
-  )
-    return "southamerica";
+    state.dayCounter%2===0
+  ){
+
+    runAutomaticOrders();
+
+  }
 
 
   if(
-    x>=360
-    &&
-    x<590
-    &&
-    y<285
-  )
-    return "europe";
+    state.dayCounter%7===0
+  ){
+
+    weeklyUpdate();
+
+  }
 
 
   if(
-    x>=360
-    &&
-    x<620
-    &&
-    y>=285
-  )
-    return "africa";
+    state.dayCounter%30===0
+  ){
 
+    monthlyUpdate();
 
-  if(
-    x>=590
-    &&
-    x<850
-  )
-    return "asia";
-
-
-  return "oceania";
+  }
 
 }
 
@@ -2454,7 +2465,7 @@ function renderTop(){
 }
 
 
-function renderBuildInfo(){
+function renderBuildPanel(){
 
   const mode =
     $("mapBuildMode").value;
@@ -2469,6 +2480,29 @@ function renderBuildInfo(){
 
 
   if(
+    state.mapBuildPoint
+  ){
+
+    $("mapPointInfo").innerHTML =
+      `
+      Wybrany punkt:
+      <strong>
+        ${state.mapBuildPoint.lat.toFixed(5)},
+        ${state.mapBuildPoint.lng.toFixed(5)}
+      </strong>
+      `;
+
+  }
+
+  else{
+
+    $("mapPointInfo").textContent =
+      "Kliknij miejsce na mapie.";
+
+  }
+
+
+  if(
     mode==="store"
   ){
 
@@ -2478,7 +2512,7 @@ function renderBuildInfo(){
       ];
 
 
-    $("buildStoreInfo").innerHTML =
+    $("buildInfo").innerHTML =
       `
       Koszt:
       <strong>${money(t.cost)}</strong>
@@ -2494,194 +2528,112 @@ function renderBuildInfo(){
 
   else{
 
-    const r =
-      state.selectedCountry
-        ? hubRegions.find(
-            x =>
-              x.id===
-              state.selectedCountry.region
-          )
-        : null;
-
-
-    $("buildStoreInfo").innerHTML =
-      r
-        ? `
-          Centrum dla regionu
-          <strong>${r.name}</strong>
-          <br>
-          Koszt:
-          <strong>${money(r.cost)}</strong>
-          <br>
-          Dostawy:
-          ${r.days} dni
-          ·
-          transport
-          -${Math.round(r.transportDiscount*100)}%
-          `
-        : `
-          Najpierw kliknij miejsce na mapie.
-          `;
+    $("buildInfo").innerHTML =
+      `
+      Koszt centrum:
+      <strong>${money(HUB_COST)}</strong>
+      <br>
+      Utrzymanie:
+      ${money(HUB_MAINTENANCE)}/dzień
+      <br>
+      Centrum skraca dostawy według odległości.
+      `;
 
   }
 
 
   const ready =
-    !!state.mapBuildPoint
-    &&
-    !!state.selectedCountry;
+    !!state.mapBuildPoint;
 
 
-  $("buildStoreBtn").disabled =
+  $("buildMapObjectBtn").disabled =
     !ready;
 
 
-  $("buildStoreBtn").textContent =
-    mode==="store"
-      ? "Zbuduj sklep tutaj"
-      : "Zbuduj centrum tutaj";
+  $("buildMapObjectBtn").textContent =
+    ready
+      ? (
+          mode==="store"
+            ? "Zbuduj sklep tutaj"
+            : "Zbuduj centrum tutaj"
+        )
+      : "Najpierw kliknij mapę";
 
 }
 
 
-function renderSelectedCountry(){
+function renderNearestHub(){
 
   if(
-    !state.selectedCountry
+    !state.mapBuildPoint
   ){
 
-    $("selectedCountryName").textContent =
-      "Kliknij miejsce na mapie";
-
-
-    $("selectedCountryInfo").textContent =
-      "Wybierz dokładny punkt budowy, a nie tylko kraj.";
-
-
-    $("mapPointInfo").textContent =
-      "Brak zaznaczonego punktu.";
-
-
-    renderBuildInfo();
+    $("nearestHubInfo").textContent =
+      "Brak wybranego punktu.";
 
     return;
 
   }
 
 
-  const count =
-    state.stores.filter(
-      s =>
-        s.countryId===
-        state.selectedCountry.id
-    ).length;
+  const p =
+    state.mapBuildPoint;
 
 
-  const hub =
-    getHub(
-      state.selectedCountry.region
+  const nearest =
+    nearestHubFor(
+      p.lat,
+      p.lng
     );
 
 
-  $("selectedCountryName").textContent =
-    state.selectedCountry.name;
-
-
-  $("selectedCountryInfo").innerHTML =
-    `
-    Region:
-    <strong>
-      ${state.selectedCountry.regionName}
-    </strong>
-    <br>
-    Sklepy:
-    <strong>${count}</strong>
-    <br>
-    Logistyka:
-    <strong>
-      ${
-        hub
-          ? hub.days+" dni"
-          : "brak centrum"
-      }
-    </strong>
-    `;
-
-
   if(
-    state.mapBuildPoint
+    !nearest
   ){
 
-    const [lon,lat] =
-      state.mapBuildPoint.lonLat;
-
-
-    $("mapPointInfo").innerHTML =
+    $("nearestHubInfo").innerHTML =
       `
-      Wybrany punkt:
-      <strong>
-        ${lat.toFixed(2)}°,
-        ${lon.toFixed(2)}°
-      </strong>
+      Brak centrów logistycznych.
+      <br>
+      Przewidywana dostawa do sklepu w tym miejscu:
+      <strong>7 dni</strong>.
       `;
 
-  }
-
-  else{
-
-    $("mapPointInfo").textContent =
-      "Kliknij dokładne miejsce na mapie.";
+    return;
 
   }
 
 
-  renderBuildInfo();
+  const tempStore = {
 
-}
+    lat:
+      p.lat,
 
+    lng:
+      p.lng
 
-function renderMarketList(){
-
-  const m={};
-
-
-  state.stores.forEach(
-    s =>
-      m[s.countryName] =
-        (
-          m[s.countryName]
-          ||
-          0
-        )
-        +
-        1
-  );
+  };
 
 
-  $("marketList").innerHTML =
-    Object.keys(m).length
+  const logistics =
+    logisticsForStore(
+      tempStore
+    );
 
-      ? Object.entries(m)
-          .sort(
-            (a,b) =>
-              b[1]-a[1]
-          )
-          .map(
-            ([n,c]) =>
-              `
-              <div class="card p-2 flex justify-between">
-                <span>${n}</span>
-                <strong>${c}</strong>
-              </div>
-              `
-          )
-          .join("")
 
-      : `
-        <div class="muted">
-          Brak sklepów.
-        </div>
-        `;
+  $("nearestHubInfo").innerHTML =
+    `
+    Najbliższe centrum:
+    <strong>${nearest.hub.name}</strong>
+    <br>
+
+    Odległość:
+    <strong>${Math.round(nearest.distance)} km</strong>
+    <br>
+
+    Dostawa:
+    <strong>${logistics.eta} dni</strong>.
+    `;
 
 }
 
@@ -2692,11 +2644,23 @@ function renderStores(){
     state.stores.length
 
       ? state.stores.map(
-          s => {
+          store => {
+
+            const type =
+              storeTypes[
+                store.type
+              ];
+
+
+            const e =
+              expectedStoreDay(
+                store
+              );
+
 
             const stock =
               Object.values(
-                s.stock
+                store.stock
               )
               .reduce(
                 (a,b) =>
@@ -2705,14 +2669,22 @@ function renderStores(){
               );
 
 
-            const e =
-              expectedStoreDay(s);
-
-
-            const hub =
-              getHub(
-                s.region
+            const logistics =
+              logisticsForStore(
+                store
               );
+
+
+            const refund =
+              type.cost
+              *
+              type.refund
+              +
+              (
+                store.level-1
+              )
+              *
+              15000;
 
 
             return `
@@ -2723,17 +2695,17 @@ function renderStores(){
                 <div>
 
                   <div class="font-bold">
-                    ${s.name}
+                    ${store.name}
                   </div>
 
                   <div class="text-sm muted">
-                    ${s.countryName}
+                    ${store.locationName}
                   </div>
 
                 </div>
 
                 <span class="pill">
-                  ${storeTypes[s.type].name}
+                  ${type.name}
                 </span>
 
               </div>
@@ -2742,7 +2714,7 @@ function renderStores(){
 
                 <div>
                   Poziom
-                  <strong>${s.level}</strong>
+                  <strong>${store.level}</strong>
                 </div>
 
                 <div>
@@ -2766,21 +2738,39 @@ function renderStores(){
 
               <div class="text-xs muted mt-2">
 
-                Logistyka:
+                Dostawa:
+                ${logistics.eta} dni
+
                 ${
-                  hub
-                    ? `${hub.name} · ${hub.days} dni`
-                    : "brak centrum · wolne dostawy"
+                  logistics.distance!==null
+
+                    ? `· ${Math.round(logistics.distance)} km od centrum`
+
+                    : "· brak centrum"
                 }
 
               </div>
 
               <button
                 class="upgrade-store btn w-full mt-3"
-                data-id="${s.id}"
+                data-id="${store.id}"
               >
                 Ulepsz —
-                ${money(45000*s.level)}
+                ${money(45000*store.level)}
+              </button>
+
+              <button
+                class="focus-store btn w-full mt-2"
+                data-id="${store.id}"
+              >
+                Pokaż na mapie
+              </button>
+
+              <button
+                class="close-store btn btn-danger w-full mt-2"
+                data-id="${store.id}"
+              >
+                Zamknij · odzyskaj ${money(refund)}
               </button>
 
             </div>
@@ -2801,35 +2791,36 @@ function renderStores(){
 
 function renderOrderSelectors(){
 
-  const os =
+  const oldStore =
     $("orderStore").value;
 
 
-  const op =
+  const oldProduct =
     $("orderProduct").value;
 
 
   $("orderStore").innerHTML =
-    state.stores.map(
-      s =>
-        `
-        <option value="${s.id}">
-          ${s.name} — ${s.countryName}
-        </option>
-        `
-    )
-    .join("");
+    state.stores
+      .map(
+        s =>
+          `
+          <option value="${s.id}">
+            ${s.name} — ${s.locationName}
+          </option>
+          `
+      )
+      .join("");
 
 
   if(
     state.stores.some(
       s =>
-        s.id===os
+        s.id===oldStore
     )
   ){
 
     $("orderStore").value =
-      os;
+      oldStore;
 
   }
 
@@ -2844,28 +2835,27 @@ function renderOrderSelectors(){
 
 
   $("orderProduct").innerHTML =
-    products.map(
-      p =>
-        `
-        <option value="${p.id}">
-          ${p.name}
-          —
-          ${productBuyPrice(p).toFixed(2)} zł
-        </option>
-        `
-    )
-    .join("");
+    products
+      .map(
+        p =>
+          `
+          <option value="${p.id}">
+            ${p.name} — ${productBuyPrice(p).toFixed(2)} zł
+          </option>
+          `
+      )
+      .join("");
 
 
   if(
     products.some(
       p =>
-        p.id===op
+        p.id===oldProduct
     )
   ){
 
     $("orderProduct").value =
-      op;
+      oldProduct;
 
   }
 
@@ -2877,15 +2867,16 @@ function renderOrderSelectors(){
     </option>
     `
     +
-    state.stores.map(
-      s =>
-        `
-        <option value="${s.id}">
-          ${s.name}
-        </option>
-        `
-    )
-    .join("");
+    state.stores
+      .map(
+        s =>
+          `
+          <option value="${s.id}">
+            ${s.name}
+          </option>
+          `
+      )
+      .join("");
 
 
   renderOrderCost();
@@ -2895,7 +2886,7 @@ function renderOrderSelectors(){
 
 function renderOrderCost(){
 
-  const s =
+  const store =
     getStore(
       $("orderStore").value
     );
@@ -2907,7 +2898,7 @@ function renderOrderCost(){
     );
 
 
-  const q =
+  const qty =
     Math.max(
       1,
       Number(
@@ -2919,7 +2910,7 @@ function renderOrderCost(){
 
 
   if(
-    !s
+    !store
     ||
     !p
   ){
@@ -2937,20 +2928,26 @@ function renderOrderCost(){
   }
 
 
+  const logistics =
+    logisticsForStore(
+      store
+    );
+
+
   const goods =
     productBuyPrice(p)
     *
-    q;
+    qty;
 
 
   const transport =
     Math.max(
-      25,
+      20,
       goods
       *
-      .035
+      .04
       *
-      shippingMultiplier(s)
+      logistics.shippingMultiplier
     );
 
 
@@ -2963,7 +2960,7 @@ function renderOrderCost(){
 
 
   $("orderEta").textContent =
-    shipmentEta(s)
+    logistics.eta
     +
     " dni";
 
@@ -2984,7 +2981,7 @@ function renderShipments(){
           .map(
             sh => {
 
-              const s =
+              const store =
                 getStore(
                   sh.storeId
                 );
@@ -3006,7 +3003,7 @@ function renderShipments(){
                   </div>
 
                   <div class="text-sm muted">
-                    ${s?.name || "Sklep"}
+                    ${store?.name || "Sklep"}
                     ·
                     ${sh.qty} szt.
                   </div>
@@ -3043,16 +3040,16 @@ function renderShipments(){
 
 function renderInventory(){
 
-  const f =
+  const filter =
     $("inventoryStoreFilter").value;
 
 
   const stores =
-    f==="all"
+    filter==="all"
       ? state.stores
       : state.stores.filter(
           s =>
-            s.id===f
+            s.id===filter
         );
 
 
@@ -3085,7 +3082,7 @@ function renderInventory(){
       );
 
 
-  let h =
+  let html =
     `
     <table class="min-w-[760px] w-full text-sm">
 
@@ -3100,17 +3097,20 @@ function renderInventory(){
 
 
   stores.forEach(
-    s =>
-      h +=
-      `
-      <th class="text-left p-2">
-        ${s.name}
-      </th>
-      `
+    store => {
+
+      html +=
+        `
+        <th class="text-left p-2">
+          ${store.name}
+        </th>
+        `;
+
+    }
   );
 
 
-  h +=
+  html +=
     `
         </tr>
       </thead>
@@ -3122,7 +3122,7 @@ function renderInventory(){
   products.forEach(
     p => {
 
-      h +=
+      html +=
         `
         <tr class="border-b border-slate-800">
 
@@ -3133,17 +3133,20 @@ function renderInventory(){
 
 
       stores.forEach(
-        s =>
-          h +=
-          `
-          <td class="p-2">
-            ${s.stock[p.id] || 0}
-          </td>
-          `
+        store => {
+
+          html +=
+            `
+            <td class="p-2">
+              ${store.stock[p.id] || 0}
+            </td>
+            `;
+
+        }
       );
 
 
-      h +=
+      html +=
         `
         </tr>
         `;
@@ -3152,7 +3155,7 @@ function renderInventory(){
   );
 
 
-  h +=
+  html +=
     `
       </tbody>
     </table>
@@ -3160,99 +3163,41 @@ function renderInventory(){
 
 
   $("inventoryTable").innerHTML =
-    h;
+    html;
 
 }
 
 
 function renderLogistics(){
 
-  $("hubOffers").innerHTML =
-    `
-    <div class="card p-3">
-
-      <div class="font-bold">
-        Budowa na mapie
-      </div>
-
-      <div class="text-sm muted mt-1">
-        Przejdź do zakładki Mapa →
-        wybierz „Centrum logistyczne” →
-        kliknij dokładne miejsce →
-        zbuduj.
-      </div>
-
-    </div>
-    `
-    +
-    hubRegions.map(
-      r => {
-
-        const h =
-          getHub(
-            r.id
-          );
-
-
-        return `
-        <div class="card p-3">
-
-          <div class="flex justify-between gap-3">
-
-            <strong>
-              ${r.name}
-            </strong>
-
-            <span>
-              ${
-                h
-                  ? "AKTYWNE"
-                  : "brak"
-              }
-            </span>
-
-          </div>
-
-          <div class="text-sm muted">
-
-            ${r.days} dni dostawy
-            ·
-            -${Math.round(r.transportDiscount*100)}%
-            kosztu transportu
-
-          </div>
-
-        </div>
-        `;
-
-      }
-    )
-    .join("");
-
-
   $("ownedHubs").innerHTML =
     state.hubs.length
 
       ? state.hubs.map(
-          h =>
+          hub =>
             `
             <div class="card p-3">
 
               <div class="font-bold">
-                ${h.name}
+                ${hub.name}
               </div>
 
               <div class="text-sm muted">
-                Pozycja:
-                ${h.lat.toFixed(2)}°,
-                ${h.lon.toFixed(2)}°
+                ${hub.lat.toFixed(4)},
+                ${hub.lng.toFixed(4)}
               </div>
 
-              <div class="text-sm">
-                ${h.days} dni
-                ·
-                ${money(h.maintenance)}/dzień
+              <div class="text-sm mt-2">
+                Utrzymanie:
+                ${money(hub.maintenance)}/dzień
               </div>
+
+              <button
+                class="focus-hub btn w-full mt-3"
+                data-id="${hub.id}"
+              >
+                Pokaż na mapie
+              </button>
 
             </div>
             `
@@ -3369,10 +3314,10 @@ function renderDeposit(){
     state.stores.length
 
       ? state.stores.map(
-          s => {
+          store => {
 
             const level =
-              s.depositMachineLevel
+              store.depositMachineLevel
               ||
               0;
 
@@ -3387,11 +3332,11 @@ function renderDeposit(){
             <div class="card p-3">
 
               <div class="font-bold">
-                ${s.name}
+                ${store.name}
               </div>
 
               <div class="text-sm muted">
-                ${s.countryName}
+                ${store.locationName}
               </div>
 
               <div class="mt-2 text-sm">
@@ -3403,22 +3348,6 @@ function renderDeposit(){
 
               </div>
 
-              <div class="text-xs muted mt-1">
-                Zwroty:
-                ${
-                  Math.round(
-                    (
-                      .35
-                      +
-                      level*.18
-                    )
-                    *
-                    100
-                  )
-                }%
-                sprzedanych opakowań
-              </div>
-
               <button
                 class="deposit-upgrade btn ${
                   level<3
@@ -3426,7 +3355,7 @@ function renderDeposit(){
                     : ""
                 } w-full mt-3"
 
-                data-id="${s.id}"
+                data-id="${store.id}"
 
                 ${
                   level>=3
@@ -3461,80 +3390,65 @@ function renderDeposit(){
 }
 
 
-function renderBrandFamilies(){
+function renderBrands(){
 
   $("brandFamilies").innerHTML =
-    ownBrandFamilies.map(
-      f => {
+    ownBrandFamilies
+      .map(
+        family => {
 
-        const available =
-          state.factories.filter(
-            x =>
-              f.categories.includes(
-                x.category
-              )
-          );
+          const available =
+            state.factories.some(
+              f =>
+                f.category
+                &&
+                family.categories.includes(
+                  f.category
+                )
+            );
 
 
-        return `
-        <div class="card p-3">
+          return `
+          <div class="card p-3">
 
-          <div class="font-bold">
-            ${f.name}
+            <div class="font-bold">
+              ${family.name}
+            </div>
+
+            <div class="text-sm muted">
+              ${family.description}
+            </div>
+
+            <button
+              class="create-private btn ${
+                available
+                  ? "btn-primary"
+                  : ""
+              } w-full mt-3"
+
+              data-family="${family.id}"
+
+              ${
+                available
+                  ? ""
+                  : "disabled"
+              }
+            >
+
+              ${
+                available
+                  ? "Wprowadź nowy produkt"
+                  : "Potrzebujesz odpowiedniej fabryki"
+              }
+
+            </button>
+
           </div>
+          `;
 
-          <div class="text-sm muted">
-            ${f.description}
-          </div>
-
-          <div class="text-xs mt-2">
-
-            ${
-              available.length
-
-                ? "Fabryki: "
-                  +
-                  available.map(
-                    x =>
-                      x.category
-                  )
-                  .join(", ")
-
-                : "Brak odpowiedniej fabryki"
-            }
-
-          </div>
-
-          <button
-            class="create-private btn ${
-              available.length
-                ? "btn-primary"
-                : ""
-            } w-full mt-3"
-
-            data-family="${f.id}"
-
-            ${
-              available.length
-                ? ""
-                : "disabled"
-            }
-          >
-
-            ${
-              available.length
-                ? "Wprowadź nowy produkt"
-                : "Najpierw ustaw produkcję fabryki"
-            }
-
-          </button>
-
-        </div>
-        `;
-
-      }
-    )
-    .join("");
+        }
+      )
+      .join("");
 
 
   $("privateProducts").innerHTML =
@@ -3554,14 +3468,15 @@ function renderBrandFamilies(){
               </div>
 
               <div class="text-sm mt-2">
+
                 Koszt
-                ${productBuyPrice(p).toFixed(2)} zł
+                ${p.buyPrice.toFixed(2)} zł
+
                 ·
+
                 cena
                 ${p.sellPrice.toFixed(2)} zł
-                ·
-                popyt
-                ${Math.round(p.demand)}/100
+
               </div>
 
             </div>
@@ -3571,7 +3486,7 @@ function renderBrandFamilies(){
 
       : `
         <div class="muted">
-          Brak produktów własnych.
+          Brak produktów marki własnej.
         </div>
         `;
 
@@ -3584,25 +3499,26 @@ function renderFactories(){
     state.factories.length
 
       ? state.factories.map(
-          (f,idx) => {
+          (factory,index) => {
 
             const options =
-              factoryProducts.map(
-                o =>
-                  `
-                  <option
-                    value="${o.category}"
-                    ${
-                      f.category===o.category
-                        ? "selected"
-                        : ""
-                    }
-                  >
-                    ${o.category}
-                  </option>
-                  `
-              )
-              .join("");
+              factoryProducts
+                .map(
+                  cfg =>
+                    `
+                    <option
+                      value="${cfg.category}"
+                      ${
+                        factory.category===cfg.category
+                          ? "selected"
+                          : ""
+                      }
+                    >
+                      ${cfg.category}
+                    </option>
+                    `
+                )
+                .join("");
 
 
             return `
@@ -3611,30 +3527,26 @@ function renderFactories(){
               <div class="flex justify-between gap-2">
 
                 <div class="font-bold">
-                  Fabryka #${idx+1}
+                  Fabryka #${index+1}
                 </div>
 
                 <span class="pill">
-                  ${f.category || "nieustawiona"}
+                  ${factory.category || "pusta"}
                 </span>
 
               </div>
 
-              <div class="text-sm muted mt-2">
-                Sam wybierasz profil produkcji tej fabryki.
-              </div>
-
               <label class="block mt-3 text-sm">
 
-                Produkcja
+                Co produkuje?
 
                 <select
                   class="factory-production w-full mt-1"
-                  data-id="${f.id}"
+                  data-id="${factory.id}"
                 >
 
                   <option value="">
-                    — wybierz produkcję —
+                    — brak produkcji —
                   </option>
 
                   ${options}
@@ -3646,19 +3558,10 @@ function renderFactories(){
               <div class="text-sm mt-3">
 
                 Utrzymanie:
+
                 <strong>
-                  ${money(f.maintenance || 180)}/dzień
+                  ${money(factory.maintenance)}/dzień
                 </strong>
-
-              </div>
-
-              <div class="text-xs muted mt-1">
-
-                ${
-                  f.category
-                    ? "Ta kategoria odblokowuje odpowiednią markę własną."
-                    : "Fabryka jeszcze nic nie produkuje."
-                }
 
               </div>
 
@@ -3672,7 +3575,6 @@ function renderFactories(){
       : `
         <div class="muted">
           Nie masz jeszcze fabryki.
-          Zbuduj pierwszą i wybierz jej produkcję.
         </div>
         `;
 
@@ -3716,53 +3618,57 @@ function renderManagement(){
 function renderCompanies(){
 
   $("companiesGrid").innerHTML =
-    state.companies.map(
-      c =>
-        `
-        <div class="card p-4">
+    state.companies
+      .map(
+        company =>
+          `
+          <div class="card p-4">
 
-          <div class="font-bold">
-            ${c.name}
-          </div>
-
-          <div class="text-sm muted">
-            ${c.type}
-          </div>
-
-          <div class="grid grid-cols-2 gap-2 mt-3 text-sm">
-
-            <div>
-              Gotowe sklepy
-              <strong>${c.stores}</strong>
+            <div class="font-bold">
+              ${company.name}
             </div>
 
-            <div>
-              Śr. jakość
+            <div class="text-sm muted">
+              Gotowa sieć sklepów
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 text-sm mt-3">
+
+              <div>
+                Sklepy
+                <strong>${company.stores}</strong>
+              </div>
+
+              <div>
+                Jakość
+                <strong>
+                  ${Math.round(company.quality*100)}%
+                </strong>
+              </div>
+
+            </div>
+
+            <div class="mt-3">
+
+              Cena:
+
               <strong>
-                ${Math.round(c.quality*100)}%
+                ${money(company.price)}
               </strong>
+
             </div>
 
+            <button
+              class="buy-company btn btn-primary w-full mt-3"
+              data-id="${company.id}"
+            >
+              Przejmij całą sieć
+            </button>
+
           </div>
-
-          <div class="mt-3">
-            Wycena:
-            <strong>
-              ${money(c.price)}
-            </strong>
-          </div>
-
-          <button
-            class="buy-company btn btn-primary w-full mt-3"
-            data-id="${c.id}"
-          >
-            Przejmij całą sieć
-          </button>
-
-        </div>
-        `
-    )
-    .join("");
+          `
+      )
+      .join("");
 
 }
 
@@ -3771,11 +3677,9 @@ function renderAll(){
 
   renderTop();
 
-  renderSelectedCountry();
+  renderBuildPanel();
 
-  renderBuildInfo();
-
-  renderMarketList();
+  renderNearestHub();
 
   renderStores();
 
@@ -3791,7 +3695,7 @@ function renderAll(){
 
   renderDeposit();
 
-  renderBrandFamilies();
+  renderBrands();
 
   renderFactories();
 
@@ -3799,736 +3703,280 @@ function renderAll(){
 
   renderCompanies();
 
-  renderMapState();
+  renderMapMarkers();
 
 }
 
 
 /* =========================
-   MAPA
+   PRAWDZIWA MAPA LEAFLET
 ========================= */
 
-let d3;
+let realMap=null;
 
-let topojson;
+let storeLayer=null;
 
-let worldCountries=[];
+let hubLayer=null;
 
-let mapSvg;
-
-let projection;
-
-let geoPath;
+let buildLayer=null;
 
 
-async function initMap(){
+const storeIcon =
+  L.divIcon({
 
-  try{
+    className:"",
 
-    [
-      d3,
-      topojson
-    ] =
-      await Promise.all([
+    html:
+      `<span class="store-icon"></span>`,
 
-        import(
-          "https://cdn.jsdelivr.net/npm/d3@7.9.0/+esm"
-        ),
+    iconSize:[
+      14,
+      14
+    ],
 
-        import(
-          "https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/+esm"
-        )
+    iconAnchor:[
+      7,
+      7
+    ]
 
-      ]);
+  });
 
 
-    const worldModule =
-      await import(
-        "https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-50m.json/+esm"
+const hubIcon =
+  L.divIcon({
+
+    className:"",
+
+    html:
+      `<span class="hub-icon"></span>`,
+
+    iconSize:[
+      16,
+      16
+    ],
+
+    iconAnchor:[
+      8,
+      8
+    ]
+
+  });
+
+
+const buildIcon =
+  L.divIcon({
+
+    className:"",
+
+    html:
+      `<span class="build-icon"></span>`,
+
+    iconSize:[
+      20,
+      20
+    ],
+
+    iconAnchor:[
+      10,
+      10
+    ]
+
+  });
+
+
+function initMap(){
+
+  realMap =
+    L.map(
+      "worldMap",
+      {
+
+        center:[
+          52.0,
+          19.0
+        ],
+
+        zoom:5,
+
+        dragging:true,
+
+        scrollWheelZoom:true,
+
+        doubleClickZoom:true,
+
+        touchZoom:true,
+
+        boxZoom:true,
+
+        keyboard:true,
+
+        zoomControl:true
+
+      }
+    );
+
+
+  L.tileLayer(
+    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+    {
+
+      maxZoom:19,
+
+      attribution:
+        '&copy; OpenStreetMap contributors'
+
+    }
+  )
+  .addTo(
+    realMap
+  );
+
+
+  storeLayer =
+    L.layerGroup()
+      .addTo(
+        realMap
       );
 
 
-    const world =
-      worldModule.default;
-
-
-    worldCountries =
-      topojson.feature(
-        world,
-        world.objects.countries
-      ).features;
-
-
-    projection =
-      d3
-        .geoNaturalEarth1()
-        .fitExtent(
-          [
-            [10,10],
-            [990,510]
-          ],
-          {
-            type:"FeatureCollection",
-            features:worldCountries
-          }
-        );
-
-
-    geoPath =
-      d3.geoPath(
-        projection
+  hubLayer =
+    L.layerGroup()
+      .addTo(
+        realMap
       );
 
 
-    mapSvg =
-      d3.select(
-        "#worldMap"
+  buildLayer =
+    L.layerGroup()
+      .addTo(
+        realMap
       );
 
 
-    mapSvg
-      .append("g")
-      .selectAll("path")
-      .data(worldCountries)
-      .join("path")
+  realMap.on(
+    "click",
+    e => {
 
-      .attr(
-        "class",
-        "country"
-      )
+      state.mapBuildPoint = {
 
-      .attr(
-        "d",
-        geoPath
-      )
+        lat:
+          e.latlng.lat,
 
-      .attr(
-        "fill",
-        "#1f2937"
-      )
+        lng:
+          e.latlng.lng
 
-      .attr(
-        "stroke",
-        "#475569"
-      )
-
-      .attr(
-        "stroke-width",
-        .7
-      )
-
-      .on(
-        "click",
-        (
-          e,
-          f
-        ) =>
-          selectBuildPoint(
-            e,
-            f
-          )
-      );
+      };
 
 
-    mapSvg
-      .append("g")
-      .attr(
-        "class",
-        "store-markers"
-      );
+      renderBuildPanel();
+
+      renderNearestHub();
+
+      renderMapMarkers();
+
+    }
+  );
 
 
-    mapSvg
-      .append("g")
-      .attr(
-        "class",
-        "hub-markers"
-      );
-
-
-    mapSvg
-      .append("g")
-      .attr(
-        "class",
-        "build-point-marker"
-      );
-
-
-    renderMapState();
-
-  }
-
-  catch(e){
-
-    console.error(e);
-
-
-    $("worldMap").outerHTML =
-      `
-      <div class="p-10 text-center muted">
-        Nie udało się wczytać mapy.
-      </div>
-      `;
-
-  }
-
-}
-
-
-function getCountryName(f){
-
-  return (
-    f.properties?.name
-    ||
-    "Kraj "
-    +
-    f.id
+  setTimeout(
+    () =>
+      realMap.invalidateSize(),
+    50
   );
 
 }
 
 
-function selectBuildPoint(
-  event,
-  feature
-){
-
-  const [x,y] =
-    d3.pointer(
-      event,
-      mapSvg.node()
-    );
-
-
-  const lonLat =
-    projection.invert([
-      x,
-      y
-    ]);
-
+function renderMapMarkers(){
 
   if(
-    !lonLat
-    ||
-    !d3.geoContains(
-      feature,
-      lonLat
-    )
+    !realMap
   )
     return;
 
 
-  const region =
-    regionFromFeature(
-      feature
-    );
+  storeLayer.clearLayers();
 
+  hubLayer.clearLayers();
 
-  const r =
-    hubRegions.find(
-      v =>
-        v.id===region
-    );
+  buildLayer.clearLayers();
 
 
-  state.selectedCountry = {
+  state.stores.forEach(
+    store => {
 
-    id:
-      String(
-        feature.id
-      ),
-
-    name:
-      getCountryName(
-        feature
-      ),
-
-    marketFactor:
-      .9
-      +
-      (
-        Number(feature.id||1)%20
-      )
-      /
-      40,
-
-    feature,
-
-    region,
-
-    regionName:
-      r?.name
-      ||
-      region
-
-  };
-
-
-  state.mapBuildPoint = {
-
-    x,
-
-    y,
-
-    lonLat
-
-  };
-
-
-  renderSelectedCountry();
-
-  renderMapState();
-
-}
-
-
-function safePointInFeature(
-  feature,
-  seed=0
-){
-
-  const bounds =
-    geoPath.bounds(
-      feature
-    );
-
-
-  for(
-    let i=0;
-    i<300;
-    i++
-  ){
-
-    const t =
-      seed
-      +
-      i
-      +
-      1;
-
-
-    const angle =
-      t
-      *
-      2.3999632297;
-
-
-    const rad =
-      3
-      +
-      Math.sqrt(t)
-      *
-      8;
-
-
-    const c =
-      geoPath.centroid(
-        feature
-      );
-
-
-    const x =
-      c[0]
-      +
-      Math.cos(angle)
-      *
-      rad;
-
-
-    const y =
-      c[1]
-      +
-      Math.sin(angle)
-      *
-      rad;
-
-
-    const ll =
-      projection.invert([
-        x,
-        y
-      ]);
-
-
-    if(
-      ll
-      &&
-      d3.geoContains(
-        feature,
-        ll
-      )
-    ){
-
-      return {
-        x,
-        y,
-        lonLat:ll
-      };
-
-    }
-
-  }
-
-
-  for(
-    let i=0;
-    i<500;
-    i++
-  ){
-
-    const x =
-      bounds[0][0]
-      +
-      Math.random()
-      *
-      (
-        bounds[1][0]
-        -
-        bounds[0][0]
-      );
-
-
-    const y =
-      bounds[0][1]
-      +
-      Math.random()
-      *
-      (
-        bounds[1][1]
-        -
-        bounds[0][1]
-      );
-
-
-    const ll =
-      projection.invert([
-        x,
-        y
-      ]);
-
-
-    if(
-      ll
-      &&
-      d3.geoContains(
-        feature,
-        ll
-      )
-    ){
-
-      return {
-        x,
-        y,
-        lonLat:ll
-      };
-
-    }
-
-  }
-
-
-  const c =
-    geoPath.centroid(
-      feature
-    );
-
-
-  return {
-
-    x:c[0],
-
-    y:c[1],
-
-    lonLat:
-      projection.invert(
-        c
-      )
-
-  };
-
-}
-
-
-function renderMapState(){
-
-  if(
-    !mapSvg
-  )
-    return;
-
-
-  mapSvg
-    .selectAll(
-      ".country"
-    )
-
-    .attr(
-      "fill",
-      f => {
-
-        if(
-          state.selectedCountry
-          &&
-          String(
-            state.selectedCountry.id
-          )
-          ===
-          String(
-            f.id
-          )
-        ){
-
-          return "#166534";
-
+      L.marker(
+        [
+          store.lat,
+          store.lng
+        ],
+        {
+          icon:storeIcon
         }
+      )
+      .bindPopup(
+        `<strong>${store.name}</strong><br>${store.locationName}`
+      )
+      .addTo(
+        storeLayer
+      );
+
+    }
+  );
 
 
-        const n =
-          state.stores.filter(
-            s =>
-              s.countryId
-              ===
-              String(
-                f.id
-              )
-          ).length;
+  state.hubs.forEach(
+    hub => {
+
+      L.marker(
+        [
+          hub.lat,
+          hub.lng
+        ],
+        {
+          icon:hubIcon
+        }
+      )
+      .bindPopup(
+        `<strong>${hub.name}</strong><br>Centrum logistyczne`
+      )
+      .addTo(
+        hubLayer
+      );
+
+    }
+  );
 
 
-        return n>=10
-          ? "#15803d"
-          : n>=5
-            ? "#166534"
-            : n>=1
-              ? "#14532d"
-              : "#1f2937";
+  if(
+    state.mapBuildPoint
+  ){
 
+    L.marker(
+      [
+        state.mapBuildPoint.lat,
+        state.mapBuildPoint.lng
+      ],
+      {
+        icon:buildIcon
       }
     )
-
-    .attr(
-      "stroke",
-      f =>
-        state.selectedCountry
-        &&
-        String(
-          state.selectedCountry.id
-        )
-        ===
-        String(
-          f.id
-        )
-
-          ? "#22c55e"
-
-          : "#475569"
+    .bindPopup(
+      "Wybrane miejsce budowy"
     )
-
-    .attr(
-      "stroke-width",
-      f =>
-        state.selectedCountry
-        &&
-        String(
-          state.selectedCountry.id
-        )
-        ===
-        String(
-          f.id
-        )
-
-          ? 2
-
-          : .7
+    .addTo(
+      buildLayer
     );
 
-
-  const stores =
-    state.stores.filter(
-      s =>
-        Number.isFinite(s.x)
-        &&
-        Number.isFinite(s.y)
-    );
-
-
-  mapSvg
-    .select(
-      ".store-markers"
-    )
-    .selectAll(
-      "circle"
-    )
-    .data(
-      stores,
-      s =>
-        s.id
-    )
-    .join("circle")
-
-    .attr(
-      "cx",
-      s =>
-        s.x
-    )
-
-    .attr(
-      "cy",
-      s =>
-        s.y
-    )
-
-    .attr(
-      "r",
-      3.4
-    )
-
-    .attr(
-      "fill",
-      "#facc15"
-    )
-
-    .attr(
-      "stroke",
-      "#020617"
-    )
-
-    .attr(
-      "stroke-width",
-      1.1
-    );
-
-
-  mapSvg
-    .select(
-      ".hub-markers"
-    )
-    .selectAll(
-      "rect"
-    )
-    .data(
-      state.hubs,
-      h =>
-        h.id
-    )
-    .join("rect")
-
-    .attr(
-      "x",
-      h =>
-        h.x-5
-    )
-
-    .attr(
-      "y",
-      h =>
-        h.y-5
-    )
-
-    .attr(
-      "width",
-      10
-    )
-
-    .attr(
-      "height",
-      10
-    )
-
-    .attr(
-      "rx",
-      2
-    )
-
-    .attr(
-      "fill",
-      "#60a5fa"
-    )
-
-    .attr(
-      "stroke",
-      "#020617"
-    )
-
-    .attr(
-      "stroke-width",
-      1.4
-    );
-
-
-  const selected =
-    state.mapBuildPoint
-      ? [state.mapBuildPoint]
-      : [];
-
-
-  mapSvg
-    .select(
-      ".build-point-marker"
-    )
-    .selectAll(
-      "circle"
-    )
-    .data(selected)
-    .join("circle")
-
-    .attr(
-      "cx",
-      p =>
-        p.x
-    )
-
-    .attr(
-      "cy",
-      p =>
-        p.y
-    )
-
-    .attr(
-      "r",
-      7
-    )
-
-    .attr(
-      "fill",
-      "none"
-    )
-
-    .attr(
-      "stroke",
-      "#fff"
-    )
-
-    .attr(
-      "stroke-width",
-      2
-    );
+  }
 
 }
 
 
-function buildAtSelectedPoint(){
+function buildAtMapPoint(){
 
   if(
-    !state.selectedCountry
-    ||
     !state.mapBuildPoint
-  )
-    return;
-
-
-  const {
-    x,
-    y,
-    lonLat
-  } =
-    state.mapBuildPoint;
-
-
-  if(
-    !d3.geoContains(
-      state.selectedCountry.feature,
-      lonLat
-    )
   )
     return;
 
@@ -4537,26 +3985,42 @@ function buildAtSelectedPoint(){
     $("mapBuildMode").value;
 
 
+  const lat =
+    state.mapBuildPoint.lat;
+
+
+  const lng =
+    state.mapBuildPoint.lng;
+
+
   if(
     mode==="store"
   ){
 
-    const key =
+    const typeKey =
       $("buildStoreType").value;
 
 
-    const t =
-      storeTypes[key];
+    const type =
+      storeTypes[
+        typeKey
+      ];
 
 
     if(
-      state.cash<t.cost
+      state.cash<type.cost
     )
       return;
 
 
     state.cash -=
-      t.cost;
+      type.cost;
+
+
+    const number =
+      state.stores.length
+      +
+      1;
 
 
     state.stores.push({
@@ -4564,39 +4028,30 @@ function buildAtSelectedPoint(){
       id:uid(),
 
       name:
-        `${t.name} #${state.stores.length+1}`,
+        `${type.name} #${number}`,
 
-      countryId:
-        state.selectedCountry.id,
+      locationName:
+        `${lat.toFixed(4)}, ${lng.toFixed(4)}`,
 
-      countryName:
-        state.selectedCountry.name,
+      lat,
 
-      region:
-        state.selectedCountry.region,
+      lng,
 
-      marketFactor:
-        state.selectedCountry.marketFactor,
-
-      type:key,
+      type:
+        typeKey,
 
       level:1,
 
       levelMultiplier:1,
 
+      marketFactor:
+        .95
+        +
+        Math.random()*.15,
+
       stock:{},
 
-      depositMachineLevel:0,
-
-      x,
-
-      y,
-
-      lon:
-        lonLat[0],
-
-      lat:
-        lonLat[1]
+      depositMachineLevel:0
 
     });
 
@@ -4604,52 +4059,37 @@ function buildAtSelectedPoint(){
     state.reputation =
       Math.min(
         100,
-        state.reputation+.5
+        state.reputation+.4
       );
 
   }
 
   else{
 
-    const r =
-      hubRegions.find(
-        v =>
-          v.id===
-          state.selectedCountry.region
-      );
-
-
     if(
-      !r
-      ||
-      state.cash<r.cost
-      ||
-      getHub(r.id)
+      state.cash<
+      HUB_COST
     )
       return;
 
 
     state.cash -=
-      r.cost;
+      HUB_COST;
 
 
     state.hubs.push({
 
-      ...r,
-
       id:uid(),
 
-      region:r.id,
+      name:
+        `Centrum logistyczne #${state.hubs.length+1}`,
 
-      x,
+      lat,
 
-      y,
+      lng,
 
-      lon:
-        lonLat[0],
-
-      lat:
-        lonLat[1]
+      maintenance:
+        HUB_MAINTENANCE
 
     });
 
@@ -4665,33 +4105,20 @@ function buildAtSelectedPoint(){
 }
 
 
-function createAcquiredStores(company){
+function createAcquiredStores(
+  company
+){
 
-  if(
-    !worldCountries.length
-  )
-    return [];
-
-
-  const candidates =
-    worldCountries.filter(
-      f => {
-
-        const c =
-          geoPath.centroid(f);
+  const shuffled =
+    acquisitionLocations
+      .slice()
+      .sort(
+        () =>
+          Math.random()-.5
+      );
 
 
-        return (
-          Number.isFinite(c[0])
-          &&
-          Number.isFinite(c[1])
-        );
-
-      }
-    );
-
-
-  const out=[];
+  const stores=[];
 
 
   for(
@@ -4700,62 +4127,49 @@ function createAcquiredStores(company){
     i++
   ){
 
-    const feature =
-      candidates[
-        Math.floor(
-          Math.random()
-          *
-          candidates.length
-        )
+    const loc =
+      shuffled[
+        i
+        %
+        shuffled.length
       ];
 
 
-    const point =
-      safePointInFeature(
-        feature,
-        i
-      );
+    const jitterLat =
+      loc.lat
+      +
+      (
+        Math.random()-.5
+      )
+      *
+      .18;
 
 
-    const region =
-      regionFromFeature(
-        feature
-      );
+    const jitterLng =
+      loc.lng
+      +
+      (
+        Math.random()-.5
+      )
+      *
+      .18;
 
 
-    out.push({
+    stores.push({
 
       id:uid(),
 
       name:
         `${company.name} #${i+1}`,
 
-      countryId:
-        String(
-          feature.id
-        ),
+      locationName:
+        loc.name,
 
-      countryName:
-        getCountryName(
-          feature
-        ),
+      lat:
+        jitterLat,
 
-      region,
-
-      marketFactor:
-        (
-          .9
-          +
-          (
-            Number(
-              feature.id||1
-            )%20
-          )
-          /
-          40
-        )
-        *
-        company.quality,
+      lng:
+        jitterLng,
 
       type:
         i%5===0
@@ -4767,32 +4181,19 @@ function createAcquiredStores(company){
       levelMultiplier:
         company.quality,
 
+      marketFactor:
+        company.quality,
+
       stock:{},
 
-      depositMachineLevel:0,
-
-      x:
-        point.x,
-
-      y:
-        point.y,
-
-      lon:
-        point.lonLat?.[0]
-        ||
-        0,
-
-      lat:
-        point.lonLat?.[1]
-        ||
-        0
+      depositMachineLevel:0
 
     });
 
   }
 
 
-  return out;
+  return stores;
 
 }
 
@@ -4801,24 +4202,24 @@ function createAcquiredStores(company){
    EVENTY
 ========================= */
 
-$("buildStoreBtn")
+$("buildMapObjectBtn")
   .addEventListener(
     "click",
-    buildAtSelectedPoint
-  );
-
-
-$("buildStoreType")
-  .addEventListener(
-    "change",
-    renderBuildInfo
+    buildAtMapPoint
   );
 
 
 $("mapBuildMode")
   .addEventListener(
     "change",
-    renderBuildInfo
+    renderBuildPanel
+  );
+
+
+$("buildStoreType")
+  .addEventListener(
+    "change",
+    renderBuildPanel
   );
 
 
@@ -4848,14 +4249,15 @@ document
     ".speed"
   )
   .forEach(
-    b =>
-      b.addEventListener(
+    btn => {
+
+      btn.addEventListener(
         "click",
         () => {
 
           state.speed =
             Number(
-              b.dataset.speed
+              btn.dataset.speed
             );
 
 
@@ -4870,7 +4272,9 @@ document
           renderTop();
 
         }
-      )
+      );
+
+    }
   );
 
 
@@ -4879,8 +4283,9 @@ document
     ".tab"
   )
   .forEach(
-    b =>
-      b.addEventListener(
+    btn => {
+
+      btn.addEventListener(
         "click",
         () => {
 
@@ -4896,7 +4301,7 @@ document
             );
 
 
-          b.classList.add(
+          btn.classList.add(
             "active"
           );
 
@@ -4916,15 +4321,32 @@ document
           $(
             "tab-"
             +
-            b.dataset.tab
+            btn.dataset.tab
           )
           .classList
           .remove(
             "hidden"
           );
 
+
+          if(
+            btn.dataset.tab==="world"
+            &&
+            realMap
+          ){
+
+            setTimeout(
+              () =>
+                realMap.invalidateSize(),
+              40
+            );
+
+          }
+
         }
-      )
+      );
+
+    }
   );
 
 
@@ -4964,7 +4386,7 @@ $("orderForm")
       e.preventDefault();
 
 
-      const s =
+      const store =
         getStore(
           $("orderStore").value
         );
@@ -4976,7 +4398,7 @@ $("orderForm")
         );
 
 
-      const q =
+      const qty =
         Math.max(
           1,
           Math.min(
@@ -4991,15 +4413,15 @@ $("orderForm")
 
 
       if(
-        s
+        store
         &&
         p
       ){
 
         placeOrder(
-          s,
+          store,
           p,
-          q
+          qty
         );
 
       }
@@ -5040,16 +4462,20 @@ $("generateProductsBtn")
 $("autoOrdersToggle")
   .addEventListener(
     "change",
-    () =>
+    () => {
+
       state.autoOrders =
-        $("autoOrdersToggle").checked
+        $("autoOrdersToggle").checked;
+
+    }
   );
 
 
 $("autoOrderMin")
   .addEventListener(
     "change",
-    () =>
+    () => {
+
       state.autoOrderMin =
         Math.max(
           5,
@@ -5061,14 +4487,17 @@ $("autoOrderMin")
             ||
             35
           )
-        )
+        );
+
+    }
   );
 
 
 $("autoOrderTarget")
   .addEventListener(
     "change",
-    () =>
+    () => {
+
       state.autoOrderTarget =
         Math.max(
           state.autoOrderMin+1,
@@ -5080,7 +4509,9 @@ $("autoOrderTarget")
             ||
             110
           )
-        )
+        );
+
+    }
   );
 
 
@@ -5105,313 +4536,14 @@ $("depositRate")
     () => {
 
       state.deposit.rate =
-        Math.max(
-          .1,
-          Math.min(
-            5,
-            Number(
-              $("depositRate").value
-            )
-            ||
-            1
-          )
-        );
+        Number(
+          $("depositRate").value
+        )
+        ||
+        1;
 
 
       renderAll();
-
-    }
-  );
-
-
-document
-  .addEventListener(
-    "click",
-    e => {
-
-      const up =
-        e.target.closest(
-          ".upgrade-store"
-        );
-
-
-      if(up){
-
-        const s =
-          getStore(
-            up.dataset.id
-          );
-
-
-        if(!s)
-          return;
-
-
-        const c =
-          45000
-          *
-          s.level;
-
-
-        if(
-          state.cash<c
-        )
-          return;
-
-
-        state.cash -=
-          c;
-
-
-        s.level++;
-
-
-        s.levelMultiplier *=
-          1.12;
-
-
-        renderAll();
-
-        return;
-
-      }
-
-
-      const du =
-        e.target.closest(
-          ".deposit-upgrade"
-        );
-
-
-      if(
-        du
-        &&
-        !du.disabled
-      ){
-
-        const s =
-          getStore(
-            du.dataset.id
-          );
-
-
-        if(!s)
-          return;
-
-
-        const lvl =
-          s.depositMachineLevel
-          ||
-          0;
-
-
-        const cost =
-          lvl===0
-            ? 65000
-            : 90000*lvl;
-
-
-        if(
-          state.cash<cost
-        )
-          return;
-
-
-        state.cash -=
-          cost;
-
-
-        s.depositMachineLevel =
-          Math.min(
-            3,
-            lvl+1
-          );
-
-
-        state.reputation =
-          Math.min(
-            100,
-            state.reputation+1.5
-          );
-
-
-        renderAll();
-
-        return;
-
-      }
-
-
-      const cp =
-        e.target.closest(
-          ".create-private"
-        );
-
-
-      if(
-        cp
-        &&
-        !cp.disabled
-      ){
-
-        const f =
-          ownBrandFamilies.find(
-            x =>
-              x.id===
-              cp.dataset.family
-          );
-
-
-        const av =
-          state.factories.filter(
-            x =>
-              f.categories.includes(
-                x.category
-              )
-          );
-
-
-        if(
-          !av.length
-          ||
-          state.cash<30000
-        )
-          return;
-
-
-        state.cash -=
-          30000;
-
-
-        state.privateProducts.push(
-
-          createProduct(
-
-            true,
-
-            av[
-              Math.floor(
-                Math.random()
-                *
-                av.length
-              )
-            ].category,
-
-            f.id
-
-          )
-
-        );
-
-
-        renderAll();
-
-        return;
-
-      }
-
-
-      const bc =
-        e.target.closest(
-          ".buy-company"
-        );
-
-
-      if(bc){
-
-        const c =
-          state.companies.find(
-            x =>
-              x.id===
-              bc.dataset.id
-          );
-
-
-        if(
-          !c
-          ||
-          state.cash<c.price
-        )
-          return;
-
-
-        state.cash -=
-          c.price;
-
-
-        const acquired =
-          createAcquiredStores(c);
-
-
-        state.stores.push(
-          ...acquired
-        );
-
-
-        state.reputation =
-          Math.min(
-            100,
-            state.reputation
-            +
-            Math.min(
-              6,
-              c.stores*.35
-            )
-          );
-
-
-        state.companies =
-          state.companies.filter(
-            x =>
-              x.id!==c.id
-          );
-
-
-        renderAll();
-
-        return;
-
-      }
-
-    }
-  );
-
-
-document
-  .addEventListener(
-    "change",
-    e => {
-
-      if(
-        e.target.matches(
-          ".product-price"
-        )
-      ){
-
-        const p =
-          getProduct(
-            e.target.dataset.id
-          );
-
-
-        if(p){
-
-          p.sellPrice =
-            Math.max(
-              .01,
-              Number(
-                e.target.value
-              )
-              ||
-              p.sellPrice
-            );
-
-        }
-
-
-        renderTop();
-
-      }
 
     }
   );
@@ -5445,106 +4577,6 @@ $("buildFactoryBtn")
 
 
       renderAll();
-
-    }
-  );
-
-
-document
-  .addEventListener(
-    "change",
-    e => {
-
-      if(
-        e.target.matches(
-          ".factory-production"
-        )
-      ){
-
-        const f =
-          state.factories.find(
-            x =>
-              x.id===
-              e.target.dataset.id
-          );
-
-
-        if(!f)
-          return;
-
-
-        const category =
-          e.target.value
-          ||
-          null;
-
-
-        if(!category){
-
-          f.category =
-            null;
-
-
-          f.maintenance =
-            180;
-
-
-          renderAll();
-
-          return;
-
-        }
-
-
-        const cfg =
-          factoryProducts.find(
-            x =>
-              x.category===
-              category
-          );
-
-
-        if(!cfg)
-          return;
-
-
-        if(
-          f.category!==category
-        ){
-
-          if(
-            state.cash<
-            cfg.setupCost
-          ){
-
-            e.target.value =
-              f.category
-              ||
-              "";
-
-
-            return;
-
-          }
-
-
-          state.cash -=
-            cfg.setupCost;
-
-        }
-
-
-        f.category =
-          category;
-
-
-        f.maintenance =
-          cfg.maintenance;
-
-
-        renderAll();
-
-      }
 
     }
   );
@@ -5659,33 +4691,560 @@ $("marketingBtn")
   );
 
 
+document
+  .addEventListener(
+    "click",
+    e => {
+
+      const upgrade =
+        e.target.closest(
+          ".upgrade-store"
+        );
+
+
+      if(upgrade){
+
+        const store =
+          getStore(
+            upgrade.dataset.id
+          );
+
+
+        if(!store)
+          return;
+
+
+        const cost =
+          45000
+          *
+          store.level;
+
+
+        if(
+          state.cash<cost
+        )
+          return;
+
+
+        state.cash -=
+          cost;
+
+
+        store.level++;
+
+
+        store.levelMultiplier *=
+          1.12;
+
+
+        renderAll();
+
+        return;
+
+      }
+
+
+      const focusStore =
+        e.target.closest(
+          ".focus-store"
+        );
+
+
+      if(focusStore){
+
+        const store =
+          getStore(
+            focusStore.dataset.id
+          );
+
+
+        if(
+          store
+          &&
+          realMap
+        ){
+
+          document
+            .querySelector(
+              '[data-tab="world"]'
+            )
+            .click();
+
+
+          realMap.setView(
+            [
+              store.lat,
+              store.lng
+            ],
+            12
+          );
+
+        }
+
+
+        return;
+
+      }
+
+
+      const focusHub =
+        e.target.closest(
+          ".focus-hub"
+        );
+
+
+      if(focusHub){
+
+        const hub =
+          state.hubs.find(
+            h =>
+              h.id===
+              focusHub.dataset.id
+          );
+
+
+        if(
+          hub
+          &&
+          realMap
+        ){
+
+          document
+            .querySelector(
+              '[data-tab="world"]'
+            )
+            .click();
+
+
+          realMap.setView(
+            [
+              hub.lat,
+              hub.lng
+            ],
+            9
+          );
+
+        }
+
+
+        return;
+
+      }
+
+
+      const closeStore =
+        e.target.closest(
+          ".close-store"
+        );
+
+
+      if(closeStore){
+
+        const store =
+          getStore(
+            closeStore.dataset.id
+          );
+
+
+        if(!store)
+          return;
+
+
+        const type =
+          storeTypes[
+            store.type
+          ];
+
+
+        const refund =
+          type.cost
+          *
+          type.refund
+          +
+          (
+            store.level-1
+          )
+          *
+          15000;
+
+
+        state.cash +=
+          refund;
+
+
+        state.stores =
+          state.stores.filter(
+            s =>
+              s.id!==store.id
+          );
+
+
+        state.shipments =
+          state.shipments.filter(
+            s =>
+              s.storeId!==store.id
+          );
+
+
+        renderAll();
+
+        return;
+
+      }
+
+
+      const dep =
+        e.target.closest(
+          ".deposit-upgrade"
+        );
+
+
+      if(
+        dep
+        &&
+        !dep.disabled
+      ){
+
+        const store =
+          getStore(
+            dep.dataset.id
+          );
+
+
+        if(!store)
+          return;
+
+
+        const level =
+          store.depositMachineLevel
+          ||
+          0;
+
+
+        const cost =
+          level===0
+            ? 65000
+            : 90000*level;
+
+
+        if(
+          state.cash<cost
+        )
+          return;
+
+
+        state.cash -=
+          cost;
+
+
+        store.depositMachineLevel =
+          Math.min(
+            3,
+            level+1
+          );
+
+
+        renderAll();
+
+        return;
+
+      }
+
+
+      const privateBtn =
+        e.target.closest(
+          ".create-private"
+        );
+
+
+      if(
+        privateBtn
+        &&
+        !privateBtn.disabled
+      ){
+
+        const family =
+          ownBrandFamilies.find(
+            f =>
+              f.id===
+              privateBtn.dataset.family
+          );
+
+
+        const matching =
+          state.factories.filter(
+            f =>
+              f.category
+              &&
+              family.categories.includes(
+                f.category
+              )
+          );
+
+
+        if(
+          !matching.length
+          ||
+          state.cash<30000
+        )
+          return;
+
+
+        state.cash -=
+          30000;
+
+
+        const factory =
+          matching[
+            Math.floor(
+              Math.random()
+              *
+              matching.length
+            )
+          ];
+
+
+        state.privateProducts.push(
+
+          createProduct(
+            true,
+            factory.category,
+            family.id
+          )
+
+        );
+
+
+        renderAll();
+
+        return;
+
+      }
+
+
+      const buyCompany =
+        e.target.closest(
+          ".buy-company"
+        );
+
+
+      if(buyCompany){
+
+        const company =
+          state.companies.find(
+            c =>
+              c.id===
+              buyCompany.dataset.id
+          );
+
+
+        if(
+          !company
+          ||
+          state.cash<company.price
+        )
+          return;
+
+
+        state.cash -=
+          company.price;
+
+
+        state.stores.push(
+          ...createAcquiredStores(
+            company
+          )
+        );
+
+
+        state.reputation =
+          Math.min(
+            100,
+            state.reputation
+            +
+            Math.min(
+              5,
+              company.stores*.3
+            )
+          );
+
+
+        state.companies =
+          state.companies.filter(
+            c =>
+              c.id!==company.id
+          );
+
+
+        renderAll();
+
+        return;
+
+      }
+
+    }
+  );
+
+
+document
+  .addEventListener(
+    "change",
+    e => {
+
+      if(
+        e.target.matches(
+          ".product-price"
+        )
+      ){
+
+        const p =
+          getProduct(
+            e.target.dataset.id
+          );
+
+
+        if(p){
+
+          p.sellPrice =
+            Math.max(
+              .01,
+              Number(
+                e.target.value
+              )
+              ||
+              p.sellPrice
+            );
+
+        }
+
+
+        renderTop();
+
+      }
+
+
+      if(
+        e.target.matches(
+          ".factory-production"
+        )
+      ){
+
+        const factory =
+          state.factories.find(
+            f =>
+              f.id===
+              e.target.dataset.id
+          );
+
+
+        if(!factory)
+          return;
+
+
+        const category =
+          e.target.value
+          ||
+          null;
+
+
+        if(!category){
+
+          factory.category =
+            null;
+
+
+          factory.maintenance =
+            180;
+
+
+          renderAll();
+
+          return;
+
+        }
+
+
+        const cfg =
+          factoryProducts.find(
+            p =>
+              p.category===
+              category
+          );
+
+
+        if(!cfg)
+          return;
+
+
+        if(
+          factory.category!==category
+        ){
+
+          if(
+            state.cash<
+            cfg.setupCost
+          ){
+
+            e.target.value =
+              factory.category
+              ||
+              "";
+
+
+            return;
+
+          }
+
+
+          state.cash -=
+            cfg.setupCost;
+
+        }
+
+
+        factory.category =
+          category;
+
+
+        factory.maintenance =
+          cfg.maintenance;
+
+
+        renderAll();
+
+      }
+
+    }
+  );
+
+
 /* =========================
    KONSOLA
 ========================= */
 
-function consolePrint(t){
+function consolePrint(text){
 
-  const o =
+  const out =
     $("consoleOutput");
 
 
-  const d =
+  const line =
     document.createElement(
       "div"
     );
 
 
-  d.textContent =
-    t;
+  line.textContent =
+    text;
 
 
-  o.appendChild(
-    d
+  out.appendChild(
+    line
   );
 
 
-  o.scrollTop =
-    o.scrollHeight;
+  out.scrollTop =
+    out.scrollHeight;
 
 }
 
@@ -5809,13 +5368,11 @@ $("consoleForm")
         [
           "CASH <kwota>",
           "SETCASH <kwota>",
-          "PRODUCTS <liczba>",
           "AUTO ON/OFF",
+          "PRODUCTS <liczba>",
+          "REPUTATION <0-100>",
           "FACTORY <kategoria>",
-          "HUB <region>",
-          "DEPOSIT ON/OFF",
-          "DEPOSITRATE <kwota>",
-          "REPUTATION <0-100>"
+          "HUB"
         ]
         .forEach(
           consolePrint
@@ -5885,34 +5442,6 @@ $("consoleForm")
 
 
       if(
-        c==="PRODUCTS"
-      ){
-
-        generateProducts(
-
-          Math.max(
-            1,
-            Math.min(
-              100,
-              Number(
-                args[0]
-              )
-              ||
-              10
-            )
-          )
-
-        );
-
-
-        renderAll();
-
-        return;
-
-      }
-
-
-      if(
         c==="AUTO"
       ){
 
@@ -5937,51 +5466,24 @@ $("consoleForm")
 
 
       if(
-        c==="DEPOSIT"
+        c==="PRODUCTS"
       ){
 
-        state.deposit.enabled =
-          (
-            args[0]
-            ||
-            ""
-          )
-          .toUpperCase()
-          ===
-          "ON";
+        generateProducts(
 
-
-        renderAll();
-
-        return;
-
-      }
-
-
-      if(
-        c==="DEPOSITRATE"
-      ){
-
-        const n =
-          Number(
-            args[0]
-          );
-
-
-        if(
-          Number.isFinite(n)
-        ){
-
-          state.deposit.rate =
-            Math.max(
-              .1,
-              Math.min(
-                5,
-                n
+          Math.max(
+            1,
+            Math.min(
+              100,
+              Number(
+                args[0]
               )
-            );
+              ||
+              10
+            )
+          )
 
-        }
+        );
 
 
         renderAll();
@@ -6020,37 +5522,35 @@ $("consoleForm")
         c==="FACTORY"
       ){
 
-        const q =
-          args
-            .join(" ")
-            .toLowerCase();
+        const category =
+          args.join(" ");
 
 
-        const o =
+        const cfg =
           factoryProducts.find(
-            x =>
-              x.category
+            p =>
+              p.category
                 .toLowerCase()
               ===
-              q
+              category.toLowerCase()
           );
 
 
-        if(o){
+        state.factories.push({
 
-          state.factories.push({
+          id:uid(),
 
-            id:uid(),
+          category:
+            cfg?.category
+            ||
+            null,
 
-            category:
-              o.category,
+          maintenance:
+            cfg?.maintenance
+            ||
+            180
 
-            maintenance:
-              o.maintenance
-
-          });
-
-        }
+        });
 
 
         renderAll();
@@ -6064,74 +5564,33 @@ $("consoleForm")
         c==="HUB"
       ){
 
-        const q =
-          args
-            .join(" ")
-            .toLowerCase();
-
-
-        const o =
-          hubRegions.find(
-            x =>
-              x.id===q
-              ||
-              x.name
-                .toLowerCase()
-              ===
-              q
-          );
-
-
         if(
-          o
-          &&
-          !getHub(
-            o.id
-          )
-        ){
-
-          const feature =
-            worldCountries[
-              Math.floor(
-                Math.random()
-                *
-                worldCountries.length
-              )
-            ];
+          !realMap
+        )
+          return;
 
 
-          const point =
-            safePointInFeature(
-              feature,
-              1
-            );
+        const center =
+          realMap.getCenter();
 
 
-          state.hubs.push({
+        state.hubs.push({
 
-            ...o,
+          id:uid(),
 
-            id:uid(),
+          name:
+            `Centrum logistyczne #${state.hubs.length+1}`,
 
-            region:o.id,
+          lat:
+            center.lat,
 
-            x:point.x,
+          lng:
+            center.lng,
 
-            y:point.y,
+          maintenance:
+            HUB_MAINTENANCE
 
-            lon:
-              point.lonLat?.[0]
-              ||
-              0,
-
-            lat:
-              point.lonLat?.[1]
-              ||
-              0
-
-          });
-
-        }
+        });
 
 
         renderAll();
@@ -6157,9 +5616,7 @@ generateProducts(30);
 
 generateCompanies();
 
-renderAll();
-
-await initMap();
+initMap();
 
 renderAll();
 
