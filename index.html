@@ -1,3588 +1,3667 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>City Balance</title>
-
-<style>
-*{
-  box-sizing:border-box;
-}
-
-:root{
-  --bg:#08111d;
-  --panel:#0f1b2b;
-  --panel2:#14243a;
-  --line:#2b4667;
-  --text:#f8fafc;
-  --muted:#93a7bd;
-  --green:#22c55e;
-  --red:#ef4444;
-  --yellow:#facc15;
-  --blue:#3b82f6;
-  --purple:#a855f7;
-}
-
-html,
-body{
-  width:100%;
-  height:100%;
-  margin:0;
-  overflow:hidden;
-  font-family:Arial,Helvetica,sans-serif;
-  background:var(--bg);
-  color:var(--text);
-}
-
-button,
-input{
-  font:inherit;
-}
-
-button{
-  cursor:pointer;
-}
-
-#app{
-  width:100%;
-  height:100vh;
-
-  display:grid;
-
-  grid-template-columns:
-    285px
-    minmax(500px,1fr)
-    365px;
-
-  grid-template-rows:
-    78px
-    minmax(0,1fr);
-}
-
-/* =====================================================
-   HEADER
-===================================================== */
-
-header{
-  grid-column:1/4;
-
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-
-  padding:0 18px;
-
-  border-bottom:1px solid var(--line);
-
-  background:#091522;
-
-  z-index:10;
-}
-
-.brand{
-  display:flex;
-  align-items:center;
-  gap:12px;
-}
-
-.logo{
-  width:48px;
-  height:48px;
-
-  display:flex;
-  align-items:center;
-  justify-content:center;
-
-  border-radius:14px;
-
-  font-size:25px;
-
-  background:
-    linear-gradient(
-      135deg,
-      #22c55e,
-      #0ea5e9
-    );
-}
-
-.brand h1{
-  margin:0;
-  font-size:20px;
-}
-
-.brand small{
-  color:var(--muted);
-}
-
-.headerStats{
-  display:flex;
-  gap:8px;
-}
-
-.headerCard{
-  min-width:105px;
-
-  padding:8px 10px;
-
-  text-align:center;
-
-  border:1px solid var(--line);
-  border-radius:10px;
-
-  background:var(--panel);
-}
-
-.headerCard.wide{
-  min-width:160px;
-}
-
-.headerCard small{
-  display:block;
-
-  margin-bottom:3px;
-
-  color:var(--muted);
-
-  font-size:9px;
-}
-
-.headerCard strong{
-  font-size:13px;
-}
-
-#budget{
-  color:#4ade80;
-}
-
-#happiness{
-  color:#fde047;
-}
-
-/* =====================================================
-   SIDE PANELS
-===================================================== */
-
-aside{
-  min-height:0;
-  overflow-y:auto;
-
-  padding:13px;
-
-  background:var(--panel);
-}
-
-#leftPanel{
-  border-right:1px solid var(--line);
-}
-
-#rightPanel{
-  border-left:1px solid var(--line);
-}
-
-.group{
-  margin-bottom:12px;
-
-  padding:10px;
-
-  border:1px solid #233c5a;
-  border-radius:13px;
-
-  background:#122034;
-}
-
-.groupTitle{
-  margin:2px 3px 8px;
-
-  color:#7dd3fc;
-
-  font-size:10px;
-  font-weight:900;
-
-  text-transform:uppercase;
-  letter-spacing:1px;
-}
-
-.buildButton{
-  width:100%;
-
-  margin-bottom:6px;
-
-  padding:9px 10px;
-
-  text-align:left;
-
-  color:white;
-
-  border:1px solid #345170;
-  border-radius:9px;
-
-  background:#182c46;
-}
-
-.buildButton:hover{
-  background:#213a59;
-}
-
-.buildButton.active{
-  border-color:#60a5fa;
-  background:#1d4ed8;
-}
-
-.buildButton span{
-  display:block;
-
-  margin-top:3px;
-
-  color:#b9c6d6;
-
-  font-size:9px;
-}
-
-.two{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:6px;
-}
-
-.two button{
-  text-align:center;
-}
-
-/* =====================================================
-   CITY AREA
-===================================================== */
-
-#cityArea{
-  position:relative;
-
-  min-width:0;
-  min-height:0;
-
-  overflow:auto;
-
-  background:
-    linear-gradient(
-      45deg,
-      #0b1724 25%,
-      #0c1a29 25%,
-      #0c1a29 50%,
-      #0b1724 50%,
-      #0b1724 75%,
-      #0c1a29 75%
-    );
-
-  background-size:36px 36px;
-}
-
-#cityWrap{
-  min-width:100%;
-  min-height:100%;
-
-  display:flex;
-  align-items:center;
-  justify-content:center;
-
-  padding:50px;
-}
-
-#cityGrid{
-  display:grid;
-
-  grid-template-columns:
-    repeat(24,34px);
-
-  grid-template-rows:
-    repeat(18,34px);
-
-  gap:2px;
-
-  padding:8px;
-
-  border:1px solid #314d6d;
-  border-radius:10px;
-
-  background:#0a1623;
-
-  box-shadow:
-    0 20px 60px
-    rgba(0,0,0,.35);
-}
-
-.tile{
-  width:34px;
-  height:34px;
-
-  display:flex;
-  align-items:center;
-  justify-content:center;
-
-  position:relative;
-
-  border:1px solid rgba(255,255,255,.06);
-  border-radius:4px;
-
-  user-select:none;
-
-  font-size:16px;
-
-  transition:
-    transform .08s,
-    filter .08s;
-}
-
-.tile:hover{
-  transform:scale(1.08);
-  filter:brightness(1.18);
-  z-index:4;
-}
-
-.tile.empty{
-  background:#1b4332;
-}
-
-.tile.road{
-  background:#475569;
-}
-
-.tile.residential{
-  background:#166534;
-}
-
-.tile.commercial{
-  background:#1d4ed8;
-}
-
-.tile.industrial{
-  background:#a16207;
-}
-
-.tile.school{
-  background:#7c3aed;
-}
-
-.tile.hospital{
-  background:#be123c;
-}
-
-.tile.police{
-  background:#1e40af;
-}
-
-.tile.fire{
-  background:#c2410c;
-}
-
-.tile.park{
-  background:#15803d;
-}
-
-.tile.power{
-  background:#854d0e;
-}
-
-.tile.water{
-  background:#0369a1;
-}
-
-.tile.cityhall{
-  background:#334155;
-}
-
-.tile .level{
-  position:absolute;
-
-  right:2px;
-  bottom:1px;
-
-  font-size:8px;
-  font-weight:bold;
-
-  color:white;
-
-  text-shadow:
-    0 1px 3px black;
-}
-
-/* =====================================================
-   MAP FLOAT UI
-===================================================== */
-
-#toolInfo{
-  position:absolute;
-
-  top:14px;
-  left:50%;
-
-  transform:translateX(-50%);
-
-  z-index:20;
-
-  padding:9px 14px;
-
-  border:1px solid #3c5877;
-  border-radius:10px;
-
-  background:rgba(6,14,25,.94);
-
-  font-size:11px;
-
-  pointer-events:none;
-}
-
-#cashFloatContainer{
-  position:absolute;
-
-  inset:0;
-
-  pointer-events:none;
-
-  z-index:30;
-}
-
-.moneyFloat{
-  position:absolute;
-
-  left:50%;
-  top:95px;
-
-  transform:translateX(-50%);
-
-  font-size:20px;
-  font-weight:900;
-
-  text-shadow:
-    0 2px 6px black;
-
-  animation:
-    moneyFloat
-    1.5s
-    ease-out
-    forwards;
-}
-
-.moneyFloat.plus{
-  color:#4ade80;
-}
-
-.moneyFloat.minus{
-  color:#f87171;
-}
-
-@keyframes moneyFloat{
-  0%{
-    opacity:0;
-    transform:translate(-50%,15px) scale(.85);
-  }
-
-  15%{
-    opacity:1;
-    transform:translate(-50%,0) scale(1.12);
-  }
-
-  100%{
-    opacity:0;
-    transform:translate(-50%,-45px) scale(.95);
-  }
-}
-
-/* =====================================================
-   RIGHT PANEL
-===================================================== */
-
-.tabs{
-  display:grid;
-
-  grid-template-columns:
-    1fr 1fr 1fr;
-
-  gap:5px;
-
-  margin-bottom:12px;
-}
-
-.tabButton{
-  padding:8px 4px;
-
-  color:#c4d0dd;
-
-  border:1px solid #345170;
-  border-radius:8px;
-
-  background:#162941;
-
-  font-size:10px;
-}
-
-.tabButton.active{
-  color:white;
-  background:#2563eb;
-}
-
-.tabPage{
-  display:none;
-}
-
-.tabPage.active{
-  display:block;
-}
-
-.section{
-  margin:14px 2px 7px;
-
-  color:#7dd3fc;
-
-  font-size:10px;
-  font-weight:900;
-
-  text-transform:uppercase;
-  letter-spacing:1px;
-}
-
-.stat{
-  margin-bottom:6px;
-
-  padding:9px 10px;
-
-  border:1px solid #233d5b;
-  border-radius:8px;
-
-  background:#091522;
-
-  font-size:11px;
-}
-
-.stat span{
-  float:right;
-  font-weight:bold;
-}
-
-.good{
-  color:#4ade80;
-}
-
-.bad{
-  color:#f87171;
-}
-
-.warning{
-  color:#facc15;
-}
-
-.progress{
-  height:8px;
-
-  margin-top:6px;
-
-  overflow:hidden;
-
-  border-radius:999px;
-
-  background:#172639;
-}
-
-.progressFill{
-  height:100%;
-
-  width:0%;
-
-  background:#22c55e;
-
-  transition:width .3s;
-}
-
-/* =====================================================
-   TAX
-===================================================== */
-
-.taxBox{
-  margin-bottom:8px;
-
-  padding:10px;
-
-  border:1px solid #294562;
-  border-radius:9px;
-
-  background:#0a1726;
-}
-
-.taxBox label{
-  display:flex;
-  justify-content:space-between;
-
-  margin-bottom:6px;
-
-  font-size:11px;
-}
-
-.taxBox input{
-  width:100%;
-}
-
-/* =====================================================
-   LOG
-===================================================== */
-
-#log{
-  max-height:240px;
-
-  overflow:auto;
-
-  padding:8px;
-
-  border:1px solid #233d5b;
-  border-radius:9px;
-
-  background:#07111d;
-}
-
-.logItem{
-  padding:5px 0;
-
-  border-bottom:1px solid #152536;
-
-  font-size:9px;
-
-  color:#cbd5e1;
-}
-
-/* =====================================================
-   POPUP
-===================================================== */
-
-#tilePanel{
-  display:none;
-
-  position:absolute;
-
-  right:18px;
-  bottom:18px;
-
-  z-index:50;
-
-  width:270px;
-
-  padding:13px;
-
-  border:1px solid #425d7c;
-  border-radius:12px;
-
-  background:rgba(7,17,29,.97);
-}
-
-#tilePanel.show{
-  display:block;
-}
-
-#tilePanel h3{
-  margin:0 0 8px;
-}
-
-.tilePanelButton{
-  width:100%;
-
-  margin-top:7px;
-
-  padding:8px;
-
-  color:white;
-
-  border:0;
-  border-radius:8px;
-
-  background:#334155;
-}
-
-.tilePanelButton.upgrade{
-  background:#166534;
-}
-
-.tilePanelButton.destroy{
-  background:#7f1d1d;
-}
-
-@media(max-width:1150px){
-  #app{
-    grid-template-columns:250px 1fr;
-  }
-
-  header{
-    grid-column:1/3;
-  }
-
-  #rightPanel{
-    display:none;
-  }
-}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Retail Empire Tycoon</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #111827;
+      --card: #1f2937;
+      --card2: #273449;
+      --border: #374151;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --accent: #22c55e;
+      --accent2: #16a34a;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --blue: #3b82f6;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    button,
+    select,
+    input {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .btn {
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--text);
+      border-radius: 9px;
+      padding: 10px 14px;
+      transition: 0.15s;
+    }
+
+    .btn:hover {
+      background: var(--card2);
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #052e16;
+      font-weight: 700;
+    }
+
+    .btn-primary:hover {
+      background: var(--accent2);
+      color: white;
+    }
+
+    .btn-danger {
+      background: var(--danger);
+      border-color: var(--danger);
+      color: white;
+    }
+
+    .tab.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #052e16;
+      font-weight: 700;
+    }
+
+    .country {
+      cursor: pointer;
+      transition: 0.15s;
+    }
+
+    .country:hover {
+      filter: brightness(1.25);
+    }
+
+    input,
+    select {
+      background: #0b1220;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 9px 10px;
+    }
+
+    .scrollbar::-webkit-scrollbar {
+      height: 8px;
+      width: 8px;
+    }
+
+    .scrollbar::-webkit-scrollbar-thumb {
+      background: #475569;
+      border-radius: 999px;
+    }
+  </style>
 </head>
 
 <body>
 
-<div id="app">
+<div class="max-w-[1600px] mx-auto p-3 md:p-5">
 
-<header>
+  <!-- HEADER -->
 
-  <div class="brand">
+  <header class="mb-4">
+    <h1 class="text-2xl md:text-3xl font-bold">
+      Retail Empire Tycoon
+    </h1>
 
-    <div class="logo">
-      🏙️
+    <p class="muted mt-1">
+      Buduj sklepy na świecie, zarządzaj cenami, zamówieniami, fabrykami i własnymi markami.
+    </p>
+  </header>
+
+
+  <!-- TOP STATS -->
+
+  <div class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-2 mb-4">
+
+    <div class="card p-3">
+      <div class="text-xs muted">Gotówka</div>
+      <div id="cash" class="font-bold text-lg">0 zł</div>
     </div>
 
-    <div>
-      <h1>City Balance</h1>
-      <small>City Budget Simulator</small>
+    <div class="card p-3">
+      <div class="text-xs muted">Sklepy</div>
+      <div id="storesStat" class="font-bold text-lg">0</div>
     </div>
 
-  </div>
-
-  <div class="headerStats">
-
-    <div class="headerCard wide">
-      <small>DATA</small>
-      <strong id="dateDisplay"></strong>
+    <div class="card p-3">
+      <div class="text-xs muted">Kraje</div>
+      <div id="countriesStat" class="font-bold text-lg">0</div>
     </div>
 
-    <div class="headerCard">
-      <small>BUDŻET</small>
-      <strong id="budget"></strong>
+    <div class="card p-3">
+      <div class="text-xs muted">Fabryki</div>
+      <div id="factoriesStat" class="font-bold text-lg">0</div>
     </div>
 
-    <div class="headerCard">
-      <small>MIESZKAŃCY</small>
-      <strong id="population">0</strong>
+    <div class="card p-3">
+      <div class="text-xs muted">Produkty</div>
+      <div id="productsStat" class="font-bold text-lg">0</div>
     </div>
 
-    <div class="headerCard">
-      <small>ZADOWOLENIE</small>
-      <strong id="happiness">50%</strong>
+    <div class="card p-3">
+      <div class="text-xs muted">Reputacja</div>
+      <div id="repStat" class="font-bold text-lg">0</div>
     </div>
 
-  </div>
-
-</header>
-
-<!-- =====================================================
-     LEFT PANEL
-===================================================== -->
-
-<aside id="leftPanel">
-
-  <div class="group">
-
-    <div class="groupTitle">
-      🛣️ Infrastruktura
+    <div class="card p-3">
+      <div class="text-xs muted">Data</div>
+      <div id="dateStat" class="font-bold">01.01.2026</div>
     </div>
 
-    <button
-      class="buildButton"
-      data-tool="road"
-      onclick="selectTool('road')"
-    >
-      🛣️ Droga
-      <span>1 000 zł / kafelek</span>
-    </button>
-
-  </div>
-
-  <div class="group">
-
-    <div class="groupTitle">
-      🏘️ Zabudowa
-    </div>
-
-    <button
-      class="buildButton"
-      data-tool="residential"
-      onclick="selectTool('residential')"
-    >
-      🏠 Mieszkalna
-      <span>5 000 zł • mieszkańcy i podatki</span>
-    </button>
-
-    <button
-      class="buildButton"
-      data-tool="commercial"
-      onclick="selectTool('commercial')"
-    >
-      🏪 Handlowa
-      <span>8 000 zł • miejsca pracy</span>
-    </button>
-
-    <button
-      class="buildButton"
-      data-tool="industrial"
-      onclick="selectTool('industrial')"
-    >
-      🏭 Przemysłowa
-      <span>10 000 zł • dużo miejsc pracy</span>
-    </button>
-
-  </div>
-
-  <div class="group">
-
-    <div class="groupTitle">
-      🏛️ Usługi
-    </div>
-
-    <button
-      class="buildButton"
-      data-tool="school"
-      onclick="selectTool('school')"
-    >
-      🏫 Szkoła
-      <span>45 000 zł • edukacja</span>
-    </button>
-
-    <button
-      class="buildButton"
-      data-tool="hospital"
-      onclick="selectTool('hospital')"
-    >
-      🏥 Szpital
-      <span>75 000 zł • zdrowie</span>
-    </button>
-
-    <button
-      class="buildButton"
-      data-tool="police"
-      onclick="selectTool('police')"
-    >
-      🚓 Policja
-      <span>55 000 zł • bezpieczeństwo</span>
-    </button>
-
-    <button
-      class="buildButton"
-      data-tool="fire"
-      onclick="selectTool('fire')"
-    >
-      🚒 Straż pożarna
-      <span>50 000 zł • bezpieczeństwo</span>
-    </button>
-
-    <button
-      class="buildButton"
-      data-tool="park"
-      onclick="selectTool('park')"
-    >
-      🌳 Park
-      <span>15 000 zł • zadowolenie</span>
-    </button>
-
-  </div>
-
-  <div class="group">
-
-    <div class="groupTitle">
-      ⚡ Media
-    </div>
-
-    <button
-      class="buildButton"
-      data-tool="power"
-      onclick="selectTool('power')"
-    >
-      ⚡ Elektrownia
-      <span>120 000 zł • energia</span>
-    </button>
-
-    <button
-      class="buildButton"
-      data-tool="water"
-      onclick="selectTool('water')"
-    >
-      💧 Wodociągi
-      <span>90 000 zł • woda</span>
-    </button>
-
-  </div>
-
-  <div class="group">
-
-    <div class="groupTitle">
-      🧰 Narzędzia
-    </div>
-
-    <button
-      class="buildButton"
-      data-tool="inspect"
-      onclick="selectTool('inspect')"
-    >
-      🔎 Informacje
-    </button>
-
-    <button
-      class="buildButton"
-      data-tool="bulldoze"
-      onclick="selectTool('bulldoze')"
-    >
-      🧨 Wyburz
-      <span>Zwrot 25% kosztu</span>
-    </button>
-
-  </div>
-
-  <div class="group">
-
-    <div class="groupTitle">
-      ⏱️ Czas
-    </div>
-
-    <div class="two">
-
-      <button
-        class="buildButton"
-        onclick="setSpeed(0)"
-      >
-        ⏸
-      </button>
-
-      <button
-        class="buildButton"
-        onclick="setSpeed(1)"
-      >
-        1x
-      </button>
-
-      <button
-        class="buildButton"
-        onclick="setSpeed(2)"
-      >
-        2x
-      </button>
-
-      <button
-        class="buildButton"
-        onclick="setSpeed(5)"
-      >
-        5x
-      </button>
-
+    <div class="card p-3">
+      <div class="text-xs muted">Zysk / dzień</div>
+      <div id="profitStat" class="font-bold">0 zł</div>
     </div>
 
   </div>
 
-</aside>
 
-<!-- =====================================================
-     CITY
-===================================================== -->
+  <!-- TIME CONTROLS -->
 
-<main id="cityArea">
+  <div class="panel p-3 mb-4 flex flex-wrap items-center gap-2">
 
-  <div id="toolInfo">
-    Narzędzie: Informacje
-  </div>
+    <div class="font-bold mr-2">
+      Czas:
+    </div>
 
-  <div id="cashFloatContainer"></div>
-
-  <div id="cityWrap">
-    <div id="cityGrid"></div>
-  </div>
-
-  <div id="tilePanel">
-
-    <h3 id="tilePanelTitle">
-      Budynek
-    </h3>
-
-    <div id="tilePanelText"></div>
-
-    <button
-      id="upgradeTileButton"
-      class="tilePanelButton upgrade"
-      onclick="upgradeSelectedTile()"
-    >
-      ⬆️ Rozbuduj
+    <button id="pauseBtn" class="btn">
+      ⏸ Pauza
     </button>
 
-    <button
-      class="tilePanelButton destroy"
-      onclick="destroySelectedTile()"
-    >
-      🧨 Wyburz
+    <button data-speed="1" class="speed btn">
+      1×
     </button>
 
-    <button
-      class="tilePanelButton"
-      onclick="closeTilePanel()"
-    >
-      Zamknij
+    <button data-speed="3" class="speed btn">
+      3×
     </button>
+
+    <button data-speed="10" class="speed btn">
+      10×
+    </button>
+
+    <button data-speed="30" class="speed btn">
+      30×
+    </button>
+
+    <div class="ml-auto muted text-sm">
+      1 dzień = 1 sekunda przy prędkości 1×
+    </div>
 
   </div>
 
-</main>
 
-<!-- =====================================================
-     RIGHT PANEL
-===================================================== -->
+  <!-- TABS -->
 
-<aside id="rightPanel">
+  <div class="flex gap-2 overflow-x-auto scrollbar mb-4">
 
-  <div class="tabs">
-
-    <button
-      id="overviewBtn"
-      class="tabButton active"
-      onclick="setTab('overview')"
-    >
-      🏙️ Miasto
+    <button data-tab="world" class="tab btn active">
+      🌍 Mapa świata
     </button>
 
-    <button
-      id="financeBtn"
-      class="tabButton"
-      onclick="setTab('finance')"
-    >
-      💰 Budżet
+    <button data-tab="stores" class="tab btn">
+      🏪 Sklepy
     </button>
 
-    <button
-      id="policyBtn"
-      class="tabButton"
-      onclick="setTab('policy')"
-    >
-      ⚙️ Podatki
+    <button data-tab="orders" class="tab btn">
+      📦 Zamówienia
+    </button>
+
+    <button data-tab="products" class="tab btn">
+      🥤 Produkty i ceny
+    </button>
+
+    <button data-tab="factories" class="tab btn">
+      🏭 Fabryki
+    </button>
+
+    <button data-tab="acquisitions" class="tab btn">
+      💼 Przejęcia
+    </button>
+
+    <button data-tab="log" class="tab btn">
+      📋 Historia
     </button>
 
   </div>
 
-  <!-- CITY -->
 
-  <div
-    class="tabPage active"
-    id="overviewTab"
-  >
+  <!-- WORLD MAP -->
 
-    <div class="section">
-      Mieszkańcy
-    </div>
+  <section id="tab-world" class="game-tab">
 
-    <div class="stat">
-      Populacja
-      <span id="populationStat">0</span>
-    </div>
+    <div class="grid xl:grid-cols-[1.55fr_.65fr] gap-4">
 
-    <div class="stat">
-      Miejsca pracy
-      <span id="jobsStat">0</span>
-    </div>
+      <div class="panel p-3">
 
-    <div class="stat">
-      Bezrobocie
-      <span id="unemploymentStat">0%</span>
-    </div>
+        <div class="mb-3">
 
-    <div class="section">
-      Potrzeby
-    </div>
+          <h2 class="font-bold text-lg">
+            Mapa świata
+          </h2>
 
-    <div class="stat">
-      Energia
-      <span id="powerStat">0 / 0</span>
+          <p class="text-sm muted">
+            Kliknij kraj, wybierz format i otwórz sklep.
+          </p>
 
-      <div class="progress">
-        <div
-          id="powerBar"
-          class="progressFill"
-        ></div>
+        </div>
+
+        <div class="rounded-xl overflow-hidden bg-[#0b1220]">
+
+          <svg
+            id="worldMap"
+            viewBox="0 0 1000 520"
+            class="w-full h-auto"
+          ></svg>
+
+        </div>
+
+      </div>
+
+
+      <!-- COUNTRY PANEL -->
+
+      <div class="space-y-4">
+
+        <div class="panel p-4">
+
+          <h3 class="font-bold">
+            Wybrany rynek
+          </h3>
+
+          <div id="selectedCountryName" class="text-xl font-bold mt-2">
+            Wybierz kraj
+          </div>
+
+          <div id="selectedCountryInfo" class="text-sm muted mt-2">
+            Kliknij kraj na mapie.
+          </div>
+
+
+          <label class="block mt-4 text-sm">
+            Format sklepu
+          </label>
+
+          <select id="buildStoreType" class="w-full mt-1">
+
+            <option value="mini">
+              Mini convenience
+            </option>
+
+            <option value="standard" selected>
+              Standard
+            </option>
+
+            <option value="discount">
+              Dyskont
+            </option>
+
+            <option value="supermarket">
+              Supermarket
+            </option>
+
+          </select>
+
+
+          <div id="buildStoreInfo" class="text-sm muted mt-2"></div>
+
+
+          <button
+            id="buildStoreBtn"
+            class="btn btn-primary w-full mt-4"
+            disabled
+          >
+            Postaw sklep
+          </button>
+
+        </div>
+
+
+        <div class="panel p-4">
+
+          <h3 class="font-bold">
+            Twoje rynki
+          </h3>
+
+          <div id="marketList" class="mt-3 space-y-2 text-sm"></div>
+
+        </div>
+
       </div>
 
     </div>
 
-    <div class="stat">
-      Woda
-      <span id="waterStat">0 / 0</span>
+  </section>
 
-      <div class="progress">
+
+  <!-- STORES -->
+
+  <section id="tab-stores" class="game-tab hidden">
+
+    <div class="panel p-4">
+
+      <h2 class="font-bold text-lg">
+        Twoje sklepy
+      </h2>
+
+      <div id="storesList" class="mt-4 grid md:grid-cols-2 xl:grid-cols-3 gap-3"></div>
+
+    </div>
+
+  </section>
+
+
+  <!-- ORDERS -->
+
+  <section id="tab-orders" class="game-tab hidden">
+
+    <div class="grid xl:grid-cols-[.65fr_1.35fr] gap-4">
+
+      <div class="panel p-4">
+
+        <h2 class="font-bold text-lg">
+          Aplikacja zamówień
+        </h2>
+
+        <form id="orderForm" class="space-y-3 mt-4">
+
+          <label class="block">
+            <span class="text-sm">Sklep</span>
+
+            <select
+              id="orderStore"
+              class="w-full mt-1"
+            ></select>
+          </label>
+
+
+          <label class="block">
+
+            <span class="text-sm">
+              Produkt
+            </span>
+
+            <select
+              id="orderProduct"
+              class="w-full mt-1"
+            ></select>
+
+          </label>
+
+
+          <label class="block">
+
+            <span class="text-sm">
+              Liczba sztuk
+            </span>
+
+            <input
+              id="orderQty"
+              type="number"
+              value="100"
+              min="1"
+              max="100000"
+              class="w-full mt-1"
+            />
+
+          </label>
+
+
+          <div id="orderCost" class="text-sm muted"></div>
+
+
+          <button class="btn btn-primary w-full">
+
+            Złóż zamówienie
+
+          </button>
+
+        </form>
+
+
+        <button
+          id="autoOrderBtn"
+          class="btn w-full mt-3"
+        >
+          Auto-zamówienie
+        </button>
+
+      </div>
+
+
+      <div class="panel p-4">
+
+        <h2 class="font-bold text-lg">
+          Stany magazynowe
+        </h2>
+
         <div
-          id="waterBar"
-          class="progressFill"
+          id="inventoryTable"
+          class="mt-4 overflow-x-auto scrollbar"
         ></div>
+
       </div>
 
     </div>
 
-    <div class="stat">
-      Edukacja
-      <span id="educationStat">0%</span>
-    </div>
+  </section>
 
-    <div class="stat">
-      Zdrowie
-      <span id="healthStat">0%</span>
-    </div>
 
-    <div class="stat">
-      Bezpieczeństwo
-      <span id="safetyStat">0%</span>
-    </div>
+  <!-- PRODUCTS -->
 
-    <div class="stat">
-      Zieleń
-      <span id="parksStat">0%</span>
-    </div>
+  <section id="tab-products" class="game-tab hidden">
 
-    <div class="section">
-      Historia
-    </div>
+    <div class="panel p-4">
 
-    <div id="log"></div>
+      <div class="flex flex-wrap justify-between gap-3">
 
-  </div>
+        <div>
 
-  <!-- FINANCE -->
+          <h2 class="font-bold text-lg">
+            Produkty i ceny
+          </h2>
 
-  <div
-    class="tabPage"
-    id="financeTab"
-  >
+          <p class="text-sm muted">
+            Nowe produkty pojawiają się automatycznie.
+          </p>
 
-    <div class="section">
-      Przychody / miesiąc
-    </div>
+        </div>
 
-    <div class="stat">
-      Podatek mieszkańców
-      <span
-        class="good"
-        id="incomeResidential"
-      >
-        0 zł
-      </span>
-    </div>
+        <button id="generateProductsBtn" class="btn">
+          + Generuj 10 produktów
+        </button>
 
-    <div class="stat">
-      Podatek handlowy
-      <span
-        class="good"
-        id="incomeCommercial"
-      >
-        0 zł
-      </span>
-    </div>
+      </div>
 
-    <div class="stat">
-      Podatek przemysłowy
-      <span
-        class="good"
-        id="incomeIndustrial"
-      >
-        0 zł
-      </span>
-    </div>
 
-    <div class="section">
-      Wydatki / miesiąc
-    </div>
-
-    <div class="stat">
-      Drogi
-      <span
-        class="bad"
-        id="expenseRoads"
-      >
-        0 zł
-      </span>
-    </div>
-
-    <div class="stat">
-      Edukacja
-      <span
-        class="bad"
-        id="expenseEducation"
-      >
-        0 zł
-      </span>
-    </div>
-
-    <div class="stat">
-      Zdrowie
-      <span
-        class="bad"
-        id="expenseHealth"
-      >
-        0 zł
-      </span>
-    </div>
-
-    <div class="stat">
-      Bezpieczeństwo
-      <span
-        class="bad"
-        id="expenseSafety"
-      >
-        0 zł
-      </span>
-    </div>
-
-    <div class="stat">
-      Media
-      <span
-        class="bad"
-        id="expenseUtilities"
-      >
-        0 zł
-      </span>
-    </div>
-
-    <div class="stat">
-      Parki
-      <span
-        class="bad"
-        id="expenseParks"
-      >
-        0 zł
-      </span>
-    </div>
-
-    <div class="section">
-      Bilans
-    </div>
-
-    <div class="stat">
-      Bilans miesięczny
-      <span id="monthlyBalance">
-        0 zł
-      </span>
-    </div>
-
-    <div class="stat">
-      Ostatnie rozliczenie
-      <span id="lastSettlement">
-        —
-      </span>
-    </div>
-
-  </div>
-
-  <!-- TAX -->
-
-  <div
-    class="tabPage"
-    id="policyTab"
-  >
-
-    <div class="section">
-      Podatki
-    </div>
-
-    <div class="taxBox">
-
-      <label>
-        <span>🏠 Mieszkańcy</span>
-        <strong id="resTaxLabel">10%</strong>
-      </label>
-
-      <input
-        id="resTax"
-        type="range"
-        min="1"
-        max="25"
-        value="10"
-        oninput="updateTaxes()"
-      >
+      <div
+        id="productsGrid"
+        class="grid md:grid-cols-2 xl:grid-cols-3 gap-3 mt-4"
+      ></div>
 
     </div>
 
-    <div class="taxBox">
+  </section>
 
-      <label>
-        <span>🏪 Handel</span>
-        <strong id="comTaxLabel">12%</strong>
-      </label>
 
-      <input
-        id="comTax"
-        type="range"
-        min="1"
-        max="25"
-        value="12"
-        oninput="updateTaxes()"
-      >
+  <!-- FACTORIES -->
 
-    </div>
+  <section id="tab-factories" class="game-tab hidden">
 
-    <div class="taxBox">
+    <div class="grid xl:grid-cols-2 gap-4">
 
-      <label>
-        <span>🏭 Przemysł</span>
-        <strong id="indTaxLabel">11%</strong>
-      </label>
+      <div class="panel p-4">
 
-      <input
-        id="indTax"
-        type="range"
-        min="1"
-        max="25"
-        value="11"
-        oninput="updateTaxes()"
-      >
+        <h2 class="font-bold text-lg">
+          Fabryki
+        </h2>
 
-    </div>
+        <p class="text-sm muted">
+          Kupuj zakłady produkcyjne i rozwijaj marki własne.
+        </p>
 
-    <div class="infoBox">
+        <div
+          id="factoriesGrid"
+          class="grid md:grid-cols-2 gap-3 mt-4"
+        ></div>
 
-      Wyższe podatki zwiększają przychody, ale obniżają atrakcyjność miasta.
+      </div>
 
-      <br><br>
 
-      Przy bardzo wysokich podatkach mieszkańcy mogą zacząć wyjeżdżać.
+      <div class="panel p-4">
+
+        <h2 class="font-bold text-lg">
+          Marki własne
+        </h2>
+
+        <div
+          id="privateProducts"
+          class="space-y-3 mt-4"
+        ></div>
+
+      </div>
 
     </div>
 
-  </div>
+  </section>
 
-</aside>
+
+  <!-- ACQUISITIONS -->
+
+  <section id="tab-acquisitions" class="game-tab hidden">
+
+    <div class="panel p-4">
+
+      <h2 class="font-bold text-lg">
+        Rynek przejęć
+      </h2>
+
+      <p class="text-sm muted">
+        Kupuj konkurencyjne sieci, sklepy i producentów.
+      </p>
+
+      <div
+        id="companiesGrid"
+        class="grid md:grid-cols-2 xl:grid-cols-3 gap-3 mt-4"
+      ></div>
+
+    </div>
+
+  </section>
+
+
+  <!-- LOG -->
+
+  <section id="tab-log" class="game-tab hidden">
+
+    <div class="panel p-4">
+
+      <h2 class="font-bold text-lg">
+        Historia firmy
+      </h2>
+
+      <div id="gameLog" class="space-y-2 mt-4"></div>
+
+    </div>
+
+  </section>
 
 </div>
 
-<script>
 
-/* =====================================================
-   CONSTANTS
-===================================================== */
+<script type="module">
 
-const WIDTH=24;
-const HEIGHT=18;
+  const money = value =>
+    Math.round(value).toLocaleString("pl-PL") + " zł";
 
-const TILE_DEFS={
 
-  empty:{
-    name:"Pusty teren",
-    icon:"",
-    cost:0,
-    upkeep:0
-  },
+  const categories = [
+    "Chipsy",
+    "Napoje",
+    "Energetyki",
+    "Słodycze",
+    "Kawa",
+    "Pieczywo",
+    "Nabiał",
+    "Kanapki",
+    "Mrożonki",
+    "Chemia domowa"
+  ];
 
-  road:{
-    name:"Droga",
-    icon:"━",
-    cost:1000,
-    upkeep:80
-  },
 
-  residential:{
-    name:"Strefa mieszkalna",
-    icon:"🏠",
-    cost:5000,
-    upkeep:50,
-    capacity:45
-  },
+  const brands = [
+    "Nova",
+    "Freshio",
+    "Snacko",
+    "Daily",
+    "Urban",
+    "Viva",
+    "Mondo",
+    "Baltic",
+    "Prime",
+    "Lumo"
+  ];
 
-  commercial:{
-    name:"Strefa handlowa",
-    icon:"🏪",
-    cost:8000,
-    upkeep:100,
-    jobs:35
-  },
 
-  industrial:{
-    name:"Strefa przemysłowa",
-    icon:"🏭",
-    cost:10000,
-    upkeep:140,
-    jobs:65
-  },
+  const variants = [
+    "Classic",
+    "Max",
+    "Fresh",
+    "Gold",
+    "Zero",
+    "Mini",
+    "Mega",
+    "Street",
+    "Original",
+    "Premium"
+  ];
 
-  school:{
-    name:"Szkoła",
-    icon:"🏫",
-    cost:45000,
-    upkeep:3200,
-    service:300
-  },
 
-  hospital:{
-    name:"Szpital",
-    icon:"🏥",
-    cost:75000,
-    upkeep:5200,
-    service:500
-  },
+  const storeTypes = {
 
-  police:{
-    name:"Komisariat",
-    icon:"🚓",
-    cost:55000,
-    upkeep:3800,
-    service:450
-  },
+    mini: {
+      name: "Mini convenience",
+      cost: 80000,
+      fixedCost: 250,
+      salesMultiplier: 0.65
+    },
 
-  fire:{
-    name:"Straż pożarna",
-    icon:"🚒",
-    cost:50000,
-    upkeep:3500,
-    service:450
-  },
+    standard: {
+      name: "Standard",
+      cost: 180000,
+      fixedCost: 600,
+      salesMultiplier: 1
+    },
 
-  park:{
-    name:"Park",
-    icon:"🌳",
-    cost:15000,
-    upkeep:900,
-    service:180
-  },
+    discount: {
+      name: "Dyskont",
+      cost: 420000,
+      fixedCost: 1450,
+      salesMultiplier: 2.1
+    },
 
-  power:{
-    name:"Elektrownia",
-    icon:"⚡",
-    cost:120000,
-    upkeep:7500,
-    production:850
-  },
-
-  water:{
-    name:"Wodociągi",
-    icon:"💧",
-    cost:90000,
-    upkeep:5500,
-    production:850
-  },
-
-  cityhall:{
-    name:"Ratusz",
-    icon:"🏛️",
-    cost:0,
-    upkeep:1500
-  }
-
-};
-
-/* =====================================================
-   STATE
-===================================================== */
-
-let budget=750000;
-
-let population=0;
-let happiness=55;
-
-let jobs=0;
-
-let powerUsed=0;
-let powerCapacity=0;
-
-let waterUsed=0;
-let waterCapacity=0;
-
-let education=0;
-let health=0;
-let safety=0;
-let parks=0;
-
-let residentialTax=10;
-let commercialTax=12;
-let industrialTax=11;
-
-let gameDate=
-  new Date(
-    "2026-01-01T08:00:00"
-  );
-
-let gameSpeed=1;
-
-let selectedTool="inspect";
-
-let selectedTile=null;
-
-let lastMonthKey=
-  monthKey(
-    gameDate
-  );
-
-let lastSettlementValue=0;
-
-let monthlyFinance={
-  residential:0,
-  commercial:0,
-  industrial:0,
-
-  roads:0,
-  education:0,
-  health:0,
-  safety:0,
-  utilities:0,
-  parks:0,
-
-  balance:0
-};
-
-const tiles=[];
-
-/* =====================================================
-   INITIAL CITY
-===================================================== */
-
-function createGrid(){
-
-  const grid=
-    document.getElementById(
-      "cityGrid"
-    );
-
-  for(
-    let y=0;
-    y<HEIGHT;
-    y++
-  ){
-
-    for(
-      let x=0;
-      x<WIDTH;
-      x++
-    ){
-
-      const tile={
-        x,
-        y,
-        type:"empty",
-        level:1,
-        population:0
-      };
-
-      tiles.push(
-        tile
-      );
-
-      const element=
-        document.createElement(
-          "div"
-        );
-
-      element.className=
-        "tile empty";
-
-      element.dataset.x=x;
-      element.dataset.y=y;
-
-      element.addEventListener(
-        "click",
-        ()=>handleTileClick(
-          tile
-        )
-      );
-
-      tile.element=
-        element;
-
-      grid.appendChild(
-        element
-      );
+    supermarket: {
+      name: "Supermarket",
+      cost: 950000,
+      fixedCost: 3200,
+      salesMultiplier: 4
     }
-  }
 
-  /*
-    Startowy ratusz.
-  */
-
-  const cityHall=
-    getTile(
-      11,
-      8
-    );
-
-  cityHall.type=
-    "cityhall";
-
-  /*
-    Startowe drogi.
-  */
-
-  for(
-    let x=8;
-    x<=14;
-    x++
-  ){
-
-    const tile=
-      getTile(
-        x,
-        9
-      );
-
-    tile.type=
-      "road";
-  }
-
-  for(
-    let y=6;
-    y<=12;
-    y++
-  ){
-
-    const tile=
-      getTile(
-        11,
-        y
-      );
-
-    if(
-      tile.type===
-      "empty"
-    ){
-
-      tile.type=
-        "road";
-    }
-  }
-
-  renderGrid();
-}
-
-/* =====================================================
-   TILE INTERACTION
-===================================================== */
-
-function handleTileClick(
-  tile
-){
-
-  if(
-    selectedTool===
-    "inspect"
-  ){
-
-    inspectTile(
-      tile
-    );
-
-    return;
-  }
-
-  if(
-    selectedTool===
-    "bulldoze"
-  ){
-
-    bulldozeTile(
-      tile
-    );
-
-    return;
-  }
-
-  buildOnTile(
-    tile,
-    selectedTool
-  );
-}
-
-function buildOnTile(
-  tile,
-  type
-){
-
-  const def=
-    TILE_DEFS[type];
-
-  if(!def){
-    return;
-  }
-
-  if(
-    tile.type!==
-    "empty"
-  ){
-
-    notify(
-      "To pole jest już zajęte."
-    );
-
-    return;
-  }
-
-  if(
-    budget<
-    def.cost
-  ){
-
-    notify(
-      "Brakuje pieniędzy."
-    );
-
-    return;
-  }
-
-  /*
-    Zabudowa wymaga drogi obok.
-  */
-
-  if(
-    [
-      "residential",
-      "commercial",
-      "industrial",
-      "school",
-      "hospital",
-      "police",
-      "fire",
-      "park"
-    ].includes(
-      type
-    )
-  ){
-
-    if(
-      !hasAdjacentRoad(
-        tile
-      )
-    ){
-
-      notify(
-        "Budynek musi stać obok drogi."
-      );
-
-      return;
-    }
-  }
-
-  budget-=
-    def.cost;
-
-  showMoneyFloat(
-    -def.cost
-  );
-
-  tile.type=
-    type;
-
-  tile.level=1;
-
-  tile.population=0;
-
-  renderTile(
-    tile
-  );
-
-  addLog(
-    "🏗️ Zbudowano: "+
-    def.name+
-    "."
-  );
-
-  simulateCity();
-
-  updateUI();
-}
-
-function bulldozeTile(
-  tile
-){
-
-  if(
-    tile.type===
-    "empty"
-  ){
-    return;
-  }
-
-  if(
-    tile.type===
-    "cityhall"
-  ){
-
-    notify(
-      "Nie możesz zburzyć ratusza."
-    );
-
-    return;
-  }
-
-  const def=
-    TILE_DEFS[
-      tile.type
-    ];
-
-  const refund=
-    Math.round(
-      def.cost*
-      .25*
-      tile.level
-    );
-
-  budget+=
-    refund;
-
-  showMoneyFloat(
-    refund
-  );
-
-  addLog(
-    "🧨 Wyburzono "+
-    def.name+
-    ". Zwrot: "+
-    formatMoney(
-      refund
-    )
-  );
-
-  tile.type=
-    "empty";
-
-  tile.level=1;
-
-  tile.population=0;
-
-  renderTile(
-    tile
-  );
-
-  closeTilePanel();
-
-  simulateCity();
-
-  updateUI();
-}
-
-function inspectTile(
-  tile
-){
-
-  selectedTile=
-    tile;
-
-  const panel=
-    document.getElementById(
-      "tilePanel"
-    );
-
-  const title=
-    document.getElementById(
-      "tilePanelTitle"
-    );
-
-  const text=
-    document.getElementById(
-      "tilePanelText"
-    );
-
-  const upgradeButton=
-    document.getElementById(
-      "upgradeTileButton"
-    );
-
-  const def=
-    TILE_DEFS[
-      tile.type
-    ];
-
-  title.textContent=
-    def.icon+
-    " "+
-    def.name;
-
-  let html=`
-
-    <div style="
-      color:#a8b8c9;
-      font-size:11px;
-      line-height:1.6;
-    ">
-
-      Poziom:
-      <b>${tile.level}</b>
-
-      <br>
-
-      Pozycja:
-      ${tile.x},
-      ${tile.y}
-
-  `;
-
-  if(
-    tile.type===
-    "residential"
-  ){
-
-    html+=`
-
-      <br>
-
-      Mieszkańcy:
-      <b>
-        ${tile.population}
-      </b>
-
-      /
-
-      ${
-        residentialCapacity(
-          tile
-        )
-      }
-    `;
-  }
-
-  if(
-    tile.type===
-    "commercial" ||
-    tile.type===
-    "industrial"
-  ){
-
-    html+=`
-
-      <br>
-
-      Miejsca pracy:
-      <b>
-        ${jobsForTile(tile)}
-      </b>
-    `;
-  }
-
-  html+="</div>";
-
-  text.innerHTML=
-    html;
-
-  upgradeButton.style.display=
-    canUpgrade(
-      tile
-    )
-    ?"block"
-    :"none";
-
-  panel.classList.add(
-    "show"
-  );
-}
-
-function closeTilePanel(){
-
-  document
-    .getElementById(
-      "tilePanel"
-    )
-    .classList
-    .remove(
-      "show"
-    );
-
-  selectedTile=null;
-}
-
-function canUpgrade(
-  tile
-){
-
-  return [
-    "residential",
-    "commercial",
-    "industrial",
-    "school",
-    "hospital",
-    "police",
-    "fire",
-    "park",
-    "power",
-    "water"
-  ].includes(
-    tile.type
-  )
-  &&
-  tile.level<
-  5;
-}
-
-function upgradeSelectedTile(){
-
-  if(
-    !selectedTile ||
-    !canUpgrade(
-      selectedTile
-    )
-  ){
-    return;
-  }
-
-  const def=
-    TILE_DEFS[
-      selectedTile.type
-    ];
-
-  const price=
-    Math.round(
-      def.cost*
-      .65*
-      selectedTile.level
-    );
-
-  if(
-    budget<
-    price
-  ){
-
-    notify(
-      "Brakuje pieniędzy na rozbudowę."
-    );
-
-    return;
-  }
-
-  budget-=
-    price;
-
-  showMoneyFloat(
-    -price
-  );
-
-  selectedTile.level++;
-
-  renderTile(
-    selectedTile
-  );
-
-  addLog(
-    "⬆️ Rozbudowano "+
-    def.name+
-    " do poziomu "+
-    selectedTile.level+
-    "."
-  );
-
-  simulateCity();
-
-  inspectTile(
-    selectedTile
-  );
-
-  updateUI();
-}
-
-/* =====================================================
-   TOOLS
-===================================================== */
-
-function selectTool(
-  tool
-){
-
-  selectedTool=
-    tool;
-
-  document
-    .querySelectorAll(
-      ".buildButton[data-tool]"
-    )
-    .forEach(
-      button=>{
-
-        button.classList.toggle(
-          "active",
-          button.dataset.tool===
-          tool
-        );
-      }
-    );
-
-  const def=
-    TILE_DEFS[
-      tool
-    ];
-
-  let name=
-    "Informacje";
-
-  if(
-    tool===
-    "bulldoze"
-  ){
-
-    name=
-      "Wyburzanie";
-  }
-  else if(def){
-
-    name=
-      def.name;
-  }
-
-  setText(
-    "toolInfo",
-    "Narzędzie: "+
-    name
-  );
-}
-
-/* =====================================================
-   CITY SIMULATION
-===================================================== */
-
-function simulateCity(){
-
-  const residentialTiles=
-    getTilesByType(
-      "residential"
-    );
-
-  const commercialTiles=
-    getTilesByType(
-      "commercial"
-    );
-
-  const industrialTiles=
-    getTilesByType(
-      "industrial"
-    );
-
-  jobs=
-    commercialTiles.reduce(
-      (
-        sum,
-        tile
-      )=>
-        sum+
-        jobsForTile(
-          tile
-        ),
-      0
-    )
-    +
-    industrialTiles.reduce(
-      (
-        sum,
-        tile
-      )=>
-        sum+
-        jobsForTile(
-          tile
-        ),
-      0
-    );
-
-  powerCapacity=
-    getTilesByType(
-      "power"
-    )
-    .reduce(
-      (
-        sum,
-        tile
-      )=>
-        sum+
-        850*
-        tile.level,
-      0
-    );
-
-  waterCapacity=
-    getTilesByType(
-      "water"
-    )
-    .reduce(
-      (
-        sum,
-        tile
-      )=>
-        sum+
-        850*
-        tile.level,
-      0
-    );
-
-  /*
-    Potencjalna liczba mieszkańców.
-  */
-
-  const maxPopulation=
-    residentialTiles.reduce(
-      (
-        sum,
-        tile
-      )=>
-        sum+
-        residentialCapacity(
-          tile
-        ),
-      0
-    );
-
-  /*
-    Usługi.
-  */
-
-  const educationCapacity=
-    serviceCapacity(
-      "school"
-    );
-
-  const healthCapacity=
-    serviceCapacity(
-      "hospital"
-    );
-
-  const policeCapacity=
-    serviceCapacity(
-      "police"
-    );
-
-  const fireCapacity=
-    serviceCapacity(
-      "fire"
-    );
-
-  const parkCapacity=
-    serviceCapacity(
-      "park"
-    );
-
-  /*
-    Zapotrzebowanie.
-  */
-
-  powerUsed=
-    Math.round(
-      population*
-      .8
-      +
-      commercialTiles.length*
-      18
-      +
-      industrialTiles.length*
-      28
-    );
-
-  waterUsed=
-    Math.round(
-      population*
-      .65
-      +
-      commercialTiles.length*
-      14
-      +
-      industrialTiles.length*
-      22
-    );
-
-  const powerRatio=
-    powerUsed>0
-    ?Math.min(
-      1,
-      powerCapacity/
-      powerUsed
-    )
-    :1;
-
-  const waterRatio=
-    waterUsed>0
-    ?Math.min(
-      1,
-      waterCapacity/
-      waterUsed
-    )
-    :1;
-
-  education=
-    population>0
-    ?Math.min(
-      100,
-      educationCapacity/
-      population*
-      100
-    )
-    :100;
-
-  health=
-    population>0
-    ?Math.min(
-      100,
-      healthCapacity/
-      population*
-      100
-    )
-    :100;
-
-  safety=
-    population>0
-    ?Math.min(
-      100,
-      (
-        policeCapacity+
-        fireCapacity
-      )
-      /
-      (
-        population*
-        1.5
-      )
-      *
-      100
-    )
-    :100;
-
-  parks=
-    population>0
-    ?Math.min(
-      100,
-      parkCapacity/
-      population*
-      100
-    )
-    :100;
-
-  const unemployment=
-    population>0
-    ?Math.max(
-      0,
-      (
-        population-
-        jobs
-      )
-      /
-      population
-      *
-      100
-    )
-    :0;
-
-  const taxPenalty=
-    Math.max(
-      0,
-      residentialTax-
-      10
-    )
-    *
-    1.6;
-
-  /*
-    Zadowolenie.
-  */
-
-  happiness=
-    45;
-
-  happiness+=
-    powerRatio*
-    10;
-
-  happiness+=
-    waterRatio*
-    10;
-
-  happiness+=
-    education*
-    .08;
-
-  happiness+=
-    health*
-    .08;
-
-  happiness+=
-    safety*
-    .07;
-
-  happiness+=
-    parks*
-    .05;
-
-  happiness-=
-    unemployment*
-    .22;
-
-  happiness-=
-    taxPenalty;
-
-  happiness=
-    Math.max(
-      0,
-      Math.min(
-        100,
-        happiness
-      )
-    );
-
-  /*
-    Wzrost / spadek mieszkańców.
-  */
-
-  let targetPopulation=
-    maxPopulation*
-    (
-      happiness/
-      100
-    );
-
-  targetPopulation*=
-    Math.min(
-      1,
-      powerRatio
-    );
-
-  targetPopulation*=
-    Math.min(
-      1,
-      waterRatio
-    );
-
-  /*
-    Jeśli brak pracy, ograniczamy wzrost.
-  */
-
-  if(
-    jobs<
-    targetPopulation*
-    .45
-  ){
-
-    targetPopulation*=
-      .75;
-  }
-
-  /*
-    Łagodna zmiana, żeby mieszkańcy
-    nie teleportowali się natychmiast.
-  */
-
-  population+=
-    Math.round(
-      (
-        targetPopulation-
-        population
-      )
-      *
-      .12
-    );
-
-  population=
-    Math.max(
-      0,
-      population
-    );
-
-  /*
-    Rozdzielamy mieszkańców na budynki.
-  */
-
-  let remaining=
-    population;
-
-  residentialTiles.forEach(
-    tile=>{
-
-      const capacity=
-        residentialCapacity(
-          tile
-        );
-
-      tile.population=
-        Math.min(
-          capacity,
-          remaining
-        );
-
-      remaining-=
-        tile.population;
-    }
-  );
-
-  renderGrid();
-
-  calculateMonthlyFinance();
-
-  updateUI();
-}
-
-/* =====================================================
-   MONTHLY FINANCES
-===================================================== */
-
-function calculateMonthlyFinance(){
-
-  const residentialIncome=
-    Math.round(
-      population*
-      110*
-      residentialTax/
-      100
-    );
-
-  const commercialIncome=
-    Math.round(
-
-      getTilesByType(
-        "commercial"
-      )
-      .reduce(
-        (
-          sum,
-          tile
-        )=>
-          sum+
-          jobsForTile(
-            tile
-          ),
-        0
-      )
-
-      *
-
-      180
-
-      *
-
-      commercialTax/
-      100
-    );
-
-  const industrialIncome=
-    Math.round(
-
-      getTilesByType(
-        "industrial"
-      )
-      .reduce(
-        (
-          sum,
-          tile
-        )=>
-          sum+
-          jobsForTile(
-            tile
-          ),
-        0
-      )
-
-      *
-
-      230
-
-      *
-
-      industrialTax/
-      100
-    );
-
-  const roads=
-    getTilesByType(
-      "road"
-    ).length*
-    TILE_DEFS.road.upkeep;
-
-  const educationExpense=
-    upkeepForType(
-      "school"
-    );
-
-  const healthExpense=
-    upkeepForType(
-      "hospital"
-    );
-
-  const safetyExpense=
-    upkeepForType(
-      "police"
-    )
-    +
-    upkeepForType(
-      "fire"
-    );
-
-  const utilityExpense=
-    upkeepForType(
-      "power"
-    )
-    +
-    upkeepForType(
-      "water"
-    );
-
-  const parksExpense=
-    upkeepForType(
-      "park"
-    );
-
-  const cityHallExpense=
-    TILE_DEFS.cityhall.upkeep;
-
-  const income=
-    residentialIncome+
-    commercialIncome+
-    industrialIncome;
-
-  const expenses=
-    roads+
-    educationExpense+
-    healthExpense+
-    safetyExpense+
-    utilityExpense+
-    parksExpense+
-    cityHallExpense;
-
-  monthlyFinance={
-
-    residential:
-      residentialIncome,
-
-    commercial:
-      commercialIncome,
-
-    industrial:
-      industrialIncome,
-
-    roads,
-
-    education:
-      educationExpense,
-
-    health:
-      healthExpense,
-
-    safety:
-      safetyExpense,
-
-    utilities:
-      utilityExpense,
-
-    parks:
-      parksExpense,
-
-    balance:
-      income-
-      expenses
   };
-}
 
-function settleMonth(){
 
-  calculateMonthlyFinance();
+  const factoryOffers = [
 
-  const amount=
-    monthlyFinance.balance;
+    {
+      category: "Chipsy",
+      cost: 480000
+    },
 
-  budget+=
-    amount;
+    {
+      category: "Napoje",
+      cost: 650000
+    },
 
-  lastSettlementValue=
-    amount;
+    {
+      category: "Energetyki",
+      cost: 800000
+    },
 
-  showMoneyFloat(
-    amount
-  );
+    {
+      category: "Słodycze",
+      cost: 520000
+    },
 
-  if(amount>=0){
+    {
+      category: "Kawa",
+      cost: 740000
+    },
 
-    addLog(
-      "💰 Miesięczny bilans: +"+
-      formatMoney(
-        amount
-      )
-    );
-  }
-  else{
-
-    addLog(
-      "📉 Miesięczny bilans: "+
-      formatMoney(
-        amount
-      )
-    );
-  }
-
-  /*
-    Dług obniża zadowolenie.
-  */
-
-  if(
-    budget<0
-  ){
-
-    happiness=
-      Math.max(
-        0,
-        happiness-
-        8
-      );
-
-    addLog(
-      "⚠️ Miasto ma ujemny budżet."
-    );
-  }
-}
-
-/* =====================================================
-   GAME LOOP
-===================================================== */
-
-function setSpeed(
-  speed
-){
-
-  gameSpeed=
-    speed;
-}
-
-setInterval(
-  ()=>{
-
-    if(
-      gameSpeed===
-      0
-    ){
-      return;
+    {
+      category: "Pieczywo",
+      cost: 900000
     }
-
-    gameDate=
-      new Date(
-        gameDate.getTime()
-        +
-        12*
-        60*
-        60*
-        1000*
-        gameSpeed
-      );
-
-    simulateCity();
-
-    const currentMonth=
-      monthKey(
-        gameDate
-      );
-
-    if(
-      currentMonth!==
-      lastMonthKey
-    ){
-
-      lastMonthKey=
-        currentMonth;
-
-      settleMonth();
-    }
-
-    updateUI();
-
-  },
-  1000
-);
-
-/* =====================================================
-   TAX
-===================================================== */
-
-function updateTaxes(){
-
-  residentialTax=
-    Number(
-      document
-        .getElementById(
-          "resTax"
-        )
-        .value
-    );
-
-  commercialTax=
-    Number(
-      document
-        .getElementById(
-          "comTax"
-        )
-        .value
-    );
-
-  industrialTax=
-    Number(
-      document
-        .getElementById(
-          "indTax"
-        )
-        .value
-    );
-
-  setText(
-    "resTaxLabel",
-    residentialTax+
-    "%"
-  );
-
-  setText(
-    "comTaxLabel",
-    commercialTax+
-    "%"
-  );
-
-  setText(
-    "indTaxLabel",
-    industrialTax+
-    "%"
-  );
-
-  simulateCity();
-}
-
-/* =====================================================
-   TABS
-===================================================== */
-
-function setTab(
-  tab
-){
-
-  [
-    "overview",
-    "finance",
-    "policy"
-  ]
-  .forEach(
-    name=>{
-
-      document
-        .getElementById(
-          name+
-          "Tab"
-        )
-        .classList
-        .toggle(
-          "active",
-          name===
-          tab
-        );
-
-      document
-        .getElementById(
-          name+
-          "Btn"
-        )
-        .classList
-        .toggle(
-          "active",
-          name===
-          tab
-        );
-    }
-  );
-}
-
-/* =====================================================
-   RENDER
-===================================================== */
-
-function renderGrid(){
-
-  tiles.forEach(
-    tile=>
-      renderTile(
-        tile
-      )
-  );
-}
-
-function renderTile(
-  tile
-){
-
-  const element=
-    tile.element;
-
-  const def=
-    TILE_DEFS[
-      tile.type
-    ];
-
-  element.className=
-    "tile "+
-    tile.type;
-
-  element.innerHTML=
-    def.icon;
-
-  if(
-    tile.type!==
-    "empty" &&
-    tile.type!==
-    "road" &&
-    tile.type!==
-    "cityhall"
-  ){
-
-    const level=
-      document.createElement(
-        "span"
-      );
-
-    level.className=
-      "level";
-
-    level.textContent=
-      "L"+
-      tile.level;
-
-    element.appendChild(
-      level
-    );
-  }
-
-  if(
-    tile.type===
-    "residential"
-  ){
-
-    element.title=
-      def.name+
-      " • "+
-      tile.population+
-      "/"+
-      residentialCapacity(
-        tile
-      )+
-      " mieszkańców";
-  }
-  else{
-
-    element.title=
-      def.name;
-  }
-}
-
-/* =====================================================
-   UI
-===================================================== */
-
-function updateUI(){
-
-  setText(
-    "dateDisplay",
-
-    gameDate.toLocaleDateString(
-      "pl-PL",
-      {
-        month:"long",
-        year:"numeric"
-      }
-    )
-  );
-
-  setText(
-    "budget",
-    formatMoney(
-      budget
-    )
-  );
-
-  document
-    .getElementById(
-      "budget"
-    )
-    .style
-    .color=
-      budget>=0
-      ?"#4ade80"
-      :"#f87171";
-
-  setText(
-    "population",
-    population.toLocaleString(
-      "pl-PL"
-    )
-  );
-
-  setText(
-    "populationStat",
-    population.toLocaleString(
-      "pl-PL"
-    )
-  );
-
-  setText(
-    "happiness",
-    happiness.toFixed(0)+
-    "%"
-  );
-
-  setText(
-    "jobsStat",
-    jobs.toLocaleString(
-      "pl-PL"
-    )
-  );
-
-  const unemployment=
-    population>0
-    ?Math.max(
-      0,
-      (
-        population-
-        jobs
-      )
-      /
-      population
-      *
-      100
-    )
-    :0;
-
-  setText(
-    "unemploymentStat",
-    unemployment.toFixed(1)+
-    "%"
-  );
-
-  setText(
-    "powerStat",
-    powerUsed+
-    " / "+
-    powerCapacity
-  );
-
-  setText(
-    "waterStat",
-    waterUsed+
-    " / "+
-    waterCapacity
-  );
-
-  setProgress(
-    "powerBar",
-
-    powerUsed>0
-    ?powerCapacity/
-      powerUsed*
-      100
-    :100
-  );
-
-  setProgress(
-    "waterBar",
-
-    waterUsed>0
-    ?waterCapacity/
-      waterUsed*
-      100
-    :100
-  );
-
-  setText(
-    "educationStat",
-    education.toFixed(0)+
-    "%"
-  );
-
-  setText(
-    "healthStat",
-    health.toFixed(0)+
-    "%"
-  );
-
-  setText(
-    "safetyStat",
-    safety.toFixed(0)+
-    "%"
-  );
-
-  setText(
-    "parksStat",
-    parks.toFixed(0)+
-    "%"
-  );
-
-  /*
-    Finanse.
-  */
-
-  setText(
-    "incomeResidential",
-    formatMoney(
-      monthlyFinance.residential
-    )
-  );
-
-  setText(
-    "incomeCommercial",
-    formatMoney(
-      monthlyFinance.commercial
-    )
-  );
-
-  setText(
-    "incomeIndustrial",
-    formatMoney(
-      monthlyFinance.industrial
-    )
-  );
-
-  setText(
-    "expenseRoads",
-    formatMoney(
-      monthlyFinance.roads
-    )
-  );
-
-  setText(
-    "expenseEducation",
-    formatMoney(
-      monthlyFinance.education
-    )
-  );
-
-  setText(
-    "expenseHealth",
-    formatMoney(
-      monthlyFinance.health
-    )
-  );
-
-  setText(
-    "expenseSafety",
-    formatMoney(
-      monthlyFinance.safety
-    )
-  );
-
-  setText(
-    "expenseUtilities",
-    formatMoney(
-      monthlyFinance.utilities
-    )
-  );
-
-  setText(
-    "expenseParks",
-    formatMoney(
-      monthlyFinance.parks
-    )
-  );
-
-  const monthlyBalance=
-    document.getElementById(
-      "monthlyBalance"
-    );
-
-  monthlyBalance.textContent=
-    formatMoney(
-      monthlyFinance.balance
-    );
-
-  monthlyBalance.className=
-    monthlyFinance.balance>=0
-    ?"good"
-    :"bad";
-
-  setText(
-    "lastSettlement",
-
-    lastSettlementValue===0
-    ?"—"
-    :formatMoney(
-      lastSettlementValue
-    )
-  );
-}
-
-/* =====================================================
-   HELPERS
-===================================================== */
-
-function getTile(
-  x,
-  y
-){
-
-  return tiles.find(
-    tile=>
-      tile.x===
-      x
-      &&
-      tile.y===
-      y
-  );
-}
-
-function getTilesByType(
-  type
-){
-
-  return tiles.filter(
-    tile=>
-      tile.type===
-      type
-  );
-}
-
-function hasAdjacentRoad(
-  tile
-){
-
-  const neighbours=[
-
-    getTile(
-      tile.x+1,
-      tile.y
-    ),
-
-    getTile(
-      tile.x-1,
-      tile.y
-    ),
-
-    getTile(
-      tile.x,
-      tile.y+1
-    ),
-
-    getTile(
-      tile.x,
-      tile.y-1
-    )
 
   ];
 
-  return neighbours.some(
-    neighbour=>
 
-      neighbour
+  let state = {
 
-      &&
+    cash: 1500000,
 
-      (
-        neighbour.type===
-        "road"
+    date: new Date(Date.UTC(2026, 0, 1)),
 
-        ||
+    speed: 1,
 
-        neighbour.type===
-        "cityhall"
-      )
-  );
-}
+    paused: false,
 
-function residentialCapacity(
-  tile
-){
+    reputation: 50,
 
-  return (
-    TILE_DEFS
-      .residential
-      .capacity
-    *
-    tile.level
-  );
-}
+    selectedCountry: null,
 
-function jobsForTile(
-  tile
-){
+    stores: [],
 
-  const def=
-    TILE_DEFS[
-      tile.type
-    ];
+    products: [],
 
-  return (
-    def.jobs||
-    0
-  )
-  *
-  tile.level;
-}
+    factories: [],
 
-function serviceCapacity(
-  type
-){
+    privateProducts: [],
 
-  return getTilesByType(
-    type
-  )
-  .reduce(
-    (
-      sum,
-      tile
-    )=>
+    companies: [],
 
-      sum+
-      TILE_DEFS[
-        type
-      ].service*
-      tile.level,
+    log: [],
 
-    0
-  );
-}
+    dayCounter: 0
 
-function upkeepForType(
-  type
-){
+  };
 
-  return getTilesByType(
-    type
-  )
-  .reduce(
-    (
-      sum,
-      tile
-    )=>
 
-      sum+
-      TILE_DEFS[
-        type
-      ].upkeep*
-      tile.level,
+  const uid = () =>
+    Math.random().toString(36).slice(2) +
+    Date.now().toString(36);
 
-    0
-  );
-}
 
-function monthKey(
-  date
-){
+  function addLog(text) {
 
-  return (
-    date.getFullYear()+
-    "-"+
-    date.getMonth()
-  );
-}
+    state.log.unshift({
+      date: formatDate(state.date),
+      text
+    });
 
-function formatMoney(
-  value
-){
+    state.log = state.log.slice(0, 100);
 
-  return Math.round(
-    value
-  )
-  .toLocaleString(
-    "pl-PL"
-  )
-  +
-  " zł";
-}
+    renderLog();
 
-function setText(
-  id,
-  value
-){
-
-  const element=
-    document.getElementById(
-      id
-    );
-
-  if(element){
-
-    element.textContent=
-      value;
-  }
-}
-
-function setProgress(
-  id,
-  value
-){
-
-  const element=
-    document.getElementById(
-      id
-    );
-
-  if(!element){
-    return;
   }
 
-  value=
-    Math.max(
-      0,
-      Math.min(
-        100,
-        value
-      )
-    );
 
-  element.style.width=
-    value+
-    "%";
+  function formatDate(date) {
 
-  if(value<50){
-
-    element.style.background=
-      "#ef4444";
-  }
-  else if(value<85){
-
-    element.style.background=
-      "#facc15";
-  }
-  else{
-
-    element.style.background=
-      "#22c55e";
-  }
-}
-
-function showMoneyFloat(
-  amount
-){
-
-  const element=
-    document.createElement(
-      "div"
-    );
-
-  element.className=
-    "moneyFloat "+
-    (
-      amount>=0
-      ?"plus"
-      :"minus"
-    );
-
-  element.textContent=
-    (
-      amount>=0
-      ?"+"
-      :""
-    )
-    +
-    formatMoney(
-      amount
-    );
-
-  document
-    .getElementById(
-      "cashFloatContainer"
-    )
-    .appendChild(
-      element
-    );
-
-  setTimeout(
-    ()=>{
-      element.remove();
-    },
-    1600
-  );
-}
-
-function notify(
-  text
-){
-
-  const element=
-    document.createElement(
-      "div"
-    );
-
-  element.style.position=
-    "absolute";
-
-  element.style.right=
-    "18px";
-
-  element.style.top=
-    "18px";
-
-  element.style.zIndex=
-    "100";
-
-  element.style.padding=
-    "10px 13px";
-
-  element.style.border=
-    "1px solid #475569";
-
-  element.style.borderRadius=
-    "9px";
-
-  element.style.background=
-    "#0f172a";
-
-  element.textContent=
-    text;
-
-  document
-    .getElementById(
-      "cityArea"
-    )
-    .appendChild(
-      element
-    );
-
-  setTimeout(
-    ()=>{
-      element.remove();
-    },
-    2200
-  );
-}
-
-function addLog(
-  text
-){
-
-  const element=
-    document.createElement(
-      "div"
-    );
-
-  element.className=
-    "logItem";
-
-  element.textContent=
-    gameDate.toLocaleDateString(
+    return date.toLocaleDateString(
       "pl-PL",
       {
-        month:"short",
-        year:"numeric"
+        timeZone: "UTC"
       }
-    )
-    +
-    " — "
-    +
-    text;
-
-  const log=
-    document.getElementById(
-      "log"
     );
 
-  log.prepend(
-    element
+  }
+
+
+  function createProduct(
+    own = false,
+    category = null
+  ) {
+
+    category =
+      category ||
+      categories[
+        Math.floor(
+          Math.random() * categories.length
+        )
+      ];
+
+
+    const baseCost = own
+      ? 0.7 + Math.random() * 3
+      : 1.4 + Math.random() * 10;
+
+
+    return {
+
+      id: uid(),
+
+      name:
+        (own
+          ? "Empire "
+          : brands[
+              Math.floor(
+                Math.random() * brands.length
+              )
+            ] + " ") +
+        variants[
+          Math.floor(
+            Math.random() * variants.length
+          )
+        ] +
+        " " +
+        category,
+
+      category,
+
+      buyPrice: baseCost,
+
+      sellPrice:
+        baseCost *
+        (
+          own
+            ? 2.3
+            : 1.45 +
+              Math.random() * 0.55
+        ),
+
+      demand:
+        25 +
+        Math.random() * 75,
+
+      own
+
+    };
+
+  }
+
+
+  function generateProducts(count = 10) {
+
+    for (let i = 0; i < count; i++) {
+
+      state.products.push(
+        createProduct()
+      );
+
+    }
+
+  }
+
+
+  function generateCompanies() {
+
+    const companies = [
+
+      {
+        id: uid(),
+        name: "MiniBox",
+        type: "Sieć convenience",
+        price: 450000,
+        stores: 3
+      },
+
+      {
+        id: uid(),
+        name: "FreshStop",
+        type: "Sieć sklepów",
+        price: 900000,
+        stores: 6
+      },
+
+      {
+        id: uid(),
+        name: "QuickMarket",
+        type: "Sieć osiedlowa",
+        price: 1450000,
+        stores: 10
+      },
+
+      {
+        id: uid(),
+        name: "Crunch Factory",
+        type: "Producent chipsów",
+        price: 650000,
+        factory: "Chipsy"
+      },
+
+      {
+        id: uid(),
+        name: "DrinkLab",
+        type: "Producent napojów",
+        price: 800000,
+        factory: "Napoje"
+      },
+
+      {
+        id: uid(),
+        name: "SweetWorks",
+        type: "Producent słodyczy",
+        price: 720000,
+        factory: "Słodycze"
+      }
+
+    ];
+
+
+    state.companies =
+      companies
+        .sort(() => Math.random() - 0.5)
+        .slice(0, 5);
+
+  }
+
+
+  function allProducts() {
+
+    return [
+      ...state.products,
+      ...state.privateProducts
+    ];
+
+  }
+
+
+  function demandWithPrice(product) {
+
+    const markup =
+      product.sellPrice /
+      Math.max(
+        product.buyPrice,
+        0.01
+      );
+
+
+    const priceFactor =
+      Math.max(
+        0.15,
+        1 -
+        Math.max(
+          0,
+          markup - 1.5
+        ) * 0.32
+      );
+
+
+    return (
+      product.demand *
+      priceFactor
+    );
+
+  }
+
+
+  function simulateStoreDay(store) {
+
+    let revenue = 0;
+
+    let productCost = 0;
+
+
+    const type =
+      storeTypes[
+        store.type
+      ];
+
+
+    Object.keys(
+      store.stock
+    ).forEach(productId => {
+
+      const product =
+        allProducts().find(
+          p =>
+            p.id === productId
+        );
+
+
+      if (!product)
+        return;
+
+
+      const stock =
+        store.stock[
+          productId
+        ] || 0;
+
+
+      if (stock <= 0)
+        return;
+
+
+      const demand =
+        demandWithPrice(
+          product
+        );
+
+
+      const sales =
+        Math.min(
+          stock,
+
+          Math.floor(
+
+            demand *
+
+            type.salesMultiplier *
+
+            store.marketFactor *
+
+            (
+              0.45 +
+              state.reputation / 100
+            ) *
+
+            (
+              0.7 +
+              Math.random() * 0.6
+            )
+
+          )
+        );
+
+
+      if (sales <= 0)
+        return;
+
+
+      store.stock[
+        productId
+      ] -= sales;
+
+
+      revenue +=
+        sales *
+        product.sellPrice;
+
+
+      productCost +=
+        sales *
+        product.buyPrice;
+
+    });
+
+
+    const fixedCost =
+      type.fixedCost;
+
+
+    return {
+
+      revenue,
+
+      cost:
+        fixedCost +
+        productCost,
+
+      profit:
+        revenue -
+        fixedCost -
+        productCost
+
+    };
+
+  }
+
+
+  function calculateExpectedDailyProfit() {
+
+    let revenue = 0;
+
+    let cost = 0;
+
+
+    state.stores.forEach(
+      store => {
+
+        const type =
+          storeTypes[
+            store.type
+          ];
+
+
+        Object.entries(
+          store.stock
+        ).forEach(
+          ([productId, qty]) => {
+
+            const product =
+              allProducts().find(
+                p =>
+                  p.id === productId
+              );
+
+
+            if (!product)
+              return;
+
+
+            const sales =
+              Math.min(
+
+                qty,
+
+                Math.floor(
+
+                  demandWithPrice(
+                    product
+                  ) *
+
+                  type.salesMultiplier *
+
+                  store.marketFactor *
+
+                  (
+                    0.45 +
+                    state.reputation / 100
+                  )
+
+                )
+
+              );
+
+
+            revenue +=
+              sales *
+              product.sellPrice;
+
+
+            cost +=
+              sales *
+              product.buyPrice;
+
+          }
+        );
+
+
+        cost +=
+          type.fixedCost;
+
+      }
+    );
+
+
+    state.factories.forEach(
+      () =>
+        cost += 450
+    );
+
+
+    return {
+
+      revenue,
+
+      cost,
+
+      profit:
+        revenue - cost
+
+    };
+
+  }
+
+
+  function simulateDay() {
+
+    if (
+      state.paused
+    )
+      return;
+
+
+    let dailyProfit = 0;
+
+
+    state.stores.forEach(
+      store => {
+
+        const result =
+          simulateStoreDay(
+            store
+          );
+
+
+        dailyProfit +=
+          result.profit;
+
+      }
+    );
+
+
+    state.factories.forEach(
+      () =>
+        dailyProfit -= 450
+    );
+
+
+    state.cash +=
+      dailyProfit;
+
+
+    state.date =
+      new Date(
+        state.date.getTime() +
+        86400000
+      );
+
+
+    state.dayCounter++;
+
+
+    if (
+      state.dayCounter % 7 === 0
+    ) {
+
+      productsWeeklyUpdate();
+
+    }
+
+
+    if (
+      state.dayCounter % 30 === 0
+    ) {
+
+      monthlyUpdate();
+
+    }
+
+
+    renderAll();
+
+  }
+
+
+  function productsWeeklyUpdate() {
+
+    state.products.forEach(
+      product => {
+
+        product.buyPrice =
+          Math.max(
+
+            0.2,
+
+            product.buyPrice *
+            (
+              0.96 +
+              Math.random() * 0.08
+            )
+
+          );
+
+
+        product.demand =
+          Math.max(
+
+            5,
+
+            Math.min(
+
+              100,
+
+              product.demand +
+              (
+                Math.random() * 14 -
+                7
+              )
+
+            )
+
+          );
+
+      }
+    );
+
+
+    generateProducts(
+      2 +
+      Math.floor(
+        Math.random() * 3
+      )
+    );
+
+  }
+
+
+  function monthlyUpdate() {
+
+    generateProducts(8);
+
+    generateCompanies();
+
+
+    const event =
+      Math.random();
+
+
+    if (
+      event < 0.15 &&
+      state.stores.length
+    ) {
+
+      const bonus =
+        30000 +
+        Math.random() *
+        120000;
+
+
+      state.cash += bonus;
+
+
+      addLog(
+        "Świetny miesiąc sprzedaży. Bonus: " +
+        money(bonus)
+      );
+
+    }
+
+    else if (
+      event < 0.28 &&
+      state.stores.length
+    ) {
+
+      const loss =
+        20000 +
+        Math.random() *
+        100000;
+
+
+      state.cash -= loss;
+
+
+      addLog(
+        "Problemy logistyczne. Strata: " +
+        money(loss)
+      );
+
+    }
+
+    else {
+
+      addLog(
+        "Rozpoczął się nowy miesiąc. Na rynek trafiły nowe produkty."
+      );
+
+    }
+
+  }
+
+
+  function renderTopStats() {
+
+    const economy =
+      calculateExpectedDailyProfit();
+
+
+    document.getElementById(
+      "cash"
+    ).textContent =
+      money(state.cash);
+
+
+    document.getElementById(
+      "storesStat"
+    ).textContent =
+      state.stores.length;
+
+
+    document.getElementById(
+      "countriesStat"
+    ).textContent =
+      new Set(
+        state.stores.map(
+          s => s.countryId
+        )
+      ).size;
+
+
+    document.getElementById(
+      "factoriesStat"
+    ).textContent =
+      state.factories.length;
+
+
+    document.getElementById(
+      "productsStat"
+    ).textContent =
+      allProducts().length;
+
+
+    document.getElementById(
+      "repStat"
+    ).textContent =
+      Math.round(
+        state.reputation
+      ) + "/100";
+
+
+    document.getElementById(
+      "dateStat"
+    ).textContent =
+      formatDate(
+        state.date
+      );
+
+
+    const profitEl =
+      document.getElementById(
+        "profitStat"
+      );
+
+
+    profitEl.textContent =
+      (
+        economy.profit >= 0
+          ? "+"
+          : ""
+      ) +
+      money(
+        economy.profit
+      );
+
+
+    profitEl.style.color =
+      economy.profit >= 0
+        ? "#22c55e"
+        : "#ef4444";
+
+  }
+
+
+  function renderBuildStoreInfo() {
+
+    const type =
+      storeTypes[
+        document.getElementById(
+          "buildStoreType"
+        ).value
+      ];
+
+
+    document.getElementById(
+      "buildStoreInfo"
+    ).innerHTML =
+
+      "Koszt: <strong>" +
+      money(type.cost) +
+      "</strong><br>" +
+
+      "Koszt dzienny: " +
+      money(type.fixedCost) +
+      "<br>" +
+
+      "Potencjał sprzedaży: " +
+      type.salesMultiplier.toFixed(2) +
+      "×";
+
+  }
+
+
+  function renderSelectedCountry() {
+
+    const button =
+      document.getElementById(
+        "buildStoreBtn"
+      );
+
+
+    if (
+      !state.selectedCountry
+    ) {
+
+      document.getElementById(
+        "selectedCountryName"
+      ).textContent =
+        "Wybierz kraj";
+
+
+      document.getElementById(
+        "selectedCountryInfo"
+      ).textContent =
+        "Kliknij kraj na mapie.";
+
+
+      button.disabled =
+        true;
+
+
+      return;
+
+    }
+
+
+    const stores =
+      state.stores.filter(
+        s =>
+          s.countryId ===
+          state.selectedCountry.id
+      );
+
+
+    document.getElementById(
+      "selectedCountryName"
+    ).textContent =
+      state.selectedCountry.name;
+
+
+    document.getElementById(
+      "selectedCountryInfo"
+    ).innerHTML =
+
+      "Sklepy: <strong>" +
+      stores.length +
+      "</strong><br>" +
+
+      "Mnożnik rynku: " +
+      state.selectedCountry.marketFactor.toFixed(
+        2
+      ) +
+      "×";
+
+
+    button.disabled =
+      false;
+
+
+    const type =
+      storeTypes[
+        document.getElementById(
+          "buildStoreType"
+        ).value
+      ];
+
+
+    button.textContent =
+      "Postaw " +
+      type.name +
+      " — " +
+      money(type.cost);
+
+  }
+
+
+  function renderMarketList() {
+
+    const markets = {};
+
+
+    state.stores.forEach(
+      store => {
+
+        if (
+          !markets[
+            store.countryName
+          ]
+        ) {
+
+          markets[
+            store.countryName
+          ] = 0;
+
+        }
+
+
+        markets[
+          store.countryName
+        ]++;
+
+      }
+    );
+
+
+    const box =
+      document.getElementById(
+        "marketList"
+      );
+
+
+    if (
+      !Object.keys(
+        markets
+      ).length
+    ) {
+
+      box.innerHTML =
+        '<div class="muted">Nie masz jeszcze sklepów.</div>';
+
+      return;
+
+    }
+
+
+    box.innerHTML =
+      Object.entries(
+        markets
+      )
+      .sort(
+        (a, b) =>
+          b[1] - a[1]
+      )
+      .map(
+        ([country, count]) =>
+
+        `
+        <div class="card p-2 flex justify-between gap-2">
+          <span>${country}</span>
+          <strong>${count}</strong>
+        </div>
+        `
+      )
+      .join("");
+
+  }
+
+
+  function renderStores() {
+
+    const container =
+      document.getElementById(
+        "storesList"
+      );
+
+
+    if (
+      !state.stores.length
+    ) {
+
+      container.innerHTML =
+        '<div class="muted">Nie masz jeszcze żadnego sklepu.</div>';
+
+      return;
+
+    }
+
+
+    container.innerHTML =
+      state.stores.map(
+        store => {
+
+          const type =
+            storeTypes[
+              store.type
+            ];
+
+
+          const stockCount =
+            Object.values(
+              store.stock
+            ).reduce(
+              (a, b) =>
+                a + b,
+              0
+            );
+
+
+          return `
+          <div class="card p-4">
+
+            <div class="flex justify-between gap-3">
+
+              <div>
+
+                <div class="font-bold">
+                  ${store.name}
+                </div>
+
+                <div class="text-sm muted">
+                  ${store.countryName}
+                </div>
+
+              </div>
+
+              <div class="text-right">
+
+                <div>
+                  ${type.name}
+                </div>
+
+                <div class="text-sm muted">
+                  Poziom ${store.level}
+                </div>
+
+              </div>
+
+            </div>
+
+            <div class="mt-3 text-sm">
+
+              Magazyn:
+              <strong>
+                ${stockCount} szt.
+              </strong>
+
+            </div>
+
+            <button
+              class="upgrade-store btn w-full mt-3"
+              data-id="${store.id}"
+            >
+
+              Ulepsz sklep —
+              ${money(60000)}
+
+            </button>
+
+          </div>
+          `;
+
+        }
+      )
+      .join("");
+
+
+    document
+      .querySelectorAll(
+        ".upgrade-store"
+      )
+      .forEach(
+        button => {
+
+          button.addEventListener(
+            "click",
+            () => {
+
+              const store =
+                state.stores.find(
+                  s =>
+                    s.id ===
+                    button.dataset.id
+                );
+
+
+              if (
+                !store
+              )
+                return;
+
+
+              if (
+                state.cash <
+                60000
+              ) {
+
+                addLog(
+                  "Za mało gotówki na ulepszenie sklepu."
+                );
+
+                return;
+
+              }
+
+
+              state.cash -=
+                60000;
+
+
+              store.level++;
+
+
+              const type =
+                storeTypes[
+                  store.type
+                ];
+
+
+              type.salesMultiplier +=
+                0.03;
+
+
+              state.reputation =
+                Math.min(
+                  100,
+                  state.reputation +
+                  0.3
+                );
+
+
+              addLog(
+                "Ulepszono sklep " +
+                store.name +
+                "."
+              );
+
+
+              renderAll();
+
+            }
+          );
+
+        }
+      );
+
+  }
+
+
+  function renderOrders() {
+
+    const storeSelect =
+      document.getElementById(
+        "orderStore"
+      );
+
+
+    storeSelect.innerHTML =
+      state.stores.map(
+        s =>
+          `
+          <option value="${s.id}">
+            ${s.name} — ${s.countryName}
+          </option>
+          `
+      )
+      .join("");
+
+
+    const productSelect =
+      document.getElementById(
+        "orderProduct"
+      );
+
+
+    productSelect.innerHTML =
+      allProducts()
+        .slice(
+          -100
+        )
+        .map(
+          p =>
+            `
+            <option value="${p.id}">
+              ${p.name} —
+              ${p.buyPrice.toFixed(2)} zł
+            </option>
+            `
+        )
+        .join("");
+
+
+    renderOrderCost();
+
+
+    renderInventory();
+
+  }
+
+
+  function renderOrderCost() {
+
+    const product =
+      allProducts().find(
+        p =>
+          p.id ===
+          document.getElementById(
+            "orderProduct"
+          ).value
+      );
+
+
+    const qty =
+      Math.max(
+        1,
+        Number(
+          document.getElementById(
+            "orderQty"
+          ).value
+        ) || 1
+      );
+
+
+    const element =
+      document.getElementById(
+        "orderCost"
+      );
+
+
+    if (
+      !product
+    ) {
+
+      element.textContent =
+        "";
+
+      return;
+
+    }
+
+
+    element.textContent =
+      "Koszt zamówienia: " +
+      money(
+        product.buyPrice *
+        qty
+      );
+
+  }
+
+
+  function renderInventory() {
+
+    const box =
+      document.getElementById(
+        "inventoryTable"
+      );
+
+
+    if (
+      !state.stores.length
+    ) {
+
+      box.innerHTML =
+        '<div class="muted">Najpierw otwórz sklep.</div>';
+
+      return;
+
+    }
+
+
+    const products =
+      allProducts()
+      .slice(
+        -30
+      );
+
+
+    let html = `
+    <table class="min-w-[700px] w-full text-sm">
+
+      <thead>
+
+        <tr class="border-b border-slate-700">
+
+          <th class="text-left p-2">
+            Produkt
+          </th>
+    `;
+
+
+    state.stores.forEach(
+      store => {
+
+        html += `
+        <th class="text-left p-2">
+          ${store.name}
+        </th>
+        `;
+
+      }
+    );
+
+
+    html += `
+        </tr>
+      </thead>
+
+      <tbody>
+    `;
+
+
+    products.forEach(
+      product => {
+
+        html += `
+        <tr class="border-b border-slate-800">
+
+          <td class="p-2">
+            ${product.name}
+          </td>
+        `;
+
+
+        state.stores.forEach(
+          store => {
+
+            html += `
+            <td class="p-2">
+              ${
+                store.stock[
+                  product.id
+                ] || 0
+              }
+            </td>
+            `;
+
+          }
+        );
+
+
+        html += `
+        </tr>
+        `;
+
+      }
+    );
+
+
+    html += `
+      </tbody>
+    </table>
+    `;
+
+
+    box.innerHTML =
+      html;
+
+  }
+
+
+  function renderProducts() {
+
+    const container =
+      document.getElementById(
+        "productsGrid"
+      );
+
+
+    container.innerHTML =
+      allProducts()
+      .slice(
+        -60
+      )
+      .reverse()
+      .map(
+        product => {
+
+          return `
+          <div class="card p-4">
+
+            <div class="font-bold">
+              ${product.name}
+            </div>
+
+            <div class="text-sm muted">
+              ${product.category}
+              ${
+                product.own
+                  ? " · marka własna"
+                  : ""
+              }
+            </div>
+
+            <div class="mt-3 text-sm">
+
+              Cena zakupu:
+              <strong>
+                ${product.buyPrice.toFixed(2)} zł
+              </strong>
+
+            </div>
+
+            <div class="text-sm">
+
+              Popyt:
+              <strong>
+                ${Math.round(product.demand)}/100
+              </strong>
+
+            </div>
+
+            <label class="block mt-3 text-sm">
+
+              Cena sprzedaży
+
+              <input
+                class="product-price w-full mt-1"
+                data-id="${product.id}"
+                type="number"
+                min="0.01"
+                step="0.01"
+                value="${product.sellPrice.toFixed(2)}"
+              />
+
+            </label>
+
+          </div>
+          `;
+
+        }
+      )
+      .join("");
+
+
+    document
+      .querySelectorAll(
+        ".product-price"
+      )
+      .forEach(
+        input => {
+
+          input.addEventListener(
+            "change",
+            () => {
+
+              const product =
+                allProducts().find(
+                  p =>
+                    p.id ===
+                    input.dataset.id
+                );
+
+
+              if (
+                !product
+              )
+                return;
+
+
+              product.sellPrice =
+                Math.max(
+                  0.01,
+                  Number(
+                    input.value
+                  ) ||
+                  product.sellPrice
+                );
+
+
+              renderTopStats();
+
+            }
+          );
+
+        }
+      );
+
+  }
+
+
+  function renderFactories() {
+
+    const grid =
+      document.getElementById(
+        "factoriesGrid"
+      );
+
+
+    grid.innerHTML =
+      factoryOffers.map(
+        offer => {
+
+          const owned =
+            state.factories.includes(
+              offer.category
+            );
+
+
+          return `
+          <div class="card p-4">
+
+            <div class="font-bold">
+              Fabryka: ${offer.category}
+            </div>
+
+            <div class="text-sm muted mt-1">
+
+              ${
+                owned
+                  ? "Fabryka działa."
+                  : "Koszt przejęcia: " +
+                    money(
+                      offer.cost
+                    )
+              }
+
+            </div>
+
+            <button
+              class="factory-action btn ${
+                owned
+                  ? ""
+                  : "btn-primary"
+              } w-full mt-3"
+
+              data-category="${offer.category}"
+
+              data-cost="${offer.cost}"
+            >
+
+              ${
+                owned
+                  ? "Stwórz nowy produkt"
+                  : "Kup fabrykę"
+              }
+
+            </button>
+
+          </div>
+          `;
+
+        }
+      )
+      .join("");
+
+
+    document
+      .querySelectorAll(
+        ".factory-action"
+      )
+      .forEach(
+        button => {
+
+          button.addEventListener(
+            "click",
+            () => {
+
+              const category =
+                button.dataset.category;
+
+
+              const cost =
+                Number(
+                  button.dataset.cost
+                );
+
+
+              if (
+                state.factories.includes(
+                  category
+                )
+              ) {
+
+                const product =
+                  createProduct(
+                    true,
+                    category
+                  );
+
+
+                state.privateProducts.push(
+                  product
+                );
+
+
+                addLog(
+                  "Wprowadzono markę własną: " +
+                  product.name
+                );
+
+              }
+
+              else {
+
+                if (
+                  state.cash <
+                  cost
+                ) {
+
+                  addLog(
+                    "Nie masz wystarczającej gotówki na fabrykę."
+                  );
+
+                  return;
+
+                }
+
+
+                state.cash -=
+                  cost;
+
+
+                state.factories.push(
+                  category
+                );
+
+
+                addLog(
+                  "Kupiono fabrykę: " +
+                  category
+                );
+
+              }
+
+
+              renderAll();
+
+            }
+          );
+
+        }
+      );
+
+
+    const privateBox =
+      document.getElementById(
+        "privateProducts"
+      );
+
+
+    if (
+      !state.privateProducts.length
+    ) {
+
+      privateBox.innerHTML =
+        '<div class="muted">Nie masz jeszcze produktów marki własnej.</div>';
+
+      return;
+
+    }
+
+
+    privateBox.innerHTML =
+      state.privateProducts.map(
+        product => `
+        <div class="card p-3">
+
+          <div class="font-bold">
+            ${product.name}
+          </div>
+
+          <div class="text-sm muted">
+            ${product.category}
+          </div>
+
+          <div class="text-sm mt-2">
+
+            Produkcja:
+            ${product.buyPrice.toFixed(2)} zł
+
+            ·
+
+            Cena:
+            ${product.sellPrice.toFixed(2)} zł
+
+          </div>
+
+        </div>
+        `
+      )
+      .join("");
+
+  }
+
+
+  function renderCompanies() {
+
+    const grid =
+      document.getElementById(
+        "companiesGrid"
+      );
+
+
+    grid.innerHTML =
+      state.companies.map(
+        company => `
+        <div class="card p-4">
+
+          <div class="font-bold">
+            ${company.name}
+          </div>
+
+          <div class="text-sm muted">
+            ${company.type}
+          </div>
+
+          <div class="mt-3">
+            Wycena:
+            <strong>
+              ${money(company.price)}
+            </strong>
+          </div>
+
+          <button
+            class="buy-company btn btn-primary w-full mt-3"
+            data-id="${company.id}"
+          >
+
+            Przejmij firmę
+
+          </button>
+
+        </div>
+        `
+      )
+      .join("");
+
+
+    document
+      .querySelectorAll(
+        ".buy-company"
+      )
+      .forEach(
+        button => {
+
+          button.addEventListener(
+            "click",
+            () => {
+
+              const company =
+                state.companies.find(
+                  c =>
+                    c.id ===
+                    button.dataset.id
+                );
+
+
+              if (
+                !company
+              )
+                return;
+
+
+              if (
+                state.cash <
+                company.price
+              ) {
+
+                addLog(
+                  "Nie stać Cię na przejęcie " +
+                  company.name +
+                  "."
+                );
+
+                return;
+
+              }
+
+
+              state.cash -=
+                company.price;
+
+
+              if (
+                company.stores
+              ) {
+
+                for (
+                  let i = 0;
+                  i < company.stores;
+                  i++
+                ) {
+
+                  state.stores.push({
+
+                    id: uid(),
+
+                    name:
+                      company.name +
+                      " #" +
+                      (
+                        i + 1
+                      ),
+
+                    countryId:
+                      "acquisition",
+
+                    countryName:
+                      "Rynek przejęcia",
+
+                    type:
+                      "mini",
+
+                    level:
+                      1,
+
+                    marketFactor:
+                      1,
+
+                    stock: {},
+
+                    x: 0,
+
+                    y: 0
+
+                  });
+
+                }
+
+              }
+
+
+              if (
+                company.factory &&
+                !state.factories.includes(
+                  company.factory
+                )
+              ) {
+
+                state.factories.push(
+                  company.factory
+                );
+
+              }
+
+
+              state.reputation =
+                Math.min(
+                  100,
+                  state.reputation +
+                  3
+                );
+
+
+              addLog(
+                "Przejęto firmę " +
+                company.name +
+                " za " +
+                money(
+                  company.price
+                )
+              );
+
+
+              state.companies =
+                state.companies.filter(
+                  c =>
+                    c.id !==
+                    company.id
+                );
+
+
+              renderAll();
+
+            }
+          );
+
+        }
+      );
+
+  }
+
+
+  function renderLog() {
+
+    const box =
+      document.getElementById(
+        "gameLog"
+      );
+
+
+    if (
+      !state.log.length
+    ) {
+
+      box.innerHTML =
+        '<div class="muted">Brak wydarzeń.</div>';
+
+      return;
+
+    }
+
+
+    box.innerHTML =
+      state.log.map(
+        event => `
+        <div class="card p-3">
+
+          <span class="muted text-sm">
+            ${event.date}
+          </span>
+
+          <div>
+            ${event.text}
+          </div>
+
+        </div>
+        `
+      )
+      .join("");
+
+  }
+
+
+  function renderAll() {
+
+    renderTopStats();
+
+    renderSelectedCountry();
+
+    renderBuildStoreInfo();
+
+    renderMarketList();
+
+    renderStores();
+
+    renderOrders();
+
+    renderProducts();
+
+    renderFactories();
+
+    renderCompanies();
+
+    renderLog();
+
+    renderMapState();
+
+  }
+
+
+
+  /*
+  =========================================================
+  WORLD MAP
+  =========================================================
+  */
+
+
+  let d3;
+
+  let topojson;
+
+  let worldCountries = [];
+
+  let mapSvg;
+
+  let projection;
+
+  let geoPath;
+
+
+  async function initMap() {
+
+    try {
+
+      [
+        d3,
+        topojson
+      ] =
+        await Promise.all([
+
+          import(
+            "https://cdn.jsdelivr.net/npm/d3@7.9.0/+esm"
+          ),
+
+          import(
+            "https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/+esm"
+          )
+
+        ]);
+
+
+      const worldModule =
+        await import(
+          "https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-50m.json/+esm"
+        );
+
+
+      const world =
+        worldModule.default;
+
+
+      worldCountries =
+        topojson.feature(
+          world,
+          world.objects.countries
+        ).features;
+
+
+      projection =
+        d3
+          .geoNaturalEarth1()
+          .fitExtent(
+            [
+              [10, 10],
+              [990, 510]
+            ],
+            {
+              type:
+                "FeatureCollection",
+
+              features:
+                worldCountries
+            }
+          );
+
+
+      geoPath =
+        d3.geoPath(
+          projection
+        );
+
+
+      mapSvg =
+        d3.select(
+          "#worldMap"
+        );
+
+
+      mapSvg
+        .append("g")
+        .attr(
+          "class",
+          "countries-layer"
+        )
+        .selectAll("path")
+        .data(
+          worldCountries
+        )
+        .join("path")
+
+        .attr(
+          "class",
+          "country"
+        )
+
+        .attr(
+          "d",
+          geoPath
+        )
+
+        .attr(
+          "fill",
+          "#1f2937"
+        )
+
+        .attr(
+          "stroke",
+          "#475569"
+        )
+
+        .attr(
+          "stroke-width",
+          0.7
+        )
+
+        .on(
+          "click",
+          (
+            event,
+            feature
+          ) => {
+
+            selectCountry(
+              feature
+            );
+
+          }
+        );
+
+
+      mapSvg
+        .append("g")
+        .attr(
+          "class",
+          "store-markers"
+        );
+
+
+      renderMapState();
+
+    }
+
+    catch (error) {
+
+      console.error(
+        "Błąd mapy:",
+        error
+      );
+
+
+      document
+        .getElementById(
+          "worldMap"
+        )
+        .outerHTML =
+
+        `
+        <div class="p-10 text-center muted">
+          Nie udało się wczytać mapy świata.
+        </div>
+        `;
+
+    }
+
+  }
+
+
+  function getCountryName(
+    feature
+  ) {
+
+    if (
+      feature.properties &&
+      feature.properties.name
+    ) {
+
+      return feature.properties.name;
+
+    }
+
+
+    return (
+      "Kraj " +
+      feature.id
+    );
+
+  }
+
+
+  function getMarketFactor(
+    feature
+  ) {
+
+    const numericId =
+      Number(
+        feature.id
+      ) || 1;
+
+
+    return (
+      0.75 +
+      (
+        numericId % 25
+      ) / 25
+    );
+
+  }
+
+
+  function selectCountry(
+    feature
+  ) {
+
+    state.selectedCountry = {
+
+      id:
+        String(
+          feature.id
+        ),
+
+      name:
+        getCountryName(
+          feature
+        ),
+
+      marketFactor:
+        getMarketFactor(
+          feature
+        ),
+
+      feature
+
+    };
+
+
+    renderSelectedCountry();
+
+    renderMapState();
+
+  }
+
+
+  function renderMapState() {
+
+    if (
+      !mapSvg
+    )
+      return;
+
+
+    mapSvg
+      .selectAll(
+        ".country"
+      )
+      .attr(
+        "fill",
+        feature => {
+
+          if (
+            state.selectedCountry &&
+            String(
+              state.selectedCountry.id
+            ) ===
+            String(
+              feature.id
+            )
+          ) {
+
+            return "#166534";
+
+          }
+
+
+          const stores =
+            state.stores.filter(
+              store =>
+                store.countryId ===
+                String(
+                  feature.id
+                )
+            );
+
+
+          if (
+            stores.length >= 10
+          )
+            return "#15803d";
+
+
+          if (
+            stores.length >= 5
+          )
+            return "#166534";
+
+
+          if (
+            stores.length >= 1
+          )
+            return "#14532d";
+
+
+          return "#1f2937";
+
+        }
+      )
+
+      .attr(
+        "stroke",
+        feature => {
+
+          if (
+            state.selectedCountry &&
+            String(
+              state.selectedCountry.id
+            ) ===
+            String(
+              feature.id
+            )
+          ) {
+
+            return "#22c55e";
+
+          }
+
+
+          return "#475569";
+
+        }
+      )
+
+      .attr(
+        "stroke-width",
+        feature => {
+
+          if (
+            state.selectedCountry &&
+            String(
+              state.selectedCountry.id
+            ) ===
+            String(
+              feature.id
+            )
+          ) {
+
+            return 2;
+
+          }
+
+
+          return 0.7;
+
+        }
+      );
+
+
+    const markers =
+      mapSvg
+        .select(
+          ".store-markers"
+        )
+        .selectAll(
+          "circle"
+        )
+        .data(
+          state.stores.filter(
+            store =>
+              store.x &&
+              store.y
+          ),
+          store =>
+            store.id
+        );
+
+
+    markers
+      .join("circle")
+
+      .attr(
+        "cx",
+        store =>
+          store.x
+      )
+
+      .attr(
+        "cy",
+        store =>
+          store.y
+      )
+
+      .attr(
+        "r",
+        4
+      )
+
+      .attr(
+        "fill",
+        "#facc15"
+      )
+
+      .attr(
+        "stroke",
+        "#020617"
+      )
+
+      .attr(
+        "stroke-width",
+        1.2
+      );
+
+  }
+
+
+  function buildStore() {
+
+    if (
+      !state.selectedCountry
+    )
+      return;
+
+
+    const storeType =
+      document.getElementById(
+        "buildStoreType"
+      ).value;
+
+
+    const type =
+      storeTypes[
+        storeType
+      ];
+
+
+    if (
+      state.cash <
+      type.cost
+    ) {
+
+      addLog(
+        "Brakuje gotówki na budowę sklepu."
+      );
+
+      return;
+
+    }
+
+
+    const feature =
+      state.selectedCountry.feature;
+
+
+    let centroid =
+      [
+        500,
+        250
+      ];
+
+
+    if (
+      geoPath
+    ) {
+
+      centroid =
+        geoPath.centroid(
+          feature
+        );
+
+    }
+
+
+    const storesInCountry =
+      state.stores.filter(
+        s =>
+          s.countryId ===
+          state.selectedCountry.id
+      );
+
+
+    const angle =
+      storesInCountry.length *
+      1.7;
+
+
+    const radius =
+      Math.min(
+        20,
+        storesInCountry.length *
+        3
+      );
+
+
+    const x =
+      centroid[0] +
+      Math.cos(
+        angle
+      ) *
+      radius;
+
+
+    const y =
+      centroid[1] +
+      Math.sin(
+        angle
+      ) *
+      radius;
+
+
+    state.cash -=
+      type.cost;
+
+
+    const store = {
+
+      id: uid(),
+
+      name:
+        type.name +
+        " #" +
+        (
+          state.stores.length +
+          1
+        ),
+
+      countryId:
+        state.selectedCountry.id,
+
+      countryName:
+        state.selectedCountry.name,
+
+      marketFactor:
+        state.selectedCountry.marketFactor,
+
+      type:
+        storeType,
+
+      level:
+        1,
+
+      stock: {},
+
+      x,
+
+      y
+
+    };
+
+
+    state.stores.push(
+      store
+    );
+
+
+    state.reputation =
+      Math.min(
+        100,
+        state.reputation +
+        0.5
+      );
+
+
+    addLog(
+      "Otwarto " +
+      type.name +
+      " w kraju " +
+      state.selectedCountry.name +
+      "."
+    );
+
+
+    renderAll();
+
+  }
+
+
+
+  /*
+  =========================================================
+  EVENTS
+  =========================================================
+  */
+
+
+  document
+    .getElementById(
+      "buildStoreBtn"
+    )
+    .addEventListener(
+      "click",
+      buildStore
+    );
+
+
+  document
+    .getElementById(
+      "buildStoreType"
+    )
+    .addEventListener(
+      "change",
+      () => {
+
+        renderBuildStoreInfo();
+
+        renderSelectedCountry();
+
+      }
+    );
+
+
+  document
+    .getElementById(
+      "pauseBtn"
+    )
+    .addEventListener(
+      "click",
+      () => {
+
+        state.paused =
+          !state.paused;
+
+
+        document.getElementById(
+          "pauseBtn"
+        ).textContent =
+          state.paused
+            ? "▶ Wznów"
+            : "⏸ Pauza";
+
+      }
+    );
+
+
+  document
+    .querySelectorAll(
+      ".speed"
+    )
+    .forEach(
+      button => {
+
+        button.addEventListener(
+          "click",
+          () => {
+
+            state.speed =
+              Number(
+                button.dataset.speed
+              );
+
+
+            state.paused =
+              false;
+
+
+            document.getElementById(
+              "pauseBtn"
+            ).textContent =
+              "⏸ Pauza";
+
+          }
+        );
+
+      }
+    );
+
+
+  document
+    .querySelectorAll(
+      ".tab"
+    )
+    .forEach(
+      button => {
+
+        button.addEventListener(
+          "click",
+          () => {
+
+            document
+              .querySelectorAll(
+                ".tab"
+              )
+              .forEach(
+                tab =>
+                  tab.classList.remove(
+                    "active"
+                  )
+              );
+
+
+            button
+              .classList
+              .add(
+                "active"
+              );
+
+
+            document
+              .querySelectorAll(
+                ".game-tab"
+              )
+              .forEach(
+                tab =>
+                  tab.classList.add(
+                    "hidden"
+                  )
+              );
+
+
+            document
+              .getElementById(
+                "tab-" +
+                button.dataset.tab
+              )
+              .classList
+              .remove(
+                "hidden"
+              );
+
+          }
+        );
+
+      }
+    );
+
+
+  document
+    .getElementById(
+      "orderProduct"
+    )
+    .addEventListener(
+      "change",
+      renderOrderCost
+    );
+
+
+  document
+    .getElementById(
+      "orderQty"
+    )
+    .addEventListener(
+      "input",
+      renderOrderCost
+    );
+
+
+  document
+    .getElementById(
+      "orderForm"
+    )
+    .addEventListener(
+      "submit",
+      event => {
+
+        event.preventDefault();
+
+
+        const store =
+          state.stores.find(
+            s =>
+              s.id ===
+              document.getElementById(
+                "orderStore"
+              ).value
+          );
+
+
+        const product =
+          allProducts().find(
+            p =>
+              p.id ===
+              document.getElementById(
+                "orderProduct"
+              ).value
+          );
+
+
+        const qty =
+          Math.max(
+            1,
+
+            Math.min(
+              100000,
+
+              Number(
+                document.getElementById(
+                  "orderQty"
+                ).value
+              ) || 1
+            )
+          );
+
+
+        if (
+          !store ||
+          !product
+        )
+          return;
+
+
+        const total =
+          product.buyPrice *
+          qty;
+
+
+        if (
+          state.cash <
+          total
+        ) {
+
+          addLog(
+            "Za mało gotówki na zamówienie."
+          );
+
+          return;
+
+        }
+
+
+        state.cash -=
+          total;
+
+
+        store.stock[
+          product.id
+        ] =
+          (
+            store.stock[
+              product.id
+            ] || 0
+          ) +
+          qty;
+
+
+        addLog(
+          "Zamówiono " +
+          qty +
+          " szt. " +
+          product.name +
+          " do " +
+          store.name +
+          "."
+        );
+
+
+        renderAll();
+
+      }
+    );
+
+
+  document
+    .getElementById(
+      "autoOrderBtn"
+    )
+    .addEventListener(
+      "click",
+      () => {
+
+        if (
+          !state.stores.length
+        )
+          return;
+
+
+        let totalSpent =
+          0;
+
+
+        let totalQty =
+          0;
+
+
+        const products =
+          allProducts()
+          .slice(
+            0,
+            15
+          );
+
+
+        for (
+          const store
+          of state.stores
+        ) {
+
+          for (
+            const product
+            of products
+          ) {
+
+            const current =
+              store.stock[
+                product.id
+              ] || 0;
+
+
+            const target =
+              Math.max(
+                25,
+
+                Math.round(
+                  product.demand *
+                  2
+                )
+              );
+
+
+            const needed =
+              Math.max(
+                0,
+                target - current
+              );
+
+
+            if (
+              needed <= 0
+            )
+              continue;
+
+
+            const maxAffordable =
+              Math.floor(
+                (
+                  state.cash -
+                  totalSpent
+                ) /
+                product.buyPrice
+              );
+
+
+            const qty =
+              Math.min(
+                needed,
+                maxAffordable
+              );
+
+
+            if (
+              qty <= 0
+            )
+              continue;
+
+
+            store.stock[
+              product.id
+            ] =
+              current +
+              qty;
+
+
+            totalSpent +=
+              qty *
+              product.buyPrice;
+
+
+            totalQty +=
+              qty;
+
+          }
+
+        }
+
+
+        state.cash -=
+          totalSpent;
+
+
+        addLog(
+          "Auto-zamówienie: " +
+          totalQty +
+          " szt. za " +
+          money(
+            totalSpent
+          )
+        );
+
+
+        renderAll();
+
+      }
+    );
+
+
+  document
+    .getElementById(
+      "generateProductsBtn"
+    )
+    .addEventListener(
+      "click",
+      () => {
+
+        generateProducts(
+          10
+        );
+
+
+        addLog(
+          "Dział zakupów znalazł 10 nowych produktów."
+        );
+
+
+        renderAll();
+
+      }
+    );
+
+
+  /*
+  =========================================================
+  INIT
+  =========================================================
+  */
+
+
+  generateProducts(
+    25
   );
 
-  while(
-    log.children.length>
-    100
-  ){
 
-    log.lastChild.remove();
-  }
-}
+  generateCompanies();
 
-/* =====================================================
-   START
-===================================================== */
 
-createGrid();
+  addLog(
+    "Rozpoczynasz budowę globalnej sieci handlowej."
+  );
 
-selectTool(
-  "inspect"
-);
 
-simulateCity();
+  renderAll();
 
-calculateMonthlyFinance();
 
-updateTaxes();
+  await initMap();
 
-updateUI();
 
-addLog(
-  "🏛️ Zostałeś burmistrzem nowego miasta."
-);
+  renderAll();
 
-addLog(
-  "🛣️ Budynki mieszkalne, handlowe i przemysłowe muszą mieć dostęp do drogi."
-);
 
-addLog(
-  "⚡ Rozwój miasta wymaga energii, wody, pracy i usług."
-);
+  setInterval(
+    () => {
+
+      if (
+        state.paused
+      )
+        return;
+
+
+      for (
+        let i = 0;
+        i < state.speed;
+        i++
+      ) {
+
+        simulateDay();
+
+      }
+
+    },
+    1000
+  );
 
 </script>
 
