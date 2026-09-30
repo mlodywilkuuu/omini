@@ -1,136 +1,144 @@
 ```html
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pl">
 <head>
-<meta charset="UTF-8">
+<meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Mobile Network Empire</title>
+<title>Network Empire</title>
 
-<link rel="stylesheet"
-href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 
 <style>
 :root{
- --bg:#050812;--panel:#0b1220;--panel2:#111c30;
- --line:#26364f;--text:#f8fafc;--muted:#94a3b8;
+ --bg:#050811;--panel:#0a1220;--panel2:#101b2d;--panel3:#15243a;
+ --line:#263954;--text:#f8fafc;--muted:#94a3b8;
  --cyan:#22d3ee;--green:#22c55e;--red:#ef4444;
  --yellow:#facc15;--purple:#a855f7;--blue:#3b82f6;
 }
 *{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);
+font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif}
 body{
- margin:0;background:#050812;color:var(--text);
- font-family:Inter,system-ui,Arial,sans-serif;
+ background:
+ radial-gradient(circle at 10% 0,#0d3155 0,transparent 28%),
+ radial-gradient(circle at 90% 0,#32104d 0,transparent 25%),
+ #050811;
 }
 button,input,select{font:inherit}
 button{cursor:pointer}
-button:disabled{opacity:.45;cursor:not-allowed}
+button:disabled{opacity:.42;cursor:not-allowed}
 .hidden{display:none!important}
-.app{padding:12px;max-width:1900px;margin:auto}
+.app{max-width:1900px;margin:auto;padding:12px}
 .panel{
- background:rgba(10,18,32,.96);
- border:1px solid var(--line);
- border-radius:14px;
- box-shadow:0 15px 40px #0006;
+ background:rgba(9,17,31,.96);border:1px solid var(--line);
+ border-radius:15px;box-shadow:0 15px 40px #0006;
 }
 .card{
- background:#101a2c;border:1px solid var(--line);
- border-radius:11px;padding:11px;
+ background:linear-gradient(145deg,#111e32,#0b1525);
+ border:1px solid var(--line);border-radius:11px;padding:11px;
 }
 .btn{
- border:1px solid var(--line);border-radius:8px;
- padding:8px 11px;background:#152238;color:white;
+ border:1px solid var(--line);border-radius:8px;padding:8px 11px;
+ background:#142238;color:white;transition:.15s;
 }
-.btn:hover:not(:disabled){filter:brightness(1.2)}
-.btn.blue{background:#1d4ed8}
-.btn.green{background:#15803d}
-.btn.red{background:#991b1b}
-.btn.gold{background:#a16207}
-.btn.purple{background:#6b21a8}
-.btn.cyan{background:#0e7490}
+.btn:hover:not(:disabled){filter:brightness(1.18);transform:translateY(-1px)}
+.blue{background:#1d4ed8}.green{background:#15803d}.red{background:#991b1b}
+.gold{background:#a16207}.purple{background:#6b21a8}.cyanBtn{background:#0e7490}
+.good{color:#4ade80}.bad{color:#fb7185}.warn{color:#fde047}.cyan{color:#67e8f9}
 .muted{color:var(--muted)}
-.good{color:#4ade80}.bad{color:#fb7185}.warn{color:#fde047}
-.title{font-size:19px;font-weight:900;margin-bottom:10px}
 .top{
- display:flex;justify-content:space-between;align-items:center;
- gap:10px;flex-wrap:wrap;margin-bottom:9px;
+ display:flex;justify-content:space-between;align-items:center;gap:10px;
+ flex-wrap:wrap;margin-bottom:9px;
 }
-.logo{font-size:25px;font-weight:1000}
+.logo{font-size:27px;font-weight:1000;letter-spacing:-1px}
 .logo span{color:var(--cyan)}
 .actions,.tabs{display:flex;gap:5px;flex-wrap:wrap}
 .tabs{margin-bottom:9px}
-.tab.active{background:var(--cyan);color:#083344;font-weight:900}
-.speed.active{background:var(--yellow);color:#422006}
+.tab.active{background:var(--cyan);color:#083344;font-weight:1000}
+.speed.active{background:var(--yellow);color:#422006;font-weight:900}
 .stats{
- display:grid;grid-template-columns:repeat(8,1fr);
- gap:6px;margin-bottom:9px;
+ display:grid;grid-template-columns:repeat(8,1fr);gap:6px;margin-bottom:9px;
 }
 .stat{padding:9px}
 .stat small{display:block;color:var(--muted);font-size:10px;text-transform:uppercase}
 .stat strong{font-size:17px}
-.layout{display:grid;grid-template-columns:minmax(0,1.6fr) 390px;gap:9px}
 .section{padding:12px}
-#map{height:720px;border-radius:11px;background:#07101c}
+.title{font-size:19px;font-weight:1000;margin-bottom:9px}
+.big{font-size:27px;font-weight:1000}
+.layout{display:grid;grid-template-columns:minmax(0,1.55fr) 390px;gap:9px}
 .side{display:flex;flex-direction:column;gap:9px}
 .grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:7px}
 .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
 .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
 .row{
- display:flex;justify-content:space-between;align-items:center;
- gap:8px;padding:8px 0;border-bottom:1px solid #1e2d44;
-}
-.progress{height:8px;background:#030711;border-radius:20px;overflow:hidden}
-.progress span{display:block;height:100%;background:linear-gradient(90deg,#22d3ee,#22c55e)}
-.log{
- height:170px;overflow:auto;background:#030711;border:1px solid var(--line);
- border-radius:8px;padding:8px;font-size:12px;
+ display:flex;justify-content:space-between;gap:8px;align-items:center;
+ border-bottom:1px solid #1e3048;padding:8px 0;
 }
 .input,.select{
- width:100%;background:#050c18;color:white;border:1px solid var(--line);
+ width:100%;background:#050c17;color:white;border:1px solid var(--line);
  border-radius:8px;padding:9px;
 }
-label{display:block;font-size:11px;color:var(--muted);margin:6px 0 3px}
+label{display:block;color:var(--muted);font-size:11px;margin:6px 0 3px}
+.progress{height:8px;border-radius:99px;background:#030711;overflow:hidden}
+.progress span{display:block;height:100%;background:linear-gradient(90deg,#22d3ee,#22c55e)}
+.log{
+ height:180px;overflow:auto;background:#030711;border:1px solid var(--line);
+ border-radius:8px;padding:8px;font-size:12px;
+}
+#map{height:720px;border-radius:11px;background:#07101c}
+.mapBox{position:relative}
+.mapHelp{
+ position:absolute;z-index:700;right:12px;top:12px;background:#030812e8;
+ border:1px solid #334155;border-radius:8px;padding:8px;font-size:11px;
+ pointer-events:none;
+}
+.mode.active{background:#0891b2}
 .modal{
- position:fixed;inset:0;background:#000c;z-index:3000;
- display:grid;place-items:center;padding:15px;
+ position:fixed;inset:0;z-index:3000;background:#000c;
+ display:grid;place-items:center;padding:14px;
 }
 .modalBox{
- width:min(900px,100%);max-height:92vh;overflow:auto;padding:17px;
+ width:min(950px,100%);max-height:93vh;overflow:auto;padding:17px;
 }
 .console{
- position:fixed;z-index:5000;left:50%;top:40px;transform:translateX(-50%);
- width:min(850px,95%);background:#020617;border:1px solid var(--cyan);
- border-radius:10px;box-shadow:0 25px 80px #000;
+ position:fixed;z-index:6000;top:40px;left:50%;transform:translateX(-50%);
+ width:min(850px,95%);background:#020617;border:1px solid #22d3ee;
+ border-radius:10px;box-shadow:0 30px 80px #000;
 }
-.consoleHead{padding:9px;background:#0b1628;color:#67e8f9;font-weight:900}
-.consoleOut{height:270px;overflow:auto;padding:10px;font:13px monospace}
+.consoleHead{padding:9px 12px;background:#0c1829;color:#67e8f9;font-weight:900}
+.consoleOut{height:280px;overflow:auto;padding:10px;font:13px monospace}
 .consoleInput{
- width:100%;padding:12px;border:0;border-top:1px solid #234;
- background:#020617;color:#4ade80;outline:none;font-family:monospace;
+ width:100%;border:0;border-top:1px solid #234;background:#020617;
+ color:#4ade80;padding:12px;outline:none;font-family:monospace;
 }
-.tech,.company,.shareholder{margin-bottom:7px}
-.companyTop{display:flex;justify-content:space-between;gap:8px}
-.big{font-size:25px;font-weight:1000}
-.mapHelp{
- position:absolute;z-index:700;right:20px;top:20px;
- background:#050b16e8;border:1px solid #334155;border-radius:9px;
- padding:9px;font-size:12px;pointer-events:none;
+.towerIcon,.shopIcon{
+ width:25px;height:25px;display:grid;place-items:center;border:2px solid white;
+ box-shadow:0 3px 10px #0009;
 }
-.mapBox{position:relative}
-.modeBtn.active{background:#0891b2}
-.leaflet-container{font-family:Inter,system-ui,sans-serif}
-.marker-shop{
- width:22px;height:22px;border-radius:7px;background:#facc15;
- border:2px solid white;display:grid;place-items:center;color:#111;font-size:12px;
- box-shadow:0 3px 8px #0008;
+.towerIcon{border-radius:50%;background:#06b6d4}
+.shopIcon{border-radius:7px;background:#eab308}
+.hqIcon{
+ width:27px;height:27px;display:grid;place-items:center;border-radius:7px;
+ background:#9333ea;border:2px solid white;box-shadow:0 3px 10px #0009;
 }
-.marker-tower{
- width:22px;height:22px;border-radius:50%;background:#06b6d4;
- border:2px solid white;display:grid;place-items:center;font-size:12px;
- box-shadow:0 3px 8px #0008;
+.moneyFloat{
+ position:fixed;z-index:10000;right:28px;top:82px;
+ font-size:22px;font-weight:1000;pointer-events:none;
+ animation:moneyFly 1.4s ease forwards;
+ text-shadow:0 3px 10px #000;
 }
-.marker-hq{
- width:24px;height:24px;border-radius:6px;background:#a855f7;
- border:2px solid white;display:grid;place-items:center;font-size:12px;
+@keyframes moneyFly{
+ 0%{opacity:0;transform:translateY(15px) scale(.8)}
+ 15%{opacity:1;transform:translateY(0) scale(1.08)}
+ 100%{opacity:0;transform:translateY(-55px) scale(1)}
+}
+.pulse{animation:pulse .45s ease}
+@keyframes pulse{50%{transform:scale(1.07)}}
+.techSlot{margin-bottom:6px}
+.offer,.employee,.company,.stream,.tech{margin-bottom:7px}
+.badge{
+ display:inline-block;padding:3px 7px;border:1px solid #36506e;
+ border-radius:99px;background:#08111e;font-size:11px;margin:2px;
 }
 @media(max-width:1150px){
  .stats{grid-template-columns:repeat(4,1fr)}
@@ -138,7 +146,7 @@ label{display:block;font-size:11px;color:var(--muted);margin:6px 0 3px}
 }
 @media(max-width:700px){
  .stats,.grid2,.grid3,.grid4{grid-template-columns:1fr 1fr}
- #map{height:600px}
+ #map{height:590px}
 }
 </style>
 </head>
@@ -147,30 +155,32 @@ label{display:block;font-size:11px;color:var(--muted);margin:6px 0 3px}
 
 <div class="app">
 
-<div class="top">
+<header class="top">
  <div>
   <div class="logo">📡 <span>NETWORK</span> EMPIRE</div>
   <div class="muted">Global Mobile Operator Tycoon</div>
  </div>
-
  <div class="actions">
   <span id="date" class="btn">—</span>
   <button class="btn speed" data-speed="0">⏸</button>
   <button class="btn speed active" data-speed="1">1×</button>
   <button class="btn speed" data-speed="5">5×</button>
   <button class="btn speed" data-speed="20">20×</button>
-  <button id="save" class="btn">💾 Zapisz</button>
-  <button id="newGame" class="btn">↻ Nowa</button>
+  <button id="saveBtn" class="btn">💾 Zapisz</button>
+  <button id="newBtn" class="btn">↻ Nowa</button>
  </div>
-</div>
+</header>
 
-<div class="tabs">
- <button class="btn tab active" data-view="map">🌍 Mapa</button>
- <button class="btn tab" data-view="research">🔬 Technologie</button>
+<nav class="tabs">
+ <button class="btn tab active" data-view="map">🌍 Sieć</button>
+ <button class="btn tab" data-view="offers">💳 Oferty</button>
+ <button class="btn tab" data-view="employees">👨‍💼 Ludzie</button>
+ <button class="btn tab" data-view="research">🔬 R&D</button>
+ <button class="btn tab" data-view="streaming">🎬 Streaming</button>
  <button class="btn tab" data-view="market">🏢 Firmy</button>
  <button class="btn tab" data-view="shares">📈 Udziały</button>
  <button class="btn tab" data-view="finance">💰 Finanse</button>
-</div>
+</nav>
 
 <div class="stats">
  <div class="panel stat"><small>Operator</small><strong id="sName">—</strong></div>
@@ -179,170 +189,272 @@ label{display:block;font-size:11px;color:var(--muted);margin:6px 0 3px}
  <div class="panel stat"><small>Wynik / mies.</small><strong id="sProfit">—</strong></div>
  <div class="panel stat"><small>Maszty</small><strong id="sTowers">—</strong></div>
  <div class="panel stat"><small>Salony</small><strong id="sShops">—</strong></div>
- <div class="panel stat"><small>R&D</small><strong id="sTech">—</strong></div>
+ <div class="panel stat"><small>Pracownicy</small><strong id="sEmployees">—</strong></div>
  <div class="panel stat"><small>Tryb</small><strong id="sMode">—</strong></div>
 </div>
 
+<!-- MAP -->
 <section id="view-map" class="view">
- <div class="layout">
+<div class="layout">
+ <div class="panel section">
+  <div class="title">🌍 Globalna sieć</div>
+
+  <div class="actions" style="margin-bottom:8px">
+   <button class="btn mode active" data-mode="select">👆 Wybieranie</button>
+   <button class="btn mode" data-mode="tower">📡 Maszt</button>
+   <button class="btn mode" data-mode="shop">🏪 Salon</button>
+   <button id="coverageBtn" class="btn">📶 Zasięg ON</button>
+   <button id="worldBtn" class="btn">🌍 Świat</button>
+  </div>
+
+  <div class="mapBox">
+   <div id="map"></div>
+   <div class="mapHelp">
+    Przeciągnij mapę • rolka = zoom<br>
+    Kliknij 📡 maszt, aby nim zarządzać
+   </div>
+  </div>
+ </div>
+
+ <aside class="side">
+  <div class="panel section">
+   <div class="title">🏗️ Budowa</div>
+   <div id="buildStatus" class="muted">Wybierz typ budowy.</div>
+  </div>
 
   <div class="panel section">
-   <div class="title">🌍 Globalna mapa sieci</div>
+   <div class="title">📊 Sieć</div>
+   <div id="networkInfo"></div>
+  </div>
 
-   <div class="actions" style="margin-bottom:8px">
-    <button class="btn modeBtn active" data-build="select">👆 Wybieranie</button>
-    <button class="btn modeBtn" data-build="tower">📡 Postaw maszt</button>
-    <button class="btn modeBtn" data-build="shop">🏪 Otwórz salon</button>
-    <button id="toggleCoverage" class="btn">📶 Zasięg: ON</button>
-    <button id="worldView" class="btn">🌍 Cały świat</button>
+  <div class="panel section">
+   <div class="title">📰 Dziennik</div>
+   <div id="log" class="log"></div>
+  </div>
+ </aside>
+</div>
+</section>
+
+<!-- OFFERS -->
+<section id="view-offers" class="view hidden">
+<div class="layout">
+ <div class="panel section">
+  <div class="title">💳 Twoje oferty</div>
+  <div id="offersList"></div>
+ </div>
+
+ <aside class="panel section">
+  <div class="title">➕ Kreator taryfy</div>
+
+  <label>Nazwa</label>
+  <input id="offerName" class="input" value="MAX 100">
+
+  <label>Typ</label>
+  <select id="offerType" class="select">
+   <option>Abonament</option>
+   <option>Na kartę</option>
+   <option>MIX</option>
+   <option>Internet mobilny</option>
+  </select>
+
+  <div class="grid2">
+   <div>
+    <label>Cena / miesiąc</label>
+    <input id="offerPrice" type="number" class="input" value="49">
    </div>
-
-   <div class="mapBox">
-    <div id="map"></div>
-    <div class="mapHelp">
-     🖱️ przeciągnij = przesuwanie<br>
-     🔍 rolka / + − = zoom<br>
-     📡 maszt = kliknij miejsce na mapie<br>
-     🏪 salon = kliknij miejsce na mapie
-    </div>
+   <div>
+    <label>Internet GB</label>
+    <input id="offerData" type="number" class="input" value="100">
    </div>
   </div>
 
-  <aside class="side">
+  <label>Sieć</label>
+  <select id="offerNetwork" class="select">
+   <option>2G/3G/LTE</option>
+   <option>LTE/5G</option>
+   <option>5G Premium</option>
+  </select>
 
-   <div class="panel section">
-    <div class="title">📍 Budowa</div>
-    <div id="buildInfo" class="muted">
-     Wybierz „Postaw maszt” albo „Otwórz salon”, a potem kliknij mapę.
-    </div>
+  <label>Streaming</label>
+  <select id="offerStreaming" class="select">
+   <option value="">Brak</option>
+  </select>
 
-    <label>Technologia masztu</label>
-    <select id="towerTech" class="select"></select>
-   </div>
-
-   <div class="panel section">
-    <div class="title">📊 Twoja sieć</div>
-    <div id="networkInfo"></div>
-   </div>
-
-   <div class="panel section">
-    <div class="title">📰 Dziennik</div>
-    <div id="log" class="log"></div>
-   </div>
-
-  </aside>
-
- </div>
+  <button id="createOffer" class="btn green" style="width:100%;margin-top:9px">
+   Utwórz ofertę
+  </button>
+ </aside>
+</div>
 </section>
 
-<section id="view-research" class="view hidden">
+<!-- EMPLOYEES -->
+<section id="view-employees" class="view hidden">
+<div class="layout">
  <div class="panel section">
-  <div class="title">🔬 Technologie</div>
+  <div class="title">👨‍💼 Pracownicy</div>
+  <div id="employeesList"></div>
+ </div>
+ <aside class="panel section">
+  <div class="title">📄 Rekrutacja</div>
+  <div id="candidatesList"></div>
+ </aside>
+</div>
+</section>
+
+<!-- R&D -->
+<section id="view-research" class="view hidden">
+<div class="layout">
+ <div class="panel section">
+  <div class="title">🔬 Drzewo technologii</div>
   <div id="techGrid" class="grid3"></div>
  </div>
+
+ <aside class="panel section">
+  <div class="title">🧪 Własna technologia</div>
+
+  <label>Nazwa</label>
+  <input id="customTechName" class="input" value="NovaWave">
+
+  <label>Typ</label>
+  <select id="customTechType" class="select">
+   <option value="radio">Sieć radiowa</option>
+   <option value="core">Core Network</option>
+   <option value="fiber">Światłowód</option>
+   <option value="ai">AI / optymalizacja</option>
+   <option value="future">Technologia przyszłości</option>
+  </select>
+
+  <label>Priorytet</label>
+  <select id="customTechPriority" class="select">
+   <option value="range">Zasięg</option>
+   <option value="speed">Prędkość</option>
+   <option value="capacity">Pojemność</option>
+   <option value="energy">Energooszczędność</option>
+  </select>
+
+  <label>Budżet</label>
+  <input id="customTechBudget" class="input" type="number" value="25000000">
+
+  <button id="createCustomTech" class="btn purple" style="width:100%;margin-top:9px">
+   Rozpocznij projekt
+  </button>
+ </aside>
+</div>
 </section>
 
+<!-- STREAMING -->
+<section id="view-streaming" class="view hidden">
+<div class="panel section">
+ <div class="title">🎬 Partnerzy streamingowi</div>
+ <div id="streamGrid" class="grid3"></div>
+</div>
+</section>
+
+<!-- MARKET -->
 <section id="view-market" class="view hidden">
- <div class="layout">
-  <div class="panel section">
-   <div class="title">🏢 Globalny rynek operatorów</div>
-   <div id="companyList"></div>
-  </div>
-
-  <aside class="panel section">
-   <div class="title">🌐 Rynek</div>
-   <div id="marketInfo"></div>
-  </aside>
- </div>
-</section>
-
-<section id="view-shares" class="view hidden">
+<div class="layout">
  <div class="panel section">
-  <div class="title">📈 Twoje inwestycje</div>
-  <div id="ownedShares"></div>
+  <div class="title">🏢 Operatorzy</div>
+  <div id="companiesList"></div>
  </div>
+ <aside class="panel section">
+  <div class="title">🌍 Rynek</div>
+  <div id="marketInfo"></div>
+ </aside>
+</div>
 </section>
 
-<section id="view-finance" class="view hidden">
- <div class="layout">
-  <div class="panel section">
-   <div class="title">💰 Finanse</div>
-   <div id="financeGrid" class="grid3"></div>
-  </div>
+<!-- SHARES -->
+<section id="view-shares" class="view hidden">
+<div class="panel section">
+ <div class="title">📈 Twoje udziały</div>
+ <div id="sharesList"></div>
+</div>
+</section>
 
-  <aside class="panel section">
-   <div class="title">Koszty miesięczne</div>
-   <div id="costs"></div>
-  </aside>
+<!-- FINANCE -->
+<section id="view-finance" class="view hidden">
+<div class="layout">
+ <div class="panel section">
+  <div class="title">💰 Finanse</div>
+  <div id="financeGrid" class="grid3"></div>
  </div>
+ <aside class="panel section">
+  <div class="title">Koszty</div>
+  <div id="costInfo"></div>
+ </aside>
+</div>
 </section>
 
 </div>
 
 <!-- START -->
-
 <div id="startModal" class="modal">
- <div class="panel modalBox">
+<div class="panel modalBox">
+ <div class="big">📡 Network Empire</div>
+ <p class="muted">
+  Zaczynasz od zera: bez masztów i salonów.
+ </p>
 
-  <div class="big">📡 Network Empire</div>
-  <p class="muted">
-   Zaczynasz bez masztów i bez salonów. Zbuduj globalnego operatora.
-  </p>
+ <label>Nazwa operatora</label>
+ <input id="companyName" class="input" value="Nova Telecom">
 
-  <label>Nazwa operatora</label>
-  <input id="companyName" class="input" value="Nova Telecom">
+ <div class="grid2" style="margin-top:12px">
+  <button class="btn startGame" data-type="normal" style="padding:20px;text-align:left">
+   <b>🏢 NORMALNA GRA</b><br><br>
+   50 mln zł<br>0 masztów<br>0 salonów<br>podstawowe R&D
+  </button>
 
-  <div class="grid2" style="margin-top:12px">
-
-   <button class="btn startBtn" data-mode="normal" style="padding:20px;text-align:left">
-    <strong>🏢 NORMALNA GRA</strong><br><br>
-    40 mln zł<br>
-    0 masztów<br>
-    0 salonów<br>
-    stopniowe badania
-   </button>
-
-   <button class="btn startBtn gold" data-mode="sandbox" style="padding:20px;text-align:left">
-    <strong>🏖️ PIASKOWNICA</strong><br><br>
-    999 bilionów zł<br>
-    0 masztów<br>
-    0 salonów<br>
-    wszystkie bazowe technologie
-   </button>
-
-  </div>
- </div>
-</div>
-
-<!-- COMPANY -->
-
-<div id="companyModal" class="modal hidden">
- <div class="panel modalBox">
-  <div id="companyTitle" class="big"></div>
-  <div id="companyDetails"></div>
-
-  <div class="title" style="margin-top:15px">👥 Udziałowcy</div>
-  <div id="shareholderList"></div>
-
-  <div id="controlPanel" class="hidden">
-   <div class="title" style="margin-top:15px">🎛️ Panel zarządzania</div>
-
-   <div class="grid2">
-    <button id="investCompany" class="btn blue">💰 Dokapitalizuj</button>
-    <button id="companyResearch" class="btn purple">🔬 Zwiększ R&D</button>
-    <button id="companyExpand" class="btn cyan">📡 Rozbuduj sieć</button>
-    <button id="takeoverCompany" class="btn red">🏢 Pełne przejęcie</button>
-   </div>
-  </div>
-
-  <button id="closeCompany" class="btn" style="margin-top:14px;width:100%">
-   Zamknij
+  <button class="btn gold startGame" data-type="sandbox" style="padding:20px;text-align:left">
+   <b>🏖️ PIASKOWNICA</b><br><br>
+   999 bilionów zł<br>0 masztów<br>0 salonów<br>wszystkie technologie
   </button>
  </div>
 </div>
+</div>
+
+<!-- TOWER MODAL -->
+<div id="towerModal" class="modal hidden">
+<div class="panel modalBox">
+ <div id="towerTitle" class="big">📡 Maszt</div>
+ <div id="towerInfo"></div>
+
+ <div class="title" style="margin-top:15px">📶 Technologie na maszcie</div>
+ <div id="towerTechnologies"></div>
+
+ <div class="grid2" style="margin-top:10px">
+  <button id="upgradeTower" class="btn green">⬆️ Ulepsz maszt</button>
+  <button id="removeTower" class="btn red">🗑️ Usuń maszt</button>
+ </div>
+
+ <button id="closeTower" class="btn" style="width:100%;margin-top:8px">Zamknij</button>
+</div>
+</div>
+
+<!-- COMPANY MODAL -->
+<div id="companyModal" class="modal hidden">
+<div class="panel modalBox">
+ <div id="companyTitle" class="big"></div>
+ <div id="companyDetails"></div>
+
+ <div class="title" style="margin-top:14px">👥 Udziałowcy</div>
+ <div id="shareholders"></div>
+
+ <div id="companyControl" class="hidden">
+  <div class="title" style="margin-top:14px">🎛️ Zarządzanie spółką</div>
+  <div class="grid2">
+   <button id="companyInvest" class="btn blue">💰 Dokapitalizuj</button>
+   <button id="companyExpand" class="btn cyanBtn">📡 Rozbuduj sieć</button>
+   <button id="companyRD" class="btn purple">🔬 Zwiększ R&D</button>
+   <button id="companyTakeover" class="btn red">🏢 Pełne przejęcie</button>
+  </div>
+ </div>
+
+ <button id="closeCompany" class="btn" style="width:100%;margin-top:10px">Zamknij</button>
+</div>
+</div>
 
 <!-- CONSOLE -->
-
 <div id="console" class="console hidden">
  <div class="consoleHead">~ NETWORK EMPIRE CONSOLE</div>
  <div id="consoleOut" class="consoleOut"></div>
@@ -354,164 +466,196 @@ label{display:block;font-size:11px;color:var(--muted);margin:6px 0 3px}
 <script>
 "use strict";
 
-const $=x=>document.getElementById(x);
+const $=id=>document.getElementById(id);
+const uid=()=>Math.random().toString(36).slice(2)+Date.now().toString(36);
 const rand=(a,b)=>a+Math.random()*(b-a);
 const chance=p=>Math.random()<p;
-const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
-const uid=()=>Math.random().toString(36).slice(2)+Date.now().toString(36);
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const num=v=>Math.round(v).toLocaleString("pl-PL");
 
-function money(v){
- if(v>=1e12)return (v/1e12).toFixed(2)+" bln zł";
- if(v>=1e9)return (v/1e9).toFixed(2)+" mld zł";
- if(v>=1e6)return (v/1e6).toFixed(1)+" mln zł";
- if(v>=1e3)return (v/1e3).toFixed(0)+" tys. zł";
- return Math.round(v)+" zł";
+function cash(v){
+ let sign=v<0?"-":"";
+ v=Math.abs(v);
+ if(v>=1e12)return sign+(v/1e12).toFixed(2)+" bln zł";
+ if(v>=1e9)return sign+(v/1e9).toFixed(2)+" mld zł";
+ if(v>=1e6)return sign+(v/1e6).toFixed(1)+" mln zł";
+ if(v>=1e3)return sign+(v/1e3).toFixed(0)+" tys. zł";
+ return sign+Math.round(v)+" zł";
 }
-function num(v){return Math.round(v).toLocaleString("pl-PL")}
+
+const COUNTRIES=[
+ {code:"PL",name:"Polska",flag:"🇵🇱",lat:52.1,lng:19.4},
+ {code:"DE",name:"Niemcy",flag:"🇩🇪",lat:51.1,lng:10.4},
+ {code:"US",name:"USA",flag:"🇺🇸",lat:39.8,lng:-98.6},
+ {code:"GB",name:"Wielka Brytania",flag:"🇬🇧",lat:54,lng:-2},
+ {code:"FR",name:"Francja",flag:"🇫🇷",lat:46.2,lng:2.2},
+ {code:"ES",name:"Hiszpania",flag:"🇪🇸",lat:40.4,lng:-3.7},
+ {code:"IT",name:"Włochy",flag:"🇮🇹",lat:42.5,lng:12.5},
+ {code:"SE",name:"Szwecja",flag:"🇸🇪",lat:62,lng:15},
+ {code:"NO",name:"Norwegia",flag:"🇳🇴",lat:61,lng:8},
+ {code:"JP",name:"Japonia",flag:"🇯🇵",lat:36.2,lng:138.2},
+ {code:"KR",name:"Korea Południowa",flag:"🇰🇷",lat:36.5,lng:127.8},
+ {code:"IN",name:"Indie",flag:"🇮🇳",lat:21,lng:78},
+ {code:"BR",name:"Brazylia",flag:"🇧🇷",lat:-10,lng:-52},
+ {code:"CA",name:"Kanada",flag:"🇨🇦",lat:56,lng:-106},
+ {code:"AU",name:"Australia",flag:"🇦🇺",lat:-25,lng:133}
+];
 
 const TECHS=[
- ["gsm","GSM / 2G",1995,0,35000],
- ["gprs","GPRS",1997,1500000,33000],
- ["edge","EDGE",1999,2500000,31000],
- ["umts","UMTS / 3G",2001,5000000,27000],
- ["hspa","HSPA",2005,6500000,26000],
- ["hspap","HSPA+",2008,8500000,25000],
- ["lte","LTE / 4G",2010,12000000,22000],
- ["ltea","LTE Advanced",2013,16000000,21000],
- ["volte","VoLTE",2014,7000000,0],
- ["vowifi","Wi-Fi Calling",2015,6500000,0],
- ["nb","NB-IoT",2016,8000000,0],
- ["esim","eSIM",2018,9000000,0],
- ["5gnsa","5G NSA",2019,24000000,16000],
- ["mimo","Massive MIMO",2020,18000000,0],
- ["mmwave","5G mmWave",2021,28000000,6500],
- ["5gsa","5G Standalone",2022,34000000,14500],
- ["openran","Open RAN",2023,22000000,0],
- ["edgecloud","Edge Cloud",2024,30000000,0],
- ["aiopt","AI Network Optimization",2025,38000000,0],
- ["sat","Direct-to-Device Satellite",2026,60000000,0],
- ["6g","6G Research",2028,100000000,11000],
- ["terahertz","Terahertz Cells",2030,160000000,5000],
- ["quantum","Quantum Network Core",2032,220000000,0],
- ["holo","Holographic Communication",2034,350000000,0]
-].map(x=>({
- id:x[0],name:x[1],year:x[2],cost:x[3],range:x[4]
+ ["gsm","2G GSM","Radio",0,35000,1,5000],
+ ["gprs","GPRS","Radio",1200000,33000,1,7000],
+ ["edge","EDGE","Radio",2200000,31000,1,9000],
+ ["umts","3G UMTS","Radio",4500000,28000,1,15000],
+ ["hspa","HSPA","Radio",6000000,27000,1,25000],
+ ["hspap","HSPA+","Radio",8500000,26000,1,40000],
+ ["lte","4G LTE","Radio",12000000,23000,1,100000],
+ ["ltea","LTE Advanced","Radio",18000000,22000,1,180000],
+ ["volte","VoLTE","Core",7000000,0,0,0],
+ ["vowifi","Wi-Fi Calling","Core",6500000,0,0,0],
+ ["esim","eSIM","SIM",9000000,0,0,0],
+ ["nbiot","NB-IoT","IoT",10000000,0,0,0],
+ ["5gnsa","5G NSA","Radio",25000000,17000,2,300000],
+ ["mimo","Massive MIMO","Radio",18000000,0,0,0],
+ ["5gsa","5G SA","Radio",35000000,15000,2,450000],
+ ["mmwave","5G mmWave","Radio",32000000,5500,2,700000],
+ ["openran","Open RAN","Core",22000000,0,0,0],
+ ["edgecloud","Edge Cloud","Core",30000000,0,0,0],
+ ["aiopt","AI Network Optimization","AI",40000000,0,0,0],
+ ["fiber","Fiber Backhaul","Światłowód",26000000,0,0,0],
+ ["sat","Satellite Direct-to-Phone","Satelita",65000000,0,0,0],
+ ["6g","6G Experimental","Radio",120000000,12000,3,1200000],
+ ["terahertz","Terahertz Cells","Radio",190000000,4500,3,2200000],
+ ["quantum","Quantum Core","Core",250000000,0,0,0],
+ ["holo","Holographic Calling","Usługi",350000000,0,0,0]
+].map((x,i)=>({
+ id:x[0],name:x[1],category:x[2],cost:x[3],
+ range:x[4],slot:x[5],capacity:x[6],index:i
 }));
 
+const STREAMS=[
+ {id:"novaflix",name:"NovaFlix",icon:"🎬",cost:4.5,pop:92},
+ {id:"primebox",name:"PrimeBox",icon:"📦",cost:3.7,pop:85},
+ {id:"cinewave",name:"CineWave",icon:"🍿",cost:3.1,pop:73},
+ {id:"sportmax",name:"SportMax",icon:"⚽",cost:6.8,pop:88},
+ {id:"kidsplus",name:"Kids+",icon:"🧸",cost:2.4,pop:67},
+ {id:"musicflow",name:"MusicFlow",icon:"🎵",cost:2.2,pop:80}
+];
+
+const JOBS=[
+ "Sprzedawca","Technik","Inżynier sieci","Badacz R&D",
+ "Programista","Obsługa klienta","Marketing","Menedżer"
+];
+const FIRST=["Anna","Jakub","Maja","Michał","Julia","Kacper","Zofia","Filip","Oliwia","Piotr","Natalia","Bartosz"];
+const LAST=["Nowak","Kowalski","Wiśniewska","Wójcik","Kamiński","Lewandowski","Zielińska","Dąbrowski"];
+
 const COMPANY_NAMES=[
- "Astra Mobile","BlueWave Telecom","NordCell","Vertex Wireless",
- "Luma Networks","Orbitel","Quantum Mobile","SkyLink",
- "Pulse Telecom","MetroCell","Zenith Wireless","NovaWave",
- "Titan Communications","Echo Mobile","GlobeTel","HyperCell",
- "Aurora Telecom","Nexa Mobile","Volt Wireless","PrimeLink"
+ "Astra Mobile","NordCell","BlueWave","Vertex Wireless",
+ "Luma Telecom","Orbitel","Pulse Mobile","Zenith Wireless",
+ "HyperCell","SkyLink","MetroWave","Nexa Telecom"
 ];
 
 const INVESTORS=[
- "Założyciele","Fundusz Atlas","North Capital","Horizon Partners",
- "Future Ventures","Global Equity","Fundusz Meridian",
- "SilverRock","Pioneer Investments","Inwestorzy detaliczni"
+ "Założyciele","Atlas Capital","Horizon Fund","North Ventures",
+ "Meridian Equity","SilverRock","Pioneer Capital","Inwestorzy detaliczni"
 ];
 
-let game=null;
-let map=null;
-let layers=null;
-let selectedCompany=null;
-let timer=null;
-let buildMode="select";
-let coverageVisible=true;
+let game=null,map=null,layers=null,timer=null;
+let buildMode="select",coverage=true;
+let selectedTower=null,selectedCompany=null;
 
-function createCompany(name){
- const customers=Math.round(rand(50000,5000000));
- const towers=Math.round(rand(30,2800));
- const shops=Math.round(rand(5,260));
-
- let left=100;
- const shareholders=[];
-
- for(let i=0;i<4;i++){
-  const max=Math.min(left-(3-i)*5,35);
-  const pct=i===3?left:Math.round(rand(5,max));
-  shareholders.push({
-   id:uid(),
-   name:INVESTORS[Math.floor(Math.random()*INVESTORS.length)],
-   pct:pct,
-   price:rand(.9,1.2)
-  });
-  left-=pct;
- }
-
- shareholders[shareholders.length-1].pct+=left;
-
+function employee(){
  return{
-  id:uid(),name,
-  customers,towers,shops,
-  value:customers*rand(200,650)+towers*rand(50000,130000),
-  research:Math.round(rand(10,75)),
-  reputation:Math.round(rand(30,90)),
-  shareholders,
-  playerShares:0,
-  controlled:false,
-  taken:false,
-  cash:rand(20e6,900e6)
+  id:uid(),
+  name:FIRST[Math.floor(Math.random()*FIRST.length)]+" "+LAST[Math.floor(Math.random()*LAST.length)],
+  job:JOBS[Math.floor(Math.random()*JOBS.length)],
+  skill:Math.round(rand(35,98)),
+  salary:Math.round(rand(4500,22000))
  };
 }
 
-function newGame(mode){
- const city=$("companyName").value.trim()||"Nova Telecom";
+function company(name){
+ const country=COUNTRIES[Math.floor(Math.random()*COUNTRIES.length)];
+ let remaining=100;
+ const holders=[];
 
+ for(let i=0;i<4;i++){
+  let pct=i===3?remaining:Math.min(remaining-5*(3-i),Math.round(rand(8,32)));
+  holders.push({id:uid(),name:INVESTORS[Math.floor(Math.random()*INVESTORS.length)],pct});
+  remaining-=pct;
+ }
+
+ const customers=Math.round(rand(100000,6000000));
+
+ return{
+  id:uid(),name,country:country.code,
+  customers,
+  towers:Math.round(rand(80,3500)),
+  shops:Math.round(rand(10,350)),
+  value:customers*rand(250,700),
+  research:Math.round(rand(20,85)),
+  playerShares:0,holders,taken:false
+ };
+}
+
+function country(code){
+ return COUNTRIES.find(c=>c.code===code)||COUNTRIES[0];
+}
+
+function changeMoney(amount){
+ game.money+=amount;
+
+ const el=document.createElement("div");
+ el.className="moneyFloat "+(amount>=0?"good":"bad");
+ el.textContent=(amount>=0?"+":"")+cash(amount);
+ document.body.appendChild(el);
+ setTimeout(()=>el.remove(),1500);
+
+ $("sMoney")?.classList.add("pulse");
+ setTimeout(()=>$("sMoney")?.classList.remove("pulse"),450);
+}
+
+function spend(amount){
+ if(game.freeBuild)return true;
+ if(game.money<amount){
+  log("Brakuje pieniędzy.");
+  return false;
+ }
+ changeMoney(-amount);
+ return true;
+}
+
+function startGame(type){
  game={
-  name:city,
-  mode,
-  money:mode==="sandbox"?999000000000000:40000000,
-  customers:0,
-  towers:[],
-  shops:[],
-  date:new Date(2025,0,1),
-  speed:1,
-  buildFree:false,
-  profit:0,
-  revenue:0,
-  expenses:0,
-  technologies:TECHS.map(t=>({
-   ...t,
-   unlocked:mode==="sandbox"||t.year<=2025,
-   researched:mode==="sandbox"||t.id==="gsm"
-  })),
-  companies:COMPANY_NAMES.slice(0,8).map(createCompany),
-  generatedTechs:[],
-  history:[],
-  days:0
+  name:$("companyName").value.trim()||"Nova Telecom",
+  mode:type,
+  money:type==="sandbox"?999000000000000:50000000,
+  customers:0,profit:0,revenue:0,costs:0,
+  date:new Date(2025,0,1),speed:1,days:0,
+  towers:[],shops:[],employees:[],candidates:[],
+  offers:[],streams:STREAMS.map(s=>({...s,signed:false})),
+  techs:TECHS.map(t=>({...t,researched:type==="sandbox"||t.id==="gsm"})),
+  customTechs:[],
+  companies:COMPANY_NAMES.slice(0,8).map(company),
+  freeBuild:false,noExpenses:false
  };
 
+ for(let i=0;i<7;i++)game.candidates.push(employee());
+
  $("startModal").classList.add("hidden");
-
  initMap();
- addLog("Założono "+game.name+". Zaczynasz bez infrastruktury.");
- addLog("Kliknij „Postaw maszt” albo „Otwórz salon”, a następnie miejsce na mapie.");
-
+ log("Założono "+game.name+". Startujesz bez masztów i salonów.");
  render();
  startTimer();
 }
 
 function initMap(){
- if(map){
-  map.remove();
- }
+ if(map)map.remove();
 
- map=L.map("map",{
-  zoomControl:true,
-  minZoom:2,
-  maxZoom:18,
-  worldCopyJump:true
- }).setView([30,10],2);
+ map=L.map("map",{minZoom:2,maxZoom:18,worldCopyJump:true}).setView([30,10],2);
 
- L.tileLayer(
-  "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-  {
-   maxZoom:19,
-   attribution:"&copy; OpenStreetMap contributors"
-  }
- ).addTo(map);
+ L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{
+  maxZoom:19,attribution:"&copy; OpenStreetMap contributors"
+ }).addTo(map);
 
  layers={
   towers:L.layerGroup().addTo(map),
@@ -520,76 +664,133 @@ function initMap(){
  };
 
  map.on("click",e=>{
-  if(buildMode==="tower")placeTower(e.latlng);
-  if(buildMode==="shop")placeShop(e.latlng);
+  if(buildMode==="tower")buildTower(e.latlng);
+  if(buildMode==="shop")buildShop(e.latlng);
  });
 }
 
-function icon(type){
- return L.divIcon({
-  className:"",
-  html:`<div class="marker-${type}">${type==="tower"?"📡":"🏪"}</div>`,
-  iconSize:[24,24],
-  iconAnchor:[12,12]
- });
+function towerIcon(){
+ return L.divIcon({className:"",html:'<div class="towerIcon">📡</div>',iconSize:[25,25],iconAnchor:[12,12]});
+}
+function shopIcon(){
+ return L.divIcon({className:"",html:'<div class="shopIcon">🏪</div>',iconSize:[25,25],iconAnchor:[12,12]});
 }
 
-function towerRangeMeters(tech){
- const t=game.technologies.find(x=>x.id===tech);
- return t?.range||10000;
-}
-
-function placeTower(pos){
- const tech=$("towerTech").value;
- const t=game.technologies.find(x=>x.id===tech);
-
- if(!t?.researched){
-  addLog("Ta technologia nie została jeszcze zbadana.");
-  return;
- }
-
- const cost=game.buildFree?0:
-   tech.includes("5g")?4500000:
-   tech==="6g"?9000000:
-   2500000;
-
- if(game.money<cost){
-  addLog("Za mało pieniędzy na maszt.");
-  return;
- }
-
- game.money-=cost;
+function buildTower(p){
+ if(!spend(2500000))return;
 
  game.towers.push({
-  id:uid(),
-  lat:pos.lat,
-  lng:pos.lng,
-  tech,
-  level:1
+  id:uid(),lat:p.lat,lng:p.lng,level:1,
+  slots:1,technologies:["gsm"],load:0
  });
 
- addLog("Postawiono maszt "+t.name+".");
+ log("Postawiono nowy maszt. Kliknij go, aby dodawać technologie.");
  render();
 }
 
-function placeShop(pos){
- const cost=game.buildFree?0:1500000;
+function buildShop(p){
+ if(!spend(1500000))return;
+ game.shops.push({id:uid(),lat:p.lat,lng:p.lng,level:1});
+ log("Otwarto salon.");
+ render();
+}
 
- if(game.money<cost){
-  addLog("Za mało pieniędzy na salon.");
-  return;
- }
+function towerCapacity(t){
+ return t.technologies.reduce((sum,id)=>{
+  const tech=[...game.techs,...game.customTechs].find(x=>x.id===id);
+  return sum+(tech?.capacity||0);
+ },0)*t.level;
+}
 
- game.money-=cost;
+function towerRange(t){
+ let max=0;
+ t.technologies.forEach(id=>{
+  const tech=[...game.techs,...game.customTechs].find(x=>x.id===id);
+  max=Math.max(max,tech?.range||0);
+ });
+ return max*(1+(t.level-1)*.16);
+}
 
- game.shops.push({
-  id:uid(),
-  lat:pos.lat,
-  lng:pos.lng,
-  level:1
+function openTower(id){
+ selectedTower=id;
+ const t=game.towers.find(x=>x.id===id);
+ if(!t)return;
+
+ $("towerTitle").textContent="📡 Maszt • poziom "+t.level;
+ $("towerInfo").innerHTML=`
+  <div class="grid3">
+   <div class="card"><span class="muted">Sloty</span><br><b>${t.technologies.length}/${t.slots}</b></div>
+   <div class="card"><span class="muted">Zasięg</span><br><b>${(towerRange(t)/1000).toFixed(1)} km</b></div>
+   <div class="card"><span class="muted">Pojemność</span><br><b>${num(towerCapacity(t))}</b></div>
+  </div>
+ `;
+
+ const all=[...game.techs,...game.customTechs].filter(x=>x.researched&&x.range>0);
+
+ $("towerTechnologies").innerHTML=all.map(tech=>{
+  const installed=t.technologies.includes(tech.id);
+  const full=t.technologies.length>=t.slots;
+
+  return`
+   <div class="card techSlot">
+    <div class="row">
+     <div>
+      <b>${tech.name}</b><br>
+      <span class="muted">
+       zasięg ${(tech.range/1000).toFixed(1)} km •
+       pojemność ${num(tech.capacity)}
+      </span>
+     </div>
+     <button class="btn ${installed?"green":"blue"} installTech"
+      data-id="${tech.id}" ${installed||full?"disabled":""}>
+      ${installed?"AKTYWNE":"Zainstaluj"}
+     </button>
+    </div>
+   </div>
+  `;
+ }).join("");
+
+ document.querySelectorAll(".installTech").forEach(b=>{
+  b.onclick=()=>installTowerTech(b.dataset.id);
  });
 
- addLog("Otwarto nowy salon.");
+ $("towerModal").classList.remove("hidden");
+}
+
+function installTowerTech(id){
+ const t=game.towers.find(x=>x.id===selectedTower);
+ const tech=[...game.techs,...game.customTechs].find(x=>x.id===id);
+ if(!t||!tech||t.technologies.length>=t.slots)return;
+
+ const cost=Math.max(500000,tech.cost*.08);
+ if(!spend(cost))return;
+
+ t.technologies.push(id);
+ log("Maszt otrzymał technologię "+tech.name+".");
+ render();
+ openTower(t.id);
+}
+
+function upgradeTower(){
+ const t=game.towers.find(x=>x.id===selectedTower);
+ if(!t)return;
+
+ const cost=t.level*3500000;
+ if(!spend(cost))return;
+
+ t.level++;
+ t.slots=Math.min(6,t.slots+1);
+ log("Ulepszono maszt do poziomu "+t.level+".");
+ render();
+ openTower(t.id);
+}
+
+function deleteTower(){
+ const t=game.towers.find(x=>x.id===selectedTower);
+ if(!t)return;
+ game.towers=game.towers.filter(x=>x.id!==t.id);
+ $("towerModal").classList.add("hidden");
+ log("Usunięto maszt.");
  render();
 }
 
@@ -601,318 +802,261 @@ function renderMap(){
  layers.coverage.clearLayers();
 
  game.towers.forEach(t=>{
-  const tech=game.technologies.find(x=>x.id===t.tech);
+  const marker=L.marker([t.lat,t.lng],{icon:towerIcon()}).addTo(layers.towers);
+  marker.on("click",()=>openTower(t.id));
 
-  L.marker([t.lat,t.lng],{icon:icon("tower")})
-   .bindPopup(
-    `<b>📡 ${tech?.name||t.tech}</b><br>
-     Poziom ${t.level}<br>
-     Zasięg: ${(towerRangeMeters(t.tech)/1000).toFixed(1)} km`
-   )
-   .addTo(layers.towers);
-
-  if(coverageVisible && towerRangeMeters(t.tech)>0){
+  if(coverage&&towerRange(t)>0){
    L.circle([t.lat,t.lng],{
-    radius:towerRangeMeters(t.tech)*t.level,
-    color:"#22d3ee",
-    fillColor:"#22d3ee",
-    fillOpacity:.09,
-    weight:1
+    radius:towerRange(t),
+    color:"#22d3ee",weight:1,
+    fillColor:"#22d3ee",fillOpacity:.10
    }).addTo(layers.coverage);
   }
  });
 
  game.shops.forEach(s=>{
-  L.marker([s.lat,s.lng],{icon:icon("shop")})
+  L.marker([s.lat,s.lng],{icon:shopIcon()})
    .bindPopup(`<b>🏪 Salon ${game.name}</b><br>Poziom ${s.level}`)
    .addTo(layers.shops);
  });
 }
 
-function research(id){
- const t=game.technologies.find(x=>x.id===id);
- if(!t||t.researched)return;
-
- if(game.money<t.cost){
-  addLog("Brakuje pieniędzy na badania.");
-  return;
- }
-
- game.money-=t.cost;
- t.researched=true;
-
- addLog("Zbadano: "+t.name+".");
+function hire(id){
+ const e=game.candidates.find(x=>x.id===id);
+ if(!e)return;
+ game.employees.push(e);
+ game.candidates=game.candidates.filter(x=>x.id!==id);
+ log("Zatrudniono "+e.name+" • "+e.job+".");
  render();
 }
 
-function generateTechnology(){
- const prefixes=[
-  "Neural","Quantum","Hyper","Photon","Adaptive","Orbital",
-  "Nano","AI","Ultra","Dynamic","Fusion"
- ];
- const suffixes=[
-  "Radio","Core","Mesh","Beamforming","Spectrum",
-  "Backhaul","Cells","Network","Wave","Cloud"
- ];
-
- const name=
-  prefixes[Math.floor(Math.random()*prefixes.length)]+" "+
-  suffixes[Math.floor(Math.random()*suffixes.length)]+" "+
-  Math.floor(rand(2,10));
-
- const tech={
-  id:"generated_"+uid(),
-  name,
-  year:game.date.getFullYear(),
-  cost:Math.round(rand(50,400))*1000000,
-  range:chance(.45)?Math.round(rand(5000,25000)):0,
-  unlocked:true,
-  researched:false,
-  generated:true
- };
-
- game.technologies.push(tech);
- addLog("🔬 Pojawiła się nowa technologia: "+name+".");
+function fire(id){
+ game.employees=game.employees.filter(x=>x.id!==id);
+ render();
 }
 
-function generateCompany(){
- if(game.companies.filter(c=>!c.taken).length>=18)return;
+function research(id){
+ const t=game.techs.find(x=>x.id===id);
+ if(!t||t.researched)return;
+ if(!spend(t.cost))return;
+ t.researched=true;
+ log("Zbadano "+t.name+".");
+ render();
+}
 
- let name=
-  COMPANY_NAMES[Math.floor(Math.random()*COMPANY_NAMES.length)]+" "+
-  Math.floor(rand(2,99));
+function customTechnology(){
+ const name=$("customTechName").value.trim()||"Nova Technology";
+ const budget=Math.max(1000000,Number($("customTechBudget").value));
+ if(!spend(budget))return;
 
- game.companies.push(createCompany(name));
- addLog("🏢 Na rynku pojawił się nowy operator: "+name+".");
+ const priority=$("customTechPriority").value;
+ const type=$("customTechType").value;
+
+ const researchers=game.employees.filter(e=>e.job==="Badacz R&D").length;
+ const engineers=game.employees.filter(e=>e.job==="Inżynier sieci").length;
+
+ let range=type==="radio"?rand(8000,28000):0;
+ let capacity=type==="radio"?rand(150000,1500000):0;
+
+ if(priority==="range")range*=1.5;
+ if(priority==="capacity")capacity*=1.6;
+
+ const tech={
+  id:"custom_"+uid(),
+  name,
+  category:"Własna • "+type,
+  cost:budget,
+  range:Math.round(range),
+  capacity:Math.round(capacity),
+  researched:true,
+  custom:true
+ };
+
+ game.customTechs.push(tech);
+
+ log("🧪 Ukończono własną technologię "+name+
+     `. Zespół: ${researchers} badaczy, ${engineers} inżynierów.`);
+
+ render();
+}
+
+function createOffer(){
+ const streamId=$("offerStreaming").value;
+ const stream=game.streams.find(s=>s.id===streamId);
+
+ game.offers.push({
+  id:uid(),
+  name:$("offerName").value||"Nowa taryfa",
+  type:$("offerType").value,
+  price:Math.max(0,Number($("offerPrice").value)),
+  data:Math.max(0,Number($("offerData").value)),
+  network:$("offerNetwork").value,
+  stream:stream?.name||"",
+  customers:0
+ });
+
+ log("Dodano nową ofertę.");
+ render();
+}
+
+function removeOffer(id){
+ game.offers=game.offers.filter(x=>x.id!==id);
+ render();
+}
+
+function signStream(id){
+ const s=game.streams.find(x=>x.id===id);
+ if(!s||s.signed)return;
+ if(!spend(2000000))return;
+ s.signed=true;
+ log("Podpisano umowę z "+s.name+".");
+ render();
 }
 
 function openCompany(id){
  selectedCompany=id;
  const c=game.companies.find(x=>x.id===id);
  if(!c)return;
+ const co=country(c.country);
 
- $("companyTitle").textContent="🏢 "+c.name;
+ $("companyTitle").textContent=co.flag+" "+c.name;
 
  $("companyDetails").innerHTML=`
   <div class="grid3">
-   <div class="card"><span class="muted">Wartość</span><br><b>${money(c.value)}</b></div>
-   <div class="card"><span class="muted">Klienci</span><br><b>${num(c.customers)}</b></div>
+   <div class="card"><span class="muted">Kraj</span><br><b>${co.flag} ${co.name}</b></div>
+   <div class="card"><span class="muted">Wartość</span><br><b>${cash(c.value)}</b></div>
    <div class="card"><span class="muted">Twoje udziały</span><br><b>${c.playerShares.toFixed(1)}%</b></div>
   </div>
-  <p>
-   📡 ${num(c.towers)} masztów •
-   🏪 ${num(c.shops)} salonów •
-   🔬 R&D ${c.research}/100
-  </p>
+  <p>👥 ${num(c.customers)} • 📡 ${num(c.towers)} • 🏪 ${num(c.shops)} • 🔬 R&D ${c.research}/100</p>
  `;
 
- $("shareholderList").innerHTML=
-  c.shareholders.map(s=>{
-   const price=c.value*(s.pct/100)*s.price;
+ $("shareholders").innerHTML=c.holders.map(h=>{
+  const max=Math.min(10,h.pct);
+  const price=c.value*(max/100)*1.08;
 
-   return`
-    <div class="card shareholder">
-     <div class="companyTop">
-      <div>
-       <b>${s.name}</b><br>
-       <span class="muted">${s.pct.toFixed(1)}% firmy</span>
-      </div>
-      <div style="text-align:right">
-       <b>${money(price)}</b><br>
-       <button class="btn green buyShares"
-        data-company="${c.id}" data-share="${s.id}">
-        Odkup udziały
-       </button>
-      </div>
+  return`
+   <div class="card" style="margin-bottom:6px">
+    <div class="row">
+     <div><b>${h.name}</b><br><span class="muted">${h.pct.toFixed(1)}%</span></div>
+     <div style="text-align:right">
+      <b>${cash(price)}</b><br>
+      <button class="btn green buyShare" data-id="${h.id}">Kup ${max.toFixed(1)}%</button>
      </div>
     </div>
-   `;
-  }).join("") || `<div class="muted">Brak zewnętrznych udziałowców.</div>`;
+   </div>
+  `;
+ }).join("")||'<div class="muted">Brak pozostałych udziałów.</div>';
 
- document.querySelectorAll(".buyShares").forEach(b=>{
-  b.onclick=()=>buyShares(b.dataset.company,b.dataset.share);
+ document.querySelectorAll(".buyShare").forEach(b=>{
+  b.onclick=()=>buyShares(b.dataset.id);
  });
 
- $("controlPanel").classList.toggle("hidden",c.playerShares<=50);
-
+ $("companyControl").classList.toggle("hidden",c.playerShares<=50);
  $("companyModal").classList.remove("hidden");
 }
 
-function buyShares(companyId,shareId){
- const c=game.companies.find(x=>x.id===companyId);
- const s=c?.shareholders.find(x=>x.id===shareId);
- if(!c||!s)return;
-
- const maxBuy=Math.min(s.pct,10);
- const cost=c.value*(maxBuy/100)*s.price;
-
- if(game.money<cost){
-  addLog("Nie stać Cię na ten pakiet udziałów.");
-  return;
- }
-
- game.money-=cost;
- s.pct-=maxBuy;
- c.playerShares+=maxBuy;
-
- if(s.pct<.01){
-  c.shareholders=c.shareholders.filter(x=>x.id!==shareId);
- }
-
- if(c.playerShares>50 && !c.controlled){
-  c.controlled=true;
-  addLog("🎛️ Zdobyłeś większościową kontrolę nad "+c.name+".");
- }
-
- render();
- openCompany(c.id);
-}
-
-function investCompany(){
+function buyShares(holderId){
  const c=game.companies.find(x=>x.id===selectedCompany);
- if(!c||c.playerShares<=50)return;
+ const h=c?.holders.find(x=>x.id===holderId);
+ if(!c||!h)return;
 
- const amount=10000000;
- if(game.money<amount)return;
+ const amount=Math.min(10,h.pct);
+ const cost=c.value*(amount/100)*1.08;
+ if(!spend(cost))return;
 
- game.money-=amount;
- c.cash+=amount;
- c.value+=amount*.7;
- addLog("Dokapitalizowano "+c.name+".");
- render();
- openCompany(c.id);
-}
+ h.pct-=amount;
+ c.playerShares+=amount;
+ if(h.pct<.01)c.holders=c.holders.filter(x=>x.id!==holderId);
 
-function expandCompany(){
- const c=game.companies.find(x=>x.id===selectedCompany);
- if(!c||c.playerShares<=50)return;
-
- const cost=15000000;
- if(game.money<cost)return;
-
- game.money-=cost;
- c.towers+=Math.round(rand(10,40));
- c.shops+=Math.round(rand(1,6));
- c.value+=cost*.8;
-
- addLog(c.name+" rozbudowała sieć.");
- render();
- openCompany(c.id);
-}
-
-function companyResearch(){
- const c=game.companies.find(x=>x.id===selectedCompany);
- if(!c||c.playerShares<=50)return;
-
- const cost=12000000;
- if(game.money<cost)return;
-
- game.money-=cost;
- c.research=clamp(c.research+10,0,100);
- c.value+=cost*.5;
-
- addLog("Zwiększono R&D w "+c.name+".");
+ if(c.playerShares>50)log("🎛️ Zdobyto kontrolę nad "+c.name+".");
  render();
  openCompany(c.id);
 }
 
 function takeover(){
  const c=game.companies.find(x=>x.id===selectedCompany);
- if(!c||c.taken)return;
-
+ if(!c)return;
  if(c.playerShares<100){
-  addLog("Do pełnego połączenia potrzebujesz 100% udziałów.");
+  log("Pełne przejęcie wymaga 100% udziałów.");
   return;
  }
-
  c.taken=true;
-
  game.customers+=c.customers;
-
- /* fizyczne znaczniki są generowane w ograniczonej liczbie,
-    aby mapa nie została przeciążona tysiącami markerów */
- const visibleTowers=Math.min(c.towers,80);
- const visibleShops=Math.min(c.shops,30);
-
- for(let i=0;i<visibleTowers;i++){
-  game.towers.push({
-   id:uid(),
-   lat:rand(-55,65),
-   lng:rand(-175,175),
-   tech:"lte",
-   level:1,
-   acquired:true
-  });
- }
-
- for(let i=0;i<visibleShops;i++){
-  game.shops.push({
-   id:uid(),
-   lat:rand(-55,65),
-   lng:rand(-175,175),
-   level:1,
-   acquired:true
-  });
- }
-
- addLog("🏢 "+c.name+" została całkowicie przejęta.");
+ log("🏢 Przejęto "+c.name+".");
  $("companyModal").classList.add("hidden");
  render();
 }
 
+function generateCompany(){
+ if(game.companies.filter(c=>!c.taken).length>=20)return;
+ const name=COMPANY_NAMES[Math.floor(Math.random()*COMPANY_NAMES.length)]+" "+Math.floor(rand(2,99));
+ game.companies.push(company(name));
+ log("🏢 Powstał nowy operator: "+name+".");
+}
+
+function generateTech(){
+ const A=["Neural","Photon","Hyper","Adaptive","Quantum","Orbital","Nano","Fusion"];
+ const B=["Radio","Wave","Core","Mesh","Beam","Network","Spectrum"];
+ const name=A[Math.floor(Math.random()*A.length)]+" "+B[Math.floor(Math.random()*B.length)]+" "+Math.floor(rand(2,10));
+
+ game.techs.push({
+  id:"gen_"+uid(),name,category:"Eksperymentalna",
+  cost:Math.round(rand(50,350))*1e6,
+  range:Math.round(rand(5000,25000)),
+  capacity:Math.round(rand(300000,2500000)),
+  researched:false,generated:true
+ });
+ log("🔬 Pojawiła się technologia "+name+".");
+}
+
 function economy(){
- const avgRevenue=game.customers*49;
- const towerCost=game.towers.length*2200;
- const shopCost=game.shops.length*32000;
- const costs=towerCost+shopCost+250000;
+ const avg=game.offers.length
+  ?game.offers.reduce((s,o)=>s+o.price,0)/game.offers.length
+  :0;
 
- const quality=
-  Math.min(1,game.towers.length/Math.max(1,game.customers/8000));
+ const capacity=game.towers.reduce((s,t)=>s+towerCapacity(t),0);
+ const technicians=game.employees.filter(e=>e.job==="Technik").length;
+ const sales=game.employees.filter(e=>e.job==="Sprzedawca").length;
 
- let growth=
-  Math.round(
-   (game.shops.length*rand(100,500)+
-    game.towers.length*rand(50,180))*
-    (.5+quality)
-  );
+ let growth=Math.round(
+  game.shops.length*rand(150,650)+
+  game.towers.length*rand(80,260)+
+  sales*rand(100,350)
+ );
 
- if(game.towers.length===0)growth=0;
+ if(!game.offers.length||!game.towers.length)growth=0;
+ if(capacity<game.customers)growth=Math.round(growth*.35);
 
  game.customers+=growth;
 
- game.revenue=avgRevenue;
- game.expenses=costs;
- game.profit=avgRevenue-costs;
-
- if(game.mode!=="sandbox"){
-  game.money+=game.profit;
+ if(game.offers.length&&growth>0){
+  game.offers[Math.floor(Math.random()*game.offers.length)].customers+=growth;
  }
 
- game.history.unshift({
-  date:game.date.toLocaleDateString("pl-PL"),
-  profit:game.profit
- });
- game.history=game.history.slice(0,12);
+ const revenue=game.customers*avg;
+
+ const salaries=game.employees.reduce((s,e)=>s+e.salary,0);
+ const towerCosts=game.towers.length*2600;
+ const shopCosts=game.shops.length*33000;
+ const streamCosts=game.streams.filter(s=>s.signed).reduce((s,x)=>s+x.cost*game.customers,0);
+ const maintenance=Math.max(0,game.towers.length-technicians*15)*700;
+
+ const costs=game.noExpenses?0:salaries+towerCosts+shopCosts+streamCosts+maintenance+180000;
+
+ game.revenue=revenue;
+ game.costs=costs;
+ game.profit=revenue-costs;
+
+ if(game.mode!=="sandbox")changeMoney(game.profit);
 }
 
-function companyAI(){
+function monthAI(){
  game.companies.forEach(c=>{
   if(c.taken)return;
-
-  c.customers=Math.max(0,
-   Math.round(c.customers*(1+rand(-.007,.018)))
-  );
-
-  if(chance(.25))c.towers+=Math.round(rand(1,15));
-  if(chance(.12))c.shops+=Math.round(rand(1,3));
-
-  c.value=Math.max(1e6,
-   c.value*(1+rand(-.025,.035))
-  );
-
-  c.shareholders.forEach(s=>{
-   s.price=clamp(s.price+rand(-.04,.04),.7,1.5);
-  });
+  c.customers=Math.round(Math.max(1000,c.customers*(1+rand(-.01,.02))));
+  c.value=Math.max(1e6,c.value*(1+rand(-.025,.035)));
+  if(chance(.3))c.towers+=Math.round(rand(1,15));
+  if(chance(.12))c.shops++;
  });
 }
 
@@ -920,29 +1064,16 @@ function day(){
  game.date.setDate(game.date.getDate()+1);
  game.days++;
 
- if(game.date.getDate()===1){
-  economy();
-  companyAI();
- }
+ if(game.date.getDate()===1){economy();monthAI()}
 
- if(game.days%180===0 && chance(.75)){
-  generateTechnology();
- }
-
- if(game.days%240===0 && chance(.65)){
-  generateCompany();
- }
-
- game.technologies.forEach(t=>{
-  if(game.date.getFullYear()>=t.year)t.unlocked=true;
- });
+ if(game.days%10===0&&game.candidates.length<14)game.candidates.push(employee());
+ if(game.days%180===0&&chance(.75))generateTech();
+ if(game.days%240===0&&chance(.6))generateCompany();
 }
 
 function tick(){
  if(!game||game.speed===0)return;
-
  for(let i=0;i<game.speed;i++)day();
-
  render();
 }
 
@@ -956,31 +1087,27 @@ function render(){
 
  $("date").textContent=game.date.toLocaleDateString("pl-PL");
  $("sName").textContent=game.name;
- $("sMoney").textContent=money(game.money);
+ $("sMoney").textContent=cash(game.money);
  $("sCustomers").textContent=num(game.customers);
- $("sProfit").textContent=(game.profit>=0?"+":"")+money(game.profit);
+ $("sProfit").textContent=(game.profit>=0?"+":"")+cash(game.profit);
  $("sProfit").className=game.profit>=0?"good":"bad";
  $("sTowers").textContent=num(game.towers.length);
  $("sShops").textContent=num(game.shops.length);
- $("sTech").textContent=
-  game.technologies.filter(t=>t.researched).length+"/"+game.technologies.length;
+ $("sEmployees").textContent=num(game.employees.length);
  $("sMode").textContent=game.mode==="sandbox"?"PIASKOWNICA":"NORMALNY";
 
  $("networkInfo").innerHTML=`
   📡 Maszty: <b>${num(game.towers.length)}</b><br>
   🏪 Salony: <b>${num(game.shops.length)}</b><br>
   👥 Klienci: <b>${num(game.customers)}</b><br>
-  📶 Technologie: <b>${game.technologies.filter(t=>t.researched).length}</b>
+  🧪 Własne technologie: <b>${game.customTechs.length}</b>
  `;
 
- $("towerTech").innerHTML=
-  game.technologies
-   .filter(t=>t.researched&&t.range>0)
-   .map(t=>`<option value="${t.id}">${t.name}</option>`)
-   .join("");
-
  renderMap();
- renderTech();
+ renderOffers();
+ renderEmployees();
+ renderResearch();
+ renderStreaming();
  renderCompanies();
  renderShares();
  renderFinance();
@@ -990,204 +1117,248 @@ function render(){
  );
 }
 
-function renderTech(){
- $("techGrid").innerHTML=game.technologies.map(t=>`
+function renderOffers(){
+ $("offersList").innerHTML=game.offers.length?game.offers.map(o=>`
+  <div class="card offer">
+   <div class="row">
+    <div>
+     <b style="font-size:18px">${o.name}</b><br>
+     <span class="muted">${o.type}</span>
+    </div>
+    <b class="cyan">${o.price.toFixed(2)} zł/mies.</b>
+   </div>
+   <p>
+    🌐 ${o.data} GB • 📶 ${o.network}<br>
+    ${o.stream?"🎬 "+o.stream+"<br>":""}
+    👥 ${num(o.customers)} klientów
+   </p>
+   <button class="btn red removeOffer" data-id="${o.id}">Usuń</button>
+  </div>
+ `).join(""):'<div class="muted">Nie masz jeszcze żadnej taryfy.</div>';
+
+ document.querySelectorAll(".removeOffer").forEach(b=>b.onclick=()=>removeOffer(b.dataset.id));
+
+ $("offerStreaming").innerHTML=
+  '<option value="">Brak</option>'+
+  game.streams.filter(s=>s.signed).map(s=>`<option value="${s.id}">${s.name}</option>`).join("");
+}
+
+function renderEmployees(){
+ $("employeesList").innerHTML=game.employees.length?game.employees.map(e=>`
+  <div class="card employee">
+   <div class="row">
+    <div><b>${e.name}</b><br><span class="muted">${e.job} • ${e.skill}/100</span></div>
+    <div>${cash(e.salary)}/mies.<br><button class="btn red fire" data-id="${e.id}">Zwolnij</button></div>
+   </div>
+  </div>
+ `).join(""):'<div class="muted">Brak pracowników.</div>';
+
+ $("candidatesList").innerHTML=game.candidates.map(e=>`
+  <div class="card employee">
+   <b>${e.name}</b><br>
+   <span class="muted">${e.job} • ${e.skill}/100</span><br>
+   ${cash(e.salary)}/mies.
+   <button class="btn green hire" data-id="${e.id}" style="width:100%;margin-top:6px">Zatrudnij</button>
+  </div>
+ `).join("");
+
+ document.querySelectorAll(".hire").forEach(b=>b.onclick=()=>hire(b.dataset.id));
+ document.querySelectorAll(".fire").forEach(b=>b.onclick=()=>fire(b.dataset.id));
+}
+
+function renderResearch(){
+ $("techGrid").innerHTML=[...game.techs,...game.customTechs].map(t=>`
   <div class="card tech">
    <b>${t.name}</b>
-   ${t.generated?'<span class="warn"> • NOWA</span>':""}
-   <div class="muted">Rok ${t.year}</div>
+   ${t.custom?'<span class="badge">TWOJA</span>':""}
+   ${t.generated?'<span class="badge">NOWA</span>':""}
+   <div class="muted">${t.category}</div>
    <p>
-    ${t.range?"Zasięg bazowy "+(t.range/1000).toFixed(1)+" km":"Technologia sieciowa"}
+    ${t.range?"📡 "+(t.range/1000).toFixed(1)+" km<br>":""}
+    ${t.capacity?"👥 "+num(t.capacity)+" pojemności<br>":""}
    </p>
-   <button class="btn ${t.researched?"green":"blue"} research"
-    data-id="${t.id}"
-    ${t.researched||!t.unlocked?"disabled":""}>
-    ${
-     t.researched?"ZBADANO":
-     !t.unlocked?"Dostępna od "+t.year:
-     "Badaj • "+money(t.cost)
-    }
+   <button class="btn ${t.researched?"green":"blue"} researchBtn"
+    data-id="${t.id}" ${t.researched||t.custom?"disabled":""}>
+    ${t.researched?"ZBADANO":"Badaj • "+cash(t.cost)}
    </button>
   </div>
  `).join("");
 
- document.querySelectorAll(".research").forEach(b=>
-  b.onclick=()=>research(b.dataset.id)
- );
+ document.querySelectorAll(".researchBtn").forEach(b=>b.onclick=()=>research(b.dataset.id));
+}
+
+function renderStreaming(){
+ $("streamGrid").innerHTML=game.streams.map(s=>`
+  <div class="card stream">
+   <div class="big">${s.icon}</div>
+   <b>${s.name}</b><br>
+   <span class="muted">Popularność ${s.pop}/100</span>
+   <p>Koszt hurtowy: ${s.cost.toFixed(2)} zł / klienta</p>
+   <button class="btn ${s.signed?"green":"purple"} signStream"
+    data-id="${s.id}" ${s.signed?"disabled":""}>
+    ${s.signed?"UMOWA AKTYWNA":"Podpisz umowę • 2 mln"}
+   </button>
+  </div>
+ `).join("");
+
+ document.querySelectorAll(".signStream").forEach(b=>b.onclick=()=>signStream(b.dataset.id));
 }
 
 function renderCompanies(){
  const active=game.companies.filter(c=>!c.taken);
 
- $("companyList").innerHTML=active.map(c=>`
-  <div class="card company">
-   <div class="companyTop">
-    <div>
-     <b style="font-size:18px">${c.name}</b><br>
-     <span class="muted">${num(c.customers)} klientów</span>
+ $("companiesList").innerHTML=active.map(c=>{
+  const co=country(c.country);
+  return`
+   <div class="card company">
+    <div class="row">
+     <div>
+      <b style="font-size:18px">${co.flag} ${c.name}</b><br>
+      <span class="muted">${co.name} • ${num(c.customers)} klientów</span>
+     </div>
+     <div style="text-align:right">
+      <b>${cash(c.value)}</b><br>
+      <span class="${c.playerShares>50?"good":"muted"}">${c.playerShares.toFixed(1)}%</span>
+     </div>
     </div>
-    <div style="text-align:right">
-     <b>${money(c.value)}</b><br>
-     <span class="${c.playerShares>50?"good":"muted"}">
-      Twoje: ${c.playerShares.toFixed(1)}%
-     </span>
-    </div>
+    <button class="btn purple companyBtn" data-id="${c.id}">
+     ${c.playerShares>50?"🎛️ Zarządzaj":"📈 Udziały"}
+    </button>
    </div>
+  `;
+ }).join("");
 
-   <p>
-    📡 ${num(c.towers)} • 🏪 ${num(c.shops)}
-   </p>
+ document.querySelectorAll(".companyBtn").forEach(b=>b.onclick=()=>openCompany(b.dataset.id));
 
-   <button class="btn purple openCompany" data-id="${c.id}">
-    ${c.playerShares>50?"🎛️ Zarządzaj":"📈 Udziały"}
-   </button>
-  </div>
- `).join("");
-
- document.querySelectorAll(".openCompany").forEach(b=>
-  b.onclick=()=>openCompany(b.dataset.id)
- );
-
- const total=
-  game.customers+
-  active.reduce((s,c)=>s+c.customers,0);
-
+ const total=game.customers+active.reduce((s,c)=>s+c.customers,0);
  $("marketInfo").innerHTML=`
   Operatorzy: <b>${active.length+1}</b><br>
-  Łącznie klientów: <b>${num(total)}</b><br>
-  Twój udział klientów:
-  <b>${total?(game.customers/total*100).toFixed(2):0}%</b>
+  Klienci rynku: <b>${num(total)}</b><br>
+  Twój udział: <b>${total?(game.customers/total*100).toFixed(2):0}%</b>
  `;
 }
 
 function renderShares(){
  const owned=game.companies.filter(c=>c.playerShares>0&&!c.taken);
-
- $("ownedShares").innerHTML=owned.length?owned.map(c=>`
-  <div class="card company">
-   <b>${c.name}</b><br>
-   <span class="${c.playerShares>50?"good":"warn"}">
+ $("sharesList").innerHTML=owned.length?owned.map(c=>{
+  const co=country(c.country);
+  return`
+   <div class="card">
+    <b>${co.flag} ${c.name}</b><br>
     ${c.playerShares.toFixed(1)}%
-   </span>
-   udziałów
-   ${c.playerShares>50?" • KONTROLA":""}
-   <br><br>
-   <button class="btn purple openOwned" data-id="${c.id}">
-    Otwórz spółkę
-   </button>
-  </div>
- `).join(""):`<div class="muted">Nie posiadasz jeszcze udziałów w innych operatorach.</div>`;
+    ${c.playerShares>50?'<span class="good"> • KONTROLA</span>':""}<br><br>
+    <button class="btn purple ownedCompany" data-id="${c.id}">Otwórz</button>
+   </div>
+  `;
+ }).join(""):'<div class="muted">Nie posiadasz udziałów.</div>';
 
- document.querySelectorAll(".openOwned").forEach(b=>
-  b.onclick=()=>openCompany(b.dataset.id)
- );
+ document.querySelectorAll(".ownedCompany").forEach(b=>b.onclick=()=>openCompany(b.dataset.id));
 }
 
 function renderFinance(){
+ const salaries=game.employees.reduce((s,e)=>s+e.salary,0);
+ const towers=game.towers.length*2600;
+ const shops=game.shops.length*33000;
+ const streams=game.streams.filter(s=>s.signed).reduce((s,x)=>s+x.cost*game.customers,0);
+
  $("financeGrid").innerHTML=`
-  <div class="card"><span class="muted">Przychód</span><div class="big good">${money(game.revenue)}</div></div>
-  <div class="card"><span class="muted">Koszty</span><div class="big bad">${money(game.expenses)}</div></div>
-  <div class="card"><span class="muted">Wynik</span><div class="big ${game.profit>=0?"good":"bad"}">${money(game.profit)}</div></div>
+  <div class="card"><span class="muted">Przychód</span><div class="big good">${cash(game.revenue)}</div></div>
+  <div class="card"><span class="muted">Koszty</span><div class="big bad">${cash(game.costs)}</div></div>
+  <div class="card"><span class="muted">Wynik</span><div class="big ${game.profit>=0?"good":"bad"}">${cash(game.profit)}</div></div>
  `;
 
- $("costs").innerHTML=`
-  Maszty: <b>${money(game.towers.length*2200)}</b><br>
-  Salony: <b>${money(game.shops.length*32000)}</b><br>
-  Administracja: <b>${money(250000)}</b>
+ $("costInfo").innerHTML=`
+  👨‍💼 Pensje: <b>${cash(salaries)}</b><br>
+  📡 Maszty: <b>${cash(towers)}</b><br>
+  🏪 Salony: <b>${cash(shops)}</b><br>
+  🎬 Streaming: <b>${cash(streams)}</b>
  `;
 }
 
-function addLog(text){
+function log(text){
  const d=document.createElement("div");
  d.textContent="• "+text;
  $("log").prepend(d);
 }
 
-function consoleLine(text){
+function consoleLine(t){
  const d=document.createElement("div");
- d.textContent=text;
+ d.textContent=t;
  $("consoleOut").appendChild(d);
  $("consoleOut").scrollTop=$("consoleOut").scrollHeight;
 }
 
-function runCommand(raw){
- const a=raw.trim().split(/\s+/);
- const cmd=(a.shift()||"").toLowerCase();
-
+function command(raw){
+ const parts=raw.trim().split(/\s+/);
+ const cmd=(parts.shift()||"").toLowerCase();
  consoleLine("> "+raw);
 
  if(cmd==="help"){
   [
-   "money [kwota] - dodaj pieniądze",
-   "customers [liczba] - dodaj klientów",
-   "research all - zbadaj wszystkie technologie",
-   "buildfree on/off - darmowa budowa",
-   "sandbox - włącz tryb piaskownicy",
-   "addcompany - wygeneruj operatora",
-   "addtech - wygeneruj technologię",
-   "shares [nazwa fragment] [procent] - dodaj udziały",
-   "clear - wyczyść konsolę"
+   "money 100000000",
+   "customers 100000",
+   "research all",
+   "buildfree on/off",
+   "noexpenses on/off",
+   "sandbox",
+   "employees 20",
+   "addtech",
+   "addcompany",
+   "shares NAZWA 51",
+   "clear"
   ].forEach(consoleLine);
   return;
  }
 
  if(cmd==="money"){
-  const v=Number(a[0]||100000000);
-  game.money+=v;
-  consoleLine("Dodano "+money(v));
+  changeMoney(Number(parts[0]||100000000));
  }
  else if(cmd==="customers"){
-  const v=Number(a[0]||100000);
-  game.customers+=v;
-  consoleLine("Dodano "+num(v)+" klientów.");
+  game.customers+=Number(parts[0]||100000);
  }
- else if(cmd==="research"&&a[0]==="all"){
-  game.technologies.forEach(t=>{
-   t.unlocked=true;t.researched=true;
-  });
-  consoleLine("Zbadano wszystkie technologie.");
+ else if(cmd==="research"&&parts[0]==="all"){
+  game.techs.forEach(t=>t.researched=true);
  }
  else if(cmd==="buildfree"){
-  game.buildFree=(a[0]||"on").toLowerCase()==="on";
-  consoleLine("Darmowa budowa: "+(game.buildFree?"ON":"OFF"));
+  game.freeBuild=(parts[0]||"on")==="on";
+ }
+ else if(cmd==="noexpenses"){
+  game.noExpenses=(parts[0]||"on")==="on";
  }
  else if(cmd==="sandbox"){
   game.mode="sandbox";
   game.money=999000000000000;
-  consoleLine("Tryb piaskownicy aktywny.");
+ }
+ else if(cmd==="employees"){
+  const n=Number(parts[0]||10);
+  for(let i=0;i<n;i++)game.employees.push(employee());
+ }
+ else if(cmd==="addtech"){
+  generateTech();
  }
  else if(cmd==="addcompany"){
   generateCompany();
  }
- else if(cmd==="addtech"){
-  generateTechnology();
- }
  else if(cmd==="shares"){
-  const pct=Number(a[a.length-1]||10);
-  const query=a.slice(0,-1).join(" ").toLowerCase();
-  const c=game.companies.find(x=>x.name.toLowerCase().includes(query));
-
+  const pct=Number(parts.pop()||51);
+  const q=parts.join(" ").toLowerCase();
+  const c=game.companies.find(x=>x.name.toLowerCase().includes(q));
   if(c){
    c.playerShares=clamp(c.playerShares+pct,0,100);
-   if(c.playerShares>50)c.controlled=true;
-   consoleLine("Udziały "+c.name+": "+c.playerShares+"%");
-  }else{
-   consoleLine("Nie znaleziono firmy.");
-  }
+   consoleLine(c.name+" → "+c.playerShares+"%");
+  }else consoleLine("Nie znaleziono firmy.");
  }
  else if(cmd==="clear"){
   $("consoleOut").innerHTML="";
  }
- else{
-  consoleLine("Nieznana komenda. Wpisz help.");
- }
+ else consoleLine("Nieznana komenda. Wpisz help.");
 
  render();
 }
 
-document.querySelectorAll(".startBtn").forEach(b=>
- b.onclick=()=>newGame(b.dataset.mode)
-);
+/* events */
+
+document.querySelectorAll(".startGame").forEach(b=>b.onclick=()=>startGame(b.dataset.type));
 
 document.querySelectorAll(".tab").forEach(b=>{
  b.onclick=()=>{
@@ -1195,59 +1366,65 @@ document.querySelectorAll(".tab").forEach(b=>{
   $("view-"+b.dataset.view).classList.remove("hidden");
   document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
   b.classList.add("active");
-
-  if(b.dataset.view==="map"&&map){
-   setTimeout(()=>map.invalidateSize(),100);
-  }
+  if(b.dataset.view==="map"&&map)setTimeout(()=>map.invalidateSize(),100);
  };
 });
 
 document.querySelectorAll(".speed").forEach(b=>{
- b.onclick=()=>{
-  if(!game)return;
-  game.speed=Number(b.dataset.speed);
-  render();
- };
+ b.onclick=()=>{if(game){game.speed=Number(b.dataset.speed);render()}};
 });
 
-document.querySelectorAll(".modeBtn").forEach(b=>{
+document.querySelectorAll(".mode").forEach(b=>{
  b.onclick=()=>{
-  buildMode=b.dataset.build;
-  document.querySelectorAll(".modeBtn").forEach(x=>x.classList.remove("active"));
+  buildMode=b.dataset.mode;
+  document.querySelectorAll(".mode").forEach(x=>x.classList.remove("active"));
   b.classList.add("active");
-
-  $("buildInfo").innerHTML=
-   buildMode==="tower"
-   ?"📡 Kliknij dowolne miejsce na świecie, aby postawić maszt."
-   :buildMode==="shop"
-   ?"🏪 Kliknij miejsce na mapie, aby otworzyć salon."
-   :"👆 Tryb wybierania.";
+  $("buildStatus").textContent=
+   buildMode==="tower"?"📡 Kliknij mapę, aby postawić maszt za 2,5 mln zł.":
+   buildMode==="shop"?"🏪 Kliknij mapę, aby otworzyć salon za 1,5 mln zł.":
+   "👆 Klikaj istniejące obiekty.";
  };
 });
 
-$("toggleCoverage").onclick=()=>{
- coverageVisible=!coverageVisible;
- $("toggleCoverage").textContent="📶 Zasięg: "+(coverageVisible?"ON":"OFF");
+$("coverageBtn").onclick=()=>{
+ coverage=!coverage;
+ $("coverageBtn").textContent="📶 Zasięg "+(coverage?"ON":"OFF");
  renderMap();
 };
 
-$("worldView").onclick=()=>map?.setView([25,10],2);
-
+$("worldBtn").onclick=()=>map?.setView([25,10],2);
+$("closeTower").onclick=()=>$("towerModal").classList.add("hidden");
+$("upgradeTower").onclick=upgradeTower;
+$("removeTower").onclick=deleteTower;
+$("createOffer").onclick=createOffer;
+$("createCustomTech").onclick=customTechnology;
 $("closeCompany").onclick=()=>$("companyModal").classList.add("hidden");
-$("investCompany").onclick=investCompany;
-$("companyExpand").onclick=expandCompany;
-$("companyResearch").onclick=companyResearch;
-$("takeoverCompany").onclick=takeover;
+$("companyTakeover").onclick=takeover;
 
-$("save").onclick=()=>{
- if(!game)return;
- localStorage.setItem("networkEmpireSave",JSON.stringify(game));
- addLog("Gra zapisana.");
+$("companyInvest").onclick=()=>{
+ const c=game.companies.find(x=>x.id===selectedCompany);
+ if(c&&c.playerShares>50&&spend(10000000)){c.value+=7000000;log("Dokapitalizowano "+c.name);render();openCompany(c.id)}
 };
 
-$("newGame").onclick=()=>{
+$("companyExpand").onclick=()=>{
+ const c=game.companies.find(x=>x.id===selectedCompany);
+ if(c&&c.playerShares>50&&spend(15000000)){c.towers+=20;c.shops+=3;log(c.name+" rozbudowała sieć.");render();openCompany(c.id)}
+};
+
+$("companyRD").onclick=()=>{
+ const c=game.companies.find(x=>x.id===selectedCompany);
+ if(c&&c.playerShares>50&&spend(12000000)){c.research=clamp(c.research+10,0,100);render();openCompany(c.id)}
+};
+
+$("saveBtn").onclick=()=>{
+ if(!game)return;
+ localStorage.setItem("networkEmpireFull",JSON.stringify(game));
+ log("Gra zapisana.");
+};
+
+$("newBtn").onclick=()=>{
  if(confirm("Rozpocząć nową grę?")){
-  localStorage.removeItem("networkEmpireSave");
+  localStorage.removeItem("networkEmpireFull");
   location.reload();
  }
 };
@@ -1259,9 +1436,9 @@ document.addEventListener("keydown",e=>{
   $("console").classList.toggle("hidden");
   if(!$("console").classList.contains("hidden"))$("consoleInput").focus();
  }
-
  if(e.key==="Escape"){
   $("console").classList.add("hidden");
+  $("towerModal").classList.add("hidden");
   $("companyModal").classList.add("hidden");
  }
 });
@@ -1270,14 +1447,13 @@ $("consoleInput").addEventListener("keydown",e=>{
  if(e.key==="Enter"){
   const v=e.target.value;
   e.target.value="";
-  runCommand(v);
+  command(v);
  }
 });
 
 window.addEventListener("load",()=>{
- const raw=localStorage.getItem("networkEmpireSave");
-
- if(raw&&confirm("Znaleziono zapis gry. Wczytać?")){
+ const raw=localStorage.getItem("networkEmpireFull");
+ if(raw&&confirm("Znaleziono zapis. Wczytać?")){
   try{
    game=JSON.parse(raw);
    game.date=new Date(game.date);
@@ -1285,10 +1461,8 @@ window.addEventListener("load",()=>{
    initMap();
    render();
    startTimer();
-   addLog("Wczytano zapis gry.");
-  }catch(e){
-   console.error(e);
-  }
+   log("Wczytano zapis.");
+  }catch(err){console.error(err)}
  }
 });
 </script>
