@@ -1,850 +1,1184 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Retail Empire Tycoon</title>
-
-<script src="https://cdn.tailwindcss.com"></script>
-
-<link
-  rel="stylesheet"
-  href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-/>
-
-<script
-  src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-></script>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>USA: Road to the White House</title>
 
 <style>
 :root{
-  --bg:#0b1020;
-  --panel:#111827;
-  --card:#182235;
-  --border:#2f3d55;
+  --bg:#08111f;
+  --panel:#111c2e;
+  --panel2:#18263b;
+  --line:#2a3d57;
   --text:#f8fafc;
   --muted:#94a3b8;
-  --accent:#22c55e;
-  --danger:#ef4444;
-  --warn:#f59e0b;
-  --blue:#60a5fa;
-}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,Arial,sans-serif}
-button,select,input{font:inherit}
-button{cursor:pointer}
-.panel{background:var(--panel);border:1px solid var(--border);border-radius:14px}
-.card{background:var(--card);border:1px solid var(--border);border-radius:12px}
-.muted{color:var(--muted)}
-.good{color:#22c55e}
-.bad{color:#ef4444}
-.warn{color:#f59e0b}
-.btn{border:1px solid var(--border);background:var(--card);color:var(--text);border-radius:9px;padding:10px 14px}
-.btn:hover{filter:brightness(1.08)}
-.btn-primary{background:var(--accent);border-color:var(--accent);color:#052e16;font-weight:800}
-.btn-primary:hover{filter:brightness(1.1)}
-.btn-danger{background:var(--danger);border-color:var(--danger);color:#fff}
-.tab.active{background:var(--accent);border-color:var(--accent);color:#052e16;font-weight:800}
-input,select{background:#0b1220;color:var(--text);border:1px solid var(--border);border-radius:8px;padding:10px}
-.pill{display:inline-flex;align-items:center;border:1px solid var(--border);border-radius:999px;padding:4px 8px;font-size:12px}
-.scrollbar::-webkit-scrollbar{height:8px;width:8px}
-.scrollbar::-webkit-scrollbar-thumb{background:#475569;border-radius:999px}
-#worldMap{height:620px;width:100%;border-radius:12px;overflow:hidden}
-.leaflet-container{background:#0b1220;font-family:Inter,Arial,sans-serif}
-
-.store-icon,.hub-icon,.build-icon{
-  display:grid;
-  place-items:center;
-  position:relative;
-  filter:drop-shadow(0 4px 5px rgba(0,0,0,.35))
+  --blue:#3b82f6;
+  --red:#ef4444;
+  --gold:#facc15;
+  --green:#22c55e;
 }
 
-.store-icon,.hub-icon{
-  width:28px;
-  height:28px;
-  border-radius:50% 50% 50% 8px;
-  transform:rotate(-45deg);
-  border:2px solid #0f172a
+*{
+  box-sizing:border-box;
 }
 
-.store-icon{
-  background:#facc15;
-  color:#111827
+body{
+  margin:0;
+  background:
+    radial-gradient(
+      circle at top,
+      #12233d 0,
+      #08111f 45%,
+      #050b14 100%
+    );
+  color:var(--text);
+  font-family:Inter,system-ui,Arial,sans-serif;
 }
 
-.hub-icon{
-  background:#60a5fa;
-  color:#08111f;
-  top:18px
+button,
+input,
+select{
+  font:inherit;
 }
 
-.store-icon::before{
-  content:"🏪";
-  font-size:14px;
-  transform:rotate(45deg)
+.wrap{
+  max-width:1600px;
+  margin:auto;
+  padding:16px;
 }
 
-.hub-icon::before{
-  content:"🚚";
-  font-size:14px;
-  transform:rotate(45deg)
+.panel{
+  background:rgba(17,28,46,.96);
+  border:1px solid var(--line);
+  border-radius:16px;
 }
 
-.build-icon{
-  width:24px;
-  height:24px;
-  border-radius:50%;
-  background:white;
-  border:5px solid #22c55e;
-  box-shadow:0 0 0 2px rgba(0,0,0,.35)
+.card{
+  background:var(--panel2);
+  border:1px solid var(--line);
+  border-radius:12px;
 }
 
-.city-result{
+.muted{
+  color:var(--muted);
+}
+
+.hidden{
+  display:none !important;
+}
+
+.btn{
+  border:1px solid var(--line);
+  background:#142238;
+  color:var(--text);
+  border-radius:10px;
+  padding:10px 14px;
+  cursor:pointer;
+}
+
+.btn:hover{
+  filter:brightness(1.12);
+}
+
+.btn:disabled{
+  opacity:.45;
+  cursor:not-allowed;
+}
+
+.btn-primary{
+  background:var(--green);
+  color:#052e16;
+  border-color:var(--green);
+  font-weight:900;
+}
+
+.btn-blue{
+  background:var(--blue);
+  border-color:var(--blue);
+  font-weight:800;
+}
+
+.btn-gold{
+  background:var(--gold);
+  color:#422006;
+  border-color:var(--gold);
+  font-weight:900;
+}
+
+.topline{
   display:flex;
+  gap:10px;
   align-items:center;
   justify-content:space-between;
-  gap:10px;
-  padding:10px;
-  border:1px solid var(--border);
-  border-radius:9px;
-  background:#0b1220;
-  cursor:pointer
+  flex-wrap:wrap;
 }
 
-.city-result:hover{filter:brightness(1.12)}
-.country-badge{display:inline-flex;align-items:center;gap:6px;font-weight:800}
-.search-spinner{opacity:.75;font-size:12px}
+.tabs{
+  display:flex;
+  gap:7px;
+  flex-wrap:wrap;
+}
+
+.tab.active{
+  background:var(--gold);
+  color:#422006;
+  border-color:var(--gold);
+  font-weight:900;
+}
+
+.stats{
+  display:grid;
+  grid-template-columns:repeat(8,minmax(0,1fr));
+  gap:8px;
+}
+
+.stat{
+  padding:12px;
+}
+
+.stat .k{
+  font-size:12px;
+  color:var(--muted);
+}
+
+.stat .v{
+  font-size:20px;
+  font-weight:900;
+  margin-top:2px;
+}
+
+.layout{
+  display:grid;
+  grid-template-columns:1.55fr .75fr;
+  gap:14px;
+}
+
+.state-grid{
+  display:grid;
+  grid-template-columns:repeat(9,minmax(0,1fr));
+  gap:6px;
+}
+
+.state{
+  min-height:72px;
+  padding:7px;
+  border:1px solid var(--line);
+  border-radius:9px;
+  background:#162338;
+  cursor:pointer;
+  position:relative;
+  text-align:left;
+  color:var(--text);
+}
+
+.state:hover{
+  transform:translateY(-1px);
+  filter:brightness(1.1);
+}
+
+.state.selected{
+  outline:3px solid var(--gold);
+}
+
+.state.ahead-player{
+  background:
+    linear-gradient(
+      135deg,
+      #123f72,
+      #17263c
+    );
+}
+
+.state.ahead-opp{
+  background:
+    linear-gradient(
+      135deg,
+      #702222,
+      #17263c
+    );
+}
+
+.state.tossup{
+  background:
+    linear-gradient(
+      135deg,
+      #5f4d15,
+      #17263c
+    );
+}
+
+.state.called-player{
+  background:#174b8d;
+}
+
+.state.called-opp{
+  background:#812b2b;
+}
+
+.state .abbr{
+  font-size:18px;
+  font-weight:1000;
+}
+
+.state .ev{
+  position:absolute;
+  right:7px;
+  top:7px;
+  font-size:11px;
+  color:#cbd5e1;
+}
+
+.state .margin{
+  font-size:11px;
+  margin-top:8px;
+}
+
+.evbar{
+  display:grid;
+  grid-template-columns:1fr auto 1fr;
+  gap:10px;
+  align-items:center;
+}
+
+.evbar .left{
+  text-align:right;
+  color:#93c5fd;
+  font-weight:900;
+}
+
+.evbar .right{
+  color:#fca5a5;
+  font-weight:900;
+}
+
+.progress{
+  height:16px;
+  border-radius:999px;
+  background:#08111f;
+  overflow:hidden;
+  display:flex;
+  border:1px solid var(--line);
+}
+
+.progress .p{
+  background:var(--blue);
+}
+
+.progress .o{
+  background:var(--red);
+}
+
+.section-title{
+  font-weight:900;
+  font-size:18px;
+  margin-bottom:8px;
+}
+
+.action-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+}
+
+.action{
+  padding:11px;
+  text-align:left;
+}
+
+.action strong{
+  display:block;
+}
+
+.tag{
+  display:inline-block;
+  font-size:11px;
+  border:1px solid var(--line);
+  border-radius:999px;
+  padding:3px 7px;
+  margin-top:5px;
+}
+
+.log{
+  height:190px;
+  overflow:auto;
+  background:#08111f;
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:10px;
+  font-size:13px;
+}
+
+.log div{
+  margin-bottom:5px;
+}
+
+.candidate{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+
+.candidate button{
+  padding:14px;
+  text-align:left;
+}
+
+.candidate .name{
+  font-size:20px;
+  font-weight:1000;
+}
+
+.policy-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:9px;
+}
+
+.policy{
+  padding:12px;
+}
+
+.policy h3{
+  margin:0 0 5px;
+}
+
+.meter{
+  height:9px;
+  background:#08111f;
+  border-radius:999px;
+  overflow:hidden;
+}
+
+.meter span{
+  display:block;
+  height:100%;
+  background:var(--green);
+}
+
+.pill{
+  display:inline-flex;
+  border:1px solid var(--line);
+  border-radius:999px;
+  padding:4px 8px;
+  font-size:12px;
+}
+
+.good{
+  color:#4ade80;
+}
+
+.bad{
+  color:#f87171;
+}
+
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.72);
+  display:grid;
+  place-items:center;
+  z-index:99;
+  padding:16px;
+}
+
+.modal-box{
+  max-width:760px;
+  width:100%;
+  padding:20px;
+}
+
+.result-big{
+  font-size:42px;
+  font-weight:1000;
+}
+
+.mini-table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:13px;
+}
+
+.mini-table th,
+.mini-table td{
+  border-bottom:1px solid var(--line);
+  padding:8px;
+  text-align:left;
+}
+
+@media(max-width:1100px){
+
+  .layout{
+    grid-template-columns:1fr;
+  }
+
+  .state-grid{
+    grid-template-columns:repeat(7,1fr);
+  }
+
+  .stats{
+    grid-template-columns:repeat(4,1fr);
+  }
+
+}
+
+@media(max-width:700px){
+
+  .state-grid{
+    grid-template-columns:repeat(4,1fr);
+  }
+
+  .stats{
+    grid-template-columns:repeat(2,1fr);
+  }
+
+  .candidate,
+  .action-grid,
+  .policy-grid{
+    grid-template-columns:1fr;
+  }
+
+}
 </style>
 </head>
 
 <body>
-<div class="max-w-[1750px] mx-auto p-3 md:p-5">
 
-<header class="mb-4">
-  <h1 class="text-2xl md:text-3xl font-bold">Retail Empire Tycoon</h1>
-  <p class="muted mt-1">
-    Buduj sklepy dokładnie na prawdziwej mapie, rozwijaj logistykę, fabryki, marki własne i przejmuj gotowe sieci.
-  </p>
-</header>
+<div class="wrap">
 
-<div class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-2 mb-4">
-  <div class="card p-3"><div class="text-xs muted">Gotówka</div><div id="cash" class="font-bold text-lg">—</div></div>
-  <div class="card p-3"><div class="text-xs muted">Sklepy</div><div id="storesStat" class="font-bold text-lg">—</div></div>
-  <div class="card p-3"><div class="text-xs muted">Centra logistyczne</div><div id="hubsStat" class="font-bold text-lg">—</div></div>
-  <div class="card p-3"><div class="text-xs muted">Fabryki</div><div id="factoriesStat" class="font-bold text-lg">—</div></div>
-  <div class="card p-3"><div class="text-xs muted">Marki własne</div><div id="privateStat" class="font-bold text-lg">—</div></div>
-  <div class="card p-3"><div class="text-xs muted">Reputacja</div><div id="repStat" class="font-bold text-lg">—</div></div>
-  <div class="card p-3"><div class="text-xs muted">Data</div><div id="dateStat" class="font-bold">—</div></div>
-  <div class="card p-3"><div class="text-xs muted">Prognoza / dzień</div><div id="profitStat" class="font-bold">—</div></div>
-</div>
+<header
+  class="topline"
+  style="margin-bottom:12px"
+>
 
-<div class="panel p-3 mb-4 flex flex-wrap items-center gap-2">
-  <strong>Czas</strong>
-  <button id="pauseBtn" class="btn">⏸ Pauza</button>
-  <button class="speed btn" data-speed="1">1×</button>
-  <button class="speed btn" data-speed="3">3×</button>
-  <button class="speed btn" data-speed="10">10×</button>
-  <button class="speed btn" data-speed="30">30×</button>
-  <span id="timeState" class="ml-auto text-sm muted">Tempo 1×</span>
-</div>
+  <div>
 
-<div class="panel p-3 mb-4 flex flex-wrap items-center gap-3">
-  <strong>Auto-zamówienia</strong>
+    <h1
+      style="
+        margin:0;
+        font-size:28px
+      "
+    >
+      🇺🇸 USA: Road to the White House
+    </h1>
 
-  <label class="flex items-center gap-2">
-    <input id="autoOrdersToggle" type="checkbox">
-    <span>Włącz</span>
-  </label>
-
-  <label class="text-sm">
-    Minimum
-    <input id="autoOrderMin" type="number" min="5" max="500" value="35" class="w-24 ml-1">
-  </label>
-
-  <label class="text-sm">
-    Cel
-    <input id="autoOrderTarget" type="number" min="10" max="1000" value="110" class="w-24 ml-1">
-  </label>
-
-  <span class="text-sm muted">
-    System sprawdza zapasy co 2 dni.
-  </span>
-</div>
-
-<div class="flex gap-2 overflow-x-auto scrollbar mb-4">
-  <button data-tab="world" class="tab btn active">🌍 Mapa</button>
-  <button data-tab="stores" class="tab btn">🏪 Sklepy</button>
-  <button data-tab="orders" class="tab btn">📦 Zamówienia</button>
-  <button data-tab="logistics" class="tab btn">🚚 Logistyka</button>
-  <button data-tab="products" class="tab btn">🥤 Produkty</button>
-  <button data-tab="deposit" class="tab btn">♻️ Kaucja</button>
-  <button data-tab="private" class="tab btn">🏷️ Marki własne</button>
-  <button data-tab="factories" class="tab btn">🏭 Fabryki</button>
-  <button data-tab="management" class="tab btn">📈 Rozwój</button>
-  <button data-tab="acquisitions" class="tab btn">💼 Przejęcia</button>
-</div>
-
-<section id="tab-world" class="game-tab">
-
-<div class="grid xl:grid-cols-[1.6fr_.65fr] gap-4">
-
-  <div class="panel p-3">
-
-    <h2 class="font-bold text-lg">
-      Prawdziwa mapa
-    </h2>
-
-    <p class="text-sm muted mb-3">
-      Przeciągaj mapę, przybliżaj rolką i kliknij dokładne miejsce budowy.
-      Pineski są przypisywane do rozpoznanego miasta i kraju.
-    </p>
-
-    <div class="card p-3 mb-3">
-      <div class="flex flex-col md:flex-row gap-2">
-        <input id="citySearchInput" class="flex-1" placeholder="Wpisz miasto, np. Białystok, Chicago, Berlin">
-        <button id="citySearchBtn" class="btn">🔎 Szukaj miasta</button>
-      </div>
-
-      <div id="citySearchStatus" class="text-xs muted mt-2">
-        Możesz też kliknąć bezpośrednio na mapie.
-      </div>
-
-      <div id="citySearchResults" class="grid md:grid-cols-2 gap-2 mt-2"></div>
-    </div>
-
-    <div id="worldMap"></div>
-
-  </div>
-
-  <div class="space-y-4">
-
-    <div class="panel p-4">
-
-      <h3 class="font-bold">
-        Budowa na mapie
-      </h3>
-
-      <div id="mapPointInfo" class="card p-3 text-sm mt-3">
-        Kliknij miejsce na mapie.
-      </div>
-
-      <label class="block mt-4 text-sm">
-        Co budujesz?
-      </label>
-
-      <select id="mapBuildMode" class="w-full mt-1">
-        <option value="store" selected>Sklep</option>
-        <option value="hub">Centrum logistyczne</option>
-      </select>
-
-      <div id="storeBuildControls">
-
-        <label class="block mt-3 text-sm">
-          Format sklepu
-        </label>
-
-        <select id="buildStoreType" class="w-full mt-1">
-          <option value="mini">Mini convenience</option>
-          <option value="standard" selected>Convenience</option>
-          <option value="discount">Dyskont miejski</option>
-          <option value="supermarket">Supermarket</option>
-        </select>
-
-      </div>
-
-      <div id="buildInfo" class="text-sm muted mt-3"></div>
-
-      <button
-        id="buildMapObjectBtn"
-        class="btn btn-primary w-full mt-4"
-        disabled
-      >
-        Najpierw kliknij mapę
-      </button>
-
-    </div>
-
-    <div class="panel p-4">
-
-      <h3 class="font-bold">
-        Najbliższa logistyka
-      </h3>
-
-      <div id="nearestHubInfo" class="mt-3 text-sm muted">
-        Brak wybranego punktu.
-      </div>
-
+    <div class="muted">
+      Fikcyjny symulator kampanii prezydenckiej i zarządzania państwem
     </div>
 
   </div>
 
-</div>
+  <div class="tabs">
 
-</section>
+    <button
+      id="tabCampaign"
+      class="btn tab active"
+    >
+      🗳️ Kampania
+    </button>
 
-<section id="tab-stores" class="game-tab hidden">
+    <button
+      id="tabPresident"
+      class="btn tab"
+      disabled
+    >
+      🏛️ Prezydentura
+    </button>
 
-<div class="panel p-4">
-
-  <h2 class="font-bold text-lg">
-    Twoje sklepy
-  </h2>
-
-  <p class="text-sm muted">
-    Możesz ulepszać, zamykać i sprawdzać rentowność każdej placówki.
-  </p>
-
-  <div
-    id="storesList"
-    class="grid md:grid-cols-2 xl:grid-cols-3 gap-3 mt-4"
-  ></div>
-
-</div>
-
-</section>
-
-<section id="tab-orders" class="game-tab hidden">
-
-<div class="grid xl:grid-cols-[.7fr_1.3fr] gap-4">
-
-  <div class="panel p-4">
-
-    <h2 class="font-bold text-lg">
-      Zamówienia
-    </h2>
-
-    <p class="text-sm muted mt-1">
-      Czas dostawy zależy od odległości sklepu od najbliższego centrum logistycznego.
-    </p>
-
-    <form id="orderForm" class="space-y-3 mt-4">
-
-      <label class="block text-sm">
-        Sklep
-        <select id="orderStore" class="w-full mt-1"></select>
-      </label>
-
-      <label class="block text-sm">
-        Produkt
-        <select id="orderProduct" class="w-full mt-1"></select>
-      </label>
-
-      <label class="block text-sm">
-        Ilość
-        <input
-          id="orderQty"
-          type="number"
-          min="1"
-          max="100000"
-          value="100"
-          class="w-full mt-1"
-        >
-      </label>
-
-      <div class="card p-3 text-sm">
-
-        <div>
-          Koszt:
-          <strong id="orderCost">—</strong>
-        </div>
-
-        <div class="muted mt-1">
-          Dostawa:
-          <span id="orderEta">—</span>
-        </div>
-
-      </div>
-
-      <button type="submit" class="btn btn-primary w-full">
-        Zamów
-      </button>
-
-    </form>
-
-    <button id="autoOrderBtn" class="btn w-full mt-3">
-      Auto-zamów teraz
+    <button
+      id="resetBtn"
+      class="btn"
+    >
+      ↻ Nowa gra
     </button>
 
   </div>
 
-  <div class="space-y-4">
+</header>
 
-    <div class="panel p-4">
 
-      <h2 class="font-bold text-lg">
-        Dostawy w trasie
-      </h2>
+<div id="campaignView">
 
-      <div id="shipmentsList" class="mt-3 space-y-2"></div>
+  <div
+    class="panel"
+    style="
+      padding:12px;
+      margin-bottom:12px
+    "
+  >
+
+    <div class="stats">
+
+      <div class="card stat">
+        <div class="k">
+          Dni do wyborów
+        </div>
+        <div
+          class="v"
+          id="daysStat"
+        >
+          120
+        </div>
+      </div>
+
+      <div class="card stat">
+        <div class="k">
+          Budżet kampanii
+        </div>
+        <div
+          class="v"
+          id="cashStat"
+        >
+          $0
+        </div>
+      </div>
+
+      <div class="card stat">
+        <div class="k">
+          Poparcie krajowe
+        </div>
+        <div
+          class="v"
+          id="nationalStat"
+        >
+          —
+        </div>
+      </div>
+
+      <div class="card stat">
+        <div class="k">
+          Prognoza EV
+        </div>
+        <div
+          class="v"
+          id="forecastStat"
+        >
+          —
+        </div>
+      </div>
+
+      <div class="card stat">
+        <div class="k">
+          Energia
+        </div>
+        <div
+          class="v"
+          id="energyStat"
+        >
+          —
+        </div>
+      </div>
+
+      <div class="card stat">
+        <div class="k">
+          Rozpoznawalność
+        </div>
+        <div
+          class="v"
+          id="nameStat"
+        >
+          —
+        </div>
+      </div>
+
+      <div class="card stat">
+        <div class="k">
+          Momentum
+        </div>
+        <div
+          class="v"
+          id="momentumStat"
+        >
+          —
+        </div>
+      </div>
+
+      <div class="card stat">
+        <div class="k">
+          Data
+        </div>
+        <div
+          class="v"
+          id="dateStat"
+        >
+          —
+        </div>
+      </div>
 
     </div>
 
-    <div class="panel p-4">
+  </div>
 
-      <div class="flex justify-between gap-3 items-center">
 
-        <h2 class="font-bold text-lg">
-          Magazyny
-        </h2>
+  <div
+    class="panel"
+    style="
+      padding:14px;
+      margin-bottom:12px
+    "
+  >
 
-        <select id="inventoryStoreFilter">
-          <option value="all">Wszystkie</option>
-        </select>
+    <div class="evbar">
 
+      <div class="left">
+        <span id="playerEV">
+          0
+        </span>
+        EV
       </div>
 
+      <div style="font-weight:900">
+        270 do wygranej
+      </div>
+
+      <div class="right">
+        <span id="oppEV">
+          0
+        </span>
+        EV
+      </div>
+
+    </div>
+
+    <div
+      class="progress"
+      style="margin-top:8px"
+    >
+
       <div
-        id="inventoryTable"
-        class="mt-4 overflow-x-auto scrollbar"
+        id="pEVBar"
+        class="p"
+      ></div>
+
+      <div
+        id="oEVBar"
+        class="o"
       ></div>
 
     </div>
 
   </div>
 
-</div>
 
-</section>
-
-<section id="tab-logistics" class="game-tab hidden">
-
-<div class="grid xl:grid-cols-[.8fr_1.2fr] gap-4">
-
-  <div class="panel p-4">
-
-    <h2 class="font-bold text-lg">
-      System logistyczny
-    </h2>
-
-    <p class="text-sm muted mt-1">
-      Im bliżej centrum znajduje się sklep, tym szybsza i tańsza dostawa.
-      Centrum budujesz bezpośrednio na mapie.
-    </p>
-
-    <div class="card p-3 mt-4 text-sm">
-
-      <div>
-        &lt; 300 km →
-        <strong>1 dzień</strong>
-      </div>
-
-      <div>
-        300–900 km →
-        <strong>2 dni</strong>
-      </div>
-
-      <div>
-        900–1800 km →
-        <strong>3 dni</strong>
-      </div>
-
-      <div>
-        1800–3500 km →
-        <strong>4 dni</strong>
-      </div>
-
-      <div>
-        &gt; 3500 km →
-        <strong>5 dni</strong>
-      </div>
-
-      <div class="muted mt-2">
-        Bez centrum logistycznego: 7 dni.
-      </div>
-
-    </div>
-
-  </div>
-
-  <div class="panel p-4">
-
-    <h2 class="font-bold text-lg">
-      Twoje centra
-    </h2>
+  <div class="layout">
 
     <div
-      id="ownedHubs"
-      class="grid md:grid-cols-2 gap-3 mt-4"
-    ></div>
-
-  </div>
-
-</div>
-
-</section>
-
-<section id="tab-products" class="game-tab hidden">
-
-<div class="panel p-4">
-
-  <div class="flex flex-wrap justify-between gap-3">
-
-    <div>
-
-      <h2 class="font-bold text-lg">
-        Produkty
-      </h2>
-
-      <p class="text-sm muted">
-        Popyt i ceny hurtowe zmieniają się z czasem.
-      </p>
-
-    </div>
-
-    <button
-      id="generateProductsBtn"
-      class="btn"
+      class="panel"
+      style="padding:12px"
     >
-      + Odkryj 10 produktów
-    </button>
 
-  </div>
-
-  <div
-    id="productsGrid"
-    class="grid md:grid-cols-2 xl:grid-cols-3 gap-3 mt-4"
-  ></div>
-
-</div>
-
-</section>
-
-<section id="tab-deposit" class="game-tab hidden">
-
-<div class="grid xl:grid-cols-[.8fr_1.2fr] gap-4">
-
-  <div class="panel p-4">
-
-    <h2 class="font-bold text-lg">
-      System kaucyjny
-    </h2>
-
-    <label class="flex items-center gap-2 mt-3">
-
-      <input
-        id="depositToggle"
-        type="checkbox"
-        checked
+      <div
+        class="topline"
+        style="margin-bottom:8px"
       >
 
-      <span>
-        Włącz system kaucyjny
-      </span>
+        <div>
 
-    </label>
+          <div class="section-title">
+            Mapa kampanii
+          </div>
 
-    <label class="block mt-3 text-sm">
+          <div
+            class="muted"
+            style="font-size:13px"
+          >
+            Kliknij stan, aby prowadzić w nim kampanię.
+            Kolor pokazuje aktualnego lidera sondażu.
+          </div>
 
-      Kaucja za opakowanie
+        </div>
 
-      <select
-        id="depositRate"
-        class="w-full mt-1"
+        <div class="pill">
+          🔵 Ty &nbsp;
+          🟡 remis &nbsp;
+          🔴 rywal
+        </div>
+
+      </div>
+
+      <div
+        id="stateGrid"
+        class="state-grid"
+      ></div>
+
+    </div>
+
+
+    <div
+      style="
+        display:flex;
+        flex-direction:column;
+        gap:12px
+      "
+    >
+
+      <div
+        class="panel"
+        style="padding:14px"
       >
 
-        <option value="0.50">
-          0,50 zł
-        </option>
+        <div class="section-title">
+          Wybrany stan
+        </div>
 
-        <option value="1.00" selected>
-          1,00 zł
-        </option>
+        <div
+          id="stateDetail"
+          class="muted"
+        >
+          Wybierz stan na mapie.
+        </div>
 
-        <option value="2.00">
-          2,00 zł
-        </option>
-
-      </select>
-
-    </label>
-
-    <div class="card p-3 mt-4 text-sm">
-
-      <div class="flex justify-between">
-        <span>Pobrane kaucje</span>
-        <strong id="depositCollected">—</strong>
       </div>
 
-      <div class="flex justify-between mt-2">
-        <span>Zwroty klientom</span>
-        <strong id="depositRefunded">—</strong>
+
+      <div
+        class="panel"
+        style="padding:14px"
+      >
+
+        <div class="section-title">
+          Akcje kampanii
+        </div>
+
+        <div class="action-grid">
+
+          <button
+            class="btn action"
+            data-action="rally"
+          >
+            <strong>
+              🎤 Wiec
+            </strong>
+
+            <span class="muted">
+              1 dzień · $1.5M · mocny efekt lokalny
+            </span>
+          </button>
+
+
+          <button
+            class="btn action"
+            data-action="ads"
+          >
+            <strong>
+              📺 Reklamy
+            </strong>
+
+            <span class="muted">
+              2 dni · $4M · lokalny efekt + rozpoznawalność
+            </span>
+          </button>
+
+
+          <button
+            class="btn action"
+            data-action="ground"
+          >
+            <strong>
+              🚪 Organizacja terenowa
+            </strong>
+
+            <span class="muted">
+              3 dni · $3M · trwały lokalny efekt
+            </span>
+          </button>
+
+
+          <button
+            class="btn action"
+            data-action="fundraise"
+          >
+            <strong>
+              💰 Zbiórka
+            </strong>
+
+            <span class="muted">
+              2 dni · zysk $5–11M
+            </span>
+          </button>
+
+
+          <button
+            class="btn action"
+            data-action="national"
+          >
+            <strong>
+              📡 Wywiad ogólnokrajowy
+            </strong>
+
+            <span class="muted">
+              1 dzień · wpływ na cały kraj
+            </span>
+          </button>
+
+
+          <button
+            class="btn action"
+            data-action="rest"
+          >
+            <strong>
+              🛌 Odpoczynek
+            </strong>
+
+            <span class="muted">
+              1 dzień · odzysk energii
+            </span>
+          </button>
+
+        </div>
+
+        <button
+          id="debateBtn"
+          class="btn btn-gold"
+          style="
+            width:100%;
+            margin-top:8px
+          "
+        >
+          🎙️ Debata ogólnokrajowa
+        </button>
+
+        <button
+          id="electionBtn"
+          class="btn btn-primary"
+          style="
+            width:100%;
+            margin-top:8px
+          "
+        >
+          ⏩ Przejdź do dnia wyborów
+        </button>
+
       </div>
 
-      <div class="flex justify-between mt-2">
-        <span>Opakowania</span>
-        <strong id="depositContainers">—</strong>
+
+      <div
+        class="panel"
+        style="padding:14px"
+      >
+
+        <div class="section-title">
+          Dziennik kampanii
+        </div>
+
+        <div
+          id="campaignLog"
+          class="log"
+        ></div>
+
       </div>
 
     </div>
 
   </div>
 
-  <div class="panel p-4">
-
-    <h2 class="font-bold text-lg">
-      Automaty zwrotne
-    </h2>
-
-    <div
-      id="depositMachines"
-      class="grid md:grid-cols-2 gap-3 mt-4"
-    ></div>
-
-  </div>
-
 </div>
 
-</section>
-
-<section id="tab-private" class="game-tab hidden">
-
-<div class="grid xl:grid-cols-[.7fr_1.3fr] gap-4">
-
-  <div class="panel p-4">
-
-    <h2 class="font-bold text-lg">
-      Marki własne
-    </h2>
-
-    <p class="text-sm muted mt-1">
-      Potrzebujesz fabryki ustawionej na odpowiednią kategorię.
-    </p>
-
-    <div
-      id="brandFamilies"
-      class="space-y-3 mt-4"
-    ></div>
-
-  </div>
-
-  <div class="panel p-4">
-
-    <h2 class="font-bold text-lg">
-      Portfolio
-    </h2>
-
-    <div
-      id="privateProducts"
-      class="grid md:grid-cols-2 gap-3 mt-4"
-    ></div>
-
-  </div>
-
-</div>
-
-</section>
-
-<section id="tab-factories" class="game-tab hidden">
-
-<div class="panel p-4">
-
-  <div class="flex flex-wrap justify-between gap-3">
-
-    <div>
-
-      <h2 class="font-bold text-lg">
-        Fabryki
-      </h2>
-
-      <p class="text-sm muted">
-        Budujesz pustą fabrykę, potem sam wybierasz co produkuje.
-      </p>
-
-    </div>
-
-    <button
-      id="buildFactoryBtn"
-      class="btn btn-primary"
-    >
-      + Zbuduj fabrykę — 650 000 zł
-    </button>
-
-  </div>
-
-  <div
-    id="factoriesGrid"
-    class="grid md:grid-cols-2 xl:grid-cols-3 gap-3 mt-4"
-  ></div>
-
-</div>
-
-</section>
-
-<section id="tab-management" class="game-tab hidden">
-
-<div class="grid md:grid-cols-2 xl:grid-cols-4 gap-4">
-
-  <div class="card p-4">
-
-    <div class="font-bold">
-      Program lojalnościowy
-    </div>
-
-    <div class="text-sm muted mt-1">
-      +10% popytu.
-    </div>
-
-    <button
-      id="loyaltyBtn"
-      class="btn btn-primary w-full mt-3"
-    >
-      Kup — 180 000 zł
-    </button>
-
-  </div>
-
-  <div class="card p-4">
-
-    <div class="font-bold">
-      Lepszy system cen
-    </div>
-
-    <div class="text-sm muted mt-1">
-      +5% przychodów.
-    </div>
-
-    <button
-      id="pricingBtn"
-      class="btn btn-primary w-full mt-3"
-    >
-      Kup — 220 000 zł
-    </button>
-
-  </div>
-
-  <div class="card p-4">
-
-    <div class="font-bold">
-      Centralny zakup
-    </div>
-
-    <div class="text-sm muted mt-1">
-      -8% ceny zakupu.
-    </div>
-
-    <button
-      id="procurementBtn"
-      class="btn btn-primary w-full mt-3"
-    >
-      Kup — 260 000 zł
-    </button>
-
-  </div>
-
-  <div class="card p-4">
-
-    <div class="font-bold">
-      Marketing
-    </div>
-
-    <div class="text-sm muted mt-1">
-      +8 reputacji.
-    </div>
-
-    <button
-      id="marketingBtn"
-      class="btn w-full mt-3"
-    >
-      Kampania — 75 000 zł
-    </button>
-
-  </div>
-
-</div>
-
-</section>
-
-<section id="tab-acquisitions" class="game-tab hidden">
-
-<div class="panel p-4">
-
-  <h2 class="font-bold text-lg">
-    Przejęcia sieci
-  </h2>
-
-  <p class="text-sm muted">
-    Po przejęciu dostajesz gotowe sklepy stojące w prawdziwych lokalizacjach na mapie.
-  </p>
-
-  <div
-    id="companiesGrid"
-    class="grid md:grid-cols-2 xl:grid-cols-3 gap-3 mt-4"
-  ></div>
-
-</div>
-
-</section>
-
-</div>
 
 <div
-  id="cheatConsole"
+  id="presidentView"
   class="hidden"
-  style="
-    position:fixed;
-    left:50%;
-    top:18%;
-    transform:translateX(-50%);
-    z-index:9999;
-    width:min(92vw,680px);
-    background:#050914;
-    border:1px solid #334155;
-    border-radius:14px;
-    padding:14px;
-    box-shadow:0 20px 60px rgba(0,0,0,.5)
-  "
 >
 
-  <div class="flex justify-between items-center gap-3 mb-3">
+  <div
+    class="panel"
+    style="
+      padding:12px;
+      margin-bottom:12px
+    "
+  >
 
-    <div>
+    <div class="stats">
 
-      <div class="font-bold">
-        Konsola gry
+      <div class="card stat">
+        <div class="k">
+          Dzień kadencji
+        </div>
+        <div
+          class="v"
+          id="termDay"
+        >
+          1
+        </div>
       </div>
 
-      <div class="text-xs muted">
-        ~ otwiera / zamyka
+      <div class="card stat">
+        <div class="k">
+          Poparcie
+        </div>
+        <div
+          class="v"
+          id="approvalStat"
+        >
+          —
+        </div>
+      </div>
+
+      <div class="card stat">
+        <div class="k">
+          Gospodarka
+        </div>
+        <div
+          class="v"
+          id="economyStat"
+        >
+          —
+        </div>
+      </div>
+
+      <div class="card stat">
+        <div class="k">
+          Inflacja
+        </div>
+        <div
+          class="v"
+          id="inflationStat"
+        >
+          —
+        </div>
+      </div>
+
+      <div class="card stat">
+        <div class="k">
+          Bezrobocie
+        </div>
+        <div
+          class="v"
+          id="unemploymentStat"
+        >
+          —
+        </div>
+      </div>
+
+      <div class="card stat">
+        <div class="k">
+          Dług
+        </div>
+        <div
+          class="v"
+          id="debtStat"
+        >
+          —
+        </div>
+      </div>
+
+      <div class="card stat">
+        <div class="k">
+          Kapitał polityczny
+        </div>
+        <div
+          class="v"
+          id="capitalStat"
+        >
+          —
+        </div>
+      </div>
+
+      <div class="card stat">
+        <div class="k">
+          Miesiąc
+        </div>
+        <div
+          class="v"
+          id="monthStat"
+        >
+          1
+        </div>
       </div>
 
     </div>
 
-    <button
-      id="closeConsoleBtn"
-      class="btn"
-    >
-      ✕
-    </button>
-
   </div>
 
-  <div
-    id="consoleOutput"
-    class="card p-3 mb-3 text-sm font-mono"
-    style="height:180px;overflow:auto"
-  >
-    Wpisz HELP.
-  </div>
 
-  <form
-    id="consoleForm"
-    class="flex gap-2"
-  >
+  <div class="layout">
 
-    <input
-      id="consoleInput"
-      class="flex-1"
-      autocomplete="off"
-      placeholder="np. CASH 1000000"
+    <div
+      class="panel"
+      style="padding:14px"
     >
 
-    <button class="btn btn-primary">
-      Wykonaj
-    </button>
+      <div class="section-title">
+        Decyzje administracji
+      </div>
 
-  </form>
+      <div
+        id="policyGrid"
+        class="policy-grid"
+      ></div>
+
+    </div>
+
+
+    <div
+      style="
+        display:flex;
+        flex-direction:column;
+        gap:12px
+      "
+    >
+
+      <div
+        class="panel"
+        style="padding:14px"
+      >
+
+        <div class="section-title">
+          Stan kraju
+        </div>
+
+        <div id="countryMeters"></div>
+
+        <button
+          id="nextMonthBtn"
+          class="btn btn-primary"
+          style="
+            width:100%;
+            margin-top:12px
+          "
+        >
+          ▶ Następny miesiąc
+        </button>
+
+      </div>
+
+
+      <div
+        class="panel"
+        style="padding:14px"
+      >
+
+        <div class="section-title">
+          Dziennik prezydentury
+        </div>
+
+        <div
+          id="presidentLog"
+          class="log"
+        ></div>
+
+      </div>
+
+    </div>
+
+  </div>
 
 </div>
+
+</div>
+
+
+<div
+  id="startModal"
+  class="modal"
+>
+
+  <div
+    class="panel modal-box"
+  >
+
+    <h2 style="margin-top:0">
+      Wybierz kandydata
+    </h2>
+
+    <p class="muted">
+      Obie kampanie są fikcyjne.
+      Każda ma inny styl startowy,
+      ale żadna nie reprezentuje prawdziwej partii.
+    </p>
+
+    <div class="candidate">
+
+      <button
+        class="btn"
+        data-candidate="aurora"
+      >
+
+        <div class="name">
+          🔵 Alex Morgan
+        </div>
+
+        <div class="muted">
+          Koalicja Aurora
+        </div>
+
+        <div class="tag">
+          Większy budżet startowy
+        </div>
+
+        <div class="tag">
+          Lepsza rozpoznawalność
+        </div>
+
+      </button>
+
+
+      <button
+        class="btn"
+        data-candidate="liberty"
+      >
+
+        <div class="name">
+          🔴 Jordan Reed
+        </div>
+
+        <div class="muted">
+          Koalicja Liberty
+        </div>
+
+        <div class="tag">
+          Więcej energii
+        </div>
+
+        <div class="tag">
+          Silniejszy teren
+        </div>
+
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<div
+  id="resultModal"
+  class="modal hidden"
+>
+
+  <div
+    class="panel modal-box"
+  >
+
+    <div
+      id="resultTitle"
+      class="result-big"
+    ></div>
+
+    <div
+      id="resultText"
+      style="
+        margin:10px 0 16px
+      "
+    ></div>
+
+    <div id="resultBreakdown"></div>
+
+    <button
+      id="resultContinue"
+      class="btn btn-primary"
+      style="
+        width:100%;
+        margin-top:14px
+      "
+    ></button>
+
+  </div>
+
+</div>
+
 
 <script>
 
@@ -852,5508 +1186,2497 @@ const $ =
   id =>
     document.getElementById(id);
 
+
+const clamp =
+  (n,a,b) =>
+    Math.max(
+      a,
+      Math.min(
+        b,
+        n
+      )
+    );
+
+
 const money =
   n =>
-    Math.round(n)
-      .toLocaleString("pl-PL")
+    "$"
     +
-    " zł";
-
-const uid =
-  () =>
-    crypto.randomUUID
-      ? crypto.randomUUID()
-      : Math.random().toString(36).slice(2)
-        +
-        Date.now().toString(36);
-
-const categories = [
-  "Chipsy",
-  "Napoje",
-  "Energetyki",
-  "Słodycze",
-  "Kawa",
-  "Pieczywo",
-  "Nabiał",
-  "Kanapki",
-  "Gotowe posiłki",
-  "Mrożonki",
-  "Chemia domowa"
-];
-
-const brands = [
-  "Nova",
-  "Freshio",
-  "Snacko",
-  "Daily",
-  "Urban",
-  "Viva",
-  "Mondo",
-  "Baltic",
-  "Prime",
-  "Lumo"
-];
-
-const variants = [
-  "Classic",
-  "Max",
-  "Fresh",
-  "Gold",
-  "Zero",
-  "Mini",
-  "Mega",
-  "Street",
-  "Original",
-  "Premium"
-];
-
-const ownBrandFamilies = [
-
-{
-  id:"chrup",
-  name:"CHRUP!",
-  categories:[
-    "Chipsy",
-    "Słodycze"
-  ],
-  description:"Przekąski i słodycze."
-},
-
-{
-  id:"hop",
-  name:"HOP!",
-  categories:[
-    "Napoje",
-    "Energetyki"
-  ],
-  description:"Napoje i energetyki."
-},
-
-{
-  id:"mniam",
-  name:"MNIAM GO",
-  categories:[
-    "Kanapki",
-    "Gotowe posiłki",
-    "Pieczywo"
-  ],
-  description:"Jedzenie na szybko."
-},
-
-{
-  id:"daily",
-  name:"DAILY SELECT",
-  categories:[
-    "Kawa",
-    "Nabiał"
-  ],
-  description:"Kawa i nabiał."
-}
-
-];
-
-const storeTypes = {
-
-mini:{
-  name:"Mini convenience",
-  cost:70000,
-  fixedCost:100,
-  salesMultiplier:.85,
-  refund:.45
-},
-
-standard:{
-  name:"Convenience",
-  cost:155000,
-  fixedCost:230,
-  salesMultiplier:1.35,
-  refund:.50
-},
-
-discount:{
-  name:"Dyskont miejski",
-  cost:350000,
-  fixedCost:600,
-  salesMultiplier:2.6,
-  refund:.52
-},
-
-supermarket:{
-  name:"Supermarket",
-  cost:820000,
-  fixedCost:1350,
-  salesMultiplier:5,
-  refund:.55
-}
-
-};
-
-const factoryProducts = [
-
-{
-  category:"Chipsy",
-  maintenance:350,
-  setupCost:60000
-},
-
-{
-  category:"Napoje",
-  maintenance:450,
-  setupCost:80000
-},
-
-{
-  category:"Energetyki",
-  maintenance:500,
-  setupCost:95000
-},
-
-{
-  category:"Słodycze",
-  maintenance:380,
-  setupCost:65000
-},
-
-{
-  category:"Kawa",
-  maintenance:420,
-  setupCost:75000
-},
-
-{
-  category:"Pieczywo",
-  maintenance:520,
-  setupCost:110000
-},
-
-{
-  category:"Kanapki",
-  maintenance:650,
-  setupCost:135000
-},
-
-{
-  category:"Gotowe posiłki",
-  maintenance:800,
-  setupCost:180000
-}
-
-];
-
-const GENERIC_FACTORY_COST =
-  650000;
-
-const HUB_COST =
-  500000;
-
-const HUB_MAINTENANCE =
-  600;
-
-const acquisitionLocations = [
-
-{
-  name:"Warszawa",
-  lat:52.2297,
-  lng:21.0122
-},
-
-{
-  name:"Kraków",
-  lat:50.0647,
-  lng:19.9450
-},
-
-{
-  name:"Berlin",
-  lat:52.5200,
-  lng:13.4050
-},
-
-{
-  name:"Praga",
-  lat:50.0755,
-  lng:14.4378
-},
-
-{
-  name:"Wiedeń",
-  lat:48.2082,
-  lng:16.3738
-},
-
-{
-  name:"Paryż",
-  lat:48.8566,
-  lng:2.3522
-},
-
-{
-  name:"Madryt",
-  lat:40.4168,
-  lng:-3.7038
-},
-
-{
-  name:"Londyn",
-  lat:51.5074,
-  lng:-0.1278
-},
-
-{
-  name:"Nowy Jork",
-  lat:40.7128,
-  lng:-74.0060
-},
-
-{
-  name:"Chicago",
-  lat:41.8781,
-  lng:-87.6298
-},
-
-{
-  name:"Los Angeles",
-  lat:34.0522,
-  lng:-118.2437
-},
-
-{
-  name:"Toronto",
-  lat:43.6532,
-  lng:-79.3832
-},
-
-{
-  name:"Tokio",
-  lat:35.6762,
-  lng:139.6503
-},
-
-{
-  name:"Seul",
-  lat:37.5665,
-  lng:126.9780
-},
-
-{
-  name:"Sydney",
-  lat:-33.8688,
-  lng:151.2093
-}
-
-];
-
-let state = {
-
-cash:2200000,
-
-date:
-  new Date(
-    Date.UTC(
-      2026,
-      0,
-      1
-    )
-  ),
-
-speed:1,
-
-paused:false,
-
-reputation:55,
-
-mapBuildPoint:null,
-
-mapLocationLookupId:0,
-
-stores:[],
-
-hubs:[],
-
-factories:[],
-
-products:[],
-
-privateProducts:[],
-
-shipments:[],
-
-companies:[],
-
-dayCounter:0,
-
-autoOrders:false,
-
-autoOrderMin:35,
-
-autoOrderTarget:110,
-
-upgrades:{
-  loyalty:false,
-  pricing:false,
-  procurement:false
-},
-
-deposit:{
-  enabled:true,
-  rate:1,
-  collected:0,
-  refunded:0,
-  containers:0
-}
-
-};
-
-const COUNTRY_CODE_ALIASES = {
-  USA:"US",
-  UK:"GB",
-  ENG:"GB",
-  POL:"PL",
-  GER:"DE",
-  DEU:"DE",
-  CZE:"CZ",
-  FRA:"FR",
-  ESP:"ES",
-  ITA:"IT",
-  CAN:"CA",
-  AUS:"AU",
-  JPN:"JP",
-  KOR:"KR"
-};
-
-const BULK_LIMITS = {
-  stores:250,
-  hubs:60
-};
-
-const FALLBACK_COUNTRY_CITIES = {
-
-  PL:[
-    ["Warszawa",52.2297,21.0122],
-    ["Kraków",50.0647,19.9450],
-    ["Łódź",51.7592,19.4560],
-    ["Wrocław",51.1079,17.0385],
-    ["Poznań",52.4064,16.9252],
-    ["Gdańsk",54.3520,18.6466],
-    ["Szczecin",53.4285,14.5528],
-    ["Bydgoszcz",53.1235,18.0084],
-    ["Lublin",51.2465,22.5684],
-    ["Białystok",53.1325,23.1688],
-    ["Katowice",50.2649,19.0238],
-    ["Gdynia",54.5189,18.5305],
-    ["Częstochowa",50.8118,19.1203],
-    ["Rzeszów",50.0412,21.9991],
-    ["Toruń",53.0138,18.5984],
-    ["Olsztyn",53.7784,20.4801],
-    ["Opole",50.6751,17.9213],
-    ["Kielce",50.8661,20.6286],
-    ["Zielona Góra",51.9356,15.5062],
-    ["Radom",51.4027,21.1471]
-  ],
-
-  US:[
-    ["New York",40.7128,-74.0060],
-    ["Los Angeles",34.0522,-118.2437],
-    ["Chicago",41.8781,-87.6298],
-    ["Houston",29.7604,-95.3698],
-    ["Phoenix",33.4484,-112.0740],
-    ["Philadelphia",39.9526,-75.1652],
-    ["San Antonio",29.4241,-98.4936],
-    ["San Diego",32.7157,-117.1611],
-    ["Dallas",32.7767,-96.7970],
-    ["Austin",30.2672,-97.7431],
-    ["Jacksonville",30.3322,-81.6557],
-    ["Fort Worth",32.7555,-97.3308],
-    ["Columbus",39.9612,-82.9988],
-    ["Indianapolis",39.7684,-86.1581],
-    ["Charlotte",35.2271,-80.8431],
-    ["Seattle",47.6062,-122.3321],
-    ["Denver",39.7392,-104.9903],
-    ["Boston",42.3601,-71.0589],
-    ["Nashville",36.1627,-86.7816],
-    ["Detroit",42.3314,-83.0458],
-    ["Portland",45.5152,-122.6784],
-    ["Las Vegas",36.1699,-115.1398],
-    ["Baltimore",39.2904,-76.6122],
-    ["Milwaukee",43.0389,-87.9065],
-    ["Albuquerque",35.0844,-106.6504],
-    ["Tucson",32.2226,-110.9747],
-    ["Fresno",36.7378,-119.7871],
-    ["Sacramento",38.5816,-121.4944],
-    ["Atlanta",33.7490,-84.3880],
-    ["Kansas City",39.0997,-94.5786]
-  ]
-};
-
-function normalizeCountryCode(value){
-
-  const raw =
-    (value||"")
-      .trim()
-      .toUpperCase();
-
-  return COUNTRY_CODE_ALIASES[raw] || raw;
-
-}
-
-function countryCodeToFlag(code){
-
-  const c =
-    normalizeCountryCode(code);
-
-  if(
-    !/^[A-Z]{2}$/.test(c)
-  )
-    return "🌍";
-
-  return String.fromCodePoint(
-    ...[...c].map(
-      ch =>
-        127397+ch.charCodeAt(0)
-    )
-  );
-
-}
-
-function countryNameFromCode(code){
-
-  const c =
-    normalizeCountryCode(code);
-
-  try{
-
-    return (
-      new Intl.DisplayNames(
-        ["pl"],
-        {
-          type:"region"
-        }
-      )
-      .of(c)
-      ||
-      c
-    );
-
-  }
-
-  catch(e){
-
-    return c;
-
-  }
-
-}
-
-function placeLabel(place){
-
-  const city =
-    place.city
-    ||
-    place.town
-    ||
-    place.village
-    ||
-    place.municipality
-    ||
-    place.county
-    ||
-    "Wybrane miejsce";
-
-  const country =
-    place.country
-    ||
-    place.countryName
-    ||
-    place.country_code?.toUpperCase()
-    ||
-    place.countryCode
-    ||
-    "";
-
-  const code =
-    normalizeCountryCode(
-      place.country_code
-      ||
-      place.countryCode
-      ||
-      ""
-    );
-
-  return `${city}${country ? `, ${country}` : ""} ${countryCodeToFlag(code)}`.trim();
-
-}
-
-async function reverseGeocodePoint(
-  lat,
-  lng
-){
-
-  const url =
-    `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lng)}&zoom=10&addressdetails=1`;
-
-  const res =
-    await fetch(
-      url,
-      {
-        headers:{
-          "Accept":"application/json",
-          "Accept-Language":"pl,en;q=0.8"
-        }
-      }
-    );
-
-  if(
-    !res.ok
-  )
-    throw new Error(
-      "Nie udało się sprawdzić punktu."
-    );
-
-  const data =
-    await res.json();
-
-  const a =
-    data.address || {};
-
-  if(
-    !a.country_code
-  )
-    throw new Error(
-      "To miejsce nie należy do rozpoznanego kraju. Wybierz ląd."
-    );
-
-  return {
-
-    lat:
-      Number(
-        data.lat ?? lat
-      ),
-
-    lng:
-      Number(
-        data.lon ?? lng
-      ),
-
-    city:
-      a.city
-      ||
-      a.town
-      ||
-      a.village
-      ||
-      a.municipality
-      ||
-      a.county
-      ||
-      data.name
-      ||
-      "Wybrane miejsce",
-
-    country:
-      a.country || "",
-
-    countryCode:
-      (a.country_code||"")
-        .toUpperCase(),
-
-    displayName:
-      data.display_name || ""
-
-  };
-
-}
-
-async function selectBuildPoint(
-  lat,
-  lng,
-  knownPlace=null
-){
-
-  const lookupId =
-    ++state.mapLocationLookupId;
-
-  state.mapBuildPoint =
-    null;
-
-  $("mapPointInfo").innerHTML =
-    '<span class="search-spinner">Sprawdzam miasto i kraj…</span>';
-
-  renderBuildPanel();
-
-  try{
-
-    const place =
-      knownPlace
-      ||
-      await reverseGeocodePoint(
-        lat,
-        lng
-      );
-
-    if(
-      lookupId!==state.mapLocationLookupId
-    )
-      return;
-
-    state.mapBuildPoint = {
-
-      lat:
-        Number(
-          place.lat ?? lat
-        ),
-
-      lng:
-        Number(
-          place.lng ?? lng
-        ),
-
-      city:
-        place.city,
-
-      country:
-        place.country,
-
-      countryCode:
-        normalizeCountryCode(
-          place.countryCode
-        )
-
-    };
-
-    renderBuildPanel();
-    renderNearestHub();
-    renderMapMarkers();
-
-  }
-
-  catch(err){
-
-    if(
-      lookupId!==state.mapLocationLookupId
-    )
-      return;
-
-    state.mapBuildPoint =
-      null;
-
-    $("mapPointInfo").innerHTML =
-      `<span class="bad">${err.message || "Nie można budować w tym miejscu."}</span>`;
-
-    renderBuildPanel();
-    renderNearestHub();
-    renderMapMarkers();
-
-  }
-
-}
-
-async function searchCities(){
-
-  const q =
-    $("citySearchInput")
-      .value
-      .trim();
-
-  if(
-    q.length<2
-  ){
-
-    $("citySearchStatus").textContent =
-      "Wpisz co najmniej 2 znaki.";
-
-    return;
-
-  }
-
-  $("citySearchStatus").textContent =
-    "Szukam miasta…";
-
-  $("citySearchResults").innerHTML =
-    "";
-
-  try{
-
-    const url =
-      `https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=8&featuretype=city&q=${encodeURIComponent(q)}`;
-
-    const res =
-      await fetch(
-        url,
-        {
-          headers:{
-            "Accept":"application/json",
-            "Accept-Language":"pl,en;q=0.8"
-          }
-        }
-      );
-
-    if(
-      !res.ok
-    )
-      throw new Error(
-        "Błąd wyszukiwania."
-      );
-
-    const rows =
-      (await res.json())
-        .filter(
-          r =>
-            r.address?.country_code
-        );
-
-    $("citySearchStatus").textContent =
-      rows.length
-        ? `Znaleziono: ${rows.length}`
-        : "Brak wyników.";
-
-    $("citySearchResults").innerHTML =
-      rows
-        .map(
-          (r,i) => {
-
-            const a =
-              r.address || {};
-
-            const code =
-              (a.country_code||"")
-                .toUpperCase();
-
-            const city =
-              a.city
-              ||
-              a.town
-              ||
-              a.village
-              ||
-              a.municipality
-              ||
-              r.name;
-
-            return `
-            <button
-              type="button"
-              class="city-result"
-              data-city-result="${i}"
-            >
-              <span>
-                <strong>${city}</strong>
-                <br>
-                <span class="muted text-xs">
-                  ${a.state||a.county||""}
-                </span>
-              </span>
-
-              <span class="country-badge">
-                ${countryCodeToFlag(code)}
-                ${a.country||code}
-              </span>
-            </button>
-            `;
-
-          }
-        )
-        .join("");
-
-    $("citySearchResults")
-      .querySelectorAll(
-        "[data-city-result]"
-      )
-      .forEach(
-        btn =>
-          btn.addEventListener(
-            "click",
-            () => {
-
-              const r =
-                rows[
-                  Number(
-                    btn.dataset.cityResult
-                  )
-                ];
-
-              const a =
-                r.address || {};
-
-              const code =
-                (a.country_code||"")
-                  .toUpperCase();
-
-              const place = {
-
-                lat:
-                  Number(
-                    r.lat
-                  ),
-
-                lng:
-                  Number(
-                    r.lon
-                  ),
-
-                city:
-                  a.city
-                  ||
-                  a.town
-                  ||
-                  a.village
-                  ||
-                  a.municipality
-                  ||
-                  r.name,
-
-                country:
-                  a.country || code,
-
-                countryCode:
-                  code
-
-              };
-
-              realMap.setView(
-                [
-                  place.lat,
-                  place.lng
-                ],
-                11
-              );
-
-              selectBuildPoint(
-                place.lat,
-                place.lng,
-                place
-              );
-
-              $("citySearchResults").innerHTML =
-                "";
-
-              $("citySearchStatus").textContent =
-                `Wybrano: ${placeLabel(place)}`;
-
-            }
-          )
-      );
-
-  }
-
-  catch(err){
-
-    $("citySearchStatus").textContent =
-      err.message
-      ||
-      "Nie udało się wyszukać miasta.";
-
-  }
-
-}
-
-async function fetchCountryPlaces(countryCode){
-
-  const cc =
-    normalizeCountryCode(
-      countryCode
-    );
-
-  if(
-    !/^[A-Z]{2}$/.test(cc)
-  )
-    throw new Error(
-      "Podaj kod kraju, np. PL albo USA/US."
-    );
-
-  const query =
-    `[out:json][timeout:25];area["ISO3166-1"="${cc}"][admin_level=2]->.a;(node["place"~"city|town"](area.a););out tags center;`;
-
-  try{
-
-    const res =
-      await fetch(
-        "https://overpass-api.de/api/interpreter",
-        {
-          method:"POST",
-          headers:{
-            "Content-Type":
-              "application/x-www-form-urlencoded;charset=UTF-8"
-          },
-          body:
-            "data="
-            +
-            encodeURIComponent(
-              query
-            )
-        }
-      );
-
-    if(
-      !res.ok
-    )
-      throw new Error(
-        "Overpass unavailable"
-      );
-
-    const data =
-      await res.json();
-
-    const seen =
-      new Set();
-
-    const rows =
-      (data.elements||[])
-        .map(
-          x => ({
-
-            city:
-              x.tags?.["name:pl"]
-              ||
-              x.tags?.name
-              ||
-              "Miasto",
-
-            lat:
-              Number(
-                x.lat
-              ),
-
-            lng:
-              Number(
-                x.lon
-              ),
-
-            countryCode:
-              cc,
-
-            country:
-              countryNameFromCode(
-                cc
-              ),
-
-            population:
-              Number(
-                String(
-                  x.tags?.population
-                  ||
-                  "0"
-                )
-                .replace(
-                  /\D/g,
-                  ""
-                )
-              )
-              ||
-              0
-
-          })
-        )
-        .filter(
-          x => {
-
-            if(
-              !Number.isFinite(x.lat)
-              ||
-              !Number.isFinite(x.lng)
-            )
-              return false;
-
-            const key =
-              `${x.lat.toFixed(4)},${x.lng.toFixed(4)}`;
-
-            if(
-              seen.has(key)
-            )
-              return false;
-
-            seen.add(key);
-
-            return true;
-
-          }
-        );
-
-    if(
-      rows.length
-    )
-      return rows.sort(
-        (a,b) =>
-          b.population-a.population
-      );
-
-  }
-
-  catch(e){}
-
-  return (
-    FALLBACK_COUNTRY_CITIES[cc]
-    ||
-    []
-  )
-  .map(
-    ([city,lat,lng]) => ({
-
-      city,
-      lat,
-      lng,
-
-      countryCode:
-        cc,
-
-      country:
-        countryNameFromCode(
-          cc
-        ),
-
-      population:0
-
-    })
-  );
-
-}
-
-function addCheatStoreAt(place){
-
-  const typeKey =
-    "standard";
-
-  const type =
-    storeTypes[typeKey];
-
-  state.stores.push({
-
-    id:
-      uid(),
-
-    name:
-      `${type.name} #${state.stores.length+1}`,
-
-    locationName:
-      placeLabel(place),
-
-    lat:
-      place.lat,
-
-    lng:
-      place.lng,
-
-    type:
-      typeKey,
-
-    level:1,
-
-    levelMultiplier:1,
-
-    marketFactor:
-      .95
-      +
-      Math.random()*.15,
-
-    stock:{},
-
-    depositMachineLevel:0,
-
-    countryCode:
-      place.countryCode || ""
-
-  });
-
-}
-
-function addCheatHubAt(place){
-
-  state.hubs.push({
-
-    id:
-      uid(),
-
-    name:
-      `Centrum logistyczne #${state.hubs.length+1}`,
-
-    locationName:
-      placeLabel(place),
-
-    lat:
-      place.lat,
-
-    lng:
-      place.lng,
-
-    maintenance:
-      HUB_MAINTENANCE,
-
-    countryCode:
-      place.countryCode || ""
-
-  });
-
-}
-
-async function bulkPlaceInCountry(
-  kind,
-  countryArg,
-  countArg
-){
-
-  const cc =
-    normalizeCountryCode(
-      countryArg
-    );
-
-  const places =
-    await fetchCountryPlaces(
-      cc
-    );
-
-  if(
-    !places.length
-  ){
-
-    consolePrint(
-      `Brak bezpiecznych punktów dla kraju ${cc}.`
-    );
-
-    return;
-
-  }
-
-  const max =
-    kind==="store"
-      ? BULK_LIMITS.stores
-      : BULK_LIMITS.hubs;
-
-  const amount =
-    Number(
-      countArg
-    );
-
-  if(
-    !Number.isInteger(amount)
-    ||
-    amount<1
-  ){
-
-    consolePrint(
-      `Podaj ilość, np. ${kind==="store"?"SHOP":"HUB"} ${cc} 25`
-    );
-
-    return;
-
-  }
-
-  const requested =
-    Math.min(
-      max,
-      amount
-    );
-
-  const chosen=[];
-
-  /*
-    Zawsze dodaj dokładnie żądaną liczbę do limitu komendy.
-    Jeżeli miast jest mniej niż obiektów, ponownie używane są
-    prawdziwe miasta zamiast losowych punktów.
-  */
-
-  for(
-    let i=0;
-    i<requested;
-    i++
-  ){
-
-    const base =
-      places[
-        i
-        %
-        places.length
-      ];
-
-    chosen.push({
-      ...base
-    });
-
-  }
-
-  chosen.forEach(
-    p =>
-      kind==="store"
-        ? addCheatStoreAt(p)
-        : addCheatHubAt(p)
-  );
-
-  consolePrint(
-    `${kind==="store"?"Sklepy":"Centra logistyczne"}: dodano ${chosen.length} w ${countryCodeToFlag(cc)} ${cc}.`
-  );
-
-  if(
-    amount>max
-  ){
-
-    consolePrint(
-      `Limit jednej komendy: ${max}. Wpisz komendę ponownie, aby dodać następne.`
-    );
-
-  }
-
-  if(
-    chosen.length
-    &&
-    realMap
-  ){
-
-    const unique=[];
-    const seen=new Set();
-
-    for(
-      const p of chosen
-    ){
-
-      const key =
-        `${p.lat},${p.lng}`;
-
-      if(
-        !seen.has(key)
-      ){
-
-        seen.add(key);
-        unique.push(p);
-
-      }
-
-    }
-
-    const group =
-      L.featureGroup(
-        unique.map(
-          p =>
-            L.marker(
-              [
-                p.lat,
-                p.lng
-              ]
-            )
-        )
-      );
-
-    if(
-      unique.length
-    ){
-
-      realMap.fitBounds(
-        group
-          .getBounds()
-          .pad(.15),
-        {
-          maxZoom:6
-        }
-      );
-
-    }
-
-  }
-
-  renderAll();
-
-}
-
-function formatDate(d){
-
-  return d.toLocaleDateString(
-    "pl-PL",
-    {
-      timeZone:"UTC"
-    }
-  );
-
-}
-
-function allProducts(){
-
-  return [
-    ...state.products,
-    ...state.privateProducts
-  ];
-
-}
-
-function getProduct(id){
-
-  return allProducts()
-    .find(
-      p =>
-        p.id===id
-    );
-
-}
-
-function getStore(id){
-
-  return state.stores
-    .find(
-      s =>
-        s.id===id
-    );
-
-}
-
-function createProduct(
-  own=false,
-  category=null,
-  familyId=null
-){
-
-  category =
-    category
-    ||
-    categories[
-      Math.floor(
-        Math.random()
-        *
-        categories.length
-      )
-    ];
-
-  const family =
-    familyId
-      ? ownBrandFamilies.find(
-          x =>
-            x.id===familyId
-        )
-      : null;
-
-  const cost =
-    own
-      ? .6+Math.random()*2.5
-      : 1.2+Math.random()*8;
-
-  return {
-
-    id:
-      uid(),
-
-    name:
-      own
-
-        ? `${family ? family.name : "PRIVATE"} ${
-            variants[
-              Math.floor(
-                Math.random()
-                *
-                variants.length
-              )
-            ]
-          } ${category}`
-
-        : `${
-            brands[
-              Math.floor(
-                Math.random()
-                *
-                brands.length
-              )
-            ]
-          } ${
-            variants[
-              Math.floor(
-                Math.random()
-                *
-                variants.length
-              )
-            ]
-          } ${category}`,
-
-    category,
-
-    familyId:
-      familyId || null,
-
-    buyPrice:
-      cost,
-
-    sellPrice:
-      cost
-      *
-      (
-        own
-          ? 2.55
-          : 1.65+Math.random()*.55
-      ),
-
-    demand:
-      35
-      +
-      Math.random()*65,
-
-    own
-
-  };
-
-}
-
-function generateProducts(
-  n=10
-){
-
-  for(
-    let i=0;
-    i<n;
-    i++
-  ){
-
-    state.products.push(
-      createProduct()
-    );
-
-  }
-
-}
-
-function generateCompanies(){
-
-  const names = [
-    "QuickMart",
-    "CityGo",
-    "Fresh24",
-    "Pocket Market",
-    "Daily Corner",
-    "Urban Stop"
-  ];
-
-  state.companies =
-    names
-      .slice()
-      .sort(
-        () =>
-          Math.random()-.5
-      )
-      .slice(
-        0,
-        5
-      )
-      .map(
-        name => {
-
-          const stores =
-            3
-            +
-            Math.floor(
-              Math.random()*8
-            );
-
-          return {
-
-            id:
-              uid(),
-
-            name,
-
-            stores,
-
-            quality:
-              .9
-              +
-              Math.random()*.2,
-
-            price:
-              Math.round(
-                stores
-                *
-                90000
-                *
-                (
-                  .9
-                  +
-                  Math.random()*.25
-                )
-              )
-
-          };
-
-        }
-      );
-
-}
-
-function demandWithPrice(p){
-
-  const markup =
-    p.sellPrice
-    /
-    Math.max(
-      .01,
-      p.buyPrice
-    );
-
-  let factor =
-    Math.max(
-      .25,
-      1
-      -
-      Math.max(
-        0,
-        markup-1.8
-      )
-      *
-      .22
-    );
-
-  if(
-    state.upgrades.loyalty
-  ){
-
-    factor *=
-      1.10;
-
-  }
-
-  if(
-    p.own
-  ){
-
-    factor *=
-      1.12;
-
-  }
-
-  return (
-    p.demand
-    *
-    factor
-  );
-
-}
-
-function productBuyPrice(p){
-
-  let price =
-    p.buyPrice;
-
-  if(
-    state.upgrades.procurement
-    &&
-    !p.own
-  ){
-
-    price *=
-      .92;
-
-  }
-
-  return price;
-
-}
-
-function distanceKm(
-  aLat,
-  aLng,
-  bLat,
-  bLng
-){
-
-  const R =
-    6371;
-
-  const dLat =
     (
-      bLat-aLat
+      n/1_000_000
     )
-    *
-    Math.PI
-    /
-    180;
-
-  const dLng =
-    (
-      bLng-aLng
-    )
-    *
-    Math.PI
-    /
-    180;
-
-  const lat1 =
-    aLat
-    *
-    Math.PI
-    /
-    180;
-
-  const lat2 =
-    bLat
-    *
-    Math.PI
-    /
-    180;
-
-  const a =
-    Math.sin(dLat/2)**2
+    .toFixed(1)
     +
-    Math.cos(lat1)
-    *
-    Math.cos(lat2)
-    *
-    Math.sin(dLng/2)**2;
+    "M";
 
-  return (
-    R
-    *
-    2
-    *
-    Math.atan2(
-      Math.sqrt(a),
-      Math.sqrt(1-a)
-    )
-  );
 
-}
+const pct =
+  n =>
+    n.toFixed(1)
+    +
+    "%";
 
-function nearestHubFor(
-  lat,
-  lng
+
+const rand =
+  (a,b) =>
+    a
+    +
+    Math.random()
+    *
+    (
+      b-a
+    );
+
+
+const STATE_DATA = [
+
+["AL","Alabama",9],
+["AK","Alaska",3],
+["AZ","Arizona",11],
+["AR","Arkansas",6],
+["CA","California",54],
+["CO","Colorado",10],
+["CT","Connecticut",7],
+["DE","Delaware",3],
+["DC","District of Columbia",3],
+["FL","Florida",30],
+["GA","Georgia",16],
+["HI","Hawaii",4],
+["ID","Idaho",4],
+["IL","Illinois",19],
+["IN","Indiana",11],
+["IA","Iowa",6],
+["KS","Kansas",6],
+["KY","Kentucky",8],
+["LA","Louisiana",8],
+["ME","Maine",4],
+["MD","Maryland",10],
+["MA","Massachusetts",11],
+["MI","Michigan",15],
+["MN","Minnesota",10],
+["MS","Mississippi",6],
+["MO","Missouri",10],
+["MT","Montana",4],
+["NE","Nebraska",5],
+["NV","Nevada",6],
+["NH","New Hampshire",4],
+["NJ","New Jersey",14],
+["NM","New Mexico",5],
+["NY","New York",28],
+["NC","North Carolina",16],
+["ND","North Dakota",3],
+["OH","Ohio",17],
+["OK","Oklahoma",7],
+["OR","Oregon",8],
+["PA","Pennsylvania",19],
+["RI","Rhode Island",4],
+["SC","South Carolina",9],
+["SD","South Dakota",3],
+["TN","Tennessee",11],
+["TX","Texas",40],
+["UT","Utah",6],
+["VT","Vermont",3],
+["VA","Virginia",13],
+["WA","Washington",12],
+["WV","West Virginia",4],
+["WI","Wisconsin",10],
+["WY","Wyoming",3]
+
+];
+
+
+const BASE_MARGIN = {
+
+AL:-12,
+AK:-6,
+AZ:-1,
+AR:-13,
+CA:14,
+CO:7,
+CT:10,
+DE:9,
+DC:28,
+FL:-4,
+GA:-1,
+HI:13,
+ID:-15,
+IL:10,
+IN:-10,
+IA:-6,
+KS:-7,
+KY:-14,
+LA:-11,
+ME:8,
+MD:16,
+MA:18,
+MI:1,
+MN:4,
+MS:-10,
+MO:-8,
+MT:-9,
+NE:-9,
+NV:1,
+NH:3,
+NJ:11,
+NM:6,
+NY:14,
+NC:-1,
+ND:-14,
+OH:-6,
+OK:-15,
+OR:9,
+PA:0,
+RI:12,
+SC:-8,
+SD:-12,
+TN:-13,
+TX:-6,
+UT:-10,
+VT:18,
+VA:5,
+WA:12,
+WV:-17,
+WI:0,
+WY:-18
+
+};
+
+
+let state;
+
+
+function makeGame(
+  candidate
 ){
 
-  if(
-    !state.hubs.length
-  ){
+  const states = {};
 
-    return null;
-
-  }
-
-  let best =
-    null;
-
-  let bestDistance =
-    Infinity;
 
   for(
-    const hub
-    of state.hubs
+    const [
+      abbr,
+      name,
+      ev
+    ]
+    of STATE_DATA
   ){
 
-    const d =
-      distanceKm(
-        lat,
-        lng,
-        hub.lat,
-        hub.lng
+    let margin =
+      BASE_MARGIN[abbr]
+      +
+      rand(
+        -2.4,
+        2.4
       );
 
+
     if(
-      d<bestDistance
+      candidate==="liberty"
     ){
 
-      bestDistance =
-        d;
-
-      best =
-        hub;
+      margin *=
+        -1;
 
     }
 
-  }
 
-  return {
+    states[abbr] = {
 
-    hub:
-      best,
+      abbr,
+      name,
+      ev,
+      margin,
 
-    distance:
-      bestDistance
+      ground:0,
 
-  };
+      visits:0,
 
-}
-
-function logisticsForStore(
-  store
-){
-
-  const nearest =
-    nearestHubFor(
-      store.lat,
-      store.lng
-    );
-
-  if(
-    !nearest
-  ){
-
-    return {
-
-      eta:7,
-
-      shippingMultiplier:
-        1.15,
-
-      distance:null
+      called:null
 
     };
 
   }
+
+
+  return {
+
+    candidate,
+
+    playerName:
+      candidate==="aurora"
+        ? "Alex Morgan"
+        : "Jordan Reed",
+
+    opponentName:
+      candidate==="aurora"
+        ? "Jordan Reed"
+        : "Alex Morgan",
+
+    days:120,
+
+    date:
+      new Date(
+        Date.UTC(
+          2028,
+          6,
+          10
+        )
+      ),
+
+    cash:
+      candidate==="aurora"
+        ? 95_000_000
+        : 82_000_000,
+
+    energy:
+      candidate==="aurora"
+        ? 78
+        : 92,
+
+    recognition:
+      candidate==="aurora"
+        ? 66
+        : 58,
+
+    momentum:0,
+
+    states,
+
+    selected:"PA",
+
+    debateCooldown:0,
+
+    electionDone:false,
+
+    won:false,
+
+    president:null
+
+  };
+
+}
+
+
+function log(
+  msg
+){
 
   const d =
-    nearest.distance;
-
-  let eta =
-    5;
-
-  if(
-    d<300
-  )
-    eta=1;
-
-  else if(
-    d<900
-  )
-    eta=2;
-
-  else if(
-    d<1800
-  )
-    eta=3;
-
-  else if(
-    d<3500
-  )
-    eta=4;
-
-  const shippingMultiplier =
-    Math.max(
-      .55,
-      .70+d/10000
+    document.createElement(
+      "div"
     );
 
-  return {
 
-    eta,
-
-    shippingMultiplier,
-
-    distance:
-      d,
-
-    hub:
-      nearest.hub
-
-  };
-
-}
-
-function expectedStoreDay(
-  store
-){
-
-  const type =
-    storeTypes[
-      store.type
-    ];
-
-  let revenue=0;
-  let cogs=0;
-
-  for(
-    const [pid,qty]
-    of Object.entries(
-      store.stock
-    )
-  ){
-
-    const p =
-      getProduct(pid);
-
-    if(
-      !p
-      ||
-      qty<=0
-    )
-      continue;
-
-    const sales =
-      Math.min(
-
-        qty,
-
-        Math.floor(
-
-          demandWithPrice(p)
-          *
-          type.salesMultiplier
-          *
-          store.levelMultiplier
-          *
-          store.marketFactor
-          *
-          (
-            .55
-            +
-            state.reputation/100
-          )
-
-        )
-
-      );
-
-    revenue +=
-      sales
-      *
-      p.sellPrice
-      *
-      (
-        state.upgrades.pricing
-          ? 1.05
-          : 1
-      );
-
-    cogs +=
-      sales
-      *
-      productBuyPrice(p);
-
-  }
-
-  const fixed =
-    type.fixedCost
-    *
-    store.levelMultiplier;
-
-  return {
-
-    revenue,
-
-    cost:
-      cogs+fixed,
-
-    profit:
-      revenue
-      -
-      cogs
-      -
-      fixed
-
-  };
-
-}
-
-function expectedCompanyDay(){
-
-  let revenue=0;
-  let cost=0;
-
-  state.stores.forEach(
-    store => {
-
-      const r =
-        expectedStoreDay(
-          store
-        );
-
-      revenue +=
-        r.revenue;
-
-      cost +=
-        r.cost;
-
-    }
-  );
-
-  state.factories.forEach(
-    f => {
-
-      cost +=
-        f.maintenance;
-
-    }
-  );
-
-  state.hubs.forEach(
-    h => {
-
-      cost +=
-        h.maintenance;
-
-    }
-  );
-
-  return {
-
-    revenue,
-
-    cost,
-
-    profit:
-      revenue
-      -
-      cost
-
-  };
-
-}
-
-function simulateStoreDay(
-  store
-){
-
-  const type =
-    storeTypes[
-      store.type
-    ];
-
-  let revenue=0;
-  let cogs=0;
-
-  for(
-    const pid
-    of Object.keys(
-      store.stock
-    )
-  ){
-
-    const p =
-      getProduct(pid);
-
-    if(
-      !p
-    )
-      continue;
-
-    const qty =
-      store.stock[pid]
-      ||
-      0;
-
-    const sales =
-      Math.min(
-
-        qty,
-
-        Math.floor(
-
-          demandWithPrice(p)
-          *
-          type.salesMultiplier
-          *
-          store.levelMultiplier
-          *
-          store.marketFactor
-          *
-          (
-            .55
-            +
-            state.reputation/100
-          )
-          *
-          (
-            .8
-            +
-            Math.random()*.4
-          )
-
-        )
-
-      );
-
-    if(
-      sales<=0
-    )
-      continue;
-
-    store.stock[pid] -=
-      sales;
-
-    revenue +=
-      sales
-      *
-      p.sellPrice
-      *
-      (
-        state.upgrades.pricing
-          ? 1.05
-          : 1
-      );
-
-    cogs +=
-      sales
-      *
-      productBuyPrice(p);
-
-    if(
-      state.deposit.enabled
-      &&
-      (
-        p.category==="Napoje"
-        ||
-        p.category==="Energetyki"
-      )
-    ){
-
-      const depositIncome =
-        sales
-        *
-        state.deposit.rate;
-
-      const machineLevel =
-        store.depositMachineLevel
-        ||
-        0;
-
-      const returnRate =
-        Math.min(
-          .92,
-          .35
-          +
-          machineLevel*.18
-        );
-
-      const returned =
-        Math.floor(
-          sales
-          *
-          returnRate
-        );
-
-      state.deposit.collected +=
-        depositIncome;
-
-      state.deposit.refunded +=
-        returned
-        *
-        state.deposit.rate;
-
-      state.deposit.containers +=
-        returned;
-
-      revenue +=
-        depositIncome
-        -
-        returned
-        *
-        state.deposit.rate;
-
-    }
-
-  }
-
-  return (
-    revenue
-    -
-    cogs
-    -
-    type.fixedCost
-    *
-    store.levelMultiplier
-  );
-
-}
-
-function placeOrder(
-  store,
-  p,
-  qty
-){
-
-  const logistics =
-    logisticsForStore(
-      store
-    );
-
-  const goods =
-    productBuyPrice(p)
-    *
-    qty;
-
-  const transport =
-    Math.max(
-      20,
-      goods
-      *
-      .04
-      *
-      logistics.shippingMultiplier
-    );
-
-  const total =
-    goods
+  d.textContent =
+    "• "
     +
-    transport;
+    msg;
 
-  if(
-    state.cash<total
-  )
-    return false;
 
-  state.cash -=
-    total;
-
-  state.shipments.push({
-
-    id:
-      uid(),
-
-    storeId:
-      store.id,
-
-    productId:
-      p.id,
-
-    qty,
-
-    cost:
-      total,
-
-    eta:
-      logistics.eta
-
-  });
-
-  return true;
-
-}
-
-function processShipments(){
-
-  state.shipments.forEach(
-    sh => {
-
-      sh.eta--;
-
-    }
-  );
-
-  const arrived =
-    state.shipments.filter(
-      sh =>
-        sh.eta<=0
-    );
-
-  arrived.forEach(
-    sh => {
-
-      const store =
-        getStore(
-          sh.storeId
-        );
-
-      if(
-        store
-      ){
-
-        store.stock[sh.productId] =
-          (
-            store.stock[sh.productId]
-            ||
-            0
-          )
-          +
-          sh.qty;
-
-      }
-
-    }
-  );
-
-  state.shipments =
-    state.shipments.filter(
-      sh =>
-        sh.eta>0
+  $("campaignLog")
+    .prepend(
+      d
     );
 
 }
 
-function runAutomaticOrders(){
 
-  if(
-    !state.autoOrders
-    ||
-    !state.stores.length
-  )
-    return;
+function pLog(
+  msg
+){
 
-  const products =
-    allProducts()
-      .slice()
-      .sort(
-        (a,b) =>
-          b.demand-a.demand
-      )
-      .slice(
-        0,
-        16
-      );
+  const d =
+    document.createElement(
+      "div"
+    );
 
-  for(
-    const store
-    of state.stores
-  ){
 
-    for(
-      const p
-      of products
-    ){
-
-      const inTransit =
-        state.shipments
-          .filter(
-            s =>
-              s.storeId===store.id
-              &&
-              s.productId===p.id
-          )
-          .reduce(
-            (sum,s) =>
-              sum+s.qty,
-            0
-          );
-
-      const have =
-        (
-          store.stock[p.id]
-          ||
-          0
-        )
-        +
-        inTransit;
-
-      if(
-        have>=state.autoOrderMin
-      )
-        continue;
-
-      const target =
-        Math.max(
-          state.autoOrderTarget,
-          Math.round(
-            p.demand*2.2
-          )
-        );
-
-      const qty =
-        Math.max(
-          0,
-          target-have
-        );
-
-      if(
-        qty>0
-      ){
-
-        placeOrder(
-          store,
-          p,
-          qty
-        );
-
-      }
-
-    }
-
-  }
-
-}
-
-function weeklyUpdate(){
-
-  state.products.forEach(
-    p => {
-
-      p.buyPrice =
-        Math.max(
-          .2,
-          p.buyPrice
-          *
-          (
-            .97
-            +
-            Math.random()*.06
-          )
-        );
-
-      p.demand =
-        Math.max(
-          10,
-          Math.min(
-            100,
-            p.demand
-            +
-            (
-              Math.random()*10
-              -
-              5
-            )
-          )
-        );
-
-    }
-  );
-
-  generateProducts(
-    2
+  d.textContent =
+    "• "
     +
-    Math.floor(
-      Math.random()*3
-    )
-  );
+    msg;
+
+
+  $("presidentLog")
+    .prepend(
+      d
+    );
 
 }
 
-function monthlyUpdate(){
 
-  generateProducts(5);
+function advanceDays(
+  n
+){
 
-  generateCompanies();
+  state.days =
+    Math.max(
+      0,
+      state.days-n
+    );
 
-}
-
-function simulateDay(){
-
-  let profit=0;
-
-  state.stores.forEach(
-    store => {
-
-      profit +=
-        simulateStoreDay(
-          store
-        );
-
-    }
-  );
-
-  state.factories.forEach(
-    f => {
-
-      profit -=
-        f.maintenance;
-
-    }
-  );
-
-  state.hubs.forEach(
-    h => {
-
-      profit -=
-        h.maintenance;
-
-    }
-  );
-
-  state.cash +=
-    profit;
 
   state.date =
     new Date(
       state.date.getTime()
       +
+      n
+      *
       86400000
     );
 
-  state.dayCounter++;
 
-  processShipments();
+  state.energy =
+    clamp(
+      state.energy
+      -
+      n*1.4,
+      0,
+      100
+    );
+
+
+  state.debateCooldown =
+    Math.max(
+      0,
+      state.debateCooldown-n
+    );
+
+
+  driftPolls(
+    n
+  );
+
 
   if(
-    state.deposit.enabled
+    state.days===0
     &&
-    state.deposit.containers>0
+    !state.electionDone
   ){
 
-    const settle =
-      Math.min(
-        state.deposit.containers,
-        Math.ceil(
-          state.deposit.containers*.45
+    setTimeout(
+      runElection,
+      100
+    );
+
+  }
+
+}
+
+
+function driftPolls(
+  n
+){
+
+  for(
+    const s
+    of Object.values(
+      state.states
+    )
+  ){
+
+    s.margin =
+      clamp(
+
+        s.margin
+        +
+        rand(
+          -.12,
+          .12
         )
+        *
+        n
+        +
+        state.momentum
+        *
+        .002
+        *
+        n,
+
+        -35,
+        35
+
       );
 
-    state.cash +=
-      settle
+
+    if(
+      s.ground>0
+    ){
+
+      s.margin +=
+        .015
+        *
+        s.ground
+        *
+        n;
+
+    }
+
+  }
+
+
+  state.momentum *=
+    Math.pow(
+      .94,
+      n
+    );
+
+}
+
+
+function nationalSupport(){
+
+  let sum=0;
+
+  let total=0;
+
+
+  for(
+    const s
+    of Object.values(
+      state.states
+    )
+  ){
+
+    sum +=
+      (
+        50
+        +
+        s.margin/2
+      )
       *
-      state.deposit.rate;
+      s.ev;
 
-    state.deposit.containers -=
-      settle;
 
-  }
-
-  if(
-    state.dayCounter%2===0
-  ){
-
-    runAutomaticOrders();
+    total +=
+      s.ev;
 
   }
 
-  if(
-    state.dayCounter%7===0
-  ){
 
-    weeklyUpdate();
-
-  }
-
-  if(
-    state.dayCounter%30===0
-  ){
-
-    monthlyUpdate();
-
-  }
+  return (
+    sum
+    /
+    total
+  );
 
 }
 
-function renderTop(){
 
-  const e =
-    expectedCompanyDay();
+function forecastEV(){
 
-  $("cash").textContent =
-    money(
-      state.cash
-    );
+  let p=0;
 
-  $("storesStat").textContent =
-    state.stores.length;
+  let o=0;
 
-  $("hubsStat").textContent =
-    state.hubs.length;
+  let t=0;
 
-  $("factoriesStat").textContent =
-    state.factories.length;
 
-  $("privateStat").textContent =
-    state.privateProducts.length;
-
-  $("repStat").textContent =
-    Math.round(
-      state.reputation
+  for(
+    const s
+    of Object.values(
+      state.states
     )
-    +
-    "/100";
-
-  $("dateStat").textContent =
-    formatDate(
-      state.date
-    );
-
-  $("profitStat").textContent =
-    (
-      e.profit>=0
-        ? "+"
-        : ""
-    )
-    +
-    money(
-      e.profit
-    );
-
-  $("profitStat").className =
-    "font-bold "
-    +
-    (
-      e.profit>=0
-        ? "good"
-        : "bad"
-    );
-
-  $("timeState").textContent =
-    state.paused
-      ? "Czas zatrzymany"
-      : `Tempo ${state.speed}×`;
-
-}
-
-function renderBuildPanel(){
-
-  const mode =
-    $("mapBuildMode").value;
-
-  $("storeBuildControls")
-    .classList
-    .toggle(
-      "hidden",
-      mode!=="store"
-    );
-
-  if(
-    state.mapBuildPoint
   ){
 
-    $("mapPointInfo").innerHTML =
-      `
-      Wybrano:
-      <strong>${placeLabel(state.mapBuildPoint)}</strong>
-      <br>
-      <span class="muted">
-        ${state.mapBuildPoint.lat.toFixed(5)},
-        ${state.mapBuildPoint.lng.toFixed(5)}
-      </span>
-      `;
+    if(
+      s.margin>2
+    ){
+
+      p +=
+        s.ev;
+
+    }
+
+    else if(
+      s.margin<-2
+    ){
+
+      o +=
+        s.ev;
+
+    }
+
+    else{
+
+      t +=
+        s.ev;
+
+    }
 
   }
 
-  else{
 
-    $("mapPointInfo").textContent =
-      "Kliknij miejsce na mapie.";
+  return {
 
-  }
-
-  if(
-    mode==="store"
-  ){
-
-    const t =
-      storeTypes[
-        $("buildStoreType").value
-      ];
-
-    $("buildInfo").innerHTML =
-      `
-      Koszt:
-      <strong>${money(t.cost)}</strong>
-      <br>
-      Koszt dzienny:
-      ${money(t.fixedCost)}
-      <br>
-      Skala sprzedaży:
-      ${t.salesMultiplier.toFixed(2)}×
-      `;
-
-  }
-
-  else{
-
-    $("buildInfo").innerHTML =
-      `
-      Koszt centrum:
-      <strong>${money(HUB_COST)}</strong>
-      <br>
-      Utrzymanie:
-      ${money(HUB_MAINTENANCE)}/dzień
-      <br>
-      Centrum skraca dostawy według odległości.
-      `;
-
-  }
-
-  const ready =
-    !!state.mapBuildPoint;
-
-  $("buildMapObjectBtn").disabled =
-    !ready;
-
-  $("buildMapObjectBtn").textContent =
-    ready
-      ? (
-          mode==="store"
-            ? "Zbuduj sklep tutaj"
-            : "Zbuduj centrum tutaj"
-        )
-      : "Najpierw kliknij mapę";
-
-}
-
-function renderNearestHub(){
-
-  if(
-    !state.mapBuildPoint
-  ){
-
-    $("nearestHubInfo").textContent =
-      "Brak wybranego punktu.";
-
-    return;
-
-  }
-
-  const p =
-    state.mapBuildPoint;
-
-  const nearest =
-    nearestHubFor(
-      p.lat,
-      p.lng
-    );
-
-  if(
-    !nearest
-  ){
-
-    $("nearestHubInfo").innerHTML =
-      `
-      Brak centrów logistycznych.
-      <br>
-      Przewidywana dostawa do sklepu w tym miejscu:
-      <strong>7 dni</strong>.
-      `;
-
-    return;
-
-  }
-
-  const tempStore = {
-
-    lat:
-      p.lat,
-
-    lng:
-      p.lng
+    p,
+    o,
+    t
 
   };
 
-  const logistics =
-    logisticsForStore(
-      tempStore
-    );
-
-  $("nearestHubInfo").innerHTML =
-    `
-    Najbliższe centrum:
-    <strong>${nearest.hub.name}</strong>
-    <br>
-
-    Odległość:
-    <strong>${Math.round(nearest.distance)} km</strong>
-    <br>
-
-    Dostawa:
-    <strong>${logistics.eta} dni</strong>.
-    `;
-
 }
 
-function renderStores(){
 
-  $("storesList").innerHTML =
-    state.stores.length
+function renderCampaign(){
 
-      ? state.stores.map(
-          store => {
+  const f =
+    forecastEV();
 
-            const type =
-              storeTypes[
-                store.type
-              ];
 
-            const e =
-              expectedStoreDay(
-                store
-              );
+  $("daysStat")
+    .textContent =
+      state.days;
 
-            const stock =
-              Object.values(
-                store.stock
-              )
-              .reduce(
-                (a,b) =>
-                  a+b,
-                0
-              );
 
-            const logistics =
-              logisticsForStore(
-                store
-              );
-
-            const refund =
-              type.cost
-              *
-              type.refund
-              +
-              (
-                store.level-1
-              )
-              *
-              15000;
-
-            return `
-            <div class="card p-4">
-
-              <div class="flex justify-between gap-3">
-
-                <div>
-
-                  <div class="font-bold">
-                    ${store.name}
-                  </div>
-
-                  <div class="text-sm muted">
-                    ${store.locationName}
-                  </div>
-
-                </div>
-
-                <span class="pill">
-                  ${type.name}
-                </span>
-
-              </div>
-
-              <div class="grid grid-cols-2 gap-2 mt-3 text-sm">
-
-                <div>
-                  Poziom
-                  <strong>${store.level}</strong>
-                </div>
-
-                <div>
-                  Magazyn
-                  <strong>${stock}</strong>
-                </div>
-
-                <div>
-                  Przychód/d
-                  <strong>${money(e.revenue)}</strong>
-                </div>
-
-                <div>
-                  Zysk/d
-                  <strong class="${e.profit>=0?"good":"bad"}">
-                    ${money(e.profit)}
-                  </strong>
-                </div>
-
-              </div>
-
-              <div class="text-xs muted mt-2">
-
-                Dostawa:
-                ${logistics.eta} dni
-
-                ${
-                  logistics.distance!==null
-                    ? `· ${Math.round(logistics.distance)} km od centrum`
-                    : "· brak centrum"
-                }
-
-              </div>
-
-              <button
-                class="upgrade-store btn w-full mt-3"
-                data-id="${store.id}"
-              >
-                Ulepsz —
-                ${money(45000*store.level)}
-              </button>
-
-              <button
-                class="focus-store btn w-full mt-2"
-                data-id="${store.id}"
-              >
-                Pokaż na mapie
-              </button>
-
-              <button
-                class="close-store btn btn-danger w-full mt-2"
-                data-id="${store.id}"
-              >
-                Zamknij · odzyskaj ${money(refund)}
-              </button>
-
-            </div>
-            `;
-
-          }
-        )
-        .join("")
-
-      : `
-        <div class="muted">
-          Brak sklepów.
-        </div>
-        `;
-
-}
-
-function renderOrderSelectors(){
-
-  const oldStore =
-    $("orderStore").value;
-
-  const oldProduct =
-    $("orderProduct").value;
-
-  $("orderStore").innerHTML =
-    state.stores
-      .map(
-        s =>
-          `
-          <option value="${s.id}">
-            ${s.name} — ${s.locationName}
-          </option>
-          `
-      )
-      .join("");
-
-  if(
-    state.stores.some(
-      s =>
-        s.id===oldStore
-    )
-  ){
-
-    $("orderStore").value =
-      oldStore;
-
-  }
-
-  const products =
-    allProducts()
-      .slice()
-      .sort(
-        (a,b) =>
-          b.demand-a.demand
+  $("cashStat")
+    .textContent =
+      money(
+        state.cash
       );
 
-  $("orderProduct").innerHTML =
-    products
-      .map(
-        p =>
-          `
-          <option value="${p.id}">
-            ${p.name} — ${productBuyPrice(p).toFixed(2)} zł
-          </option>
-          `
+
+  $("nationalStat")
+    .textContent =
+      pct(
+        nationalSupport()
+      );
+
+
+  $("forecastStat")
+    .textContent =
+      `${f.p} / ${f.o}`;
+
+
+  $("energyStat")
+    .textContent =
+      Math.round(
+        state.energy
       )
-      .join("");
-
-  if(
-    products.some(
-      p =>
-        p.id===oldProduct
-    )
-  ){
-
-    $("orderProduct").value =
-      oldProduct;
-
-  }
-
-  $("inventoryStoreFilter").innerHTML =
-    `
-    <option value="all">
-      Wszystkie
-    </option>
-    `
-    +
-    state.stores
-      .map(
-        s =>
-          `
-          <option value="${s.id}">
-            ${s.name}
-          </option>
-          `
-      )
-      .join("");
-
-  renderOrderCost();
-
-}
-
-function renderOrderCost(){
-
-  const store =
-    getStore(
-      $("orderStore").value
-    );
-
-  const p =
-    getProduct(
-      $("orderProduct").value
-    );
-
-  const qty =
-    Math.max(
-      1,
-      Number(
-        $("orderQty").value
-      )
-      ||
-      1
-    );
-
-  if(
-    !store
-    ||
-    !p
-  ){
-
-    $("orderCost").textContent =
-      "—";
-
-    $("orderEta").textContent =
-      "—";
-
-    return;
-
-  }
-
-  const logistics =
-    logisticsForStore(
-      store
-    );
-
-  const goods =
-    productBuyPrice(p)
-    *
-    qty;
-
-  const transport =
-    Math.max(
-      20,
-      goods
-      *
-      .04
-      *
-      logistics.shippingMultiplier
-    );
-
-  $("orderCost").textContent =
-    money(
-      goods
       +
-      transport
-    );
+      "%";
 
-  $("orderEta").textContent =
-    logistics.eta
-    +
-    " dni";
 
-}
+  $("nameStat")
+    .textContent =
+      Math.round(
+        state.recognition
+      )
+      +
+      "%";
 
-function renderShipments(){
 
-  $("shipmentsList").innerHTML =
-    state.shipments.length
+  $("momentumStat")
+    .textContent =
+      (
+        state.momentum>=0
+          ? "+"
+          : ""
+      )
+      +
+      state.momentum
+        .toFixed(1);
 
-      ? state.shipments
-          .slice()
-          .sort(
-            (a,b) =>
-              a.eta-b.eta
-          )
-          .map(
-            sh => {
 
-              const store =
-                getStore(
-                  sh.storeId
-                );
-
-              const p =
-                getProduct(
-                  sh.productId
-                );
-
-              return `
-              <div class="card p-3 flex justify-between gap-3">
-
-                <div>
-
-                  <div class="font-medium">
-                    ${p?.name || "Produkt"}
-                  </div>
-
-                  <div class="text-sm muted">
-                    ${store?.name || "Sklep"}
-                    ·
-                    ${sh.qty} szt.
-                  </div>
-
-                </div>
-
-                <div class="text-right">
-
-                  <strong>
-                    ${sh.eta} dni
-                  </strong>
-
-                  <div class="text-xs muted">
-                    ${money(sh.cost)}
-                  </div>
-
-                </div>
-
-              </div>
-              `;
-
-            }
-          )
-          .join("")
-
-      : `
-        <div class="muted">
-          Brak dostaw w trasie.
-        </div>
-        `;
-
-}
-
-function renderInventory(){
-
-  const filter =
-    $("inventoryStoreFilter").value;
-
-  const stores =
-    filter==="all"
-      ? state.stores
-      : state.stores.filter(
-          s =>
-            s.id===filter
+  $("dateStat")
+    .textContent =
+      state.date
+        .toLocaleDateString(
+          "pl-PL",
+          {
+            timeZone:"UTC"
+          }
         );
 
-  if(
-    !stores.length
-  ){
 
-    $("inventoryTable").innerHTML =
-      `
-      <div class="muted">
-        Brak sklepów.
-      </div>
-      `;
+  $("playerEV")
+    .textContent =
+      f.p;
 
-    return;
 
-  }
+  $("oppEV")
+    .textContent =
+      f.o;
 
-  const products =
-    allProducts()
-      .slice()
-      .sort(
-        (a,b) =>
-          b.demand-a.demand
+
+  $("pEVBar")
+    .style
+    .width =
+      (
+        f.p
+        /
+        538
+        *
+        100
       )
-      .slice(
-        0,
-        35
-      );
+      +
+      "%";
 
-  let html =
-    `
-    <table class="min-w-[760px] w-full text-sm">
 
-      <thead>
-
-        <tr class="border-b border-slate-700">
-
-          <th class="text-left p-2">
-            Produkt
-          </th>
-    `;
-
-  stores.forEach(
-    store => {
-
-      html +=
-        `
-        <th class="text-left p-2">
-          ${store.name}
-        </th>
-        `;
-
-    }
-  );
-
-  html +=
-    `
-        </tr>
-      </thead>
-
-      <tbody>
-    `;
-
-  products.forEach(
-    p => {
-
-      html +=
-        `
-        <tr class="border-b border-slate-800">
-
-          <td class="p-2">
-            ${p.name}
-          </td>
-        `;
-
-      stores.forEach(
-        store => {
-
-          html +=
-            `
-            <td class="p-2">
-              ${store.stock[p.id] || 0}
-            </td>
-            `;
-
-        }
-      );
-
-      html +=
-        `
-        </tr>
-        `;
-
-    }
-  );
-
-  html +=
-    `
-      </tbody>
-    </table>
-    `;
-
-  $("inventoryTable").innerHTML =
-    html;
-
-}
-
-function renderLogistics(){
-
-  $("ownedHubs").innerHTML =
-    state.hubs.length
-
-      ? state.hubs.map(
-          hub =>
-            `
-            <div class="card p-3">
-
-              <div class="font-bold">
-                ${hub.name}
-              </div>
-
-              <div class="text-sm muted">
-                ${hub.locationName || ""}
-              </div>
-
-              <div class="text-xs muted mt-1">
-                ${hub.lat.toFixed(4)},
-                ${hub.lng.toFixed(4)}
-              </div>
-
-              <div class="text-sm mt-2">
-                Utrzymanie:
-                ${money(hub.maintenance)}/dzień
-              </div>
-
-              <button
-                class="focus-hub btn w-full mt-3"
-                data-id="${hub.id}"
-              >
-                Pokaż na mapie
-              </button>
-
-            </div>
-            `
-        )
-        .join("")
-
-      : `
-        <div class="muted">
-          Brak centrów logistycznych.
-        </div>
-        `;
-
-}
-
-function renderProducts(){
-
-  $("productsGrid").innerHTML =
-    allProducts()
-      .slice(-60)
-      .reverse()
-      .map(
-        p =>
-          `
-          <div class="card p-4">
-
-            <div class="flex justify-between gap-2">
-
-              <div class="font-bold">
-                ${p.name}
-              </div>
-
-              ${
-                p.own
-                  ? `<span class="pill">marka własna</span>`
-                  : ""
-              }
-
-            </div>
-
-            <div class="text-sm muted">
-              ${p.category}
-            </div>
-
-            <div class="grid grid-cols-2 gap-2 mt-3 text-sm">
-
-              <div>
-                Zakup
-                <strong>
-                  ${productBuyPrice(p).toFixed(2)} zł
-                </strong>
-              </div>
-
-              <div>
-                Popyt
-                <strong>
-                  ${Math.round(p.demand)}/100
-                </strong>
-              </div>
-
-            </div>
-
-            <label class="block mt-3 text-sm">
-
-              Cena sprzedaży
-
-              <input
-                class="product-price w-full mt-1"
-                data-id="${p.id}"
-                type="number"
-                min=".01"
-                step=".01"
-                value="${p.sellPrice.toFixed(2)}"
-              >
-
-            </label>
-
-          </div>
-          `
+  $("oEVBar")
+    .style
+    .width =
+      (
+        f.o
+        /
+        538
+        *
+        100
       )
-      .join("");
+      +
+      "%";
 
-}
 
-function renderDeposit(){
-
-  $("depositCollected").textContent =
-    money(
-      state.deposit.collected
-    );
-
-  $("depositRefunded").textContent =
-    money(
-      state.deposit.refunded
-    );
-
-  $("depositContainers").textContent =
-    state.deposit.containers
-      .toLocaleString("pl-PL");
-
-  $("depositToggle").checked =
-    state.deposit.enabled;
-
-  $("depositRate").value =
-    state.deposit.rate.toFixed(2);
-
-  $("depositMachines").innerHTML =
-    state.stores.length
-
-      ? state.stores.map(
-          store => {
-
-            const level =
-              store.depositMachineLevel
-              ||
-              0;
-
-            const cost =
-              level===0
-                ? 65000
-                : 90000*level;
-
-            return `
-            <div class="card p-3">
-
-              <div class="font-bold">
-                ${store.name}
-              </div>
-
-              <div class="text-sm muted">
-                ${store.locationName}
-              </div>
-
-              <div class="mt-2 text-sm">
-
-                Automat:
-                <strong>
-                  poziom ${level}
-                </strong>
-
-              </div>
-
-              <button
-                class="deposit-upgrade btn ${
-                  level<3
-                    ? "btn-primary"
-                    : ""
-                } w-full mt-3"
-
-                data-id="${store.id}"
-
-                ${
-                  level>=3
-                    ? "disabled"
-                    : ""
-                }
-              >
-
-                ${
-                  level===0
-                    ? `Kup automat — ${money(cost)}`
-                    : level<3
-                      ? `Ulepsz automat — ${money(cost)}`
-                      : "Maksymalny poziom"
-                }
-
-              </button>
-
-            </div>
-            `;
-
-          }
-        )
-        .join("")
-
-      : `
-        <div class="muted">
-          Brak sklepów.
-        </div>
-        `;
-
-}
-
-function renderBrands(){
-
-  $("brandFamilies").innerHTML =
-    ownBrandFamilies
+  $("stateGrid")
+    .innerHTML =
+      Object.values(
+        state.states
+      )
       .map(
-        family => {
+        s => {
 
-          const available =
-            state.factories.some(
-              f =>
-                f.category
-                &&
-                family.categories.includes(
-                  f.category
-                )
-            );
+          const cls =
+            s.called
+
+              ? `called-${s.called}`
+
+              : (
+                  s.margin>2
+
+                    ? "ahead-player"
+
+                    : s.margin<-2
+
+                      ? "ahead-opp"
+
+                      : "tossup"
+                );
+
 
           return `
-          <div class="card p-3">
-
-            <div class="font-bold">
-              ${family.name}
-            </div>
-
-            <div class="text-sm muted">
-              ${family.description}
-            </div>
-
-            <button
-              class="create-private btn ${
-                available
-                  ? "btn-primary"
+          <button
+            class="
+              state
+              ${cls}
+              ${
+                state.selected===s.abbr
+                  ? "selected"
                   : ""
-              } w-full mt-3"
-
-              data-family="${family.id}"
-
-              ${
-                available
-                  ? ""
-                  : "disabled"
               }
-            >
+            "
+            data-state="${s.abbr}"
+          >
 
+            <span class="abbr">
+              ${s.abbr}
+            </span>
+
+            <span class="ev">
+              ${s.ev} EV
+            </span>
+
+            <div class="margin">
               ${
-                available
-                  ? "Wprowadź nowy produkt"
-                  : "Potrzebujesz odpowiedniej fabryki"
+                s.margin>=0
+                  ? "Ty +"
+                  : "Rywal +"
               }
+              ${Math.abs(s.margin).toFixed(1)}
+            </div>
 
-            </button>
-
-          </div>
+          </button>
           `;
 
         }
       )
       .join("");
 
-  $("privateProducts").innerHTML =
-    state.privateProducts.length
 
-      ? state.privateProducts.map(
-          p =>
-            `
-            <div class="card p-3">
+  document
+    .querySelectorAll(
+      "[data-state]"
+    )
+    .forEach(
+      b =>
+        b.onclick =
+          () => {
 
-              <div class="font-bold">
-                ${p.name}
-              </div>
+            state.selected =
+              b.dataset.state;
 
-              <div class="text-sm muted">
-                ${p.category}
-              </div>
 
-              <div class="text-sm mt-2">
-
-                Koszt
-                ${p.buyPrice.toFixed(2)} zł
-
-                ·
-
-                cena
-                ${p.sellPrice.toFixed(2)} zł
-
-              </div>
-
-            </div>
-            `
-        )
-        .join("")
-
-      : `
-        <div class="muted">
-          Brak produktów marki własnej.
-        </div>
-        `;
-
-}
-
-function renderFactories(){
-
-  $("factoriesGrid").innerHTML =
-    state.factories.length
-
-      ? state.factories.map(
-          (factory,index) => {
-
-            const options =
-              factoryProducts
-                .map(
-                  cfg =>
-                    `
-                    <option
-                      value="${cfg.category}"
-                      ${
-                        factory.category===cfg.category
-                          ? "selected"
-                          : ""
-                      }
-                    >
-                      ${cfg.category}
-                    </option>
-                    `
-                )
-                .join("");
-
-            return `
-            <div class="card p-4">
-
-              <div class="flex justify-between gap-2">
-
-                <div class="font-bold">
-                  Fabryka #${index+1}
-                </div>
-
-                <span class="pill">
-                  ${factory.category || "pusta"}
-                </span>
-
-              </div>
-
-              <label class="block mt-3 text-sm">
-
-                Co produkuje?
-
-                <select
-                  class="factory-production w-full mt-1"
-                  data-id="${factory.id}"
-                >
-
-                  <option value="">
-                    — brak produkcji —
-                  </option>
-
-                  ${options}
-
-                </select>
-
-              </label>
-
-              <div class="text-sm mt-3">
-
-                Utrzymanie:
-
-                <strong>
-                  ${money(factory.maintenance)}/dzień
-                </strong>
-
-              </div>
-
-            </div>
-            `;
+            renderCampaign();
 
           }
-        )
-        .join("")
-
-      : `
-        <div class="muted">
-          Nie masz jeszcze fabryki.
-        </div>
-        `;
-
-}
-
-function renderManagement(){
-
-  $("loyaltyBtn").disabled =
-    state.upgrades.loyalty;
-
-  $("loyaltyBtn").textContent =
-    state.upgrades.loyalty
-      ? "Aktywne"
-      : "Kup — 180 000 zł";
-
-  $("pricingBtn").disabled =
-    state.upgrades.pricing;
-
-  $("pricingBtn").textContent =
-    state.upgrades.pricing
-      ? "Aktywne"
-      : "Kup — 220 000 zł";
-
-  $("procurementBtn").disabled =
-    state.upgrades.procurement;
-
-  $("procurementBtn").textContent =
-    state.upgrades.procurement
-      ? "Aktywne"
-      : "Kup — 260 000 zł";
-
-}
-
-function renderCompanies(){
-
-  $("companiesGrid").innerHTML =
-    state.companies
-      .map(
-        company =>
-          `
-          <div class="card p-4">
-
-            <div class="font-bold">
-              ${company.name}
-            </div>
-
-            <div class="text-sm muted">
-              Gotowa sieć sklepów
-            </div>
-
-            <div class="grid grid-cols-2 gap-2 text-sm mt-3">
-
-              <div>
-                Sklepy
-                <strong>${company.stores}</strong>
-              </div>
-
-              <div>
-                Jakość
-                <strong>
-                  ${Math.round(company.quality*100)}%
-                </strong>
-              </div>
-
-            </div>
-
-            <div class="mt-3">
-
-              Cena:
-
-              <strong>
-                ${money(company.price)}
-              </strong>
-
-            </div>
-
-            <button
-              class="buy-company btn btn-primary w-full mt-3"
-              data-id="${company.id}"
-            >
-              Przejmij całą sieć
-            </button>
-
-          </div>
-          `
-      )
-      .join("");
-
-}
-
-function renderAll(){
-
-  renderTop();
-  renderBuildPanel();
-  renderNearestHub();
-  renderStores();
-  renderOrderSelectors();
-  renderShipments();
-  renderInventory();
-  renderLogistics();
-  renderProducts();
-  renderDeposit();
-  renderBrands();
-  renderFactories();
-  renderManagement();
-  renderCompanies();
-  renderMapMarkers();
-
-}
-
-/* =========================
-   PRAWDZIWA MAPA LEAFLET
-========================= */
-
-let realMap=null;
-let storeLayer=null;
-let hubLayer=null;
-let buildLayer=null;
-
-const storeIcon =
-  L.divIcon({
-
-    className:"",
-
-    html:
-      `<span class="store-icon"></span>`,
-
-    iconSize:[
-      28,
-      28
-    ],
-
-    iconAnchor:[
-      14,
-      28
-    ]
-
-  });
-
-const hubIcon =
-  L.divIcon({
-
-    className:"",
-
-    html:
-      `<span class="hub-icon"></span>`,
-
-    iconSize:[
-      28,
-      46
-    ],
-
-    /*
-      Kotwica nadal wskazuje dokładnie współrzędne miasta,
-      ale sam symbol jest wizualnie opuszczony pod sklep.
-    */
-    iconAnchor:[
-      14,
-      28
-    ]
-
-  });
-
-const buildIcon =
-  L.divIcon({
-
-    className:"",
-
-    html:
-      `<span class="build-icon"></span>`,
-
-    iconSize:[
-      20,
-      20
-    ],
-
-    iconAnchor:[
-      10,
-      10
-    ]
-
-  });
-
-function initMap(){
-
-  realMap =
-    L.map(
-      "worldMap",
-      {
-
-        center:[
-          52.0,
-          19.0
-        ],
-
-        zoom:5,
-
-        dragging:true,
-
-        scrollWheelZoom:true,
-
-        doubleClickZoom:true,
-
-        touchZoom:true,
-
-        boxZoom:true,
-
-        keyboard:true,
-
-        zoomControl:true
-
-      }
     );
 
-  L.tileLayer(
-    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-    {
 
-      maxZoom:19,
+  const s =
+    state.states[
+      state.selected
+    ];
 
-      attribution:
-        '&copy; OpenStreetMap contributors'
 
-    }
-  )
-  .addTo(
-    realMap
-  );
+  $("stateDetail")
+    .innerHTML =
+      `
+      <div
+        style="
+          font-size:22px;
+          font-weight:1000
+        "
+      >
+        ${s.name} (${s.abbr})
+      </div>
 
-  storeLayer =
-    L.layerGroup()
-      .addTo(
-        realMap
-      );
+      <div style="margin-top:5px">
+        <strong>
+          ${s.ev} głosów elektorskich
+        </strong>
+      </div>
 
-  hubLayer =
-    L.layerGroup()
-      .addTo(
-        realMap
-      );
+      <div style="margin-top:8px">
 
-  buildLayer =
-    L.layerGroup()
-      .addTo(
-        realMap
-      );
+        Sondaż:
 
-  realMap.on(
-    "click",
-    e => {
+        <strong
+          class="${
+            s.margin>=0
+              ? "good"
+              : "bad"
+          }"
+        >
 
-      selectBuildPoint(
-        e.latlng.lat,
-        e.latlng.lng
-      );
+          ${
+            s.margin>=0
+              ? state.playerName
+              : state.opponentName
+          }
 
-    }
-  );
+          +${Math.abs(s.margin).toFixed(1)}
 
-  setTimeout(
-    () =>
-      realMap.invalidateSize(),
-    50
-  );
+        </strong>
 
-}
+      </div>
 
-function renderMapMarkers(){
+      <div>
+        Organizacja terenowa:
+        <strong>
+          ${s.ground.toFixed(1)}
+        </strong>
+      </div>
 
-  if(
-    !realMap
-  )
-    return;
+      <div>
+        Wizyty:
+        <strong>
+          ${s.visits}
+        </strong>
+      </div>
+      `;
 
-  storeLayer.clearLayers();
-  hubLayer.clearLayers();
-  buildLayer.clearLayers();
 
-  /*
-    Huby są dodawane najpierw i mają niższy z-index.
-    Sklepy renderują się nad nimi.
-    Nic nie jest usuwane z state.hubs ani state.stores.
-  */
+  $("debateBtn")
+    .disabled =
+      state.debateCooldown>0
+      ||
+      state.days<1;
 
-  state.hubs.forEach(
-    hub => {
 
-      L.marker(
-        [
-          hub.lat,
-          hub.lng
-        ],
-        {
-          icon:
-            hubIcon,
+  $("debateBtn")
+    .textContent =
+      state.debateCooldown>0
 
-          zIndexOffset:
-            100
-        }
-      )
-      .bindPopup(
-        `<strong>${hub.name}</strong><br>${hub.locationName || "Centrum logistyczne"}`
-      )
-      .addTo(
-        hubLayer
-      );
+        ? `🎙️ Debata dostępna za ${state.debateCooldown} dni`
 
-    }
-  );
-
-  state.stores.forEach(
-    store => {
-
-      L.marker(
-        [
-          store.lat,
-          store.lng
-        ],
-        {
-          icon:
-            storeIcon,
-
-          zIndexOffset:
-            1000
-        }
-      )
-      .bindPopup(
-        `<strong>${store.name}</strong><br>${store.locationName}`
-      )
-      .addTo(
-        storeLayer
-      );
-
-    }
-  );
-
-  if(
-    state.mapBuildPoint
-  ){
-
-    L.marker(
-      [
-        state.mapBuildPoint.lat,
-        state.mapBuildPoint.lng
-      ],
-      {
-        icon:
-          buildIcon
-      }
-    )
-    .bindPopup(
-      "Wybrane miejsce budowy"
-    )
-    .addTo(
-      buildLayer
-    );
-
-  }
+        : "🎙️ Debata ogólnokrajowa";
 
 }
 
-function buildAtMapPoint(){
 
-  if(
-    !state.mapBuildPoint
-  )
-    return;
-
-  const mode =
-    $("mapBuildMode").value;
-
-  const lat =
-    state.mapBuildPoint.lat;
-
-  const lng =
-    state.mapBuildPoint.lng;
-
-  if(
-    mode==="store"
-  ){
-
-    const typeKey =
-      $("buildStoreType").value;
-
-    const type =
-      storeTypes[
-        typeKey
-      ];
-
-    if(
-      state.cash<type.cost
-    )
-      return;
-
-    state.cash -=
-      type.cost;
-
-    const number =
-      state.stores.length
-      +
-      1;
-
-    state.stores.push({
-
-      id:
-        uid(),
-
-      name:
-        `${type.name} #${number}`,
-
-      locationName:
-        placeLabel(
-          state.mapBuildPoint
-        ),
-
-      countryCode:
-        state.mapBuildPoint.countryCode || "",
-
-      lat,
-
-      lng,
-
-      type:
-        typeKey,
-
-      level:1,
-
-      levelMultiplier:1,
-
-      marketFactor:
-        .95
-        +
-        Math.random()*.15,
-
-      stock:{},
-
-      depositMachineLevel:0
-
-    });
-
-    state.reputation =
-      Math.min(
-        100,
-        state.reputation+.4
-      );
-
-  }
-
-  else{
-
-    if(
-      state.cash<
-      HUB_COST
-    )
-      return;
-
-    state.cash -=
-      HUB_COST;
-
-    state.hubs.push({
-
-      id:
-        uid(),
-
-      name:
-        `Centrum logistyczne #${state.hubs.length+1}`,
-
-      locationName:
-        placeLabel(
-          state.mapBuildPoint
-        ),
-
-      countryCode:
-        state.mapBuildPoint.countryCode || "",
-
-      lat,
-
-      lng,
-
-      maintenance:
-        HUB_MAINTENANCE
-
-    });
-
-  }
-
-  state.mapBuildPoint =
-    null;
-
-  renderAll();
-
-}
-
-function createAcquiredStores(
-  company
+function doAction(
+  type
 ){
 
-  const shuffled =
-    acquisitionLocations
-      .slice()
-      .sort(
-        () =>
-          Math.random()-.5
-      );
-
-  const stores=[];
-
-  for(
-    let i=0;
-    i<company.stores;
-    i++
-  ){
-
-    const loc =
-      shuffled[
-        i
-        %
-        shuffled.length
-      ];
-
-    const jitterLat =
-      loc.lat;
-
-    const jitterLng =
-      loc.lng;
-
-    stores.push({
-
-      id:
-        uid(),
-
-      name:
-        `${company.name} #${i+1}`,
-
-      locationName:
-        loc.name,
-
-      lat:
-        jitterLat,
-
-      lng:
-        jitterLng,
-
-      type:
-        i%5===0
-          ? "standard"
-          : "mini",
-
-      level:1,
-
-      levelMultiplier:
-        company.quality,
-
-      marketFactor:
-        company.quality,
-
-      stock:{},
-
-      depositMachineLevel:0
-
-    });
-
-  }
-
-  return stores;
-
-}
-
-/* =========================
-   EVENTY
-========================= */
-
-$("citySearchBtn")
-  .addEventListener(
-    "click",
-    searchCities
-  );
-
-$("citySearchInput")
-  .addEventListener(
-    "keydown",
-    e => {
-
-      if(
-        e.key==="Enter"
-      ){
-
-        e.preventDefault();
-
-        searchCities();
-
-      }
-
-    }
-  );
-
-$("buildMapObjectBtn")
-  .addEventListener(
-    "click",
-    buildAtMapPoint
-  );
-
-$("mapBuildMode")
-  .addEventListener(
-    "change",
-    renderBuildPanel
-  );
-
-$("buildStoreType")
-  .addEventListener(
-    "change",
-    renderBuildPanel
-  );
-
-$("pauseBtn")
-  .addEventListener(
-    "click",
-    () => {
-
-      state.paused =
-        !state.paused;
-
-      $("pauseBtn").textContent =
-        state.paused
-          ? "▶ Wznów"
-          : "⏸ Pauza";
-
-      renderTop();
-
-    }
-  );
-
-document
-  .querySelectorAll(
-    ".speed"
+  if(
+    state.electionDone
   )
-  .forEach(
-    btn => {
+    return;
+
+
+  const s =
+    state.states[
+      state.selected
+    ];
+
+
+  const need =
+    (
+      cash,
+      days,
+      energy
+    ) =>
+      state.cash>=cash
+      &&
+      state.days>=days
+      &&
+      state.energy>=energy;
 
-      btn.addEventListener(
-        "click",
-        () => {
-
-          state.speed =
-            Number(
-              btn.dataset.speed
-            );
-
-          state.paused =
-            false;
-
-          $("pauseBtn").textContent =
-            "⏸ Pauza";
-
-          renderTop();
-
-        }
-      );
-
-    }
-  );
-
-document
-  .querySelectorAll(
-    ".tab"
-  )
-  .forEach(
-    btn => {
-
-      btn.addEventListener(
-        "click",
-        () => {
-
-          document
-            .querySelectorAll(
-              ".tab"
-            )
-            .forEach(
-              t =>
-                t.classList.remove(
-                  "active"
-                )
-            );
-
-          btn.classList.add(
-            "active"
-          );
-
-          document
-            .querySelectorAll(
-              ".game-tab"
-            )
-            .forEach(
-              t =>
-                t.classList.add(
-                  "hidden"
-                )
-            );
-
-          $(
-            "tab-"
-            +
-            btn.dataset.tab
-          )
-          .classList
-          .remove(
-            "hidden"
-          );
-
-          if(
-            btn.dataset.tab==="world"
-            &&
-            realMap
-          ){
-
-            setTimeout(
-              () =>
-                realMap.invalidateSize(),
-              40
-            );
-
-          }
-
-        }
-      );
-
-    }
-  );
-
-$("orderStore")
-  .addEventListener(
-    "change",
-    renderOrderCost
-  );
-
-$("orderProduct")
-  .addEventListener(
-    "change",
-    renderOrderCost
-  );
-
-$("orderQty")
-  .addEventListener(
-    "input",
-    renderOrderCost
-  );
-
-$("inventoryStoreFilter")
-  .addEventListener(
-    "change",
-    renderInventory
-  );
-
-$("orderForm")
-  .addEventListener(
-    "submit",
-    e => {
-
-      e.preventDefault();
-
-      const store =
-        getStore(
-          $("orderStore").value
-        );
-
-      const p =
-        getProduct(
-          $("orderProduct").value
-        );
-
-      const qty =
-        Math.max(
-          1,
-          Math.min(
-            100000,
-            Number(
-              $("orderQty").value
-            )
-            ||
-            1
-          )
-        );
-
-      if(
-        store
-        &&
-        p
-      ){
-
-        placeOrder(
-          store,
-          p,
-          qty
-        );
-
-      }
-
-      renderAll();
-
-    }
-  );
-
-$("autoOrderBtn")
-  .addEventListener(
-    "click",
-    () => {
-
-      runAutomaticOrders();
-
-      renderAll();
-
-    }
-  );
-
-$("generateProductsBtn")
-  .addEventListener(
-    "click",
-    () => {
-
-      generateProducts(10);
-
-      renderAll();
-
-    }
-  );
-
-$("autoOrdersToggle")
-  .addEventListener(
-    "change",
-    () => {
-
-      state.autoOrders =
-        $("autoOrdersToggle").checked;
-
-    }
-  );
-
-$("autoOrderMin")
-  .addEventListener(
-    "change",
-    () => {
-
-      state.autoOrderMin =
-        Math.max(
-          5,
-          Math.min(
-            500,
-            Number(
-              $("autoOrderMin").value
-            )
-            ||
-            35
-          )
-        );
-
-    }
-  );
-
-$("autoOrderTarget")
-  .addEventListener(
-    "change",
-    () => {
-
-      state.autoOrderTarget =
-        Math.max(
-          state.autoOrderMin+1,
-          Math.min(
-            1000,
-            Number(
-              $("autoOrderTarget").value
-            )
-            ||
-            110
-          )
-        );
-
-    }
-  );
-
-$("depositToggle")
-  .addEventListener(
-    "change",
-    () => {
-
-      state.deposit.enabled =
-        $("depositToggle").checked;
-
-      renderAll();
-
-    }
-  );
-
-$("depositRate")
-  .addEventListener(
-    "change",
-    () => {
-
-      state.deposit.rate =
-        Number(
-          $("depositRate").value
-        )
-        ||
-        1;
-
-      renderAll();
-
-    }
-  );
-
-$("buildFactoryBtn")
-  .addEventListener(
-    "click",
-    () => {
-
-      if(
-        state.cash<
-        GENERIC_FACTORY_COST
-      )
-        return;
-
-      state.cash -=
-        GENERIC_FACTORY_COST;
-
-      state.factories.push({
-
-        id:
-          uid(),
-
-        category:null,
-
-        maintenance:180
-
-      });
-
-      renderAll();
-
-    }
-  );
-
-$("loyaltyBtn")
-  .addEventListener(
-    "click",
-    () => {
-
-      if(
-        !state.upgrades.loyalty
-        &&
-        state.cash>=180000
-      ){
-
-        state.cash -=
-          180000;
-
-        state.upgrades.loyalty =
-          true;
-
-        renderAll();
-
-      }
-
-    }
-  );
-
-$("pricingBtn")
-  .addEventListener(
-    "click",
-    () => {
-
-      if(
-        !state.upgrades.pricing
-        &&
-        state.cash>=220000
-      ){
-
-        state.cash -=
-          220000;
-
-        state.upgrades.pricing =
-          true;
-
-        renderAll();
-
-      }
-
-    }
-  );
-
-$("procurementBtn")
-  .addEventListener(
-    "click",
-    () => {
-
-      if(
-        !state.upgrades.procurement
-        &&
-        state.cash>=260000
-      ){
-
-        state.cash -=
-          260000;
-
-        state.upgrades.procurement =
-          true;
-
-        renderAll();
-
-      }
-
-    }
-  );
-
-$("marketingBtn")
-  .addEventListener(
-    "click",
-    () => {
-
-      if(
-        state.cash>=75000
-      ){
-
-        state.cash -=
-          75000;
-
-        state.reputation =
-          Math.min(
-            100,
-            state.reputation+8
-          );
-
-        renderAll();
-
-      }
-
-    }
-  );
-
-document
-  .addEventListener(
-    "click",
-    e => {
-
-      const upgrade =
-        e.target.closest(
-          ".upgrade-store"
-        );
-
-      if(
-        upgrade
-      ){
-
-        const store =
-          getStore(
-            upgrade.dataset.id
-          );
-
-        if(
-          !store
-        )
-          return;
-
-        const cost =
-          45000
-          *
-          store.level;
-
-        if(
-          state.cash<cost
-        )
-          return;
-
-        state.cash -=
-          cost;
-
-        store.level++;
-
-        store.levelMultiplier *=
-          1.12;
-
-        renderAll();
-
-        return;
-
-      }
-
-      const focusStore =
-        e.target.closest(
-          ".focus-store"
-        );
-
-      if(
-        focusStore
-      ){
-
-        const store =
-          getStore(
-            focusStore.dataset.id
-          );
-
-        if(
-          store
-          &&
-          realMap
-        ){
-
-          document
-            .querySelector(
-              '[data-tab="world"]'
-            )
-            .click();
-
-          realMap.setView(
-            [
-              store.lat,
-              store.lng
-            ],
-            12
-          );
-
-        }
-
-        return;
-
-      }
-
-      const focusHub =
-        e.target.closest(
-          ".focus-hub"
-        );
-
-      if(
-        focusHub
-      ){
-
-        const hub =
-          state.hubs.find(
-            h =>
-              h.id===
-              focusHub.dataset.id
-          );
-
-        if(
-          hub
-          &&
-          realMap
-        ){
-
-          document
-            .querySelector(
-              '[data-tab="world"]'
-            )
-            .click();
-
-          realMap.setView(
-            [
-              hub.lat,
-              hub.lng
-            ],
-            9
-          );
-
-        }
-
-        return;
-
-      }
-
-      const closeStore =
-        e.target.closest(
-          ".close-store"
-        );
-
-      if(
-        closeStore
-      ){
-
-        const store =
-          getStore(
-            closeStore.dataset.id
-          );
-
-        if(
-          !store
-        )
-          return;
-
-        const type =
-          storeTypes[
-            store.type
-          ];
-
-        const refund =
-          type.cost
-          *
-          type.refund
-          +
-          (
-            store.level-1
-          )
-          *
-          15000;
-
-        state.cash +=
-          refund;
-
-        state.stores =
-          state.stores.filter(
-            s =>
-              s.id!==store.id
-          );
-
-        state.shipments =
-          state.shipments.filter(
-            s =>
-              s.storeId!==store.id
-          );
-
-        renderAll();
-
-        return;
-
-      }
-
-      const dep =
-        e.target.closest(
-          ".deposit-upgrade"
-        );
-
-      if(
-        dep
-        &&
-        !dep.disabled
-      ){
-
-        const store =
-          getStore(
-            dep.dataset.id
-          );
-
-        if(
-          !store
-        )
-          return;
-
-        const level =
-          store.depositMachineLevel
-          ||
-          0;
-
-        const cost =
-          level===0
-            ? 65000
-            : 90000*level;
-
-        if(
-          state.cash<cost
-        )
-          return;
-
-        state.cash -=
-          cost;
-
-        store.depositMachineLevel =
-          Math.min(
-            3,
-            level+1
-          );
-
-        renderAll();
-
-        return;
-
-      }
-
-      const privateBtn =
-        e.target.closest(
-          ".create-private"
-        );
-
-      if(
-        privateBtn
-        &&
-        !privateBtn.disabled
-      ){
-
-        const family =
-          ownBrandFamilies.find(
-            f =>
-              f.id===
-              privateBtn.dataset.family
-          );
-
-        const matching =
-          state.factories.filter(
-            f =>
-              f.category
-              &&
-              family.categories.includes(
-                f.category
-              )
-          );
-
-        if(
-          !matching.length
-          ||
-          state.cash<30000
-        )
-          return;
-
-        state.cash -=
-          30000;
-
-        const factory =
-          matching[
-            Math.floor(
-              Math.random()
-              *
-              matching.length
-            )
-          ];
-
-        state.privateProducts.push(
-
-          createProduct(
-            true,
-            factory.category,
-            family.id
-          )
-
-        );
-
-        renderAll();
-
-        return;
-
-      }
-
-      const buyCompany =
-        e.target.closest(
-          ".buy-company"
-        );
-
-      if(
-        buyCompany
-      ){
-
-        const company =
-          state.companies.find(
-            c =>
-              c.id===
-              buyCompany.dataset.id
-          );
-
-        if(
-          !company
-          ||
-          state.cash<company.price
-        )
-          return;
-
-        state.cash -=
-          company.price;
-
-        state.stores.push(
-          ...createAcquiredStores(
-            company
-          )
-        );
-
-        state.reputation =
-          Math.min(
-            100,
-            state.reputation
-            +
-            Math.min(
-              5,
-              company.stores*.3
-            )
-          );
-
-        state.companies =
-          state.companies.filter(
-            c =>
-              c.id!==company.id
-          );
-
-        renderAll();
-
-        return;
-
-      }
-
-    }
-  );
-
-document
-  .addEventListener(
-    "change",
-    e => {
-
-      if(
-        e.target.matches(
-          ".product-price"
-        )
-      ){
-
-        const p =
-          getProduct(
-            e.target.dataset.id
-          );
-
-        if(
-          p
-        ){
-
-          p.sellPrice =
-            Math.max(
-              .01,
-              Number(
-                e.target.value
-              )
-              ||
-              p.sellPrice
-            );
-
-        }
-
-        renderTop();
-
-      }
-
-      if(
-        e.target.matches(
-          ".factory-production"
-        )
-      ){
-
-        const factory =
-          state.factories.find(
-            f =>
-              f.id===
-              e.target.dataset.id
-          );
-
-        if(
-          !factory
-        )
-          return;
-
-        const category =
-          e.target.value
-          ||
-          null;
-
-        if(
-          !category
-        ){
-
-          factory.category =
-            null;
-
-          factory.maintenance =
-            180;
-
-          renderAll();
-
-          return;
-
-        }
-
-        const cfg =
-          factoryProducts.find(
-            p =>
-              p.category===
-              category
-          );
-
-        if(
-          !cfg
-        )
-          return;
-
-        if(
-          factory.category!==category
-        ){
-
-          if(
-            state.cash<
-            cfg.setupCost
-          ){
-
-            e.target.value =
-              factory.category
-              ||
-              "";
-
-            return;
-
-          }
-
-          state.cash -=
-            cfg.setupCost;
-
-        }
-
-        factory.category =
-          category;
-
-        factory.maintenance =
-          cfg.maintenance;
-
-        renderAll();
-
-      }
-
-    }
-  );
-
-/* =========================
-   KONSOLA
-========================= */
-
-function consolePrint(text){
-
-  const out =
-    $("consoleOutput");
-
-  const line =
-    document.createElement(
-      "div"
-    );
-
-  line.textContent =
-    text;
-
-  out.appendChild(
-    line
-  );
-
-  out.scrollTop =
-    out.scrollHeight;
-
-}
-
-function setConsole(open){
-
-  $("cheatConsole")
-    .classList
-    .toggle(
-      "hidden",
-      !open
-    );
 
   if(
-    open
+    type==="rally"
   ){
 
-    setTimeout(
-      () =>
-        $("consoleInput").focus(),
-      0
+    if(
+      !need(
+        1_500_000,
+        1,
+        8
+      )
+    ){
+
+      return log(
+        "Brakuje pieniędzy, dni albo energii na wiec."
+      );
+
+    }
+
+
+    state.cash -=
+      1_500_000;
+
+
+    state.energy -=
+      8;
+
+
+    s.margin +=
+      rand(
+        .7,
+        1.7
+      )
+      +
+      state.recognition/250;
+
+
+    s.visits++;
+
+
+    state.momentum +=
+      .25;
+
+
+    advanceDays(
+      1
+    );
+
+
+    log(
+      `Wiec w ${s.name}: lokalne poparcie wzrosło.`
     );
 
   }
 
-}
 
-document
-  .addEventListener(
-    "keydown",
-    e => {
-
-      if(
-        (
-          e.key==="`"
-          ||
-          e.key==="~"
-        )
-        &&
-        ![
-          "INPUT",
-          "TEXTAREA",
-          "SELECT"
-        ]
-        .includes(
-          document.activeElement?.tagName
-        )
-      ){
-
-        e.preventDefault();
-
-        setConsole(
-          $("cheatConsole")
-            .classList
-            .contains(
-              "hidden"
-            )
-        );
-
-      }
-
-    }
-  );
-
-$("closeConsoleBtn")
-  .addEventListener(
-    "click",
-    () =>
-      setConsole(false)
-  );
-
-$("consoleForm")
-  .addEventListener(
-    "submit",
-    async e => {
-
-      e.preventDefault();
-
-      const raw =
-        $("consoleInput")
-          .value
-          .trim();
-
-      $("consoleInput").value =
-        "";
-
-      if(
-        !raw
-      )
-        return;
-
-      consolePrint(
-        "> "
-        +
-        raw
-      );
-
-      const [
-        cmd,
-        ...args
-      ] =
-        raw.split(
-          /\s+/
-        );
-
-      const c =
-        cmd.toUpperCase();
-
-      if(
-        c==="HELP"
-      ){
-
-        [
-          "CASH <kwota>",
-          "SETCASH <kwota>",
-          "AUTO ON/OFF",
-          "PRODUCTS <liczba>",
-          "REPUTATION <0-100>",
-          "FACTORY <kategoria>",
-          "SHOP <kod kraju> <ile>  np. SHOP PL 50 / SHOP USA 100",
-          "HUB <kod kraju> <ile>   np. HUB PL 10 / HUB USA 25",
-          "SHOP i HUB tylko DODAJĄ — nie usuwają istniejących obiektów"
-        ]
-        .forEach(
-          consolePrint
-        );
-
-        return;
-
-      }
-
-      if(
-        c==="CASH"
-      ){
-
-        const n =
-          Number(
-            args[0]
-          );
-
-        if(
-          Number.isFinite(n)
-        ){
-
-          state.cash +=
-            n;
-
-        }
-
-        renderAll();
-
-        return;
-
-      }
-
-      if(
-        c==="SETCASH"
-      ){
-
-        const n =
-          Number(
-            args[0]
-          );
-
-        if(
-          Number.isFinite(n)
-        ){
-
-          state.cash =
-            Math.max(
-              0,
-              n
-            );
-
-        }
-
-        renderAll();
-
-        return;
-
-      }
-
-      if(
-        c==="AUTO"
-      ){
-
-        state.autoOrders =
-          (
-            args[0]
-            ||
-            ""
-          )
-          .toUpperCase()
-          ===
-          "ON";
-
-        $("autoOrdersToggle").checked =
-          state.autoOrders;
-
-        return;
-
-      }
-
-      if(
-        c==="PRODUCTS"
-      ){
-
-        generateProducts(
-
-          Math.max(
-            1,
-            Math.min(
-              100,
-              Number(
-                args[0]
-              )
-              ||
-              10
-            )
-          )
-
-        );
-
-        renderAll();
-
-        return;
-
-      }
-
-      if(
-        c==="REPUTATION"
-      ){
-
-        state.reputation =
-          Math.max(
-            0,
-            Math.min(
-              100,
-              Number(
-                args[0]
-              )
-              ||
-              50
-            )
-          );
-
-        renderAll();
-
-        return;
-
-      }
-
-      if(
-        c==="FACTORY"
-      ){
-
-        const category =
-          args.join(" ");
-
-        const cfg =
-          factoryProducts.find(
-            p =>
-              p.category
-                .toLowerCase()
-              ===
-              category.toLowerCase()
-          );
-
-        state.factories.push({
-
-          id:
-            uid(),
-
-          category:
-            cfg?.category
-            ||
-            null,
-
-          maintenance:
-            cfg?.maintenance
-            ||
-            180
-
-        });
-
-        renderAll();
-
-        return;
-
-      }
-
-      if(
-        c==="SHOP"
-      ){
-
-        const country =
-          args[0];
-
-        const amount =
-          args[1];
-
-        if(
-          !country
-          ||
-          !amount
-        ){
-
-          consolePrint(
-            "Użycie: SHOP <kod kraju> <ile>, np. SHOP PL 50 albo SHOP USA 100"
-          );
-
-          return;
-
-        }
-
-        consolePrint(
-          `Dodaję ${amount} sklepów w ${normalizeCountryCode(country)}…`
-        );
-
-        await bulkPlaceInCountry(
-          "store",
-          country,
-          amount
-        );
-
-        return;
-
-      }
-
-      if(
-        c==="HUB"
-        ||
-        c==="LOGISTICS"
-        ||
-        c==="CENTER"
-        ||
-        c==="CENTRE"
-      ){
-
-        if(
-          !realMap
-        )
-          return;
-
-        if(
-          !args[0]
-          ||
-          !args[1]
-        ){
-
-          consolePrint(
-            "Użycie: HUB <kod kraju> <ile>, np. HUB PL 10 albo HUB USA 25"
-          );
-
-          return;
-
-        }
-
-        consolePrint(
-          `Dodaję ${args[1]} centrów logistycznych w ${normalizeCountryCode(args[0])}…`
-        );
-
-        await bulkPlaceInCountry(
-          "hub",
-          args[0],
-          args[1]
-        );
-
-        return;
-
-      }
-
-      consolePrint(
-        "Nieznany kod."
-      );
-
-    }
-  );
-
-/* =========================
-   START
-========================= */
-
-generateProducts(30);
-
-generateCompanies();
-
-initMap();
-
-renderAll();
-
-setInterval(
-  () => {
+  if(
+    type==="ads"
+  ){
 
     if(
-      state.paused
+      !need(
+        4_000_000,
+        2,
+        3
+      )
+    ){
+
+      return log(
+        "Nie możesz teraz wykupić kampanii reklamowej."
+      );
+
+    }
+
+
+    state.cash -=
+      4_000_000;
+
+
+    state.energy -=
+      3;
+
+
+    s.margin +=
+      rand(
+        .6,
+        1.5
+      );
+
+
+    state.recognition =
+      clamp(
+        state.recognition
+        +
+        1.8,
+        0,
+        100
+      );
+
+
+    advanceDays(
+      2
+    );
+
+
+    log(
+      `Reklamy w ${s.name} zwiększyły rozpoznawalność.`
+    );
+
+  }
+
+
+  if(
+    type==="ground"
+  ){
+
+    if(
+      !need(
+        3_000_000,
+        3,
+        5
+      )
+    ){
+
+      return log(
+        "Nie możesz teraz rozbudować organizacji terenowej."
+      );
+
+    }
+
+
+    state.cash -=
+      3_000_000;
+
+
+    state.energy -=
+      5;
+
+
+    s.ground =
+      clamp(
+        s.ground
+        +
+        rand(
+          1.5,
+          2.8
+        ),
+        0,
+        10
+      );
+
+
+    s.margin +=
+      .45;
+
+
+    advanceDays(
+      3
+    );
+
+
+    log(
+      `Rozbudowano sztab terenowy w ${s.name}.`
+    );
+
+  }
+
+
+  if(
+    type==="fundraise"
+  ){
+
+    if(
+      state.days<2
+      ||
+      state.energy<6
+    ){
+
+      return log(
+        "Potrzebujesz 2 dni i trochę energii na zbiórkę."
+      );
+
+    }
+
+
+    const gain =
+      rand(
+        5_000_000,
+        11_000_000
+      )
+      *
+      (
+        state.recognition
+        /
+        80
+      );
+
+
+    state.cash +=
+      gain;
+
+
+    state.energy -=
+      6;
+
+
+    advanceDays(
+      2
+    );
+
+
+    log(
+      `Zbiórka przyniosła ${money(gain)}.`
+    );
+
+  }
+
+
+  if(
+    type==="national"
+  ){
+
+    if(
+      state.days<1
+      ||
+      state.energy<7
+    ){
+
+      return log(
+        "Brakuje czasu lub energii na wywiad."
+      );
+
+    }
+
+
+    state.energy -=
+      7;
+
+
+    const effect =
+      rand(
+        -.35,
+        .75
+      );
+
+
+    for(
+      const st
+      of Object.values(
+        state.states
+      )
+    ){
+
+      st.margin +=
+        effect;
+
+    }
+
+
+    state.recognition =
+      clamp(
+        state.recognition
+        +
+        2.3,
+        0,
+        100
+      );
+
+
+    state.momentum +=
+      effect;
+
+
+    advanceDays(
+      1
+    );
+
+
+    log(
+      effect>=0
+        ? "Wywiad ogólnokrajowy wypadł dobrze."
+        : "Wywiad był trudny i lekko zaszkodził sondażom."
+    );
+
+  }
+
+
+  if(
+    type==="rest"
+  ){
+
+    if(
+      state.days<1
     )
       return;
 
-    for(
-      let i=0;
-      i<state.speed;
-      i++
+
+    state.energy =
+      clamp(
+        state.energy
+        +
+        24,
+        0,
+        100
+      );
+
+
+    advanceDays(
+      1
+    );
+
+
+    log(
+      "Dzień odpoczynku przywrócił energię."
+    );
+
+  }
+
+
+  renderCampaign();
+
+}
+
+
+document
+  .querySelectorAll(
+    "[data-action]"
+  )
+  .forEach(
+    b =>
+      b.onclick =
+        () =>
+          doAction(
+            b.dataset.action
+          )
+  );
+
+
+$("debateBtn")
+  .onclick =
+    () => {
+
+      if(
+        state.debateCooldown>0
+        ||
+        state.days<1
+      )
+        return;
+
+
+      const prep =
+        (
+          state.energy
+          +
+          state.recognition
+        )
+        /
+        2;
+
+
+      const effect =
+        rand(
+          -1.2,
+          1.5
+        )
+        +
+        (
+          prep-60
+        )
+        /
+        60;
+
+
+      for(
+        const s
+        of Object.values(
+          state.states
+        )
+      ){
+
+        s.margin +=
+          effect
+          *
+          (
+            .65
+            +
+            Math.random()*.35
+          );
+
+      }
+
+
+      state.energy =
+        clamp(
+          state.energy
+          -
+          14,
+          0,
+          100
+        );
+
+
+      state.momentum +=
+        effect;
+
+
+      state.debateCooldown =
+        21;
+
+
+      advanceDays(
+        1
+      );
+
+
+      log(
+        effect>=0
+
+          ? `Debata udana: średni efekt +${effect.toFixed(1)} pkt.`
+
+          : `Debata trudna: średni efekt ${effect.toFixed(1)} pkt.`
+      );
+
+
+      renderCampaign();
+
+    };
+
+
+function resolveState(
+  s
+){
+
+  const noise =
+    rand(
+      -4.5,
+      4.5
+    );
+
+
+  return (
+    s.margin
+    +
+    noise
+  );
+
+}
+
+
+function runElection(){
+
+  if(
+    state.electionDone
+  )
+    return;
+
+
+  state.electionDone =
+    true;
+
+
+  let p=0;
+
+  let o=0;
+
+  const rows=[];
+
+
+  for(
+    const s
+    of Object.values(
+      state.states
+    )
+  ){
+
+    let result =
+      resolveState(
+        s
+      );
+
+
+    let pev=0;
+
+    let oev=0;
+
+
+    if(
+      s.abbr==="ME"
     ){
 
-      simulateDay();
+      const statewide =
+        result;
+
+
+      const d1 =
+        result+5;
+
+
+      const d2 =
+        result-7;
+
+
+      if(
+        statewide>=0
+      )
+        pev+=2;
+
+      else
+        oev+=2;
+
+
+      if(
+        d1>=0
+      )
+        pev++;
+
+      else
+        oev++;
+
+
+      if(
+        d2>=0
+      )
+        pev++;
+
+      else
+        oev++;
 
     }
 
-    renderAll();
 
-  },
-  1000
-);
+    else if(
+      s.abbr==="NE"
+    ){
+
+      const statewide =
+        result;
+
+
+      const districts = [
+
+        result-6,
+
+        result+7,
+
+        result-9
+
+      ];
+
+
+      if(
+        statewide>=0
+      )
+        pev+=2;
+
+      else
+        oev+=2;
+
+
+      for(
+        const d
+        of districts
+      ){
+
+        if(
+          d>=0
+        )
+          pev++;
+
+        else
+          oev++;
+
+      }
+
+    }
+
+
+    else{
+
+      if(
+        result>=0
+      ){
+
+        pev =
+          s.ev;
+
+      }
+
+      else{
+
+        oev =
+          s.ev;
+
+      }
+
+    }
+
+
+    p +=
+      pev;
+
+
+    o +=
+      oev;
+
+
+    s.called =
+      pev>oev
+        ? "player"
+        : "opp";
+
+
+    rows.push([
+
+      s.name,
+
+      pev,
+
+      oev,
+
+      result
+
+    ]);
+
+  }
+
+
+  state.won =
+    p>=270;
+
+
+  renderCampaign();
+
+
+  $("resultModal")
+    .classList
+    .remove(
+      "hidden"
+    );
+
+
+  $("resultTitle")
+    .textContent =
+      state.won
+        ? "🏆 Wygrałeś wybory!"
+        : "📊 Wybory zakończone";
+
+
+  $("resultText")
+    .innerHTML =
+      `
+      <strong>
+        ${state.playerName}: ${p} EV
+      </strong>
+
+      &nbsp; | &nbsp;
+
+      ${state.opponentName}: ${o} EV
+      `;
+
+
+  $("resultBreakdown")
+    .innerHTML =
+      `
+      <table class="mini-table">
+
+        <thead>
+
+          <tr>
+
+            <th>
+              Stan
+            </th>
+
+            <th>
+              ${state.playerName}
+            </th>
+
+            <th>
+              ${state.opponentName}
+            </th>
+
+            <th>
+              Margines sym.
+            </th>
+
+          </tr>
+
+        </thead>
+
+        <tbody>
+
+          ${
+            rows
+              .sort(
+                (a,b) =>
+                  (
+                    b[1]+b[2]
+                  )
+                  -
+                  (
+                    a[1]+a[2]
+                  )
+              )
+              .slice(
+                0,
+                15
+              )
+              .map(
+                r =>
+                  `
+                  <tr>
+
+                    <td>
+                      ${r[0]}
+                    </td>
+
+                    <td>
+                      ${r[1]}
+                    </td>
+
+                    <td>
+                      ${r[2]}
+                    </td>
+
+                    <td>
+                      ${
+                        r[3]>=0
+                          ? "+"
+                          : ""
+                      }
+                      ${r[3].toFixed(1)}
+                    </td>
+
+                  </tr>
+                  `
+              )
+              .join("")
+          }
+
+        </tbody>
+
+      </table>
+      `;
+
+
+  $("resultContinue")
+    .textContent =
+      state.won
+        ? "🏛️ Rozpocznij prezydenturę"
+        : "↻ Zagraj ponownie";
+
+}
+
+
+$("electionBtn")
+  .onclick =
+    runElection;
+
+
+function startPresidency(){
+
+  state.president = {
+
+    month:1,
+
+    day:1,
+
+    approval:54,
+
+    economy:56,
+
+    inflation:42,
+
+    unemployment:48,
+
+    debt:58,
+
+    infrastructure:50,
+
+    health:50,
+
+    education:50,
+
+    energy:50,
+
+    security:50,
+
+    capital:70
+
+  };
+
+
+  $("tabPresident")
+    .disabled =
+      false;
+
+
+  $("tabPresident")
+    .click();
+
+
+  renderPresident();
+
+
+  pLog(
+    "Rozpoczęła się nowa administracja."
+  );
+
+}
+
+
+const POLICIES = [
+
+{
+
+  id:"roads",
+
+  name:
+    "Program infrastrukturalny",
+
+  desc:
+    "Większe inwestycje w transport i sieci publiczne.",
+
+  cost:12,
+
+  fx:{
+
+    infrastructure:9,
+
+    economy:3,
+
+    debt:4,
+
+    capital:-8
+
+  }
+
+},
+
+{
+
+  id:"schools",
+
+  name:
+    "Program edukacyjny",
+
+  desc:
+    "Dodatkowe środki na szkoły, szkolenia i badania.",
+
+  cost:8,
+
+  fx:{
+
+    education:8,
+
+    economy:2,
+
+    debt:3,
+
+    capital:-6
+
+  }
+
+},
+
+{
+
+  id:"health",
+
+  name:
+    "Modernizacja ochrony zdrowia",
+
+  desc:
+    "Rozbudowa dostępu i cyfryzacji usług.",
+
+  cost:10,
+
+  fx:{
+
+    health:9,
+
+    debt:4,
+
+    capital:-7
+
+  }
+
+},
+
+{
+
+  id:"energy",
+
+  name:
+    "Inwestycje energetyczne",
+
+  desc:
+    "Zwiększenie niezawodności i nowych mocy w systemie.",
+
+  cost:9,
+
+  fx:{
+
+    energy:9,
+
+    economy:2,
+
+    debt:3,
+
+    capital:-6
+
+  }
+
+},
+
+{
+
+  id:"tax",
+
+  name:
+    "Pakiet podatkowy",
+
+  desc:
+    "Zmiany mające pobudzić aktywność gospodarczą; wpływ na dług zależy od dochodów.",
+
+  cost:6,
+
+  fx:{
+
+    economy:6,
+
+    debt:5,
+
+    approval:1,
+
+    capital:-7
+
+  }
+
+},
+
+{
+
+  id:"budget",
+
+  name:
+    "Program oszczędnościowy",
+
+  desc:
+    "Ograniczenie części wydatków federalnych.",
+
+  cost:4,
+
+  fx:{
+
+    debt:-7,
+
+    economy:-2,
+
+    approval:-2,
+
+    capital:-5
+
+  }
+
+},
+
+{
+
+  id:"jobs",
+
+  name:
+    "Program rynku pracy",
+
+  desc:
+    "Szkolenia, granty dla regionów i wsparcie mobilności pracowników.",
+
+  cost:7,
+
+  fx:{
+
+    unemployment:7,
+
+    economy:3,
+
+    debt:2,
+
+    capital:-6
+
+  }
+
+},
+
+{
+
+  id:"security",
+
+  name:
+    "Modernizacja bezpieczeństwa",
+
+  desc:
+    "Inwestycje w cyberbezpieczeństwo i odporność instytucji.",
+
+  cost:7,
+
+  fx:{
+
+    security:8,
+
+    debt:2,
+
+    capital:-6
+
+  }
+
+},
+
+{
+
+  id:"speech",
+
+  name:
+    "Orędzie do kraju",
+
+  desc:
+    "Próba odbudowy poparcia i kapitału politycznego.",
+
+  cost:2,
+
+  fx:{
+
+    approval:
+      rand(
+        -1,
+        4
+      ),
+
+    capital:5
+
+  }
+
+}
+
+];
+
+
+function applyPolicy(
+  id
+){
+
+  const p =
+    state.president;
+
+
+  const pol =
+    POLICIES.find(
+      x =>
+        x.id===id
+    );
+
+
+  if(
+    !pol
+    ||
+    p.capital<pol.cost
+  ){
+
+    return pLog(
+      "Za mało kapitału politycznego na tę decyzję."
+    );
+
+  }
+
+
+  p.capital -=
+    pol.cost;
+
+
+  for(
+    const [
+      k,
+      v
+    ]
+    of Object.entries(
+      pol.fx
+    )
+  ){
+
+    p[k] =
+      clamp(
+        (
+          p[k]??50
+        )
+        +
+        v,
+        0,
+        100
+      );
+
+  }
+
+
+  p.approval =
+    clamp(
+
+      p.approval
+      +
+      (
+        pol.fx.approval
+        ||
+        0
+      )
+      +
+      rand(
+        -1,
+        1
+      ),
+
+      0,
+      100
+
+    );
+
+
+  pLog(
+    `Podpisano: ${pol.name}.`
+  );
+
+
+  renderPresident();
+
+}
+
+
+function nextMonth(){
+
+  const p =
+    state.president;
+
+
+  p.month++;
+
+
+  p.day +=
+    30;
+
+
+  p.capital =
+    clamp(
+      p.capital
+      +
+      rand(
+        7,
+        13
+      ),
+      0,
+      100
+    );
+
+
+  p.economy =
+    clamp(
+
+      p.economy
+      +
+      rand(
+        -2.5,
+        2.8
+      )
+      +
+      (
+        p.infrastructure-50
+      )
+      *
+      .015,
+
+      0,
+      100
+
+    );
+
+
+  p.inflation =
+    clamp(
+
+      p.inflation
+      +
+      rand(
+        -2.2,
+        2.2
+      )
+      +
+      (
+        p.economy-60
+      )
+      *
+      .01,
+
+      0,
+      100
+
+    );
+
+
+  p.unemployment =
+    clamp(
+
+      p.unemployment
+      +
+      rand(
+        -1.8,
+        1.8
+      )
+      +
+      (
+        p.economy-50
+      )
+      *
+      .03,
+
+      0,
+      100
+
+    );
+
+
+  p.debt =
+    clamp(
+
+      p.debt
+      +
+      rand(
+        .3,
+        1.4
+      ),
+
+      0,
+      100
+
+    );
+
+
+  const fundamentals =
+
+    (
+      p.economy
+      +
+      p.infrastructure
+      +
+      p.health
+      +
+      p.education
+      +
+      p.energy
+      +
+      p.security
+    )
+    /
+    6;
+
+
+  p.approval =
+    clamp(
+
+      p.approval
+      +
+      rand(
+        -2.5,
+        2.5
+      )
+      +
+      (
+        fundamentals-50
+      )
+      *
+      .025
+      -
+      (
+        p.inflation-50
+      )
+      *
+      .02,
+
+      0,
+      100
+
+    );
+
+
+  pLog(
+    `Miesiąc ${p.month}: nowe dane gospodarcze i sondażowe.`
+  );
+
+
+  renderPresident();
+
+}
+
+
+function renderPresident(){
+
+  const p =
+    state.president;
+
+
+  if(
+    !p
+  )
+    return;
+
+
+  $("termDay")
+    .textContent =
+      p.day;
+
+
+  $("approvalStat")
+    .textContent =
+      Math.round(
+        p.approval
+      )
+      +
+      "%";
+
+
+  $("economyStat")
+    .textContent =
+      Math.round(
+        p.economy
+      )
+      +
+      "/100";
+
+
+  $("inflationStat")
+    .textContent =
+      Math.round(
+        p.inflation
+      )
+      +
+      "/100";
+
+
+  $("unemploymentStat")
+    .textContent =
+      Math.round(
+        p.unemployment
+      )
+      +
+      "/100";
+
+
+  $("debtStat")
+    .textContent =
+      Math.round(
+        p.debt
+      )
+      +
+      "/100";
+
+
+  $("capitalStat")
+    .textContent =
+      Math.round(
+        p.capital
+      )
+      +
+      "/100";
+
+
+  $("monthStat")
+    .textContent =
+      p.month;
+
+
+  $("policyGrid")
+    .innerHTML =
+      POLICIES
+        .map(
+          pol =>
+            `
+            <div class="card policy">
+
+              <h3>
+                ${pol.name}
+              </h3>
+
+              <div
+                class="muted"
+                style="
+                  font-size:13px;
+                  min-height:54px
+                "
+              >
+                ${pol.desc}
+              </div>
+
+              <div class="tag">
+                Koszt polityczny:
+                ${pol.cost}
+              </div>
+
+              <button
+                class="btn btn-blue policy-btn"
+                data-policy="${pol.id}"
+                style="
+                  width:100%;
+                  margin-top:8px
+                "
+              >
+                Wprowadź
+              </button>
+
+            </div>
+            `
+        )
+        .join("");
+
+
+  document
+    .querySelectorAll(
+      "[data-policy]"
+    )
+    .forEach(
+      b =>
+        b.onclick =
+          () =>
+            applyPolicy(
+              b.dataset.policy
+            )
+    );
+
+
+  const meters =
+    [
+      "economy",
+      "infrastructure",
+      "health",
+      "education",
+      "energy",
+      "security"
+    ]
+    .map(
+      k => {
+
+        const labels = {
+
+          economy:
+            "Gospodarka",
+
+          infrastructure:
+            "Infrastruktura",
+
+          health:
+            "Zdrowie",
+
+          education:
+            "Edukacja",
+
+          energy:
+            "Energia",
+
+          security:
+            "Bezpieczeństwo"
+
+        };
+
+
+        return `
+        <div style="margin-bottom:10px">
+
+          <div class="topline">
+
+            <span>
+              ${labels[k]}
+            </span>
+
+            <strong>
+              ${Math.round(p[k])}
+            </strong>
+
+          </div>
+
+          <div class="meter">
+
+            <span
+              style="
+                width:${p[k]}%
+              "
+            ></span>
+
+          </div>
+
+        </div>
+        `;
+
+      }
+    )
+    .join("");
+
+
+  $("countryMeters")
+    .innerHTML =
+      meters;
+
+}
+
+
+$("nextMonthBtn")
+  .onclick =
+    nextMonth;
+
+
+$("resultContinue")
+  .onclick =
+    () => {
+
+      $("resultModal")
+        .classList
+        .add(
+          "hidden"
+        );
+
+
+      if(
+        state.won
+      ){
+
+        startPresidency();
+
+      }
+
+      else{
+
+        location.reload();
+
+      }
+
+    };
+
+
+$("tabCampaign")
+  .onclick =
+    () => {
+
+      $("campaignView")
+        .classList
+        .remove(
+          "hidden"
+        );
+
+
+      $("presidentView")
+        .classList
+        .add(
+          "hidden"
+        );
+
+
+      $("tabCampaign")
+        .classList
+        .add(
+          "active"
+        );
+
+
+      $("tabPresident")
+        .classList
+        .remove(
+          "active"
+        );
+
+    };
+
+
+$("tabPresident")
+  .onclick =
+    () => {
+
+      if(
+        !state?.president
+      )
+        return;
+
+
+      $("campaignView")
+        .classList
+        .add(
+          "hidden"
+        );
+
+
+      $("presidentView")
+        .classList
+        .remove(
+          "hidden"
+        );
+
+
+      $("tabPresident")
+        .classList
+        .add(
+          "active"
+        );
+
+
+      $("tabCampaign")
+        .classList
+        .remove(
+          "active"
+        );
+
+
+      renderPresident();
+
+    };
+
+
+$("resetBtn")
+  .onclick =
+    () =>
+      location.reload();
+
+
+document
+  .querySelectorAll(
+    "[data-candidate]"
+  )
+  .forEach(
+    b =>
+      b.onclick =
+        () => {
+
+          state =
+            makeGame(
+              b.dataset.candidate
+            );
+
+
+          $("startModal")
+            .classList
+            .add(
+              "hidden"
+            );
+
+
+          log(
+            `Start kampanii: ${state.playerName}. Do wyborów 120 dni.`
+          );
+
+
+          renderCampaign();
+
+        }
+  );
 
 </script>
 
