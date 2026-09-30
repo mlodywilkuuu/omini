@@ -4,501 +4,141 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Mobile Network Tycoon</title>
+<title>Mobile Network Empire</title>
+
+<link rel="stylesheet"
+href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 
 <style>
 :root{
-  --bg:#050914;
-  --panel:#0b1323;
-  --panel2:#101c31;
-  --panel3:#162641;
-  --line:#273b5a;
-  --text:#f8fafc;
-  --muted:#94a3b8;
-  --cyan:#22d3ee;
-  --blue:#3b82f6;
-  --green:#22c55e;
-  --yellow:#facc15;
-  --orange:#fb923c;
-  --red:#ef4444;
-  --purple:#a855f7;
+ --bg:#050812;--panel:#0b1220;--panel2:#111c30;
+ --line:#26364f;--text:#f8fafc;--muted:#94a3b8;
+ --cyan:#22d3ee;--green:#22c55e;--red:#ef4444;
+ --yellow:#facc15;--purple:#a855f7;--blue:#3b82f6;
 }
-
 *{box-sizing:border-box}
-
 body{
-  margin:0;
-  min-height:100vh;
-  color:var(--text);
-  font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
-  background:
-    radial-gradient(circle at 15% 0,#0c3560 0,transparent 30%),
-    radial-gradient(circle at 90% 0,#32154d 0,transparent 25%),
-    linear-gradient(180deg,#07101e,#03060c 70%);
+ margin:0;background:#050812;color:var(--text);
+ font-family:Inter,system-ui,Arial,sans-serif;
 }
-
 button,input,select{font:inherit}
 button{cursor:pointer}
-
-button:disabled{
-  opacity:.4;
-  cursor:not-allowed;
-}
-
+button:disabled{opacity:.45;cursor:not-allowed}
 .hidden{display:none!important}
-
-.app{
-  width:min(1900px,100%);
-  margin:auto;
-  padding:14px;
-}
-
+.app{padding:12px;max-width:1900px;margin:auto}
 .panel{
-  background:rgba(9,17,31,.95);
-  border:1px solid rgba(73,100,140,.55);
-  border-radius:17px;
-  box-shadow:0 18px 45px #0005;
-  backdrop-filter:blur(12px);
+ background:rgba(10,18,32,.96);
+ border:1px solid var(--line);
+ border-radius:14px;
+ box-shadow:0 15px 40px #0006;
 }
-
 .card{
-  background:linear-gradient(145deg,#111f35,#0c1627);
-  border:1px solid var(--line);
-  border-radius:12px;
+ background:#101a2c;border:1px solid var(--line);
+ border-radius:11px;padding:11px;
 }
-
-.section{padding:14px}
-.muted{color:var(--muted)}
-.good{color:#4ade80}
-.bad{color:#fb7185}
-.warn{color:#facc15}
-.cyan{color:#67e8f9}
-
 .btn{
-  border:1px solid var(--line);
-  background:#13233a;
-  color:white;
-  padding:9px 12px;
-  border-radius:9px;
-  transition:.15s;
+ border:1px solid var(--line);border-radius:8px;
+ padding:8px 11px;background:#152238;color:white;
 }
-
-.btn:hover:not(:disabled){
-  transform:translateY(-1px);
-  filter:brightness(1.15);
+.btn:hover:not(:disabled){filter:brightness(1.2)}
+.btn.blue{background:#1d4ed8}
+.btn.green{background:#15803d}
+.btn.red{background:#991b1b}
+.btn.gold{background:#a16207}
+.btn.purple{background:#6b21a8}
+.btn.cyan{background:#0e7490}
+.muted{color:var(--muted)}
+.good{color:#4ade80}.bad{color:#fb7185}.warn{color:#fde047}
+.title{font-size:19px;font-weight:900;margin-bottom:10px}
+.top{
+ display:flex;justify-content:space-between;align-items:center;
+ gap:10px;flex-wrap:wrap;margin-bottom:9px;
 }
-
-.btn.blue{background:#1d4ed8;border-color:#3b82f6}
-.btn.green{background:#15803d;border-color:#22c55e}
-.btn.red{background:#991b1b;border-color:#ef4444}
-.btn.gold{background:#a16207;border-color:#facc15}
-.btn.purple{background:#7e22ce;border-color:#a855f7}
-.btn.cyan{background:#0e7490;border-color:#22d3ee}
-
-.topbar{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:12px;
-  flex-wrap:wrap;
-  margin-bottom:10px;
-}
-
-.logo{
-  font-size:27px;
-  font-weight:1000;
-  letter-spacing:-1px;
-}
-
+.logo{font-size:25px;font-weight:1000}
 .logo span{color:var(--cyan)}
-
-.top-actions{
-  display:flex;
-  align-items:center;
-  gap:6px;
-  flex-wrap:wrap;
-}
-
-.tag{
-  display:inline-flex;
-  gap:5px;
-  align-items:center;
-  background:#07111f;
-  border:1px solid var(--line);
-  border-radius:999px;
-  padding:5px 9px;
-  font-size:12px;
-}
-
-.tabs{
-  display:flex;
-  gap:6px;
-  flex-wrap:wrap;
-  margin-bottom:10px;
-}
-
-.tab.active{
-  background:var(--cyan);
-  border-color:var(--cyan);
-  color:#082f49;
-  font-weight:900;
-}
-
-.speed.active{
-  background:var(--yellow);
-  border-color:var(--yellow);
-  color:#422006;
-}
-
+.actions,.tabs{display:flex;gap:5px;flex-wrap:wrap}
+.tabs{margin-bottom:9px}
+.tab.active{background:var(--cyan);color:#083344;font-weight:900}
+.speed.active{background:var(--yellow);color:#422006}
 .stats{
-  display:grid;
-  grid-template-columns:repeat(8,1fr);
-  gap:7px;
+ display:grid;grid-template-columns:repeat(8,1fr);
+ gap:6px;margin-bottom:9px;
 }
-
-.stat{padding:10px}
-
-.stat .k{
-  color:var(--muted);
-  text-transform:uppercase;
-  font-size:10px;
-  font-weight:800;
+.stat{padding:9px}
+.stat small{display:block;color:var(--muted);font-size:10px;text-transform:uppercase}
+.stat strong{font-size:17px}
+.layout{display:grid;grid-template-columns:minmax(0,1.6fr) 390px;gap:9px}
+.section{padding:12px}
+#map{height:720px;border-radius:11px;background:#07101c}
+.side{display:flex;flex-direction:column;gap:9px}
+.grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:7px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
+.row{
+ display:flex;justify-content:space-between;align-items:center;
+ gap:8px;padding:8px 0;border-bottom:1px solid #1e2d44;
 }
-
-.stat .v{
-  font-size:18px;
-  font-weight:1000;
-  margin-top:3px;
-}
-
-.layout{
-  display:grid;
-  grid-template-columns:minmax(0,1.55fr) minmax(350px,.65fr);
-  gap:10px;
-}
-
-.right-stack{
-  display:flex;
-  flex-direction:column;
-  gap:10px;
-}
-
-.title{
-  font-size:18px;
-  font-weight:1000;
-  margin-bottom:9px;
-}
-
-/* MAP */
-
-.map-wrap{
-  position:relative;
-  min-height:690px;
-  overflow:hidden;
-  border-radius:14px;
-  border:1px solid var(--line);
-  background:
-    radial-gradient(circle at center,#12355a,#07101c 70%);
-}
-
-#map{
-  width:100%;
-  height:690px;
-  display:block;
-}
-
-.country-shape{
-  fill:#142b45;
-  stroke:#5b7594;
-  stroke-width:3;
-}
-
-.city{
-  cursor:pointer;
-}
-
-.city-dot{
-  fill:#f8fafc;
-  stroke:#020617;
-  stroke-width:3;
-}
-
-.city:hover .city-dot{
-  fill:#facc15;
-}
-
-.city-name{
-  pointer-events:none;
-  fill:white;
-  font-size:11px;
-  font-weight:900;
-  paint-order:stroke;
-  stroke:#020617;
-  stroke-width:3px;
-}
-
-.tower{
-  cursor:pointer;
-}
-
-.tower-dot{
-  fill:#22d3ee;
-  stroke:#fff;
-  stroke-width:2;
-}
-
-.coverage{
-  fill:#22d3ee;
-  opacity:.10;
-  stroke:#67e8f9;
-  stroke-width:1;
-  pointer-events:none;
-}
-
-.shop-dot{
-  fill:#facc15;
-  stroke:#fff;
-  stroke-width:2;
-}
-
-.office-dot{
-  fill:#a855f7;
-  stroke:#fff;
-  stroke-width:2;
-}
-
-.legend{
-  position:absolute;
-  left:10px;
-  bottom:10px;
-  background:#030812e8;
-  border:1px solid var(--line);
-  padding:9px;
-  border-radius:10px;
-  font-size:12px;
-}
-
-.map-toolbar{
-  position:absolute;
-  right:10px;
-  top:10px;
-  display:flex;
-  gap:5px;
-  flex-wrap:wrap;
-  max-width:350px;
-  justify-content:flex-end;
-}
-
-/* LISTS */
-
-.grid2{
-  display:grid;
-  grid-template-columns:repeat(2,1fr);
-  gap:7px;
-}
-
-.grid3{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:7px;
-}
-
-.grid4{
-  display:grid;
-  grid-template-columns:repeat(4,1fr);
-  gap:7px;
-}
-
-.item{
-  padding:11px;
-}
-
-.item h3{
-  margin:0 0 5px;
-  font-size:15px;
-}
-
-.progress{
-  height:8px;
-  border-radius:999px;
-  background:#030711;
-  overflow:hidden;
-  margin-top:5px;
-}
-
-.progress span{
-  display:block;
-  height:100%;
-  background:linear-gradient(90deg,#22d3ee,#22c55e);
-}
-
-.input,.select{
-  width:100%;
-  border:1px solid var(--line);
-  border-radius:8px;
-  padding:9px;
-  color:white;
-  background:#07111f;
-}
-
-label.small{
-  display:block;
-  color:var(--muted);
-  font-size:11px;
-  margin-bottom:4px;
-}
-
-.form-row{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:7px;
-  margin-bottom:8px;
-}
-
-.employee{
-  display:grid;
-  grid-template-columns:1fr auto;
-  gap:8px;
-  align-items:center;
-  padding:10px;
-  margin-bottom:6px;
-}
-
-.device{
-  padding:12px;
-}
-
-.device-icon{
-  font-size:32px;
-}
-
-.plan{
-  padding:12px;
-  margin-bottom:7px;
-}
-
-.company{
-  padding:12px;
-  margin-bottom:7px;
-}
-
-.company-head{
-  display:flex;
-  justify-content:space-between;
-  gap:8px;
-}
-
+.progress{height:8px;background:#030711;border-radius:20px;overflow:hidden}
+.progress span{display:block;height:100%;background:linear-gradient(90deg,#22d3ee,#22c55e)}
 .log{
-  height:190px;
-  overflow:auto;
-  background:#040a13;
-  border:1px solid var(--line);
-  border-radius:9px;
-  padding:8px;
-  font-size:12px;
+ height:170px;overflow:auto;background:#030711;border:1px solid var(--line);
+ border-radius:8px;padding:8px;font-size:12px;
 }
-
-.log div{margin-bottom:5px}
-
-/* MODAL */
-
+.input,.select{
+ width:100%;background:#050c18;color:white;border:1px solid var(--line);
+ border-radius:8px;padding:9px;
+}
+label{display:block;font-size:11px;color:var(--muted);margin:6px 0 3px}
 .modal{
-  position:fixed;
-  inset:0;
-  z-index:1000;
-  display:grid;
-  place-items:center;
-  background:#000c;
-  padding:15px;
+ position:fixed;inset:0;background:#000c;z-index:3000;
+ display:grid;place-items:center;padding:15px;
 }
-
-.modal-box{
-  width:min(900px,100%);
-  max-height:92vh;
-  overflow:auto;
-  padding:18px;
+.modalBox{
+ width:min(900px,100%);max-height:92vh;overflow:auto;padding:17px;
 }
-
-.modal-title{
-  font-size:28px;
-  font-weight:1000;
-  margin-bottom:10px;
-}
-
-.modal-actions{
-  display:flex;
-  gap:6px;
-  justify-content:flex-end;
-  margin-top:12px;
-  flex-wrap:wrap;
-}
-
-/* CONSOLE */
-
 .console{
-  position:fixed;
-  z-index:3000;
-  left:50%;
-  top:60px;
-  transform:translateX(-50%);
-  width:min(800px,94%);
-  background:#020617f5;
-  border:1px solid #22d3ee;
-  border-radius:12px;
-  box-shadow:0 20px 60px #000;
-  overflow:hidden;
+ position:fixed;z-index:5000;left:50%;top:40px;transform:translateX(-50%);
+ width:min(850px,95%);background:#020617;border:1px solid var(--cyan);
+ border-radius:10px;box-shadow:0 25px 80px #000;
 }
-
-.console-head{
-  padding:8px 12px;
-  background:#0c1829;
-  font-weight:900;
-  color:#67e8f9;
+.consoleHead{padding:9px;background:#0b1628;color:#67e8f9;font-weight:900}
+.consoleOut{height:270px;overflow:auto;padding:10px;font:13px monospace}
+.consoleInput{
+ width:100%;padding:12px;border:0;border-top:1px solid #234;
+ background:#020617;color:#4ade80;outline:none;font-family:monospace;
 }
-
-.console-output{
-  height:260px;
-  overflow:auto;
-  padding:10px;
-  font-family:monospace;
-  font-size:13px;
+.tech,.company,.shareholder{margin-bottom:7px}
+.companyTop{display:flex;justify-content:space-between;gap:8px}
+.big{font-size:25px;font-weight:1000}
+.mapHelp{
+ position:absolute;z-index:700;right:20px;top:20px;
+ background:#050b16e8;border:1px solid #334155;border-radius:9px;
+ padding:9px;font-size:12px;pointer-events:none;
 }
-
-.console-input{
-  width:100%;
-  border:0;
-  border-top:1px solid #1e3a5f;
-  background:#020617;
-  color:#4ade80;
-  padding:12px;
-  outline:none;
-  font-family:monospace;
+.mapBox{position:relative}
+.modeBtn.active{background:#0891b2}
+.leaflet-container{font-family:Inter,system-ui,sans-serif}
+.marker-shop{
+ width:22px;height:22px;border-radius:7px;background:#facc15;
+ border:2px solid white;display:grid;place-items:center;color:#111;font-size:12px;
+ box-shadow:0 3px 8px #0008;
 }
-
-/* START */
-
-.start-choice{
-  padding:15px;
-  text-align:left;
+.marker-tower{
+ width:22px;height:22px;border-radius:50%;background:#06b6d4;
+ border:2px solid white;display:grid;place-items:center;font-size:12px;
+ box-shadow:0 3px 8px #0008;
 }
-
-@media(max-width:1200px){
-  .stats{grid-template-columns:repeat(4,1fr)}
-  .grid4{grid-template-columns:repeat(2,1fr)}
+.marker-hq{
+ width:24px;height:24px;border-radius:6px;background:#a855f7;
+ border:2px solid white;display:grid;place-items:center;font-size:12px;
 }
-
-@media(max-width:900px){
-  .layout{grid-template-columns:1fr}
-  .grid3{grid-template-columns:repeat(2,1fr)}
+@media(max-width:1150px){
+ .stats{grid-template-columns:repeat(4,1fr)}
+ .layout{grid-template-columns:1fr}
 }
-
-@media(max-width:650px){
-  .stats,.grid2,.grid3,.grid4,.form-row{
-    grid-template-columns:1fr;
-  }
-
-  #map{height:560px}
-  .map-wrap{min-height:560px}
+@media(max-width:700px){
+ .stats,.grid2,.grid3,.grid4{grid-template-columns:1fr 1fr}
+ #map{height:600px}
 }
 </style>
 </head>
@@ -507,304 +147,134 @@ label.small{
 
 <div class="app">
 
-<header class="topbar">
-  <div>
-    <div class="logo">📡 <span>MOBILE</span> NETWORK TYCOON</div>
-    <div class="muted">Zbuduj największą sieć komórkową</div>
-  </div>
+<div class="top">
+ <div>
+  <div class="logo">📡 <span>NETWORK</span> EMPIRE</div>
+  <div class="muted">Global Mobile Operator Tycoon</div>
+ </div>
 
-  <div class="top-actions">
-    <span id="date" class="tag">—</span>
-    <button class="btn speed" data-speed="0">⏸</button>
-    <button class="btn speed active" data-speed="1">1×</button>
-    <button class="btn speed" data-speed="3">3×</button>
-    <button class="btn speed" data-speed="10">10×</button>
-    <button id="saveBtn" class="btn">💾 Zapisz</button>
-    <button id="newBtn" class="btn">↻ Nowa gra</button>
-  </div>
-</header>
-
-<nav class="tabs">
-  <button class="btn tab active" data-view="network">🗺️ Sieć</button>
-  <button class="btn tab" data-view="customers">👥 Klienci</button>
-  <button class="btn tab" data-view="offers">💳 Oferty</button>
-  <button class="btn tab" data-view="employees">👨‍💼 Pracownicy</button>
-  <button class="btn tab" data-view="research">🔬 R&D</button>
-  <button class="btn tab" data-view="devices">📱 Urządzenia</button>
-  <button class="btn tab" data-view="companies">🏢 Przejęcia</button>
-  <button class="btn tab" data-view="finance">📊 Finanse</button>
-</nav>
-
-<div class="panel section">
-  <div class="stats">
-    <div class="card stat"><div class="k">Firma</div><div id="companyStat" class="v">—</div></div>
-    <div class="card stat"><div class="k">Gotówka</div><div id="moneyStat" class="v">—</div></div>
-    <div class="card stat"><div class="k">Klienci</div><div id="customersStat" class="v">—</div></div>
-    <div class="card stat"><div class="k">Miesięczny wynik</div><div id="profitStat" class="v">—</div></div>
-    <div class="card stat"><div class="k">Maszty</div><div id="towersStat" class="v">—</div></div>
-    <div class="card stat"><div class="k">Salony</div><div id="shopsStat" class="v">—</div></div>
-    <div class="card stat"><div class="k">Pracownicy</div><div id="employeesStat" class="v">—</div></div>
-    <div class="card stat"><div class="k">Reputacja</div><div id="repStat" class="v">—</div></div>
-  </div>
+ <div class="actions">
+  <span id="date" class="btn">—</span>
+  <button class="btn speed" data-speed="0">⏸</button>
+  <button class="btn speed active" data-speed="1">1×</button>
+  <button class="btn speed" data-speed="5">5×</button>
+  <button class="btn speed" data-speed="20">20×</button>
+  <button id="save" class="btn">💾 Zapisz</button>
+  <button id="newGame" class="btn">↻ Nowa</button>
+ </div>
 </div>
 
-<!-- NETWORK -->
+<div class="tabs">
+ <button class="btn tab active" data-view="map">🌍 Mapa</button>
+ <button class="btn tab" data-view="research">🔬 Technologie</button>
+ <button class="btn tab" data-view="market">🏢 Firmy</button>
+ <button class="btn tab" data-view="shares">📈 Udziały</button>
+ <button class="btn tab" data-view="finance">💰 Finanse</button>
+</div>
 
-<section id="view-network" class="view">
+<div class="stats">
+ <div class="panel stat"><small>Operator</small><strong id="sName">—</strong></div>
+ <div class="panel stat"><small>Gotówka</small><strong id="sMoney">—</strong></div>
+ <div class="panel stat"><small>Klienci</small><strong id="sCustomers">—</strong></div>
+ <div class="panel stat"><small>Wynik / mies.</small><strong id="sProfit">—</strong></div>
+ <div class="panel stat"><small>Maszty</small><strong id="sTowers">—</strong></div>
+ <div class="panel stat"><small>Salony</small><strong id="sShops">—</strong></div>
+ <div class="panel stat"><small>R&D</small><strong id="sTech">—</strong></div>
+ <div class="panel stat"><small>Tryb</small><strong id="sMode">—</strong></div>
+</div>
 
-<div class="layout" style="margin-top:10px">
+<section id="view-map" class="view">
+ <div class="layout">
 
   <div class="panel section">
-    <div class="title">🗺️ Mapa sieci</div>
+   <div class="title">🌍 Globalna mapa sieci</div>
 
-    <div class="map-wrap">
-      <svg id="map" viewBox="0 0 850 850"></svg>
+   <div class="actions" style="margin-bottom:8px">
+    <button class="btn modeBtn active" data-build="select">👆 Wybieranie</button>
+    <button class="btn modeBtn" data-build="tower">📡 Postaw maszt</button>
+    <button class="btn modeBtn" data-build="shop">🏪 Otwórz salon</button>
+    <button id="toggleCoverage" class="btn">📶 Zasięg: ON</button>
+    <button id="worldView" class="btn">🌍 Cały świat</button>
+   </div>
 
-      <div class="map-toolbar">
-        <button class="btn mapMode active" data-mode="all">Wszystko</button>
-        <button class="btn mapMode" data-mode="2G">2G</button>
-        <button class="btn mapMode" data-mode="3G">3G</button>
-        <button class="btn mapMode" data-mode="LTE">LTE</button>
-        <button class="btn mapMode" data-mode="5G">5G</button>
-      </div>
-
-      <div class="legend">
-        📍 Miasto<br>
-        <span class="cyan">●</span> Maszt<br>
-        <span class="warn">●</span> Salon<br>
-        <span style="color:#c084fc">●</span> Biuro
-      </div>
+   <div class="mapBox">
+    <div id="map"></div>
+    <div class="mapHelp">
+     🖱️ przeciągnij = przesuwanie<br>
+     🔍 rolka / + − = zoom<br>
+     📡 maszt = kliknij miejsce na mapie<br>
+     🏪 salon = kliknij miejsce na mapie
     </div>
+   </div>
   </div>
 
-  <aside class="right-stack">
+  <aside class="side">
 
-    <div class="panel section">
-      <div class="title">📍 Wybrane miasto</div>
-      <div id="cityInfo"></div>
+   <div class="panel section">
+    <div class="title">📍 Budowa</div>
+    <div id="buildInfo" class="muted">
+     Wybierz „Postaw maszt” albo „Otwórz salon”, a potem kliknij mapę.
     </div>
 
-    <div class="panel section">
-      <div class="title">🏢 Centrala</div>
-      <div id="hqInfo"></div>
-      <button id="upgradeHQ" class="btn purple" style="width:100%;margin-top:8px">
-        Ulepsz centralę
-      </button>
-    </div>
+    <label>Technologia masztu</label>
+    <select id="towerTech" class="select"></select>
+   </div>
 
-    <div class="panel section">
-      <div class="title">Dziennik firmy</div>
-      <div id="gameLog" class="log"></div>
-    </div>
+   <div class="panel section">
+    <div class="title">📊 Twoja sieć</div>
+    <div id="networkInfo"></div>
+   </div>
+
+   <div class="panel section">
+    <div class="title">📰 Dziennik</div>
+    <div id="log" class="log"></div>
+   </div>
 
   </aside>
 
-</div>
+ </div>
 </section>
-
-<!-- CUSTOMERS -->
-
-<section id="view-customers" class="view hidden">
-<div class="layout" style="margin-top:10px">
-
-<div class="panel section">
-  <div class="title">👥 Baza klientów</div>
-  <div id="customerStats" class="grid3"></div>
-
-  <div class="title" style="margin-top:15px">Miasta</div>
-  <div id="cityCustomers" class="grid3"></div>
-</div>
-
-<aside class="right-stack">
-  <div class="panel section">
-    <div class="title">📢 Marketing</div>
-
-    <button class="btn blue marketing" data-cost="500000" data-power="1" style="width:100%;margin-bottom:6px">
-      Social media • 500 tys.
-    </button>
-
-    <button class="btn blue marketing" data-cost="2000000" data-power="4" style="width:100%;margin-bottom:6px">
-      Kampania internetowa • 2 mln
-    </button>
-
-    <button class="btn gold marketing" data-cost="7000000" data-power="10" style="width:100%">
-      Kampania ogólnopolska • 7 mln
-    </button>
-  </div>
-</aside>
-
-</div>
-</section>
-
-<!-- OFFERS -->
-
-<section id="view-offers" class="view hidden">
-
-<div class="layout" style="margin-top:10px">
-
-<div class="panel section">
-
-  <div class="title">💳 Twoje oferty</div>
-  <div id="plans"></div>
-
-</div>
-
-<aside class="panel section">
-
-  <div class="title">➕ Kreator oferty</div>
-
-  <label class="small">Nazwa</label>
-  <input id="planName" class="input" value="Mega 50">
-
-  <div class="form-row" style="margin-top:8px">
-
-    <div>
-      <label class="small">Typ</label>
-      <select id="planType" class="select">
-        <option>Abonament</option>
-        <option>Na kartę</option>
-        <option>MIX</option>
-        <option>Internet mobilny</option>
-      </select>
-    </div>
-
-    <div>
-      <label class="small">Cena / mies.</label>
-      <input id="planPrice" class="input" type="number" value="49">
-    </div>
-
-    <div>
-      <label class="small">Internet GB</label>
-      <input id="planData" class="input" type="number" value="50">
-    </div>
-
-  </div>
-
-  <div class="form-row">
-
-    <div>
-      <label class="small">Rozmowy</label>
-      <select id="planCalls" class="select">
-        <option value="1">Bez limitu</option>
-        <option value="0">Płatne</option>
-      </select>
-    </div>
-
-    <div>
-      <label class="small">SMS</label>
-      <select id="planSms" class="select">
-        <option value="1">Bez limitu</option>
-        <option value="0">Płatne</option>
-      </select>
-    </div>
-
-    <div>
-      <label class="small">Umowa</label>
-      <select id="planContract" class="select">
-        <option value="0">Bez umowy</option>
-        <option value="12">12 miesięcy</option>
-        <option value="24">24 miesiące</option>
-      </select>
-    </div>
-
-  </div>
-
-  <button id="createPlan" class="btn green" style="width:100%">
-    Utwórz ofertę
-  </button>
-
-</aside>
-
-</div>
-</section>
-
-<!-- EMPLOYEES -->
-
-<section id="view-employees" class="view hidden">
-<div class="layout" style="margin-top:10px">
-
-<div class="panel section">
-  <div class="title">👨‍💼 Zatrudnieni</div>
-  <div id="employeeList"></div>
-</div>
-
-<aside class="panel section">
-  <div class="title">📄 Kandydaci</div>
-  <div class="muted" style="margin-bottom:8px">
-    Nowi kandydaci pojawiają się automatycznie.
-  </div>
-  <div id="candidates"></div>
-</aside>
-
-</div>
-</section>
-
-<!-- RESEARCH -->
 
 <section id="view-research" class="view hidden">
-<div class="panel section" style="margin-top:10px">
+ <div class="panel section">
+  <div class="title">🔬 Technologie</div>
+  <div id="techGrid" class="grid3"></div>
+ </div>
+</section>
 
-  <div class="title">🔬 Centrum badań i rozwoju</div>
-  <div class="muted" style="margin-bottom:10px">
-    Wraz z upływem lat pojawiają się kolejne technologie.
+<section id="view-market" class="view hidden">
+ <div class="layout">
+  <div class="panel section">
+   <div class="title">🏢 Globalny rynek operatorów</div>
+   <div id="companyList"></div>
   </div>
 
-  <div id="researchGrid" class="grid3"></div>
-
-</div>
+  <aside class="panel section">
+   <div class="title">🌐 Rynek</div>
+   <div id="marketInfo"></div>
+  </aside>
+ </div>
 </section>
 
-<!-- DEVICES -->
-
-<section id="view-devices" class="view hidden">
-<div class="panel section" style="margin-top:10px">
-
-  <div class="title">📱 Urządzenia</div>
-  <div id="devicesGrid" class="grid4"></div>
-
-</div>
+<section id="view-shares" class="view hidden">
+ <div class="panel section">
+  <div class="title">📈 Twoje inwestycje</div>
+  <div id="ownedShares"></div>
+ </div>
 </section>
-
-<!-- COMPANIES -->
-
-<section id="view-companies" class="view hidden">
-<div class="layout" style="margin-top:10px">
-
-<div class="panel section">
-  <div class="title">🏢 Rynek operatorów</div>
-  <div id="companies"></div>
-</div>
-
-<aside class="panel section">
-  <div class="title">🤝 Przejęcia</div>
-  <p class="muted">
-    Kupując operatora przejmujesz jego klientów, maszty, salony i część pracowników.
-  </p>
-  <div id="marketShare"></div>
-</aside>
-
-</div>
-</section>
-
-<!-- FINANCE -->
 
 <section id="view-finance" class="view hidden">
-<div class="layout" style="margin-top:10px">
+ <div class="layout">
+  <div class="panel section">
+   <div class="title">💰 Finanse</div>
+   <div id="financeGrid" class="grid3"></div>
+  </div>
 
-<div class="panel section">
-  <div class="title">📊 Finanse</div>
-  <div id="financeStats" class="grid3"></div>
-
-  <div class="title" style="margin-top:15px">Ostatnie miesiące</div>
-  <div id="financeHistory"></div>
-</div>
-
-<aside class="panel section">
-  <div class="title">Koszty</div>
-  <div id="costBreakdown"></div>
-</aside>
-
-</div>
+  <aside class="panel section">
+   <div class="title">Koszty miesięczne</div>
+   <div id="costs"></div>
+  </aside>
+ </div>
 </section>
 
 </div>
@@ -812,2026 +282,1015 @@ label.small{
 <!-- START -->
 
 <div id="startModal" class="modal">
-<div class="panel modal-box">
+ <div class="panel modalBox">
 
-  <div class="modal-title">📡 Mobile Network Tycoon</div>
-
+  <div class="big">📡 Network Empire</div>
   <p class="muted">
-    Załóż własnego operatora komórkowego.
+   Zaczynasz bez masztów i bez salonów. Zbuduj globalnego operatora.
   </p>
 
-  <label class="small">Nazwa operatora</label>
-  <input id="companyName" class="input" value="Nova Mobile">
+  <label>Nazwa operatora</label>
+  <input id="companyName" class="input" value="Nova Telecom">
 
-  <div class="grid2" style="margin-top:10px">
+  <div class="grid2" style="margin-top:12px">
 
-    <button class="btn start-choice startGame" data-style="balanced">
-      <strong>⚖️ Zbalansowany start</strong><br><br>
-      35 mln zł<br>
-      LTE<br>
-      1 salon<br>
-      1 maszt
-    </button>
+   <button class="btn startBtn" data-mode="normal" style="padding:20px;text-align:left">
+    <strong>🏢 NORMALNA GRA</strong><br><br>
+    40 mln zł<br>
+    0 masztów<br>
+    0 salonów<br>
+    stopniowe badania
+   </button>
 
-    <button class="btn start-choice startGame" data-style="startup">
-      <strong>🚀 Startup</strong><br><br>
-      50 mln zł<br>
-      mniej infrastruktury<br>
-      szybsze badania
-    </button>
-
-  </div>
-
-</div>
-</div>
-
-<!-- CITY MODAL -->
-
-<div id="cityModal" class="modal hidden">
-<div class="panel modal-box">
-
-  <div id="cityModalTitle" class="modal-title"></div>
-  <div id="cityModalInfo"></div>
-
-  <div class="title" style="margin-top:15px">Budowa</div>
-
-  <div class="grid2">
-
-    <button id="buildShop" class="btn gold">
-      🏪 Salon<br>
-      1,5 mln zł
-    </button>
-
-    <button id="buildTower" class="btn cyan">
-      📡 Maszt<br>
-      2,5 mln zł
-    </button>
-
-    <button id="buildOffice" class="btn purple">
-      🏢 Biuro regionalne<br>
-      5 mln zł
-    </button>
-
-    <button id="upgradeShop" class="btn green">
-      ⬆️ Ulepsz salon
-    </button>
+   <button class="btn startBtn gold" data-mode="sandbox" style="padding:20px;text-align:left">
+    <strong>🏖️ PIASKOWNICA</strong><br><br>
+    999 bilionów zł<br>
+    0 masztów<br>
+    0 salonów<br>
+    wszystkie bazowe technologie
+   </button>
 
   </div>
+ </div>
+</div>
 
-  <div class="title" style="margin-top:15px">Technologia masztu</div>
+<!-- COMPANY -->
 
-  <select id="towerTech" class="select">
-    <option>2G</option>
-    <option>3G</option>
-    <option>LTE</option>
-    <option>5G</option>
-  </select>
+<div id="companyModal" class="modal hidden">
+ <div class="panel modalBox">
+  <div id="companyTitle" class="big"></div>
+  <div id="companyDetails"></div>
 
-  <div class="modal-actions">
-    <button id="closeCity" class="btn">Zamknij</button>
+  <div class="title" style="margin-top:15px">👥 Udziałowcy</div>
+  <div id="shareholderList"></div>
+
+  <div id="controlPanel" class="hidden">
+   <div class="title" style="margin-top:15px">🎛️ Panel zarządzania</div>
+
+   <div class="grid2">
+    <button id="investCompany" class="btn blue">💰 Dokapitalizuj</button>
+    <button id="companyResearch" class="btn purple">🔬 Zwiększ R&D</button>
+    <button id="companyExpand" class="btn cyan">📡 Rozbuduj sieć</button>
+    <button id="takeoverCompany" class="btn red">🏢 Pełne przejęcie</button>
+   </div>
   </div>
 
-</div>
+  <button id="closeCompany" class="btn" style="margin-top:14px;width:100%">
+   Zamknij
+  </button>
+ </div>
 </div>
 
 <!-- CONSOLE -->
 
 <div id="console" class="console hidden">
-  <div class="console-head">~ DEVELOPER CONSOLE</div>
-  <div id="consoleOutput" class="console-output"></div>
-  <input id="consoleInput" class="console-input" placeholder="Wpisz help...">
+ <div class="consoleHead">~ NETWORK EMPIRE CONSOLE</div>
+ <div id="consoleOut" class="consoleOut"></div>
+ <input id="consoleInput" class="consoleInput" placeholder="help">
 </div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
 "use strict";
 
-const $=id=>document.getElementById(id);
-const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const $=x=>document.getElementById(x);
 const rand=(a,b)=>a+Math.random()*(b-a);
 const chance=p=>Math.random()<p;
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+const uid=()=>Math.random().toString(36).slice(2)+Date.now().toString(36);
 
-function cash(v){
-  if(v>=1e9)return (v/1e9).toFixed(2)+" mld zł";
-  if(v>=1e6)return (v/1e6).toFixed(1)+" mln zł";
-  if(v>=1e3)return (v/1e3).toFixed(0)+" tys. zł";
-  return Math.round(v)+" zł";
+function money(v){
+ if(v>=1e12)return (v/1e12).toFixed(2)+" bln zł";
+ if(v>=1e9)return (v/1e9).toFixed(2)+" mld zł";
+ if(v>=1e6)return (v/1e6).toFixed(1)+" mln zł";
+ if(v>=1e3)return (v/1e3).toFixed(0)+" tys. zł";
+ return Math.round(v)+" zł";
 }
+function num(v){return Math.round(v).toLocaleString("pl-PL")}
 
-function number(v){
-  return Math.round(v).toLocaleString("pl-PL");
-}
+const TECHS=[
+ ["gsm","GSM / 2G",1995,0,35000],
+ ["gprs","GPRS",1997,1500000,33000],
+ ["edge","EDGE",1999,2500000,31000],
+ ["umts","UMTS / 3G",2001,5000000,27000],
+ ["hspa","HSPA",2005,6500000,26000],
+ ["hspap","HSPA+",2008,8500000,25000],
+ ["lte","LTE / 4G",2010,12000000,22000],
+ ["ltea","LTE Advanced",2013,16000000,21000],
+ ["volte","VoLTE",2014,7000000,0],
+ ["vowifi","Wi-Fi Calling",2015,6500000,0],
+ ["nb","NB-IoT",2016,8000000,0],
+ ["esim","eSIM",2018,9000000,0],
+ ["5gnsa","5G NSA",2019,24000000,16000],
+ ["mimo","Massive MIMO",2020,18000000,0],
+ ["mmwave","5G mmWave",2021,28000000,6500],
+ ["5gsa","5G Standalone",2022,34000000,14500],
+ ["openran","Open RAN",2023,22000000,0],
+ ["edgecloud","Edge Cloud",2024,30000000,0],
+ ["aiopt","AI Network Optimization",2025,38000000,0],
+ ["sat","Direct-to-Device Satellite",2026,60000000,0],
+ ["6g","6G Research",2028,100000000,11000],
+ ["terahertz","Terahertz Cells",2030,160000000,5000],
+ ["quantum","Quantum Network Core",2032,220000000,0],
+ ["holo","Holographic Communication",2034,350000000,0]
+].map(x=>({
+ id:x[0],name:x[1],year:x[2],cost:x[3],range:x[4]
+}));
 
-/* =========================================================
-   MAP / CITIES
-========================================================= */
-
-const CITIES=[
-{id:"warsaw",name:"Warszawa",x:535,y:325,pop:1860000},
-{id:"krakow",name:"Kraków",x:520,y:630,pop:805000},
-{id:"lodz",name:"Łódź",x:455,y:405,pop:655000},
-{id:"wroclaw",name:"Wrocław",x:300,y:535,pop:675000},
-{id:"poznan",name:"Poznań",x:270,y:345,pop:540000},
-{id:"gdansk",name:"Gdańsk",x:405,y:105,pop:490000},
-{id:"szczecin",name:"Szczecin",x:130,y:260,pop:390000},
-{id:"bydgoszcz",name:"Bydgoszcz",x:355,y:255,pop:330000},
-{id:"lublin",name:"Lublin",x:675,y:470,pop:330000},
-{id:"bialystok",name:"Białystok",x:700,y:270,pop:290000},
-{id:"katowice",name:"Katowice",x:440,y:625,pop:280000},
-{id:"gdynia",name:"Gdynia",x:395,y:78,pop:245000},
-{id:"czestochowa",name:"Częstochowa",x:455,y:535,pop:210000},
-{id:"radom",name:"Radom",x:565,y:445,pop:195000},
-{id:"torun",name:"Toruń",x:405,y:270,pop:195000},
-{id:"rzeszow",name:"Rzeszów",x:650,y:650,pop:200000},
-{id:"kielce",name:"Kielce",x:545,y:525,pop:185000},
-{id:"olsztyn",name:"Olsztyn",x:535,y:195,pop:170000},
-{id:"opole",name:"Opole",x:340,y:580,pop:125000},
-{id:"zielonagora",name:"Zielona Góra",x:190,y:445,pop:140000}
+const COMPANY_NAMES=[
+ "Astra Mobile","BlueWave Telecom","NordCell","Vertex Wireless",
+ "Luma Networks","Orbitel","Quantum Mobile","SkyLink",
+ "Pulse Telecom","MetroCell","Zenith Wireless","NovaWave",
+ "Titan Communications","Echo Mobile","GlobeTel","HyperCell",
+ "Aurora Telecom","Nexa Mobile","Volt Wireless","PrimeLink"
 ];
 
-const POLAND_PATH=`
-M350 48
-L430 58 L485 78 L548 100 L620 128
-L690 176 L731 234 L748 300 L730 361
-L753 419 L723 470 L735 525 L699 565
-L686 626 L643 670 L589 694 L552 738
-L493 756 L440 734 L392 747 L345 715
-L288 713 L250 679 L195 665 L168 620
-L121 598 L107 542 L76 496 L91 442
-L69 390 L92 341 L78 290 L109 247
-L126 198 L173 170 L203 125 L260 112
-L296 75 Z
-`;
-
-/* =========================================================
-   TECHNOLOGIES
-========================================================= */
-
-const BASE_TECHS=[
-{id:"2g",name:"2G GSM",year:1995,cost:0,quality:15,range:90},
-{id:"3g",name:"3G UMTS",year:2000,cost:5000000,quality:28,range:78},
-{id:"lte",name:"4G LTE",year:2009,cost:12000000,quality:52,range:67},
-{id:"volte",name:"VoLTE",year:2014,cost:7000000,quality:60,range:0},
-{id:"5g",name:"5G",year:2019,cost:25000000,quality:78,range:52},
-{id:"esim",name:"eSIM",year:2020,cost:9000000,quality:8,range:0},
-{id:"wifi",name:"Wi-Fi Calling",year:2015,cost:6500000,quality:9,range:0},
-{id:"5gsa",name:"5G Standalone",year:2023,cost:35000000,quality:90,range:48},
-{id:"iot",name:"IoT Network",year:2024,cost:18000000,quality:12,range:0},
-{id:"edge",name:"Edge Computing",year:2026,cost:30000000,quality:15,range:0}
+const INVESTORS=[
+ "Założyciele","Fundusz Atlas","North Capital","Horizon Partners",
+ "Future Ventures","Global Equity","Fundusz Meridian",
+ "SilverRock","Pioneer Investments","Inwestorzy detaliczni"
 ];
-
-const FUTURE_NAMES=[
-"6G Research",
-"AI Radio Optimization",
-"Quantum Network Core",
-"Ultra Massive MIMO",
-"Satellite Direct-to-Phone",
-"Terahertz Cells",
-"AI Self-Healing Network",
-"Photon Core Network",
-"Holographic Calling",
-"Zero-Latency Edge"
-];
-
-/* =========================================================
-   DEVICES
-========================================================= */
-
-const DEVICE_NAMES=[
-["📱","Nova One"],
-["📱","PixelWave"],
-["📱","Orion Pro"],
-["📱","Vega Mini"],
-["📱","Titan Ultra"],
-["📶","HomeBox 5G"],
-["⌚","Pulse Watch"],
-["💻","AirTab"],
-["📱","Zen Phone"],
-["📶","Pocket Router"]
-];
-
-/* =========================================================
-   EMPLOYEES
-========================================================= */
-
-const FIRST_NAMES=[
-"Anna","Michał","Julia","Jakub","Zofia","Kacper","Maja",
-"Piotr","Oliwia","Tomasz","Natalia","Mateusz","Aleksandra",
-"Filip","Karolina","Bartosz"
-];
-
-const LAST_NAMES=[
-"Kowalska","Nowak","Wiśniewski","Wójcik","Kamiński",
-"Lewandowski","Zielińska","Szymański","Woźniak","Dąbrowski"
-];
-
-const JOBS=[
-"Sprzedawca",
-"Technik",
-"Inżynier sieci",
-"Badacz",
-"Marketing",
-"Obsługa klienta",
-"Menedżer"
-];
-
-/* =========================================================
-   COMPETITORS
-========================================================= */
-
-const COMPANIES=[
-{name:"Orange Polska",customers:8500000,towers:9200,shops:640,value:14e9,color:"#ff7900"},
-{name:"T-Mobile Polska",customers:7200000,towers:8000,shops:510,value:12e9,color:"#e20074"},
-{name:"Play",customers:9000000,towers:10500,shops:700,value:15e9,color:"#7b2cbf"},
-{name:"Plus",customers:7800000,towers:8700,shops:570,value:13e9,color:"#59b52f"},
-{name:"Vectra Mobile",customers:950000,towers:300,shops:120,value:1.3e9,color:"#00a8e8"},
-{name:"SkyCell",customers:380000,towers:180,shops:45,value:650e6,color:"#64748b"}
-];
-
-/* =========================================================
-   GAME
-========================================================= */
 
 let game=null;
+let map=null;
+let layers=null;
+let selectedCompany=null;
 let timer=null;
+let buildMode="select";
+let coverageVisible=true;
 
-function newEmployee(){
-  return{
-    id:crypto.randomUUID(),
-    name:FIRST_NAMES[Math.floor(Math.random()*FIRST_NAMES.length)]+" "+
-         LAST_NAMES[Math.floor(Math.random()*LAST_NAMES.length)],
-    job:JOBS[Math.floor(Math.random()*JOBS.length)],
-    skill:Math.round(rand(35,98)),
-    salary:Math.round(rand(4500,18000))
-  };
-}
+function createCompany(name){
+ const customers=Math.round(rand(50000,5000000));
+ const towers=Math.round(rand(30,2800));
+ const shops=Math.round(rand(5,260));
 
-function newDevice(){
-  const d=DEVICE_NAMES[Math.floor(Math.random()*DEVICE_NAMES.length)];
+ let left=100;
+ const shareholders=[];
 
-  return{
-    id:crypto.randomUUID(),
-    icon:d[0],
-    name:d[1]+" "+Math.floor(rand(1,10)),
-    wholesale:Math.round(rand(400,4500)),
-    retail:Math.round(rand(700,6500)),
-    popularity:Math.round(rand(30,95)),
-    signed:false
-  };
-}
-
-function createGame(style){
-
-  const name=$("companyName").value.trim()||"Nova Mobile";
-
-  const cityState={};
-
-  CITIES.forEach(c=>{
-    cityState[c.id]={
-      towers:[],
-      shops:0,
-      shopLevel:0,
-      office:0,
-      customers:0
-    };
+ for(let i=0;i<4;i++){
+  const max=Math.min(left-(3-i)*5,35);
+  const pct=i===3?left:Math.round(rand(5,max));
+  shareholders.push({
+   id:uid(),
+   name:INVESTORS[Math.floor(Math.random()*INVESTORS.length)],
+   pct:pct,
+   price:rand(.9,1.2)
   });
+  left-=pct;
+ }
 
-  game={
-    name,
-    date:new Date(2025,0,1),
-    speed:1,
-    money:style==="startup"?50000000:35000000,
-    customers:style==="startup"?1500:4000,
-    reputation:50,
-    selectedCity:"warsaw",
-    mapMode:"all",
+ shareholders[shareholders.length-1].pct+=left;
 
-    hqLevel:1,
-    maxEmployees:12,
-    employeeLimitCheat:false,
+ return{
+  id:uid(),name,
+  customers,towers,shops,
+  value:customers*rand(200,650)+towers*rand(50000,130000),
+  research:Math.round(rand(10,75)),
+  reputation:Math.round(rand(30,90)),
+  shareholders,
+  playerShares:0,
+  controlled:false,
+  taken:false,
+  cash:rand(20e6,900e6)
+ };
+}
 
-    cities:cityState,
-    employees:[],
-    candidates:[],
-    plans:[
-      {
-        id:crypto.randomUUID(),
-        name:"Start 20",
-        type:"Abonament",
-        price:39,
-        data:20,
-        calls:true,
-        sms:true,
-        contract:12,
-        customers:4000
-      }
-    ],
+function newGame(mode){
+ const city=$("companyName").value.trim()||"Nova Telecom";
 
-    techs:BASE_TECHS.map(t=>({
-      ...t,
-      unlocked:t.id==="2g" || (style==="balanced"&&t.id==="lte"),
-      researched:t.id==="2g" || (style==="balanced"&&t.id==="lte")
-    })),
+ game={
+  name:city,
+  mode,
+  money:mode==="sandbox"?999000000000000:40000000,
+  customers:0,
+  towers:[],
+  shops:[],
+  date:new Date(2025,0,1),
+  speed:1,
+  buildFree:false,
+  profit:0,
+  revenue:0,
+  expenses:0,
+  technologies:TECHS.map(t=>({
+   ...t,
+   unlocked:mode==="sandbox"||t.year<=2025,
+   researched:mode==="sandbox"||t.id==="gsm"
+  })),
+  companies:COMPANY_NAMES.slice(0,8).map(createCompany),
+  generatedTechs:[],
+  history:[],
+  days:0
+ };
 
-    devices:[],
-    competitors:COMPANIES.map(c=>({...c,bought:false})),
+ $("startModal").classList.add("hidden");
 
-    monthRevenue:0,
-    monthCosts:0,
-    lastProfit:0,
-    financeHistory:[],
+ initMap();
+ addLog("Założono "+game.name+". Zaczynasz bez infrastruktury.");
+ addLog("Kliknij „Postaw maszt” albo „Otwórz salon”, a następnie miejsce na mapie.");
 
-    researchBoost:style==="startup"?1.25:1,
+ render();
+ startTimer();
+}
 
-    dayCounter:0,
-    candidateTimer:0,
-    deviceTimer:0,
-    techTimer:0
-  };
+function initMap(){
+ if(map){
+  map.remove();
+ }
 
-  game.cities.warsaw.shops=1;
-  game.cities.warsaw.shopLevel=1;
+ map=L.map("map",{
+  zoomControl:true,
+  minZoom:2,
+  maxZoom:18,
+  worldCopyJump:true
+ }).setView([30,10],2);
 
-  if(style==="balanced"){
-    game.cities.warsaw.towers.push({
-      id:crypto.randomUUID(),
-      tech:"LTE",
-      level:1
-    });
+ L.tileLayer(
+  "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+  {
+   maxZoom:19,
+   attribution:"&copy; OpenStreetMap contributors"
   }
+ ).addTo(map);
 
-  for(let i=0;i<5;i++)
-    game.candidates.push(newEmployee());
+ layers={
+  towers:L.layerGroup().addTo(map),
+  shops:L.layerGroup().addTo(map),
+  coverage:L.layerGroup().addTo(map)
+ };
 
-  for(let i=0;i<4;i++)
-    game.devices.push(newDevice());
-
-  $("startModal").classList.add("hidden");
-
-  log("Założono operatora "+game.name+".");
-
-  startTimer();
-  renderAll();
+ map.on("click",e=>{
+  if(buildMode==="tower")placeTower(e.latlng);
+  if(buildMode==="shop")placeShop(e.latlng);
+ });
 }
 
-/* =========================================================
-   LOG
-========================================================= */
-
-function log(text){
-  const box=$("gameLog");
-  const d=document.createElement("div");
-  d.textContent="• "+text;
-  box.prepend(d);
+function icon(type){
+ return L.divIcon({
+  className:"",
+  html:`<div class="marker-${type}">${type==="tower"?"📡":"🏪"}</div>`,
+  iconSize:[24,24],
+  iconAnchor:[12,12]
+ });
 }
 
-/* =========================================================
-   MAP
-========================================================= */
+function towerRangeMeters(tech){
+ const t=game.technologies.find(x=>x.id===tech);
+ return t?.range||10000;
+}
 
-function towerRange(tech,level){
+function placeTower(pos){
+ const tech=$("towerTech").value;
+ const t=game.technologies.find(x=>x.id===tech);
 
-  const lookup={
-    "2G":90,
-    "3G":78,
-    "LTE":67,
-    "5G":52
-  };
+ if(!t?.researched){
+  addLog("Ta technologia nie została jeszcze zbadana.");
+  return;
+ }
 
-  return (lookup[tech]||55)*(1+(level-1)*.15);
+ const cost=game.buildFree?0:
+   tech.includes("5g")?4500000:
+   tech==="6g"?9000000:
+   2500000;
+
+ if(game.money<cost){
+  addLog("Za mało pieniędzy na maszt.");
+  return;
+ }
+
+ game.money-=cost;
+
+ game.towers.push({
+  id:uid(),
+  lat:pos.lat,
+  lng:pos.lng,
+  tech,
+  level:1
+ });
+
+ addLog("Postawiono maszt "+t.name+".");
+ render();
+}
+
+function placeShop(pos){
+ const cost=game.buildFree?0:1500000;
+
+ if(game.money<cost){
+  addLog("Za mało pieniędzy na salon.");
+  return;
+ }
+
+ game.money-=cost;
+
+ game.shops.push({
+  id:uid(),
+  lat:pos.lat,
+  lng:pos.lng,
+  level:1
+ });
+
+ addLog("Otwarto nowy salon.");
+ render();
 }
 
 function renderMap(){
+ if(!map)return;
 
-  const svg=$("map");
+ layers.towers.clearLayers();
+ layers.shops.clearLayers();
+ layers.coverage.clearLayers();
 
-  svg.innerHTML=`
-    <path class="country-shape" d="${POLAND_PATH}"></path>
-  `;
+ game.towers.forEach(t=>{
+  const tech=game.technologies.find(x=>x.id===t.tech);
 
-  const NS="http://www.w3.org/2000/svg";
+  L.marker([t.lat,t.lng],{icon:icon("tower")})
+   .bindPopup(
+    `<b>📡 ${tech?.name||t.tech}</b><br>
+     Poziom ${t.level}<br>
+     Zasięg: ${(towerRangeMeters(t.tech)/1000).toFixed(1)} km`
+   )
+   .addTo(layers.towers);
 
-  CITIES.forEach(city=>{
+  if(coverageVisible && towerRangeMeters(t.tech)>0){
+   L.circle([t.lat,t.lng],{
+    radius:towerRangeMeters(t.tech)*t.level,
+    color:"#22d3ee",
+    fillColor:"#22d3ee",
+    fillOpacity:.09,
+    weight:1
+   }).addTo(layers.coverage);
+  }
+ });
 
-    const data=game.cities[city.id];
+ game.shops.forEach(s=>{
+  L.marker([s.lat,s.lng],{icon:icon("shop")})
+   .bindPopup(`<b>🏪 Salon ${game.name}</b><br>Poziom ${s.level}`)
+   .addTo(layers.shops);
+ });
+}
 
-    data.towers.forEach((tower,index)=>{
+function research(id){
+ const t=game.technologies.find(x=>x.id===id);
+ if(!t||t.researched)return;
 
-      if(game.mapMode!=="all" && game.mapMode!==tower.tech)
-        return;
+ if(game.money<t.cost){
+  addLog("Brakuje pieniędzy na badania.");
+  return;
+ }
 
-      const coverage=document.createElementNS(NS,"circle");
+ game.money-=t.cost;
+ t.researched=true;
 
-      coverage.setAttribute("cx",city.x+index*8);
-      coverage.setAttribute("cy",city.y+index*5);
-      coverage.setAttribute(
-        "r",
-        towerRange(tower.tech,tower.level)
-      );
+ addLog("Zbadano: "+t.name+".");
+ render();
+}
 
-      coverage.setAttribute("class","coverage");
+function generateTechnology(){
+ const prefixes=[
+  "Neural","Quantum","Hyper","Photon","Adaptive","Orbital",
+  "Nano","AI","Ultra","Dynamic","Fusion"
+ ];
+ const suffixes=[
+  "Radio","Core","Mesh","Beamforming","Spectrum",
+  "Backhaul","Cells","Network","Wave","Cloud"
+ ];
 
-      svg.appendChild(coverage);
-    });
+ const name=
+  prefixes[Math.floor(Math.random()*prefixes.length)]+" "+
+  suffixes[Math.floor(Math.random()*suffixes.length)]+" "+
+  Math.floor(rand(2,10));
+
+ const tech={
+  id:"generated_"+uid(),
+  name,
+  year:game.date.getFullYear(),
+  cost:Math.round(rand(50,400))*1000000,
+  range:chance(.45)?Math.round(rand(5000,25000)):0,
+  unlocked:true,
+  researched:false,
+  generated:true
+ };
+
+ game.technologies.push(tech);
+ addLog("🔬 Pojawiła się nowa technologia: "+name+".");
+}
+
+function generateCompany(){
+ if(game.companies.filter(c=>!c.taken).length>=18)return;
+
+ let name=
+  COMPANY_NAMES[Math.floor(Math.random()*COMPANY_NAMES.length)]+" "+
+  Math.floor(rand(2,99));
+
+ game.companies.push(createCompany(name));
+ addLog("🏢 Na rynku pojawił się nowy operator: "+name+".");
+}
+
+function openCompany(id){
+ selectedCompany=id;
+ const c=game.companies.find(x=>x.id===id);
+ if(!c)return;
+
+ $("companyTitle").textContent="🏢 "+c.name;
+
+ $("companyDetails").innerHTML=`
+  <div class="grid3">
+   <div class="card"><span class="muted">Wartość</span><br><b>${money(c.value)}</b></div>
+   <div class="card"><span class="muted">Klienci</span><br><b>${num(c.customers)}</b></div>
+   <div class="card"><span class="muted">Twoje udziały</span><br><b>${c.playerShares.toFixed(1)}%</b></div>
+  </div>
+  <p>
+   📡 ${num(c.towers)} masztów •
+   🏪 ${num(c.shops)} salonów •
+   🔬 R&D ${c.research}/100
+  </p>
+ `;
+
+ $("shareholderList").innerHTML=
+  c.shareholders.map(s=>{
+   const price=c.value*(s.pct/100)*s.price;
+
+   return`
+    <div class="card shareholder">
+     <div class="companyTop">
+      <div>
+       <b>${s.name}</b><br>
+       <span class="muted">${s.pct.toFixed(1)}% firmy</span>
+      </div>
+      <div style="text-align:right">
+       <b>${money(price)}</b><br>
+       <button class="btn green buyShares"
+        data-company="${c.id}" data-share="${s.id}">
+        Odkup udziały
+       </button>
+      </div>
+     </div>
+    </div>
+   `;
+  }).join("") || `<div class="muted">Brak zewnętrznych udziałowców.</div>`;
+
+ document.querySelectorAll(".buyShares").forEach(b=>{
+  b.onclick=()=>buyShares(b.dataset.company,b.dataset.share);
+ });
+
+ $("controlPanel").classList.toggle("hidden",c.playerShares<=50);
+
+ $("companyModal").classList.remove("hidden");
+}
+
+function buyShares(companyId,shareId){
+ const c=game.companies.find(x=>x.id===companyId);
+ const s=c?.shareholders.find(x=>x.id===shareId);
+ if(!c||!s)return;
+
+ const maxBuy=Math.min(s.pct,10);
+ const cost=c.value*(maxBuy/100)*s.price;
+
+ if(game.money<cost){
+  addLog("Nie stać Cię na ten pakiet udziałów.");
+  return;
+ }
+
+ game.money-=cost;
+ s.pct-=maxBuy;
+ c.playerShares+=maxBuy;
+
+ if(s.pct<.01){
+  c.shareholders=c.shareholders.filter(x=>x.id!==shareId);
+ }
+
+ if(c.playerShares>50 && !c.controlled){
+  c.controlled=true;
+  addLog("🎛️ Zdobyłeś większościową kontrolę nad "+c.name+".");
+ }
+
+ render();
+ openCompany(c.id);
+}
+
+function investCompany(){
+ const c=game.companies.find(x=>x.id===selectedCompany);
+ if(!c||c.playerShares<=50)return;
+
+ const amount=10000000;
+ if(game.money<amount)return;
+
+ game.money-=amount;
+ c.cash+=amount;
+ c.value+=amount*.7;
+ addLog("Dokapitalizowano "+c.name+".");
+ render();
+ openCompany(c.id);
+}
+
+function expandCompany(){
+ const c=game.companies.find(x=>x.id===selectedCompany);
+ if(!c||c.playerShares<=50)return;
+
+ const cost=15000000;
+ if(game.money<cost)return;
+
+ game.money-=cost;
+ c.towers+=Math.round(rand(10,40));
+ c.shops+=Math.round(rand(1,6));
+ c.value+=cost*.8;
+
+ addLog(c.name+" rozbudowała sieć.");
+ render();
+ openCompany(c.id);
+}
+
+function companyResearch(){
+ const c=game.companies.find(x=>x.id===selectedCompany);
+ if(!c||c.playerShares<=50)return;
+
+ const cost=12000000;
+ if(game.money<cost)return;
+
+ game.money-=cost;
+ c.research=clamp(c.research+10,0,100);
+ c.value+=cost*.5;
+
+ addLog("Zwiększono R&D w "+c.name+".");
+ render();
+ openCompany(c.id);
+}
+
+function takeover(){
+ const c=game.companies.find(x=>x.id===selectedCompany);
+ if(!c||c.taken)return;
+
+ if(c.playerShares<100){
+  addLog("Do pełnego połączenia potrzebujesz 100% udziałów.");
+  return;
+ }
+
+ c.taken=true;
+
+ game.customers+=c.customers;
+
+ /* fizyczne znaczniki są generowane w ograniczonej liczbie,
+    aby mapa nie została przeciążona tysiącami markerów */
+ const visibleTowers=Math.min(c.towers,80);
+ const visibleShops=Math.min(c.shops,30);
+
+ for(let i=0;i<visibleTowers;i++){
+  game.towers.push({
+   id:uid(),
+   lat:rand(-55,65),
+   lng:rand(-175,175),
+   tech:"lte",
+   level:1,
+   acquired:true
   });
+ }
 
-  CITIES.forEach(city=>{
-
-    const data=game.cities[city.id];
-
-    data.towers.forEach((tower,index)=>{
-
-      if(game.mapMode!=="all" && game.mapMode!==tower.tech)
-        return;
-
-      const g=document.createElementNS(NS,"g");
-
-      g.setAttribute("class","tower");
-
-      const circle=document.createElementNS(NS,"circle");
-
-      circle.setAttribute("cx",city.x+index*8);
-      circle.setAttribute("cy",city.y-12-index*5);
-      circle.setAttribute("r",6);
-      circle.setAttribute("class","tower-dot");
-
-      g.appendChild(circle);
-
-      svg.appendChild(g);
-    });
-
-    if(data.shops>0){
-
-      const shop=document.createElementNS(NS,"rect");
-
-      shop.setAttribute("x",city.x-13);
-      shop.setAttribute("y",city.y+8);
-      shop.setAttribute("width",9);
-      shop.setAttribute("height",9);
-      shop.setAttribute("rx",2);
-      shop.setAttribute("class","shop-dot");
-
-      svg.appendChild(shop);
-    }
-
-    if(data.office>0){
-
-      const office=document.createElementNS(NS,"rect");
-
-      office.setAttribute("x",city.x+5);
-      office.setAttribute("y",city.y+8);
-      office.setAttribute("width",9);
-      office.setAttribute("height",9);
-      office.setAttribute("rx",2);
-      office.setAttribute("class","office-dot");
-
-      svg.appendChild(office);
-    }
-
-    const g=document.createElementNS(NS,"g");
-    g.setAttribute("class","city");
-
-    const dot=document.createElementNS(NS,"circle");
-
-    dot.setAttribute("cx",city.x);
-    dot.setAttribute("cy",city.y);
-    dot.setAttribute("r",7);
-    dot.setAttribute("class","city-dot");
-
-    const text=document.createElementNS(NS,"text");
-
-    text.setAttribute("x",city.x+10);
-    text.setAttribute("y",city.y-8);
-    text.setAttribute("class","city-name");
-    text.textContent=city.name;
-
-    g.appendChild(dot);
-    g.appendChild(text);
-
-    g.onclick=()=>{
-      game.selectedCity=city.id;
-      renderAll();
-      openCity();
-    };
-
-    svg.appendChild(g);
+ for(let i=0;i<visibleShops;i++){
+  game.shops.push({
+   id:uid(),
+   lat:rand(-55,65),
+   lng:rand(-175,175),
+   level:1,
+   acquired:true
   });
+ }
+
+ addLog("🏢 "+c.name+" została całkowicie przejęta.");
+ $("companyModal").classList.add("hidden");
+ render();
 }
 
-/* =========================================================
-   CITY
-========================================================= */
-
-function selectedCity(){
-  return CITIES.find(c=>c.id===game.selectedCity);
-}
-
-function cityQuality(cityId){
-
-  const d=game.cities[cityId];
-
-  if(!d.towers.length)return 0;
-
-  let q=0;
-
-  d.towers.forEach(t=>{
-
-    const val={
-      "2G":20,
-      "3G":35,
-      "LTE":62,
-      "5G":90
-    }[t.tech]||20;
-
-    q+=val*t.level;
-  });
-
-  return clamp(q/d.towers.length+d.towers.length*4,0,100);
-}
-
-function openCity(){
-
-  const c=selectedCity();
-  const d=game.cities[c.id];
-
-  $("cityModalTitle").textContent="📍 "+c.name;
-
-  $("cityModalInfo").innerHTML=`
-    Populacja: <strong>${number(c.pop)}</strong><br>
-    Klienci: <strong>${number(d.customers)}</strong><br>
-    Maszty: <strong>${d.towers.length}</strong><br>
-    Salony: <strong>${d.shops}</strong> • poziom ${d.shopLevel}<br>
-    Biuro regionalne: <strong>${d.office?"TAK":"NIE"}</strong><br>
-    Jakość sieci: <strong>${Math.round(cityQuality(c.id))}/100</strong>
-  `;
-
-  const unlocked=["2G"];
-
-  if(game.techs.find(t=>t.id==="3g")?.researched)unlocked.push("3G");
-  if(game.techs.find(t=>t.id==="lte")?.researched)unlocked.push("LTE");
-  if(game.techs.find(t=>t.id==="5g")?.researched)unlocked.push("5G");
-
-  $("towerTech").innerHTML=
-    unlocked.map(x=>`<option>${x}</option>`).join("");
-
-  $("cityModal").classList.remove("hidden");
-}
-
-function spend(v){
-
-  if(game.money<v){
-    log("Brakuje pieniędzy.");
-    return false;
-  }
-
-  game.money-=v;
-  return true;
-}
-
-function buildShop(){
-
-  const c=selectedCity();
-  const d=game.cities[c.id];
-
-  const cost=1500000*(1+d.shops*.25);
-
-  if(!spend(cost))return;
-
-  d.shops++;
-  d.shopLevel=Math.max(1,d.shopLevel);
-
-  game.reputation+=.4;
-
-  log(`Otwarto salon: ${c.name}.`);
-
-  renderAll();
-  openCity();
-}
-
-function buildTower(){
-
-  const c=selectedCity();
-  const d=game.cities[c.id];
-  const tech=$("towerTech").value;
-
-  const cost={
-    "2G":1800000,
-    "3G":2200000,
-    "LTE":2500000,
-    "5G":4500000
-  }[tech];
-
-  if(!spend(cost))return;
-
-  d.towers.push({
-    id:crypto.randomUUID(),
-    tech,
-    level:1
-  });
-
-  log(`Nowy maszt ${tech}: ${c.name}.`);
-
-  renderAll();
-  openCity();
-}
-
-function buildOffice(){
-
-  const c=selectedCity();
-  const d=game.cities[c.id];
-
-  if(d.office){
-    log("W tym mieście jest już biuro.");
-    return;
-  }
-
-  if(!spend(5000000))return;
-
-  d.office=1;
-  game.maxEmployees+=4;
-
-  log(`Otwarto biuro regionalne: ${c.name}.`);
-
-  renderAll();
-  openCity();
-}
-
-function upgradeShop(){
-
-  const c=selectedCity();
-  const d=game.cities[c.id];
-
-  if(!d.shops){
-    log("Najpierw zbuduj salon.");
-    return;
-  }
-
-  const cost=d.shopLevel*1200000;
-
-  if(!spend(cost))return;
-
-  d.shopLevel++;
-
-  log(`Ulepszono salon w ${c.name} do poziomu ${d.shopLevel}.`);
-
-  renderAll();
-  openCity();
-}
-
-/* =========================================================
-   HQ
-========================================================= */
-
-function upgradeHQ(){
-
-  const cost=game.hqLevel*8000000;
-
-  if(!spend(cost))return;
-
-  game.hqLevel++;
-  game.maxEmployees+=8;
-
-  log(`Centrala osiągnęła poziom ${game.hqLevel}.`);
-
-  renderAll();
-}
-
-/* =========================================================
-   PLANS
-========================================================= */
-
-function createPlan(){
-
-  const price=Math.max(0,Number($("planPrice").value));
-  const data=Math.max(0,Number($("planData").value));
-
-  game.plans.push({
-    id:crypto.randomUUID(),
-    name:$("planName").value||"Nowa oferta",
-    type:$("planType").value,
-    price,
-    data,
-    calls:$("planCalls").value==="1",
-    sms:$("planSms").value==="1",
-    contract:Number($("planContract").value),
-    customers:0
-  });
-
-  log("Dodano nową ofertę.");
-
-  renderAll();
-}
-
-function removePlan(id){
-
-  if(game.plans.length<=1){
-    log("Musisz mieć przynajmniej jedną ofertę.");
-    return;
-  }
-
-  const p=game.plans.find(x=>x.id===id);
-
-  const fallback=game.plans.find(x=>x.id!==id);
-
-  fallback.customers+=p.customers;
-
-  game.plans=game.plans.filter(x=>x.id!==id);
-
-  renderAll();
-}
-
-/* =========================================================
-   EMPLOYEES
-========================================================= */
-
-function hire(id){
-
-  if(
-    !game.employeeLimitCheat &&
-    game.employees.length>=game.maxEmployees
-  ){
-    log("Osiągnięto limit pracowników.");
-    return;
-  }
-
-  const e=game.candidates.find(x=>x.id===id);
-
-  if(!e)return;
-
-  game.employees.push(e);
-
-  game.candidates=game.candidates.filter(x=>x.id!==id);
-
-  log(`Zatrudniono: ${e.name} (${e.job}).`);
-
-  renderAll();
-}
-
-function fireEmployee(id){
-
-  const e=game.employees.find(x=>x.id===id);
-
-  game.employees=game.employees.filter(x=>x.id!==id);
-
-  if(e)log(`Zakończono współpracę z ${e.name}.`);
-
-  renderAll();
-}
-
-/* =========================================================
-   RESEARCH
-========================================================= */
-
-function researchTech(id){
-
-  const t=game.techs.find(x=>x.id===id);
-
-  if(!t || t.researched)return;
-
-  if(!spend(t.cost))return;
-
-  t.researched=true;
-  t.unlocked=true;
-
-  game.reputation+=2;
-
-  log(`Ukończono badania: ${t.name}.`);
-
-  renderAll();
-}
-
-function generateFutureTech(){
-
-  const name=
-    FUTURE_NAMES[
-      Math.floor(Math.random()*FUTURE_NAMES.length)
-    ]+" Mk."+Math.floor(rand(1,5));
-
-  const id="future_"+Date.now();
-
-  game.techs.push({
-    id,
-    name,
-    year:game.date.getFullYear(),
-    cost:Math.round(rand(30,100))*1000000,
-    quality:Math.round(rand(8,25)),
-    range:0,
-    unlocked:true,
-    researched:false,
-    generated:true
-  });
-
-  log(`Nowa technologia dostępna w R&D: ${name}.`);
-}
-
-/* =========================================================
-   DEVICES
-========================================================= */
-
-function signDevice(id){
-
-  const d=game.devices.find(x=>x.id===id);
-
-  if(!d)return;
-
-  const cost=500000;
-
-  if(!spend(cost))return;
-
-  d.signed=true;
-
-  log(`Dodano urządzenie do oferty: ${d.name}.`);
-
-  renderAll();
-}
-
-/* =========================================================
-   COMPANIES / ACQUISITIONS
-========================================================= */
-
-function buyCompany(index){
-
-  const c=game.competitors[index];
-
-  if(!c || c.bought)return;
-
-  if(game.money<c.value){
-    log(`Nie stać Cię na przejęcie ${c.name}.`);
-    return;
-  }
-
-  game.money-=c.value;
-
-  c.bought=true;
-
-  game.customers+=c.customers;
-
-  const cities=[...CITIES];
-
-  for(let i=0;i<c.towers;i++){
-
-    const city=cities[i%cities.length];
-
-    if(i<250){
-
-      game.cities[city.id].towers.push({
-        id:crypto.randomUUID(),
-        tech:chance(.35)?"5G":"LTE",
-        level:chance(.15)?2:1,
-        acquired:true
-      });
-    }
-  }
-
-  let remainingShops=Math.min(c.shops,200);
-
-  let i=0;
-
-  while(remainingShops>0){
-
-    const city=cities[i%cities.length];
-
-    game.cities[city.id].shops++;
-
-    game.cities[city.id].shopLevel=
-      Math.max(1,game.cities[city.id].shopLevel);
-
-    remainingShops--;
-    i++;
-  }
-
-  const workers=Math.min(
-    15,
-    Math.round(c.shops/50)
+function economy(){
+ const avgRevenue=game.customers*49;
+ const towerCost=game.towers.length*2200;
+ const shopCost=game.shops.length*32000;
+ const costs=towerCost+shopCost+250000;
+
+ const quality=
+  Math.min(1,game.towers.length/Math.max(1,game.customers/8000));
+
+ let growth=
+  Math.round(
+   (game.shops.length*rand(100,500)+
+    game.towers.length*rand(50,180))*
+    (.5+quality)
   );
 
-  for(let j=0;j<workers;j++){
-    game.employees.push(newEmployee());
-  }
+ if(game.towers.length===0)growth=0;
 
-  game.maxEmployees+=workers+20;
+ game.customers+=growth;
 
-  game.reputation+=5;
+ game.revenue=avgRevenue;
+ game.expenses=costs;
+ game.profit=avgRevenue-costs;
 
-  log(
-    `Przejęto ${c.name}: klienci, infrastruktura i część pracowników zostały włączone do ${game.name}.`
+ if(game.mode!=="sandbox"){
+  game.money+=game.profit;
+ }
+
+ game.history.unshift({
+  date:game.date.toLocaleDateString("pl-PL"),
+  profit:game.profit
+ });
+ game.history=game.history.slice(0,12);
+}
+
+function companyAI(){
+ game.companies.forEach(c=>{
+  if(c.taken)return;
+
+  c.customers=Math.max(0,
+   Math.round(c.customers*(1+rand(-.007,.018)))
   );
 
-  renderAll();
-}
+  if(chance(.25))c.towers+=Math.round(rand(1,15));
+  if(chance(.12))c.shops+=Math.round(rand(1,3));
 
-/* =========================================================
-   ECONOMY
-========================================================= */
+  c.value=Math.max(1e6,
+   c.value*(1+rand(-.025,.035))
+  );
 
-function towerCount(){
-
-  return Object.values(game.cities)
-    .reduce((n,c)=>n+c.towers.length,0);
-}
-
-function shopCount(){
-
-  return Object.values(game.cities)
-    .reduce((n,c)=>n+c.shops,0);
-}
-
-function officeCount(){
-
-  return Object.values(game.cities)
-    .reduce((n,c)=>n+c.office,0);
-}
-
-function averagePrice(){
-
-  if(!game.plans.length)return 0;
-
-  return game.plans.reduce((a,p)=>a+p.price,0)/game.plans.length;
-}
-
-function networkQuality(){
-
-  let sum=0;
-  let weight=0;
-
-  CITIES.forEach(c=>{
-
-    const q=cityQuality(c.id);
-
-    sum+=q*c.pop;
-    weight+=c.pop;
+  c.shareholders.forEach(s=>{
+   s.price=clamp(s.price+rand(-.04,.04),.7,1.5);
   });
-
-  return weight?sum/weight:0;
+ });
 }
 
-function monthlyFinance(){
-
-  const avgPrice=averagePrice();
-
-  const planRevenue=
-    game.customers*avgPrice;
-
-  const deviceRevenue=
-    game.devices
-      .filter(d=>d.signed)
-      .reduce(
-        (sum,d)=>
-          sum+
-          Math.max(0,d.retail-d.wholesale)*
-          d.popularity*
-          12,
-        0
-      );
-
-  const revenue=planRevenue+deviceRevenue;
-
-  const salaries=
-    game.employees.reduce((s,e)=>s+e.salary,0);
-
-  const towers=towerCount()*1850;
-  const shops=shopCount()*28000;
-  const offices=officeCount()*75000;
-  const hq=game.hqLevel*120000;
-
-  const costs=
-    salaries+towers+shops+offices+hq;
-
-  const profit=revenue-costs;
-
-  game.money+=profit;
-
-  game.monthRevenue=revenue;
-  game.monthCosts=costs;
-  game.lastProfit=profit;
-
-  game.financeHistory.unshift({
-    date:game.date.toLocaleDateString("pl-PL",{
-      month:"short",
-      year:"numeric"
-    }),
-    revenue,
-    costs,
-    profit
-  });
-
-  game.financeHistory=
-    game.financeHistory.slice(0,12);
-}
-
-function customerGrowth(){
-
-  const q=networkQuality();
-
-  const shopPower=shopCount()*1.5;
-
-  const salesSkill=
-    game.employees
-      .filter(e=>e.job==="Sprzedawca")
-      .reduce((s,e)=>s+e.skill,0)/100;
-
-  const service=
-    game.employees
-      .filter(e=>e.job==="Obsługa klienta")
-      .reduce((s,e)=>s+e.skill,0)/150;
-
-  const price=averagePrice();
-
-  let attractiveness=
-    q*.55+
-    game.reputation*.35+
-    shopPower+
-    salesSkill+
-    service-
-    Math.max(0,price-55)*.4;
-
-  attractiveness=clamp(attractiveness,0,180);
-
-  const potential=
-    CITIES.reduce((s,c)=>s+c.pop,0);
-
-  let growth=
-    Math.round(
-      potential*
-      (attractiveness/100)*
-      rand(.00008,.0003)
-    );
-
-  if(q<10)
-    growth=Math.round(growth*.1);
-
-  if(game.plans.length===0)
-    growth=0;
-
-  game.customers=Math.max(0,game.customers+growth);
-
-  const totalPop=CITIES.reduce((s,c)=>s+c.pop,0);
-
-  CITIES.forEach(c=>{
-
-    const d=game.cities[c.id];
-
-    const local=
-      c.pop/totalPop*
-      game.customers*
-      (cityQuality(c.id)/Math.max(1,q));
-
-    d.customers=
-      Math.round(
-        clamp(local,0,c.pop*.95)
-      );
-  });
-
-  const totalPlanCustomers=
-    game.plans.reduce((s,p)=>s+p.customers,0);
-
-  const missing=
-    game.customers-totalPlanCustomers;
-
-  if(game.plans.length && missing>0){
-
-    const best=
-      [...game.plans].sort((a,b)=>{
-
-        const av=
-          a.data/Math.max(1,a.price);
-
-        const bv=
-          b.data/Math.max(1,b.price);
-
-        return bv-av;
-      })[0];
-
-    best.customers+=missing;
-  }
-}
-
-/* =========================================================
-   MARKETING
-========================================================= */
-
-function marketing(cost,power){
-
-  if(!spend(cost))return;
-
-  game.reputation=
-    clamp(game.reputation+power*.4,0,100);
-
-  const gain=
-    Math.round(rand(500,2500)*power);
-
-  game.customers+=gain;
-
-  if(game.plans.length)
-    game.plans[0].customers+=gain;
-
-  log(`Kampania marketingowa zdobyła około ${number(gain)} klientów.`);
-
-  renderAll();
-}
-
-/* =========================================================
-   TIME
-========================================================= */
-
-function dayTick(){
-
-  game.date.setDate(game.date.getDate()+1);
-  game.dayCounter++;
-
-  game.candidateTimer++;
-  game.deviceTimer++;
-  game.techTimer++;
-
-  if(game.candidateTimer>=7){
-
-    game.candidateTimer=0;
-
-    if(game.candidates.length<12)
-      game.candidates.push(newEmployee());
-  }
-
-  if(game.deviceTimer>=20){
-
-    game.deviceTimer=0;
-
-    if(game.devices.length<16)
-      game.devices.push(newDevice());
-  }
-
-  if(game.techTimer>=180){
-
-    game.techTimer=0;
-
-    if(chance(.7))
-      generateFutureTech();
-  }
-
-  const currentYear=game.date.getFullYear();
-
-  game.techs.forEach(t=>{
-
-    if(currentYear>=t.year)
-      t.unlocked=true;
-  });
-
-  if(game.date.getDate()===1){
-
-    customerGrowth();
-    monthlyFinance();
-
-    game.competitors.forEach(c=>{
-
-      if(c.bought)return;
-
-      c.customers=
-        Math.round(
-          c.customers*(1+rand(-.005,.012))
-        );
-
-      c.value*=(1+rand(-.01,.02));
-    });
-  }
+function day(){
+ game.date.setDate(game.date.getDate()+1);
+ game.days++;
+
+ if(game.date.getDate()===1){
+  economy();
+  companyAI();
+ }
+
+ if(game.days%180===0 && chance(.75)){
+  generateTechnology();
+ }
+
+ if(game.days%240===0 && chance(.65)){
+  generateCompany();
+ }
+
+ game.technologies.forEach(t=>{
+  if(game.date.getFullYear()>=t.year)t.unlocked=true;
+ });
 }
 
 function tick(){
+ if(!game||game.speed===0)return;
 
-  if(!game || game.speed===0)return;
+ for(let i=0;i<game.speed;i++)day();
 
-  for(let i=0;i<game.speed;i++)
-    dayTick();
-
-  renderAll();
+ render();
 }
 
 function startTimer(){
-
-  clearInterval(timer);
-
-  timer=setInterval(tick,1000);
+ clearInterval(timer);
+ timer=setInterval(tick,1000);
 }
 
-/* =========================================================
-   RENDER TOP
-========================================================= */
+function render(){
+ if(!game)return;
 
-function renderTop(){
+ $("date").textContent=game.date.toLocaleDateString("pl-PL");
+ $("sName").textContent=game.name;
+ $("sMoney").textContent=money(game.money);
+ $("sCustomers").textContent=num(game.customers);
+ $("sProfit").textContent=(game.profit>=0?"+":"")+money(game.profit);
+ $("sProfit").className=game.profit>=0?"good":"bad";
+ $("sTowers").textContent=num(game.towers.length);
+ $("sShops").textContent=num(game.shops.length);
+ $("sTech").textContent=
+  game.technologies.filter(t=>t.researched).length+"/"+game.technologies.length;
+ $("sMode").textContent=game.mode==="sandbox"?"PIASKOWNICA":"NORMALNY";
 
-  $("date").textContent=
-    game.date.toLocaleDateString("pl-PL");
+ $("networkInfo").innerHTML=`
+  📡 Maszty: <b>${num(game.towers.length)}</b><br>
+  🏪 Salony: <b>${num(game.shops.length)}</b><br>
+  👥 Klienci: <b>${num(game.customers)}</b><br>
+  📶 Technologie: <b>${game.technologies.filter(t=>t.researched).length}</b>
+ `;
 
-  $("companyStat").textContent=game.name;
-  $("moneyStat").textContent=cash(game.money);
-  $("customersStat").textContent=number(game.customers);
+ $("towerTech").innerHTML=
+  game.technologies
+   .filter(t=>t.researched&&t.range>0)
+   .map(t=>`<option value="${t.id}">${t.name}</option>`)
+   .join("");
 
-  $("profitStat").textContent=
-    (game.lastProfit>=0?"+":"")+
-    cash(game.lastProfit);
+ renderMap();
+ renderTech();
+ renderCompanies();
+ renderShares();
+ renderFinance();
 
-  $("profitStat").className=
-    "v "+(game.lastProfit>=0?"good":"bad");
-
-  $("towersStat").textContent=towerCount();
-  $("shopsStat").textContent=shopCount();
-
-  $("employeesStat").textContent=
-    game.employees.length+"/"+
-    (game.employeeLimitCheat?"∞":game.maxEmployees);
-
-  $("repStat").textContent=
-    Math.round(game.reputation)+"/100";
-
-  document.querySelectorAll(".speed").forEach(b=>{
-
-    b.classList.toggle(
-      "active",
-      Number(b.dataset.speed)===game.speed
-    );
-  });
+ document.querySelectorAll(".speed").forEach(b=>
+  b.classList.toggle("active",Number(b.dataset.speed)===game.speed)
+ );
 }
 
-/* =========================================================
-   NETWORK RENDER
-========================================================= */
+function renderTech(){
+ $("techGrid").innerHTML=game.technologies.map(t=>`
+  <div class="card tech">
+   <b>${t.name}</b>
+   ${t.generated?'<span class="warn"> • NOWA</span>':""}
+   <div class="muted">Rok ${t.year}</div>
+   <p>
+    ${t.range?"Zasięg bazowy "+(t.range/1000).toFixed(1)+" km":"Technologia sieciowa"}
+   </p>
+   <button class="btn ${t.researched?"green":"blue"} research"
+    data-id="${t.id}"
+    ${t.researched||!t.unlocked?"disabled":""}>
+    ${
+     t.researched?"ZBADANO":
+     !t.unlocked?"Dostępna od "+t.year:
+     "Badaj • "+money(t.cost)
+    }
+   </button>
+  </div>
+ `).join("");
 
-function renderNetwork(){
-
-  renderMap();
-
-  const c=selectedCity();
-  const d=game.cities[c.id];
-
-  $("cityInfo").innerHTML=`
-    <strong style="font-size:22px">${c.name}</strong><br>
-    <span class="muted">Populacja ${number(c.pop)}</span>
-
-    <hr style="border-color:#22344d">
-
-    Klienci:
-    <strong>${number(d.customers)}</strong><br>
-
-    Maszty:
-    <strong>${d.towers.length}</strong><br>
-
-    Salony:
-    <strong>${d.shops}</strong><br>
-
-    Jakość:
-    <strong>${Math.round(cityQuality(c.id))}/100</strong>
-
-    <button
-      class="btn blue"
-      onclick="openCity()"
-      style="width:100%;margin-top:9px"
-    >
-      Zarządzaj miastem
-    </button>
-  `;
-
-  $("hqInfo").innerHTML=`
-    Poziom:
-    <strong>${game.hqLevel}</strong><br>
-
-    Limit pracowników:
-    <strong>${game.employeeLimitCheat?"∞":game.maxEmployees}</strong><br>
-
-    Koszt kolejnego poziomu:
-    <strong>${cash(game.hqLevel*8000000)}</strong>
-  `;
+ document.querySelectorAll(".research").forEach(b=>
+  b.onclick=()=>research(b.dataset.id)
+ );
 }
-
-/* =========================================================
-   CUSTOMERS RENDER
-========================================================= */
-
-function renderCustomers(){
-
-  const q=networkQuality();
-
-  $("customerStats").innerHTML=`
-
-    <div class="card item">
-      <div class="muted">Łącznie</div>
-      <strong style="font-size:25px">
-        ${number(game.customers)}
-      </strong>
-    </div>
-
-    <div class="card item">
-      <div class="muted">Jakość sieci</div>
-      <strong style="font-size:25px">
-        ${q.toFixed(1)}/100
-      </strong>
-    </div>
-
-    <div class="card item">
-      <div class="muted">ARPU</div>
-      <strong style="font-size:25px">
-        ${averagePrice().toFixed(2)} zł
-      </strong>
-    </div>
-  `;
-
-  $("cityCustomers").innerHTML=
-    CITIES.map(c=>{
-
-      const d=game.cities[c.id];
-
-      return`
-        <div class="card item">
-          <strong>${c.name}</strong><br>
-          <span class="muted">
-            ${number(d.customers)} klientów
-          </span>
-
-          <div class="progress">
-            <span style="width:${
-              clamp(d.customers/c.pop*100,0,100)
-            }%"></span>
-          </div>
-        </div>
-      `;
-    }).join("");
-}
-
-/* =========================================================
-   PLANS RENDER
-========================================================= */
-
-function renderPlans(){
-
-  $("plans").innerHTML=
-    game.plans.map(p=>`
-
-      <div class="card plan">
-
-        <div style="display:flex;justify-content:space-between;gap:10px">
-
-          <div>
-            <strong style="font-size:19px">
-              ${p.name}
-            </strong>
-
-            <div class="muted">
-              ${p.type}
-            </div>
-          </div>
-
-          <strong class="cyan">
-            ${p.price.toFixed(2)} zł/mies.
-          </strong>
-
-        </div>
-
-        <div style="margin-top:8px">
-
-          📶 ${p.data} GB<br>
-          📞 ${p.calls?"Bez limitu":"Płatne"}<br>
-          💬 ${p.sms?"Bez limitu":"Płatne"}<br>
-          📄 ${p.contract?p.contract+" mies.":"Bez umowy"}<br>
-          👥 ${number(p.customers)} klientów
-
-        </div>
-
-        <button
-          class="btn red removePlan"
-          data-id="${p.id}"
-          style="margin-top:8px"
-        >
-          Usuń
-        </button>
-
-      </div>
-
-    `).join("");
-
-  document.querySelectorAll(".removePlan").forEach(b=>{
-    b.onclick=()=>removePlan(b.dataset.id);
-  });
-}
-
-/* =========================================================
-   EMPLOYEE RENDER
-========================================================= */
-
-function renderEmployees(){
-
-  $("employeeList").innerHTML=
-    game.employees.length
-      ?game.employees.map(e=>`
-
-        <div class="card employee">
-
-          <div>
-            <strong>${e.name}</strong><br>
-            <span class="muted">
-              ${e.job} • umiejętność ${e.skill}/100
-            </span><br>
-            ${cash(e.salary)}/mies.
-          </div>
-
-          <button
-            class="btn red fire"
-            data-id="${e.id}"
-          >
-            Zwolnij
-          </button>
-
-        </div>
-
-      `).join("")
-      :`<div class="muted">Brak pracowników.</div>`;
-
-  $("candidates").innerHTML=
-    game.candidates.map(e=>`
-
-      <div class="card employee">
-
-        <div>
-          <strong>${e.name}</strong><br>
-          <span class="muted">
-            ${e.job} • ${e.skill}/100
-          </span><br>
-          ${cash(e.salary)}/mies.
-        </div>
-
-        <button
-          class="btn green hire"
-          data-id="${e.id}"
-        >
-          Zatrudnij
-        </button>
-
-      </div>
-
-    `).join("");
-
-  document.querySelectorAll(".hire").forEach(b=>{
-    b.onclick=()=>hire(b.dataset.id);
-  });
-
-  document.querySelectorAll(".fire").forEach(b=>{
-    b.onclick=()=>fireEmployee(b.dataset.id);
-  });
-}
-
-/* =========================================================
-   RESEARCH RENDER
-========================================================= */
-
-function renderResearch(){
-
-  $("researchGrid").innerHTML=
-    game.techs.map(t=>{
-
-      let state;
-
-      if(t.researched)
-        state="ZBADANO";
-      else if(!t.unlocked)
-        state="Dostępne od "+t.year;
-      else
-        state=cash(t.cost);
-
-      return`
-        <div class="card item">
-
-          <strong style="font-size:18px">
-            ${t.name}
-          </strong>
-
-          <div class="muted">
-            Generacja ${t.year}
-          </div>
-
-          <div style="margin:8px 0">
-            Jakość:
-            <strong>${t.quality}</strong><br>
-
-            ${
-              t.range
-                ?"Zasięg bazowy: "+t.range
-                :"Technologia usługowa"
-            }
-          </div>
-
-          <button
-            class="btn ${
-              t.researched
-                ?"green"
-                :"blue"
-            } research"
-            data-id="${t.id}"
-            style="width:100%"
-            ${t.researched||!t.unlocked?"disabled":""}
-          >
-            ${state}
-          </button>
-
-        </div>
-      `;
-    }).join("");
-
-  document.querySelectorAll(".research").forEach(b=>{
-    b.onclick=()=>researchTech(b.dataset.id);
-  });
-}
-
-/* =========================================================
-   DEVICES RENDER
-========================================================= */
-
-function renderDevices(){
-
-  $("devicesGrid").innerHTML=
-    game.devices.map(d=>`
-
-      <div class="card device">
-
-        <div class="device-icon">${d.icon}</div>
-
-        <strong>${d.name}</strong>
-
-        <div class="muted">
-          Popularność ${d.popularity}/100
-        </div>
-
-        <div style="margin-top:7px">
-          Zakup: ${cash(d.wholesale)}<br>
-          Cena: ${cash(d.retail)}
-        </div>
-
-        <button
-          class="btn ${d.signed?"green":"blue"} deviceBtn"
-          data-id="${d.id}"
-          style="width:100%;margin-top:8px"
-          ${d.signed?"disabled":""}
-        >
-          ${d.signed?"W OFERCIE":"Dodaj do oferty • 500 tys."}
-        </button>
-
-      </div>
-
-    `).join("");
-
-  document.querySelectorAll(".deviceBtn").forEach(b=>{
-    b.onclick=()=>signDevice(b.dataset.id);
-  });
-}
-
-/* =========================================================
-   COMPANIES RENDER
-========================================================= */
 
 function renderCompanies(){
+ const active=game.companies.filter(c=>!c.taken);
 
-  $("companies").innerHTML=
-    game.competitors.map((c,i)=>`
-
-      <div class="card company">
-
-        <div class="company-head">
-
-          <div>
-            <strong style="font-size:19px">
-              ${c.name}
-            </strong>
-
-            <div class="muted">
-              ${number(c.customers)} klientów
-            </div>
-          </div>
-
-          <strong>
-            ${c.bought?"PRZEJĘTA":cash(c.value)}
-          </strong>
-
-        </div>
-
-        <div style="margin-top:8px">
-          📡 ${number(c.towers)} masztów<br>
-          🏪 ${number(c.shops)} salonów
-        </div>
-
-        <button
-          class="btn purple buyCompany"
-          data-index="${i}"
-          style="width:100%;margin-top:8px"
-          ${c.bought?"disabled":""}
-        >
-          ${c.bought?"NALEŻY DO CIEBIE":"Wykup operatora"}
-        </button>
-
-      </div>
-
-    `).join("");
-
-  document.querySelectorAll(".buyCompany").forEach(b=>{
-    b.onclick=()=>buyCompany(Number(b.dataset.index));
-  });
-
-  const total=
-    game.customers+
-    game.competitors
-      .filter(c=>!c.bought)
-      .reduce((s,c)=>s+c.customers,0);
-
-  const share=
-    total?game.customers/total*100:100;
-
-  $("marketShare").innerHTML=`
-    <strong>Twój udział w symulowanym rynku</strong>
-
-    <div class="progress" style="height:14px;margin-top:8px">
-      <span style="width:${share}%"></span>
+ $("companyList").innerHTML=active.map(c=>`
+  <div class="card company">
+   <div class="companyTop">
+    <div>
+     <b style="font-size:18px">${c.name}</b><br>
+     <span class="muted">${num(c.customers)} klientów</span>
     </div>
-
-    <div style="margin-top:5px">
-      ${share.toFixed(2)}%
+    <div style="text-align:right">
+     <b>${money(c.value)}</b><br>
+     <span class="${c.playerShares>50?"good":"muted"}">
+      Twoje: ${c.playerShares.toFixed(1)}%
+     </span>
     </div>
-  `;
+   </div>
+
+   <p>
+    📡 ${num(c.towers)} • 🏪 ${num(c.shops)}
+   </p>
+
+   <button class="btn purple openCompany" data-id="${c.id}">
+    ${c.playerShares>50?"🎛️ Zarządzaj":"📈 Udziały"}
+   </button>
+  </div>
+ `).join("");
+
+ document.querySelectorAll(".openCompany").forEach(b=>
+  b.onclick=()=>openCompany(b.dataset.id)
+ );
+
+ const total=
+  game.customers+
+  active.reduce((s,c)=>s+c.customers,0);
+
+ $("marketInfo").innerHTML=`
+  Operatorzy: <b>${active.length+1}</b><br>
+  Łącznie klientów: <b>${num(total)}</b><br>
+  Twój udział klientów:
+  <b>${total?(game.customers/total*100).toFixed(2):0}%</b>
+ `;
 }
 
-/* =========================================================
-   FINANCE RENDER
-========================================================= */
+function renderShares(){
+ const owned=game.companies.filter(c=>c.playerShares>0&&!c.taken);
+
+ $("ownedShares").innerHTML=owned.length?owned.map(c=>`
+  <div class="card company">
+   <b>${c.name}</b><br>
+   <span class="${c.playerShares>50?"good":"warn"}">
+    ${c.playerShares.toFixed(1)}%
+   </span>
+   udziałów
+   ${c.playerShares>50?" • KONTROLA":""}
+   <br><br>
+   <button class="btn purple openOwned" data-id="${c.id}">
+    Otwórz spółkę
+   </button>
+  </div>
+ `).join(""):`<div class="muted">Nie posiadasz jeszcze udziałów w innych operatorach.</div>`;
+
+ document.querySelectorAll(".openOwned").forEach(b=>
+  b.onclick=()=>openCompany(b.dataset.id)
+ );
+}
 
 function renderFinance(){
+ $("financeGrid").innerHTML=`
+  <div class="card"><span class="muted">Przychód</span><div class="big good">${money(game.revenue)}</div></div>
+  <div class="card"><span class="muted">Koszty</span><div class="big bad">${money(game.expenses)}</div></div>
+  <div class="card"><span class="muted">Wynik</span><div class="big ${game.profit>=0?"good":"bad"}">${money(game.profit)}</div></div>
+ `;
 
-  const salaries=
-    game.employees.reduce((s,e)=>s+e.salary,0);
-
-  const towers=towerCount()*1850;
-  const shops=shopCount()*28000;
-  const offices=officeCount()*75000;
-  const hq=game.hqLevel*120000;
-
-  $("financeStats").innerHTML=`
-
-    <div class="card item">
-      <span class="muted">Przychód</span><br>
-      <strong class="good">
-        ${cash(game.monthRevenue)}
-      </strong>
-    </div>
-
-    <div class="card item">
-      <span class="muted">Koszty</span><br>
-      <strong class="bad">
-        ${cash(game.monthCosts)}
-      </strong>
-    </div>
-
-    <div class="card item">
-      <span class="muted">Wynik</span><br>
-      <strong class="${game.lastProfit>=0?"good":"bad"}">
-        ${cash(game.lastProfit)}
-      </strong>
-    </div>
-  `;
-
-  $("costBreakdown").innerHTML=`
-    Pensje: <strong>${cash(salaries)}</strong><br>
-    Maszty: <strong>${cash(towers)}</strong><br>
-    Salony: <strong>${cash(shops)}</strong><br>
-    Biura: <strong>${cash(offices)}</strong><br>
-    Centrala: <strong>${cash(hq)}</strong>
-  `;
-
-  $("financeHistory").innerHTML=
-    game.financeHistory.map(x=>`
-
-      <div class="card item" style="margin-bottom:5px">
-
-        <strong>${x.date}</strong>
-
-        <span style="float:right" class="${x.profit>=0?"good":"bad"}">
-          ${x.profit>=0?"+":""}${cash(x.profit)}
-        </span>
-
-      </div>
-
-    `).join("");
+ $("costs").innerHTML=`
+  Maszty: <b>${money(game.towers.length*2200)}</b><br>
+  Salony: <b>${money(game.shops.length*32000)}</b><br>
+  Administracja: <b>${money(250000)}</b>
+ `;
 }
 
-/* =========================================================
-   RENDER ALL
-========================================================= */
-
-function renderAll(){
-
-  if(!game)return;
-
-  renderTop();
-  renderNetwork();
-  renderCustomers();
-  renderPlans();
-  renderEmployees();
-  renderResearch();
-  renderDevices();
-  renderCompanies();
-  renderFinance();
+function addLog(text){
+ const d=document.createElement("div");
+ d.textContent="• "+text;
+ $("log").prepend(d);
 }
-
-/* =========================================================
-   CONSOLE
-========================================================= */
 
 function consoleLine(text){
-
-  const d=document.createElement("div");
-
-  d.textContent=text;
-
-  $("consoleOutput").appendChild(d);
-
-  $("consoleOutput").scrollTop=
-    $("consoleOutput").scrollHeight;
+ const d=document.createElement("div");
+ d.textContent=text;
+ $("consoleOut").appendChild(d);
+ $("consoleOut").scrollTop=$("consoleOut").scrollHeight;
 }
 
-function command(raw){
+function runCommand(raw){
+ const a=raw.trim().split(/\s+/);
+ const cmd=(a.shift()||"").toLowerCase();
 
-  const args=raw.trim().split(/\s+/);
-  const cmd=(args.shift()||"").toLowerCase();
+ consoleLine("> "+raw);
 
-  consoleLine("> "+raw);
+ if(cmd==="help"){
+  [
+   "money [kwota] - dodaj pieniądze",
+   "customers [liczba] - dodaj klientów",
+   "research all - zbadaj wszystkie technologie",
+   "buildfree on/off - darmowa budowa",
+   "sandbox - włącz tryb piaskownicy",
+   "addcompany - wygeneruj operatora",
+   "addtech - wygeneruj technologię",
+   "shares [nazwa fragment] [procent] - dodaj udziały",
+   "clear - wyczyść konsolę"
+  ].forEach(consoleLine);
+  return;
+ }
 
-  if(cmd==="help"){
+ if(cmd==="money"){
+  const v=Number(a[0]||100000000);
+  game.money+=v;
+  consoleLine("Dodano "+money(v));
+ }
+ else if(cmd==="customers"){
+  const v=Number(a[0]||100000);
+  game.customers+=v;
+  consoleLine("Dodano "+num(v)+" klientów.");
+ }
+ else if(cmd==="research"&&a[0]==="all"){
+  game.technologies.forEach(t=>{
+   t.unlocked=true;t.researched=true;
+  });
+  consoleLine("Zbadano wszystkie technologie.");
+ }
+ else if(cmd==="buildfree"){
+  game.buildFree=(a[0]||"on").toLowerCase()==="on";
+  consoleLine("Darmowa budowa: "+(game.buildFree?"ON":"OFF"));
+ }
+ else if(cmd==="sandbox"){
+  game.mode="sandbox";
+  game.money=999000000000000;
+  consoleLine("Tryb piaskownicy aktywny.");
+ }
+ else if(cmd==="addcompany"){
+  generateCompany();
+ }
+ else if(cmd==="addtech"){
+  generateTechnology();
+ }
+ else if(cmd==="shares"){
+  const pct=Number(a[a.length-1]||10);
+  const query=a.slice(0,-1).join(" ").toLowerCase();
+  const c=game.companies.find(x=>x.name.toLowerCase().includes(query));
 
-    consoleLine("money [kwota] - dodaje pieniądze");
-    consoleLine("maxemployees - brak limitu pracowników");
-    consoleLine("customers [liczba] - dodaje klientów");
-    consoleLine("research all - odblokowuje technologie");
-    consoleLine("unlockall - odblokowuje technologie");
-    consoleLine("buildfree on/off - darmowa budowa");
-    consoleLine("reputation [0-100] - ustawia reputację");
-    consoleLine("clear - czyści konsolę");
-
-    return;
+  if(c){
+   c.playerShares=clamp(c.playerShares+pct,0,100);
+   if(c.playerShares>50)c.controlled=true;
+   consoleLine("Udziały "+c.name+": "+c.playerShares+"%");
+  }else{
+   consoleLine("Nie znaleziono firmy.");
   }
+ }
+ else if(cmd==="clear"){
+  $("consoleOut").innerHTML="";
+ }
+ else{
+  consoleLine("Nieznana komenda. Wpisz help.");
+ }
 
-  if(cmd==="money"){
-
-    const v=Number(args[0]||100000000);
-
-    game.money+=v;
-
-    consoleLine("Dodano "+cash(v));
-  }
-
-  else if(cmd==="maxemployees"){
-
-    game.employeeLimitCheat=true;
-
-    consoleLine("Limit pracowników wyłączony.");
-  }
-
-  else if(cmd==="customers"){
-
-    const v=Number(args[0]||100000);
-
-    game.customers+=v;
-
-    if(game.plans.length)
-      game.plans[0].customers+=v;
-
-    consoleLine("Dodano "+number(v)+" klientów.");
-  }
-
-  else if(
-    cmd==="research" &&
-    args[0]?.toLowerCase()==="all"
-  ){
-
-    game.techs.forEach(t=>{
-      t.unlocked=true;
-      t.researched=true;
-    });
-
-    consoleLine("Wszystkie technologie zbadane.");
-  }
-
-  else if(cmd==="unlockall"){
-
-    game.techs.forEach(t=>{
-      t.unlocked=true;
-      t.researched=true;
-    });
-
-    consoleLine("Odblokowano wszystko.");
-  }
-
-  else if(cmd==="reputation"){
-
-    game.reputation=
-      clamp(Number(args[0]||100),0,100);
-
-    consoleLine("Reputacja ustawiona.");
-  }
-
-  else if(cmd==="clear"){
-
-    $("consoleOutput").innerHTML="";
-  }
-
-  else{
-
-    consoleLine("Nieznana komenda. Wpisz help.");
-  }
-
-  renderAll();
+ render();
 }
 
-/* =========================================================
-   SAVE
-========================================================= */
-
-function save(){
-
-  localStorage.setItem(
-    "mobileNetworkTycoonSave",
-    JSON.stringify(game)
-  );
-
-  log("Gra zapisana.");
-}
-
-function load(){
-
-  const raw=
-    localStorage.getItem("mobileNetworkTycoonSave");
-
-  if(!raw)return false;
-
-  try{
-
-    game=JSON.parse(raw);
-    game.date=new Date(game.date);
-
-    $("startModal").classList.add("hidden");
-
-    startTimer();
-    renderAll();
-
-    return true;
-
-  }catch(e){
-
-    return false;
-  }
-}
-
-/* =========================================================
-   BUTTON EVENTS
-========================================================= */
-
-document.querySelectorAll(".startGame").forEach(b=>{
-
-  b.onclick=()=>newGameStart(b.dataset.style);
-
-});
-
-function newGameStart(style){
-  createGame(style);
-}
+document.querySelectorAll(".startBtn").forEach(b=>
+ b.onclick=()=>newGame(b.dataset.mode)
+);
 
 document.querySelectorAll(".tab").forEach(b=>{
+ b.onclick=()=>{
+  document.querySelectorAll(".view").forEach(v=>v.classList.add("hidden"));
+  $("view-"+b.dataset.view).classList.remove("hidden");
+  document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+  b.classList.add("active");
 
-  b.onclick=()=>{
-
-    document.querySelectorAll(".view").forEach(v=>
-      v.classList.add("hidden")
-    );
-
-    $("view-"+b.dataset.view).classList.remove("hidden");
-
-    document.querySelectorAll(".tab").forEach(x=>
-      x.classList.remove("active")
-    );
-
-    b.classList.add("active");
-
-    renderAll();
-  };
+  if(b.dataset.view==="map"&&map){
+   setTimeout(()=>map.invalidateSize(),100);
+  }
+ };
 });
 
 document.querySelectorAll(".speed").forEach(b=>{
-
-  b.onclick=()=>{
-
-    if(!game)return;
-
-    game.speed=Number(b.dataset.speed);
-
-    renderAll();
-  };
+ b.onclick=()=>{
+  if(!game)return;
+  game.speed=Number(b.dataset.speed);
+  render();
+ };
 });
 
-document.querySelectorAll(".mapMode").forEach(b=>{
+document.querySelectorAll(".modeBtn").forEach(b=>{
+ b.onclick=()=>{
+  buildMode=b.dataset.build;
+  document.querySelectorAll(".modeBtn").forEach(x=>x.classList.remove("active"));
+  b.classList.add("active");
 
-  b.onclick=()=>{
-
-    game.mapMode=b.dataset.mode;
-
-    document.querySelectorAll(".mapMode").forEach(x=>
-      x.classList.remove("active")
-    );
-
-    b.classList.add("active");
-
-    renderMap();
-  };
+  $("buildInfo").innerHTML=
+   buildMode==="tower"
+   ?"📡 Kliknij dowolne miejsce na świecie, aby postawić maszt."
+   :buildMode==="shop"
+   ?"🏪 Kliknij miejsce na mapie, aby otworzyć salon."
+   :"👆 Tryb wybierania.";
+ };
 });
 
-$("buildShop").onclick=buildShop;
-$("buildTower").onclick=buildTower;
-$("buildOffice").onclick=buildOffice;
-$("upgradeShop").onclick=upgradeShop;
-
-$("upgradeHQ").onclick=upgradeHQ;
-
-$("closeCity").onclick=()=>{
-  $("cityModal").classList.add("hidden");
+$("toggleCoverage").onclick=()=>{
+ coverageVisible=!coverageVisible;
+ $("toggleCoverage").textContent="📶 Zasięg: "+(coverageVisible?"ON":"OFF");
+ renderMap();
 };
 
-$("createPlan").onclick=createPlan;
+$("worldView").onclick=()=>map?.setView([25,10],2);
 
-document.querySelectorAll(".marketing").forEach(b=>{
+$("closeCompany").onclick=()=>$("companyModal").classList.add("hidden");
+$("investCompany").onclick=investCompany;
+$("companyExpand").onclick=expandCompany;
+$("companyResearch").onclick=companyResearch;
+$("takeoverCompany").onclick=takeover;
 
-  b.onclick=()=>marketing(
-    Number(b.dataset.cost),
-    Number(b.dataset.power)
-  );
-});
-
-$("saveBtn").onclick=save;
-
-$("newBtn").onclick=()=>{
-
-  if(confirm("Usunąć zapis i rozpocząć nową grę?")){
-
-    localStorage.removeItem("mobileNetworkTycoonSave");
-
-    location.reload();
-  }
+$("save").onclick=()=>{
+ if(!game)return;
+ localStorage.setItem("networkEmpireSave",JSON.stringify(game));
+ addLog("Gra zapisana.");
 };
 
-/* =========================================================
-   ~ CONSOLE
-========================================================= */
+$("newGame").onclick=()=>{
+ if(confirm("Rozpocząć nową grę?")){
+  localStorage.removeItem("networkEmpireSave");
+  location.reload();
+ }
+};
 
 document.addEventListener("keydown",e=>{
+ if(e.key==="`"||e.key==="~"){
+  if(document.activeElement.tagName==="INPUT"&&document.activeElement!==$("consoleInput"))return;
+  e.preventDefault();
+  $("console").classList.toggle("hidden");
+  if(!$("console").classList.contains("hidden"))$("consoleInput").focus();
+ }
 
-  if(e.key==="`" || e.key==="~"){
-
-    if(
-      document.activeElement.tagName==="INPUT" &&
-      document.activeElement!==$("consoleInput")
-    )return;
-
-    e.preventDefault();
-
-    $("console").classList.toggle("hidden");
-
-    if(!$("console").classList.contains("hidden"))
-      $("consoleInput").focus();
-  }
-
-  if(e.key==="Escape"){
-
-    $("console").classList.add("hidden");
-    $("cityModal").classList.add("hidden");
-  }
+ if(e.key==="Escape"){
+  $("console").classList.add("hidden");
+  $("companyModal").classList.add("hidden");
+ }
 });
 
 $("consoleInput").addEventListener("keydown",e=>{
-
-  if(e.key==="Enter"){
-
-    const value=e.target.value;
-
-    e.target.value="";
-
-    command(value);
-  }
+ if(e.key==="Enter"){
+  const v=e.target.value;
+  e.target.value="";
+  runCommand(v);
+ }
 });
-
-/* =========================================================
-   LOAD
-========================================================= */
 
 window.addEventListener("load",()=>{
+ const raw=localStorage.getItem("networkEmpireSave");
 
-  const raw=
-    localStorage.getItem("mobileNetworkTycoonSave");
-
-  if(raw){
-
-    if(confirm("Znaleziono zapis Mobile Network Tycoon. Wczytać?")){
-      load();
-    }
+ if(raw&&confirm("Znaleziono zapis gry. Wczytać?")){
+  try{
+   game=JSON.parse(raw);
+   game.date=new Date(game.date);
+   $("startModal").classList.add("hidden");
+   initMap();
+   render();
+   startTimer();
+   addLog("Wczytano zapis gry.");
+  }catch(e){
+   console.error(e);
   }
+ }
 });
-
 </script>
 </body>
 </html>
