@@ -1,353 +1,368 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>USA: Road to the White House</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>USA PRESIDENT — Country Simulator</title>
 
 <style>
 :root{
-  --bg:#08111f;
-  --panel:#111c2e;
-  --panel2:#18263b;
-  --line:#2a3d57;
+  --bg:#050a12;
+  --panel:#0e1726;
+  --panel2:#142238;
+  --panel3:#192b45;
+  --line:#29415f;
   --text:#f8fafc;
   --muted:#94a3b8;
   --blue:#3b82f6;
   --red:#ef4444;
   --gold:#facc15;
   --green:#22c55e;
+  --orange:#f97316;
 }
 
-*{
-  box-sizing:border-box;
-}
+*{box-sizing:border-box}
 
 body{
   margin:0;
   background:
-    radial-gradient(
-      circle at top,
-      #12233d 0,
-      #08111f 45%,
-      #050b14 100%
-    );
+    radial-gradient(circle at top,#14243d,#050a12 55%);
   color:var(--text);
-  font-family:Inter,system-ui,Arial,sans-serif;
+  font-family:Inter,Arial,sans-serif;
+  min-height:100vh;
 }
 
-button,
-input,
-select{
+button,select,input{
   font:inherit;
 }
 
-.wrap{
-  max-width:1600px;
+button{
+  cursor:pointer;
+}
+
+button:disabled{
+  cursor:not-allowed;
+  opacity:.42;
+}
+
+.hidden{
+  display:none!important;
+}
+
+.app{
+  max-width:1700px;
   margin:auto;
-  padding:16px;
+  padding:14px;
 }
 
 .panel{
-  background:rgba(17,28,46,.96);
+  background:rgba(14,23,38,.96);
   border:1px solid var(--line);
-  border-radius:16px;
+  border-radius:14px;
 }
 
 .card{
   background:var(--panel2);
   border:1px solid var(--line);
-  border-radius:12px;
+  border-radius:11px;
+}
+
+.btn{
+  background:#17263b;
+  border:1px solid var(--line);
+  color:white;
+  padding:9px 12px;
+  border-radius:9px;
+}
+
+.btn:hover:not(:disabled){
+  filter:brightness(1.15);
+}
+
+.btn.blue{
+  background:var(--blue);
+  border-color:var(--blue);
+}
+
+.btn.green{
+  background:var(--green);
+  border-color:var(--green);
+  color:#052e16;
+  font-weight:900;
+}
+
+.btn.gold{
+  background:var(--gold);
+  border-color:var(--gold);
+  color:#422006;
+  font-weight:900;
+}
+
+.btn.red{
+  background:#991b1b;
+  border-color:#ef4444;
+}
+
+.top{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  align-items:center;
+  flex-wrap:wrap;
+  margin-bottom:10px;
+}
+
+.title{
+  font-size:25px;
+  font-weight:1000;
 }
 
 .muted{
   color:var(--muted);
 }
 
-.hidden{
-  display:none !important;
-}
-
-.btn{
-  border:1px solid var(--line);
-  background:#142238;
-  color:var(--text);
-  border-radius:10px;
-  padding:10px 14px;
-  cursor:pointer;
-}
-
-.btn:hover{
-  filter:brightness(1.12);
-}
-
-.btn:disabled{
-  opacity:.45;
-  cursor:not-allowed;
-}
-
-.btn-primary{
-  background:var(--green);
-  color:#052e16;
-  border-color:var(--green);
-  font-weight:900;
-}
-
-.btn-blue{
-  background:var(--blue);
-  border-color:var(--blue);
-  font-weight:800;
-}
-
-.btn-gold{
-  background:var(--gold);
-  color:#422006;
-  border-color:var(--gold);
-  font-weight:900;
-}
-
-.topline{
-  display:flex;
-  gap:10px;
-  align-items:center;
-  justify-content:space-between;
-  flex-wrap:wrap;
-}
-
 .tabs{
   display:flex;
-  gap:7px;
+  gap:6px;
   flex-wrap:wrap;
 }
 
 .tab.active{
   background:var(--gold);
-  color:#422006;
   border-color:var(--gold);
+  color:#422006;
   font-weight:900;
 }
 
 .stats{
   display:grid;
-  grid-template-columns:repeat(8,minmax(0,1fr));
-  gap:8px;
+  grid-template-columns:repeat(8,1fr);
+  gap:7px;
 }
 
 .stat{
-  padding:12px;
+  padding:10px;
 }
 
 .stat .k{
-  font-size:12px;
   color:var(--muted);
+  font-size:11px;
 }
 
 .stat .v{
-  font-size:20px;
-  font-weight:900;
-  margin-top:2px;
-}
-
-.layout{
-  display:grid;
-  grid-template-columns:1.55fr .75fr;
-  gap:14px;
-}
-
-.state-grid{
-  display:grid;
-  grid-template-columns:repeat(9,minmax(0,1fr));
-  gap:6px;
-}
-
-.state{
-  min-height:72px;
-  padding:7px;
-  border:1px solid var(--line);
-  border-radius:9px;
-  background:#162338;
-  cursor:pointer;
-  position:relative;
-  text-align:left;
-  color:var(--text);
-}
-
-.state:hover{
-  transform:translateY(-1px);
-  filter:brightness(1.1);
-}
-
-.state.selected{
-  outline:3px solid var(--gold);
-}
-
-.state.ahead-player{
-  background:
-    linear-gradient(
-      135deg,
-      #123f72,
-      #17263c
-    );
-}
-
-.state.ahead-opp{
-  background:
-    linear-gradient(
-      135deg,
-      #702222,
-      #17263c
-    );
-}
-
-.state.tossup{
-  background:
-    linear-gradient(
-      135deg,
-      #5f4d15,
-      #17263c
-    );
-}
-
-.state.called-player{
-  background:#174b8d;
-}
-
-.state.called-opp{
-  background:#812b2b;
-}
-
-.state .abbr{
-  font-size:18px;
   font-weight:1000;
+  font-size:19px;
+  margin-top:3px;
 }
 
-.state .ev{
-  position:absolute;
-  right:7px;
-  top:7px;
-  font-size:11px;
-  color:#cbd5e1;
-}
-
-.state .margin{
-  font-size:11px;
-  margin-top:8px;
-}
-
-.evbar{
+.grid2{
   display:grid;
-  grid-template-columns:1fr auto 1fr;
-  gap:10px;
-  align-items:center;
+  grid-template-columns:1.5fr .7fr;
+  gap:12px;
 }
 
-.evbar .left{
-  text-align:right;
-  color:#93c5fd;
-  font-weight:900;
-}
-
-.evbar .right{
-  color:#fca5a5;
-  font-weight:900;
-}
-
-.progress{
-  height:16px;
-  border-radius:999px;
-  background:#08111f;
-  overflow:hidden;
-  display:flex;
-  border:1px solid var(--line);
-}
-
-.progress .p{
-  background:var(--blue);
-}
-
-.progress .o{
-  background:var(--red);
+.section{
+  padding:13px;
 }
 
 .section-title{
-  font-weight:900;
   font-size:18px;
+  font-weight:1000;
   margin-bottom:8px;
 }
 
-.action-grid{
+.map-wrap{
+  width:100%;
+  min-height:570px;
+  background:
+    radial-gradient(circle at 50% 40%,#172b47,#09111d);
+  border:1px solid var(--line);
+  border-radius:12px;
+  overflow:hidden;
+  position:relative;
+}
+
+#usaMap{
+  width:100%;
+  height:570px;
+}
+
+.state-shape{
+  stroke:#07111e;
+  stroke-width:2;
+  cursor:pointer;
+  transition:.12s;
+}
+
+.state-shape:hover{
+  stroke:white;
+  stroke-width:4;
+  filter:brightness(1.2);
+}
+
+.state-label{
+  fill:white;
+  font-size:12px;
+  font-weight:900;
+  text-anchor:middle;
+  pointer-events:none;
+  text-shadow:0 1px 4px #000;
+}
+
+.ev-label{
+  fill:#dbeafe;
+  font-size:8px;
+  text-anchor:middle;
+  pointer-events:none;
+}
+
+.right-stack{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.actions{
   display:grid;
   grid-template-columns:1fr 1fr;
-  gap:8px;
+  gap:7px;
 }
 
 .action{
-  padding:11px;
   text-align:left;
+  padding:10px;
 }
 
 .action strong{
   display:block;
 }
 
-.tag{
-  display:inline-block;
-  font-size:11px;
-  border:1px solid var(--line);
-  border-radius:999px;
-  padding:3px 7px;
-  margin-top:5px;
-}
-
 .log{
   height:190px;
   overflow:auto;
-  background:#08111f;
+  background:#07101c;
   border:1px solid var(--line);
-  border-radius:10px;
-  padding:10px;
-  font-size:13px;
+  padding:9px;
+  border-radius:9px;
+  font-size:12px;
 }
 
 .log div{
   margin-bottom:5px;
 }
 
-.candidate{
+.evbar{
+  height:17px;
+  display:flex;
+  background:#050a12;
+  border-radius:999px;
+  overflow:hidden;
+  border:1px solid var(--line);
+}
+
+.ev-player{
+  background:var(--blue);
+}
+
+.ev-opp{
+  background:var(--red);
+}
+
+.evtop{
+  display:flex;
+  justify-content:space-between;
+  margin-bottom:5px;
+  font-weight:900;
+}
+
+.timebar{
+  display:flex;
+  align-items:center;
+  gap:5px;
+  flex-wrap:wrap;
+}
+
+.timebar button.active{
+  background:var(--gold);
+  color:#422006;
+}
+
+.country-list{
   display:grid;
-  grid-template-columns:1fr 1fr;
+  grid-template-columns:repeat(3,1fr);
+  gap:8px;
+}
+
+.country{
+  padding:11px;
+  cursor:pointer;
+}
+
+.country:hover{
+  filter:brightness(1.12);
+}
+
+.country.selected{
+  outline:2px solid var(--gold);
+}
+
+.flag{
+  font-size:27px;
+}
+
+.rel{
+  font-weight:900;
+}
+
+.good{color:#4ade80}
+.bad{color:#f87171}
+.warn{color:#facc15}
+
+.diplayout{
+  display:grid;
+  grid-template-columns:1.2fr .8fr;
   gap:10px;
 }
 
-.candidate button{
-  padding:14px;
-  text-align:left;
-}
-
-.candidate .name{
-  font-size:20px;
-  font-weight:1000;
+.select{
+  width:100%;
+  background:#08111e;
+  color:white;
+  border:1px solid var(--line);
+  border-radius:8px;
+  padding:9px;
 }
 
 .policy-grid{
   display:grid;
   grid-template-columns:repeat(3,1fr);
-  gap:9px;
+  gap:8px;
 }
 
 .policy{
-  padding:12px;
+  padding:11px;
 }
 
 .policy h3{
   margin:0 0 5px;
+  font-size:15px;
+}
+
+.tag{
+  display:inline-block;
+  border:1px solid var(--line);
+  border-radius:999px;
+  padding:3px 7px;
+  font-size:11px;
+  margin:3px 2px 0 0;
 }
 
 .meter{
   height:9px;
-  background:#08111f;
+  background:#050a12;
   border-radius:999px;
   overflow:hidden;
+  margin-top:4px;
 }
 
 .meter span{
@@ -356,515 +371,564 @@ select{
   background:var(--green);
 }
 
-.pill{
-  display:inline-flex;
-  border:1px solid var(--line);
-  border-radius:999px;
-  padding:4px 8px;
-  font-size:12px;
+.news{
+  border-left:4px solid var(--red);
+  padding:10px;
+  background:#170e16;
+  margin-bottom:7px;
+  border-radius:7px;
 }
 
-.good{
-  color:#4ade80;
-}
-
-.bad{
-  color:#f87171;
+.news strong{
+  display:block;
 }
 
 .modal{
   position:fixed;
   inset:0;
-  background:rgba(0,0,0,.72);
+  background:rgba(0,0,0,.76);
   display:grid;
   place-items:center;
-  z-index:99;
-  padding:16px;
+  padding:15px;
+  z-index:100;
 }
 
 .modal-box{
   max-width:760px;
   width:100%;
   padding:20px;
+  max-height:90vh;
+  overflow:auto;
 }
 
-.result-big{
-  font-size:42px;
+.choice-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+}
+
+.big{
+  font-size:38px;
   font-weight:1000;
 }
 
-.mini-table{
-  width:100%;
-  border-collapse:collapse;
-  font-size:13px;
+.world-event{
+  padding:10px;
+  margin-bottom:8px;
 }
 
-.mini-table th,
-.mini-table td{
-  border-bottom:1px solid var(--line);
-  padding:8px;
-  text-align:left;
+.stock{
+  font-size:30px;
+  font-weight:1000;
 }
 
 @media(max-width:1100px){
-
-  .layout{
+  .grid2,.diplayout{
     grid-template-columns:1fr;
-  }
-
-  .state-grid{
-    grid-template-columns:repeat(7,1fr);
   }
 
   .stats{
     grid-template-columns:repeat(4,1fr);
   }
 
+  .policy-grid,.country-list{
+    grid-template-columns:repeat(2,1fr);
+  }
 }
 
-@media(max-width:700px){
-
-  .state-grid{
-    grid-template-columns:repeat(4,1fr);
-  }
-
+@media(max-width:650px){
   .stats{
     grid-template-columns:repeat(2,1fr);
   }
 
-  .candidate,
-  .action-grid,
-  .policy-grid{
+  .policy-grid,.country-list,.actions,.choice-grid{
     grid-template-columns:1fr;
   }
 
+  #usaMap{
+    height:440px;
+  }
+
+  .map-wrap{
+    min-height:440px;
+  }
 }
 </style>
 </head>
 
 <body>
 
-<div class="wrap">
+<div class="app">
 
-<header
-  class="topline"
-  style="margin-bottom:12px"
->
+  <div class="top">
 
-  <div>
+    <div>
+      <div class="title">🇺🇸 USA PRESIDENT</div>
+      <div class="muted">
+        Election & Country Simulator
+      </div>
+    </div>
 
-    <h1
-      style="
-        margin:0;
-        font-size:28px
-      "
-    >
-      🇺🇸 USA: Road to the White House
-    </h1>
+    <div class="timebar">
 
-    <div class="muted">
-      Fikcyjny symulator kampanii prezydenckiej i zarządzania państwem
+      <span id="gameDate" class="tag">—</span>
+
+      <button class="btn speed" data-speed="0">
+        ⏸
+      </button>
+
+      <button class="btn speed active" data-speed="1">
+        1×
+      </button>
+
+      <button class="btn speed" data-speed="2">
+        2×
+      </button>
+
+      <button class="btn speed" data-speed="5">
+        5×
+      </button>
+
+      <button id="reset" class="btn">
+        ↻ Nowa gra
+      </button>
+
     </div>
 
   </div>
 
-  <div class="tabs">
 
-    <button
-      id="tabCampaign"
-      class="btn tab active"
-    >
-      🗳️ Kampania
+  <div class="tabs" style="margin-bottom:10px">
+
+    <button class="btn tab active" data-view="election">
+      🗳️ Wybory
     </button>
 
-    <button
-      id="tabPresident"
-      class="btn tab"
-      disabled
-    >
-      🏛️ Prezydentura
+    <button class="btn tab locked" data-view="economy" disabled>
+      📈 Gospodarka
     </button>
 
-    <button
-      id="resetBtn"
-      class="btn"
-    >
-      ↻ Nowa gra
+    <button class="btn tab locked" data-view="defense" disabled>
+      🛡️ Obrona
+    </button>
+
+    <button class="btn tab locked" data-view="diplomacy" disabled>
+      🌍 Dyplomacja
+    </button>
+
+    <button class="btn tab locked" data-view="events" disabled>
+      📰 Świat
     </button>
 
   </div>
 
-</header>
 
-
-<div id="campaignView">
-
-  <div
-    class="panel"
-    style="
-      padding:12px;
-      margin-bottom:12px
-    "
-  >
-
+  <div id="topStats" class="panel section">
     <div class="stats">
 
       <div class="card stat">
-        <div class="k">
-          Dni do wyborów
-        </div>
-        <div
-          class="v"
-          id="daysStat"
-        >
-          120
-        </div>
+        <div class="k">Dni do wyborów</div>
+        <div class="v" id="days">—</div>
       </div>
 
       <div class="card stat">
-        <div class="k">
-          Budżet kampanii
-        </div>
-        <div
-          class="v"
-          id="cashStat"
-        >
-          $0
-        </div>
+        <div class="k">Budżet</div>
+        <div class="v" id="money">—</div>
       </div>
 
       <div class="card stat">
-        <div class="k">
-          Poparcie krajowe
-        </div>
-        <div
-          class="v"
-          id="nationalStat"
-        >
-          —
-        </div>
+        <div class="k">Poparcie</div>
+        <div class="v" id="support">—</div>
       </div>
 
       <div class="card stat">
-        <div class="k">
-          Prognoza EV
-        </div>
-        <div
-          class="v"
-          id="forecastStat"
-        >
-          —
-        </div>
+        <div class="k">EV</div>
+        <div class="v" id="ev">—</div>
       </div>
 
       <div class="card stat">
-        <div class="k">
-          Energia
-        </div>
-        <div
-          class="v"
-          id="energyStat"
-        >
-          —
-        </div>
+        <div class="k">Energia</div>
+        <div class="v" id="energy">—</div>
       </div>
 
       <div class="card stat">
-        <div class="k">
-          Rozpoznawalność
-        </div>
-        <div
-          class="v"
-          id="nameStat"
-        >
-          —
-        </div>
+        <div class="k">PKB</div>
+        <div class="v" id="gdp">🔒</div>
       </div>
 
       <div class="card stat">
-        <div class="k">
-          Momentum
-        </div>
-        <div
-          class="v"
-          id="momentumStat"
-        >
-          —
-        </div>
+        <div class="k">Giełda</div>
+        <div class="v" id="market">🔒</div>
       </div>
 
       <div class="card stat">
-        <div class="k">
-          Data
-        </div>
-        <div
-          class="v"
-          id="dateStat"
-        >
-          —
-        </div>
+        <div class="k">Relacje świata</div>
+        <div class="v" id="worldRelations">🔒</div>
       </div>
 
     </div>
-
   </div>
 
 
-  <div
-    class="panel"
-    style="
-      padding:14px;
-      margin-bottom:12px
-    "
-  >
+  <!-- ELECTION -->
 
-    <div class="evbar">
+  <div id="view-election" class="view" style="margin-top:10px">
 
-      <div class="left">
-        <span id="playerEV">
-          0
+    <div class="panel section">
+
+      <div class="evtop">
+        <span style="color:#93c5fd">
+          TY: <span id="playerEV">0</span>
         </span>
-        EV
+
+        <span>270 DO WYGRANEJ</span>
+
+        <span style="color:#fca5a5">
+          RYWAL: <span id="oppEV">0</span>
+        </span>
       </div>
 
-      <div style="font-weight:900">
-        270 do wygranej
-      </div>
-
-      <div class="right">
-        <span id="oppEV">
-          0
-        </span>
-        EV
+      <div class="evbar">
+        <div id="playerEVBar" class="ev-player"></div>
+        <div id="oppEVBar" class="ev-opp"></div>
       </div>
 
     </div>
 
-    <div
-      class="progress"
-      style="margin-top:8px"
-    >
 
-      <div
-        id="pEVBar"
-        class="p"
-      ></div>
+    <div class="grid2" style="margin-top:10px">
 
-      <div
-        id="oEVBar"
-        class="o"
-      ></div>
+      <div class="panel section">
 
-    </div>
+        <div class="section-title">
+          🇺🇸 Mapa USA
+        </div>
 
-  </div>
+        <div class="muted" style="margin-bottom:8px">
+          Kliknij stan. Mapa jest stylizowanym konturem USA z granicami stanów.
+        </div>
+
+        <div class="map-wrap">
+
+          <svg
+            id="usaMap"
+            viewBox="0 0 1000 600"
+            preserveAspectRatio="xMidYMid meet"
+          ></svg>
+
+        </div>
+
+      </div>
 
 
-  <div class="layout">
+      <div class="right-stack">
 
-    <div
-      class="panel"
-      style="padding:12px"
-    >
-
-      <div
-        class="topline"
-        style="margin-bottom:8px"
-      >
-
-        <div>
+        <div class="panel section">
 
           <div class="section-title">
-            Mapa kampanii
+            Wybrany stan
           </div>
 
-          <div
-            class="muted"
-            style="font-size:13px"
-          >
-            Kliknij stan, aby prowadzić w nim kampanię.
-            Kolor pokazuje aktualnego lidera sondażu.
+          <div id="stateInfo">
+            —
           </div>
 
         </div>
 
-        <div class="pill">
-          🔵 Ty &nbsp;
-          🟡 remis &nbsp;
-          🔴 rywal
+
+        <div class="panel section">
+
+          <div class="section-title">
+            Kampania
+          </div>
+
+          <div class="actions">
+
+            <button class="btn action campaign-action" data-action="rally">
+              <strong>🎤 Wiec</strong>
+              <span class="muted">$1.5M</span>
+            </button>
+
+            <button class="btn action campaign-action" data-action="ads">
+              <strong>📺 Reklamy</strong>
+              <span class="muted">$4M</span>
+            </button>
+
+            <button class="btn action campaign-action" data-action="ground">
+              <strong>🚪 Sztab</strong>
+              <span class="muted">$3M</span>
+            </button>
+
+            <button class="btn action campaign-action" data-action="fund">
+              <strong>💰 Zbiórka</strong>
+              <span class="muted">+pieniądze</span>
+            </button>
+
+          </div>
+
+          <button id="debate" class="btn gold" style="width:100%;margin-top:7px">
+            🎙️ Debata krajowa
+          </button>
+
+          <button id="electionNow" class="btn green" style="width:100%;margin-top:7px">
+            🗳️ DZIEŃ WYBORÓW
+          </button>
+
+        </div>
+
+
+        <div class="panel section">
+
+          <div class="section-title">
+            Dziennik
+          </div>
+
+          <div id="campaignLog" class="log"></div>
+
         </div>
 
       </div>
-
-      <div
-        id="stateGrid"
-        class="state-grid"
-      ></div>
 
     </div>
 
+  </div>
 
-    <div
-      style="
-        display:flex;
-        flex-direction:column;
-        gap:12px
-      "
-    >
 
-      <div
-        class="panel"
-        style="padding:14px"
-      >
+  <!-- ECONOMY -->
+
+  <div id="view-economy" class="view hidden" style="margin-top:10px">
+
+    <div class="grid2">
+
+      <div class="panel section">
 
         <div class="section-title">
-          Wybrany stan
+          📈 Gospodarka Stanów Zjednoczonych
         </div>
 
-        <div
-          id="stateDetail"
-          class="muted"
-        >
-          Wybierz stan na mapie.
+        <div class="stats">
+
+          <div class="card stat">
+            <div class="k">PKB</div>
+            <div class="v" id="ecoGDP"></div>
+          </div>
+
+          <div class="card stat">
+            <div class="k">Wzrost</div>
+            <div class="v" id="growth"></div>
+          </div>
+
+          <div class="card stat">
+            <div class="k">Inflacja</div>
+            <div class="v" id="inflation"></div>
+          </div>
+
+          <div class="card stat">
+            <div class="k">Bezrobocie</div>
+            <div class="v" id="unemployment"></div>
+          </div>
+
+          <div class="card stat">
+            <div class="k">Dług</div>
+            <div class="v" id="debt"></div>
+          </div>
+
+          <div class="card stat">
+            <div class="k">Budżet</div>
+            <div class="v" id="federalBudget"></div>
+          </div>
+
+          <div class="card stat">
+            <div class="k">Poparcie</div>
+            <div class="v" id="approval"></div>
+          </div>
+
+          <div class="card stat">
+            <div class="k">Indeks giełdy</div>
+            <div class="v" id="marketIndex"></div>
+          </div>
+
         </div>
+
+
+        <div class="section-title" style="margin-top:15px">
+          Decyzje gospodarcze
+        </div>
+
+        <div id="economyPolicies" class="policy-grid"></div>
 
       </div>
 
 
-      <div
-        class="panel"
-        style="padding:14px"
-      >
+      <div class="right-stack">
+
+        <div class="panel section">
+
+          <div class="section-title">
+            Wall Street
+          </div>
+
+          <div id="stockValue" class="stock"></div>
+
+          <div id="stockChange" class="muted"></div>
+
+          <div class="meter">
+            <span id="stockMeter"></span>
+          </div>
+
+        </div>
+
+
+        <div class="panel section">
+
+          <div class="section-title">
+            Stan gospodarki
+          </div>
+
+          <div id="economyMeters"></div>
+
+        </div>
+
+
+        <div class="panel section">
+
+          <div class="section-title">
+            Dziennik administracji
+          </div>
+
+          <div id="adminLog" class="log"></div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- DEFENSE -->
+
+  <div id="view-defense" class="view hidden" style="margin-top:10px">
+
+    <div class="grid2">
+
+      <div class="panel section">
 
         <div class="section-title">
-          Akcje kampanii
+          🛡️ Bezpieczeństwo narodowe
         </div>
 
-        <div class="action-grid">
-
-          <button
-            class="btn action"
-            data-action="rally"
-          >
-            <strong>
-              🎤 Wiec
-            </strong>
-
-            <span class="muted">
-              1 dzień · $1.5M · mocny efekt lokalny
-            </span>
-          </button>
-
-
-          <button
-            class="btn action"
-            data-action="ads"
-          >
-            <strong>
-              📺 Reklamy
-            </strong>
-
-            <span class="muted">
-              2 dni · $4M · lokalny efekt + rozpoznawalność
-            </span>
-          </button>
-
-
-          <button
-            class="btn action"
-            data-action="ground"
-          >
-            <strong>
-              🚪 Organizacja terenowa
-            </strong>
-
-            <span class="muted">
-              3 dni · $3M · trwały lokalny efekt
-            </span>
-          </button>
-
-
-          <button
-            class="btn action"
-            data-action="fundraise"
-          >
-            <strong>
-              💰 Zbiórka
-            </strong>
-
-            <span class="muted">
-              2 dni · zysk $5–11M
-            </span>
-          </button>
-
-
-          <button
-            class="btn action"
-            data-action="national"
-          >
-            <strong>
-              📡 Wywiad ogólnokrajowy
-            </strong>
-
-            <span class="muted">
-              1 dzień · wpływ na cały kraj
-            </span>
-          </button>
-
-
-          <button
-            class="btn action"
-            data-action="rest"
-          >
-            <strong>
-              🛌 Odpoczynek
-            </strong>
-
-            <span class="muted">
-              1 dzień · odzysk energii
-            </span>
-          </button>
-
+        <div class="muted" style="margin-bottom:12px">
+          Strategiczny panel budżetu, gotowości, cyberbezpieczeństwa i odporności kraju.
         </div>
 
-        <button
-          id="debateBtn"
-          class="btn btn-gold"
-          style="
-            width:100%;
-            margin-top:8px
-          "
-        >
-          🎙️ Debata ogólnokrajowa
-        </button>
-
-        <button
-          id="electionBtn"
-          class="btn btn-primary"
-          style="
-            width:100%;
-            margin-top:8px
-          "
-        >
-          ⏩ Przejdź do dnia wyborów
-        </button>
+        <div id="defensePolicies" class="policy-grid"></div>
 
       </div>
 
 
-      <div
-        class="panel"
-        style="padding:14px"
-      >
+      <div class="right-stack">
 
-        <div class="section-title">
-          Dziennik kampanii
+        <div class="panel section">
+
+          <div class="section-title">
+            Wskaźniki
+          </div>
+
+          <div id="defenseMeters"></div>
+
         </div>
 
-        <div
-          id="campaignLog"
-          class="log"
-        ></div>
+        <div class="panel section">
+
+          <div class="section-title">
+            Kryzysy bezpieczeństwa
+          </div>
+
+          <div id="securityEvents"></div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- DIPLOMACY -->
+
+  <div id="view-diplomacy" class="view hidden" style="margin-top:10px">
+
+    <div class="diplayout">
+
+      <div class="panel section">
+
+        <div class="section-title">
+          🌍 Państwa
+        </div>
+
+        <div id="countryList" class="country-list"></div>
+
+      </div>
+
+
+      <div class="right-stack">
+
+        <div class="panel section">
+
+          <div class="section-title">
+            Dyplomacja
+          </div>
+
+          <div id="countryDetail">
+            Wybierz państwo.
+          </div>
+
+        </div>
+
+        <div class="panel section">
+
+          <div class="section-title">
+            Dziennik dyplomatyczny
+          </div>
+
+          <div id="diplomacyLog" class="log"></div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- EVENTS -->
+
+  <div id="view-events" class="view hidden" style="margin-top:10px">
+
+    <div class="grid2">
+
+      <div class="panel section">
+
+        <div class="section-title">
+          📰 Wydarzenia światowe
+        </div>
+
+        <div id="worldEvents"></div>
+
+      </div>
+
+
+      <div class="panel section">
+
+        <div class="section-title">
+          🌐 Stan świata
+        </div>
+
+        <div id="worldMeters"></div>
 
       </div>
 
@@ -875,265 +939,44 @@ select{
 </div>
 
 
-<div
-  id="presidentView"
-  class="hidden"
->
+<!-- START -->
 
-  <div
-    class="panel"
-    style="
-      padding:12px;
-      margin-bottom:12px
-    "
-  >
+<div id="startModal" class="modal">
 
-    <div class="stats">
+  <div class="panel modal-box">
 
-      <div class="card stat">
-        <div class="k">
-          Dzień kadencji
-        </div>
-        <div
-          class="v"
-          id="termDay"
-        >
-          1
-        </div>
-      </div>
-
-      <div class="card stat">
-        <div class="k">
-          Poparcie
-        </div>
-        <div
-          class="v"
-          id="approvalStat"
-        >
-          —
-        </div>
-      </div>
-
-      <div class="card stat">
-        <div class="k">
-          Gospodarka
-        </div>
-        <div
-          class="v"
-          id="economyStat"
-        >
-          —
-        </div>
-      </div>
-
-      <div class="card stat">
-        <div class="k">
-          Inflacja
-        </div>
-        <div
-          class="v"
-          id="inflationStat"
-        >
-          —
-        </div>
-      </div>
-
-      <div class="card stat">
-        <div class="k">
-          Bezrobocie
-        </div>
-        <div
-          class="v"
-          id="unemploymentStat"
-        >
-          —
-        </div>
-      </div>
-
-      <div class="card stat">
-        <div class="k">
-          Dług
-        </div>
-        <div
-          class="v"
-          id="debtStat"
-        >
-          —
-        </div>
-      </div>
-
-      <div class="card stat">
-        <div class="k">
-          Kapitał polityczny
-        </div>
-        <div
-          class="v"
-          id="capitalStat"
-        >
-          —
-        </div>
-      </div>
-
-      <div class="card stat">
-        <div class="k">
-          Miesiąc
-        </div>
-        <div
-          class="v"
-          id="monthStat"
-        >
-          1
-        </div>
-      </div>
-
+    <div class="big">
+      🇺🇸 ROAD TO THE WHITE HOUSE
     </div>
-
-  </div>
-
-
-  <div class="layout">
-
-    <div
-      class="panel"
-      style="padding:14px"
-    >
-
-      <div class="section-title">
-        Decyzje administracji
-      </div>
-
-      <div
-        id="policyGrid"
-        class="policy-grid"
-      ></div>
-
-    </div>
-
-
-    <div
-      style="
-        display:flex;
-        flex-direction:column;
-        gap:12px
-      "
-    >
-
-      <div
-        class="panel"
-        style="padding:14px"
-      >
-
-        <div class="section-title">
-          Stan kraju
-        </div>
-
-        <div id="countryMeters"></div>
-
-        <button
-          id="nextMonthBtn"
-          class="btn btn-primary"
-          style="
-            width:100%;
-            margin-top:12px
-          "
-        >
-          ▶ Następny miesiąc
-        </button>
-
-      </div>
-
-
-      <div
-        class="panel"
-        style="padding:14px"
-      >
-
-        <div class="section-title">
-          Dziennik prezydentury
-        </div>
-
-        <div
-          id="presidentLog"
-          class="log"
-        ></div>
-
-      </div>
-
-    </div>
-
-  </div>
-
-</div>
-
-</div>
-
-
-<div
-  id="startModal"
-  class="modal"
->
-
-  <div
-    class="panel modal-box"
-  >
-
-    <h2 style="margin-top:0">
-      Wybierz kandydata
-    </h2>
 
     <p class="muted">
-      Obie kampanie są fikcyjne.
-      Każda ma inny styl startowy,
-      ale żadna nie reprezentuje prawdziwej partii.
+      Wybierz fikcyjnego kandydata. Po zwycięstwie odblokujesz pełne zarządzanie państwem.
     </p>
 
-    <div class="candidate">
+    <div class="choice-grid">
 
-      <button
-        class="btn"
-        data-candidate="aurora"
-      >
-
-        <div class="name">
+      <button class="btn candidate" data-candidate="blue">
+        <strong style="font-size:21px">
           🔵 Alex Morgan
-        </div>
-
-        <div class="muted">
-          Koalicja Aurora
-        </div>
-
-        <div class="tag">
-          Większy budżet startowy
-        </div>
-
-        <div class="tag">
-          Lepsza rozpoznawalność
-        </div>
-
+        </strong>
+        <br>
+        <span class="muted">
+          Koalicja Federalna
+        </span>
+        <br><br>
+        Większy budżet kampanii
       </button>
 
-
-      <button
-        class="btn"
-        data-candidate="liberty"
-      >
-
-        <div class="name">
+      <button class="btn candidate" data-candidate="red">
+        <strong style="font-size:21px">
           🔴 Jordan Reed
-        </div>
-
-        <div class="muted">
-          Koalicja Liberty
-        </div>
-
-        <div class="tag">
-          Więcej energii
-        </div>
-
-        <div class="tag">
-          Silniejszy teren
-        </div>
-
+        </strong>
+        <br>
+        <span class="muted">
+          Koalicja Narodowa
+        </span>
+        <br><br>
+        Większa energia kampanii
       </button>
 
     </div>
@@ -1143,37 +986,40 @@ select{
 </div>
 
 
-<div
-  id="resultModal"
-  class="modal hidden"
->
+<!-- EVENT MODAL -->
 
-  <div
-    class="panel modal-box"
-  >
+<div id="eventModal" class="modal hidden">
 
-    <div
-      id="resultTitle"
-      class="result-big"
-    ></div>
+  <div class="panel modal-box">
 
-    <div
-      id="resultText"
-      style="
-        margin:10px 0 16px
-      "
-    ></div>
+    <div class="muted">
+      BREAKING NEWS
+    </div>
 
-    <div id="resultBreakdown"></div>
+    <div id="eventTitle" class="big"></div>
 
-    <button
-      id="resultContinue"
-      class="btn btn-primary"
-      style="
-        width:100%;
-        margin-top:14px
-      "
-    ></button>
+    <p id="eventText"></p>
+
+    <div id="eventChoices" class="choice-grid"></div>
+
+  </div>
+
+</div>
+
+
+<!-- ELECTION RESULT -->
+
+<div id="resultModal" class="modal hidden">
+
+  <div class="panel modal-box">
+
+    <div id="resultTitle" class="big"></div>
+
+    <p id="resultText"></p>
+
+    <button id="resultButton" class="btn green" style="width:100%">
+      Dalej
+    </button>
 
   </div>
 
@@ -1181,2503 +1027,1718 @@ select{
 
 
 <script>
+const $ = id => document.getElementById(id);
+const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
+const rand=(a,b)=>a+Math.random()*(b-a);
+const chance=p=>Math.random()<p;
 
-const $ =
-  id =>
-    document.getElementById(id);
+function cash(n){
+  if(Math.abs(n)>=1e12)
+    return "$"+(n/1e12).toFixed(2)+"T";
 
+  if(Math.abs(n)>=1e9)
+    return "$"+(n/1e9).toFixed(1)+"B";
 
-const clamp =
-  (n,a,b) =>
-    Math.max(
-      a,
-      Math.min(
-        b,
-        n
-      )
-    );
+  return "$"+(n/1e6).toFixed(1)+"M";
+}
 
-
-const money =
-  n =>
-    "$"
-    +
-    (
-      n/1_000_000
-    )
-    .toFixed(1)
-    +
-    "M";
-
-
-const pct =
-  n =>
-    n.toFixed(1)
-    +
-    "%";
-
-
-const rand =
-  (a,b) =>
-    a
-    +
-    Math.random()
-    *
-    (
-      b-a
-    );
-
-
-const STATE_DATA = [
-
-["AL","Alabama",9],
-["AK","Alaska",3],
-["AZ","Arizona",11],
-["AR","Arkansas",6],
-["CA","California",54],
-["CO","Colorado",10],
-["CT","Connecticut",7],
-["DE","Delaware",3],
-["DC","District of Columbia",3],
-["FL","Florida",30],
-["GA","Georgia",16],
-["HI","Hawaii",4],
-["ID","Idaho",4],
-["IL","Illinois",19],
-["IN","Indiana",11],
-["IA","Iowa",6],
-["KS","Kansas",6],
-["KY","Kentucky",8],
-["LA","Louisiana",8],
-["ME","Maine",4],
-["MD","Maryland",10],
-["MA","Massachusetts",11],
-["MI","Michigan",15],
-["MN","Minnesota",10],
-["MS","Mississippi",6],
-["MO","Missouri",10],
-["MT","Montana",4],
-["NE","Nebraska",5],
-["NV","Nevada",6],
-["NH","New Hampshire",4],
-["NJ","New Jersey",14],
-["NM","New Mexico",5],
-["NY","New York",28],
-["NC","North Carolina",16],
-["ND","North Dakota",3],
-["OH","Ohio",17],
-["OK","Oklahoma",7],
-["OR","Oregon",8],
-["PA","Pennsylvania",19],
-["RI","Rhode Island",4],
-["SC","South Carolina",9],
-["SD","South Dakota",3],
-["TN","Tennessee",11],
-["TX","Texas",40],
-["UT","Utah",6],
-["VT","Vermont",3],
-["VA","Virginia",13],
-["WA","Washington",12],
-["WV","West Virginia",4],
-["WI","Wisconsin",10],
-["WY","Wyoming",3]
-
+const STATE_DATA=[
+["WA","Washington",12],["OR","Oregon",8],["CA","California",54],
+["NV","Nevada",6],["ID","Idaho",4],["MT","Montana",4],
+["WY","Wyoming",3],["UT","Utah",6],["AZ","Arizona",11],
+["CO","Colorado",10],["NM","New Mexico",5],["ND","North Dakota",3],
+["SD","South Dakota",3],["NE","Nebraska",5],["KS","Kansas",6],
+["OK","Oklahoma",7],["TX","Texas",40],["MN","Minnesota",10],
+["IA","Iowa",6],["MO","Missouri",10],["AR","Arkansas",6],
+["LA","Louisiana",8],["WI","Wisconsin",10],["IL","Illinois",19],
+["MI","Michigan",15],["IN","Indiana",11],["OH","Ohio",17],
+["KY","Kentucky",8],["TN","Tennessee",11],["MS","Mississippi",6],
+["AL","Alabama",9],["GA","Georgia",16],["FL","Florida",30],
+["SC","South Carolina",9],["NC","North Carolina",16],
+["VA","Virginia",13],["WV","West Virginia",4],
+["PA","Pennsylvania",19],["NY","New York",28],
+["VT","Vermont",3],["NH","New Hampshire",4],
+["ME","Maine",4],["MA","Massachusetts",11],
+["RI","Rhode Island",4],["CT","Connecticut",7],
+["NJ","New Jersey",14],["DE","Delaware",3],
+["MD","Maryland",10],["DC","District of Columbia",3],
+["AK","Alaska",3],["HI","Hawaii",4]
 ];
 
-
-const BASE_MARGIN = {
-
-AL:-12,
-AK:-6,
-AZ:-1,
-AR:-13,
-CA:14,
-CO:7,
-CT:10,
-DE:9,
-DC:28,
-FL:-4,
-GA:-1,
-HI:13,
-ID:-15,
-IL:10,
-IN:-10,
-IA:-6,
-KS:-7,
-KY:-14,
-LA:-11,
-ME:8,
-MD:16,
-MA:18,
-MI:1,
-MN:4,
-MS:-10,
-MO:-8,
-MT:-9,
-NE:-9,
-NV:1,
-NH:3,
-NJ:11,
-NM:6,
-NY:14,
-NC:-1,
-ND:-14,
-OH:-6,
-OK:-15,
-OR:9,
-PA:0,
-RI:12,
-SC:-8,
-SD:-12,
-TN:-13,
-TX:-6,
-UT:-10,
-VT:18,
-VA:5,
-WA:12,
-WV:-17,
-WI:0,
-WY:-18
-
+const BASE={
+WA:11,OR:8,CA:16,NV:1,ID:-15,MT:-9,WY:-18,UT:-10,AZ:-1,
+CO:7,NM:7,ND:-15,SD:-13,NE:-9,KS:-8,OK:-16,TX:-5,
+MN:5,IA:-6,MO:-8,AR:-14,LA:-11,WI:0,IL:11,MI:1,
+IN:-10,OH:-6,KY:-14,TN:-13,MS:-11,AL:-13,GA:-1,
+FL:-4,SC:-8,NC:-1,VA:5,WV:-18,PA:0,NY:15,VT:18,
+NH:3,ME:8,MA:19,RI:13,CT:11,NJ:11,DE:9,MD:17,DC:30,
+AK:-7,HI:14
 };
 
+/*
+  Stylizowana mapa USA.
+  Każdy stan ma pozycję i kształt polygonu.
+  To nie jest geodezyjny plik GIS, ale daje normalny
+  kontur USA zamiast starej siatki kafelków.
+*/
 
-let state;
+const MAP_POS={
+WA:[120,90],OR:[115,145],CA:[105,235],NV:[165,205],
+ID:[190,125],MT:[270,90],WY:[280,155],UT:[225,205],
+AZ:[215,280],CO:[300,220],NM:[290,290],ND:[390,95],
+SD:[395,150],NE:[395,205],KS:[405,255],OK:[420,310],
+TX:[400,390],MN:[485,110],IA:[490,195],MO:[500,260],
+AR:[500,325],LA:[500,390],WI:[550,150],IL:[555,225],
+MI:[615,145],IN:[605,225],OH:[660,215],KY:[610,280],
+TN:[600,325],MS:[555,375],AL:[610,375],GA:[670,365],
+FL:[705,445],SC:[705,320],NC:[735,285],VA:[735,245],
+WV:[690,250],PA:[720,195],NY:[765,140],VT:[805,105],
+NH:[835,110],ME:[875,75],MA:[840,155],RI:[865,170],
+CT:[825,175],NJ:[785,205],DE:[790,235],MD:[755,235],
+DC:[770,255],AK:[150,470],HI:[300,500]
+};
 
+let game=null;
+let timer=null;
 
-function makeGame(
-  candidate
-){
+const countries=[
+{
+ id:"CAN",
+ name:"Kanada",
+ flag:"🇨🇦",
+ relation:76,
+ trade:850,
+ embassy:true,
+ alliance:true
+},
+{
+ id:"MEX",
+ name:"Meksyk",
+ flag:"🇲🇽",
+ relation:61,
+ trade:790,
+ embassy:true,
+ alliance:false
+},
+{
+ id:"GBR",
+ name:"Wielka Brytania",
+ flag:"🇬🇧",
+ relation:82,
+ trade:300,
+ embassy:true,
+ alliance:true
+},
+{
+ id:"FRA",
+ name:"Francja",
+ flag:"🇫🇷",
+ relation:72,
+ trade:150,
+ embassy:true,
+ alliance:true
+},
+{
+ id:"DEU",
+ name:"Niemcy",
+ flag:"🇩🇪",
+ relation:70,
+ trade:240,
+ embassy:true,
+ alliance:true
+},
+{
+ id:"POL",
+ name:"Polska",
+ flag:"🇵🇱",
+ relation:74,
+ trade:25,
+ embassy:true,
+ alliance:true
+},
+{
+ id:"JPN",
+ name:"Japonia",
+ flag:"🇯🇵",
+ relation:79,
+ trade:230,
+ embassy:true,
+ alliance:true
+},
+{
+ id:"KOR",
+ name:"Korea Południowa",
+ flag:"🇰🇷",
+ relation:75,
+ trade:190,
+ embassy:true,
+ alliance:true
+},
+{
+ id:"IND",
+ name:"Indie",
+ flag:"🇮🇳",
+ relation:55,
+ trade:130,
+ embassy:true,
+ alliance:false
+},
+{
+ id:"BRA",
+ name:"Brazylia",
+ flag:"🇧🇷",
+ relation:52,
+ trade:90,
+ embassy:true,
+ alliance:false
+},
+{
+ id:"CHN",
+ name:"Chiny",
+ flag:"🇨🇳",
+ relation:8,
+ trade:580,
+ embassy:true,
+ alliance:false
+},
+{
+ id:"RUS",
+ name:"Rosja",
+ flag:"🇷🇺",
+ relation:-55,
+ trade:15,
+ embassy:true,
+ alliance:false
+}
+];
 
-  const states = {};
+const embargoProducts=[
+"Elektronika",
+"Samochody",
+"Stal",
+"Maszyny",
+"Energia",
+"Żywność",
+"Technologie",
+"Chemia"
+];
 
+function newGame(candidate){
 
-  for(
-    const [
-      abbr,
-      name,
-      ev
-    ]
-    of STATE_DATA
-  ){
+  const states={};
 
-    let margin =
-      BASE_MARGIN[abbr]
-      +
-      rand(
-        -2.4,
-        2.4
-      );
+  STATE_DATA.forEach(([abbr,name,ev])=>{
 
+    let margin=BASE[abbr]+rand(-2,2);
 
-    if(
-      candidate==="liberty"
-    ){
+    if(candidate==="red")
+      margin*=-1;
 
-      margin *=
-        -1;
-
-    }
-
-
-    states[abbr] = {
-
+    states[abbr]={
       abbr,
       name,
       ev,
       margin,
-
       ground:0,
-
-      visits:0,
-
-      called:null
-
+      visits:0
     };
 
-  }
+  });
 
-
-  return {
-
+  game={
     candidate,
+    player:
+      candidate==="blue"
+        ?"Alex Morgan"
+        :"Jordan Reed",
 
-    playerName:
-      candidate==="aurora"
-        ? "Alex Morgan"
-        : "Jordan Reed",
+    opponent:
+      candidate==="blue"
+        ?"Jordan Reed"
+        :"Alex Morgan",
 
-    opponentName:
-      candidate==="aurora"
-        ? "Jordan Reed"
-        : "Alex Morgan",
-
-    days:120,
-
-    date:
-      new Date(
-        Date.UTC(
-          2028,
-          6,
-          10
-        )
-      ),
-
-    cash:
-      candidate==="aurora"
-        ? 95_000_000
-        : 82_000_000,
+    date:new Date(2028,6,1),
+    days:127,
+    money:
+      candidate==="blue"
+        ?100e6
+        :86e6,
 
     energy:
-      candidate==="aurora"
-        ? 78
-        : 92,
+      candidate==="blue"
+        ?80
+        :94,
 
-    recognition:
-      candidate==="aurora"
-        ? 66
-        : 58,
-
-    momentum:0,
+    selectedState:"PA",
+    speed:1,
+    electionDone:false,
+    president:false,
 
     states,
 
-    selected:"PA",
+    administration:{
+      approval:54,
+      gdp:29.5,
+      growth:2.2,
+      inflation:2.8,
+      unemployment:4.1,
+      debt:35.2,
+      budget:-1.7,
+      market:100,
+      marketChange:0,
+      infrastructure:54,
+      industry:58,
+      technology:66,
+      energy:60,
+      healthcare:52,
+      education:55,
 
-    debateCooldown:0,
+      defenseBudget:900,
+      readiness:70,
+      cyber:64,
+      intelligence:67,
+      resilience:62,
 
-    electionDone:false,
+      worldStability:60,
+      tradeClimate:63,
+      diplomaticInfluence:72
+    },
 
-    won:false,
-
-    president:null
-
+    countries:JSON.parse(JSON.stringify(countries)),
+    selectedCountry:"CAN",
+    embargos:{},
+    worldEvents:[],
+    nextEvent:rand(18,40),
+    dayCounter:0
   };
 
-}
+  $("startModal").classList.add("hidden");
 
-
-function log(
-  msg
-){
-
-  const d =
-    document.createElement(
-      "div"
-    );
-
-
-  d.textContent =
-    "• "
-    +
-    msg;
-
-
-  $("campaignLog")
-    .prepend(
-      d
-    );
-
-}
-
-
-function pLog(
-  msg
-){
-
-  const d =
-    document.createElement(
-      "div"
-    );
-
-
-  d.textContent =
-    "• "
-    +
-    msg;
-
-
-  $("presidentLog")
-    .prepend(
-      d
-    );
-
-}
-
-
-function advanceDays(
-  n
-){
-
-  state.days =
-    Math.max(
-      0,
-      state.days-n
-    );
-
-
-  state.date =
-    new Date(
-      state.date.getTime()
-      +
-      n
-      *
-      86400000
-    );
-
-
-  state.energy =
-    clamp(
-      state.energy
-      -
-      n*1.4,
-      0,
-      100
-    );
-
-
-  state.debateCooldown =
-    Math.max(
-      0,
-      state.debateCooldown-n
-    );
-
-
-  driftPolls(
-    n
+  addCampaignLog(
+    `Rozpoczynasz kampanię jako ${game.player}.`
   );
 
-
-  if(
-    state.days===0
-    &&
-    !state.electionDone
-  ){
-
-    setTimeout(
-      runElection,
-      100
-    );
-
-  }
-
+  renderAll();
+  startClock();
 }
 
-
-function driftPolls(
-  n
-){
-
-  for(
-    const s
-    of Object.values(
-      state.states
-    )
-  ){
-
-    s.margin =
-      clamp(
-
-        s.margin
-        +
-        rand(
-          -.12,
-          .12
-        )
-        *
-        n
-        +
-        state.momentum
-        *
-        .002
-        *
-        n,
-
-        -35,
-        35
-
-      );
-
-
-    if(
-      s.ground>0
-    ){
-
-      s.margin +=
-        .015
-        *
-        s.ground
-        *
-        n;
-
-    }
-
-  }
-
-
-  state.momentum *=
-    Math.pow(
-      .94,
-      n
-    );
-
+function addCampaignLog(text){
+  const d=document.createElement("div");
+  d.textContent="• "+text;
+  $("campaignLog").prepend(d);
 }
 
+function addAdminLog(text){
+  const d=document.createElement("div");
+  d.textContent="• "+text;
+  $("adminLog").prepend(d);
+}
+
+function addDipLog(text){
+  const d=document.createElement("div");
+  d.textContent="• "+text;
+  $("diplomacyLog").prepend(d);
+}
 
 function nationalSupport(){
 
-  let sum=0;
-
   let total=0;
+  let weighted=0;
 
+  Object.values(game.states).forEach(s=>{
+    weighted+=(50+s.margin/2)*s.ev;
+    total+=s.ev;
+  });
 
-  for(
-    const s
-    of Object.values(
-      state.states
-    )
-  ){
+  return weighted/total;
+}
 
-    sum +=
-      (
-        50
-        +
-        s.margin/2
-      )
-      *
-      s.ev;
+function forecast(){
 
+  let p=0,o=0,t=0;
 
-    total +=
-      s.ev;
+  Object.values(game.states).forEach(s=>{
 
-  }
+    if(s.margin>1.5)
+      p+=s.ev;
 
+    else if(s.margin<-1.5)
+      o+=s.ev;
 
-  return (
-    sum
-    /
-    total
+    else
+      t+=s.ev;
+
+  });
+
+  return {p,o,t};
+}
+
+function renderMap(){
+
+  const svg=$("usaMap");
+  svg.innerHTML="";
+
+  const NS="http://www.w3.org/2000/svg";
+
+  /*
+    Tło kontynentalne.
+    Daje ogólny kontur USA.
+  */
+
+  const outline=document.createElementNS(NS,"path");
+
+  outline.setAttribute(
+    "d",
+    `
+    M70 65
+    L190 55
+    L245 70
+    L350 65
+    L470 75
+    L550 95
+    L615 105
+    L675 120
+    L720 110
+    L770 120
+    L815 95
+    L855 65
+    L900 70
+    L915 115
+    L880 160
+    L860 195
+    L820 210
+    L800 250
+    L760 285
+    L735 330
+    L710 365
+    L735 410
+    L770 465
+    L740 490
+    L690 440
+    L650 420
+    L600 415
+    L555 430
+    L510 425
+    L460 450
+    L420 440
+    L380 400
+    L330 365
+    L280 345
+    L235 325
+    L190 300
+    L155 265
+    L125 220
+    L95 180
+    L70 130
+    Z
+    `
   );
 
-}
+  outline.setAttribute("fill","#10243b");
+  outline.setAttribute("stroke","#64748b");
+  outline.setAttribute("stroke-width","5");
+
+  svg.appendChild(outline);
 
 
-function forecastEV(){
+  Object.values(game.states).forEach(s=>{
 
-  let p=0;
+    const pos=MAP_POS[s.abbr];
+    if(!pos)return;
 
-  let o=0;
+    const [x,y]=pos;
 
-  let t=0;
+    const g=document.createElementNS(NS,"g");
 
+    let w=54,h=40;
 
-  for(
-    const s
-    of Object.values(
-      state.states
-    )
-  ){
-
-    if(
-      s.margin>2
-    ){
-
-      p +=
-        s.ev;
-
+    if(["TX","CA","FL","NY","AK"].includes(s.abbr)){
+      w=65;
+      h=47;
     }
 
-    else if(
-      s.margin<-2
-    ){
-
-      o +=
-        s.ev;
-
+    if(["RI","DE","DC","CT","NJ","VT","NH"].includes(s.abbr)){
+      w=38;
+      h=30;
     }
 
-    else{
+    const poly=document.createElementNS(NS,"polygon");
 
-      t +=
-        s.ev;
+    const skew=(s.abbr.charCodeAt(0)%9)-4;
 
-    }
-
-  }
-
-
-  return {
-
-    p,
-    o,
-    t
-
-  };
-
-}
-
-
-function renderCampaign(){
-
-  const f =
-    forecastEV();
-
-
-  $("daysStat")
-    .textContent =
-      state.days;
-
-
-  $("cashStat")
-    .textContent =
-      money(
-        state.cash
-      );
-
-
-  $("nationalStat")
-    .textContent =
-      pct(
-        nationalSupport()
-      );
-
-
-  $("forecastStat")
-    .textContent =
-      `${f.p} / ${f.o}`;
-
-
-  $("energyStat")
-    .textContent =
-      Math.round(
-        state.energy
-      )
-      +
-      "%";
-
-
-  $("nameStat")
-    .textContent =
-      Math.round(
-        state.recognition
-      )
-      +
-      "%";
-
-
-  $("momentumStat")
-    .textContent =
-      (
-        state.momentum>=0
-          ? "+"
-          : ""
-      )
-      +
-      state.momentum
-        .toFixed(1);
-
-
-  $("dateStat")
-    .textContent =
-      state.date
-        .toLocaleDateString(
-          "pl-PL",
-          {
-            timeZone:"UTC"
-          }
-        );
-
-
-  $("playerEV")
-    .textContent =
-      f.p;
-
-
-  $("oppEV")
-    .textContent =
-      f.o;
-
-
-  $("pEVBar")
-    .style
-    .width =
-      (
-        f.p
-        /
-        538
-        *
-        100
-      )
-      +
-      "%";
-
-
-  $("oEVBar")
-    .style
-    .width =
-      (
-        f.o
-        /
-        538
-        *
-        100
-      )
-      +
-      "%";
-
-
-  $("stateGrid")
-    .innerHTML =
-      Object.values(
-        state.states
-      )
-      .map(
-        s => {
-
-          const cls =
-            s.called
-
-              ? `called-${s.called}`
-
-              : (
-                  s.margin>2
-
-                    ? "ahead-player"
-
-                    : s.margin<-2
-
-                      ? "ahead-opp"
-
-                      : "tossup"
-                );
-
-
-          return `
-          <button
-            class="
-              state
-              ${cls}
-              ${
-                state.selected===s.abbr
-                  ? "selected"
-                  : ""
-              }
-            "
-            data-state="${s.abbr}"
-          >
-
-            <span class="abbr">
-              ${s.abbr}
-            </span>
-
-            <span class="ev">
-              ${s.ev} EV
-            </span>
-
-            <div class="margin">
-              ${
-                s.margin>=0
-                  ? "Ty +"
-                  : "Rywal +"
-              }
-              ${Math.abs(s.margin).toFixed(1)}
-            </div>
-
-          </button>
-          `;
-
-        }
-      )
-      .join("");
-
-
-  document
-    .querySelectorAll(
-      "[data-state]"
-    )
-    .forEach(
-      b =>
-        b.onclick =
-          () => {
-
-            state.selected =
-              b.dataset.state;
-
-
-            renderCampaign();
-
-          }
-    );
-
-
-  const s =
-    state.states[
-      state.selected
-    ];
-
-
-  $("stateDetail")
-    .innerHTML =
+    poly.setAttribute(
+      "points",
       `
-      <div
-        style="
-          font-size:22px;
-          font-weight:1000
-        "
-      >
-        ${s.name} (${s.abbr})
-      </div>
-
-      <div style="margin-top:5px">
-        <strong>
-          ${s.ev} głosów elektorskich
-        </strong>
-      </div>
-
-      <div style="margin-top:8px">
-
-        Sondaż:
-
-        <strong
-          class="${
-            s.margin>=0
-              ? "good"
-              : "bad"
-          }"
-        >
-
-          ${
-            s.margin>=0
-              ? state.playerName
-              : state.opponentName
-          }
-
-          +${Math.abs(s.margin).toFixed(1)}
-
-        </strong>
-
-      </div>
-
-      <div>
-        Organizacja terenowa:
-        <strong>
-          ${s.ground.toFixed(1)}
-        </strong>
-      </div>
-
-      <div>
-        Wizyty:
-        <strong>
-          ${s.visits}
-        </strong>
-      </div>
-      `;
-
-
-  $("debateBtn")
-    .disabled =
-      state.debateCooldown>0
-      ||
-      state.days<1;
-
-
-  $("debateBtn")
-    .textContent =
-      state.debateCooldown>0
-
-        ? `🎙️ Debata dostępna za ${state.debateCooldown} dni`
-
-        : "🎙️ Debata ogólnokrajowa";
-
-}
-
-
-function doAction(
-  type
-){
-
-  if(
-    state.electionDone
-  )
-    return;
-
-
-  const s =
-    state.states[
-      state.selected
-    ];
-
-
-  const need =
-    (
-      cash,
-      days,
-      energy
-    ) =>
-      state.cash>=cash
-      &&
-      state.days>=days
-      &&
-      state.energy>=energy;
-
-
-  if(
-    type==="rally"
-  ){
-
-    if(
-      !need(
-        1_500_000,
-        1,
-        8
-      )
-    ){
-
-      return log(
-        "Brakuje pieniędzy, dni albo energii na wiec."
-      );
-
-    }
-
-
-    state.cash -=
-      1_500_000;
-
-
-    state.energy -=
-      8;
-
-
-    s.margin +=
-      rand(
-        .7,
-        1.7
-      )
-      +
-      state.recognition/250;
-
-
-    s.visits++;
-
-
-    state.momentum +=
-      .25;
-
-
-    advanceDays(
-      1
+      ${x-w/2},${y-h/2+4}
+      ${x+w/2-5},${y-h/2}
+      ${x+w/2},${y+h/2-5}
+      ${x-w/2+skew},${y+h/2}
+      `
     );
 
+    let fill="#7c5b16";
 
-    log(
-      `Wiec w ${s.name}: lokalne poparcie wzrosło.`
+    if(s.margin>1.5)
+      fill="#1d4f91";
+
+    if(s.margin<-1.5)
+      fill="#8a2d2d";
+
+    if(game.selectedState===s.abbr)
+      poly.setAttribute("stroke","#facc15");
+    else
+      poly.setAttribute("stroke","#07111e");
+
+    poly.setAttribute("stroke-width",
+      game.selectedState===s.abbr ? "5":"2"
     );
 
-  }
-
-
-  if(
-    type==="ads"
-  ){
-
-    if(
-      !need(
-        4_000_000,
-        2,
-        3
-      )
-    ){
-
-      return log(
-        "Nie możesz teraz wykupić kampanii reklamowej."
-      );
-
-    }
-
-
-    state.cash -=
-      4_000_000;
-
-
-    state.energy -=
-      3;
-
-
-    s.margin +=
-      rand(
-        .6,
-        1.5
-      );
-
-
-    state.recognition =
-      clamp(
-        state.recognition
-        +
-        1.8,
-        0,
-        100
-      );
-
-
-    advanceDays(
-      2
-    );
-
-
-    log(
-      `Reklamy w ${s.name} zwiększyły rozpoznawalność.`
-    );
-
-  }
-
-
-  if(
-    type==="ground"
-  ){
-
-    if(
-      !need(
-        3_000_000,
-        3,
-        5
-      )
-    ){
-
-      return log(
-        "Nie możesz teraz rozbudować organizacji terenowej."
-      );
-
-    }
-
-
-    state.cash -=
-      3_000_000;
-
-
-    state.energy -=
-      5;
-
-
-    s.ground =
-      clamp(
-        s.ground
-        +
-        rand(
-          1.5,
-          2.8
-        ),
-        0,
-        10
-      );
-
-
-    s.margin +=
-      .45;
-
-
-    advanceDays(
-      3
-    );
-
-
-    log(
-      `Rozbudowano sztab terenowy w ${s.name}.`
-    );
-
-  }
-
-
-  if(
-    type==="fundraise"
-  ){
-
-    if(
-      state.days<2
-      ||
-      state.energy<6
-    ){
-
-      return log(
-        "Potrzebujesz 2 dni i trochę energii na zbiórkę."
-      );
-
-    }
-
-
-    const gain =
-      rand(
-        5_000_000,
-        11_000_000
-      )
-      *
-      (
-        state.recognition
-        /
-        80
-      );
-
-
-    state.cash +=
-      gain;
-
-
-    state.energy -=
-      6;
-
-
-    advanceDays(
-      2
-    );
-
-
-    log(
-      `Zbiórka przyniosła ${money(gain)}.`
-    );
-
-  }
-
-
-  if(
-    type==="national"
-  ){
-
-    if(
-      state.days<1
-      ||
-      state.energy<7
-    ){
-
-      return log(
-        "Brakuje czasu lub energii na wywiad."
-      );
-
-    }
-
-
-    state.energy -=
-      7;
-
-
-    const effect =
-      rand(
-        -.35,
-        .75
-      );
-
-
-    for(
-      const st
-      of Object.values(
-        state.states
-      )
-    ){
-
-      st.margin +=
-        effect;
-
-    }
-
-
-    state.recognition =
-      clamp(
-        state.recognition
-        +
-        2.3,
-        0,
-        100
-      );
-
-
-    state.momentum +=
-      effect;
-
-
-    advanceDays(
-      1
-    );
-
-
-    log(
-      effect>=0
-        ? "Wywiad ogólnokrajowy wypadł dobrze."
-        : "Wywiad był trudny i lekko zaszkodził sondażom."
-    );
-
-  }
-
-
-  if(
-    type==="rest"
-  ){
-
-    if(
-      state.days<1
-    )
-      return;
-
-
-    state.energy =
-      clamp(
-        state.energy
-        +
-        24,
-        0,
-        100
-      );
-
-
-    advanceDays(
-      1
-    );
-
-
-    log(
-      "Dzień odpoczynku przywrócił energię."
-    );
-
-  }
-
-
-  renderCampaign();
-
-}
-
-
-document
-  .querySelectorAll(
-    "[data-action]"
-  )
-  .forEach(
-    b =>
-      b.onclick =
-        () =>
-          doAction(
-            b.dataset.action
-          )
-  );
-
-
-$("debateBtn")
-  .onclick =
-    () => {
-
-      if(
-        state.debateCooldown>0
-        ||
-        state.days<1
-      )
-        return;
-
-
-      const prep =
-        (
-          state.energy
-          +
-          state.recognition
-        )
-        /
-        2;
-
-
-      const effect =
-        rand(
-          -1.2,
-          1.5
-        )
-        +
-        (
-          prep-60
-        )
-        /
-        60;
-
-
-      for(
-        const s
-        of Object.values(
-          state.states
-        )
-      ){
-
-        s.margin +=
-          effect
-          *
-          (
-            .65
-            +
-            Math.random()*.35
-          );
-
-      }
-
-
-      state.energy =
-        clamp(
-          state.energy
-          -
-          14,
-          0,
-          100
-        );
-
-
-      state.momentum +=
-        effect;
-
-
-      state.debateCooldown =
-        21;
-
-
-      advanceDays(
-        1
-      );
-
-
-      log(
-        effect>=0
-
-          ? `Debata udana: średni efekt +${effect.toFixed(1)} pkt.`
-
-          : `Debata trudna: średni efekt ${effect.toFixed(1)} pkt.`
-      );
-
-
-      renderCampaign();
-
+    poly.setAttribute("fill",fill);
+    poly.classList.add("state-shape");
+
+    poly.onclick=()=>{
+      game.selectedState=s.abbr;
+      renderAll();
     };
 
+    g.appendChild(poly);
 
-function resolveState(
-  s
-){
+    const label=document.createElementNS(NS,"text");
+    label.setAttribute("x",x);
+    label.setAttribute("y",y-1);
+    label.setAttribute("class","state-label");
+    label.textContent=s.abbr;
 
-  const noise =
-    rand(
-      -4.5,
-      4.5
-    );
+    g.appendChild(label);
 
+    const ev=document.createElementNS(NS,"text");
+    ev.setAttribute("x",x);
+    ev.setAttribute("y",y+12);
+    ev.setAttribute("class","ev-label");
+    ev.textContent=s.ev+" EV";
 
-  return (
-    s.margin
-    +
-    noise
-  );
+    g.appendChild(ev);
 
+    svg.appendChild(g);
+  });
+
+  const oceanLabel=document.createElementNS(NS,"text");
+  oceanLabel.setAttribute("x","490");
+  oceanLabel.setAttribute("y","560");
+  oceanLabel.setAttribute("fill","#3b5877");
+  oceanLabel.setAttribute("font-size","24");
+  oceanLabel.setAttribute("text-anchor","middle");
+  oceanLabel.textContent="UNITED STATES OF AMERICA";
+
+  svg.appendChild(oceanLabel);
 }
 
+function renderElection(){
 
-function runElection(){
+  const f=forecast();
+  const s=game.states[game.selectedState];
 
-  if(
-    state.electionDone
-  )
-    return;
+  $("days").textContent=
+    game.president
+      ?"Kadencja"
+      :game.days;
 
+  $("money").textContent=cash(game.money);
+  $("support").textContent=nationalSupport().toFixed(1)+"%";
+  $("ev").textContent=f.p+" / 538";
+  $("energy").textContent=Math.round(game.energy)+"%";
 
-  state.electionDone =
-    true;
+  $("playerEV").textContent=f.p;
+  $("oppEV").textContent=f.o;
 
+  $("playerEVBar").style.width=(f.p/538*100)+"%";
+  $("oppEVBar").style.width=(f.o/538*100)+"%";
 
-  let p=0;
+  $("stateInfo").innerHTML=`
+    <div style="font-size:22px;font-weight:1000">
+      ${s.name} (${s.abbr})
+    </div>
 
-  let o=0;
+    <div style="margin-top:7px">
+      <strong>${s.ev} EV</strong>
+    </div>
 
-  const rows=[];
+    <div style="margin-top:7px">
+      Sondaż:
+      <strong class="${s.margin>=0?"good":"bad"}">
+        ${s.margin>=0?game.player:game.opponent}
+        +${Math.abs(s.margin).toFixed(1)}
+      </strong>
+    </div>
 
+    <div>
+      Organizacja terenowa:
+      ${s.ground.toFixed(1)}/10
+    </div>
 
-  for(
-    const s
-    of Object.values(
-      state.states
-    )
-  ){
+    <div>
+      Wizyty:
+      ${s.visits}
+    </div>
+  `;
 
-    let result =
-      resolveState(
-        s
-      );
+  renderMap();
+}
 
+function campaignAction(type){
 
-    let pev=0;
+  if(game.electionDone)return;
 
-    let oev=0;
+  const s=game.states[game.selectedState];
 
+  if(type==="rally"){
 
-    if(
-      s.abbr==="ME"
-    ){
+    if(game.money<1.5e6 || game.energy<6)
+      return;
 
-      const statewide =
-        result;
+    game.money-=1.5e6;
+    game.energy-=6;
+    s.margin+=rand(.5,1.4);
+    s.visits++;
 
-
-      const d1 =
-        result+5;
-
-
-      const d2 =
-        result-7;
-
-
-      if(
-        statewide>=0
-      )
-        pev+=2;
-
-      else
-        oev+=2;
-
-
-      if(
-        d1>=0
-      )
-        pev++;
-
-      else
-        oev++;
-
-
-      if(
-        d2>=0
-      )
-        pev++;
-
-      else
-        oev++;
-
-    }
-
-
-    else if(
-      s.abbr==="NE"
-    ){
-
-      const statewide =
-        result;
-
-
-      const districts = [
-
-        result-6,
-
-        result+7,
-
-        result-9
-
-      ];
-
-
-      if(
-        statewide>=0
-      )
-        pev+=2;
-
-      else
-        oev+=2;
-
-
-      for(
-        const d
-        of districts
-      ){
-
-        if(
-          d>=0
-        )
-          pev++;
-
-        else
-          oev++;
-
-      }
-
-    }
-
-
-    else{
-
-      if(
-        result>=0
-      ){
-
-        pev =
-          s.ev;
-
-      }
-
-      else{
-
-        oev =
-          s.ev;
-
-      }
-
-    }
-
-
-    p +=
-      pev;
-
-
-    o +=
-      oev;
-
-
-    s.called =
-      pev>oev
-        ? "player"
-        : "opp";
-
-
-    rows.push([
-
-      s.name,
-
-      pev,
-
-      oev,
-
-      result
-
-    ]);
-
+    addCampaignLog(
+      `Wiec w ${s.name}.`
+    );
   }
 
+  if(type==="ads"){
 
-  state.won =
-    p>=270;
+    if(game.money<4e6)
+      return;
 
+    game.money-=4e6;
+    s.margin+=rand(.5,1.2);
 
-  renderCampaign();
+    addCampaignLog(
+      `Kampania reklamowa w ${s.name}.`
+    );
+  }
 
+  if(type==="ground"){
 
-  $("resultModal")
-    .classList
-    .remove(
-      "hidden"
+    if(game.money<3e6)
+      return;
+
+    game.money-=3e6;
+
+    s.ground=clamp(
+      s.ground+rand(1,2),
+      0,
+      10
     );
 
+    s.margin+=.25;
 
-  $("resultTitle")
-    .textContent =
-      state.won
-        ? "🏆 Wygrałeś wybory!"
-        : "📊 Wybory zakończone";
+    addCampaignLog(
+      `Rozbudowano sztab w ${s.name}.`
+    );
+  }
 
+  if(type==="fund"){
 
-  $("resultText")
-    .innerHTML =
-      `
-      <strong>
-        ${state.playerName}: ${p} EV
-      </strong>
+    const gain=rand(4e6,10e6);
+    game.money+=gain;
+    game.energy=clamp(game.energy-5,0,100);
 
-      &nbsp; | &nbsp;
+    addCampaignLog(
+      `Zbiórka przyniosła ${cash(gain)}.`
+    );
+  }
 
-      ${state.opponentName}: ${o} EV
-      `;
-
-
-  $("resultBreakdown")
-    .innerHTML =
-      `
-      <table class="mini-table">
-
-        <thead>
-
-          <tr>
-
-            <th>
-              Stan
-            </th>
-
-            <th>
-              ${state.playerName}
-            </th>
-
-            <th>
-              ${state.opponentName}
-            </th>
-
-            <th>
-              Margines sym.
-            </th>
-
-          </tr>
-
-        </thead>
-
-        <tbody>
-
-          ${
-            rows
-              .sort(
-                (a,b) =>
-                  (
-                    b[1]+b[2]
-                  )
-                  -
-                  (
-                    a[1]+a[2]
-                  )
-              )
-              .slice(
-                0,
-                15
-              )
-              .map(
-                r =>
-                  `
-                  <tr>
-
-                    <td>
-                      ${r[0]}
-                    </td>
-
-                    <td>
-                      ${r[1]}
-                    </td>
-
-                    <td>
-                      ${r[2]}
-                    </td>
-
-                    <td>
-                      ${
-                        r[3]>=0
-                          ? "+"
-                          : ""
-                      }
-                      ${r[3].toFixed(1)}
-                    </td>
-
-                  </tr>
-                  `
-              )
-              .join("")
-          }
-
-        </tbody>
-
-      </table>
-      `;
-
-
-  $("resultContinue")
-    .textContent =
-      state.won
-        ? "🏛️ Rozpocznij prezydenturę"
-        : "↻ Zagraj ponownie";
-
+  renderAll();
 }
 
+function debate(){
 
-$("electionBtn")
-  .onclick =
-    runElection;
+  if(game.electionDone)return;
 
+  const effect=
+    rand(-1.2,1.5)
+    +(game.energy-50)/100;
 
-function startPresidency(){
+  Object.values(game.states).forEach(s=>{
+    s.margin+=effect*rand(.5,1);
+  });
 
-  state.president = {
+  game.energy=clamp(game.energy-12,0,100);
 
-    month:1,
+  addCampaignLog(
+    effect>=0
+      ?"Debata poprawiła sondaże."
+      :"Debata zaszkodziła sondażom."
+  );
 
-    day:1,
+  renderAll();
+}
 
-    approval:54,
+function election(){
 
-    economy:56,
+  if(game.electionDone)return;
 
-    inflation:42,
+  game.electionDone=true;
 
-    unemployment:48,
+  let p=0,o=0;
 
-    debt:58,
+  Object.values(game.states).forEach(s=>{
 
-    infrastructure:50,
+    const result=
+      s.margin+
+      rand(-3.2,3.2)+
+      s.ground*.08;
 
-    health:50,
+    if(result>=0)
+      p+=s.ev;
+    else
+      o+=s.ev;
 
-    education:50,
+  });
 
-    energy:50,
+  game.president=p>=270;
 
-    security:50,
+  $("resultModal").classList.remove("hidden");
 
-    capital:70
+  if(game.president){
 
-  };
+    $("resultTitle").textContent="🏆 ZWYCIĘSTWO";
 
+    $("resultText").innerHTML=
+      `${game.player} zdobywa <strong>${p} EV</strong>.
+       Rywal zdobywa ${o} EV.
+       <br><br>
+       Odblokowano gospodarkę, bezpieczeństwo,
+       dyplomację i wydarzenia światowe.`;
 
-  $("tabPresident")
-    .disabled =
-      false;
+    $("resultButton").textContent=
+      "🏛️ Rozpocznij prezydenturę";
 
+  }else{
 
-  $("tabPresident")
-    .click();
+    $("resultTitle").textContent="Wybory zakończone";
 
+    $("resultText").innerHTML=
+      `${game.player}: <strong>${p} EV</strong><br>
+       ${game.opponent}: ${o} EV`;
 
-  renderPresident();
+    $("resultButton").textContent=
+      "Zagraj ponownie";
+  }
+}
 
+function unlockGovernment(){
 
-  pLog(
+  document.querySelectorAll(".locked")
+    .forEach(b=>{
+      b.disabled=false;
+    });
+
+  $("gdp").textContent=
+    "$"+game.administration.gdp.toFixed(1)+"T";
+
+  addAdminLog(
     "Rozpoczęła się nowa administracja."
   );
 
+  renderAll();
 }
 
-
-const POLICIES = [
-
+const ECON_POLICIES=[
 {
-
-  id:"roads",
-
-  name:
-    "Program infrastrukturalny",
-
-  desc:
-    "Większe inwestycje w transport i sieci publiczne.",
-
-  cost:12,
-
-  fx:{
-
-    infrastructure:9,
-
-    economy:3,
-
-    debt:4,
-
-    capital:-8
-
-  }
-
+ id:"infra",
+ name:"🏗️ Infrastruktura",
+ desc:"Drogi, kolej, sieci i modernizacja publiczna.",
+ cost:120e9
 },
-
 {
-
-  id:"schools",
-
-  name:
-    "Program edukacyjny",
-
-  desc:
-    "Dodatkowe środki na szkoły, szkolenia i badania.",
-
-  cost:8,
-
-  fx:{
-
-    education:8,
-
-    economy:2,
-
-    debt:3,
-
-    capital:-6
-
-  }
-
+ id:"industry",
+ name:"🏭 Przemysł",
+ desc:"Program inwestycji produkcyjnych.",
+ cost:90e9
 },
-
 {
-
-  id:"health",
-
-  name:
-    "Modernizacja ochrony zdrowia",
-
-  desc:
-    "Rozbudowa dostępu i cyfryzacji usług.",
-
-  cost:10,
-
-  fx:{
-
-    health:9,
-
-    debt:4,
-
-    capital:-7
-
-  }
-
+ id:"research",
+ name:"🔬 Badania",
+ desc:"Inwestycje w badania i technologie.",
+ cost:75e9
 },
-
 {
-
-  id:"energy",
-
-  name:
-    "Inwestycje energetyczne",
-
-  desc:
-    "Zwiększenie niezawodności i nowych mocy w systemie.",
-
-  cost:9,
-
-  fx:{
-
-    energy:9,
-
-    economy:2,
-
-    debt:3,
-
-    capital:-6
-
-  }
-
+ id:"energy",
+ name:"⚡ Energia",
+ desc:"Rozbudowa infrastruktury energetycznej.",
+ cost:100e9
 },
-
 {
-
-  id:"tax",
-
-  name:
-    "Pakiet podatkowy",
-
-  desc:
-    "Zmiany mające pobudzić aktywność gospodarczą; wpływ na dług zależy od dochodów.",
-
-  cost:6,
-
-  fx:{
-
-    economy:6,
-
-    debt:5,
-
-    approval:1,
-
-    capital:-7
-
-  }
-
+ id:"health",
+ name:"🏥 Zdrowie",
+ desc:"Modernizacja systemu ochrony zdrowia.",
+ cost:110e9
 },
-
 {
-
-  id:"budget",
-
-  name:
-    "Program oszczędnościowy",
-
-  desc:
-    "Ograniczenie części wydatków federalnych.",
-
-  cost:4,
-
-  fx:{
-
-    debt:-7,
-
-    economy:-2,
-
-    approval:-2,
-
-    capital:-5
-
-  }
-
-},
-
-{
-
-  id:"jobs",
-
-  name:
-    "Program rynku pracy",
-
-  desc:
-    "Szkolenia, granty dla regionów i wsparcie mobilności pracowników.",
-
-  cost:7,
-
-  fx:{
-
-    unemployment:7,
-
-    economy:3,
-
-    debt:2,
-
-    capital:-6
-
-  }
-
-},
-
-{
-
-  id:"security",
-
-  name:
-    "Modernizacja bezpieczeństwa",
-
-  desc:
-    "Inwestycje w cyberbezpieczeństwo i odporność instytucji.",
-
-  cost:7,
-
-  fx:{
-
-    security:8,
-
-    debt:2,
-
-    capital:-6
-
-  }
-
-},
-
-{
-
-  id:"speech",
-
-  name:
-    "Orędzie do kraju",
-
-  desc:
-    "Próba odbudowy poparcia i kapitału politycznego.",
-
-  cost:2,
-
-  fx:{
-
-    approval:
-      rand(
-        -1,
-        4
-      ),
-
-    capital:5
-
-  }
-
+ id:"education",
+ name:"🎓 Edukacja",
+ desc:"Szkoły, uczelnie i szkolenia.",
+ cost:85e9
 }
-
 ];
 
+function economyPolicy(id){
 
-function applyPolicy(
-  id
-){
+  const a=game.administration;
+  const p=ECON_POLICIES.find(x=>x.id===id);
 
-  const p =
-    state.president;
+  if(!p)return;
 
-
-  const pol =
-    POLICIES.find(
-      x =>
-        x.id===id
-    );
-
-
-  if(
-    !pol
-    ||
-    p.capital<pol.cost
-  ){
-
-    return pLog(
-      "Za mało kapitału politycznego na tę decyzję."
-    );
-
+  if(id==="infra"){
+    a.infrastructure=clamp(a.infrastructure+5,0,100);
+    a.debt+=.2;
+    a.growth+=.08;
   }
 
+  if(id==="industry"){
+    a.industry=clamp(a.industry+5,0,100);
+    a.growth+=.12;
+    a.debt+=.15;
+  }
 
-  p.capital -=
-    pol.cost;
+  if(id==="research"){
+    a.technology=clamp(a.technology+5,0,100);
+    a.growth+=.08;
+  }
 
+  if(id==="energy"){
+    a.energy=clamp(a.energy+5,0,100);
+    a.inflation=Math.max(0,a.inflation-.08);
+  }
 
-  for(
-    const [
-      k,
-      v
-    ]
-    of Object.entries(
-      pol.fx
-    )
-  ){
+  if(id==="health"){
+    a.healthcare=clamp(a.healthcare+5,0,100);
+    a.approval+=.8;
+  }
 
-    p[k] =
+  if(id==="education"){
+    a.education=clamp(a.education+5,0,100);
+    a.technology+=2;
+  }
+
+  a.debt=clamp(a.debt,0,100);
+
+  addAdminLog(
+    `Uruchomiono program: ${p.name}.`
+  );
+
+  renderAll();
+}
+
+const DEF_POLICIES=[
+{
+ id:"readiness",
+ name:"🎖️ Gotowość",
+ desc:"Szkolenia, logistyka i utrzymanie gotowości."
+},
+{
+ id:"cyber",
+ name:"💻 Cyberbezpieczeństwo",
+ desc:"Wzmocnienie ochrony sieci federalnych."
+},
+{
+ id:"intel",
+ name:"🛰️ Wywiad",
+ desc:"Lepsza analiza i wymiana informacji."
+},
+{
+ id:"resilience",
+ name:"🛡️ Odporność",
+ desc:"Ochrona infrastruktury krytycznej."
+},
+{
+ id:"budget",
+ name:"💵 Budżet bezpieczeństwa",
+ desc:"Zwiększenie finansowania strategicznego."
+},
+{
+ id:"diplomatic",
+ name:"🤝 Współpraca",
+ desc:"Ćwiczenia administracyjne i współpraca z sojusznikami."
+}
+];
+
+function defensePolicy(id){
+
+  const a=game.administration;
+
+  if(id==="readiness")
+    a.readiness=clamp(a.readiness+5,0,100);
+
+  if(id==="cyber")
+    a.cyber=clamp(a.cyber+6,0,100);
+
+  if(id==="intel")
+    a.intelligence=clamp(a.intelligence+5,0,100);
+
+  if(id==="resilience")
+    a.resilience=clamp(a.resilience+6,0,100);
+
+  if(id==="budget"){
+    a.defenseBudget+=25;
+    a.debt+=.1;
+  }
+
+  if(id==="diplomatic"){
+    a.diplomaticInfluence=
+      clamp(a.diplomaticInfluence+3,0,100);
+  }
+
+  addAdminLog(
+    "Podjęto decyzję w obszarze bezpieczeństwa."
+  );
+
+  renderAll();
+}
+
+function renderEconomy(){
+
+  const a=game.administration;
+
+  $("ecoGDP").textContent="$"+a.gdp.toFixed(2)+"T";
+  $("growth").textContent=a.growth.toFixed(2)+"%";
+  $("inflation").textContent=a.inflation.toFixed(2)+"%";
+  $("unemployment").textContent=a.unemployment.toFixed(2)+"%";
+  $("debt").textContent="$"+a.debt.toFixed(1)+"T";
+  $("federalBudget").textContent=a.budget.toFixed(2)+"T";
+  $("approval").textContent=a.approval.toFixed(1)+"%";
+  $("marketIndex").textContent=a.market.toFixed(1);
+
+  $("gdp").textContent="$"+a.gdp.toFixed(1)+"T";
+  $("market").textContent=a.market.toFixed(0);
+
+  $("stockValue").textContent=
+    a.market.toFixed(1);
+
+  $("stockChange").textContent=
+    (a.marketChange>=0?"+":"")+
+    a.marketChange.toFixed(2)+"% dzisiaj";
+
+  $("stockChange").className=
+    a.marketChange>=0
+      ?"good"
+      :"bad";
+
+  $("stockMeter").style.width=
+    clamp(a.market,0,150)/150*100+"%";
+
+  $("economyPolicies").innerHTML=
+    ECON_POLICIES.map(p=>`
+      <div class="card policy">
+        <h3>${p.name}</h3>
+        <div class="muted">${p.desc}</div>
+        <div class="tag">${cash(p.cost)}</div>
+        <button
+          class="btn blue eco-policy"
+          data-id="${p.id}"
+          style="width:100%;margin-top:8px"
+        >
+          Uruchom
+        </button>
+      </div>
+    `).join("");
+
+  document.querySelectorAll(".eco-policy")
+    .forEach(b=>{
+      b.onclick=()=>economyPolicy(b.dataset.id);
+    });
+
+  const meters=[
+    ["Infrastruktura",a.infrastructure],
+    ["Przemysł",a.industry],
+    ["Technologia",a.technology],
+    ["Energia",a.energy],
+    ["Zdrowie",a.healthcare],
+    ["Edukacja",a.education]
+  ];
+
+  $("economyMeters").innerHTML=
+    meters.map(([name,val])=>`
+      <div style="margin-bottom:9px">
+        <div style="display:flex;justify-content:space-between">
+          <span>${name}</span>
+          <strong>${Math.round(val)}</strong>
+        </div>
+        <div class="meter">
+          <span style="width:${val}%"></span>
+        </div>
+      </div>
+    `).join("");
+}
+
+function renderDefense(){
+
+  const a=game.administration;
+
+  $("defensePolicies").innerHTML=
+    DEF_POLICIES.map(p=>`
+      <div class="card policy">
+        <h3>${p.name}</h3>
+        <div class="muted">${p.desc}</div>
+        <button
+          class="btn blue def-policy"
+          data-id="${p.id}"
+          style="width:100%;margin-top:8px"
+        >
+          Wprowadź
+        </button>
+      </div>
+    `).join("");
+
+  document.querySelectorAll(".def-policy")
+    .forEach(b=>{
+      b.onclick=()=>defensePolicy(b.dataset.id);
+    });
+
+  const meters=[
+    ["Budżet",Math.min(100,a.defenseBudget/12)],
+    ["Gotowość",a.readiness],
+    ["Cyberbezpieczeństwo",a.cyber],
+    ["Wywiad",a.intelligence],
+    ["Odporność kraju",a.resilience]
+  ];
+
+  $("defenseMeters").innerHTML=
+    meters.map(([name,val])=>`
+      <div style="margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between">
+          <span>${name}</span>
+          <strong>${Math.round(val)}</strong>
+        </div>
+        <div class="meter">
+          <span style="width:${clamp(val,0,100)}%"></span>
+        </div>
+      </div>
+    `).join("");
+}
+
+function renderDiplomacy(){
+
+  const list=game.countries;
+
+  $("countryList").innerHTML=
+    list.map(c=>`
+      <div
+        class="card country
+        ${game.selectedCountry===c.id?"selected":""}"
+        data-country="${c.id}"
+      >
+        <div class="flag">${c.flag}</div>
+        <strong>${c.name}</strong>
+        <div class="
+          rel
+          ${c.relation>=30?"good":c.relation<0?"bad":"warn"}
+        ">
+          ${c.relation>0?"+":""}${Math.round(c.relation)}
+        </div>
+        <div class="muted">
+          Handel: $${c.trade}B
+        </div>
+      </div>
+    `).join("");
+
+  document.querySelectorAll("[data-country]")
+    .forEach(el=>{
+      el.onclick=()=>{
+        game.selectedCountry=el.dataset.country;
+        renderDiplomacy();
+      };
+    });
+
+  const c=list.find(
+    x=>x.id===game.selectedCountry
+  );
+
+  if(!c)return;
+
+  const embargo=
+    game.embargos[c.id]||[];
+
+  $("countryDetail").innerHTML=`
+    <div style="font-size:26px;font-weight:1000">
+      ${c.flag} ${c.name}
+    </div>
+
+    <p>
+      Relacje:
+      <strong class="${c.relation>=30?"good":c.relation<0?"bad":"warn"}">
+        ${c.relation>0?"+":""}${Math.round(c.relation)}
+      </strong>
+    </p>
+
+    <p>
+      Handel:
+      <strong>$${c.trade.toFixed(0)}B</strong>
+    </p>
+
+    <p>
+      Ambasada:
+      <strong>${c.embassy?"TAK":"NIE"}</strong>
+    </p>
+
+    <p>
+      Sojusz:
+      <strong>${c.alliance?"TAK":"NIE"}</strong>
+    </p>
+
+    <p>
+      Embarga:
+      <strong>
+        ${embargo.length?embargo.join(", "):"brak"}
+      </strong>
+    </p>
+
+    <button
+      id="embassyBtn"
+      class="btn blue"
+      style="width:100%;margin-bottom:6px"
+      ${c.embassy?"disabled":""}
+    >
+      🏛️ Zbuduj ambasadę
+    </button>
+
+    <button
+      id="allianceBtn"
+      class="btn green"
+      style="width:100%;margin-bottom:6px"
+      ${c.alliance?"disabled":""}
+    >
+      🤝 Zaproponuj sojusz
+    </button>
+
+    <button
+      id="summitBtn"
+      class="btn gold"
+      style="width:100%;margin-bottom:6px"
+    >
+      🗣️ Zorganizuj szczyt
+    </button>
+
+    <select id="embargoProduct" class="select">
+      ${embargoProducts.map(x=>`
+        <option>${x}</option>
+      `).join("")}
+    </select>
+
+    <button
+      id="embargoBtn"
+      class="btn red"
+      style="width:100%;margin-top:6px"
+    >
+      🚫 Nałóż embargo
+    </button>
+  `;
+
+  $("embassyBtn").onclick=()=>buildEmbassy(c.id);
+  $("allianceBtn").onclick=()=>offerAlliance(c.id);
+  $("summitBtn").onclick=()=>summit(c.id);
+
+  $("embargoBtn").onclick=()=>{
+    imposeEmbargo(
+      c.id,
+      $("embargoProduct").value
+    );
+  };
+}
+
+function buildEmbassy(id){
+
+  const c=game.countries.find(x=>x.id===id);
+
+  if(c.embassy)return;
+
+  c.embassy=true;
+  c.relation=clamp(c.relation+8,-100,100);
+
+  addDipLog(
+    `Otwarto ambasadę w państwie ${c.name}.`
+  );
+
+  renderAll();
+}
+
+function offerAlliance(id){
+
+  const c=game.countries.find(x=>x.id===id);
+
+  if(c.alliance)return;
+
+  if(c.relation<60){
+
+    addDipLog(
+      `${c.name}: relacje są za słabe, aby zawrzeć sojusz.`
+    );
+
+    return;
+  }
+
+  const success=
+    chance(
       clamp(
-        (
-          p[k]??50
-        )
-        +
-        v,
-        0,
+        .35+(c.relation-60)/80,
+        .35,
+        .9
+      )
+    );
+
+  if(success){
+
+    c.alliance=true;
+    c.relation=clamp(c.relation+7,-100,100);
+
+    addDipLog(
+      `Zawarto sojusz z państwem ${c.name}.`
+    );
+
+  }else{
+
+    c.relation-=3;
+
+    addDipLog(
+      `${c.name} odrzuciło propozycję sojuszu.`
+    );
+  }
+
+  renderAll();
+}
+
+function summit(id){
+
+  const c=game.countries.find(x=>x.id===id);
+
+  showDecisionEvent(
+    `Szczyt: ${c.flag} ${c.name}`,
+    "Wybierz główny temat rozmów.",
+    [
+      {
+        text:"📦 Handel",
+        run(){
+          c.relation+=4;
+          c.trade*=1.04;
+          addDipLog(`Szczyt handlowy z ${c.name}.`);
+        }
+      },
+      {
+        text:"🔬 Technologia",
+        run(){
+          c.relation+=3;
+          game.administration.technology+=1;
+          addDipLog(`Rozmowy technologiczne z ${c.name}.`);
+        }
+      },
+      {
+        text:"🌱 Klimat i energia",
+        run(){
+          c.relation+=4;
+          game.administration.energy+=1;
+          addDipLog(`Rozmowy energetyczne z ${c.name}.`);
+        }
+      },
+      {
+        text:"🤝 Współpraca międzynarodowa",
+        run(){
+          c.relation+=5;
+          game.administration.diplomaticInfluence+=1;
+          addDipLog(`Rozmowy dyplomatyczne z ${c.name}.`);
+        }
+      }
+    ]
+  );
+}
+
+function imposeEmbargo(id,product){
+
+  const c=game.countries.find(x=>x.id===id);
+
+  if(!game.embargos[id])
+    game.embargos[id]=[];
+
+  if(game.embargos[id].includes(product)){
+    addDipLog(
+      `Embargo na ${product} wobec ${c.name} już obowiązuje.`
+    );
+    return;
+  }
+
+  game.embargos[id].push(product);
+
+  c.relation=clamp(c.relation-rand(10,18),-100,100);
+  c.trade*=rand(.91,.97);
+
+  game.administration.growth-=.02;
+  game.administration.diplomaticInfluence-=1;
+
+  addDipLog(
+    `Nałożono embargo na ${product} wobec ${c.name}.`
+  );
+
+  renderAll();
+}
+
+function renderWorld(){
+
+  const a=game.administration;
+
+  $("worldEvents").innerHTML=
+    game.worldEvents.length
+      ?game.worldEvents.slice().reverse().map(e=>`
+        <div class="news">
+          <strong>${e.title}</strong>
+          <span class="muted">${e.text}</span>
+        </div>
+      `).join("")
+      :`
+        <div class="muted">
+          Brak dużych wydarzeń.
+        </div>
+      `;
+
+  const meters=[
+    ["Stabilność świata",a.worldStability],
+    ["Warunki handlowe",a.tradeClimate],
+    ["Wpływy dyplomatyczne",a.diplomaticInfluence]
+  ];
+
+  $("worldMeters").innerHTML=
+    meters.map(([name,val])=>`
+      <div style="margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between">
+          <span>${name}</span>
+          <strong>${Math.round(val)}</strong>
+        </div>
+        <div class="meter">
+          <span style="width:${clamp(val,0,100)}%"></span>
+        </div>
+      </div>
+    `).join("");
+
+  const avg=
+    game.countries.reduce(
+      (n,c)=>n+c.relation,0
+    )/game.countries.length;
+
+  $("worldRelations").textContent=
+    (avg>=0?"+":"")+avg.toFixed(0);
+}
+
+function generateWorldEvent(){
+
+  const a=game.administration;
+
+  const events=[
+    {
+      type:"market",
+      title:"📉 Gwałtowna przecena na giełdzie",
+      text:"Rynki finansowe spadają po serii słabszych danych.",
+      choices:[
+        {
+          text:"🏦 Pakiet stabilizacyjny",
+          run(){
+            a.market+=5;
+            a.debt+=.15;
+            a.approval+=1;
+          }
+        },
+        {
+          text:"📢 Uspokój rynki",
+          run(){
+            a.market+=2;
+            a.approval+=.3;
+          }
+        },
+        {
+          text:"⏳ Poczekaj",
+          run(){
+            a.market-=rand(2,6);
+            a.approval-=1;
+          }
+        }
+      ]
+    },
+
+    {
+      type:"war",
+      title:"⚠️ Konflikt międzynarodowy",
+      text:"Dwa państwa zagraniczne wchodzą w poważny kryzys. Administracja musi określić stanowisko.",
+      choices:[
+        {
+          text:"🕊️ Zaproponuj mediację",
+          run(){
+            a.diplomaticInfluence+=3;
+            a.worldStability+=2;
+          }
+        },
+        {
+          text:"🤝 Zwołaj spotkanie sojuszników",
+          run(){
+            a.diplomaticInfluence+=2;
+            a.worldStability+=1;
+          }
+        },
+        {
+          text:"📦 Pomoc humanitarna",
+          run(){
+            a.approval+=1;
+            a.worldStability+=1;
+            a.debt+=.03;
+          }
+        },
+        {
+          text:"🚪 Pozostań poza kryzysem",
+          run(){
+            a.diplomaticInfluence-=2;
+          }
+        }
+      ]
+    },
+
+    {
+      type:"energy",
+      title:"⚡ Kryzys energetyczny",
+      text:"Ceny energii rosną na rynkach światowych.",
+      choices:[
+        {
+          text:"🏗️ Zwiększ inwestycje",
+          run(){
+            a.energy+=3;
+            a.debt+=.08;
+          }
+        },
+        {
+          text:"🤝 Negocjuj z partnerami",
+          run(){
+            a.diplomaticInfluence+=1;
+            a.inflation-=.1;
+          }
+        },
+        {
+          text:"📊 Pozwól rynkowi reagować",
+          run(){
+            a.inflation+=.25;
+          }
+        }
+      ]
+    },
+
+    {
+      type:"cyber",
+      title:"💻 Duży incydent cybernetyczny",
+      text:"Instytucje publiczne zgłaszają zakłócenia cyfrowe.",
+      choices:[
+        {
+          text:"🛡️ Uruchom program ochrony",
+          run(){
+            a.cyber+=3;
+            a.resilience+=1;
+          }
+        },
+        {
+          text:"🔍 Wzmocnij analizę",
+          run(){
+            a.intelligence+=2;
+          }
+        }
+      ]
+    },
+
+    {
+      type:"boom",
+      title:"📈 Boom technologiczny",
+      text:"Nowa fala inwestycji zwiększa optymizm gospodarczy.",
+      choices:[
+        {
+          text:"🔬 Wesprzyj badania",
+          run(){
+            a.technology+=3;
+            a.growth+=.15;
+            a.market+=3;
+          }
+        },
+        {
+          text:"💰 Wykorzystaj wzrost dochodów",
+          run(){
+            a.debt-=.08;
+            a.market+=1;
+          }
+        }
+      ]
+    }
+  ];
+
+  const e=
+    events[
+      Math.floor(Math.random()*events.length)
+    ];
+
+  game.worldEvents.push({
+    title:e.title,
+    text:e.text
+  });
+
+  showDecisionEvent(
+    e.title,
+    e.text,
+    e.choices
+  );
+}
+
+function showDecisionEvent(title,text,choices){
+
+  game.speed=0;
+  renderSpeed();
+
+  $("eventTitle").textContent=title;
+  $("eventText").textContent=text;
+
+  $("eventChoices").innerHTML="";
+
+  choices.forEach(c=>{
+
+    const b=document.createElement("button");
+    b.className="btn";
+    b.textContent=c.text;
+
+    b.onclick=()=>{
+
+      c.run();
+
+      $("eventModal").classList.add("hidden");
+
+      game.speed=1;
+      renderSpeed();
+      renderAll();
+    };
+
+    $("eventChoices").appendChild(b);
+  });
+
+  $("eventModal").classList.remove("hidden");
+}
+
+function governmentDay(){
+
+  const a=game.administration;
+
+  game.dayCounter++;
+
+  const marketMove=
+    rand(-.45,.48)
+    +a.growth*.015
+    -(a.inflation-2)*.02;
+
+  a.marketChange=marketMove;
+  a.market=clamp(a.market*(1+marketMove/100),30,200);
+
+  if(game.dayCounter%30===0){
+
+    a.gdp*=1+(a.growth/100/12);
+
+    a.growth=clamp(
+      a.growth+rand(-.12,.12),
+      -8,
+      10
+    );
+
+    a.inflation=clamp(
+      a.inflation+rand(-.12,.12),
+      0,
+      20
+    );
+
+    a.unemployment=clamp(
+      a.unemployment+rand(-.08,.08)-a.growth*.005,
+      2,
+      20
+    );
+
+    a.approval=clamp(
+      a.approval
+      +rand(-1.2,1.2)
+      +(a.growth-2)*.08
+      -(a.inflation-3)*.07,
+      10,
+      90
+    );
+
+    a.debt+=Math.max(0,-a.budget)/12;
+
+    game.countries.forEach(c=>{
+      c.relation=clamp(
+        c.relation+rand(-1.5,1.5),
+        -100,
         100
       );
-
+    });
   }
 
+  game.nextEvent--;
 
-  p.approval =
-    clamp(
+  if(game.nextEvent<=0){
 
-      p.approval
-      +
-      (
-        pol.fx.approval
-        ||
-        0
-      )
-      +
-      rand(
-        -1,
-        1
-      ),
-
-      0,
-      100
-
-    );
-
-
-  pLog(
-    `Podpisano: ${pol.name}.`
-  );
-
-
-  renderPresident();
-
+    game.nextEvent=rand(20,55);
+    generateWorldEvent();
+  }
 }
 
+function campaignDay(){
 
-function nextMonth(){
+  if(game.electionDone)return;
 
-  const p =
-    state.president;
+  game.days--;
 
-
-  p.month++;
-
-
-  p.day +=
-    30;
-
-
-  p.capital =
-    clamp(
-      p.capital
-      +
-      rand(
-        7,
-        13
-      ),
-      0,
-      100
-    );
-
-
-  p.economy =
-    clamp(
-
-      p.economy
-      +
-      rand(
-        -2.5,
-        2.8
-      )
-      +
-      (
-        p.infrastructure-50
-      )
-      *
-      .015,
-
-      0,
-      100
-
-    );
-
-
-  p.inflation =
-    clamp(
-
-      p.inflation
-      +
-      rand(
-        -2.2,
-        2.2
-      )
-      +
-      (
-        p.economy-60
-      )
-      *
-      .01,
-
-      0,
-      100
-
-    );
-
-
-  p.unemployment =
-    clamp(
-
-      p.unemployment
-      +
-      rand(
-        -1.8,
-        1.8
-      )
-      +
-      (
-        p.economy-50
-      )
-      *
-      .03,
-
-      0,
-      100
-
-    );
-
-
-  p.debt =
-    clamp(
-
-      p.debt
-      +
-      rand(
-        .3,
-        1.4
-      ),
-
-      0,
-      100
-
-    );
-
-
-  const fundamentals =
-
-    (
-      p.economy
-      +
-      p.infrastructure
-      +
-      p.health
-      +
-      p.education
-      +
-      p.energy
-      +
-      p.security
-    )
-    /
-    6;
-
-
-  p.approval =
-    clamp(
-
-      p.approval
-      +
-      rand(
-        -2.5,
-        2.5
-      )
-      +
-      (
-        fundamentals-50
-      )
-      *
-      .025
-      -
-      (
-        p.inflation-50
-      )
-      *
-      .02,
-
-      0,
-      100
-
-    );
-
-
-  pLog(
-    `Miesiąc ${p.month}: nowe dane gospodarcze i sondażowe.`
+  game.energy=clamp(
+    game.energy+0.3,
+    0,
+    100
   );
 
+  Object.values(game.states).forEach(s=>{
 
-  renderPresident();
+    s.margin+=rand(-.08,.08);
 
+    if(s.ground>0)
+      s.margin+=s.ground*.002;
+  });
+
+  if(game.days<=0)
+    election();
 }
 
+function tick(){
 
-function renderPresident(){
-
-  const p =
-    state.president;
-
-
-  if(
-    !p
-  )
+  if(!game || game.speed===0)
     return;
 
+  for(let i=0;i<game.speed;i++){
 
-  $("termDay")
-    .textContent =
-      p.day;
-
-
-  $("approvalStat")
-    .textContent =
-      Math.round(
-        p.approval
-      )
-      +
-      "%";
-
-
-  $("economyStat")
-    .textContent =
-      Math.round(
-        p.economy
-      )
-      +
-      "/100";
-
-
-  $("inflationStat")
-    .textContent =
-      Math.round(
-        p.inflation
-      )
-      +
-      "/100";
-
-
-  $("unemploymentStat")
-    .textContent =
-      Math.round(
-        p.unemployment
-      )
-      +
-      "/100";
-
-
-  $("debtStat")
-    .textContent =
-      Math.round(
-        p.debt
-      )
-      +
-      "/100";
-
-
-  $("capitalStat")
-    .textContent =
-      Math.round(
-        p.capital
-      )
-      +
-      "/100";
-
-
-  $("monthStat")
-    .textContent =
-      p.month;
-
-
-  $("policyGrid")
-    .innerHTML =
-      POLICIES
-        .map(
-          pol =>
-            `
-            <div class="card policy">
-
-              <h3>
-                ${pol.name}
-              </h3>
-
-              <div
-                class="muted"
-                style="
-                  font-size:13px;
-                  min-height:54px
-                "
-              >
-                ${pol.desc}
-              </div>
-
-              <div class="tag">
-                Koszt polityczny:
-                ${pol.cost}
-              </div>
-
-              <button
-                class="btn btn-blue policy-btn"
-                data-policy="${pol.id}"
-                style="
-                  width:100%;
-                  margin-top:8px
-                "
-              >
-                Wprowadź
-              </button>
-
-            </div>
-            `
-        )
-        .join("");
-
-
-  document
-    .querySelectorAll(
-      "[data-policy]"
-    )
-    .forEach(
-      b =>
-        b.onclick =
-          () =>
-            applyPolicy(
-              b.dataset.policy
-            )
+    game.date.setDate(
+      game.date.getDate()+1
     );
 
+    if(game.president)
+      governmentDay();
+    else
+      campaignDay();
+  }
 
-  const meters =
-    [
-      "economy",
-      "infrastructure",
-      "health",
-      "education",
-      "energy",
-      "security"
-    ]
-    .map(
-      k => {
-
-        const labels = {
-
-          economy:
-            "Gospodarka",
-
-          infrastructure:
-            "Infrastruktura",
-
-          health:
-            "Zdrowie",
-
-          education:
-            "Edukacja",
-
-          energy:
-            "Energia",
-
-          security:
-            "Bezpieczeństwo"
-
-        };
-
-
-        return `
-        <div style="margin-bottom:10px">
-
-          <div class="topline">
-
-            <span>
-              ${labels[k]}
-            </span>
-
-            <strong>
-              ${Math.round(p[k])}
-            </strong>
-
-          </div>
-
-          <div class="meter">
-
-            <span
-              style="
-                width:${p[k]}%
-              "
-            ></span>
-
-          </div>
-
-        </div>
-        `;
-
-      }
-    )
-    .join("");
-
-
-  $("countryMeters")
-    .innerHTML =
-      meters;
-
+  renderAll();
 }
 
+function startClock(){
 
-$("nextMonthBtn")
-  .onclick =
-    nextMonth;
+  clearInterval(timer);
 
-
-$("resultContinue")
-  .onclick =
-    () => {
-
-      $("resultModal")
-        .classList
-        .add(
-          "hidden"
-        );
-
-
-      if(
-        state.won
-      ){
-
-        startPresidency();
-
-      }
-
-      else{
-
-        location.reload();
-
-      }
-
-    };
-
-
-$("tabCampaign")
-  .onclick =
-    () => {
-
-      $("campaignView")
-        .classList
-        .remove(
-          "hidden"
-        );
-
-
-      $("presidentView")
-        .classList
-        .add(
-          "hidden"
-        );
-
-
-      $("tabCampaign")
-        .classList
-        .add(
-          "active"
-        );
-
-
-      $("tabPresident")
-        .classList
-        .remove(
-          "active"
-        );
-
-    };
-
-
-$("tabPresident")
-  .onclick =
-    () => {
-
-      if(
-        !state?.president
-      )
-        return;
-
-
-      $("campaignView")
-        .classList
-        .add(
-          "hidden"
-        );
-
-
-      $("presidentView")
-        .classList
-        .remove(
-          "hidden"
-        );
-
-
-      $("tabPresident")
-        .classList
-        .add(
-          "active"
-        );
-
-
-      $("tabCampaign")
-        .classList
-        .remove(
-          "active"
-        );
-
-
-      renderPresident();
-
-    };
-
-
-$("resetBtn")
-  .onclick =
-    () =>
-      location.reload();
-
-
-document
-  .querySelectorAll(
-    "[data-candidate]"
-  )
-  .forEach(
-    b =>
-      b.onclick =
-        () => {
-
-          state =
-            makeGame(
-              b.dataset.candidate
-            );
-
-
-          $("startModal")
-            .classList
-            .add(
-              "hidden"
-            );
-
-
-          log(
-            `Start kampanii: ${state.playerName}. Do wyborów 120 dni.`
-          );
-
-
-          renderCampaign();
-
-        }
+  timer=setInterval(
+    tick,
+    1000
   );
+}
 
+function renderSpeed(){
+
+  document.querySelectorAll(".speed")
+    .forEach(b=>{
+      b.classList.toggle(
+        "active",
+        Number(b.dataset.speed)===game.speed
+      );
+    });
+}
+
+function renderAll(){
+
+  if(!game)return;
+
+  $("gameDate").textContent=
+    game.date.toLocaleDateString("pl-PL");
+
+  renderSpeed();
+  renderElection();
+
+  if(game.president){
+    renderEconomy();
+    renderDefense();
+    renderDiplomacy();
+    renderWorld();
+  }
+}
+
+document.querySelectorAll(".candidate")
+  .forEach(b=>{
+    b.onclick=()=>newGame(b.dataset.candidate);
+  });
+
+document.querySelectorAll(".campaign-action")
+  .forEach(b=>{
+    b.onclick=()=>campaignAction(b.dataset.action);
+  });
+
+$("debate").onclick=debate;
+$("electionNow").onclick=election;
+
+$("resultButton").onclick=()=>{
+
+  $("resultModal").classList.add("hidden");
+
+  if(game.president){
+
+    unlockGovernment();
+
+    document.querySelector(
+      '[data-view="economy"]'
+    ).click();
+
+  }else{
+
+    location.reload();
+  }
+};
+
+document.querySelectorAll(".speed")
+  .forEach(b=>{
+    b.onclick=()=>{
+
+      if(!game)return;
+
+      game.speed=
+        Number(b.dataset.speed);
+
+      renderSpeed();
+    };
+  });
+
+document.querySelectorAll(".tab")
+  .forEach(b=>{
+
+    b.onclick=()=>{
+
+      if(b.disabled)return;
+
+      const view=b.dataset.view;
+
+      document.querySelectorAll(".view")
+        .forEach(v=>v.classList.add("hidden"));
+
+      $("view-"+view).classList.remove("hidden");
+
+      document.querySelectorAll(".tab")
+        .forEach(x=>x.classList.remove("active"));
+
+      b.classList.add("active");
+
+      renderAll();
+    };
+  });
+
+$("reset").onclick=()=>location.reload();
 </script>
 
 </body>
