@@ -3,278 +3,173 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Media Empire</title>
+<title>Media Empire Tycoon</title>
 
 <style>
-* { box-sizing: border-box; }
+*{box-sizing:border-box}
+:root{
+ --bg:#070b13;--panel:#101827;--panel2:#162238;--border:#263653;
+ --text:#edf4ff;--muted:#8fa1bb;--accent:#6477ff;
+ --green:#43d391;--red:#ff6175;--yellow:#ffc857;--blue:#5ca8ff;
+}
+body{
+ margin:0;background:var(--bg);color:var(--text);
+ font-family:Arial,sans-serif
+}
+button,input,select{font:inherit}
+button{
+ border:0;border-radius:8px;padding:9px 12px;
+ background:var(--accent);color:white;font-weight:700;cursor:pointer
+}
+button:hover{filter:brightness(1.12)}
+button:disabled{opacity:.4;cursor:not-allowed}
+.secondary{background:#293954}
+.danger{background:#a93648}
+.good{background:#168b5c}
+input,select{
+ background:#09111f;color:white;border:1px solid var(--border);
+ border-radius:8px;padding:9px
+}
+.topbar{
+ min-height:76px;background:#0c1321;border-bottom:1px solid var(--border);
+ display:flex;align-items:center;justify-content:space-between;
+ gap:15px;padding:10px 20px;position:sticky;top:0;z-index:30
+}
+.brand{font-size:21px;font-weight:900}
+.money{font-size:22px;font-weight:900;position:relative}
+.muted{color:var(--muted)}
+.green{color:var(--green)}
+.red{color:var(--red)}
+.yellow{color:var(--yellow)}
+.blue{color:var(--blue)}
+.small{font-size:12px}
+.money-pop{
+ position:absolute;right:0;top:30px;white-space:nowrap;
+ animation:cash 1.8s forwards;z-index:999
+}
+.money-pop.plus{color:var(--green)}
+.money-pop.minus{color:var(--red)}
+@keyframes cash{
+ 0%{opacity:0;transform:translateY(10px) scale(.8)}
+ 15%{opacity:1;transform:translateY(0) scale(1.08)}
+ 100%{opacity:0;transform:translateY(-45px)}
+}
+.layout{
+ display:grid;grid-template-columns:235px 1fr;
+ min-height:calc(100vh - 76px)
+}
+.sidebar{
+ background:#0b121f;border-right:1px solid var(--border);
+ padding:15px
+}
+.nav{
+ width:100%;text-align:left;background:transparent;
+ color:var(--muted);margin-bottom:5px
+}
+.nav.active,.nav:hover{background:var(--panel2);color:white}
+.main{padding:22px;max-width:1550px;width:100%}
+.page{display:none}
+.page.active{display:block}
+.grid{
+ display:grid;
+ grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+ gap:13px
+}
+.card,.item{
+ background:var(--panel);border:1px solid var(--border);
+ border-radius:13px;padding:16px
+}
+.item{margin:9px 0;background:#0d1625}
+h1{margin-top:0}
+h2{font-size:18px;margin-top:0}
+h3{margin:0 0 8px}
+.big{font-size:27px;font-weight:900}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.space{justify-content:space-between}
+.badge{
+ display:inline-block;background:#273752;border-radius:100px;
+ padding:4px 9px;font-size:12px;margin:2px
+}
+.progress{
+ height:8px;background:#060d18;border-radius:100px;overflow:hidden
+}
+.progress>div{
+ height:100%;background:var(--accent);transition:width .15s
+}
+.timebar{width:250px;margin-top:6px}
+.event{
+ border-left:3px solid var(--accent);
+ padding:7px 11px;margin:8px 0
+}
+hr{border:0;border-top:1px solid var(--border)}
+.console{
+ display:none;position:fixed;top:14%;left:50%;
+ transform:translateX(-50%);width:min(700px,94vw);
+ background:#03060b;border:1px solid #53698e;padding:17px;
+ border-radius:12px;z-index:1000;box-shadow:0 30px 100px #000
+}
+.console.open{display:block}
+.console-log{
+ height:190px;overflow:auto;font-family:monospace;
+ color:#7dff9f;white-space:pre-wrap;margin-bottom:10px
+}
+.console input{width:100%;font-family:monospace}
+.modal{
+ display:none;position:fixed;inset:0;background:#000b;
+ z-index:500;align-items:center;justify-content:center
+}
+.modal.open{display:flex}
+.modalbox{
+ width:min(620px,94vw);max-height:90vh;overflow:auto;
+ background:var(--panel);padding:22px;border-radius:14px;
+ border:1px solid var(--border)
+}
+.controlled{border-color:var(--green)}
+.cheat{font-size:11px;color:var(--yellow)}
 
-:root {
-  --bg: #090d16;
-  --panel: #111827;
-  --panel2: #182235;
-  --border: #26344d;
-  --text: #eef4ff;
-  --muted: #93a4bd;
-  --accent: #6c7cff;
-  --green: #42d392;
-  --red: #ff6376;
-  --yellow: #ffc857;
+.tree{
+ margin-top:15px
+}
+.tree-node{
+ margin:5px 0;
+}
+.tree-line{
+ display:flex;align-items:center;gap:7px;
+ background:#0d1625;border:1px solid var(--border);
+ padding:10px;border-radius:9px
+}
+.tree-children{
+ margin-left:28px;
+ border-left:1px dashed #405270;
+ padding-left:12px
+}
+.tree-name{
+ font-weight:800;cursor:pointer
+}
+.tree-name:hover{color:#8fa0ff}
+
+.rangeRow{
+ display:grid;grid-template-columns:130px 1fr 55px;
+ align-items:center;gap:10px;margin:10px 0
+}
+input[type=range]{width:100%}
+
+.stat{
+ background:#0a1220;border:1px solid var(--border);
+ border-radius:9px;padding:11px
 }
 
-body {
-  margin: 0;
-  background: var(--bg);
-  color: var(--text);
-  font-family: Inter, Arial, sans-serif;
+.company-panel{
+ border:1px solid #405270;background:#0b1423;
+ padding:15px;border-radius:12px
 }
 
-button, input, select {
-  font: inherit;
-}
-
-button {
-  border: 0;
-  border-radius: 9px;
-  padding: 9px 13px;
-  cursor: pointer;
-  background: var(--accent);
-  color: white;
-  font-weight: 700;
-}
-
-button.secondary { background: #28364f; }
-button.danger { background: #b83b4a; }
-button:disabled { opacity: .45; cursor: not-allowed; }
-
-input, select {
-  background: #0b1220;
-  border: 1px solid var(--border);
-  color: white;
-  padding: 9px;
-  border-radius: 8px;
-}
-
-.topbar {
-  height: 70px;
-  background: #0d1422;
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 22px;
-  position: sticky;
-  top: 0;
-  z-index: 10;
-}
-
-.brand {
-  font-size: 20px;
-  font-weight: 900;
-}
-
-.money {
-  font-size: 22px;
-  font-weight: 900;
-  position: relative;
-}
-
-.money-pop {
-  position: absolute;
-  right: 0;
-  top: 32px;
-  font-size: 15px;
-  animation: moneyPop 1.7s forwards;
-  pointer-events: none;
-}
-
-.money-pop.plus { color: var(--green); }
-.money-pop.minus { color: var(--red); }
-
-@keyframes moneyPop {
-  0% { opacity: 0; transform: translateY(10px); }
-  20% { opacity: 1; }
-  100% { opacity: 0; transform: translateY(-30px); }
-}
-
-.layout {
-  display: grid;
-  grid-template-columns: 220px 1fr;
-  min-height: calc(100vh - 70px);
-}
-
-.sidebar {
-  padding: 16px;
-  border-right: 1px solid var(--border);
-  background: #0c1320;
-}
-
-.nav-btn {
-  width: 100%;
-  text-align: left;
-  margin-bottom: 7px;
-  background: transparent;
-  color: var(--muted);
-}
-
-.nav-btn:hover, .nav-btn.active {
-  background: var(--panel2);
-  color: white;
-}
-
-.main {
-  padding: 22px;
-  max-width: 1450px;
-}
-
-.page { display: none; }
-.page.active { display: block; }
-
-h1 { margin-top: 0; }
-h2 { font-size: 17px; margin-top: 0; }
-
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 14px;
-}
-
-.card {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 17px;
-}
-
-.big-number {
-  font-size: 28px;
-  font-weight: 900;
-}
-
-.muted { color: var(--muted); }
-
-.green { color: var(--green); }
-.red { color: var(--red); }
-.yellow { color: var(--yellow); }
-
-.list-item {
-  background: #0d1524;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 13px;
-  margin: 9px 0;
-}
-
-.row {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  flex-wrap: wrap;
-}
-
-.space {
-  justify-content: space-between;
-}
-
-.badge {
-  display: inline-block;
-  background: #273650;
-  border-radius: 100px;
-  padding: 4px 9px;
-  font-size: 12px;
-}
-
-.progress {
-  height: 9px;
-  background: #07101e;
-  border-radius: 100px;
-  overflow: hidden;
-  margin-top: 8px;
-}
-
-.progress > div {
-  height: 100%;
-  background: var(--accent);
-}
-
-.event {
-  border-left: 3px solid var(--accent);
-  padding-left: 12px;
-  margin: 10px 0;
-}
-
-.console {
-  display: none;
-  position: fixed;
-  left: 50%;
-  top: 18%;
-  transform: translateX(-50%);
-  width: min(650px, 92vw);
-  background: #05080e;
-  border: 1px solid #40506c;
-  box-shadow: 0 20px 70px #000;
-  padding: 18px;
-  border-radius: 12px;
-  z-index: 100;
-}
-
-.console.open { display: block; }
-
-.console input {
-  width: 100%;
-  font-family: monospace;
-  font-size: 17px;
-}
-
-.console-log {
-  height: 150px;
-  overflow-y: auto;
-  color: #8dffae;
-  font-family: monospace;
-  margin-bottom: 10px;
-  white-space: pre-wrap;
-}
-
-.modal {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,.72);
-  z-index: 50;
-  align-items: center;
-  justify-content: center;
-}
-
-.modal.open { display: flex; }
-
-.modal-box {
-  width: min(540px, 92vw);
-  background: var(--panel);
-  border: 1px solid var(--border);
-  padding: 22px;
-  border-radius: 16px;
-}
-
-.market-company {
-  transition: .2s;
-}
-
-.market-company:hover {
-  transform: translateY(-2px);
-  border-color: #52678e;
-}
-
-.cheat-mark {
-  font-size: 11px;
-  color: var(--yellow);
-}
-
-@media(max-width: 760px) {
-  .layout { grid-template-columns: 1fr; }
-  .sidebar {
-    border-right: 0;
-    border-bottom: 1px solid var(--border);
-  }
-  .topbar { height: auto; padding: 13px; }
+@media(max-width:800px){
+ .layout{grid-template-columns:1fr}
+ .sidebar{border-right:0;border-bottom:1px solid var(--border)}
+ .topbar{position:relative;flex-direction:column;align-items:flex-start}
+ .timebar{width:100%}
+ .rangeRow{grid-template-columns:1fr}
 }
 </style>
 </head>
@@ -282,1026 +177,3070 @@ h2 { font-size: 17px; margin-top: 0; }
 <body>
 
 <header class="topbar">
-  <div>
-    <div class="brand">MEDIA EMPIRE</div>
-    <div class="muted" id="dateDisplay">Styczeń 2026</div>
-  </div>
 
-  <div style="text-align:right">
-    <div class="money" id="moneyDisplay">0 zł</div>
-    <div class="muted">
-      <span id="companyNameTop">Nowa firma</span>
-      <span class="cheat-mark" id="cheatMark"></span>
-    </div>
-  </div>
+<div>
+ <div class="brand">📡 MEDIA EMPIRE TYCOON</div>
+ <div class="muted" id="dateDisplay"></div>
+</div>
+
+<div>
+ <div class="row">
+  <button onclick="setSpeed(0)">⏸</button>
+  <button onclick="setSpeed(1)">1×</button>
+  <button onclick="setSpeed(2)">2×</button>
+  <button onclick="setSpeed(5)">5×</button>
+  <button onclick="setSpeed(10)">10×</button>
+ </div>
+ <div class="progress timebar">
+  <div id="timeProgress"></div>
+ </div>
+</div>
+
+<div style="text-align:right">
+ <div class="money" id="moneyDisplay">0 zł</div>
+ <div class="muted">
+  <span id="topCompany"></span>
+  <span id="cheatMark" class="cheat"></span>
+ </div>
+</div>
+
 </header>
 
 <div class="layout">
 
-<nav class="sidebar">
-  <button class="nav-btn active" data-page="dashboard">📊 Centrum</button>
-  <button class="nav-btn" data-page="channels">📺 Stacje TV</button>
-  <button class="nav-btn" data-page="streaming">▶ Streaming</button>
-  <button class="nav-btn" data-page="companies">🏢 Spółki</button>
-  <button class="nav-btn" data-page="market">📈 Rynek</button>
-  <button class="nav-btn" data-page="employees">👥 Pracownicy</button>
-  <button class="nav-btn" data-page="buildings">🏙️ Biura</button>
-  <button class="nav-btn" data-page="finance">💰 Finanse</button>
+<aside class="sidebar">
 
-  <hr style="border-color:#26344d">
+<button class="nav active" data-page="dashboard">📊 Centrum</button>
+<button class="nav" data-page="channels">📺 Telewizja</button>
+<button class="nav" data-page="streaming">▶ Streaming</button>
+<button class="nav" data-page="group">🌳 Grupa kapitałowa</button>
+<button class="nav" data-page="market">📈 Rynek firm</button>
+<button class="nav" data-page="workers">👥 Rynek pracy</button>
+<button class="nav" data-page="staff">🪪 Pracownicy</button>
+<button class="nav" data-page="buildings">🏙️ Ulepszenia</button>
+<button class="nav" data-page="finance">💰 Finanse</button>
 
-  <button onclick="nextMonth()">⏩ Następny miesiąc</button>
-</nav>
+</aside>
 
 <main class="main">
 
-<section id="dashboard" class="page active">
-  <h1>Centrum zarządzania</h1>
+<!-- DASHBOARD -->
 
-  <div class="grid">
-    <div class="card">
-      <div class="muted">Gotówka</div>
-      <div class="big-number" id="dashMoney">0 zł</div>
-    </div>
+<section class="page active" id="dashboard">
 
-    <div class="card">
-      <div class="muted">Wartość grupy</div>
-      <div class="big-number" id="companyValue">0 zł</div>
-    </div>
+<h1>Centrum zarządzania</h1>
 
-    <div class="card">
-      <div class="muted">Pracownicy</div>
-      <div class="big-number"><span id="employeeCount">0</span>/<span id="employeeLimit">2</span></div>
-    </div>
+<div class="grid">
 
-    <div class="card">
-      <div class="muted">Kanały TV</div>
-      <div class="big-number" id="channelCount">0</div>
-    </div>
-  </div>
+<div class="card">
+ <div class="muted">Gotówka holdingu</div>
+ <div class="big" id="dashMoney"></div>
+</div>
 
-  <br>
+<div class="card">
+ <div class="muted">Wartość grupy</div>
+ <div class="big" id="groupValue"></div>
+</div>
 
-  <div class="card">
-    <h2>Twoja firma</h2>
-    <div class="row">
-      <input id="companyNameInput" placeholder="Nazwa firmy">
-      <button onclick="renameCompany()">Zmień nazwę</button>
-    </div>
-  </div>
+<div class="card">
+ <div class="muted">Spółki zależne</div>
+ <div class="big" id="companyTotal"></div>
+</div>
 
-  <br>
+<div class="card">
+ <div class="muted">Pracownicy</div>
+ <div class="big">
+  <span id="employeeCount"></span> /
+  <span id="employeeLimit"></span>
+ </div>
+</div>
 
-  <div class="card">
-    <h2>Ostatnie wydarzenia</h2>
-    <div id="events"></div>
-  </div>
+<div class="card">
+ <div class="muted">Kanały TV</div>
+ <div class="big" id="channelCount"></div>
+</div>
+
+<div class="card">
+ <div class="muted">Streaming</div>
+ <div class="big" id="streamCount"></div>
+</div>
+
+</div>
+
+<br>
+
+<div class="card">
+
+<h2>Holding</h2>
+
+<div class="row">
+ <input id="renameInput" placeholder="Nazwa holdingu">
+ <button onclick="renameHolding()">Zmień nazwę</button>
+</div>
+
+</div>
+
+<br>
+
+<div class="card">
+
+<h2>Wydarzenia</h2>
+
+<div id="events"></div>
+
+</div>
+
 </section>
 
-<section id="channels" class="page">
-  <div class="row space">
-    <h1>Stacje telewizyjne</h1>
-    <button onclick="openChannelModal()">+ Nowa stacja</button>
-  </div>
+<!-- TV -->
 
-  <div id="channelList"></div>
+<section class="page" id="channels">
+
+<div class="row space">
+
+<h1>Stacje telewizyjne</h1>
+
+<button onclick="openChannelModal()">
++ Nowa stacja
+</button>
+
+</div>
+
+<div id="channelList"></div>
+
 </section>
 
-<section id="streaming" class="page">
-  <h1>Streaming</h1>
+<!-- STREAMING -->
 
-  <div class="card">
-    <h2>Platformy streamingowe</h2>
-    <p class="muted">Uruchom własny serwis VOD i zdobywaj abonentów.</p>
+<section class="page" id="streaming">
 
-    <div class="row">
-      <input id="streamName" placeholder="np. Nova+">
-      <button onclick="createStreaming()">Uruchom — 500 000 zł</button>
-    </div>
-  </div>
+<h1>Streaming</h1>
 
-  <div id="streamList"></div>
+<div class="card">
+
+<div class="row">
+
+<input id="streamName" placeholder="np. Nova+">
+
+<button onclick="createStream()">
+Uruchom — 500 000 zł
+</button>
+
+</div>
+
+</div>
+
+<div id="streamList"></div>
+
 </section>
 
-<section id="companies" class="page">
-  <h1>Twoja grupa</h1>
+<!-- GROUP -->
 
-  <div class="card">
-    <h2>Utwórz spółkę córkę</h2>
+<section class="page" id="group">
 
-    <div class="row">
-      <input id="subsidiaryName" placeholder="np. Nova Studios">
-      <button onclick="createSubsidiary()">Utwórz — 100 000 zł</button>
-    </div>
-  </div>
+<div class="row space">
 
-  <div id="subsidiaryList"></div>
+<div>
+<h1>Grupa kapitałowa</h1>
+<div class="muted">
+Spółki mogą posiadać własne spółki córki.
+</div>
+</div>
+
+<button onclick="openCreateCompany(null)">
++ Spółka holdingu
+</button>
+
+</div>
+
+<div id="companyTree" class="tree"></div>
+
+<br>
+
+<div id="selectedCompany"></div>
+
 </section>
 
-<section id="market" class="page">
-  <h1>Rynek medialny</h1>
-  <p class="muted">Kupuj udziały konkurentów. Jeśli wypłacą dywidendę, otrzymasz swoją część.</p>
-  <div id="marketList"></div>
+<!-- MARKET -->
+
+<section class="page" id="market">
+
+<h1>Rynek medialny</h1>
+
+<p class="muted">
+Firmy powstają automatycznie. Kupując udziały możesz otrzymywać dywidendy.
+</p>
+
+<div id="marketList"></div>
+
 </section>
 
-<section id="employees" class="page">
-  <h1>Pracownicy</h1>
+<!-- JOB MARKET -->
 
-  <div class="card">
-    <div class="row space">
-      <div>
-        <h2>Zatrudnianie</h2>
-        <div class="muted">Koszt rekrutacji: 5 000 zł</div>
-      </div>
+<section class="page" id="workers">
 
-      <button onclick="hireEmployee()">Zatrudnij</button>
-    </div>
-  </div>
+<h1>Rynek pracy</h1>
 
-  <div id="employeeList"></div>
+<p class="muted">
+Nowi kandydaci pojawiają się automatycznie.
+</p>
+
+<div id="jobList"></div>
+
 </section>
 
-<section id="buildings" class="page">
-  <h1>Biura i infrastruktura</h1>
+<!-- STAFF -->
 
-  <div class="grid">
-    <div class="card">
-      <h2>Biuro</h2>
-      <div id="officeName"></div>
-      <p class="muted">Zwiększa limit pracowników.</p>
-      <button onclick="upgradeOffice()" id="officeButton"></button>
-    </div>
+<section class="page" id="staff">
 
-    <div class="card">
-      <h2>Centrum nadawcze</h2>
-      <div id="stationName"></div>
-      <p class="muted">Zwiększa jakość kanałów i ich przychody.</p>
-      <button onclick="upgradeStation()" id="stationButton"></button>
-    </div>
-  </div>
+<h1>Pracownicy holdingu</h1>
+
+<div id="staffList"></div>
+
 </section>
 
-<section id="finance" class="page">
-  <h1>Finanse</h1>
+<!-- BUILDINGS -->
 
-  <div class="grid">
-    <div class="card">
-      <div class="muted">Przychód miesięczny</div>
-      <div class="big-number green" id="monthlyIncome">0 zł</div>
-    </div>
+<section class="page" id="buildings">
 
-    <div class="card">
-      <div class="muted">Koszty miesięczne</div>
-      <div class="big-number red" id="monthlyCosts">0 zł</div>
-    </div>
+<h1>Biura i infrastruktura</h1>
 
-    <div class="card">
-      <div class="muted">Wynik</div>
-      <div class="big-number" id="monthlyProfit">0 zł</div>
-    </div>
-  </div>
+<div class="grid">
 
-  <br>
+<div class="card">
 
-  <div class="card">
-    <h2>Historia transakcji</h2>
-    <div id="transactions"></div>
-  </div>
+<h2>🏢 Centrala</h2>
+
+<div id="officeInfo"></div>
+
+<br>
+
+<button id="officeButton" onclick="upgradeOffice()"></button>
+
+</div>
+
+<div class="card">
+
+<h2>📡 Centrum nadawcze</h2>
+
+<div id="stationInfo"></div>
+
+<br>
+
+<button id="stationButton" onclick="upgradeStation()"></button>
+
+</div>
+
+</div>
+
+</section>
+
+<!-- FINANCE -->
+
+<section class="page" id="finance">
+
+<h1>Finanse</h1>
+
+<div class="grid">
+
+<div class="card">
+<div class="muted">Przychód bazowy</div>
+<div class="big green" id="incomeDisplay"></div>
+</div>
+
+<div class="card">
+<div class="muted">Koszty</div>
+<div class="big red" id="costDisplay"></div>
+</div>
+
+<div class="card">
+<div class="muted">Wynik</div>
+<div class="big" id="profitDisplay"></div>
+</div>
+
+<div class="card">
+<div class="muted">Udziały zewnętrzne</div>
+<div class="big" id="shareDisplay"></div>
+</div>
+
+</div>
+
+<br>
+
+<div class="card">
+
+<h2>Transakcje</h2>
+
+<div id="transactions"></div>
+
+</div>
+
 </section>
 
 </main>
+
 </div>
 
 <!-- CHANNEL MODAL -->
 
 <div class="modal" id="channelModal">
-  <div class="modal-box">
-    <h2>Nowa stacja telewizyjna</h2>
 
-    <p>Nazwa</p>
-    <input id="channelName" style="width:100%" placeholder="Nova TV">
+<div class="modalbox">
 
-    <p>Profil</p>
-    <select id="channelType" style="width:100%">
-      <option>Ogólny</option>
-      <option>Informacyjny</option>
-      <option>Sportowy</option>
-      <option>Dziecięcy</option>
-      <option>Filmowy</option>
-      <option>Serialowy</option>
-      <option>Dokumentalny</option>
-      <option>Muzyczny</option>
-      <option>Lifestyle</option>
-    </select>
+<h2>Nowa stacja TV</h2>
 
-    <p class="muted">Koszt uruchomienia: 250 000 zł</p>
+<input id="channelName"
+style="width:100%"
+placeholder="Nazwa kanału">
 
-    <div class="row">
-      <button onclick="createChannel()">Uruchom</button>
-      <button class="secondary" onclick="closeChannelModal()">Anuluj</button>
-    </div>
-  </div>
+<br><br>
+
+<select id="channelType"
+style="width:100%">
+
+<option>Ogólny</option>
+<option>Informacyjny</option>
+<option>Rozrywkowy</option>
+<option>Sportowy</option>
+<option>Dziecięcy</option>
+<option>Filmowy</option>
+<option>Serialowy</option>
+<option>Dokumentalny</option>
+<option>Muzyczny</option>
+<option>Lifestyle</option>
+
+</select>
+
+<br><br>
+
+<button onclick="createChannel()">
+Uruchom — 250 000 zł
+</button>
+
+<button class="secondary"
+onclick="closeChannelModal()">
+Anuluj
+</button>
+
+</div>
+
+</div>
+
+<!-- COMPANY MODAL -->
+
+<div class="modal" id="companyModal">
+
+<div class="modalbox">
+
+<h2>Utwórz spółkę</h2>
+
+<div class="muted" id="companyParentInfo"></div>
+
+<br>
+
+<input id="newCompanyName"
+style="width:100%"
+placeholder="Nazwa spółki">
+
+<br><br>
+
+<select id="newCompanyType"
+style="width:100%">
+
+<option>Holding</option>
+<option>Telewizja</option>
+<option>Streaming</option>
+<option>News</option>
+<option>Rozrywka</option>
+<option>Dzieci</option>
+<option>Sport</option>
+<option>Studio filmowe</option>
+<option>Produkcja TV</option>
+<option>Marketing</option>
+<option>Technologia</option>
+
+</select>
+
+<br><br>
+
+<button onclick="createCompany()">
+Utwórz — 100 000 zł
+</button>
+
+<button class="secondary"
+onclick="closeCompanyModal()">
+Anuluj
+</button>
+
+</div>
+
 </div>
 
 <!-- CONSOLE -->
 
 <div class="console" id="console">
-  <div class="console-log" id="consoleLog">
-MEDIA EMPIRE DEV CONSOLE
-Komendy:
-kasa [kwota]
-maxpracownicy
-help
-  </div>
 
-  <input id="consoleInput" placeholder="Wpisz komendę...">
+<div class="console-log" id="consoleLog">MEDIA EMPIRE DEV CONSOLE
+
+Komendy:
+kasa 100000000
+maxpracownicy
+help</div>
+
+<input id="consoleInput" placeholder="Komenda...">
+
 </div>
 
 <script>
-const game = {
-  money: 0,
-  companyName: "Nowa firma",
-  month: 0,
-  year: 2026,
 
-  officeLevel: 0,
-  stationLevel: 0,
+/* =========================================================
+   GAME STATE
+========================================================= */
 
-  employees: [],
-  channels: [],
-  streams: [],
-  subsidiaries: [],
+const game={
 
-  transactions: [],
-  events: [],
+ money:0,
 
-  cheated: false,
+ name:"Nowa grupa medialna",
 
-  holdings: {},
+ year:2026,
+ month:0,
 
-  market: [
-    {
-      id: 1,
-      name: "Horizon Media",
-      value: 18000000,
-      profit: 900000,
-      category: "Telewizja",
-      volatility: 0.08
-    },
-    {
-      id: 2,
-      name: "Galaxy Entertainment",
-      value: 42000000,
-      profit: 1700000,
-      category: "Film i streaming",
-      volatility: 0.1
-    },
-    {
-      id: 3,
-      name: "Orion Broadcasting",
-      value: 9500000,
-      profit: 450000,
-      category: "Telewizja",
-      volatility: 0.12
-    },
-    {
-      id: 4,
-      name: "Pixel Kids Media",
-      value: 6000000,
-      profit: 280000,
-      category: "Dzieci",
-      volatility: 0.14
-    }
-  ]
+ speed:1,
+ progress:0,
+
+ cheated:false,
+
+ office:0,
+ station:0,
+
+ channels:[],
+ streams:[],
+ employees:[],
+ jobMarket:[],
+
+ companies:[],
+ market:[],
+ holdings:{},
+
+ events:[],
+ transactions:[],
+
+ selectedCompany:null,
+
+ nextCompanyId:1,
+ nextMarketId:1,
+ nextWorkerId:1,
+
+ createParent:null
 };
 
-const officeLevels = [
-  {name:"Pokój / garaż", limit:2, cost:50000},
-  {name:"Małe biuro", limit:8, cost:250000},
-  {name:"Biuro regionalne", limit:25, cost:900000},
-  {name:"Biurowiec", limit:80, cost:3500000},
-  {name:"Kampus medialny", limit:250, cost:15000000},
-  {name:"Globalna centrala", limit:1000, cost:null}
+/* =========================================================
+   DATA
+========================================================= */
+
+const months=[
+"Styczeń","Luty","Marzec","Kwiecień","Maj","Czerwiec",
+"Lipiec","Sierpień","Wrzesień","Październik",
+"Listopad","Grudzień"
 ];
 
-const stationLevels = [
-  {name:"Brak własnego studia", multiplier:1, cost:100000},
-  {name:"Małe studio", multiplier:1.15, cost:500000},
-  {name:"Studio regionalne", multiplier:1.35, cost:2000000},
-  {name:"Centrum nadawcze", multiplier:1.65, cost:8000000},
-  {name:"Kompleks produkcyjny", multiplier:2.1, cost:30000000},
-  {name:"Globalny hub medialny", multiplier:3, cost:null}
+const companyTypes=[
+"Holding","Telewizja","Streaming","News","Rozrywka",
+"Dzieci","Sport","Studio filmowe","Produkcja TV",
+"Marketing","Technologia"
 ];
 
-const employeeRoles = [
-  "Dziennikarz",
-  "Producent",
-  "Montażysta",
-  "Technik",
-  "Prezenter",
-  "Marketing",
-  "Prawnik",
-  "Finanse"
+const roles=[
+"Dziennikarz","Prezenter","Producent","Montażysta",
+"Technik","Marketing","Prawnik","Finanse",
+"Scenarzysta","Operator","Reżyser","Analityk"
 ];
 
-function money(n) {
-  return new Intl.NumberFormat("pl-PL", {
-    style:"currency",
-    currency:"PLN",
-    maximumFractionDigits:0
-  }).format(n);
+const perks=[
+"Kreatywny","Ekspert TV","Ekspert streamingu",
+"Lider","Dobry negocjator","Producent premium",
+"Specjalista news","Specjalista sportowy",
+"Łowca talentów","Analityk rynku",
+"Szybka produkcja","Gwiazda anteny"
+];
+
+const firstNames=[
+"Adam","Jakub","Michał","Kamil","Piotr","Tomasz",
+"Mateusz","Filip","Jan","Oskar","Kacper","Bartosz",
+"Anna","Julia","Natalia","Maja","Oliwia","Zuzanna",
+"Karolina","Emilia","Aleksandra","Wiktoria"
+];
+
+const lastNames=[
+"Nowak","Kowalski","Wiśniewski","Wójcik",
+"Kowalczyk","Kamiński","Lewandowski",
+"Zieliński","Szymański","Woźniak",
+"Dąbrowski","Kozłowski","Jankowski",
+"Mazur","Krawczyk"
+];
+
+const prefixes=[
+"Nova","Horizon","Galaxy","Orion","Pixel",
+"Vertex","Atlas","Vision","Silver","North",
+"Metro","Sky","Pulse","Titan","Echo",
+"Quantum","Star","Bright","Wave","Nexus",
+"Aurora","Prime","Summit"
+];
+
+const suffixes=[
+"Media","Entertainment","Broadcasting",
+"Television","Studios","Networks",
+"Digital","Group","Pictures",
+"Streaming","Communications"
+];
+
+const officeLevels=[
+
+{name:"Pokój / garaż",limit:2,cost:50000},
+
+{name:"Małe biuro",limit:8,cost:250000},
+
+{name:"Biuro regionalne",limit:25,cost:900000},
+
+{name:"Biurowiec",limit:80,cost:3500000},
+
+{name:"Kampus medialny",limit:250,cost:15000000},
+
+{name:"Globalna centrala",limit:1000,cost:null}
+
+];
+
+const stationLevels=[
+
+{name:"Brak własnego studia",multi:1,cost:100000},
+
+{name:"Małe studio",multi:1.15,cost:500000},
+
+{name:"Studio regionalne",multi:1.35,cost:2000000},
+
+{name:"Centrum nadawcze",multi:1.65,cost:8000000},
+
+{name:"Kompleks produkcyjny",multi:2.1,cost:30000000},
+
+{name:"Globalny hub",multi:3,cost:null}
+
+];
+
+/* =========================================================
+   HELPERS
+========================================================= */
+
+function rnd(a,b){
+ return a+Math.random()*(b-a);
 }
 
-function addMoney(amount, reason="Przychód") {
-  game.money += amount;
-
-  game.transactions.unshift({
-    amount,
-    reason,
-    date:getDate()
-  });
-
-  animateMoney(amount);
-  render();
+function pick(arr){
+ return arr[Math.floor(Math.random()*arr.length)];
 }
 
-function spendMoney(amount, reason) {
-  if(game.money < amount) {
-    alert("Brakuje pieniędzy.");
-    return false;
+function fmt(n){
+
+ if(!Number.isFinite(n))
+  n=0;
+
+ return new Intl.NumberFormat(
+ "pl-PL",
+ {
+ style:"currency",
+ currency:"PLN",
+ maximumFractionDigits:0
+ }
+ ).format(n);
+
+}
+
+function currentDate(){
+
+ return months[game.month]+" "+game.year;
+
+}
+
+function addEvent(text){
+
+ game.events.unshift({
+ text,
+ date:currentDate()
+ });
+
+ if(game.events.length>100)
+ game.events.pop();
+
+}
+
+function transaction(amount,reason){
+
+ game.transactions.unshift({
+
+ amount,
+ reason,
+ date:currentDate()
+
+ });
+
+ if(game.transactions.length>150)
+ game.transactions.pop();
+
+}
+
+/* =========================================================
+   MONEY
+========================================================= */
+
+function cashAnimation(amount){
+
+ const parent=
+ document.getElementById("moneyDisplay");
+
+ const e=
+ document.createElement("div");
+
+ e.className=
+ "money-pop "+(amount>=0?"plus":"minus");
+
+ e.textContent=
+ (amount>=0?"+":"")+fmt(amount);
+
+ parent.appendChild(e);
+
+ setTimeout(()=>e.remove(),1800);
+
+}
+
+function addCash(amount,reason){
+
+ game.money+=amount;
+
+ transaction(amount,reason);
+
+ cashAnimation(amount);
+
+}
+
+function spend(amount,reason){
+
+ if(game.money<amount){
+
+ alert(
+ "Brakuje pieniędzy.\nPotrzebujesz "+fmt(amount)
+ );
+
+ return false;
+
+ }
+
+ game.money-=amount;
+
+ transaction(-amount,reason);
+
+ cashAnimation(-amount);
+
+ return true;
+
+}
+
+/* =========================================================
+   COMPANY TREE
+========================================================= */
+
+function getCompany(id){
+
+ return game.companies.find(
+ c=>c.id===id
+ );
+
+}
+
+function companyChildren(id){
+
+ return game.companies.filter(
+ c=>c.parent===id
+ );
+
+}
+
+function countDescendants(id){
+
+ let count=0;
+
+ companyChildren(id).forEach(child=>{
+
+ count++;
+
+ count+=countDescendants(child.id);
+
+ });
+
+ return count;
+
+}
+
+function openCreateCompany(parent){
+
+ game.createParent=parent;
+
+ const info=
+ document.getElementById("companyParentInfo");
+
+ if(parent===null){
+
+ info.textContent=
+ "Właściciel: "+game.name;
+
+ }
+
+ else{
+
+ const company=getCompany(parent);
+
+ info.textContent=
+ "Spółka nadrzędna: "+company.name;
+
+ }
+
+ document
+ .getElementById("companyModal")
+ .classList.add("open");
+
+}
+
+function closeCompanyModal(){
+
+ document
+ .getElementById("companyModal")
+ .classList.remove("open");
+
+}
+
+function createCompany(){
+
+ const name=
+ document
+ .getElementById("newCompanyName")
+ .value.trim();
+
+ const type=
+ document
+ .getElementById("newCompanyType")
+ .value;
+
+ if(!name)
+ return alert("Podaj nazwę.");
+
+ if(!spend(
+ 100000,
+ "Utworzenie spółki "+name
+ ))
+ return;
+
+ const company={
+
+ id:game.nextCompanyId++,
+
+ name,
+
+ type,
+
+ parent:game.createParent,
+
+ ownership:100,
+
+ cash:50000,
+
+ value:100000,
+
+ profit:0,
+
+ marketing:20,
+
+ production:20,
+
+ development:20,
+
+ technology:20,
+
+ autonomy:50,
+
+ brand:10,
+
+ employees:0,
+
+ dividendRate:25,
+
+ age:0
+
+ };
+
+ game.companies.push(company);
+
+ addEvent(
+ "🏢 Powstała spółka "+name+
+ " — "+type+"."
+ );
+
+ document
+ .getElementById("newCompanyName")
+ .value="";
+
+ closeCompanyModal();
+
+ game.selectedCompany=company.id;
+
+ render();
+
+}
+
+/* =========================================================
+   COMPANY MANAGEMENT
+========================================================= */
+
+function selectCompany(id){
+
+ game.selectedCompany=id;
+
+ renderCompanyPanel();
+
+}
+
+function setCompanyField(id,field,value){
+
+ const c=getCompany(id);
+
+ if(!c)return;
+
+ if([
+ "marketing",
+ "production",
+ "development",
+ "technology",
+ "autonomy",
+ "dividendRate"
+ ].includes(field)){
+
+ c[field]=Number(value);
+
+ }
+
+ else{
+
+ c[field]=value;
+
+ }
+
+ renderCompanyPanel();
+
+}
+
+function injectCapital(id){
+
+ const c=getCompany(id);
+
+ if(!c)return;
+
+ const input=
+ prompt(
+ "Ile pieniędzy przekazać do "+c.name+"?",
+ "100000"
+ );
+
+ const amount=Number(input);
+
+ if(!Number.isFinite(amount)||amount<=0)
+ return;
+
+ if(!spend(
+ amount,
+ "Dokapitalizowanie "+c.name
+ ))
+ return;
+
+ c.cash+=amount;
+ c.value+=amount;
+
+ addEvent(
+ "💰 "+c.name+
+ " otrzymało "+fmt(amount)+
+ " kapitału."
+ );
+
+ render();
+
+}
+
+function withdrawDividend(id){
+
+ const c=getCompany(id);
+
+ if(!c)return;
+
+ const available=
+ Math.max(0,c.cash*.25);
+
+ if(available<=0)
+ return alert(
+ "Spółka nie ma pieniędzy na dywidendę."
+ );
+
+ c.cash-=available;
+
+ addCash(
+ available,
+ "Dywidenda "+c.name
+ );
+
+ addEvent(
+ "💸 "+c.name+
+ " wypłaciło "+fmt(available)+
+ " do spółki nadrzędnej."
+ );
+
+ render();
+
+}
+
+/* =========================================================
+   COMPANY ECONOMY
+========================================================= */
+
+function specializationMultiplier(type){
+
+ const values={
+
+ "Holding":.8,
+ "Telewizja":1.15,
+ "Streaming":1.18,
+ "News":1.05,
+ "Rozrywka":1.14,
+ "Dzieci":1.08,
+ "Sport":1.12,
+ "Studio filmowe":1.16,
+ "Produkcja TV":1.12,
+ "Marketing":1.10,
+ "Technologia":1.13
+
+ };
+
+ return values[type]||1;
+
+}
+
+function updateCompany(c){
+
+ c.age++;
+
+ const marketingBonus=
+ 1+(c.marketing/100)*.15;
+
+ const productionBonus=
+ 1+(c.production/100)*.12;
+
+ const techBonus=
+ 1+(c.technology/100)*.10;
+
+ const specialization=
+ specializationMultiplier(c.type);
+
+ const baseRevenue=
+ c.value*
+ rnd(.015,.035)*
+ marketingBonus*
+ productionBonus*
+ techBonus*
+ specialization;
+
+ const spending=
+ c.value*
+ (
+ c.marketing+
+ c.production+
+ c.development+
+ c.technology
+ )/
+ 100*
+ .006;
+
+ c.profit=
+ baseRevenue-spending;
+
+ c.cash+=c.profit;
+
+ c.brand=
+ Math.min(
+ 100,
+ c.brand+
+ c.marketing*.005
+ );
+
+ c.value=
+ Math.max(
+ 50000,
+ c.value+
+ c.profit*.4+
+ rnd(-.01,.02)*c.value
+ );
+
+ /*
+ AUTONOMIA:
+ przy dużej autonomii zarząd sam inwestuje
+ */
+
+ if(c.autonomy>=60){
+
+ if(c.cash>c.value*.3){
+
+ const investment=
+ c.cash*.08;
+
+ c.cash-=investment;
+
+ c.value+=investment;
+
+ }
+
+ /*
+ zarząd może sam utworzyć spółkę córkę
+ */
+
+ if(
+ c.autonomy>=80 &&
+ c.cash>500000 &&
+ Math.random()<.015
+ ){
+
+ const name=
+ c.name.split(" ")[0]+" "+pick([
+ "Studios",
+ "Digital",
+ "Networks",
+ "Production",
+ "Marketing",
+ "Technology"
+ ]);
+
+ const child={
+
+ id:game.nextCompanyId++,
+
+ name,
+
+ type:pick(companyTypes),
+
+ parent:c.id,
+
+ ownership:100,
+
+ cash:50000,
+
+ value:100000,
+
+ profit:0,
+
+ marketing:20,
+
+ production:20,
+
+ development:20,
+
+ technology:20,
+
+ autonomy:60,
+
+ brand:5,
+
+ employees:0,
+
+ dividendRate:25,
+
+ age:0
+
+ };
+
+ c.cash-=100000;
+
+ game.companies.push(child);
+
+ addEvent(
+ "🤖 Zarząd "+c.name+
+ " utworzył spółkę "+name+"."
+ );
+
+ }
+
+ }
+
+}
+
+/* =========================================================
+   DIVIDEND TREE
+========================================================= */
+
+function distributeCompanyDividend(c){
+
+ if(c.profit<=0)
+ return;
+
+ const payout=
+ c.profit*
+ (c.dividendRate/100);
+
+ if(payout<=0||c.cash<payout)
+ return;
+
+ c.cash-=payout;
+
+ if(c.parent===null){
+
+ game.money+=payout;
+
+ transaction(
+ payout,
+ "Dywidenda: "+c.name
+ );
+
+ cashAnimation(payout);
+
+ }
+
+ else{
+
+ const parent=
+ getCompany(c.parent);
+
+ if(parent){
+
+ parent.cash+=payout;
+
+ }
+
+ }
+
+}
+
+/* =========================================================
+   TV
+========================================================= */
+
+function openChannelModal(){
+
+ document
+ .getElementById("channelModal")
+ .classList.add("open");
+
+}
+
+function closeChannelModal(){
+
+ document
+ .getElementById("channelModal")
+ .classList.remove("open");
+
+}
+
+function createChannel(){
+
+ const name=
+ document
+ .getElementById("channelName")
+ .value.trim();
+
+ const type=
+ document
+ .getElementById("channelType")
+ .value;
+
+ if(!name)
+ return;
+
+ if(!spend(
+ 250000,
+ "Uruchomienie "+name
+ ))
+ return;
+
+ game.channels.push({
+
+ id:Date.now()+Math.random(),
+
+ name,
+
+ type,
+
+ viewers:Math.floor(
+ rnd(5000,30000)
+ ),
+
+ income:Math.floor(
+ rnd(25000,60000)
+ )
+
+ });
+
+ addEvent(
+ "📺 Uruchomiono "+name+
+ " — "+type+"."
+ );
+
+ document
+ .getElementById("channelName")
+ .value="";
+
+ closeChannelModal();
+
+ render();
+
+}
+
+/* =========================================================
+   STREAMING
+========================================================= */
+
+function createStream(){
+
+ const el=
+ document.getElementById("streamName");
+
+ const name=
+ el.value.trim();
+
+ if(!name)
+ return;
+
+ if(!spend(
+ 500000,
+ "Uruchomienie "+name
+ ))
+ return;
+
+ game.streams.push({
+
+ id:Date.now()+Math.random(),
+
+ name,
+
+ subscribers:
+ Math.floor(rnd(500,2500)),
+
+ price:29.99
+
+ });
+
+ addEvent(
+ "▶ Uruchomiono "+name+"."
+ );
+
+ el.value="";
+
+ render();
+
+}
+
+/* =========================================================
+   WORKERS
+========================================================= */
+
+function generateWorker(){
+
+ const skill=
+ Math.floor(rnd(25,100));
+
+ game.jobMarket.push({
+
+ id:game.nextWorkerId++,
+
+ name:
+ pick(firstNames)+" "+
+ pick(lastNames),
+
+ role:pick(roles),
+
+ skill,
+
+ salary:
+ Math.floor(
+ 2800+
+ skill*65+
+ rnd(0,2500)
+ ),
+
+ perk:pick(perks)
+
+ });
+
+}
+
+function updateJobMarket(){
+
+ game.jobMarket=
+ game.jobMarket.filter(
+ ()=>Math.random()>.12
+ );
+
+ const amount=
+ Math.floor(rnd(3,9));
+
+ for(
+ let i=0;
+ i<amount;
+ i++
+ )
+ generateWorker();
+
+ if(game.jobMarket.length>80)
+ game.jobMarket=
+ game.jobMarket.slice(-80);
+
+}
+
+function hireWorker(id){
+
+ if(
+ game.employees.length>=
+ officeLevels[game.office].limit
+ ){
+
+ return alert(
+ "Brak miejsca w biurze."
+ );
+
+ }
+
+ const index=
+ game.jobMarket.findIndex(
+ w=>w.id===id
+ );
+
+ if(index<0)
+ return;
+
+ const worker=
+ game.jobMarket[index];
+
+ const fee=
+ worker.salary*2;
+
+ if(!spend(
+ fee,
+ "Rekrutacja "+worker.name
+ ))
+ return;
+
+ game.employees.push(worker);
+
+ game.jobMarket.splice(
+ index,
+ 1
+ );
+
+ addEvent(
+ "👤 Zatrudniono "+
+ worker.name+"."
+ );
+
+ render();
+
+}
+
+function fireWorker(id){
+
+ const i=
+ game.employees.findIndex(
+ w=>w.id===id
+ );
+
+ if(i<0)return;
+
+ const w=
+ game.employees[i];
+
+ game.employees.splice(i,1);
+
+ addEvent(
+ "👤 Zwolniono "+w.name+"."
+ );
+
+ render();
+
+}
+
+/* =========================================================
+   EXTERNAL MARKET
+========================================================= */
+
+function generateMarketCompany(silent=false){
+
+ const value=
+ Math.floor(
+ rnd(500000,40000000)
+ );
+
+ let name;
+
+ do{
+
+ name=
+ pick(prefixes)+" "+
+ pick(suffixes);
+
+ }
+ while(
+ game.market.some(
+ c=>c.name===name
+ )
+ );
+
+ const company={
+
+ id:game.nextMarketId++,
+
+ name,
+
+ type:pick(companyTypes),
+
+ value,
+
+ profit:
+ value*rnd(-.01,.07),
+
+ employees:
+ Math.floor(rnd(3,180)),
+
+ age:0,
+
+ volatility:
+ rnd(.03,.11)
+
+ };
+
+ game.market.push(company);
+
+ if(!silent)
+ addEvent(
+ "🆕 Powstała firma "+name+"."
+ );
+
+}
+
+function updateMarket(){
+
+ if(Math.random()<.6){
+
+ generateMarketCompany();
+
+ }
+
+ game.market.forEach(c=>{
+
+ c.age++;
+
+ c.value=
+ Math.max(
+ 100000,
+ c.value*rnd(.94,1.08)
+ );
+
+ c.profit=
+ c.value*rnd(-.015,.065);
+
+ c.employees=
+ Math.max(
+ 1,
+ c.employees+
+ Math.floor(rnd(-2,7))
+ );
+
+ });
+
+}
+
+function buyShares(id,pct){
+
+ const c=
+ game.market.find(
+ x=>x.id===id
+ );
+
+ if(!c)return;
+
+ const owned=
+ game.holdings[id]||0;
+
+ if(owned+pct>100)
+ return alert(
+ "Nie możesz mieć więcej niż 100%."
+ );
+
+ const cost=
+ c.value*(pct/100);
+
+ if(!spend(
+ cost,
+ "Zakup "+pct+"% "+c.name
+ ))
+ return;
+
+ game.holdings[id]=
+ owned+pct;
+
+ addEvent(
+ "📈 Kupiono "+pct+
+ "% "+c.name+"."
+ );
+
+ if(
+ owned<51 &&
+ game.holdings[id]>=51
+ ){
+
+ addEvent(
+ "👑 Przejęto kontrolę nad "+
+ c.name+"."
+ );
+
+ }
+
+ render();
+
+}
+
+function sellShares(id,pct){
+
+ const c=
+ game.market.find(
+ x=>x.id===id
+ );
+
+ if(!c)return;
+
+ const owned=
+ game.holdings[id]||0;
+
+ if(owned<pct)
+ return;
+
+ const amount=
+ c.value*(pct/100);
+
+ game.holdings[id]-=pct;
+
+ addCash(
+ amount,
+ "Sprzedaż "+pct+
+ "% "+c.name
+ );
+
+ render();
+
+}
+
+/* =========================================================
+   UPGRADES
+========================================================= */
+
+function upgradeOffice(){
+
+ const level=
+ officeLevels[game.office];
+
+ if(level.cost===null)
+ return;
+
+ if(!spend(
+ level.cost,
+ "Ulepszenie biura"
+ ))
+ return;
+
+ game.office++;
+
+ addEvent(
+ "🏢 Centrala: "+
+ officeLevels[game.office].name
+ );
+
+ render();
+
+}
+
+function upgradeStation(){
+
+ const level=
+ stationLevels[game.station];
+
+ if(level.cost===null)
+ return;
+
+ if(!spend(
+ level.cost,
+ "Ulepszenie studia"
+ ))
+ return;
+
+ game.station++;
+
+ addEvent(
+ "📡 Centrum nadawcze: "+
+ stationLevels[game.station].name
+ );
+
+ render();
+
+}
+
+/* =========================================================
+   MONTH
+========================================================= */
+
+function nextMonth(){
+
+ let income=0;
+ let costs=0;
+
+ const stationMulti=
+ stationLevels[game.station].multi;
+
+ game.channels.forEach(c=>{
+
+ c.viewers=
+ Math.max(
+ 100,
+ Math.floor(
+ c.viewers*rnd(.94,1.10)
+ )
+ );
+
+ income+=
+ c.income*
+ stationMulti;
+
+ });
+
+ game.streams.forEach(s=>{
+
+ s.subscribers=
+ Math.max(
+ 0,
+ Math.floor(
+ s.subscribers*
+ rnd(.98,1.08)
+ )
+ );
+
+ income+=
+ s.subscribers*
+ s.price;
+
+ });
+
+ game.employees.forEach(
+ w=>costs+=w.salary
+ );
+
+ game.companies.forEach(
+ updateCompany
+ );
+
+ /*
+ najpierw niższe spółki,
+ potem wyższe
+ */
+
+ const sorted=
+ [...game.companies]
+ .sort(
+ (a,b)=>
+ companyDepth(b.id)-
+ companyDepth(a.id)
+ );
+
+ sorted.forEach(
+ distributeCompanyDividend
+ );
+
+ game.market.forEach(c=>{
+
+ const own=
+ game.holdings[c.id]||0;
+
+ if(
+ own>0 &&
+ c.profit>0 &&
+ Math.random()<.28
+ ){
+
+ const dividend=
+ c.profit*
+ rnd(.15,.4)*
+ (own/100);
+
+ income+=dividend;
+
+ addEvent(
+ "💸 "+c.name+
+ " wypłaca "+fmt(dividend)+
+ " dywidendy."
+ );
+
+ }
+
+ });
+
+ const result=
+ income-costs;
+
+ game.money+=result;
+
+ transaction(
+ result,
+ "Rozliczenie miesiąca"
+ );
+
+ cashAnimation(result);
+
+ game.month++;
+
+ if(game.month>=12){
+
+ game.month=0;
+ game.year++;
+
+ addEvent(
+ "🎆 Rozpoczyna się "+
+ game.year+"."
+ );
+
+ }
+
+ updateMarket();
+ updateJobMarket();
+
+ render();
+
+}
+
+function companyDepth(id){
+
+ let depth=0;
+
+ let c=getCompany(id);
+
+ while(
+ c &&
+ c.parent!==null
+ ){
+
+ depth++;
+
+ c=getCompany(c.parent);
+
+ }
+
+ return depth;
+
+}
+
+/* =========================================================
+   VALUE
+========================================================= */
+
+function externalShareValue(){
+
+ let total=0;
+
+ game.market.forEach(c=>{
+
+ total+=
+ c.value*
+ ((game.holdings[c.id]||0)/100);
+
+ });
+
+ return total;
+
+}
+
+function calculateGroupValue(){
+
+ let total=
+ game.money+
+ externalShareValue();
+
+ game.channels.forEach(
+ c=>total+=250000+c.viewers*7
+ );
+
+ game.streams.forEach(
+ s=>total+=500000+s.subscribers*25
+ );
+
+ game.companies.forEach(
+ c=>total+=c.value
+ );
+
+ return Math.max(
+ 0,
+ total
+ );
+
+}
+
+/* =========================================================
+   HOLDING NAME
+========================================================= */
+
+function renameHolding(){
+
+ const el=
+ document.getElementById("renameInput");
+
+ const name=
+ el.value.trim();
+
+ if(!name)return;
+
+ game.name=name;
+
+ addEvent(
+ "Holding zmienił nazwę na "+
+ name+"."
+ );
+
+ el.value="";
+
+ render();
+
+}
+
+/* =========================================================
+   RENDER TREE
+========================================================= */
+
+function renderTreeNode(company){
+
+ const children=
+ companyChildren(company.id);
+
+ return `
+
+ <div class="tree-node">
+
+  <div class="tree-line">
+
+   <span>🏢</span>
+
+   <span
+   class="tree-name"
+   onclick="selectCompany(${company.id})">
+
+   ${company.name}
+
+   </span>
+
+   <span class="badge">
+   ${company.type}
+   </span>
+
+   <span class="muted small">
+   ${fmt(company.value)}
+   </span>
+
+  </div>
+
+  ${
+  children.length
+  ?
+  `<div class="tree-children">
+  ${children.map(renderTreeNode).join("")}
+  </div>`
+  :
+  ""
   }
 
-  game.money -= amount;
+ </div>
 
-  game.transactions.unshift({
-    amount:-amount,
-    reason,
-    date:getDate()
-  });
+ `;
 
-  animateMoney(-amount);
-  return true;
 }
 
-function animateMoney(amount) {
-  const el = document.createElement("div");
-  el.className = "money-pop " + (amount >= 0 ? "plus" : "minus");
-  el.innerText = (amount >= 0 ? "+" : "") + money(amount);
+function renderTree(){
 
-  document.getElementById("moneyDisplay").appendChild(el);
+ const roots=
+ game.companies.filter(
+ c=>c.parent===null
+ );
 
-  setTimeout(() => el.remove(), 1700);
+ const box=
+ document.getElementById("companyTree");
+
+ box.innerHTML=
+
+ roots.length
+
+ ?`
+
+ <div class="tree-line">
+
+ <strong>👑 ${game.name}</strong>
+
+ <span class="badge">
+ HOLDING GŁÓWNY
+ </span>
+
+ </div>
+
+ <div class="tree-children">
+
+ ${roots.map(renderTreeNode).join("")}
+
+ </div>
+
+ `
+
+ :`
+
+ <div class="card muted">
+ Nie masz jeszcze spółek zależnych.
+ </div>
+
+ `;
+
 }
 
-function getDate() {
-  const months = [
-    "Styczeń","Luty","Marzec","Kwiecień","Maj","Czerwiec",
-    "Lipiec","Sierpień","Wrzesień","Październik","Listopad","Grudzień"
-  ];
+/* =========================================================
+   COMPANY PANEL
+========================================================= */
 
-  return months[game.month] + " " + game.year;
+function renderCompanyPanel(){
+
+ const box=
+ document.getElementById(
+ "selectedCompany"
+ );
+
+ const c=
+ getCompany(
+ game.selectedCompany
+ );
+
+ if(!c){
+
+ box.innerHTML="";
+ return;
+
+ }
+
+ const parent=
+ c.parent===null
+ ?game.name
+ :getCompany(c.parent)?.name;
+
+ box.innerHTML=`
+
+ <div class="company-panel">
+
+ <div class="row space">
+
+ <div>
+
+ <h2>${c.name}</h2>
+
+ <span class="badge">
+ ${c.type}
+ </span>
+
+ </div>
+
+ <button
+ onclick="openCreateCompany(${c.id})">
+
+ + Spółka córka
+
+ </button>
+
+ </div>
+
+ <p class="muted">
+ Właściciel: ${parent}
+ </p>
+
+ <div class="grid">
+
+ <div class="stat">
+ <div class="muted">Gotówka</div>
+ <strong>${fmt(c.cash)}</strong>
+ </div>
+
+ <div class="stat">
+ <div class="muted">Wartość</div>
+ <strong>${fmt(c.value)}</strong>
+ </div>
+
+ <div class="stat">
+ <div class="muted">Wynik</div>
+ <strong class="${c.profit>=0?"green":"red"}">
+ ${fmt(c.profit)}
+ </strong>
+ </div>
+
+ <div class="stat">
+ <div class="muted">Marka</div>
+ <strong>${c.brand.toFixed(1)}/100</strong>
+ </div>
+
+ <div class="stat">
+ <div class="muted">Spółki córki</div>
+ <strong>${companyChildren(c.id).length}</strong>
+ </div>
+
+ <div class="stat">
+ <div class="muted">Cała struktura niżej</div>
+ <strong>${countDescendants(c.id)}</strong>
+ </div>
+
+ </div>
+
+ <br>
+
+ <h3>Specjalizacja</h3>
+
+ <select
+ onchange="
+ setCompanyField(
+ ${c.id},
+ 'type',
+ this.value
+ )">
+
+ ${companyTypes.map(type=>`
+
+ <option
+ ${type===c.type?"selected":""}>
+ ${type}
+ </option>
+
+ `).join("")}
+
+ </select>
+
+ <br><br>
+
+ <h3>Strategia</h3>
+
+ <div class="rangeRow">
+
+ <span>📢 Marketing</span>
+
+ <input
+ type="range"
+ min="0"
+ max="100"
+ value="${c.marketing}"
+ oninput="
+ setCompanyField(
+ ${c.id},
+ 'marketing',
+ this.value
+ )">
+
+ <strong>${c.marketing}%</strong>
+
+ </div>
+
+ <div class="rangeRow">
+
+ <span>🎬 Produkcja</span>
+
+ <input
+ type="range"
+ min="0"
+ max="100"
+ value="${c.production}"
+ oninput="
+ setCompanyField(
+ ${c.id},
+ 'production',
+ this.value
+ )">
+
+ <strong>${c.production}%</strong>
+
+ </div>
+
+ <div class="rangeRow">
+
+ <span>📈 Rozwój</span>
+
+ <input
+ type="range"
+ min="0"
+ max="100"
+ value="${c.development}"
+ oninput="
+ setCompanyField(
+ ${c.id},
+ 'development',
+ this.value
+ )">
+
+ <strong>${c.development}%</strong>
+
+ </div>
+
+ <div class="rangeRow">
+
+ <span>💻 Technologia</span>
+
+ <input
+ type="range"
+ min="0"
+ max="100"
+ value="${c.technology}"
+ oninput="
+ setCompanyField(
+ ${c.id},
+ 'technology',
+ this.value
+ )">
+
+ <strong>${c.technology}%</strong>
+
+ </div>
+
+ <div class="rangeRow">
+
+ <span>🤖 Autonomia</span>
+
+ <input
+ type="range"
+ min="0"
+ max="100"
+ value="${c.autonomy}"
+ oninput="
+ setCompanyField(
+ ${c.id},
+ 'autonomy',
+ this.value
+ )">
+
+ <strong>${c.autonomy}%</strong>
+
+ </div>
+
+ <div class="rangeRow">
+
+ <span>💸 Dywidenda</span>
+
+ <input
+ type="range"
+ min="0"
+ max="100"
+ value="${c.dividendRate}"
+ oninput="
+ setCompanyField(
+ ${c.id},
+ 'dividendRate',
+ this.value
+ )">
+
+ <strong>${c.dividendRate}%</strong>
+
+ </div>
+
+ <br>
+
+ <div class="row">
+
+ <button
+ onclick="injectCapital(${c.id})">
+
+ 💰 Dokapitalizuj
+
+ </button>
+
+ <button
+ class="good"
+ onclick="withdrawDividend(${c.id})">
+
+ 💸 Wypłać dywidendę
+
+ </button>
+
+ </div>
+
+ </div>
+
+ `;
+
 }
 
-function addEvent(text) {
-  game.events.unshift({
-    text,
-    date:getDate()
-  });
+/* =========================================================
+   MAIN RENDER
+========================================================= */
 
-  if(game.events.length > 20) game.events.pop();
+function render(){
+
+ document
+ .getElementById("moneyDisplay")
+ .childNodes[0].nodeValue=
+ fmt(game.money);
+
+ document
+ .getElementById("dashMoney")
+ .textContent=
+ fmt(game.money);
+
+ document
+ .getElementById("topCompany")
+ .textContent=
+ game.name;
+
+ document
+ .getElementById("dateDisplay")
+ .textContent=
+ currentDate();
+
+ document
+ .getElementById("cheatMark")
+ .textContent=
+ game.cheated
+ ?" • CHEAT MODE"
+ :"";
+
+ document
+ .getElementById("groupValue")
+ .textContent=
+ fmt(calculateGroupValue());
+
+ document
+ .getElementById("companyTotal")
+ .textContent=
+ game.companies.length;
+
+ document
+ .getElementById("employeeCount")
+ .textContent=
+ game.employees.length;
+
+ document
+ .getElementById("employeeLimit")
+ .textContent=
+ officeLevels[game.office].limit;
+
+ document
+ .getElementById("channelCount")
+ .textContent=
+ game.channels.length;
+
+ document
+ .getElementById("streamCount")
+ .textContent=
+ game.streams.length;
+
+ renderEvents();
+ renderChannels();
+ renderStreams();
+ renderTree();
+ renderCompanyPanel();
+ renderMarket();
+ renderJobs();
+ renderStaff();
+ renderBuildings();
+ renderFinance();
+
 }
 
-function renameCompany() {
-  const name = document.getElementById("companyNameInput").value.trim();
+/* =========================================================
+   OTHER RENDERS
+========================================================= */
 
-  if(!name) return;
+function renderEvents(){
 
-  game.companyName = name;
-  addEvent("Firma zmieniła nazwę na " + name + ".");
-  render();
+ const box=
+ document.getElementById("events");
+
+ box.innerHTML=
+ game.events.length
+
+ ?game.events
+ .slice(0,15)
+ .map(e=>`
+
+ <div class="event">
+
+ ${e.text}
+
+ <div class="muted small">
+ ${e.date}
+ </div>
+
+ </div>
+
+ `).join("")
+
+ :'<div class="muted">Brak wydarzeń.</div>';
+
 }
 
-function openChannelModal() {
-  document.getElementById("channelModal").classList.add("open");
+function renderChannels(){
+
+ const box=
+ document.getElementById("channelList");
+
+ box.innerHTML=
+ game.channels.length
+
+ ?game.channels.map(c=>`
+
+ <div class="item">
+
+ <div class="row space">
+
+ <div>
+
+ <strong>${c.name}</strong>
+
+ <br>
+
+ <span class="badge">
+ ${c.type}
+ </span>
+
+ </div>
+
+ <div style="text-align:right">
+
+ <strong>
+ ${c.viewers.toLocaleString("pl-PL")}
+ </strong>
+
+ <div class="muted">
+ widzów
+ </div>
+
+ <div class="green">
+ ${fmt(
+ c.income*
+ stationLevels[game.station].multi
+ )}/mies.
+ </div>
+
+ </div>
+
+ </div>
+
+ </div>
+
+ `).join("")
+
+ :'<div class="card muted">Brak stacji.</div>';
+
 }
 
-function closeChannelModal() {
-  document.getElementById("channelModal").classList.remove("open");
+function renderStreams(){
+
+ const box=
+ document.getElementById("streamList");
+
+ box.innerHTML=
+ game.streams.length
+
+ ?game.streams.map(s=>`
+
+ <div class="item">
+
+ <strong>${s.name}</strong>
+
+ <div>
+ ${s.subscribers.toLocaleString("pl-PL")}
+ abonentów
+ </div>
+
+ <div class="green">
+ ${fmt(s.subscribers*s.price)}/mies.
+ </div>
+
+ </div>
+
+ `).join("")
+
+ :'<div class="card muted">Brak platform.</div>';
+
 }
 
-function createChannel() {
-  const name = document.getElementById("channelName").value.trim();
-  const type = document.getElementById("channelType").value;
+function renderMarket(){
 
-  if(!name) {
-    alert("Podaj nazwę stacji.");
-    return;
-  }
+ const box=
+ document.getElementById("marketList");
 
-  if(!spendMoney(250000, "Uruchomienie stacji " + name)) return;
+ const sorted=
+ [...game.market]
+ .sort(
+ (a,b)=>b.value-a.value
+ );
 
-  game.channels.push({
-    name,
-    type,
-    viewers:Math.floor(5000 + Math.random()*20000),
-    baseIncome:30000 + Math.random()*25000
-  });
+ box.innerHTML=
+ sorted.map(c=>{
 
-  addEvent("Uruchomiono kanał " + name + " (" + type + ").");
+ const owned=
+ game.holdings[c.id]||0;
 
-  document.getElementById("channelName").value = "";
-  closeChannelModal();
-  render();
+ return `
+
+ <div class="item ${owned>=51?"controlled":""}">
+
+ <div class="row space">
+
+ <div>
+
+ <strong>${c.name}</strong>
+
+ <span class="badge">
+ ${c.type}
+ </span>
+
+ <p>
+
+ Wycena:
+ <strong>${fmt(c.value)}</strong>
+
+ <br>
+
+ Wynik:
+
+ <span class="${c.profit>=0?"green":"red"}">
+ ${fmt(c.profit)}
+ </span>
+
+ </p>
+
+ <strong>
+ Twoje udziały: ${owned}%
+ </strong>
+
+ ${
+ owned>=51
+ ?'<div class="green">● KONTROLOWANA</div>'
+ :""
+ }
+
+ </div>
+
+ <div class="row">
+
+ <button onclick="buyShares(${c.id},1)">
+ +1%
+ </button>
+
+ <button onclick="buyShares(${c.id},5)">
+ +5%
+ </button>
+
+ <button onclick="buyShares(${c.id},10)">
+ +10%
+ </button>
+
+ ${
+ owned>=1
+ ?`<button class="secondary"
+ onclick="sellShares(${c.id},1)">
+ -1%
+ </button>`
+ :""
+ }
+
+ ${
+ owned>=5
+ ?`<button class="danger"
+ onclick="sellShares(${c.id},5)">
+ -5%
+ </button>`
+ :""
+ }
+
+ </div>
+
+ </div>
+
+ </div>
+
+ `;
+
+ }).join("");
+
 }
 
-function createStreaming() {
-  const input = document.getElementById("streamName");
-  const name = input.value.trim();
+function renderJobs(){
 
-  if(!name) return;
+ const box=
+ document.getElementById("jobList");
 
-  if(!spendMoney(500000, "Uruchomienie platformy " + name)) return;
+ box.innerHTML=
+ game.jobMarket.map(w=>`
 
-  game.streams.push({
-    name,
-    subscribers:1000,
-    price:29.99
-  });
+ <div class="item">
 
-  input.value = "";
+ <div class="row space">
 
-  addEvent("Uruchomiono platformę streamingową " + name + ".");
-  render();
+ <div>
+
+ <strong>${w.name}</strong>
+
+ <div class="muted">
+ ${w.role}
+ </div>
+
+ <span class="badge">
+ ⭐ ${w.perk}
+ </span>
+
+ </div>
+
+ <div style="text-align:right">
+
+ <strong>${w.skill}/100</strong>
+
+ <div>
+ ${fmt(w.salary)}/mies.
+ </div>
+
+ <button onclick="hireWorker(${w.id})">
+ Zatrudnij
+ </button>
+
+ </div>
+
+ </div>
+
+ </div>
+
+ `).join("");
+
 }
 
-function createSubsidiary() {
-  const input = document.getElementById("subsidiaryName");
-  const name = input.value.trim();
+function renderStaff(){
 
-  if(!name) return;
+ const box=
+ document.getElementById("staffList");
 
-  if(!spendMoney(100000, "Utworzenie spółki " + name)) return;
+ box.innerHTML=
+ game.employees.length
 
-  game.subsidiaries.push({
-    name,
-    ownership:100,
-    value:100000
-  });
+ ?game.employees.map(w=>`
 
-  input.value = "";
+ <div class="item">
 
-  addEvent("Utworzono spółkę córkę " + name + ".");
-  render();
+ <div class="row space">
+
+ <div>
+
+ <strong>${w.name}</strong>
+
+ <div class="muted">
+ ${w.role}
+ </div>
+
+ <span class="badge">
+ ⭐ ${w.perk}
+ </span>
+
+ </div>
+
+ <div>
+
+ ${w.skill}/100
+
+ <br>
+
+ ${fmt(w.salary)}/mies.
+
+ <br>
+
+ <button
+ class="danger"
+ onclick="fireWorker(${w.id})">
+
+ Zwolnij
+
+ </button>
+
+ </div>
+
+ </div>
+
+ </div>
+
+ `).join("")
+
+ :'<div class="card muted">Brak pracowników.</div>';
+
 }
 
-function employeeLimit() {
-  return officeLevels[game.officeLevel].limit;
+function renderBuildings(){
+
+ const office=
+ officeLevels[game.office];
+
+ const station=
+ stationLevels[game.station];
+
+ document
+ .getElementById("officeInfo")
+ .innerHTML=
+
+ `<strong>${office.name}</strong>
+ <br>
+ Limit pracowników:
+ ${office.limit}`;
+
+ const ob=
+ document.getElementById("officeButton");
+
+ ob.textContent=
+ office.cost===null
+ ?"MAX"
+ :"Ulepsz — "+fmt(office.cost);
+
+ ob.disabled=
+ office.cost===null;
+
+ document
+ .getElementById("stationInfo")
+ .innerHTML=
+
+ `<strong>${station.name}</strong>
+ <br>
+ Przychody TV:
+ ×${station.multi}`;
+
+ const sb=
+ document.getElementById("stationButton");
+
+ sb.textContent=
+ station.cost===null
+ ?"MAX"
+ :"Ulepsz — "+fmt(station.cost);
+
+ sb.disabled=
+ station.cost===null;
+
 }
 
-function hireEmployee() {
-  if(game.employees.length >= employeeLimit()) {
-    alert("Brak miejsca w biurze.");
-    return;
-  }
+function renderFinance(){
 
-  if(!spendMoney(5000, "Rekrutacja pracownika")) return;
+ let income=0;
+ let costs=0;
 
-  const skill = Math.floor(40 + Math.random()*51);
+ game.channels.forEach(
+ c=>
+ income+=
+ c.income*
+ stationLevels[game.station].multi
+ );
 
-  game.employees.push({
-    name:"Pracownik #" + (game.employees.length+1),
-    role:employeeRoles[Math.floor(Math.random()*employeeRoles.length)],
-    skill,
-    salary:3500 + skill*35
-  });
+ game.streams.forEach(
+ s=>
+ income+=
+ s.subscribers*
+ s.price
+ );
 
-  render();
+ game.employees.forEach(
+ w=>costs+=w.salary
+ );
+
+ document
+ .getElementById("incomeDisplay")
+ .textContent=
+ fmt(income);
+
+ document
+ .getElementById("costDisplay")
+ .textContent=
+ fmt(costs);
+
+ const profit=
+ income-costs;
+
+ const p=
+ document.getElementById("profitDisplay");
+
+ p.textContent=
+ fmt(profit);
+
+ p.className=
+ "big "+
+ (profit>=0?"green":"red");
+
+ document
+ .getElementById("shareDisplay")
+ .textContent=
+ fmt(externalShareValue());
+
+ document
+ .getElementById("transactions")
+ .innerHTML=
+
+ game.transactions
+ .slice(0,40)
+ .map(t=>`
+
+ <div class="item row space">
+
+ <div>
+
+ <strong>${t.reason}</strong>
+
+ <div class="muted small">
+ ${t.date}
+ </div>
+
+ </div>
+
+ <strong
+ class="${t.amount>=0?"green":"red"}">
+
+ ${t.amount>=0?"+":""}
+ ${fmt(t.amount)}
+
+ </strong>
+
+ </div>
+
+ `).join("");
+
 }
 
-function upgradeOffice() {
-  const current = officeLevels[game.officeLevel];
+/* =========================================================
+   NAVIGATION
+========================================================= */
+
+document
+.querySelectorAll(".nav")
+.forEach(button=>{
+
+ button.onclick=()=>{
+
+ document
+ .querySelectorAll(".nav")
+ .forEach(
+ b=>b.classList.remove("active")
+ );
+
+ document
+ .querySelectorAll(".page")
+ .forEach(
+ p=>p.classList.remove("active")
+ );
+
+ button
+ .classList.add("active");
+
+ document
+ .getElementById(
+ button.dataset.page
+ )
+ .classList.add("active");
+
+ };
 
-  if(current.cost === null) return;
-
-  if(!spendMoney(current.cost, "Ulepszenie biura")) return;
-
-  game.officeLevel++;
-  addEvent("Biuro ulepszono do poziomu: " + officeLevels[game.officeLevel].name);
-  render();
-}
-
-function upgradeStation() {
-  const current = stationLevels[game.stationLevel];
-
-  if(current.cost === null) return;
-
-  if(!spendMoney(current.cost, "Ulepszenie centrum nadawczego")) return;
-
-  game.stationLevel++;
-  addEvent("Infrastruktura nadawcza: " + stationLevels[game.stationLevel].name);
-  render();
-}
-
-function buyShares(id, percent) {
-  const company = game.market.find(x => x.id === id);
-
-  const owned = game.holdings[id] || 0;
-
-  if(owned + percent > 100) {
-    alert("Nie możesz posiadać więcej niż 100%.");
-    return;
-  }
-
-  const cost = company.value * (percent/100);
-
-  if(!spendMoney(cost, "Zakup " + percent + "% " + company.name)) return;
-
-  game.holdings[id] = owned + percent;
-
-  addEvent(
-    "Kupiono " + percent + "% udziałów " + company.name +
-    ". Łącznie posiadasz " + game.holdings[id] + "%."
-  );
-
-  if(game.holdings[id] >= 51 && owned < 51) {
-    addEvent("Przejęto kontrolę nad " + company.name + "!");
-  }
-
-  render();
-}
-
-function sellShares(id, percent) {
-  const owned = game.holdings[id] || 0;
-
-  if(owned < percent) return;
-
-  const company = game.market.find(x => x.id === id);
-
-  const value = company.value * (percent/100);
-
-  game.holdings[id] -= percent;
-
-  addMoney(value, "Sprzedaż " + percent + "% " + company.name);
-  addEvent("Sprzedano " + percent + "% udziałów " + company.name + ".");
-}
-
-function nextMonth() {
-  let income = 0;
-  let costs = 0;
-
-  const stationMultiplier = stationLevels[game.stationLevel].multiplier;
-
-  game.channels.forEach(channel => {
-    const growth = 0.95 + Math.random()*0.15;
-
-    channel.viewers = Math.max(
-      100,
-      Math.floor(channel.viewers * growth)
-    );
-
-    income += channel.baseIncome * stationMultiplier;
-  });
-
-  game.streams.forEach(stream => {
-    const growth = Math.floor(stream.subscribers*(0.02 + Math.random()*0.08));
-    stream.subscribers += growth;
-
-    income += stream.subscribers * stream.price;
-  });
-
-  game.employees.forEach(emp => {
-    costs += emp.salary;
-  });
-
-  // Dywidendy
-  game.market.forEach(company => {
-    const owned = game.holdings[company.id] || 0;
-
-    if(owned > 0 && Math.random() < 0.25) {
-      const dividendPool = Math.max(0, company.profit * 0.25);
-      const dividend = dividendPool * (owned/100);
-
-      if(dividend > 0) {
-        income += dividend;
-
-        addEvent(
-          company.name +
-          " wypłaca dywidendę. Otrzymujesz " +
-          money(dividend) + "."
-        );
-      }
-    }
-
-    // zmiana wyceny firmy
-    const change = 1 + ((Math.random()*2-1) * company.volatility);
-    company.value *= change;
-
-    const profitChange = 0.92 + Math.random()*0.17;
-    company.profit *= profitChange;
-  });
-
-  const result = income - costs;
-
-  game.money += result;
-
-  game.transactions.unshift({
-    amount:result,
-    reason:"Wynik miesiąca",
-    date:getDate()
-  });
-
-  animateMoney(result);
-
-  game.month++;
-
-  if(game.month >= 12) {
-    game.month = 0;
-    game.year++;
-  }
-
-  addEvent(
-    "Zamknięto miesiąc. Wynik: " + money(result)
-  );
-
-  render();
-}
-
-function calculateFinance() {
-  let income = 0;
-  let costs = 0;
-
-  const multiplier = stationLevels[game.stationLevel].multiplier;
-
-  game.channels.forEach(c => income += c.baseIncome * multiplier);
-  game.streams.forEach(s => income += s.subscribers*s.price);
-  game.employees.forEach(e => costs += e.salary);
-
-  return {income,costs,profit:income-costs};
-}
-
-function calculateCompanyValue() {
-  let value = game.money;
-
-  game.channels.forEach(c => value += 300000 + c.viewers*5);
-  game.streams.forEach(s => value += 500000 + s.subscribers*20);
-  game.subsidiaries.forEach(s => value += s.value);
-
-  game.market.forEach(company => {
-    value += company.value*((game.holdings[company.id]||0)/100);
-  });
-
-  return Math.max(0,value);
-}
-
-function render() {
-  document.getElementById("moneyDisplay").childNodes[0].nodeValue = money(game.money);
-  document.getElementById("dashMoney").innerText = money(game.money);
-
-  document.getElementById("companyNameTop").innerText = game.companyName;
-  document.getElementById("dateDisplay").innerText = getDate();
-
-  document.getElementById("companyValue").innerText =
-    money(calculateCompanyValue());
-
-  document.getElementById("employeeCount").innerText =
-    game.employees.length;
-
-  document.getElementById("employeeLimit").innerText =
-    employeeLimit();
-
-  document.getElementById("channelCount").innerText =
-    game.channels.length;
-
-  document.getElementById("cheatMark").innerText =
-    game.cheated ? " • CHEAT MODE" : "";
-
-  renderChannels();
-  renderStreams();
-  renderSubsidiaries();
-  renderEmployees();
-  renderMarket();
-  renderBuildings();
-  renderFinance();
-  renderEvents();
-}
-
-function renderChannels() {
-  const list = document.getElementById("channelList");
-
-  if(!game.channels.length) {
-    list.innerHTML =
-      '<div class="card muted">Nie posiadasz jeszcze żadnej stacji.</div>';
-    return;
-  }
-
-  list.innerHTML = game.channels.map(c => `
-    <div class="list-item">
-      <div class="row space">
-        <div>
-          <strong>${c.name}</strong><br>
-          <span class="badge">${c.type}</span>
-        </div>
-
-        <div style="text-align:right">
-          <strong>${c.viewers.toLocaleString("pl-PL")}</strong><br>
-          <span class="muted">widzów</span>
-        </div>
-      </div>
-    </div>
-  `).join("");
-}
-
-function renderStreams() {
-  const list = document.getElementById("streamList");
-
-  list.innerHTML = game.streams.map(s => `
-    <div class="list-item">
-      <strong>${s.name}</strong>
-      <div>${s.subscribers.toLocaleString("pl-PL")} abonentów</div>
-      <div class="muted">${money(s.price)} / miesiąc</div>
-    </div>
-  `).join("");
-}
-
-function renderSubsidiaries() {
-  const list = document.getElementById("subsidiaryList");
-
-  list.innerHTML = game.subsidiaries.map(s => `
-    <div class="list-item">
-      <strong>${s.name}</strong>
-      <div>Udziały: ${s.ownership}%</div>
-      <div class="muted">Wartość: ${money(s.value)}</div>
-    </div>
-  `).join("");
-}
-
-function renderEmployees() {
-  const list = document.getElementById("employeeList");
-
-  list.innerHTML = game.employees.map(e => `
-    <div class="list-item">
-      <div class="row space">
-        <div>
-          <strong>${e.name}</strong>
-          <div class="muted">${e.role}</div>
-        </div>
-
-        <div>
-          Umiejętności: ${e.skill}/100
-          <div class="progress">
-            <div style="width:${e.skill}%"></div>
-          </div>
-          <small>${money(e.salary)}/mies.</small>
-        </div>
-      </div>
-    </div>
-  `).join("");
-}
-
-function renderMarket() {
-  const list = document.getElementById("marketList");
-
-  list.innerHTML = game.market.map(company => {
-    const owned = game.holdings[company.id] || 0;
-
-    return `
-      <div class="card market-company" style="margin-bottom:12px">
-        <div class="row space">
-
-          <div>
-            <h2>${company.name}</h2>
-            <span class="badge">${company.category}</span>
-
-            <p>
-              Wycena: <strong>${money(company.value)}</strong><br>
-              Zysk: <span class="green">${money(company.profit)}</span>
-            </p>
-
-            <strong>Twoje udziały: ${owned}%</strong>
-
-            ${owned >= 51
-              ? '<div class="green">● KONTROLA NAD SPÓŁKĄ</div>'
-              : ''}
-          </div>
-
-          <div>
-            <button onclick="buyShares(${company.id},1)">Kup 1%</button>
-            <button onclick="buyShares(${company.id},5)">Kup 5%</button>
-            <button onclick="buyShares(${company.id},10)">Kup 10%</button>
-
-            ${owned >= 1
-              ? `<button class="secondary" onclick="sellShares(${company.id},1)">Sprzedaj 1%</button>`
-              : ''}
-
-            ${owned >= 10
-              ? `<button class="danger" onclick="sellShares(${company.id},10)">Sprzedaj 10%</button>`
-              : ''}
-          </div>
-
-        </div>
-      </div>
-    `;
-  }).join("");
-}
-
-function renderBuildings() {
-  const office = officeLevels[game.officeLevel];
-  const station = stationLevels[game.stationLevel];
-
-  document.getElementById("officeName").innerHTML =
-    "<strong>" + office.name + "</strong><br>Limit: " +
-    office.limit + " pracowników";
-
-  document.getElementById("officeButton").innerText =
-    office.cost === null
-      ? "MAX"
-      : "Ulepsz — " + money(office.cost);
-
-  document.getElementById("officeButton").disabled =
-    office.cost === null;
-
-  document.getElementById("stationName").innerHTML =
-    "<strong>" + station.name + "</strong><br>Mnożnik przychodów: x" +
-    station.multiplier;
-
-  document.getElementById("stationButton").innerText =
-    station.cost === null
-      ? "MAX"
-      : "Ulepsz — " + money(station.cost);
-
-  document.getElementById("stationButton").disabled =
-    station.cost === null;
-}
-
-function renderFinance() {
-  const f = calculateFinance();
-
-  document.getElementById("monthlyIncome").innerText =
-    money(f.income);
-
-  document.getElementById("monthlyCosts").innerText =
-    money(f.costs);
-
-  document.getElementById("monthlyProfit").innerText =
-    money(f.profit);
-
-  document.getElementById("monthlyProfit").className =
-    "big-number " + (f.profit >= 0 ? "green" : "red");
-
-  document.getElementById("transactions").innerHTML =
-    game.transactions.slice(0,30).map(t => `
-      <div class="list-item row space">
-        <div>
-          <strong>${t.reason}</strong>
-          <div class="muted">${t.date}</div>
-        </div>
-
-        <strong class="${t.amount >= 0 ? "green":"red"}">
-          ${t.amount >= 0 ? "+" : ""}${money(t.amount)}
-        </strong>
-      </div>
-    `).join("");
-}
-
-function renderEvents() {
-  const box = document.getElementById("events");
-
-  if(!game.events.length) {
-    box.innerHTML =
-      '<div class="muted">Brak wydarzeń.</div>';
-    return;
-  }
-
-  box.innerHTML = game.events.slice(0,10).map(e => `
-    <div class="event">
-      ${e.text}
-      <div class="muted">${e.date}</div>
-    </div>
-  `).join("");
-}
-
-/* NAVIGATION */
-
-document.querySelectorAll(".nav-btn").forEach(btn => {
-  btn.addEventListener("click", () => {
-    const page = btn.dataset.page;
-
-    if(!page) return;
-
-    document.querySelectorAll(".page").forEach(p =>
-      p.classList.remove("active")
-    );
-
-    document.querySelectorAll(".nav-btn").forEach(b =>
-      b.classList.remove("active")
-    );
-
-    document.getElementById(page).classList.add("active");
-    btn.classList.add("active");
-  });
 });
 
-/* DEV CONSOLE */
+/* =========================================================
+   AUTOMATIC TIME
+========================================================= */
 
-const consoleBox = document.getElementById("console");
-const consoleInput = document.getElementById("consoleInput");
-const consoleLog = document.getElementById("consoleLog");
+const SECONDS_PER_MONTH=12;
 
-document.addEventListener("keydown", e => {
-  if(e.key === "`" || e.key === "~") {
-    e.preventDefault();
-    consoleBox.classList.toggle("open");
+function setSpeed(speed){
 
-    if(consoleBox.classList.contains("open")) {
-      setTimeout(() => consoleInput.focus(),50);
-    }
-  }
+ game.speed=speed;
 
-  if(e.key === "Escape") {
-    consoleBox.classList.remove("open");
-  }
-});
-
-consoleInput.addEventListener("keydown", e => {
-  if(e.key === "Enter") {
-    executeCommand(consoleInput.value);
-    consoleInput.value = "";
-  }
-});
-
-function logConsole(text) {
-  consoleLog.innerText += "\n> " + text;
-  consoleLog.scrollTop = consoleLog.scrollHeight;
 }
 
-function executeCommand(command) {
-  const parts = command.trim().split(/\s+/);
+let previous=
+performance.now();
 
-  if(!parts[0]) return;
+function gameLoop(now){
 
-  const cmd = parts[0].toLowerCase();
+ const delta=
+ Math.min(
+ (now-previous)/1000,
+ .5
+ );
 
-  if(cmd === "kasa") {
-    const amount = Number(parts[1]);
+ previous=now;
 
-    if(!Number.isFinite(amount)) {
-      logConsole("Użycie: kasa 1000000");
-      return;
-    }
+ if(game.speed>0){
 
-    game.cheated = true;
-    addMoney(amount,"Kod: kasa");
-    logConsole("Dodano " + money(amount));
-    return;
-  }
+ game.progress+=
+ delta*
+ game.speed/
+ SECONDS_PER_MONTH;
 
-  if(cmd === "maxpracownicy") {
-    game.cheated = true;
+ while(
+ game.progress>=1
+ ){
 
-    game.officeLevel = officeLevels.length-1;
+ game.progress-=1;
 
-    game.employees = [];
+ nextMonth();
 
-    const limit = employeeLimit();
+ }
 
-    for(let i=0;i<limit;i++) {
-      game.employees.push({
-        name:"Elite #" + (i+1),
-        role:employeeRoles[i % employeeRoles.length],
-        skill:100,
-        salary:15000,
-        perks:[
-          "Ekspert",
-          "Szybka produkcja",
-          "Kreatywność",
-          "Lider"
-        ]
-      });
-    }
+ }
 
-    addEvent("Kod deweloperski: zatrudniono maksymalną elitarną załogę.");
-    logConsole("MAX pracowników aktywowany.");
-    render();
-    return;
-  }
+ document
+ .getElementById("timeProgress")
+ .style.width=
+ (game.progress*100)+"%";
 
-  if(cmd === "help") {
-    logConsole(
-`Dostępne komendy:
-kasa [kwota]
+ requestAnimationFrame(
+ gameLoop
+ );
+
+}
+
+/* =========================================================
+   CONSOLE
+========================================================= */
+
+const consoleBox=
+document.getElementById("console");
+
+const consoleInput=
+document.getElementById("consoleInput");
+
+const consoleLog=
+document.getElementById("consoleLog");
+
+document.addEventListener(
+"keydown",
+e=>{
+
+ if(
+ (e.key==="`"||e.key==="~") &&
+ document.activeElement!==consoleInput
+ ){
+
+ e.preventDefault();
+
+ consoleBox
+ .classList
+ .toggle("open");
+
+ if(
+ consoleBox.classList.contains("open")
+ ){
+
+ setTimeout(
+ ()=>consoleInput.focus(),
+ 20
+ );
+
+ }
+
+ }
+
+ if(e.key==="Escape"){
+
+ consoleBox
+ .classList
+ .remove("open");
+
+ }
+
+});
+
+consoleInput.addEventListener(
+"keydown",
+e=>{
+
+ if(e.key==="Enter"){
+
+ executeCommand(
+ consoleInput.value
+ );
+
+ consoleInput.value="";
+
+ }
+
+});
+
+function consoleWrite(text){
+
+ consoleLog.textContent+=
+ "\n> "+text;
+
+ consoleLog.scrollTop=
+ consoleLog.scrollHeight;
+
+}
+
+function executeCommand(text){
+
+ const args=
+ text.trim().split(/\s+/);
+
+ const command=
+ (args.shift()||"")
+ .toLowerCase();
+
+ if(command==="kasa"){
+
+ const amount=
+ Number(args[0]);
+
+ if(
+ !Number.isFinite(amount)
+ ){
+
+ consoleWrite(
+ "Użycie: kasa 1000000"
+ );
+
+ return;
+
+ }
+
+ game.cheated=true;
+
+ addCash(
+ amount,
+ "Kod: kasa"
+ );
+
+ consoleWrite(
+ "Dodano "+fmt(amount)
+ );
+
+ render();
+
+ return;
+
+ }
+
+ if(
+ command==="maxpracownicy"
+ ){
+
+ game.cheated=true;
+
+ game.office=
+ officeLevels.length-1;
+
+ game.employees=[];
+
+ const limit=
+ officeLevels[
+ game.office
+ ].limit;
+
+ for(
+ let i=0;
+ i<limit;
+ i++
+ ){
+
+ game.employees.push({
+
+ id:game.nextWorkerId++,
+
+ name:
+ pick(firstNames)+" "+
+ pick(lastNames),
+
+ role:
+ roles[
+ i%roles.length
+ ],
+
+ skill:100,
+
+ salary:15000,
+
+ perk:
+ "LEGENDARNY • wszystkie perki"
+
+ });
+
+ }
+
+ addEvent(
+ "⚡ Aktywowano MAXPRACOWNICY."
+ );
+
+ consoleWrite(
+ "Zatrudniono "+
+ limit+
+ " elitarnych pracowników."
+ );
+
+ render();
+
+ return;
+
+ }
+
+ if(command==="help"){
+
+ consoleWrite(
+`kasa [kwota]
 maxpracownicy
 help`
-    );
-    return;
-  }
+ );
 
-  logConsole("Nieznana komenda: " + cmd);
+ return;
+
+ }
+
+ consoleWrite(
+ "Nieznana komenda: "+
+ command
+ );
+
 }
 
-/* START */
+/* =========================================================
+   START
+========================================================= */
 
-addEvent("Założono nową firmę medialną. Kapitał początkowy: 0 zł.");
+for(
+ let i=0;
+ i<12;
+ i++
+)
+generateMarketCompany(true);
+
+for(
+ let i=0;
+ i<20;
+ i++
+)
+generateWorker();
+
+addEvent(
+"🚀 Założono nową grupę medialną."
+);
+
+addEvent(
+"💰 Zaczynasz z 0 zł."
+);
+
+addEvent(
+"⏱️ Czas płynie automatycznie."
+);
+
 render();
+
+requestAnimationFrame(
+gameLoop
+);
+
 </script>
 
 </body>
