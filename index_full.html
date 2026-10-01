@@ -1,0 +1,2653 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Telecom Empire</title>
+
+<style>
+*{box-sizing:border-box}
+:root{
+  --bg:#050914;
+  --panel:#0b1323;
+  --panel2:#101c30;
+  --line:#243653;
+  --text:#edf6ff;
+  --muted:#8fa6bf;
+  --green:#22c55e;
+  --cyan:#22d3ee;
+  --red:#ef4444;
+  --yellow:#facc15;
+  --purple:#a855f7;
+}
+body{
+  margin:0;
+  font-family:Inter,Arial,sans-serif;
+  background:radial-gradient(circle at top,#10213a,#050914 50%);
+  color:var(--text);
+}
+button,input,select{font:inherit}
+button{cursor:pointer}
+.hidden{display:none!important}
+
+header{
+  height:72px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 22px;
+  background:#07101eea;
+  border-bottom:1px solid var(--line);
+  position:sticky;
+  top:0;
+  z-index:1000;
+  backdrop-filter:blur(14px);
+}
+.logo{
+  font-size:22px;
+  font-weight:1000;
+  letter-spacing:.5px;
+}
+.logo span{color:var(--cyan)}
+.topstats{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+.stat{
+  padding:8px 12px;
+  border:1px solid var(--line);
+  border-radius:10px;
+  background:#0b1628;
+  font-size:13px;
+}
+.stat b{color:white}
+#cash{color:#7df9a8}
+
+.layout{
+  display:grid;
+  grid-template-columns:220px minmax(0,1fr) 330px;
+  min-height:calc(100vh - 72px);
+}
+nav{
+  padding:14px;
+  border-right:1px solid var(--line);
+  background:#070d18;
+}
+.navbtn{
+  width:100%;
+  border:0;
+  background:transparent;
+  color:#a9bed2;
+  text-align:left;
+  padding:11px;
+  margin:3px 0;
+  border-radius:9px;
+  font-weight:700;
+}
+.navbtn:hover,.navbtn.active{
+  background:#11243a;
+  color:white;
+}
+main{
+  padding:18px;
+  min-width:0;
+}
+aside{
+  padding:15px;
+  border-left:1px solid var(--line);
+  background:#070d18;
+}
+.page{display:none}
+.page.active{display:block}
+.card{
+  background:linear-gradient(145deg,#0d1829,#09111f);
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:15px;
+  margin-bottom:14px;
+  box-shadow:0 10px 30px #0004;
+}
+.card h2,.card h3{margin-top:0}
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:12px;
+}
+.btn{
+  border:1px solid #35506f;
+  background:#14253c;
+  color:white;
+  border-radius:9px;
+  padding:9px 12px;
+  font-weight:800;
+}
+.btn:hover{filter:brightness(1.15)}
+.btn.green{background:#14532d;border-color:#22c55e}
+.btn.red{background:#501b22;border-color:#ef4444}
+.btn.cyan{background:#0b3a48;border-color:#22d3ee}
+.btn.purple{background:#3b1858;border-color:#a855f7}
+.btn.yellow{background:#4d3b09;border-color:#facc15}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.input,.select{
+  width:100%;
+  padding:9px;
+  border-radius:8px;
+  border:1px solid #304763;
+  background:#07111f;
+  color:white;
+  margin:5px 0 9px;
+}
+label{
+  display:block;
+  color:#a7bad0;
+  font-size:12px;
+  font-weight:800;
+  margin-top:7px;
+}
+.muted{color:var(--muted)}
+.good{color:#4ade80}
+.bad{color:#fb7185}
+.yellow{color:#fde047}
+.small{font-size:12px}
+.big{font-size:24px;font-weight:1000}
+
+#map{
+  height:570px;
+  border-radius:14px;
+  overflow:hidden;
+  background:#07101d;
+}
+.leaflet-container{background:#07101d!important}
+
+.towerIcon{
+  width:16px;height:16px;
+  border-radius:50%;
+  background:#22d3ee;
+  border:3px solid white;
+  box-shadow:0 0 15px #22d3ee;
+}
+.shopIcon{
+  width:14px;height:14px;
+  transform:rotate(45deg);
+  background:#facc15;
+  border:2px solid white;
+  box-shadow:0 0 12px #facc15;
+}
+.hqIcon{
+  width:20px;height:20px;
+  border-radius:4px;
+  background:#a855f7;
+  border:3px solid white;
+  box-shadow:0 0 20px #a855f7;
+}
+
+.listItem{
+  border:1px solid #243753;
+  border-radius:10px;
+  padding:11px;
+  margin:8px 0;
+  background:#0a1424;
+}
+.row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+}
+.tags{
+  display:flex;
+  gap:5px;
+  flex-wrap:wrap;
+  margin-top:7px;
+}
+.tag{
+  font-size:11px;
+  padding:4px 7px;
+  background:#172a42;
+  border-radius:20px;
+  border:1px solid #2e4967;
+}
+.moneyFloat{
+  position:fixed;
+  right:30px;
+  top:80px;
+  z-index:9999;
+  font-weight:1000;
+  font-size:20px;
+  pointer-events:none;
+  animation:moneyFly 1.4s forwards;
+}
+@keyframes moneyFly{
+  0%{opacity:0;transform:translateY(20px)}
+  20%{opacity:1}
+  100%{opacity:0;transform:translateY(-55px)}
+}
+.countrySearch{position:relative}
+.searchResults{
+  position:absolute;
+  left:0;right:0;top:68px;
+  background:#07111f;
+  border:1px solid #35506f;
+  max-height:260px;
+  overflow:auto;
+  z-index:5000;
+  border-radius:9px;
+}
+.searchResult{
+  padding:9px;
+  border-bottom:1px solid #1e3048;
+  cursor:pointer;
+}
+.searchResult:hover{background:#14253c}
+.progress{
+  height:8px;
+  border-radius:20px;
+  overflow:hidden;
+  background:#182337;
+}
+.progress>div{
+  height:100%;
+  background:linear-gradient(90deg,#22d3ee,#22c55e);
+}
+#console{
+  position:fixed;
+  left:50%;
+  transform:translateX(-50%);
+  top:90px;
+  width:min(600px,90%);
+  z-index:99999;
+  background:#03070e;
+  border:1px solid #22d3ee;
+  padding:14px;
+  border-radius:12px;
+  box-shadow:0 30px 80px #000;
+}
+#console input{
+  background:#000;
+  color:#4ade80;
+  font-family:monospace;
+}
+.notification{
+  position:fixed;
+  bottom:20px;
+  right:20px;
+  width:300px;
+  padding:13px;
+  background:#101d30;
+  border:1px solid #34506f;
+  border-radius:12px;
+  z-index:9999;
+  animation:notice .25s;
+}
+@keyframes notice{
+  from{transform:translateX(50px);opacity:0}
+}
+@media(max-width:1050px){
+  .layout{grid-template-columns:170px 1fr}
+  aside{display:none}
+}
+@media(max-width:720px){
+  .layout{display:block}
+  nav{
+    border:0;
+    display:flex;
+    overflow:auto;
+    position:sticky;
+    top:72px;
+    z-index:900;
+  }
+  .navbtn{min-width:150px}
+  header{height:auto;min-height:72px;align-items:flex-start;padding:12px}
+  .topstats{justify-content:flex-end}
+  #map{height:450px}
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div class="logo">📡 TELECOM <span>EMPIRE</span></div>
+
+  <div class="topstats">
+    <div class="stat">💰 <b id="cash">0</b></div>
+    <div class="stat">👥 <b id="customers">0</b> klientów</div>
+    <div class="stat">📡 <b id="towerCount">0</b></div>
+    <div class="stat">🏪 <b id="shopCount">0</b></div>
+    <div class="stat">🏢 <b id="hqTop">Brak siedziby</b></div>
+  </div>
+</header>
+
+<div class="layout">
+
+<nav>
+  <button class="navbtn active" data-page="mapPage">🌍 Mapa świata</button>
+  <button class="navbtn" data-page="hqPage">🏢 Siedziba</button>
+  <button class="navbtn" data-page="networkPage">📡 Sieć</button>
+  <button class="navbtn" data-page="offersPage">📱 Oferty</button>
+  <button class="navbtn" data-page="employeesPage">👨‍💼 Pracownicy</button>
+  <button class="navbtn" data-page="techPage">🧪 Technologie</button>
+  <button class="navbtn" data-page="marketPage">🏦 Firmy i udziały</button>
+  <button class="navbtn" data-page="streamingPage">🎬 Streaming</button>
+  <button class="navbtn" data-page="financePage">📊 Finanse</button>
+</nav>
+
+<main>
+
+<section class="page active" id="mapPage">
+
+<div class="card">
+  <div class="row">
+    <div>
+      <h2>🌍 Globalna sieć</h2>
+      <div class="muted">Kliknij miejsce na mapie, aby postawić maszt, salon lub siedzibę.</div>
+    </div>
+
+    <div style="width:280px">
+      <input id="citySearch" class="input" placeholder="🔎 Warszawa, Tykocin, Wasilków...">
+      <button class="btn cyan" onclick="searchCity()">Znajdź miasto</button>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div id="map"></div>
+</div>
+
+<div class="card" id="selectedPlace">
+  <h3>📍 Wybrane miejsce</h3>
+  <div class="muted">Kliknij mapę lub wyszukaj miasto.</div>
+</div>
+
+</section>
+
+<section class="page" id="hqPage">
+<div class="card">
+  <h2>🏢 Siedziba główna</h2>
+
+  <div id="hqInfo"></div>
+
+  <hr style="border-color:#243653">
+
+  <h3>Budowa / przeniesienie siedziby</h3>
+
+  <label>Kraj</label>
+  <select id="hqCountry" class="select"></select>
+
+  <label>Miasto</label>
+  <input id="hqCity" class="input" value="Warszawa">
+
+  <button class="btn purple" onclick="buildHQ()">🏢 Zbuduj / przenieś siedzibę</button>
+
+  <p class="muted small">
+    Waluta kraju siedziby staje się główną walutą księgową firmy.
+    Przychody z innych państw są automatycznie przeliczane.
+  </p>
+</div>
+
+<div class="grid">
+  <div class="card">
+    <h3>Poziom siedziby</h3>
+    <div class="big" id="hqLevel">0</div>
+    <button class="btn green" onclick="upgradeHQ()">Ulepsz siedzibę</button>
+  </div>
+
+  <div class="card">
+    <h3>Limit pracowników</h3>
+    <div class="big" id="employeeLimit">10</div>
+  </div>
+
+  <div class="card">
+    <h3>Bonus zarządzania</h3>
+    <div class="big" id="hqBonus">0%</div>
+  </div>
+</div>
+</section>
+
+<section class="page" id="networkPage">
+
+<div class="grid">
+
+<div class="card">
+  <h3>📡 Postaw maszt</h3>
+
+  <label>Kraj</label>
+  <select id="towerCountry" class="select"></select>
+
+  <label>Miasto</label>
+  <input id="towerCity" class="input" placeholder="np. Tykocin">
+
+  <label>Zasięg anteny: <span id="radiusLabel">8</span> km</label>
+  <input id="towerRadius" type="range" min="1" max="25" value="8" style="width:100%">
+
+  <button class="btn cyan" onclick="buildTower()">📡 Postaw maszt</button>
+</div>
+
+<div class="card">
+  <h3>🏪 Otwórz salon</h3>
+
+  <label>Kraj</label>
+  <select id="shopCountry" class="select"></select>
+
+  <label>Miasto</label>
+  <input id="shopCity" class="input" placeholder="np. Wasilków">
+
+  <button class="btn yellow" onclick="buildShop()">🏪 Otwórz salon</button>
+</div>
+
+</div>
+
+<div class="card">
+  <h3>Twoje maszty</h3>
+  <div id="towerList"></div>
+</div>
+
+<div class="card">
+  <h3>Twoje salony</h3>
+  <div id="shopList"></div>
+</div>
+
+</section>
+
+<section class="page" id="offersPage">
+
+<div class="card">
+<h2>📱 Tworzenie oferty</h2>
+
+<div class="grid">
+
+<div>
+<label>Kraj</label>
+
+<div class="countrySearch">
+<input id="offerCountrySearch" class="input"
+       placeholder="Wpisz np. pol, USA, niem...">
+
+<input id="offerCountry" type="hidden" value="PL">
+
+<div id="countryResults" class="searchResults hidden"></div>
+
+<div id="selectedOfferCountry" class="listItem">
+🇵🇱 Polska
+</div>
+</div>
+</div>
+
+<div>
+<label>Typ</label>
+<select id="offerType" class="select" onchange="offerTypeChanged()">
+<option value="subscription">Abonament</option>
+<option value="prepaid">Na kartę</option>
+<option value="mix">MIX</option>
+<option value="internet">Internet</option>
+</select>
+</div>
+
+<div>
+<label>Nazwa</label>
+<input id="offerName" class="input" value="Smart 5G">
+</div>
+
+<div>
+<label>Cena miesięczna</label>
+<input id="offerPrice" class="input" type="number" value="49.99">
+</div>
+
+<div id="dataBox">
+<label>Internet GB</label>
+<input id="offerData" class="input" type="number" value="60">
+</div>
+
+<div id="speedBox" class="hidden">
+<label>Prędkość internetu Mbps</label>
+<input id="offerSpeed" class="input" type="number" value="300">
+</div>
+
+<div>
+<label>Rozmowy</label>
+<select id="callsUnlimited" class="select">
+<option value="true">Nielimitowane</option>
+<option value="false">Limitowane</option>
+</select>
+</div>
+
+<div>
+<label>SMS</label>
+<select id="smsUnlimited" class="select">
+<option value="true">Nielimitowane</option>
+<option value="false">Limitowane</option>
+</select>
+</div>
+
+</div>
+
+<button class="btn green" onclick="createOffer()">➕ Dodaj ofertę</button>
+</div>
+
+<div class="card">
+<h3>Oferty na rynkach</h3>
+<div id="offersList"></div>
+</div>
+
+</section>
+
+<section class="page" id="employeesPage">
+
+<div class="card">
+<h2>👨‍💼 Rekrutacja</h2>
+<div id="employeeCandidates"></div>
+</div>
+
+<div class="card">
+<h3>Zatrudnieni</h3>
+<div id="employeesList"></div>
+</div>
+
+</section>
+
+<section class="page" id="techPage">
+
+<div class="card">
+<h2>🧪 Badania i rozwój</h2>
+<div id="technologyList"></div>
+</div>
+
+<div class="card">
+<h3>🔬 Własna technologia</h3>
+
+<label>Nazwa projektu</label>
+<input id="customTechName" class="input" placeholder="np. HyperWave 7G">
+
+<label>Koszt badań</label>
+<input id="customTechCost" class="input" type="number" value="5000000">
+
+<button class="btn purple" onclick="researchCustomTech()">Rozpocznij badania</button>
+</div>
+
+</section>
+
+<section class="page" id="marketPage">
+
+<div class="card">
+<h2>🏦 Firmy telekomunikacyjne</h2>
+<div class="muted">Nowe firmy pojawiają się automatycznie.</div>
+<div id="companiesList"></div>
+</div>
+
+<div class="card">
+<h3>📈 Twoje udziały</h3>
+<div id="sharesList"></div>
+</div>
+
+</section>
+
+<section class="page" id="streamingPage">
+
+<div class="card">
+<h2>🎬 Platformy streamingowe</h2>
+<div id="streamingList"></div>
+</div>
+
+</section>
+
+<section class="page" id="financePage">
+
+<div class="grid">
+<div class="card">
+<h3>Przychód / miesiąc</h3>
+<div class="big good" id="monthlyIncome">0</div>
+</div>
+
+<div class="card">
+<h3>Koszty / miesiąc</h3>
+<div class="big bad" id="monthlyCosts">0</div>
+</div>
+
+<div class="card">
+<h3>Bilans</h3>
+<div class="big" id="monthlyProfit">0</div>
+</div>
+</div>
+
+<div class="card">
+<h3>💱 Waluty</h3>
+<div id="currencyInfo"></div>
+</div>
+
+<div class="card">
+<h3>Historia finansowa</h3>
+<div id="financeLog"></div>
+</div>
+
+</section>
+
+</main>
+
+<aside>
+<h3>📡 Firma</h3>
+
+<div class="listItem">
+<div class="muted small">Siedziba</div>
+<strong id="sideHQ">Brak</strong>
+</div>
+
+<div class="listItem">
+<div class="muted small">Waluta księgowa</div>
+<strong id="sideCurrency">PLN</strong>
+</div>
+
+<div class="listItem">
+<div class="muted small">Pracownicy</div>
+<strong id="sideEmployees">0 / 10</strong>
+</div>
+
+<div class="listItem">
+<div class="muted small">Technologie</div>
+<strong id="sideTech">1</strong>
+</div>
+
+<h3>📰 Wydarzenia</h3>
+<div id="eventLog"></div>
+</aside>
+
+</div>
+
+<div id="console" class="hidden">
+<h3>⌨️ Konsola ~</h3>
+<input id="consoleInput" class="input"
+       placeholder="CASH 1000000 / MAXCASH / STAFF / CUSTOMERS 100000">
+<div class="muted small">
+MAXCASH · CASH liczba · STAFF · CUSTOMERS liczba · TECH
+</div>
+</div>
+
+<script>
+/* =========================================================
+   TELECOM EMPIRE
+========================================================= */
+
+const $=id=>document.getElementById(id);
+
+const COUNTRY_CODES=[
+"AF","AL","DZ","AD","AO","AG","AR","AM","AU","AT","AZ",
+"BS","BH","BD","BB","BY","BE","BZ","BJ","BT","BO","BA","BW","BR","BN","BG","BF","BI",
+"CV","KH","CM","CA","CF","TD","CL","CN","CO","KM","CG","CD","CR","CI","HR","CU","CY","CZ",
+"DK","DJ","DM","DO","EC","EG","SV","GQ","ER","EE","SZ","ET",
+"FJ","FI","FR","GA","GM","GE","DE","GH","GR","GD","GT","GN","GW","GY",
+"HT","HN","HU","IS","IN","ID","IR","IQ","IE","IL","IT",
+"JM","JP","JO","KZ","KE","KI","KP","KR","KW","KG",
+"LA","LV","LB","LS","LR","LY","LI","LT","LU",
+"MG","MW","MY","MV","ML","MT","MH","MR","MU","MX","FM","MD","MC","MN","ME","MA","MZ","MM",
+"NA","NR","NP","NL","NZ","NI","NE","NG","MK","NO","OM",
+"PK","PW","PA","PG","PY","PE","PH","PL","PT","QA",
+"RO","RU","RW","KN","LC","VC","WS","SM","ST","SA","SN","RS","SC","SL","SG","SK","SI","SB","SO",
+"ZA","SS","ES","LK","SD","SR","SE","CH","SY",
+"TJ","TZ","TH","TL","TG","TO","TT","TN","TR","TM","TV",
+"UG","UA","AE","GB","US","UY","UZ","VU","VA","VE","VN","YE","ZM","ZW"
+];
+
+const COUNTRY_CURRENCY={
+AF:"AFN",AL:"ALL",DZ:"DZD",AD:"EUR",AO:"AOA",AG:"XCD",AR:"ARS",AM:"AMD",AU:"AUD",AT:"EUR",AZ:"AZN",
+BS:"BSD",BH:"BHD",BD:"BDT",BB:"BBD",BY:"BYN",BE:"EUR",BZ:"BZD",BJ:"XOF",BT:"BTN",BO:"BOB",BA:"BAM",BW:"BWP",BR:"BRL",BN:"BND",BG:"EUR",BF:"XOF",BI:"BIF",
+CV:"CVE",KH:"KHR",CM:"XAF",CA:"CAD",CF:"XAF",TD:"XAF",CL:"CLP",CN:"CNY",CO:"COP",KM:"KMF",CG:"XAF",CD:"CDF",CR:"CRC",CI:"XOF",HR:"EUR",CU:"CUP",CY:"EUR",CZ:"CZK",
+DK:"DKK",DJ:"DJF",DM:"XCD",DO:"DOP",EC:"USD",EG:"EGP",SV:"USD",GQ:"XAF",ER:"ERN",EE:"EUR",SZ:"SZL",ET:"ETB",
+FJ:"FJD",FI:"EUR",FR:"EUR",GA:"XAF",GM:"GMD",GE:"GEL",DE:"EUR",GH:"GHS",GR:"EUR",GD:"XCD",GT:"GTQ",GN:"GNF",GW:"XOF",GY:"GYD",
+HT:"HTG",HN:"HNL",HU:"HUF",IS:"ISK",IN:"INR",ID:"IDR",IR:"IRR",IQ:"IQD",IE:"EUR",IL:"ILS",IT:"EUR",
+JM:"JMD",JP:"JPY",JO:"JOD",KZ:"KZT",KE:"KES",KI:"AUD",KP:"KPW",KR:"KRW",KW:"KWD",KG:"KGS",
+LA:"LAK",LV:"EUR",LB:"LBP",LS:"LSL",LR:"LRD",LY:"LYD",LI:"CHF",LT:"EUR",LU:"EUR",
+MG:"MGA",MW:"MWK",MY:"MYR",MV:"MVR",ML:"XOF",MT:"EUR",MH:"USD",MR:"MRU",MU:"MUR",MX:"MXN",FM:"USD",MD:"MDL",MC:"EUR",MN:"MNT",ME:"EUR",MA:"MAD",MZ:"MZN",MM:"MMK",
+NA:"NAD",NR:"AUD",NP:"NPR",NL:"EUR",NZ:"NZD",NI:"NIO",NE:"XOF",NG:"NGN",MK:"MKD",NO:"NOK",OM:"OMR",
+PK:"PKR",PW:"USD",PA:"USD",PG:"PGK",PY:"PYG",PE:"PEN",PH:"PHP",PL:"PLN",PT:"EUR",QA:"QAR",
+RO:"RON",RU:"RUB",RW:"RWF",KN:"XCD",LC:"XCD",VC:"XCD",WS:"WST",SM:"EUR",ST:"STN",SA:"SAR",SN:"XOF",RS:"RSD",SC:"SCR",SL:"SLE",SG:"SGD",SK:"EUR",SI:"EUR",SB:"SBD",SO:"SOS",
+ZA:"ZAR",SS:"SSP",ES:"EUR",LK:"LKR",SD:"SDG",SR:"SRD",SE:"SEK",CH:"CHF",SY:"SYP",
+TJ:"TJS",TZ:"TZS",TH:"THB",TL:"USD",TG:"XOF",TO:"TOP",TT:"TTD",TN:"TND",TR:"TRY",TM:"TMT",TV:"AUD",
+UG:"UGX",UA:"UAH",AE:"AED",GB:"GBP",US:"USD",UY:"UYU",UZ:"UZS",
+VU:"VUV",VA:"EUR",VE:"VES",VN:"VND",YE:"YER",ZM:"ZMW",ZW:"USD"
+};
+
+/*
+  Kursy gry względem USD.
+  1 USD = podana liczba jednostek waluty.
+*/
+const FX_BASE={
+USD:1,
+PLN:3.95,
+EUR:.92,
+GBP:.79,
+CHF:.89,
+CZK:23.2,
+SEK:10.4,
+NOK:10.6,
+DKK:6.86,
+JPY:149,
+CNY:7.2,
+KRW:1340,
+INR:83,
+CAD:1.36,
+AUD:1.52,
+NZD:1.65,
+BRL:5.05,
+MXN:17.1,
+UAH:41,
+TRY:34,
+AED:3.67,
+SAR:3.75,
+RON:4.58,
+HUF:360,
+BGN:1.8,
+RUB:95,
+ZAR:18,
+SGD:1.34,
+MYR:4.7,
+THB:36,
+IDR:15800,
+PHP:57,
+ARS:950,
+CLP:930,
+COP:4100,
+PEN:3.75,
+ILS:3.7,
+EGP:48,
+NGN:1600,
+PKR:278,
+BDT:118,
+VND:24500,
+KZT:480,
+GEL:2.7,
+MAD:10,
+QAR:3.64,
+KWD:.31,
+BHD:.376,
+OMR:.385
+};
+const FX={...FX_BASE};
+const FX_TRENDS={};
+const FX_HISTORY={};
+Object.keys(FX).forEach(cur=>{FX_TRENDS[cur]=cur==="USD"?0:(Math.random()-.5)*.006;FX_HISTORY[cur]=[{month:1,year:2026,value:FX[cur]}];});
+function updateCurrencies(){
+  Object.keys(FX).forEach(cur=>{
+    if(cur==="USD")return;
+    let trend=(FX_TRENDS[cur]||0)+(Math.random()-.5)*.0015;
+    trend=Math.max(-.012,Math.min(.012,trend)); FX_TRENDS[cur]=trend;
+    let move=(Math.random()-.5)*.016+trend;
+    if(state.currencyEvent?.currency===cur)move+=state.currencyEvent.impact;
+    move=Math.max(-.08,Math.min(.08,move));
+    FX[cur]=Math.max((FX_BASE[cur]||FX[cur])*.15,FX[cur]*(1+move));
+    FX_HISTORY[cur].push({month:state.month,year:state.year,value:FX[cur]});
+    if(FX_HISTORY[cur].length>60)FX_HISTORY[cur].shift();
+  });
+  state.currencyEvent=null;
+}
+function randomCurrencyEvent(){
+  const cs=Object.keys(FX).filter(x=>x!=="USD"); const cur=cs[Math.floor(Math.random()*cs.length)];
+  const es=[{n:"Podwyżka stóp",i:-.025},{n:"Obniżka stóp",i:.025},{n:"Silny wzrost gospodarczy",i:-.018},{n:"Problemy gospodarcze",i:.035},{n:"Odpływ kapitału",i:.04}];
+  const e=es[Math.floor(Math.random()*es.length)]; state.currencyEvent={currency:cur,impact:e.i};
+  state.currencyNews.unshift(`[${state.month}/${state.year}] 💱 ${e.n}: ${cur}`); state.currencyNews=state.currencyNews.slice(0,20); addEvent(`💱 ${e.n}: ${cur}`);
+}
+
+
+const displayNames=new Intl.DisplayNames(["pl"],{type:"region"});
+
+function countryName(code){
+  try{return displayNames.of(code)||code}
+  catch{return code}
+}
+
+function flag(code){
+  return [...code].map(c=>String.fromCodePoint(127397+c.charCodeAt())).join("");
+}
+
+function currencyForCountry(code){
+  return COUNTRY_CURRENCY[code]||"USD";
+}
+
+function fx(currency){
+  return FX[currency]||1;
+}
+
+/*
+  Przelicza pieniądze:
+  np. 100 USD -> PLN
+*/
+function convertMoney(amount,from,to){
+  const usd=amount/fx(from);
+  return usd*fx(to);
+}
+
+function currencySymbol(cur){
+  const map={
+    PLN:"zł",USD:"$",EUR:"€",GBP:"£",JPY:"¥",
+    CNY:"¥",KRW:"₩",INR:"₹",CHF:"CHF",
+    CZK:"Kč",UAH:"₴",TRY:"₺",RUB:"₽",
+    BRL:"R$",CAD:"C$",AUD:"A$"
+  };
+  return map[cur]||cur;
+}
+
+function formatCurrency(value,currency){
+  try{
+    return new Intl.NumberFormat("pl-PL",{
+      style:"currency",
+      currency,
+      maximumFractionDigits:2
+    }).format(value);
+  }catch{
+    return value.toFixed(2)+" "+currency;
+  }
+}
+
+/*
+  Kwota w walucie lokalnej -> waluta siedziby.
+*/
+function toHQ(amount,countryCode){
+  const local=currencyForCountry(countryCode);
+  return convertMoney(amount,local,state.baseCurrency);
+}
+
+function money(value){
+  return formatCurrency(value,state.baseCurrency);
+}
+
+function localMoney(value,countryCode){
+  return formatCurrency(value,currencyForCountry(countryCode));
+}
+
+const state={
+  cash:5000000,
+
+  hq:null,
+  hqLevel:0,
+  baseCurrency:"PLN",
+
+  customers:0,
+
+  selected:{
+    lat:52.2297,
+    lng:21.0122,
+    city:"Warszawa",
+    country:"PL"
+  },
+
+  towers:[],
+  shops:[],
+  offers:[],
+  employees:[],
+
+  technologies:[
+    {id:"2g",name:"2G GSM",cost:0,owned:true},
+    {id:"3g",name:"3G UMTS",cost:300000,owned:false},
+    {id:"4g",name:"4G LTE",cost:900000,owned:false},
+    {id:"lteplus",name:"LTE Advanced",cost:1800000,owned:false},
+    {id:"5g",name:"5G",cost:4000000,owned:false},
+    {id:"5gsa",name:"5G SA",cost:8000000,owned:false},
+    {id:"volte",name:"VoLTE",cost:1100000,owned:false},
+    {id:"vowifi",name:"VoWiFi",cost:1300000,owned:false},
+    {id:"esim",name:"eSIM",cost:1600000,owned:false},
+    {id:"fiber",name:"Światłowód XGS-PON",cost:6500000,owned:false},
+    {id:"edge",name:"Edge Computing",cost:9000000,owned:false},
+    {id:"6g",name:"Eksperymentalne 6G",cost:50000000,owned:false}
+  ],
+
+  companies:[],
+  shares:{},
+  streaming:[],
+
+  month:1,
+  year:2026,
+
+  financeLog:[],
+  events:[],
+  currencyEvent:null,
+  currencyNews:[]
+};
+
+let map;
+let towerLayer;
+let shopLayer;
+let coverageLayer;
+let hqLayer;
+let selectedMarker;
+
+/* =========================================================
+   MONEY
+========================================================= */
+
+function changeCash(amount,label=""){
+  state.cash+=amount;
+
+  const div=document.createElement("div");
+  div.className="moneyFloat "+(amount>=0?"good":"bad");
+  div.textContent=(amount>=0?"+":"")+money(amount);
+  document.body.appendChild(div);
+
+  setTimeout(()=>div.remove(),1500);
+
+  if(label){
+    state.financeLog.unshift(
+      `${amount>=0?"🟢":"🔴"} ${label}: ${money(amount)}`
+    );
+    state.financeLog=state.financeLog.slice(0,40);
+  }
+
+  render();
+}
+
+function canPay(amount){
+  if(state.cash<amount){
+    notify("❌ Za mało pieniędzy.");
+    return false;
+  }
+  return true;
+}
+
+/* =========================================================
+   COUNTRY SELECTS
+========================================================= */
+
+function populateCountries(){
+  const sorted=[...COUNTRY_CODES].sort((a,b)=>
+    countryName(a).localeCompare(countryName(b),"pl")
+  );
+
+  ["hqCountry","towerCountry","shopCountry"].forEach(id=>{
+    $(id).innerHTML=sorted.map(code=>
+      `<option value="${code}" ${code==="PL"?"selected":""}>
+      ${flag(code)} ${countryName(code)} · ${currencyForCountry(code)}
+      </option>`
+    ).join("");
+  });
+}
+
+/* =========================================================
+   MAP
+========================================================= */
+
+function loadExternalScript(src){
+  return new Promise((resolve,reject)=>{
+    const s=document.createElement("script");
+    s.src=src;
+    s.onload=resolve;
+    s.onerror=reject;
+    document.head.appendChild(s);
+  });
+}
+
+function loadExternalCss(href){
+  const l=document.createElement("link");
+  l.rel="stylesheet";
+  l.href=href;
+  document.head.appendChild(l);
+}
+
+async function initMap(){
+  const protocol="https:";
+  const leafletHost="//unpkg.com";
+  const leafletPath="/leaflet@1.9.4/dist/";
+
+  loadExternalCss(protocol+leafletHost+leafletPath+"leaflet.css");
+  await loadExternalScript(protocol+leafletHost+leafletPath+"leaflet.js");
+
+  map=L.map("map",{
+    minZoom:2,
+    maxZoom:18,
+    worldCopyJump:true
+  }).setView([25,10],2);
+
+  const osm=protocol+"//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
+
+  L.tileLayer(osm,{
+    maxZoom:19,
+    attribution:"OpenStreetMap"
+  }).addTo(map);
+
+  towerLayer=L.layerGroup().addTo(map);
+  shopLayer=L.layerGroup().addTo(map);
+  coverageLayer=L.layerGroup().addTo(map);
+  hqLayer=L.layerGroup().addTo(map);
+
+  map.on("click",async e=>{
+    state.selected.lat=e.latlng.lat;
+    state.selected.lng=e.latlng.lng;
+
+    if(selectedMarker)selectedMarker.remove();
+
+    selectedMarker=L.marker(e.latlng).addTo(map);
+
+    await reverseLocation(e.latlng.lat,e.latlng.lng);
+
+    renderSelectedPlace();
+  });
+
+  renderMap();
+}
+
+/* =========================================================
+   GEOCODING
+========================================================= */
+
+async function geocode(city,countryCode=""){
+  if(!city.trim())return null;
+
+  try{
+    const protocol="https:";
+    const host="//nominatim.openstreetmap.org";
+    const path="/search";
+
+    const query=
+      protocol+host+path+
+      "?format=json&limit=1&q="+
+      encodeURIComponent(city+(countryCode?" "+countryName(countryCode):""));
+
+    const res=await fetch(query,{
+      headers:{"Accept-Language":"pl"}
+    });
+
+    const data=await res.json();
+
+    if(!data.length)return null;
+
+    return{
+      lat:+data[0].lat,
+      lng:+data[0].lon,
+      name:data[0].display_name
+    };
+
+  }catch{
+    return null;
+  }
+}
+
+async function reverseLocation(lat,lng){
+  try{
+    const protocol="https:";
+    const host="//nominatim.openstreetmap.org";
+
+    const url=
+      protocol+host+
+      "/reverse?format=json&lat="+lat+
+      "&lon="+lng;
+
+    const res=await fetch(url,{
+      headers:{"Accept-Language":"pl"}
+    });
+
+    const d=await res.json();
+
+    const a=d.address||{};
+
+    state.selected.city=
+      a.city||
+      a.town||
+      a.village||
+      a.municipality||
+      a.county||
+      "Nieznane miejsce";
+
+    state.selected.country=
+      (a.country_code||"PL").toUpperCase();
+
+  }catch{}
+}
+
+async function searchCity(){
+  const city=$("citySearch").value.trim();
+
+  if(!city)return;
+
+  const g=await geocode(city);
+
+  if(!g){
+    notify("Nie znaleziono miasta.");
+    return;
+  }
+
+  state.selected.lat=g.lat;
+  state.selected.lng=g.lng;
+
+  await reverseLocation(g.lat,g.lng);
+
+  map.setView([g.lat,g.lng],12);
+
+  if(selectedMarker)selectedMarker.remove();
+
+  selectedMarker=L.marker([g.lat,g.lng]).addTo(map);
+
+  renderSelectedPlace();
+}
+
+/* =========================================================
+   BUILDINGS
+========================================================= */
+
+async function buildHQ(){
+  const country=$("hqCountry").value;
+  const city=$("hqCity").value.trim();
+
+  if(!city)return notify("Podaj miasto.");
+
+  const g=await geocode(city,country);
+
+  if(!g)return notify("Nie znaleziono miasta.");
+
+  const cost=state.hq ? 2000000 : 1000000;
+
+  /*
+    Koszt zapisany jako lokalna waluta wybranego kraju,
+    następnie przeliczony na walutę obecnej siedziby.
+  */
+  const costHQ=toHQ(cost,country);
+
+  if(!canPay(costHQ))return;
+
+  changeCash(-costHQ,state.hq?"Przeniesienie siedziby":"Budowa siedziby");
+
+  state.hq={
+    country,
+    city,
+    lat:g.lat,
+    lng:g.lng
+  };
+
+  state.hqLevel=Math.max(1,state.hqLevel);
+
+  /*
+    Zmiana waluty księgowej.
+    Najpierw przeliczamy całe saldo.
+  */
+  const oldCurrency=state.baseCurrency;
+  const newCurrency=currencyForCountry(country);
+
+  state.cash=convertMoney(
+    state.cash,
+    oldCurrency,
+    newCurrency
+  );
+
+  state.baseCurrency=newCurrency;
+
+  addEvent(
+    `🏢 Siedziba główna: ${flag(country)} ${city}. Waluta firmy: ${newCurrency}.`
+  );
+
+  map.setView([g.lat,g.lng],8);
+
+  render();
+  renderMap();
+}
+
+function upgradeHQ(){
+  if(!state.hq)return notify("Najpierw zbuduj siedzibę.");
+
+  const cost=1000000*Math.pow(2,state.hqLevel-1);
+
+  if(!canPay(cost))return;
+
+  changeCash(-cost,"Ulepszenie siedziby");
+
+  state.hqLevel++;
+
+  addEvent("🏢 Siedziba osiągnęła poziom "+state.hqLevel+".");
+}
+
+async function buildTower(){
+  const country=$("towerCountry").value;
+  const city=$("towerCity").value.trim();
+
+  if(!city)return notify("Podaj miasto.");
+
+  const g=await geocode(city,country);
+
+  if(!g)return notify("Nie znaleziono miejscowości.");
+
+  const localCost=250000;
+  const cost=toHQ(localCost,country);
+
+  if(!canPay(cost))return;
+
+  changeCash(-cost,"Budowa masztu");
+
+  state.towers.push({
+    id:Date.now()+Math.random(),
+    country,
+    city,
+    lat:g.lat,
+    lng:g.lng,
+    radius:+$("towerRadius").value,
+    level:1,
+    technologies:["2g"]
+  });
+
+  addEvent(`📡 Nowy maszt: ${city}, ${countryName(country)}.`);
+
+  map.setView([g.lat,g.lng],11);
+
+  render();
+  renderMap();
+}
+
+async function buildShop(){
+  const country=$("shopCountry").value;
+  const city=$("shopCity").value.trim();
+
+  if(!city)return notify("Podaj miasto.");
+
+  const g=await geocode(city,country);
+
+  if(!g)return notify("Nie znaleziono miejscowości.");
+
+  const localCost=100000;
+  const cost=toHQ(localCost,country);
+
+  if(!canPay(cost))return;
+
+  changeCash(-cost,"Otwarcie salonu");
+
+  state.shops.push({
+    id:Date.now()+Math.random(),
+    country,
+    city,
+    lat:g.lat,
+    lng:g.lng,
+    level:1
+  });
+
+  addEvent(`🏪 Otworzono salon: ${city}, ${countryName(country)}.`);
+
+  map.setView([g.lat,g.lng],12);
+
+  render();
+  renderMap();
+}
+
+function upgradeTower(id){
+  const t=state.towers.find(x=>x.id==id);
+  if(!t)return;
+
+  const cost=300000*t.level;
+
+  if(!canPay(cost))return;
+
+  changeCash(-cost,"Ulepszenie masztu");
+
+  t.level++;
+
+  render();
+}
+
+function setTowerRadius(id,value){
+  const t=state.towers.find(x=>x.id==id);
+  if(!t)return;
+
+  t.radius=+value;
+
+  renderMap();
+}
+
+function toggleTowerTech(id,techId){
+  const tower=state.towers.find(x=>x.id==id);
+  const tech=state.technologies.find(x=>x.id===techId);
+
+  if(!tower||!tech)return;
+
+  if(!tech.owned){
+    notify("Najpierw zbadaj tę technologię.");
+    return;
+  }
+
+  if(tower.technologies.includes(techId)){
+    if(tower.technologies.length===1)return;
+    tower.technologies=tower.technologies.filter(x=>x!==techId);
+  }else{
+    tower.technologies.push(techId);
+  }
+
+  render();
+  renderMap();
+}
+
+function upgradeShop(id){
+  const s=state.shops.find(x=>x.id==id);
+  if(!s)return;
+
+  const cost=120000*s.level;
+
+  if(!canPay(cost))return;
+
+  changeCash(-cost,"Ulepszenie salonu");
+
+  s.level++;
+
+  render();
+}
+
+/* =========================================================
+   OFFERS
+========================================================= */
+
+function normalizeText(v){
+  return String(v)
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g,"");
+}
+
+function setupCountrySearch(){
+  $("offerCountrySearch").addEventListener("input",e=>{
+    const q=normalizeText(e.target.value);
+
+    const matches=COUNTRY_CODES.filter(code=>{
+      return normalizeText(countryName(code)).includes(q)||
+             normalizeText(code).includes(q);
+    }).slice(0,30);
+
+    $("countryResults").innerHTML=matches.map(code=>`
+      <div class="searchResult" onclick="selectOfferCountry('${code}')">
+        ${flag(code)} <b>${countryName(code)}</b>
+        <span class="muted">${code} · ${currencyForCountry(code)}</span>
+      </div>
+    `).join("");
+
+    $("countryResults").classList.remove("hidden");
+  });
+
+  document.addEventListener("click",e=>{
+    if(!e.target.closest(".countrySearch")){
+      $("countryResults").classList.add("hidden");
+    }
+  });
+}
+
+function selectOfferCountry(code){
+  $("offerCountry").value=code;
+
+  $("selectedOfferCountry").innerHTML=
+    `${flag(code)} <b>${countryName(code)}</b>
+     <span class="muted">
+     · ${currencyForCountry(code)}
+     · ${currencySymbol(currencyForCountry(code))}
+     </span>`;
+
+  $("offerCountrySearch").value="";
+  $("countryResults").classList.add("hidden");
+}
+
+function offerTypeChanged(){
+  const internet=$("offerType").value==="internet";
+
+  $("dataBox").classList.toggle("hidden",internet);
+  $("speedBox").classList.toggle("hidden",!internet);
+}
+
+function createOffer(){
+  const country=$("offerCountry").value;
+  const type=$("offerType").value;
+  const price=+$("offerPrice").value;
+
+  if(price<=0)return notify("Podaj poprawną cenę.");
+
+  state.offers.push({
+    id:Date.now(),
+    country,
+    type,
+    name:$("offerName").value||"Nowa oferta",
+    price,
+    data:type==="internet"?null:+$("offerData").value,
+    speed:type==="internet"?+$("offerSpeed").value:null,
+    calls:$("callsUnlimited").value==="true",
+    sms:$("smsUnlimited").value==="true",
+    customers:0
+  });
+
+  addEvent(
+    `📱 Nowa oferta ${flag(country)} ${countryName(country)}: ${$("offerName").value}.`
+  );
+
+  render();
+}
+
+/* =========================================================
+   EMPLOYEES
+========================================================= */
+
+const firstNames=[
+"Adam","Anna","Marek","Julia","Kamil","Natalia","Piotr","Oliwia",
+"Jakub","Maja","Alex","Emma","Liam","Sofia","Noah","Lucas"
+];
+
+const lastNames=[
+"Kowalski","Nowak","Smith","Brown","Müller","Martin",
+"Wilson","Taylor","Silva","Garcia","Kim","Sato"
+];
+
+const jobs=[
+"Inżynier sieci",
+"Specjalista 5G",
+"Programista",
+"Sprzedawca",
+"Marketing",
+"Badacz R&D",
+"Analityk",
+"Cyberbezpieczeństwo"
+];
+
+let employeeCandidates=[];
+
+function generateEmployee(){
+  employeeCandidates.push({
+    id:Date.now()+Math.random(),
+    name:
+      firstNames[Math.floor(Math.random()*firstNames.length)]+" "+
+      lastNames[Math.floor(Math.random()*lastNames.length)],
+    job:jobs[Math.floor(Math.random()*jobs.length)],
+    skill:Math.floor(Math.random()*70)+30,
+    salary:Math.floor(Math.random()*9000)+4000
+  });
+
+  employeeCandidates=employeeCandidates.slice(-12);
+  renderEmployees();
+}
+
+function hireEmployee(id){
+  const max=10+state.hqLevel*15;
+
+  if(state.employees.length>=max){
+    return notify("Limit pracowników. Ulepsz siedzibę.");
+  }
+
+  const e=employeeCandidates.find(x=>x.id==id);
+  if(!e)return;
+
+  state.employees.push(e);
+  employeeCandidates=employeeCandidates.filter(x=>x.id!=id);
+
+  addEvent("👨‍💼 Zatrudniono: "+e.name);
+
+  render();
+}
+
+/* =========================================================
+   TECHNOLOGIES
+========================================================= */
+
+function researchTech(id){
+  const tech=state.technologies.find(t=>t.id===id);
+
+  if(!tech||tech.owned)return;
+
+  if(!canPay(tech.cost))return;
+
+  changeCash(-tech.cost,"Badania: "+tech.name);
+
+  tech.owned=true;
+
+  addEvent("🧪 Opracowano technologię "+tech.name+".");
+
+  render();
+}
+
+function researchCustomTech(){
+  const name=$("customTechName").value.trim();
+  const cost=+$("customTechCost").value;
+
+  if(!name||cost<=0)return;
+
+  if(!canPay(cost))return;
+
+  changeCash(-cost,"Własne R&D");
+
+  state.technologies.push({
+    id:"custom"+Date.now(),
+    name,
+    cost,
+    owned:true
+  });
+
+  addEvent("🔬 Firma opracowała własną technologię: "+name);
+
+  $("customTechName").value="";
+
+  render();
+}
+
+function generateTechnology(){
+  const prefixes=["Ultra","Quantum","Nova","Hyper","Smart","Fusion"];
+  const types=["Radio","Fiber","Wave","Core","Signal","Network"];
+
+  const name=
+    prefixes[Math.floor(Math.random()*prefixes.length)]+" "+
+    types[Math.floor(Math.random()*types.length)]+" "+
+    Math.floor(Math.random()*900+100);
+
+  state.technologies.push({
+    id:"generated"+Date.now()+Math.random(),
+    name,
+    cost:Math.floor(Math.random()*12000000)+2000000,
+    owned:false
+  });
+
+  addEvent("🔬 Na rynku badań pojawiła się technologia "+name+".");
+}
+
+/* =========================================================
+   COMPANIES
+========================================================= */
+
+const companyPrefixes=[
+"Nova","Volt","Sky","Blue","Hyper","Orbit","Nexo",
+"Wave","Link","Metro","Fiber","Cloud"
+];
+
+const companySuffixes=[
+"Mobile","Telecom","Connect","Net","Wireless","Fiber"
+];
+
+function generateCompany(){
+  const country=
+    COUNTRY_CODES[Math.floor(Math.random()*COUNTRY_CODES.length)];
+
+  const name=
+    companyPrefixes[Math.floor(Math.random()*companyPrefixes.length)]+" "+
+    companySuffixes[Math.floor(Math.random()*companySuffixes.length)];
+
+  state.companies.push({
+    id:Date.now()+Math.random(),
+    name,
+    country,
+    value:Math.floor(Math.random()*30000000)+3000000,
+    sharesAvailable:100,
+    towers:Math.floor(Math.random()*18)+2,
+    shops:Math.floor(Math.random()*10)+1,
+    customers:Math.floor(Math.random()*800000)+30000
+  });
+
+  state.companies=state.companies.slice(-14);
+
+  render();
+}
+
+function buyShares(id,percent=10){
+  const c=state.companies.find(x=>x.id==id);
+  if(!c)return;
+
+  percent=Math.min(percent,c.sharesAvailable);
+
+  if(percent<=0)return;
+
+  const price=c.value*(percent/100);
+
+  if(!canPay(price))return;
+
+  changeCash(-price,"Zakup udziałów "+c.name);
+
+  c.sharesAvailable-=percent;
+
+  state.shares[id]=(state.shares[id]||0)+percent;
+
+  addEvent(`📈 Kupiono ${percent}% udziałów ${c.name}.`);
+
+  if(state.shares[id]>=51){
+    acquireCompanyAssets(c);
+  }
+
+  render();
+}
+
+function acquireCompanyAssets(c){
+  if(c.acquired)return;
+
+  c.acquired=true;
+
+  /*
+    Po przejęciu tworzymy prawdziwe maszty i salony
+    firmy, aby pojawiły się na mapie.
+  */
+
+  for(let i=0;i<c.towers;i++){
+    const p=randomCountryPoint(c.country);
+
+    state.towers.push({
+      id:Date.now()+Math.random()+i,
+      country:c.country,
+      city:"Aktywa "+c.name,
+      lat:p.lat,
+      lng:p.lng,
+      radius:5+Math.random()*5,
+      level:1,
+      technologies:["2g"]
+    });
+  }
+
+  for(let i=0;i<c.shops;i++){
+    const p=randomCountryPoint(c.country);
+
+    state.shops.push({
+      id:Date.now()+Math.random()+i,
+      country:c.country,
+      city:"Salon "+c.name,
+      lat:p.lat,
+      lng:p.lng,
+      level:1
+    });
+  }
+
+  state.customers+=c.customers;
+
+  addEvent(
+    `🏦 Przejęto kontrolę nad ${c.name}. Maszty i salony dodano do sieci.`
+  );
+
+  renderMap();
+}
+
+function randomCountryPoint(code){
+  /*
+    Przybliżone centra wybranych państw.
+    Dla pozostałych używamy losowego miejsca,
+    ale aktywa przejęć są głównie elementem symulacji.
+  */
+  const centers={
+    PL:[52,19],US:[39,-98],GB:[54,-2],DE:[51,10],
+    FR:[46,2],ES:[40,-4],IT:[42,12],JP:[36,138],
+    CN:[35,104],IN:[21,78],BR:[-10,-52],CA:[56,-106],
+    AU:[-25,133],SE:[62,15],NO:[61,8],UA:[49,32],
+    CZ:[49.8,15.5],NL:[52.2,5.3]
+  };
+
+  const c=centers[code]||[20,10];
+
+  return{
+    lat:c[0]+(Math.random()-.5)*5,
+    lng:c[1]+(Math.random()-.5)*7
+  };
+}
+
+/* =========================================================
+   STREAMING
+========================================================= */
+
+const streamNames=[
+"NovaFlix","PrimeBox","CineWave","StreamGo",
+"VibeTV","MovieCloud","PlayMax","Orbit+"
+];
+
+function generateStreaming(){
+  const country=
+    COUNTRY_CODES[Math.floor(Math.random()*COUNTRY_CODES.length)];
+
+  state.streaming.push({
+    id:Date.now()+Math.random(),
+    name:streamNames[Math.floor(Math.random()*streamNames.length)],
+    country,
+    price:Math.floor(Math.random()*30)+5,
+    subscribers:Math.floor(Math.random()*5000000)+100000,
+    value:Math.floor(Math.random()*50000000)+5000000
+  });
+
+  state.streaming=state.streaming.slice(-10);
+
+  render();
+}
+
+function buyStreaming(id){
+  const s=state.streaming.find(x=>x.id==id);
+  if(!s||s.owned)return;
+
+  const cost=toHQ(s.value,s.country);
+
+  if(!canPay(cost))return;
+
+  changeCash(-cost,"Zakup "+s.name);
+
+  s.owned=true;
+
+  addEvent("🎬 Przejęto platformę "+s.name+".");
+
+  render();
+}
+
+/* =========================================================
+   ECONOMY
+========================================================= */
+
+function calculateFinance(){
+  let income=0;
+  let costs=0;
+
+  /*
+    Klienci ofert.
+  */
+  state.offers.forEach(o=>{
+    const coverage=
+      state.towers.filter(t=>t.country===o.country).length;
+
+    const shops=
+      state.shops.filter(s=>s.country===o.country).length;
+
+    const techBonus=
+      state.technologies.filter(t=>t.owned).length;
+
+    const attractiveness=
+      Math.max(
+        0,
+        (coverage*20)+(shops*30)+(techBonus*5)-(o.price*.25)
+      );
+
+    const change=Math.floor(
+      attractiveness*(.5+Math.random())
+    );
+
+    o.customers=Math.max(0,o.customers+change);
+
+    /*
+      Oferta jest wyceniona w walucie kraju,
+      więc przychód przeliczamy do waluty siedziby.
+    */
+    const localRevenue=o.customers*o.price;
+
+    income+=toHQ(localRevenue,o.country);
+  });
+
+  /*
+    Salony generują koszty lokalne.
+  */
+  state.shops.forEach(s=>{
+    costs+=toHQ(8000*s.level,s.country);
+  });
+
+  /*
+    Maszty.
+  */
+  state.towers.forEach(t=>{
+    costs+=toHQ(
+      5000*t.level+
+      t.radius*250+
+      t.technologies.length*1200,
+      t.country
+    );
+  });
+
+  /*
+    Pensje traktowane jako waluta siedziby.
+  */
+  state.employees.forEach(e=>{
+    costs+=e.salary;
+  });
+
+  /*
+    Dywidendy z udziałów.
+  */
+  state.companies.forEach(c=>{
+    const owned=state.shares[c.id]||0;
+
+    if(owned>0){
+      const dividendLocal=
+        c.value*.002*(owned/100);
+
+      income+=toHQ(dividendLocal,c.country);
+    }
+  });
+
+  /*
+    Streaming.
+  */
+  state.streaming.filter(s=>s.owned).forEach(s=>{
+    const localRevenue=
+      s.subscribers*s.price*.05;
+
+    income+=toHQ(localRevenue,s.country);
+  });
+
+  const hqBonus=1+state.hqLevel*.02;
+
+  income*=hqBonus;
+
+  return{income,costs,profit:income-costs};
+}
+
+function nextMonth(){
+  if(Math.random()<.18)randomCurrencyEvent();
+  updateCurrencies();
+  const f=calculateFinance();
+
+  changeCash(f.profit,"Bilans miesiąca");
+
+  state.month++;
+
+  if(state.month>12){
+    state.month=1;
+    state.year++;
+  }
+
+  state.customers=
+    state.offers.reduce((a,o)=>a+o.customers,0);
+
+  /*
+    Firmy zmieniają wartość.
+  */
+  state.companies.forEach(c=>{
+    c.value*=.96+Math.random()*.09;
+  });
+
+  /*
+    Losowe wydarzenie.
+  */
+  if(Math.random()<.25){
+    randomEvent();
+  }
+
+  render();
+}
+
+/* =========================================================
+   EVENTS
+========================================================= */
+
+function randomEvent(){
+  const events=[
+    {
+      text:"📈 Boom na transmisję danych zwiększył popyt.",
+      cash:200000
+    },
+    {
+      text:"⚡ Awaria energetyczna zwiększyła koszty sieci.",
+      cash:-150000
+    },
+    {
+      text:"📱 Premiera nowych urządzeń zwiększa liczbę klientów.",
+      customers:5000
+    },
+    {
+      text:"📉 Spowolnienie gospodarcze ograniczyło wydatki klientów.",
+      cash:-100000
+    },
+    {
+      text:"🛰️ Nowe rozwiązania satelitarne zmieniają rynek.",
+      cash:50000
+    }
+  ];
+
+  const e=events[Math.floor(Math.random()*events.length)];
+
+  addEvent(e.text);
+
+  if(e.cash)changeCash(e.cash,"Wydarzenie");
+  if(e.customers)state.customers+=e.customers;
+}
+
+function addEvent(text){
+  state.events.unshift(
+    `[${state.month}/${state.year}] ${text}`
+  );
+
+  state.events=state.events.slice(0,30);
+}
+
+/* =========================================================
+   CONSOLE
+========================================================= */
+
+document.addEventListener("keydown",e=>{
+  if(e.key==="`"||e.key==="~"){
+    e.preventDefault();
+
+    $("console").classList.toggle("hidden");
+
+    if(!$("console").classList.contains("hidden")){
+      $("consoleInput").focus();
+    }
+  }
+});
+
+$("consoleInput").addEventListener("keydown",e=>{
+  if(e.key!=="Enter")return;
+
+  const command=e.target.value.trim().toUpperCase();
+  const [cmd,arg]=command.split(/\s+/);
+
+  if(cmd==="MAXCASH"){
+    state.cash=999999999999;
+    notify("💰 Maksymalna kasa.");
+  }
+
+  else if(cmd==="CASH"){
+    state.cash+=Number(arg)||0;
+  }
+
+  else if(cmd==="STAFF"){
+    state.hqLevel=99;
+    notify("👨‍💼 Ogromny limit pracowników.");
+  }
+
+  else if(cmd==="CUSTOMERS"){
+    state.customers+=Number(arg)||100000;
+  }
+
+  else if(cmd==="TECH"){
+    state.technologies.forEach(t=>t.owned=true);
+    notify("🧪 Odblokowano technologie.");
+  }
+
+  else{
+    notify("Nieznany kod.");
+  }
+
+  e.target.value="";
+  render();
+});
+
+/* =========================================================
+   RENDER MAP
+========================================================= */
+
+function renderMap(){
+  if(!map||!towerLayer)return;
+
+  towerLayer.clearLayers();
+  shopLayer.clearLayers();
+  coverageLayer.clearLayers();
+  hqLayer.clearLayers();
+
+  state.towers.forEach(t=>{
+    /*
+      Mniejszy i regulowany zasięg.
+      Circle używa metrów.
+    */
+    L.circle([t.lat,t.lng],{
+      radius:t.radius*1000,
+      color:"#22d3ee",
+      fillColor:"#22d3ee",
+      fillOpacity:.07,
+      weight:1
+    }).addTo(coverageLayer);
+
+    const icon=L.divIcon({
+      className:"",
+      html:'<div class="towerIcon"></div>',
+      iconSize:[16,16],
+      iconAnchor:[8,8]
+    });
+
+    L.marker([t.lat,t.lng],{icon})
+      .bindPopup(`
+        <b>📡 ${t.city}</b><br>
+        ${flag(t.country)} ${countryName(t.country)}<br>
+        Zasięg: ${t.radius.toFixed(1)} km<br>
+        Technologie:
+        ${t.technologies.map(id=>{
+          const x=state.technologies.find(a=>a.id===id);
+          return x?.name||id;
+        }).join(", ")}
+      `)
+      .addTo(towerLayer);
+  });
+
+  state.shops.forEach(s=>{
+    const icon=L.divIcon({
+      className:"",
+      html:'<div class="shopIcon"></div>',
+      iconSize:[16,16],
+      iconAnchor:[8,8]
+    });
+
+    L.marker([s.lat,s.lng],{icon})
+      .bindPopup(`
+        <b>🏪 ${s.city}</b><br>
+        ${flag(s.country)} ${countryName(s.country)}<br>
+        Salon poziom ${s.level}
+      `)
+      .addTo(shopLayer);
+  });
+
+  if(state.hq){
+    const icon=L.divIcon({
+      className:"",
+      html:'<div class="hqIcon"></div>',
+      iconSize:[22,22],
+      iconAnchor:[11,11]
+    });
+
+    L.marker([state.hq.lat,state.hq.lng],{icon})
+      .bindPopup(`
+        <b>🏢 Siedziba główna</b><br>
+        ${state.hq.city}<br>
+        ${flag(state.hq.country)} ${countryName(state.hq.country)}<br>
+        Waluta: ${state.baseCurrency}
+      `)
+      .addTo(hqLayer);
+  }
+}
+
+/* =========================================================
+   RENDER
+========================================================= */
+
+function render(){
+  $("cash").textContent=money(state.cash);
+  $("customers").textContent=Math.floor(state.customers).toLocaleString("pl-PL");
+  $("towerCount").textContent=state.towers.length;
+  $("shopCount").textContent=state.shops.length;
+
+  $("hqTop").textContent=
+    state.hq?
+    flag(state.hq.country)+" "+state.hq.city:
+    "Brak siedziby";
+
+  renderHQ();
+  renderNetwork();
+  renderOffers();
+  renderEmployees();
+  renderTechnologies();
+  renderCompanies();
+  renderStreaming();
+  renderFinance();
+  renderSidebar();
+
+  renderMap();
+}
+
+function renderSelectedPlace(){
+  const s=state.selected;
+
+  $("selectedPlace").innerHTML=`
+    <h3>📍 ${s.city}</h3>
+    <div class="big">${flag(s.country)} ${countryName(s.country)}</div>
+    <div class="muted">Waluta: ${currencyForCountry(s.country)} (${currencySymbol(currencyForCountry(s.country))})</div>
+    <div class="small muted">${s.lat.toFixed(5)}, ${s.lng.toFixed(5)}</div>
+
+    <div class="grid" style="margin-top:12px">
+      <button class="btn cyan" onclick="buildTowerAtSelected()">📡 Postaw maszt tutaj</button>
+      <button class="btn yellow" onclick="buildShopAtSelected()">🏪 Otwórz salon tutaj</button>
+      <button class="btn purple" onclick="buildHQAtSelected()">🏢 ${state.hq?"Przenieś":"Zbuduj"} siedzibę tutaj</button>
+    </div>
+
+    <label>Zasięg nowego masztu: <span id="mapRadiusLabel">${$("towerRadius")?.value||8}</span> km</label>
+    <input id="mapTowerRadius" type="range" min="1" max="25" step=".5" value="${$("towerRadius")?.value||8}" style="width:100%"
+      oninput="$('mapRadiusLabel').textContent=this.value">
+  `;
+
+  if($("towerCountry")) $("towerCountry").value=s.country;
+  if($("shopCountry")) $("shopCountry").value=s.country;
+  if($("hqCountry")) $("hqCountry").value=s.country;
+  if($("towerCity")) $("towerCity").value=s.city;
+  if($("shopCity")) $("shopCity").value=s.city;
+  if($("hqCity")) $("hqCity").value=s.city;
+}
+
+function selectedBuildData(){
+  const s=state.selected;
+  if(!s || !Number.isFinite(s.lat) || !Number.isFinite(s.lng)) return null;
+  if(!s.country || !COUNTRY_CODES.includes(s.country)) return null;
+  return {country:s.country,city:s.city||countryName(s.country),lat:s.lat,lng:s.lng};
+}
+
+function buildTowerAtSelected(){
+  const p=selectedBuildData();
+  if(!p)return notify("Wybierz punkt na lądzie.");
+  const cost=toHQ(250000,p.country);
+  if(!canPay(cost))return;
+  changeCash(-cost,"Budowa masztu");
+  const radius=+( $("mapTowerRadius")?.value || $("towerRadius")?.value || 8 );
+  state.towers.push({id:Date.now()+Math.random(),country:p.country,city:p.city,lat:p.lat,lng:p.lng,radius,level:1,technologies:["2g"]});
+  addEvent(`📡 Nowy maszt: ${p.city}, ${countryName(p.country)}.`);
+  render(); renderMap();
+}
+
+function buildShopAtSelected(){
+  const p=selectedBuildData();
+  if(!p)return notify("Wybierz punkt na lądzie.");
+  const cost=toHQ(100000,p.country);
+  if(!canPay(cost))return;
+  changeCash(-cost,"Otwarcie salonu");
+  state.shops.push({id:Date.now()+Math.random(),country:p.country,city:p.city,lat:p.lat,lng:p.lng,level:1});
+  addEvent(`🏪 Otworzono salon: ${p.city}, ${countryName(p.country)}.`);
+  render(); renderMap();
+}
+
+function buildHQAtSelected(){
+  const p=selectedBuildData();
+  if(!p)return notify("Wybierz punkt na lądzie.");
+  const localCost=state.hq?2000000:1000000;
+  const cost=toHQ(localCost,p.country);
+  if(!canPay(cost))return;
+  changeCash(-cost,state.hq?"Przeniesienie siedziby":"Budowa siedziby");
+  state.hq={country:p.country,city:p.city,lat:p.lat,lng:p.lng};
+  state.hqLevel=Math.max(1,state.hqLevel);
+  const oldCurrency=state.baseCurrency;
+  const newCurrency=currencyForCountry(p.country);
+  state.cash=convertMoney(state.cash,oldCurrency,newCurrency);
+  state.baseCurrency=newCurrency;
+  addEvent(`🏢 Siedziba główna: ${flag(p.country)} ${p.city}. Waluta firmy: ${newCurrency}.`);
+  render(); renderMap();
+}
+
+function renderHQ(){
+  $("hqLevel").textContent=state.hqLevel;
+
+  $("employeeLimit").textContent=
+    10+state.hqLevel*15;
+
+  $("hqBonus").textContent=
+    state.hqLevel*2+"%";
+
+  if(!state.hq){
+    $("hqInfo").innerHTML=`
+      <div class="listItem">
+        Nie masz jeszcze siedziby głównej.
+      </div>
+    `;
+    return;
+  }
+
+  $("hqInfo").innerHTML=`
+    <div class="listItem">
+      <div class="big">
+        ${flag(state.hq.country)} ${state.hq.city}
+      </div>
+
+      <div>${countryName(state.hq.country)}</div>
+
+      <div class="muted">
+        Waluta księgowa:
+        <b>${state.baseCurrency}</b>
+        (${currencySymbol(state.baseCurrency)})
+      </div>
+
+      <div class="muted">
+        Wszystkie zagraniczne przychody i koszty są
+        przeliczane na ${state.baseCurrency}.
+      </div>
+    </div>
+  `;
+}
+
+function renderNetwork(){
+  $("towerList").innerHTML=
+    state.towers.length?
+    state.towers.map(t=>`
+      <div class="listItem">
+
+        <div class="row">
+          <strong>📡 ${t.city}</strong>
+          <span>${flag(t.country)} ${t.country}</span>
+        </div>
+
+        <div class="small muted">
+          Poziom ${t.level} · zasięg ${t.radius.toFixed(1)} km
+        </div>
+
+        <label>Zasięg</label>
+
+        <input type="range"
+               min="1"
+               max="25"
+               step=".5"
+               value="${t.radius}"
+               style="width:100%"
+               oninput="setTowerRadius('${t.id}',this.value)">
+
+        <div class="tags">
+          ${state.technologies.filter(x=>x.owned).map(tech=>`
+            <button class="tag"
+              onclick="toggleTowerTech('${t.id}','${tech.id}')"
+              style="${t.technologies.includes(tech.id)?
+                "border-color:#22d3ee;color:#67e8f9":""}">
+              ${tech.name}
+            </button>
+          `).join("")}
+        </div>
+
+        <button class="btn cyan"
+                onclick="upgradeTower('${t.id}')">
+          Ulepsz maszt
+        </button>
+
+      </div>
+    `).join(""):
+    `<div class="muted">Nie masz masztów.</div>`;
+
+  $("shopList").innerHTML=
+    state.shops.length?
+    state.shops.map(s=>`
+      <div class="listItem">
+        <div class="row">
+          <strong>🏪 ${s.city}</strong>
+          <span>${flag(s.country)} ${s.country}</span>
+        </div>
+
+        <div class="muted small">
+          Poziom ${s.level}
+        </div>
+
+        <button class="btn yellow"
+                onclick="upgradeShop('${s.id}')">
+          Ulepsz salon
+        </button>
+      </div>
+    `).join(""):
+    `<div class="muted">Nie masz salonów.</div>`;
+}
+
+function renderOffers(){
+  $("offersList").innerHTML=
+    state.offers.length?
+    state.offers.map(o=>`
+      <div class="listItem">
+
+        <div class="row">
+          <strong>${o.name}</strong>
+          <strong>
+            ${localMoney(o.price,o.country)}
+          </strong>
+        </div>
+
+        <div>
+          ${flag(o.country)}
+          ${countryName(o.country)}
+        </div>
+
+        <div class="tags">
+          <span class="tag">${o.type}</span>
+
+          ${
+            o.type==="internet"
+            ?`<span class="tag">⚡ ${o.speed} Mbps</span>`
+            :`<span class="tag">🌐 ${o.data} GB</span>`
+          }
+
+          <span class="tag">
+            📞 ${o.calls?"bez limitu":"limit"}
+          </span>
+
+          <span class="tag">
+            💬 ${o.sms?"bez limitu":"limit"}
+          </span>
+        </div>
+
+        <div class="small muted">
+          Klienci:
+          ${Math.floor(o.customers).toLocaleString("pl-PL")}
+        </div>
+
+        ${
+          state.hq
+          ?`<div class="small muted">
+              Cena po przeliczeniu na walutę siedziby:
+              ${money(toHQ(o.price,o.country))}
+            </div>`
+          :""
+        }
+
+      </div>
+    `).join(""):
+    `<div class="muted">Brak ofert.</div>`;
+}
+
+function renderEmployees(){
+  $("employeeCandidates").innerHTML=
+    employeeCandidates.map(e=>`
+      <div class="listItem">
+
+        <div class="row">
+          <strong>${e.name}</strong>
+          <span>${e.skill}/100</span>
+        </div>
+
+        <div>${e.job}</div>
+
+        <div class="muted">
+          Pensja: ${money(e.salary)} / mies.
+        </div>
+
+        <button class="btn green"
+                onclick="hireEmployee('${e.id}')">
+          Zatrudnij
+        </button>
+
+      </div>
+    `).join("");
+
+  $("employeesList").innerHTML=
+    state.employees.length?
+    state.employees.map(e=>`
+      <div class="listItem">
+        <strong>${e.name}</strong>
+        <div>${e.job}</div>
+        <div class="muted">
+          Umiejętności ${e.skill}/100 · ${money(e.salary)}
+        </div>
+      </div>
+    `).join(""):
+    `<div class="muted">Brak pracowników.</div>`;
+}
+
+function renderTechnologies(){
+  $("technologyList").innerHTML=
+    state.technologies.map(t=>`
+      <div class="listItem">
+
+        <div class="row">
+          <strong>${t.owned?"✅":"🔬"} ${t.name}</strong>
+          <span>${t.owned?"Opracowana":money(t.cost)}</span>
+        </div>
+
+        ${
+          !t.owned
+          ?`<button class="btn purple"
+                    onclick="researchTech('${t.id}')">
+              Zbadaj
+            </button>`
+          :""
+        }
+
+      </div>
+    `).join("");
+}
+
+function renderCompanies(){
+  $("companiesList").innerHTML=
+    state.companies.length?
+    state.companies.map(c=>{
+      const owned=state.shares[c.id]||0;
+
+      return`
+      <div class="listItem">
+
+        <div class="row">
+          <strong>📡 ${c.name}</strong>
+          <span>${flag(c.country)} ${countryName(c.country)}</span>
+        </div>
+
+        <div class="muted">
+          Wartość:
+          ${localMoney(c.value,c.country)}
+        </div>
+
+        <div class="tags">
+          <span class="tag">📡 ${c.towers} masztów</span>
+          <span class="tag">🏪 ${c.shops} salonów</span>
+          <span class="tag">
+            👥 ${c.customers.toLocaleString("pl-PL")}
+          </span>
+        </div>
+
+        <div>
+          Twoje udziały:
+          <b>${owned}%</b>
+        </div>
+
+        <div class="progress">
+          <div style="width:${owned}%"></div>
+        </div>
+
+        ${
+          c.sharesAvailable>0
+          ?`<button class="btn green"
+                    onclick="buyShares('${c.id}',10)">
+              Kup 10%
+            </button>`
+          :""
+        }
+
+        ${
+          owned>=51
+          ?`<div class="good">
+              🏦 Kontrolujesz firmę
+            </div>`
+          :""
+        }
+
+      </div>`;
+    }).join(""):
+    `<div class="muted">Rynek czeka na nowe firmy.</div>`;
+
+  const owned=state.companies.filter(c=>(state.shares[c.id]||0)>0);
+
+  $("sharesList").innerHTML=
+    owned.length?
+    owned.map(c=>`
+      <div class="listItem">
+        <strong>${c.name}</strong>
+        <div>
+          ${state.shares[c.id]}% udziałów
+        </div>
+        <div class="muted">
+          Dywidenda naliczana co miesiąc.
+        </div>
+      </div>
+    `).join(""):
+    `<div class="muted">Nie masz udziałów.</div>`;
+}
+
+function renderStreaming(){
+  $("streamingList").innerHTML=
+    state.streaming.length?
+    state.streaming.map(s=>`
+      <div class="listItem">
+
+        <div class="row">
+          <strong>🎬 ${s.name}</strong>
+          <span>
+            ${flag(s.country)}
+            ${countryName(s.country)}
+          </span>
+        </div>
+
+        <div>
+          ${s.subscribers.toLocaleString("pl-PL")}
+          subskrybentów
+        </div>
+
+        <div class="muted">
+          Cena:
+          ${localMoney(s.price,s.country)}
+        </div>
+
+        <div class="muted">
+          Wartość:
+          ${localMoney(s.value,s.country)}
+        </div>
+
+        ${
+          s.owned
+          ?`<div class="good">✅ Twoja platforma</div>`
+          :`<button class="btn purple"
+                    onclick="buyStreaming('${s.id}')">
+              Kup platformę
+            </button>`
+        }
+
+      </div>
+    `).join(""):
+    `<div class="muted">Brak platform.</div>`;
+}
+
+function renderFinance(){
+  const f=calculateFinance();
+
+  $("monthlyIncome").textContent=money(f.income);
+  $("monthlyCosts").textContent=money(f.costs);
+  $("monthlyProfit").textContent=money(f.profit);
+
+  $("monthlyProfit").className=
+    "big "+(f.profit>=0?"good":"bad");
+
+  $("currencyInfo").innerHTML=`
+    <div class="listItem">
+      <strong>Waluta siedziby: ${state.baseCurrency}</strong>
+
+      <div class="muted">
+        ${state.hq
+          ?`${flag(state.hq.country)}
+             ${countryName(state.hq.country)}
+             · ${state.hq.city}`
+          :"Brak siedziby"}
+      </div>
+    </div>
+
+    ${
+      COUNTRY_CODES
+      .filter(c=>
+        state.offers.some(o=>o.country===c)||
+        state.towers.some(t=>t.country===c)||
+        state.shops.some(s=>s.country===c)
+      )
+      .map(c=>{
+        const cur=currencyForCountry(c);
+
+        return`
+          <div class="listItem">
+            ${flag(c)}
+            <b>${countryName(c)}</b>
+            · ${cur}
+
+            ${
+              cur!==state.baseCurrency
+              ?`<div class="small muted">
+                  100 ${cur} ≈
+                  ${formatCurrency(
+                    convertMoney(100,cur,state.baseCurrency),
+                    state.baseCurrency
+                  )}
+                </div>`
+              :""
+            }
+          </div>
+        `;
+      }).join("")
+    }
+  `;
+
+  if(state.currencyNews.length){
+    $("currencyInfo").innerHTML += `<div class="listItem"><strong>📰 Rynek walutowy</strong><div class="small muted">${state.currencyNews.slice(0,5).join("<br>")}</div></div>`;
+  }
+
+  $("financeLog").innerHTML=
+    state.financeLog.length?
+    state.financeLog.map(x=>
+      `<div class="listItem">${x}</div>`
+    ).join(""):
+    `<div class="muted">Brak operacji.</div>`;
+}
+
+function renderSidebar(){
+  $("sideHQ").textContent=
+    state.hq?
+    `${flag(state.hq.country)} ${state.hq.city}`:
+    "Brak";
+
+  $("sideCurrency").textContent=
+    `${state.baseCurrency} (${currencySymbol(state.baseCurrency)})`;
+
+  $("sideEmployees").textContent=
+    `${state.employees.length} / ${10+state.hqLevel*15}`;
+
+  $("sideTech").textContent=
+    state.technologies.filter(t=>t.owned).length;
+
+  $("eventLog").innerHTML=
+    state.events.slice(0,10).map(e=>
+      `<div class="listItem small">${e}</div>`
+    ).join("");
+}
+
+/* =========================================================
+   UI
+========================================================= */
+
+document.querySelectorAll(".navbtn").forEach(btn=>{
+  btn.onclick=()=>{
+    document.querySelectorAll(".navbtn").forEach(b=>
+      b.classList.remove("active")
+    );
+
+    btn.classList.add("active");
+
+    document.querySelectorAll(".page").forEach(p=>
+      p.classList.remove("active")
+    );
+
+    $(btn.dataset.page).classList.add("active");
+
+    if(btn.dataset.page==="mapPage"){
+      setTimeout(()=>map?.invalidateSize(),100);
+    }
+  };
+});
+
+$("towerRadius").oninput=e=>{
+  $("radiusLabel").textContent=e.target.value;
+};
+
+function notify(text){
+  const n=document.createElement("div");
+  n.className="notification";
+  n.textContent=text;
+  document.body.appendChild(n);
+
+  setTimeout(()=>n.remove(),3000);
+}
+
+/* =========================================================
+   AUTO GENERATION
+========================================================= */
+
+setInterval(()=>{
+  generateEmployee();
+},18000);
+
+setInterval(()=>{
+  generateCompany();
+},30000);
+
+setInterval(()=>{
+  generateStreaming();
+},45000);
+
+setInterval(()=>{
+  if(Math.random()<.5)generateTechnology();
+},60000);
+
+/*
+  1 miesiąc gry = 15 sekund.
+*/
+setInterval(()=>{
+  nextMonth();
+},15000);
+
+/* =========================================================
+   START
+========================================================= */
+
+async function start(){
+  populateCountries();
+  setupCountrySearch();
+  offerTypeChanged();
+
+  for(let i=0;i<6;i++)generateEmployee();
+  for(let i=0;i<6;i++)generateCompany();
+  for(let i=0;i<5;i++)generateStreaming();
+
+  addEvent("🚀 Założono nową firmę telekomunikacyjną.");
+
+  render();
+
+  try{
+    await initMap();
+  }catch(err){
+    console.error(err);
+
+    $("map").innerHTML=`
+      <div style="padding:30px">
+        Nie udało się uruchomić mapy.
+        Sprawdź połączenie z internetem.
+      </div>
+    `;
+  }
+}
+
+start();
+
+</script>
+</body>
+</html>
