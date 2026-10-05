@@ -1,0 +1,7747 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ropucha Group Tycoon</title>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
+<style>
+:root{
+ --bg:#0a0f0c;--panel:#111813;--panel2:#18221b;--card:#1b261f;
+ --line:#2c3b31;--green:#43df73;--green2:#218d4b;
+ --text:#f3f7f4;--muted:#91a096;--red:#ff626c;--orange:#ffad4d;
+ --blue:#55a7ff;--purple:#b07cff;
+}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:Arial,sans-serif}
+button,input,select{font:inherit}
+button{cursor:pointer}
+button:disabled{opacity:.4;cursor:not-allowed}
+
+#map{
+ position:fixed;left:220px;top:0;right:0;bottom:0;z-index:1;
+}
+
+/* SIDEBAR */
+
+#sidebar{
+ position:fixed;left:0;top:0;bottom:0;width:220px;z-index:5000;
+ background:#0c120e;border-right:1px solid var(--line);
+ overflow:auto;padding:10px;
+}
+
+.logo{
+ font-size:18px;font-weight:900;color:#6aee90;padding:12px 8px 16px;
+}
+.logo small{
+ display:block;color:#607066;font-size:9px;letter-spacing:2px;margin-top:3px;
+}
+
+.navLabel{
+ font-size:9px;color:#5b6b60;font-weight:800;letter-spacing:1.3px;
+ margin:15px 9px 5px;
+}
+
+.nav{
+ display:flex;align-items:center;gap:9px;width:100%;
+ border:0;border-radius:7px;background:transparent;color:#9bac9f;
+ padding:9px;text-align:left;margin:2px 0;
+}
+
+.nav:hover{background:#18221b;color:white}
+.nav.active{background:#153d24;color:#7af09a}
+.nav span{width:21px;text-align:center}
+
+/* TOP HUD */
+
+#top{
+ position:fixed;left:235px;top:12px;right:15px;z-index:4000;
+ display:flex;justify-content:space-between;pointer-events:none;
+}
+
+.huds{display:flex;gap:6px;flex-wrap:wrap}
+
+.hud{
+ background:#0d120feb;border:1px solid var(--line);
+ padding:7px 11px;border-radius:8px;min-width:90px;
+ box-shadow:0 4px 15px #0005;
+}
+
+.hud small{
+ display:block;font-size:8px;color:#77867d;font-weight:800;
+}
+
+.hud strong{font-size:13px}
+
+.time{
+ pointer-events:auto;background:#0d120feb;border:1px solid var(--line);
+ border-radius:8px;padding:5px;
+}
+
+.time button{
+ border:0;background:#202a23;color:#aaa;border-radius:5px;padding:6px 9px;
+}
+
+.time button.active{background:var(--green2);color:white}
+
+/* PANEL */
+
+#panel{
+ position:fixed;z-index:4500;left:220px;top:0;bottom:0;width:530px;
+ background:#101612f8;border-right:1px solid var(--line);
+ overflow:auto;padding:18px;box-shadow:15px 0 35px #0007;
+}
+
+#panel.hidden{display:none}
+
+.title{font-size:22px;font-weight:900;margin-bottom:4px}
+.subtitle{font-size:11px;color:var(--muted);margin-bottom:16px}
+
+.tabs{
+ display:flex;gap:4px;margin-bottom:12px;flex-wrap:wrap;
+}
+
+.tab{
+ border:1px solid var(--line);background:#18201b;color:#9dac9f;
+ border-radius:6px;padding:7px 10px;
+}
+
+.tab.active{
+ background:#205832;color:white;border-color:#347a49;
+}
+
+.card{
+ background:var(--card);border:1px solid var(--line);
+ border-radius:10px;padding:12px;margin-bottom:8px;
+}
+
+.card:hover{border-color:#3d5143}
+
+.kpis{
+ display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:12px;
+}
+
+.kpi{
+ background:#18211b;border:1px solid var(--line);
+ border-radius:9px;padding:12px;
+}
+
+.kpi small{
+ display:block;color:#7c8e82;font-size:9px;font-weight:800;
+}
+
+.kpi strong{font-size:18px}
+
+.row{
+ display:flex;justify-content:space-between;gap:10px;
+ margin:6px 0;font-size:12px;color:#9cac9f;
+}
+
+.row b{color:white;text-align:right}
+
+.green{color:#64e889!important}
+.red{color:var(--red)!important}
+.orange{color:var(--orange)!important}
+.blueText{color:var(--blue)!important}
+
+.muted{
+ font-size:11px;color:var(--muted);line-height:1.45;
+}
+
+.btn{
+ width:100%;border:0;border-radius:6px;padding:8px;
+ background:#237944;color:white;font-weight:800;margin-top:5px;
+}
+
+.btn:hover{filter:brightness(1.12)}
+.btn.blue{background:#28649f}
+.btn.redBtn{background:#8e3940}
+.btn.orangeBtn{background:#a76428}
+.btn.gray{background:#3a463e}
+.btn.purple{background:#654a8f}
+
+.grid2{
+ display:grid;grid-template-columns:1fr 1fr;gap:5px;
+}
+
+.grid3{
+ display:grid;grid-template-columns:repeat(3,1fr);gap:5px;
+}
+
+input,select{
+ background:#101612;border:1px solid #35443a;color:white;
+ border-radius:6px;padding:8px;
+}
+
+.full{width:100%}
+
+.badge{
+ display:inline-block;padding:3px 7px;border-radius:12px;
+ background:#344139;font-size:9px;margin:2px;
+}
+
+.badge.ok{background:#18552c;color:#83f3a1}
+.badge.warn{background:#65491c;color:#ffd08b}
+.badge.bad{background:#61282c;color:#ff9da4}
+.badge.blue{background:#204c71;color:#9ed0ff}
+.badge.purple{background:#4f396c;color:#d4b7ff}
+
+.sectionTitle{
+ font-size:12px;font-weight:900;color:#d8e3da;margin:16px 0 7px;
+}
+
+.empty{
+ padding:25px;text-align:center;color:#718078;
+ border:1px dashed #354239;border-radius:9px;
+}
+
+.table{
+ width:100%;border-collapse:collapse;font-size:11px;
+}
+
+.table th{
+ text-align:left;color:#73847a;padding:7px;
+ border-bottom:1px solid var(--line);
+}
+
+.table td{
+ padding:8px 7px;border-bottom:1px solid #273129;
+}
+
+.table tr:hover td{background:#202a23}
+
+/* HOLDING */
+
+.holdingRoot{
+ background:linear-gradient(135deg,#183c24,#132219);
+ border:1px solid #347c49;
+ border-radius:12px;padding:14px;margin-bottom:10px;
+}
+
+.companyNode{
+ border-left:2px solid #3d5b47;
+ padding-left:12px;margin:8px 0 8px 12px;
+}
+
+.companyBox{
+ background:#18221b;border:1px solid #33443a;
+ border-radius:8px;padding:10px;margin-bottom:5px;
+}
+
+.companyBox.selected{
+ border-color:#55d77b;
+ box-shadow:0 0 0 1px #55d77b44;
+}
+
+.assetGrid{
+ display:grid;grid-template-columns:repeat(2,1fr);gap:5px;
+ margin-top:8px;
+}
+
+.asset{
+ background:#111713;border:1px solid #2d3c32;
+ border-radius:6px;padding:7px;font-size:10px;
+}
+
+/* MODAL */
+
+#modalBg{
+ display:none;position:fixed;inset:0;background:#000c;
+ z-index:60000;align-items:center;justify-content:center;
+}
+
+#modal{
+ background:#121914;border:1px solid #3b4a40;
+ border-radius:12px;width:min(1100px,96vw);
+ max-height:94vh;overflow:auto;padding:17px;
+}
+
+.close{
+ float:right;border:0;border-radius:6px;
+ background:#7d3238;color:white;padding:7px 11px;
+}
+
+.formLabel{
+ display:block;font-size:10px;color:#829187;
+ font-weight:800;margin:11px 0 4px;
+}
+
+/* STORE EDITOR */
+
+.editorWrap{
+ display:grid;grid-template-columns:200px 1fr;gap:12px;
+}
+
+.palette{
+ background:#18201b;border-radius:8px;padding:8px;
+ max-height:75vh;overflow:auto;
+}
+
+.palette button{
+ width:100%;background:#253029;color:#ddd;
+ border:1px solid #39473e;padding:7px;text-align:left;
+ border-radius:5px;margin:2px 0;
+}
+
+.storeGrid{
+ display:grid;gap:2px;background:#080b09;padding:4px;
+ border:2px solid #48554c;width:min(690px,68vw);
+ aspect-ratio:1;
+}
+
+.cell{
+ border:1px solid #354139;display:flex;
+ align-items:center;justify-content:center;
+ cursor:pointer;user-select:none;
+}
+
+.cell.sales{background:#243126}
+.cell.backroom{background:#3c3325}
+.cell:hover{outline:2px solid #5ce782}
+
+/* MAP */
+
+.mapMarker{
+ width:30px;height:30px;border-radius:9px;border:2px solid white;
+ display:flex;align-items:center;justify-content:center;
+ font-size:15px;box-shadow:0 4px 10px #0008;
+}
+
+.storeM{background:#18733b}
+.centerM{background:#2868a3}
+.factoryM{background:#9b622d}
+
+#mapFilters{
+ position:fixed;right:15px;bottom:15px;z-index:4000;
+ background:#0d120fe8;border:1px solid var(--line);
+ padding:7px;border-radius:8px;
+}
+
+#mapFilters label{
+ font-size:10px;margin-right:8px;
+}
+
+#buildInfo{
+ display:none;position:fixed;z-index:50000;
+ bottom:20px;left:50%;transform:translateX(-50%);
+ background:#111;border:1px solid #4a5c50;
+ padding:10px 18px;border-radius:7px;
+}
+
+/* TOAST */
+
+#notes{
+ position:fixed;right:12px;bottom:60px;
+ width:300px;z-index:70000;
+}
+
+.note{
+ background:#121914;border:1px solid #35463b;
+ border-left:4px solid #49db73;
+ padding:9px;border-radius:7px;margin-top:5px;font-size:11px;
+}
+
+/* CONSOLE */
+
+#console{
+ display:none;position:fixed;z-index:90000;
+ width:min(700px,94vw);height:420px;
+ left:50%;top:50%;transform:translate(-50%,-50%);
+ background:#060907f8;border:1px solid #42ce69;border-radius:8px;
+}
+
+#consoleHistory{
+ height:360px;overflow:auto;padding:10px;
+ white-space:pre-wrap;font-family:monospace;font-size:12px;
+}
+
+#consoleInput{
+ width:100%;height:58px;border:0;
+ border-top:1px solid #294b33;
+ background:#0b100d;color:white;font-family:monospace;
+}
+
+.progress{
+ height:7px;background:#303b33;border-radius:10px;overflow:hidden;
+}
+
+.progress div{
+ height:100%;background:#49db73;
+}
+
+@media(max-width:900px){
+ #sidebar{width:70px}
+ .logo{font-size:0}
+ .logo:before{content:"🐸";font-size:25px}
+ .navLabel{display:none}
+ .nav{justify-content:center;font-size:0}
+ .nav span{font-size:20px}
+ #map{left:70px}
+ #panel{left:70px;width:360px}
+ #top{left:82px}
+}
+</style>
+</head>
+
+<body>
+
+<div id="map"></div>
+
+<div id="sidebar">
+
+<div class="logo">
+🐸 ROPUCHA GROUP
+<small>RETAIL EMPIRE</small>
+</div>
+
+<div class="navLabel">GŁÓWNE</div>
+
+<button class="nav active" onclick="openSection('map',this)">
+<span>🗺️</span>Mapa
+</button>
+
+<button class="nav" onclick="openSection('dashboard',this)">
+<span>📊</span>Dashboard
+</button>
+
+<div class="navLabel">SIEĆ</div>
+
+<button class="nav" onclick="openSection('stores',this)">
+<span>🏪</span>Sklepy
+</button>
+
+<button class="nav" onclick="openSection('employees',this)">
+<span>👥</span>Pracownicy
+</button>
+
+<button class="nav" onclick="openSection('design',this)">
+<span>📐</span>Projekt sklepu
+</button>
+
+<button class="nav" onclick="openSection('prices',this)">
+<span>🏷️</span>Ceny i promocje
+</button>
+
+<button class="nav" onclick="openSection('franchise',this)">
+<span>🤝</span>Franczyza
+</button>
+
+<div class="navLabel">OPERACJE</div>
+
+<button class="nav" onclick="openSection('logistics',this)">
+<span>🚛</span>Logistyka
+</button>
+
+<button class="nav" onclick="openSection('companies',this)">
+<span>🏭</span>Producenci
+</button>
+
+<button class="nav" onclick="openSection('ideas',this)">
+<span>💡</span>R&D
+</button>
+
+<div class="navLabel">GRUPA</div>
+
+<button class="nav" onclick="openSection('holding',this)">
+<span>🏛️</span>Holding
+</button>
+
+<button class="nav" onclick="openSection('finance',this)">
+<span>💰</span>Finanse
+</button>
+
+<button class="nav" onclick="openSection('news',this)">
+<span>📰</span>Wiadomości
+</button>
+
+</div>
+
+<div id="panel" class="hidden"></div>
+
+<div id="top">
+
+<div class="huds">
+
+<div class="hud">
+<small>GOTÓWKA</small>
+<strong id="hudMoney" class="green"></strong>
+</div>
+
+<div class="hud">
+<small>SKLEPY</small>
+<strong id="hudStores"></strong>
+</div>
+
+<div class="hud">
+<small>CENTRA</small>
+<strong id="hudCenters"></strong>
+</div>
+
+<div class="hud">
+<small>SPÓŁKI</small>
+<strong id="hudSubs"></strong>
+</div>
+
+<div class="hud">
+<small>DZIEŃ</small>
+<strong id="hudDate"></strong>
+</div>
+
+</div>
+
+<div class="time">
+<button id="sp0" onclick="setSpeed(0)">⏸</button>
+<button id="sp1" class="active" onclick="setSpeed(1)">1×</button>
+<button id="sp2" onclick="setSpeed(2)">2×</button>
+<button id="sp5" onclick="setSpeed(5)">5×</button>
+<button id="sp10" onclick="setSpeed(10)">10×</button>
+</div>
+
+</div>
+
+<div id="mapFilters">
+<label><input type="checkbox" checked onchange="toggleLayer('stores',this.checked)"> 🏪 Sklepy</label>
+<label><input type="checkbox" checked onchange="toggleLayer('centers',this.checked)"> 📦 Centra</label>
+<label><input type="checkbox" checked onchange="toggleLayer('factories',this.checked)"> 🏭 Fabryki</label>
+<label><input type="checkbox" checked onchange="toggleLayer('routes',this.checked)"> 🚛 Trasy</label>
+</div>
+
+<div id="buildInfo"></div>
+<div id="notes"></div>
+
+<div id="modalBg">
+<div id="modal"></div>
+</div>
+
+<div id="console">
+
+<div id="consoleHistory">ROPUCHA DEV CONSOLE
+Wpisz: help</div>
+
+<input id="consoleInput" placeholder="komenda...">
+
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+
+/* =========================================================
+   HELPERS
+========================================================= */
+
+const rnd=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+const rndf=(a,b)=>Math.random()*(b-a)+a;
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+
+const cash=n=>
+ Math.round(Number(n)||0).toLocaleString("pl-PL")+" zł";
+
+const esc=s=>
+ String(s??"")
+ .replaceAll("&","&amp;")
+ .replaceAll("<","&lt;")
+ .replaceAll(">","&gt;")
+ .replaceAll('"',"&quot;");
+
+/* =========================================================
+   GAME STATE
+========================================================= */
+
+let money=500000;
+
+let day=1;
+let month=1;
+let year=2026;
+
+let speed=1;
+let current="map";
+
+let maxStaff=200;
+let maxFranchisees=50;
+let maxDrivers=100;
+
+let stores=[];
+let employees=[];
+let franchisees=[];
+let companies=[];
+let subsidiaries=[];
+
+let centers=[];
+let drivers=[];
+let trucks=[];
+let routes=[];
+let ideas=[];
+let news=[];
+
+let ids={
+ store:1,
+ employee:1,
+ franchise:1,
+ company:1,
+ factory:1,
+ sub:1,
+ center:1,
+ driver:1,
+ truck:1,
+ route:1,
+ idea:1
+};
+
+let totals={
+ sales:0,
+ franchise:0,
+ dividends:0,
+ wages:0,
+ fuel:0
+};
+
+let buildMode=null;
+let pendingStoreSize="standard";
+
+let editorStore=null;
+let editorTool="shelf";
+let editorZone=null;
+
+let logisticsTab="centers";
+let employeeTab="staff";
+let companyTab="market";
+
+let selectedSubsidiary=null;
+
+/* NOWE SYSTEMY v5 */
+let fuelPrice=6.49;
+let fuelHistory=[];
+let networkLayout=null;
+let networkLayoutVersion=1;
+let nanoUnlocked=false;
+const SUB_SPECIALIZATIONS={retail:"🏪 Sklepy",technology:"💻 Technologia",research:"🧪 Nowe rzeczy / R&D",logistics:"🚛 Logistyka",production:"🏭 Produkcja"};
+
+/* =========================================================
+   DATA
+========================================================= */
+
+const COUNTRIES=[
+"Polska",
+"Niemcy",
+"Czechy",
+"Słowacja",
+"Litwa",
+"Łotwa",
+"Estonia",
+"Francja",
+"Hiszpania",
+"Włochy",
+"Holandia",
+"Belgia",
+"Austria",
+"Wielka Brytania",
+"USA",
+"Kanada",
+"Japonia",
+"Korea Południowa",
+"Australia",
+"Brazylia",
+"ZEA"
+];
+
+const SUB_TYPES={
+operating:{
+ name:"Operacyjna",
+ emoji:"🏪",
+ desc:"Zarządzanie sklepami i działalnością detaliczną"
+},
+logistics:{
+ name:"Logistyczna",
+ emoji:"🚛",
+ desc:"Centra logistyczne, transport i magazyny"
+},
+production:{
+ name:"Produkcyjna",
+ emoji:"🏭",
+ desc:"Fabryki i produkcja"
+},
+holding:{
+ name:"Holdingowa",
+ emoji:"🏛️",
+ desc:"Posiadanie innych spółek i aktywów"
+}
+};
+
+const PLACES=[
+["Warszawa","Polska",52.2297,21.0122],
+["Białystok","Polska",53.1325,23.1688],
+["Gdańsk","Polska",54.352,18.6466],
+["Kraków","Polska",50.0647,19.945],
+["Poznań","Polska",52.4064,16.9252],
+["Wrocław","Polska",51.1079,17.0385],
+["Łódź","Polska",51.7592,19.456],
+["Lublin","Polska",51.2465,22.5684],
+
+["Berlin","Niemcy",52.52,13.405],
+["Hamburg","Niemcy",53.5511,9.9937],
+
+["Praga","Czechy",50.0755,14.4378],
+["Brno","Czechy",49.1951,16.6068],
+
+["Paryż","Francja",48.8566,2.3522],
+["Londyn","Wielka Brytania",51.5074,-0.1278],
+["Madryt","Hiszpania",40.4168,-3.7038],
+["Rzym","Włochy",41.9028,12.4964],
+["Amsterdam","Holandia",52.3676,4.9041],
+["Wiedeń","Austria",48.2082,16.3738],
+
+["Nowy Jork","USA",40.7128,-74.006],
+["Chicago","USA",41.8781,-87.6298],
+["Los Angeles","USA",34.0522,-118.2437],
+
+["Toronto","Kanada",43.6532,-79.3832],
+
+["Tokio","Japonia",35.6762,139.6503],
+["Seul","Korea Południowa",37.5665,126.978],
+
+["Sydney","Australia",-33.8688,151.2093],
+["São Paulo","Brazylia",-23.5505,-46.6333],
+["Dubaj","ZEA",25.2048,55.2708]
+];
+
+const PRODUCTS=[
+{id:"coffee",n:"Kawa",e:"☕",cost:2.1,price:7.49},
+{id:"hotdog",n:"Hot-dog",e:"🌭",cost:3.2,price:7.99},
+{id:"pizza",n:"Pizza",e:"🍕",cost:7,price:15.99},
+{id:"drink",n:"Napój",e:"🥤",cost:2.8,price:6.49},
+{id:"sandwich",n:"Kanapka",e:"🥪",cost:5,price:11.99},
+{id:"bun",n:"Bułka",e:"🥖",cost:1.1,price:3.49},
+{id:"ice",n:"Lody",e:"🍦",cost:3.3,price:7.99},
+{id:"scratch",n:"Zdrapka",e:"🎟️",cost:4.2,price:5},
+{id:"game",n:"Gra promocyjna",e:"🎮",cost:3.3,price:4}
+];
+
+let prices={};
+
+PRODUCTS.forEach(p=>{
+ prices[p.id]={
+  price:p.price,
+  discount:0,
+  days:0
+ };
+});
+
+const STORE_SIZES={
+mini:{name:"Mini",grid:8,cost:70000},
+standard:{name:"Standard",grid:12,cost:130000},
+large:{name:"Duży",grid:16,cost:230000},
+mega:{name:"Mega",grid:20,cost:400000}
+};
+
+const EQUIPMENT={
+shelf:{n:"Regał",e:"🗄️",cost:6000},
+fridge:{n:"Lodówka",e:"🧊",cost:18000},
+checkout:{n:"Kasa",e:"💳",cost:15000},
+self:{n:"Kasa samoobsługowa",e:"🤖",cost:45000},
+coffee:{n:"Ekspres",e:"☕",cost:28000},
+hotdog:{n:"Hot-dog",e:"🌭",cost:24000},
+pizza:{n:"Piec",e:"🍕",cost:45000},
+printer:{n:"Drukarka",e:"🖨️",cost:12000},
+parcel:{n:"Paczki",e:"📦",cost:15000},
+games:{n:"Terminal gier",e:"🎟️",cost:18000},
+
+warehouse:{
+ n:"Regał magazynowy",
+ e:"📦",
+ cost:8000,
+ back:true
+},
+
+cold:{
+ n:"Chłodnia",
+ e:"🧊",
+ cost:35000,
+ back:true
+},
+
+delivery:{
+ n:"Strefa dostaw",
+ e:"🚚",
+ cost:20000,
+ back:true
+},
+
+staff:{
+ n:"Pokój pracowników",
+ e:"👥",
+ cost:18000,
+ back:true
+},
+
+door:{
+ n:"Drzwi",
+ e:"🚪",
+ cost:1500
+}
+};
+
+/* =========================================================
+   MAP
+========================================================= */
+
+const map=L.map("map",{
+ zoomControl:true,
+ scrollWheelZoom:true,
+ wheelPxPerZoomLevel:90,
+ zoomSnap:1,
+ zoomDelta:1,
+ zoomAnimation:true,
+ fadeAnimation:true,
+ markerZoomAnimation:true,
+ minZoom:2,
+ maxZoom:18
+}).setView([52,19],5);
+
+const osmTiles=L.tileLayer(
+ "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+ {
+  minZoom:2,
+  maxZoom:18,
+  maxNativeZoom:18,
+  keepBuffer:5,
+  updateWhenIdle:false,
+  updateWhenZooming:true,
+  attribution:"&copy; OpenStreetMap contributors"
+ }
+).addTo(map);
+
+let tileRefreshTimer=null;
+function refreshMapTiles(){
+ clearTimeout(tileRefreshTimer);
+ tileRefreshTimer=setTimeout(()=>{
+  try{
+   map.invalidateSize({pan:false,animate:false});
+   osmTiles.redraw();
+  }catch(e){}
+ },100);
+}
+map.on("zoomend moveend resize",refreshMapTiles);
+window.addEventListener("resize",refreshMapTiles);
+setTimeout(refreshMapTiles,300);
+
+/*
+ Zoom i przesuwanie obsługuje natywnie Leaflet.
+ Nie wywołujemy setView() podczas scrollowania, więc ręcznie
+ przesunięta mapa nie wraca do wcześniejszej pozycji.
+*/
+const layers={
+ stores:L.layerGroup().addTo(map),
+ centers:L.layerGroup().addTo(map),
+ factories:L.layerGroup().addTo(map),
+ routes:L.layerGroup().addTo(map)
+};
+
+let savedMapView={
+ center:map.getCenter(),
+ zoom:map.getZoom()
+};
+
+map.on("moveend zoomend",()=>{
+ savedMapView={
+  center:map.getCenter(),
+  zoom:map.getZoom()
+ };
+});
+
+
+
+
+function toggleLayer(type,on){
+
+ if(on){
+  layers[type].addTo(map);
+ }else{
+  map.removeLayer(layers[type]);
+ }
+
+}
+
+function mapIcon(emoji,cls){
+
+ return L.divIcon({
+  className:"",
+  html:`<div class="mapMarker ${cls}">${emoji}</div>`,
+  iconSize:[30,30],
+  iconAnchor:[15,15]
+ });
+
+}
+
+const icons={
+ store:mapIcon("🏪","storeM"),
+ center:mapIcon("📦","centerM"),
+ factory:mapIcon("🏭","factoryM"),
+ truck:mapIcon("🚛","truckM")
+};
+
+function nearestPlace(lat,lng){
+
+ let best=PLACES[0];
+ let dist=Infinity;
+
+ PLACES.forEach(p=>{
+
+  const d=
+   (lat-p[2])**2+
+   (lng-p[3])**2;
+
+  if(d<dist){
+   dist=d;
+   best=p;
+  }
+
+ });
+
+ return best;
+}
+
+/* =========================================================
+   BASIC FUNCTIONS
+========================================================= */
+
+function person(){
+
+ return pick([
+ "Jan","Adam","Marek","Kamil","Jakub","Michał",
+ "Anna","Julia","Zofia","Natalia","Oliwia"
+ ])+" "+pick([
+ "Nowak","Kowalski","Wójcik","Mazur",
+ "Lis","Król","Zieliński","Lewandowski"
+ ]);
+
+}
+
+function notify(text){
+
+ const n=document.createElement("div");
+
+ n.className="note";
+ n.textContent=text;
+
+ document.getElementById("notes").appendChild(n);
+
+ setTimeout(()=>{
+  n.remove();
+ },4000);
+
+}
+
+function addNews(text){
+
+ news.unshift({
+  day,
+  month,
+  year,
+  text
+ });
+
+ news=news.slice(0,150);
+
+}
+
+function changeMoney(amount){
+
+ money+=amount;
+ hud();
+
+}
+
+function modal(html){
+
+ document.getElementById("modal").innerHTML=html;
+ document.getElementById("modalBg").style.display="flex";
+
+}
+
+function closeModal(){
+
+ document.getElementById("modalBg").style.display="none";
+
+}
+
+function productPrice(id){
+ const x=prices[id];
+ if(x.days>0&&x.promoType==="multi"&&x.multiQty>0){
+  return x.multiPrice/x.multiQty;
+ }
+ return x.price*(x.days>0?(1-x.discount/100):1);
+}
+
+/* =========================================================
+   SUBSIDIARY HELPERS
+========================================================= */
+
+function getSub(id){
+
+ return subsidiaries.find(
+  s=>s.id===Number(id)
+ );
+
+}
+
+function subName(id){
+
+ if(!id)return "Ropucha Group";
+
+ const s=getSub(id);
+
+ return s?s.name:"Ropucha Group";
+
+}
+
+function getSubChildren(id){
+
+ return subsidiaries.filter(
+  s=>s.parentId===id
+ );
+
+}
+
+function getDescendantIds(id){
+
+ const result=[];
+
+ function walk(parent){
+
+  subsidiaries
+   .filter(s=>s.parentId===parent)
+   .forEach(s=>{
+
+    result.push(s.id);
+    walk(s.id);
+
+   });
+
+ }
+
+ walk(id);
+
+ return result;
+
+}
+
+function subAssets(id){
+
+ const ownStores=
+  stores.filter(s=>s.subsidiaryId===id);
+
+ const ownCenters=
+  centers.filter(c=>c.subsidiaryId===id);
+
+ const ownFactories=[];
+
+ companies.forEach(c=>{
+
+  c.factories.forEach(f=>{
+
+   if(f.subsidiaryId===id){
+
+    ownFactories.push({
+     company:c,
+     factory:f
+    });
+
+   }
+
+  });
+
+ });
+
+ const ownedCompanies=
+  companies.filter(c=>
+   c.owned&&
+   c.subsidiaryId===id
+  );
+
+ return {
+  stores:ownStores,
+  centers:ownCenters,
+  factories:ownFactories,
+  companies:ownedCompanies
+ };
+
+}
+
+function calculateSubFinances(id){
+
+ const a=subAssets(id);
+
+ let revenue=0;
+
+ a.stores.forEach(s=>{
+  revenue+=s.sales||0;
+ });
+
+ a.companies.forEach(c=>{
+  revenue+=c.profit||0;
+ });
+
+ let costs=0;
+
+ employees.forEach(e=>{
+
+  if(e.status!=="employed")return;
+
+  if(e.storeId){
+
+   const store=
+    stores.find(s=>s.id===e.storeId);
+
+   if(store?.subsidiaryId===id){
+    costs+=e.salary/30;
+   }
+
+  }
+
+ });
+
+ drivers.forEach(d=>{
+
+  if(d.centerId){
+
+   const center=
+    centers.find(c=>c.id===d.centerId);
+
+   if(center?.subsidiaryId===id){
+    costs+=d.salary/30;
+   }
+
+  }
+
+ });
+
+ return {
+  revenue,
+  costs,
+  profit:revenue-costs
+ };
+
+}
+
+function subAssetValue(id){
+
+ const a=subAssets(id);
+
+ let value=0;
+
+ a.stores.forEach(s=>{
+  value+=STORE_SIZES[s.size]?.cost||0;
+ });
+
+ a.centers.forEach(c=>{
+  value+=200000+(c.level-1)*150000;
+ });
+
+ a.factories.forEach(x=>{
+  value+=x.company.valuation/
+   Math.max(1,x.company.factories.length);
+ });
+
+ a.companies.forEach(c=>{
+  value+=c.valuation;
+ });
+
+ return value;
+
+}
+
+/* =========================================================
+   IMPROVED SUBSIDIARY CREATION
+========================================================= */
+
+function openCreateSubsidiary(parentId=null){
+ const parent=parentId?getSub(parentId):null;
+
+ modal(`
+ <button class="close" onclick="closeModal()">X</button>
+ <h2>🏛️ Utwórz spółkę córkę</h2>
+ <div class="muted">Utwórz nowy podmiot w strukturze Ropucha Group. Wybierz profil działalności — od niego zależą późniejsze moduły i aktywa spółki.</div>
+
+ <label class="formLabel">NAZWA SPÓŁKI</label>
+ <input id="newSubName" class="full" maxlength="60" value="${parent?esc(parent.name+" Operations"):"Ropucha Polska sp. z o.o."}">
+
+ <label class="formLabel">KRAJ DZIAŁANIA 1</label>
+ ${countryPickerHTML("newSubCountry","Polska")}
+
+ <label class="formLabel">KRAJ DZIAŁANIA 2 <span class="muted">(OPCJONALNY)</span></label>
+ ${countryPickerHTML("newSubCountry2","")}
+
+ <label class="formLabel">PROFIL DZIAŁALNOŚCI</label>
+ <select id="newSubType" class="full" onchange="updateNewSubTypeHint()">
+  <option value="retail">🏪 Handel / sklepy</option>
+  <option value="logistics">🚛 Logistyka</option>
+  <option value="production">🏭 Produkcja</option>
+  <option value="technology">💻 Technologia</option>
+  <option value="research">🧪 R&D</option>
+  <option value="innovation">💡 Nowe koncepty</option>
+ </select>
+ <div id="newSubTypeHint" class="card" style="margin-top:8px"></div>
+
+ <label class="formLabel">SPÓŁKA NADRZĘDNA</label>
+ <select id="newSubParent" class="full">
+  <option value="">🐸 Ropucha Group</option>
+  ${subsidiaries.map(s=>`<option value="${s.id}" ${parentId===s.id?"selected":""}>${esc(s.name)}</option>`).join("")}
+ </select>
+
+ <label class="formLabel">KAPITAŁ POCZĄTKOWY</label>
+ <input id="newSubCapital" class="full" type="number" min="0" step="10000" value="100000">
+
+ <div class="card" style="margin-top:12px">
+  <div class="row"><span>Udział Ropucha Group</span><b class="green">100%</b></div>
+  <div class="row"><span>Dostępna gotówka grupy</span><b>${cash(money)}</b></div>
+ </div>
+
+ <button class="btn" onclick="confirmCreateSubsidiary()">🏛️ Utwórz spółkę</button>
+ `);
+
+ updateNewSubTypeHint();
+}
+
+
+function updateNewSubTypeHint(){
+ const el=document.getElementById("newSubTypeHint");
+ const sel=document.getElementById("newSubType");
+ if(!el||!sel)return;
+ const hints={
+  retail:"🏪 Spółka handlowa — zarządza sklepami w wybranych krajach. Sklepy mogą przypisywać się do niej automatycznie.",
+  logistics:"🚛 Spółka logistyczna — centra logistyczne, kierowcy, ciężarówki i dostawy. Sklepy nie będą wyświetlane jako jej aktywa.",
+  production:"🏭 Spółka produkcyjna — fabryki, produkcja żywności i zaopatrzenie.",
+  technology:"💻 Spółka technologiczna — automatyczne badania technologii, systemy sklepowe i Nano.",
+  research:"🧪 R&D — badania i rozwój nowych technologii oraz procesów.",
+  innovation:"💡 Nowe koncepty — pilotaże, nowe formaty sklepów i testowanie pomysłów."
+ };
+ el.innerHTML=hints[sel.value]||"";
+}
+
+function confirmCreateSubsidiary(){
+ const name=document.getElementById("newSubName").value.trim();
+ const country=document.getElementById("newSubCountry").value.trim();
+ const country2=document.getElementById("newSubCountry2").value.trim();
+ const type=document.getElementById("newSubType").value;
+ const parentValue=document.getElementById("newSubParent").value;
+ const parentId=parentValue?Number(parentValue):null;
+ const capital=Math.max(0,Number(document.getElementById("newSubCapital").value)||0);
+
+ if(name.length<2)return notify("Podaj nazwę spółki.");
+ if(!country)return notify("Wybierz pierwszy kraj działania.");
+ if(country2 && country2.toLowerCase()===country.toLowerCase())return notify("Drugi kraj musi być inny niż pierwszy.");
+ if(subsidiaries.some(s=>s.name.toLowerCase()===name.toLowerCase()))return notify("Spółka o takiej nazwie już istnieje.");
+ if(capital>money)return notify("Ropucha Group nie ma tyle gotówki.");
+
+ changeMoney(-capital);
+
+ const specializations=[type];
+ const sub={
+  id:ids.sub++,
+  name,
+  country,
+  countries:[country].concat(country2?[country2]:[]),
+  type,
+  parentId,
+  capital,
+  cash:capital,
+  created:{day,month,year},
+  rg:{
+   countries:[country].concat(country2?[country2]:[]),
+   specializations,
+   headquarters:country,
+   parentId,
+   techLevel:0
+  }
+ };
+
+ subsidiaries.push(sub);
+ selectedSubsidiary=sub.id;
+
+ // Automatyczne sklepy tylko dla profilu handlowego.
+ // Logistyka nie przejmuje i nie pokazuje sklepów.
+ if(type==="retail"){
+   try{if(typeof autoAssignOwnership==="function")autoAssignOwnership()}catch(e){}
+ }
+
+ addNews(`🏛️ Utworzono spółkę ${name}. Kraje działania: ${sub.countries.join(", ")}. Profil: ${type}.`);
+ closeModal();
+ render();
+ try{if(typeof rgRender==="function")rgRender()}catch(e){}
+}
+
+/* =========================================================
+   SUBSIDIARY MANAGEMENT
+========================================================= */
+
+function openSubsidiary(id){
+
+ selectedSubsidiary=id;
+
+ const s=getSub(id);
+
+ if(!s)return;
+
+ const assets=subAssets(id);
+ const finances=calculateSubFinances(id);
+ const value=subAssetValue(id);
+
+ const forbidden=[
+  id,
+  ...getDescendantIds(id)
+ ];
+
+ modal(`
+
+ <button class="close" onclick="closeModal()">X</button>
+
+ <h2>
+ ${SUB_TYPES[s.type]?.emoji||"🏛️"}
+ ${esc(s.name)}
+ </h2>
+
+ <div class="kpis">
+
+ <div class="kpi">
+ <small>GOTÓWKA</small>
+ <strong class="green">
+ ${cash(s.cash)}
+ </strong>
+ </div>
+
+ <div class="kpi">
+ <small>AKTYWA</small>
+ <strong>
+ ${cash(value)}
+ </strong>
+ </div>
+
+ <div class="kpi">
+ <small>PRZYCHÓD / DZIEŃ</small>
+ <strong>
+ ${cash(finances.revenue)}
+ </strong>
+ </div>
+
+ <div class="kpi">
+ <small>WYNIK / DZIEŃ</small>
+ <strong class="${finances.profit>=0?"green":"red"}">
+ ${cash(finances.profit)}
+ </strong>
+ </div>
+
+ </div>
+
+ <div class="card">
+
+ <div class="row">
+ <span>Kraj</span>
+ <b>${esc(s.country)}</b>
+ </div>
+
+ <div class="row">
+ <span>Typ</span>
+ <b>
+ ${SUB_TYPES[s.type]?.emoji||""}
+ ${SUB_TYPES[s.type]?.name||s.type}
+ </b>
+ </div>
+
+ <div class="row">
+ <span>Właściciel</span>
+ <b>${esc(subName(s.parentId))}</b>
+ </div>
+
+ <div class="row">
+ <span>Udział właściciela</span>
+ <b class="green">100%</b>
+ </div>
+
+ </div>
+
+ <div class="grid2">
+
+ <button
+ class="btn blue"
+ onclick="renameSubsidiary(${s.id})">
+ ✏️ Zmień nazwę
+ </button>
+
+ <button
+ class="btn"
+ onclick="openCreateSubsidiary(${s.id})">
+ ＋ Spółka córka
+ </button>
+
+ </div>
+
+ <button
+ class="btn orangeBtn"
+ onclick="openCapitalModal(${s.id})">
+ 💰 Dokapitalizuj
+ </button>
+
+ <div class="sectionTitle">
+ PRZENIEŚ SPÓŁKĘ W STRUKTURZE
+ </div>
+
+ <select
+ class="full"
+ onchange="moveSubsidiary(${s.id},this.value)"
+ >
+
+ <option
+ value=""
+ ${s.parentId===null?"selected":""}>
+ 🐸 Ropucha Group
+ </option>
+
+ ${subsidiaries
+  .filter(x=>!forbidden.includes(x.id))
+  .map(x=>`
+  <option
+  value="${x.id}"
+  ${s.parentId===x.id?"selected":""}>
+  ${esc(x.name)}
+  </option>
+  `).join("")}
+
+ </select>
+
+ <div class="sectionTitle">
+ AKTYWA SPÓŁKI
+ </div>
+
+ <div class="assetGrid">
+
+ <div class="asset">
+ 🏪 Sklepy<br>
+ <b>${assets.stores.length}</b>
+ </div>
+
+ <div class="asset">
+ 📦 Centra<br>
+ <b>${assets.centers.length}</b>
+ </div>
+
+ <div class="asset">
+ 🏭 Fabryki<br>
+ <b>${assets.factories.length}</b>
+ </div>
+
+ <div class="asset">
+ 🏢 Firmy<br>
+ <b>${assets.companies.length}</b>
+ </div>
+
+ </div>
+
+ <button
+ class="btn gray"
+ onclick="openAssignAssets(${s.id})">
+ 📦 Przypisz aktywa
+ </button>
+
+ <div class="sectionTitle">
+ SPÓŁKI CÓRKI
+ </div>
+
+ ${
+  getSubChildren(s.id).map(child=>`
+
+  <div
+  class="card"
+  onclick="openSubsidiary(${child.id})"
+  style="cursor:pointer">
+
+   <b>
+   ${SUB_TYPES[child.type]?.emoji||"🏛️"}
+   ${esc(child.name)}
+   </b>
+
+   <div class="muted">
+   ${esc(child.country)}
+   •
+   ${SUB_TYPES[child.type]?.name||child.type}
+   </div>
+
+  </div>
+
+  `).join("")
+  ||
+  `<div class="empty">
+   Ta spółka nie ma jeszcze spółek córek.
+  </div>`
+ }
+
+ `);
+
+}
+
+function renameSubsidiary(id){
+
+ const s=getSub(id);
+
+ if(!s)return;
+
+ const name=
+  prompt(
+   "Nowa nazwa spółki:",
+   s.name
+  );
+
+ if(!name)return;
+
+ const clean=name.trim();
+
+ if(clean.length<2)return;
+
+ if(
+  subsidiaries.some(
+   x=>
+    x.id!==id&&
+    x.name.toLowerCase()===
+    clean.toLowerCase()
+  )
+ ){
+
+  return notify(
+   "Taka nazwa jest już używana."
+  );
+
+ }
+
+ const old=s.name;
+
+ s.name=clean;
+
+ addNews(
+  `🏛️ ${old} zmienia nazwę na ${clean}.`
+ );
+
+ openSubsidiary(id);
+
+ render();
+
+}
+
+function moveSubsidiary(id,parentValue){
+
+ const s=getSub(id);
+
+ if(!s)return;
+
+ const parentId=
+  parentValue
+   ?Number(parentValue)
+   :null;
+
+ if(parentId===id){
+
+  notify(
+   "Spółka nie może posiadać samej siebie."
+  );
+
+  return openSubsidiary(id);
+
+ }
+
+ const descendants=
+  getDescendantIds(id);
+
+ if(
+  parentId&&
+  descendants.includes(parentId)
+ ){
+
+  notify(
+   "Nie można przenieść spółki pod jej własną spółkę córkę."
+  );
+
+  return openSubsidiary(id);
+
+ }
+
+ s.parentId=parentId;
+
+ addNews(
+  `🏛️ ${s.name} została przeniesiona pod ${subName(parentId)}.`
+ );
+
+ openSubsidiary(id);
+
+ render();
+
+}
+
+function openCapitalModal(id){
+
+ const s=getSub(id);
+
+ if(!s)return;
+
+ modal(`
+
+ <button
+ class="close"
+ onclick="openSubsidiary(${id})">
+ ←
+ </button>
+
+ <h2>
+ 💰 Dokapitalizowanie
+ </h2>
+
+ <div class="card">
+
+ <b>${esc(s.name)}</b>
+
+ <div class="row">
+ <span>Gotówka spółki</span>
+ <b>${cash(s.cash)}</b>
+ </div>
+
+ <div class="row">
+ <span>Gotówka Ropucha Group</span>
+ <b>${cash(money)}</b>
+ </div>
+
+ </div>
+
+ <label class="formLabel">
+ KWOTA
+ </label>
+
+ <input
+ id="capitalAmount"
+ type="number"
+ min="0"
+ step="10000"
+ value="100000"
+ class="full"
+ >
+
+ <button
+ class="btn"
+ onclick="addCapital(${id})">
+ 💰 Przelej kapitał
+ </button>
+
+ `);
+
+}
+
+function addCapital(id){
+
+ const s=getSub(id);
+
+ if(!s)return;
+
+ const amount=
+  Math.max(
+   0,
+   Number(
+    document
+     .getElementById("capitalAmount")
+     .value
+   )||0
+  );
+
+ if(amount<=0)return;
+
+ if(amount>money){
+
+  return notify(
+   "Za mało gotówki w Ropucha Group."
+  );
+
+ }
+
+ changeMoney(-amount);
+
+ s.cash+=amount;
+ s.capital+=amount;
+
+ addNews(
+  `💰 Ropucha Group dokapitalizowała ${s.name}: ${cash(amount)}.`
+ );
+
+ openSubsidiary(id);
+
+ render();
+
+}
+
+function toggleSubMarket(id,country,on){
+ const s=getSub(id); if(!s)return; s.markets=Array.isArray(s.markets)?s.markets:[];
+ if(on&&!s.markets.includes(country))s.markets.push(country); if(!on)s.markets=s.markets.filter(x=>x!==country);
+ stores.filter(st=>st.country===country&&!st.manualSubsidiary).forEach(st=>autoAssignStore(st,true));
+ openSubsidiary(id); render();
+}
+function toggleSubSpecialization(id,key,on){
+ const s=getSub(id); if(!s)return; s.specializations=Array.isArray(s.specializations)?s.specializations:[];
+ if(on&&!s.specializations.includes(key))s.specializations.push(key); if(!on)s.specializations=s.specializations.filter(x=>x!==key);
+ if(key==="retail") autoAssignAllStores(); openSubsidiary(id); render();
+}
+function setStoreOwner(storeId,value){
+ const st=stores.find(s=>s.id===storeId); if(!st)return;
+ if(value==="auto"){st.manualSubsidiary=false;autoAssignStore(st,true)} else {st.manualSubsidiary=true;st.subsidiaryId=value?Number(value):null} render();
+}
+
+/* =========================================================
+   ASSIGN ASSETS TO SUBSIDIARY
+========================================================= */
+
+function openAssignAssets(id){
+
+ const s=getSub(id);
+
+ if(!s)return;
+
+ modal(`
+
+ <button
+ class="close"
+ onclick="openSubsidiary(${id})">
+ ←
+ </button>
+
+ <h2>
+ 📦 Aktywa — ${esc(s.name)}
+ </h2>
+
+ <div class="muted">
+ Zaznaczenie aktywa przenosi je do tej spółki.
+ Odznaczenie przenosi je z powrotem bezpośrednio
+ do Ropucha Group.
+ </div>
+
+ <div class="sectionTitle">
+ 🏪 SKLEPY
+ </div>
+
+ ${
+  stores.map(store=>`
+
+  <label class="card" style="display:block">
+
+  <input
+  type="checkbox"
+  ${store.subsidiaryId===id?"checked":""}
+  onchange="
+   assignStoreToSub(
+    ${store.id},
+    ${id},
+    this.checked
+   )
+  ">
+
+  🏪 ${esc(store.name)}
+
+  <div class="muted">
+  ${esc(store.city)}, ${esc(store.country)}
+  • obecnie:
+  ${esc(subName(store.subsidiaryId))}
+  </div>
+
+  </label>
+
+  `).join("")
+  ||
+  `<div class="empty">
+   Brak sklepów.
+  </div>`
+ }
+
+ <div class="sectionTitle">
+ 📦 CENTRA LOGISTYCZNE
+ </div>
+
+ ${
+  centers.map(center=>`
+
+  <label class="card" style="display:block">
+
+  <input
+  type="checkbox"
+  ${center.subsidiaryId===id?"checked":""}
+  onchange="
+   assignCenterToSub(
+    ${center.id},
+    ${id},
+    this.checked
+   )
+  ">
+
+  📦 ${esc(center.name)}
+
+  <div class="muted">
+  ${esc(center.city)}, ${esc(center.country)}
+  • obecnie:
+  ${esc(subName(center.subsidiaryId))}
+  </div>
+
+  </label>
+
+  `).join("")
+  ||
+  `<div class="empty">
+   Brak centrów.
+  </div>`
+ }
+
+ <div class="sectionTitle">
+ 🏭 FABRYKI
+ </div>
+
+ ${
+  companies
+   .filter(c=>c.owned)
+   .flatMap(c=>
+    c.factories.map(f=>`
+
+    <label
+    class="card"
+    style="display:block">
+
+    <input
+    type="checkbox"
+    ${f.subsidiaryId===id?"checked":""}
+    onchange="
+     assignFactoryToSub(
+      ${c.id},
+      ${f.id},
+      ${id},
+      this.checked
+     )
+    ">
+
+    🏭 ${esc(f.name)}
+
+    <div class="muted">
+    ${esc(c.name)}
+    •
+    ${esc(f.city)}, ${esc(f.country)}
+    • obecnie:
+    ${esc(subName(f.subsidiaryId))}
+    </div>
+
+    </label>
+
+    `)
+   ).join("")
+  ||
+  `<div class="empty">
+   Brak fabryk należących do grupy.
+  </div>`
+ }
+
+ <div class="sectionTitle">
+ 🏢 PRZEJĘTE FIRMY
+ </div>
+
+ ${
+  companies
+   .filter(c=>c.owned)
+   .map(c=>`
+
+   <label
+   class="card"
+   style="display:block">
+
+   <input
+   type="checkbox"
+   ${c.subsidiaryId===id?"checked":""}
+   onchange="
+    assignCompanyToSub(
+     ${c.id},
+     ${id},
+     this.checked
+    )
+   ">
+
+   🏢 ${esc(c.name)}
+
+   <div class="muted">
+   Wycena ${cash(c.valuation)}
+   • obecnie:
+   ${esc(subName(c.subsidiaryId))}
+   </div>
+
+   </label>
+
+   `).join("")
+  ||
+  `<div class="empty">
+   Nie przejęto jeszcze żadnej firmy.
+  </div>`
+ }
+
+ `);
+
+}
+
+function assignStoreToSub(
+ storeId,
+ subId,
+ checked
+){
+
+ const store=
+  stores.find(
+   s=>s.id===storeId
+  );
+
+ if(!store)return;
+
+ store.subsidiaryId=
+  checked
+   ?subId
+   :null;
+
+ openAssignAssets(subId);
+ render();
+
+}
+
+function assignCenterToSub(
+ centerId,
+ subId,
+ checked
+){
+
+ const center=
+  centers.find(
+   c=>c.id===centerId
+  );
+
+ if(!center)return;
+
+ center.subsidiaryId=
+  checked
+   ?subId
+   :null;
+
+ openAssignAssets(subId);
+ render();
+
+}
+
+function assignFactoryToSub(
+ companyId,
+ factoryId,
+ subId,
+ checked
+){
+
+ const company=
+  companies.find(
+   c=>c.id===companyId
+  );
+
+ const factory=
+  company?.factories.find(
+   f=>f.id===factoryId
+  );
+
+ if(!factory)return;
+
+ factory.subsidiaryId=
+  checked
+   ?subId
+   :null;
+
+ openAssignAssets(subId);
+ render();
+
+}
+
+function assignCompanyToSub(
+ companyId,
+ subId,
+ checked
+){
+
+ const company=
+  companies.find(
+   c=>c.id===companyId
+  );
+
+ if(!company)return;
+
+ company.subsidiaryId=
+  checked
+   ?subId
+   :null;
+
+ openAssignAssets(subId);
+ render();
+
+}
+
+/* =========================================================
+   FRANCHISE
+========================================================= */
+
+function recruitFranchise(){
+
+ if(
+  franchisees.length>=
+  maxFranchisees
+ ){
+
+  return notify(
+   "Osiągnięto limit franczyzobiorców."
+  );
+
+ }
+
+ if(money<10000){
+
+  return notify(
+   "Potrzeba 10 000 zł."
+  );
+
+ }
+
+ changeMoney(-10000);
+
+ franchisees.push({
+  id:ids.franchise++,
+  name:person(),
+  skill:rnd(1,10),
+  stores:[],
+  paid:0
+ });
+
+ render();
+
+}
+
+/* =========================================================
+   STORES
+========================================================= */
+
+function emptyLayout(n){
+
+ return Array.from(
+  {length:n},
+  (_,y)=>
+   Array.from(
+    {length:n},
+    ()=>({
+     zone:
+      y>=Math.floor(n*.72)
+       ?"backroom"
+       :"sales",
+     eq:null,
+     plan:[]
+    })
+   )
+ );
+
+}
+
+function openBuildStore(){
+
+ if(!franchisees.length){
+
+  return notify(
+   "Najpierw zrekrutuj franczyzobiorcę."
+  );
+
+ }
+
+ modal(`
+
+ <button
+ class="close"
+ onclick="closeModal()">
+ X
+ </button>
+
+ <h2>
+ 🏪 Nowy sklep
+ </h2>
+
+ <select
+ id="storeSize"
+ class="full">
+
+ ${Object.entries(STORE_SIZES).map(
+ ([k,v])=>`
+ <option value="${k}">
+ ${v.name}
+ — ${v.grid}×${v.grid}
+ — ${cash(v.cost)}
+ </option>
+ `
+ ).join("")}
+
+ </select>
+
+ <button
+ class="btn"
+ onclick="startBuildStore()">
+ 🗺️ Wybierz miejsce na mapie
+ </button>
+
+ `);
+
+}
+
+function startBuildStore(){
+
+ pendingStoreSize=
+  document
+   .getElementById("storeSize")
+   .value;
+
+ if(
+  money<
+  STORE_SIZES[pendingStoreSize].cost
+ ){
+
+  return notify(
+   "Za mało pieniędzy."
+  );
+
+ }
+
+ buildMode="store";
+
+ closeModal();
+
+ const b=
+  document.getElementById(
+   "buildInfo"
+  );
+
+ b.style.display="block";
+
+ b.textContent=
+  "🏪 Kliknij miejsce sklepu na mapie";
+
+}
+
+function cloneLayout(layout){
+ return JSON.parse(JSON.stringify(layout));
+}
+
+function autoSubsidiaryForCountry(country){
+ return subsidiaries.find(s=>Array.isArray(s.markets)&&s.markets.includes(country)&&Array.isArray(s.specializations)&&s.specializations.includes("retail"))
+  || subsidiaries.find(s=>Array.isArray(s.markets)&&s.markets.includes(country))
+  || null;
+}
+
+function autoAssignStore(store,force=false){
+ if(store.manualSubsidiary&&!force)return;
+ const sub=autoSubsidiaryForCountry(store.country);
+ store.subsidiaryId=sub?sub.id:null;
+ store.manualSubsidiary=false;
+}
+
+function autoAssignAllStores(){ stores.forEach(s=>autoAssignStore(s)); render(); }
+
+function createStore(lat,lng){
+
+ const size=
+  STORE_SIZES[pendingStoreSize];
+
+ changeMoney(-size.cost);
+
+ const p=
+  nearestPlace(lat,lng);
+
+ const f=
+  franchisees
+   .slice()
+   .sort(
+    (a,b)=>
+     a.stores.length-
+     b.stores.length
+   )[0];
+
+ const id=ids.store++;
+
+ const s={
+  id,
+  name:"Ropucha #"+id,
+  lat,
+  lng,
+  city:p[0],
+  country:p[1],
+  size:"standard",
+  layout:cloneLayout(networkLayout||emptyLayout(12)),
+  franchiseId:f?.id||null,
+  employees:[],
+  stock:{},
+  sales:0,
+  customers:0,
+  ideas:[],
+  subsidiaryId:null,
+  manualSubsidiary:false,
+  format:"standard",
+  marker:null
+ };
+
+ PRODUCTS.forEach(x=>{
+  s.stock[x.id]=rnd(20,60);
+ });
+
+ autoAssignStore(s,true);
+ stores.push(s);
+
+ if(f){
+  f.stores.push(s.id);
+ }
+
+ s.marker=
+  L.marker(
+   [lat,lng],
+   {icon:icons.store}
+  ).addTo(
+   layers.stores
+  );
+
+ updateStorePopup(s);
+
+ addNews(
+  `🏪 Otwarto ${s.name} w pobliżu ${s.city}.`
+ );
+
+ render();
+
+}
+
+function updateStorePopup(s){
+
+ if(!s.marker)return;
+
+ s.marker.bindPopup(`
+
+ <b>${esc(s.name)}</b><br>
+
+ 📍 ${esc(s.city)},
+ ${esc(s.country)}<br>
+
+ 🏛️ ${esc(subName(s.subsidiaryId))}<br>
+
+ 💰 ${cash(s.sales)}<br>
+
+ 📦 ${
+  Object.values(s.stock)
+   .reduce((a,b)=>a+b,0)
+ } szt.
+
+ `);
+
+ s.marker.off("click");
+
+ s.marker.on("click",()=>{
+
+  current="stores";
+
+  document
+   .getElementById("panel")
+   .classList.remove("hidden");
+
+  renderSection();
+
+ });
+
+}
+
+/* =========================================================
+   STORE EDITOR
+========================================================= */
+
+function openEditor(id){
+
+ editorStore=id;
+ editorTool="shelf";
+ editorZone=null;
+
+ drawEditor();
+
+}
+
+function drawEditor(){
+
+ const s=
+  stores.find(
+   x=>x.id===editorStore
+  );
+
+ if(!s)return;
+
+ const n=
+  STORE_SIZES[s.size].grid;
+
+ modal(`
+
+ <button
+ class="close"
+ onclick="closeModal()">
+ X
+ </button>
+
+ <h2>
+ 📐 ${esc(s.name)}
+ </h2>
+
+ <div class="muted">
+ ${esc(s.city)}, ${esc(s.country)}
+ • ${esc(subName(s.subsidiaryId))}
+ </div>
+
+ <br>
+
+ <div class="editorWrap">
+
+ <div class="palette">
+
+ <button
+ onclick="
+  editorZone='sales';
+  editorTool=null;
+  drawEditor()
+ ">
+ 🟩 Sala sprzedaży
+ </button>
+
+ <button
+ onclick="
+  editorZone='backroom';
+  editorTool=null;
+  drawEditor()
+ ">
+ 🟫 Zaplecze
+ </button>
+
+ ${Object.entries(EQUIPMENT).map(
+ ([k,e])=>`
+
+ <button
+ onclick="
+  editorTool='${k}';
+  editorZone=null;
+  drawEditor()
+ ">
+ ${e.e} ${e.n}<br>
+ <small>${cash(e.cost)}</small>
+ </button>
+
+ `
+ ).join("")}
+
+ <button
+ onclick="
+  editorTool='erase';
+  editorZone=null;
+  drawEditor()
+ ">
+ 🗑️ Usuń
+ </button>
+
+ </div>
+
+ <div
+ class="storeGrid"
+ style="
+  grid-template-columns:
+  repeat(${n},1fr)
+ ">
+
+ ${
+  s.layout.flatMap(
+   (row,y)=>
+    row.map(
+     (c,x)=>`
+
+     <div
+     class="cell ${c.zone}"
+     onclick="editorCell(${x},${y})">
+
+     ${
+      c.eq
+       ?EQUIPMENT[c.eq].e
+       :""
+     }
+
+     </div>
+
+     `
+    )
+  ).join("")
+ }
+
+ </div>
+
+ </div>
+
+ `);
+
+}
+
+function editorCell(x,y){
+
+ const s=
+  stores.find(
+   a=>a.id===editorStore
+  );
+
+ const c=
+  s.layout[y][x];
+
+ if(editorZone){
+
+  if(c.eq){
+
+   return notify(
+    "Usuń najpierw sprzęt."
+   );
+
+  }
+
+  c.zone=editorZone;
+
+  return drawEditor();
+
+ }
+
+ if(editorTool==="erase"){
+
+  c.eq=null;
+  c.plan=[];
+
+  return drawEditor();
+
+ }
+
+ if(c.eq===editorTool){
+
+  return openPlanogram(
+   x,
+   y
+  );
+
+ }
+
+ const e=
+  EQUIPMENT[editorTool];
+
+ if(!e)return;
+
+ if(
+  e.back&&
+  c.zone!=="backroom"
+ ){
+
+  return notify(
+   "Ten sprzęt musi być na zapleczu."
+  );
+
+ }
+
+ if(
+  !e.back&&
+  c.zone==="backroom"&&
+  editorTool!=="door"
+ ){
+
+  return notify(
+   "Ten sprzęt musi być na sali."
+  );
+
+ }
+
+ if(c.eq){
+
+  return notify(
+   "Pole jest zajęte."
+  );
+
+ }
+
+ if(money<e.cost){
+
+  return notify(
+   "Za mało pieniędzy."
+  );
+
+ }
+
+ changeMoney(-e.cost);
+
+ c.eq=editorTool;
+ c.plan=[];
+
+ drawEditor();
+
+}
+
+function openPlanogram(x,y){
+
+ const s=
+  stores.find(
+   a=>a.id===editorStore
+  );
+
+ const c=
+  s.layout[y][x];
+
+ modal(`
+
+ <button
+ class="close"
+ onclick="drawEditor()">
+ ←
+ </button>
+
+ <h2>
+ 📦 Planogram
+ </h2>
+
+ ${
+  PRODUCTS.map(p=>`
+
+  <label
+  class="card"
+  style="display:block">
+
+  <input
+  type="checkbox"
+  ${c.plan.includes(p.id)?"checked":""}
+  onchange="
+   togglePlan(
+    ${x},
+    ${y},
+    '${p.id}',
+    this.checked
+   )
+  ">
+
+  ${p.e} ${p.n}
+
+  </label>
+
+  `).join("")
+ }
+
+ <button
+ class="btn"
+ onclick="drawEditor()">
+ Gotowe
+ </button>
+
+ `);
+
+}
+
+function togglePlan(
+ x,
+ y,
+ p,
+ on
+){
+
+ const s=
+  stores.find(
+   a=>a.id===editorStore
+  );
+
+ const c=
+  s.layout[y][x];
+
+ if(
+  on&&
+  !c.plan.includes(p)
+ ){
+
+  c.plan.push(p);
+
+ }
+
+ if(!on){
+
+  c.plan=
+   c.plan.filter(
+    x=>x!==p
+   );
+
+ }
+
+}
+
+/* =========================================================
+   EMPLOYEES
+========================================================= */
+
+const OFFICE_ROLES=[
+["Marketing","Marketing"],
+["Rekruter","HR"],
+["Prawnik","Prawo"],
+["Analityk","Finanse"],
+["Logistyk","Logistyka"],
+["Tester","R&D"],
+["Specjalista IT","IT"]
+];
+
+const STORE_ROLES=[
+["Kasjer","Sklep"],
+["Sprzedawca","Sklep"],
+["Magazynier","Sklep"],
+["Kierownik","Sklep"]
+];
+
+const PERKS=[
+"⚡ Szybki",
+"💰 Oszczędny",
+"⭐ Obsługa klienta",
+"📦 Organizacja",
+"🧠 Szybka nauka",
+"📈 Sprzedaż",
+"🧪 Tester",
+"🤝 Negocjator"
+];
+
+function newCandidate(){
+
+ const role=
+  pick([
+   ...OFFICE_ROLES,
+   ...STORE_ROLES
+  ]);
+
+ const skill=
+  rnd(1,10);
+
+ employees.push({
+  id:ids.employee++,
+  name:person(),
+  role:role[0],
+  department:role[1],
+  skill,
+  salary:
+   2800+
+   skill*450+
+   rnd(0,1500),
+  perk:pick(PERKS),
+  status:"candidate",
+  storeId:null
+ });
+
+ render();
+
+}
+
+function hireEmployee(id){
+
+ const e=
+  employees.find(
+   x=>x.id===id
+  );
+
+ if(
+  employees.filter(
+   x=>x.status==="employed"
+  ).length>=maxStaff
+ ){
+
+  return notify(
+   "Limit pracowników."
+  );
+
+ }
+
+ e.status="employed";
+
+ render();
+
+}
+
+function fireEmployee(id){
+
+ const e=
+  employees.find(
+   x=>x.id===id
+  );
+
+ if(!e)return;
+
+ stores.forEach(s=>{
+
+  s.employees=
+   s.employees.filter(
+    x=>x!==id
+   );
+
+ });
+
+ e.status="candidate";
+ e.storeId=null;
+
+ render();
+
+}
+
+function assignEmployee(
+ id,
+ sid
+){
+
+ const e=
+  employees.find(
+   x=>x.id===id
+  );
+
+ stores.forEach(s=>{
+
+  s.employees=
+   s.employees.filter(
+    x=>x!==id
+   );
+
+ });
+
+ e.storeId=
+  sid
+   ?Number(sid)
+   :null;
+
+ const s=
+  stores.find(
+   x=>x.id===e.storeId
+  );
+
+ if(s){
+  s.employees.push(id);
+ }
+
+ render();
+
+}
+
+/* =========================================================
+   LOGISTICS
+========================================================= */
+
+function startBuildCenter(){
+
+ if(money<200000){
+
+  return notify(
+   "Centrum kosztuje 200 000 zł."
+  );
+
+ }
+
+ buildMode="center";
+
+ const b=
+  document.getElementById(
+   "buildInfo"
+  );
+
+ b.style.display="block";
+
+ b.textContent=
+  "📦 Kliknij miejsce centrum logistycznego na mapie";
+
+}
+
+function createCenter(lat,lng){
+
+ changeMoney(-200000);
+
+ const p=
+  nearestPlace(lat,lng);
+
+ const c={
+  id:ids.center++,
+  name:"Centrum "+p[0],
+  lat,
+  lng,
+  city:p[0],
+  country:p[1],
+  level:1,
+  capacity:10000,
+  stock:{},
+  subsidiaryId:null,
+  marker:null
+ };
+
+ PRODUCTS.forEach(x=>{
+  c.stock[x.id]=rnd(300,800);
+ });
+
+ centers.push(c);
+
+ c.marker=
+  L.marker(
+   [lat,lng],
+   {icon:icons.center}
+  ).addTo(
+   layers.centers
+  );
+
+ updateCenterPopup(c);
+
+ addNews(
+  `📦 Zbudowano centrum logistyczne w pobliżu ${c.city}.`
+ );
+
+ logisticsTab="centers";
+
+ render();
+
+}
+
+function updateCenterPopup(c){
+
+ if(!c.marker)return;
+
+ c.marker.bindPopup(`
+
+ <b>📦 ${esc(c.name)}</b><br>
+
+ ${esc(c.city)},
+ ${esc(c.country)}<br>
+
+ 🏛️ ${esc(subName(c.subsidiaryId))}<br>
+
+ Poziom ${c.level}<br>
+
+ Magazyn:
+ ${centerStock(c)}/${c.capacity}
+
+ `);
+
+ c.marker.off("click");
+
+ c.marker.on("click",()=>{
+
+  current="logistics";
+  logisticsTab="centers";
+
+  document
+   .getElementById("panel")
+   .classList.remove("hidden");
+
+  renderSection();
+
+ });
+
+}
+
+function centerStock(c){
+
+ return Object
+  .values(c.stock)
+  .reduce(
+   (a,b)=>a+b,
+   0
+  );
+
+}
+
+function upgradeCenter(id){
+
+ const c=
+  centers.find(
+   x=>x.id===id
+  );
+
+ const cost=
+  c.level*150000;
+
+ if(money<cost){
+
+  return notify(
+   "Za mało pieniędzy."
+  );
+
+ }
+
+ changeMoney(-cost);
+
+ c.level++;
+ c.capacity+=10000;
+
+ updateCenterPopup(c);
+
+ render();
+
+}
+
+function hireDriver(centerId=null, amount=1){
+ if(maxDrivers<100)maxDrivers=100;
+
+ centerId=centerId?Number(centerId):null;
+ amount=Math.max(1,Math.min(1000,Number(amount)||1));
+
+ if(!centerId && centers.length){
+  centerId=centers[0].id;
+ }
+
+ if(!centerId){
+  return notify("Najpierw zbuduj centrum logistyczne.");
+ }
+
+ const freeSlots=Math.max(0,maxDrivers-drivers.length);
+ amount=Math.min(amount,freeSlots);
+
+ if(amount<=0){
+  return notify("Osiągnięto limit kierowców.");
+ }
+
+ const cost=amount*5000;
+ if(money<cost){
+  return notify(`Potrzeba ${cash(cost)}.`);
+ }
+
+ changeMoney(-cost);
+
+ for(let i=0;i<amount;i++){
+  drivers.push({
+   id:ids.driver++,
+   name:person(),
+   salary:rnd(4500,6500),
+   experience:rnd(1,10),
+   perk:pick(["⛽ Oszczędny","⚡ Szybki","🔧 Mechanik","📦 Ostrożny"]),
+   centerId,
+   truckId:null,
+   routeId:null,
+   status:"free"
+  });
+ }
+
+ autoBuildRoutes();
+ logisticsTab="drivers";
+ addNews(`👷 Zatrudniono ${amount} kierowców do ${centers.find(c=>c.id===centerId)?.name||"centrum"}.`);
+ render();
+}
+
+function assignDriverCenter(
+ id,
+ cid
+){
+
+ const d=
+  drivers.find(
+   x=>x.id===id
+  );
+
+ if(d){
+
+  d.centerId=
+   cid
+    ?Number(cid)
+    :null;
+
+ }
+
+ render();
+
+}
+
+function buyTruck(centerId=null, amount=1){
+ centerId=centerId?Number(centerId):null;
+ amount=Math.max(1,Math.min(1000,Number(amount)||1));
+
+ if(!centerId && centers.length){
+  centerId=centers[0].id;
+ }
+
+ if(!centerId){
+  return notify("Najpierw zbuduj centrum logistyczne.");
+ }
+
+ const cost=amount*120000;
+ if(money<cost){
+  return notify(`Ciężarówki kosztują ${cash(cost)}.`);
+ }
+
+ changeMoney(-cost);
+
+ for(let i=0;i<amount;i++){
+  const id=ids.truck++;
+  trucks.push({
+   id,
+   name:"ROP-"+String(id).padStart(3,"0"),
+   centerId,
+   driverId:null,
+   routeId:null,
+   capacity:1200,
+   condition:100,
+   mileage:0,
+   marker:null,
+   status:"center"
+  });
+ }
+
+ autoBuildRoutes();
+ logisticsTab="fleet";
+ addNews(`🚛 Kupiono ${amount} ciężarówek do ${centers.find(c=>c.id===centerId)?.name||"centrum"}.`);
+ render();
+}
+
+function assignTruckCenter(
+ id,
+ cid
+){
+
+ const t=
+  trucks.find(
+   x=>x.id===id
+  );
+
+ if(t){
+
+  t.centerId=
+   cid
+    ?Number(cid)
+    :null;
+
+ }
+
+ render();
+
+}
+
+function openNewRoute(){
+ autoBuildRoutes(true);
+ notify("Trasy zostały przeliczone automatycznie.");
+ logisticsTab="routes";
+ render();
+}
+
+function createRoute(){
+ closeModal();
+ autoBuildRoutes(true);
+ logisticsTab="routes";
+ render();
+}
+
+function drawRoute(r){
+
+ if(r.line){
+
+  layers.routes.removeLayer(
+   r.line
+  );
+
+ }
+
+ const c=
+  centers.find(
+   x=>x.id===r.centerId
+  );
+
+ if(!c)return;
+
+ const points=[
+  [c.lat,c.lng]
+ ];
+
+ r.storeIds.forEach(id=>{
+
+  const s=
+   stores.find(
+    x=>x.id===id
+   );
+
+  if(s){
+
+   points.push([
+    s.lat,
+    s.lng
+   ]);
+
+  }
+
+ });
+
+ r.line=
+  L.polyline(
+   points,
+   {
+    weight:3,
+    opacity:.65,
+    dashArray:"8 6"
+   }
+  ).addTo(
+   layers.routes
+  );
+
+ r.line.bindPopup(`
+
+ 🚛 Trasa #${r.id}<br>
+
+ ${r.distance} km<br>
+
+ ${r.storeIds.length}
+ sklepów
+
+ `);
+
+}
+
+function toggleRoute(id){
+
+ const r=
+  routes.find(
+   x=>x.id===id
+  );
+
+ if(!r)return;
+
+ r.active=!r.active;
+
+ if(r.active){
+
+  drawRoute(r);
+
+ }else if(r.line){
+
+  layers.routes.removeLayer(
+   r.line
+  );
+
+  r.line=null;
+
+ }
+
+ render();
+
+}
+
+function deleteRoute(id){
+
+ const i=
+  routes.findIndex(
+   x=>x.id===id
+  );
+
+ if(i<0)return;
+
+ const r=
+  routes[i];
+
+ if(r.line){
+
+  layers.routes.removeLayer(
+   r.line
+  );
+
+ }
+
+ const d=
+  drivers.find(
+   x=>x.id===r.driverId
+  );
+
+ const t=
+  trucks.find(
+   x=>x.id===r.truckId
+  );
+
+ if(d){
+
+  d.routeId=null;
+  d.status="free";
+
+ }
+
+ if(t){
+
+  t.routeId=null;
+  t.driverId=null;
+
+ }
+
+ routes.splice(
+  i,
+  1
+ );
+
+ render();
+
+}
+
+
+function logisticsDistance(a,b){
+ return map.distance([a.lat,a.lng],[b.lat,b.lng])/1000;
+}
+
+function nearestCenterForStore(s){
+ if(!centers.length)return null;
+ return centers.slice().sort((a,b)=>logisticsDistance(a,s)-logisticsDistance(b,s))[0];
+}
+
+function autoAssignStoresToCenters(){
+ const MAX_AUTO_CENTER_KM=180;
+
+ stores.forEach(s=>{
+  if(s.logisticsManual===true && centers.some(c=>Number(c.id)===Number(s.logisticsCenterId))){
+   return;
+  }
+
+  const ranked=centers
+   .map(c=>({c,km:logisticsDistance(c,s)}))
+   .sort((a,b)=>a.km-b.km);
+
+  const best=ranked[0];
+  if(!best || best.km>MAX_AUTO_CENTER_KM){
+   s.logisticsCenterId=null;
+   return;
+  }
+
+  const current=centers.find(c=>Number(c.id)===Number(s.logisticsCenterId));
+  if(!current){
+   s.logisticsCenterId=best.c.id;
+   return;
+  }
+
+  const currentKm=logisticsDistance(current,s);
+  if(best.c.id!==current.id && best.km+25<currentKm){
+   s.logisticsCenterId=best.c.id;
+  }
+ });
+}
+
+function clearAutoRoutes(){
+ routes.forEach(r=>{
+  if(r.line){
+   try{layers.routes.removeLayer(r.line)}catch(e){}
+  }
+ });
+ routes=[];
+ drivers.forEach(d=>{
+  d.routeId=null;
+  d.truckId=null;
+  d.status="free";
+ });
+ trucks.forEach(t=>{
+  t.routeId=null;
+  t.driverId=null;
+ });
+}
+
+function autoBuildRoutes(force=false){
+ if(!centers.length || !stores.length)return;
+
+ autoAssignStoresToCenters();
+
+ // Usuwamy tylko stare linie tras. Przypisanie kierowcy i ciężarówki
+ // do centrum pozostaje stałe.
+ routes.forEach(r=>{
+  if(r.line){
+   try{layers.routes.removeLayer(r.line)}catch(e){}
+  }
+ });
+ routes=[];
+
+ drivers.forEach(d=>{
+  d.routeId=null;
+  d.truckId=null;
+  if(d.status!=="route")d.status="free";
+ });
+ trucks.forEach(t=>{
+  t.routeId=null;
+  t.driverId=null;
+ });
+
+ centers.forEach(c=>{
+  const centerStores=stores
+   .filter(s=>s.logisticsCenterId===c.id)
+   .sort((a,b)=>logisticsDistance(c,a)-logisticsDistance(c,b));
+
+  const ds=drivers.filter(d=>Number(d.centerId)===Number(c.id));
+  const ts=trucks.filter(t=>Number(t.centerId)===Number(c.id));
+  const pairs=Math.min(ds.length,ts.length);
+
+  if(!pairs)return;
+
+  // Maksymalnie 6 sklepów na jeden zestaw kierowca + ciężarówka.
+  // Jeśli floty jest za mało, sklepy pozostają przypisane do centrum,
+  // ale panel pokaże niedobór.
+  const served=centerStores.slice(0,pairs*6);
+  const buckets=Array.from({length:pairs},()=>[]);
+  served.forEach((s,i)=>buckets[i%pairs].push(s.id));
+
+  for(let i=0;i<pairs;i++){
+   if(!buckets[i].length)continue;
+
+   const d=ds[i], t=ts[i];
+   const r={
+    id:ids.route++,
+    centerId:c.id,
+    driverId:d.id,
+    truckId:t.id,
+    storeIds:buckets[i],
+    frequency:1,
+    active:true,
+    auto:true,
+    lastDelivery:0,
+    distance:0,
+    line:null
+   };
+
+   let prev={lat:c.lat,lng:c.lng};
+   let distance=0;
+   r.storeIds.forEach(sid=>{
+    const s=stores.find(x=>x.id===sid);
+    if(!s)return;
+    distance+=logisticsDistance(prev,s);
+    prev=s;
+   });
+   distance+=logisticsDistance(prev,c);
+   r.distance=Math.max(1,Math.round(distance));
+
+   routes.push(r);
+   d.routeId=r.id;
+   d.truckId=t.id;
+   d.centerId=c.id;
+   t.routeId=r.id;
+   t.driverId=d.id;
+   t.centerId=c.id;
+   drawRoute(r);
+  }
+ });
+}
+
+function animateTruckDelivery(r){
+ const c=centers.find(x=>x.id===r.centerId);
+ const t=trucks.find(x=>x.id===r.truckId);
+ if(!c||!t)return;
+
+ const pts=[[c.lat,c.lng]];
+ r.storeIds.forEach(id=>{
+  const s=stores.find(x=>x.id===id);
+  if(s)pts.push([s.lat,s.lng]);
+ });
+ pts.push([c.lat,c.lng]);
+
+ if(t.marker){
+  try{map.removeLayer(t.marker)}catch(e){}
+ }
+
+ t.marker=L.marker(pts[0],{icon:icons.truck,zIndexOffset:1000}).addTo(map);
+ t.status="route";
+
+ let seg=0, step=0;
+ const steps=20;
+
+ const timer=setInterval(()=>{
+  if(seg>=pts.length-1){
+   clearInterval(timer);
+   if(t.marker){
+    try{map.removeLayer(t.marker)}catch(e){}
+    t.marker=null;
+   }
+   t.status="center";
+   return;
+  }
+
+  const a=pts[seg], b=pts[seg+1];
+  step++;
+  const k=step/steps;
+  t.marker.setLatLng([
+   a[0]+(b[0]-a[0])*k,
+   a[1]+(b[1]-a[1])*k
+  ]);
+
+  if(step>=steps){
+   seg++;
+   step=0;
+  }
+ },60);
+}
+
+function processRoutes(){
+ // Każdego dnia system ponownie sprawdza sklepy, centra i dostępne zestawy.
+ clearAutoRoutes();
+ autoBuildRoutes(true);
+
+ routes.filter(r=>r.active).forEach(r=>{
+  const c=centers.find(x=>x.id===r.centerId);
+  const t=trucks.find(x=>x.id===r.truckId);
+  const d=drivers.find(x=>x.id===r.driverId);
+  if(!c||!t||!d)return;
+
+  d.status="route";
+  let capacity=t.capacity;
+
+  r.storeIds.forEach(sid=>{
+   const s=stores.find(x=>x.id===sid);
+   if(!s)return;
+
+   PRODUCTS.forEach(p=>{
+    if(capacity<=0)return;
+    const wanted=Math.max(0,160-(s.stock[p.id]||0));
+    const available=c.stock[p.id]||0;
+    const qty=Math.min(wanted,available,capacity);
+    if(qty>0){
+     c.stock[p.id]-=qty;
+     s.stock[p.id]=(s.stock[p.id]||0)+qty;
+     capacity-=qty;
+    }
+   });
+  });
+
+  let liters=r.distance*0.34;
+  if(d.perk==="⛽ Oszczędny")liters*=0.88;
+  const fuel=Math.round(liters*fuelPrice);
+  changeMoney(-fuel);
+  totals.fuel+=fuel;
+
+  t.mileage+=r.distance;
+  t.condition=clamp(t.condition-r.distance*.001,0,100);
+  r.lastDelivery=day;
+
+  animateTruckDelivery(r);
+
+  setTimeout(()=>{
+   d.status="free";
+  },Math.max(1200,r.storeIds.length*300));
+ });
+}
+
+/* =========================================================
+   COMPANIES
+========================================================= */
+
+function companyName(p){
+
+ return p.e+" "+
+ pick([
+  "Golden",
+  "Fresh",
+  "Nova",
+  "Prime",
+  "Royal",
+  "Urban",
+  "Green",
+  "Daily"
+ ])+" "+
+ pick([
+  "Foods",
+  "Bakery",
+  "Industries",
+  "Products",
+  "Group"
+ ]);
+
+}
+
+function generateCompany(
+ silent=true
+){
+
+ const product=
+  pick(
+   PRODUCTS.slice(0,7)
+  );
+
+ const c={
+  id:ids.company++,
+  name:companyName(product),
+  productId:product.id,
+  valuation:
+   rnd(
+    500000,
+    15000000
+   ),
+  profit:
+   rnd(
+    10000,
+    100000
+   ),
+  shares:0,
+  owned:false,
+  subsidiaryId:null,
+  factories:[]
+ };
+
+ companies.push(c);
+
+ createFactory(
+  c,
+  true
+ );
+
+ if(!silent){
+
+  addNews(
+   `🏭 Na rynku pojawiła się firma ${c.name}.`
+  );
+
+ }
+
+}
+
+function createFactory(
+ c,
+ silent=false
+){
+
+ const p=
+  pick(PLACES);
+
+ const f={
+  id:ids.factory++,
+  name:"Fabryka "+p[0],
+  city:p[0],
+  country:p[1],
+  lat:p[2],
+  lng:p[3],
+  employees:rnd(40,300),
+  production:rnd(2000,7000),
+  capacity:rnd(8000,20000),
+  subsidiaryId:null,
+  marker:null
+ };
+
+ c.factories.push(f);
+
+ f.marker=
+  L.marker(
+   [f.lat,f.lng],
+   {icon:icons.factory}
+  ).addTo(
+   layers.factories
+  );
+
+ updateFactoryPopup(
+  c,
+  f
+ );
+
+ if(!silent){
+
+  addNews(
+   `🏭 ${c.name} otwiera fabrykę w ${f.city}.`
+  );
+
+ }
+
+}
+
+function updateFactoryPopup(c,f){
+
+ if(!f.marker)return;
+
+ // Fabryka obcej firmy NIE należy do Ropucha Group.
+ // Dopiero wykonane przejęcie firmy (c.owned === true)
+ // pozwala pokazywać ją jako aktywo grupy i przypisywać do spółki córki.
+ const ownershipLine = c.owned
+  ? `🏛️ ${esc(subName(f.subsidiaryId))}`
+  : `🏢 Właściciel zewnętrzny: ${esc(c.name)}`;
+
+ const shareLine = !c.owned && c.shares>0
+  ? `<br>📈 Udziały Ropucha Group: ${c.shares}%`
+  : "";
+
+ f.marker.bindPopup(`
+
+ <b>
+ 🏭 ${esc(f.name)}
+ </b><br>
+
+ 🏭 ${esc(c.name)}<br>
+
+ 📍 ${esc(f.city)},
+ ${esc(f.country)}<br>
+
+ ${ownershipLine}${shareLine}<br>
+
+ 📦 Produkcja / pojemność:
+ <b>${f.production}/${f.capacity}</b>
+
+ `);
+
+}
+
+function buyShares(
+ cid,
+ pct
+){
+
+ const c=
+  companies.find(
+   x=>x.id===cid
+  );
+
+ pct=
+  Math.min(
+   pct,
+   100-c.shares
+  );
+
+ if(pct<=0)return;
+
+ const cost=
+  Math.ceil(
+   c.valuation*
+   pct/100*
+   1.04
+  );
+
+ if(money<cost){
+
+  return notify(
+   "Za mało pieniędzy."
+  );
+
+ }
+
+ changeMoney(-cost);
+
+ c.shares+=pct;
+
+ if(c.shares>=51){
+
+  addNews(
+   `🏢 Masz większość udziałów w ${c.name}.`
+  );
+
+ }
+
+ render();
+
+}
+
+function takeover(cid){
+
+ const c=
+  companies.find(
+   x=>x.id===cid
+  );
+
+ if(!c)return;
+
+ if(c.shares<100)return;
+
+ c.owned=true;
+
+ addNews(
+  `👑 ${c.name} weszła do Ropucha Group.`
+ );
+
+ notify(
+  "Firma przejęta."
+ );
+
+ render();
+
+}
+
+function manageCompany(cid){
+
+ const c=
+  companies.find(
+   x=>x.id===cid
+  );
+
+ if(
+  !c||
+  c.shares<51
+ )return;
+
+ modal(`
+
+ <button
+ class="close"
+ onclick="closeModal()">
+ X
+ </button>
+
+ <h2>
+ 🏢 ${esc(c.name)}
+ </h2>
+
+ <div class="kpis">
+
+ <div class="kpi">
+ <small>UDZIAŁY</small>
+ <strong>${c.shares}%</strong>
+ </div>
+
+ <div class="kpi">
+ <small>WYCENA</small>
+ <strong>${cash(c.valuation)}</strong>
+ </div>
+
+ <div class="kpi">
+ <small>FABRYKI</small>
+ <strong>${c.factories.length}</strong>
+ </div>
+
+ <div class="kpi">
+ <small>ZYSK</small>
+ <strong>${cash(c.profit)}</strong>
+ </div>
+
+ </div>
+
+ ${
+  c.shares===100&&!c.owned
+   ?`
+   <button
+   class="btn orangeBtn"
+   onclick="
+    takeover(${c.id});
+    closeModal()
+   ">
+   👑 Przejmij firmę
+   </button>
+   `
+   :""
+ }
+
+ ${
+  c.owned
+   ?`
+   <label class="formLabel">
+   SPÓŁKA WŁAŚCICIEL
+   </label>
+
+   <select
+   class="full"
+   onchange="
+    cAssignCompany(
+     ${c.id},
+     this.value
+    )
+   ">
+
+   ${subOptions(
+    c.subsidiaryId
+   )}
+
+   </select>
+   `
+   :""
+ }
+
+ <div class="sectionTitle">
+ FABRYKI
+ </div>
+
+ ${
+  c.factories.map(f=>`
+
+  <div class="card">
+
+  <b>
+  🏭 ${esc(f.name)}
+  </b>
+
+  <div class="row">
+  <span>Produkcja</span>
+  <b>
+  ${f.production}/${f.capacity}
+  </b>
+  </div>
+
+  ${
+   c.owned
+    ?`
+    <select
+    class="full"
+    onchange="
+     assignFactory(
+      ${c.id},
+      ${f.id},
+      this.value
+     )
+    ">
+
+    ${subOptions(
+     f.subsidiaryId
+    )}
+
+    </select>
+    `
+    :""
+  }
+
+  </div>
+
+  `).join("")
+ }
+
+ `);
+
+}
+
+function cAssignCompany(
+ cid,
+ sid
+){
+
+ const c=
+  companies.find(
+   x=>x.id===cid
+  );
+
+ if(!c)return;
+
+ c.subsidiaryId=
+  sid
+   ?Number(sid)
+   :null;
+
+ manageCompany(cid);
+
+ render();
+
+}
+
+function assignFactory(
+ cid,
+ fid,
+ sid
+){
+
+ const c=
+  companies.find(
+   x=>x.id===cid
+  );
+
+ const f=
+  c?.factories.find(
+   x=>x.id===fid
+  );
+
+ if(f){
+
+  f.subsidiaryId=
+   sid
+    ?Number(sid)
+    :null;
+
+ }
+
+ manageCompany(cid);
+
+ render();
+
+}
+
+/* =========================================================
+   SUB OPTIONS
+========================================================= */
+
+function subOptions(selected){
+
+ return `
+
+ <option value="">
+ 🐸 Ropucha Group
+ </option>
+
+ ${
+  subsidiaries.map(s=>`
+
+  <option
+  value="${s.id}"
+  ${selected===s.id?"selected":""}>
+
+  ${esc(s.name)}
+
+  </option>
+
+  `).join("")
+ }
+
+ `;
+
+}
+
+/* =========================================================
+   IDEAS
+========================================================= */
+
+const IDEA_TYPES=[
+["Druk dokumentów","🖨️",30000,.04],
+["Nowa kawa","☕",45000,.06],
+["Nowy hot-dog","🌭",50000,.07],
+["Punkt paczek","📦",60000,.08],
+["Nowa kasa samoobsługowa","🤖",90000,.10],
+["Nowy planogram","🗄️",35000,.05]
+];
+
+function newIdea(){
+
+ const t=
+  pick(IDEA_TYPES);
+
+ ideas.push({
+  id:ids.idea++,
+  name:t[0],
+  emoji:t[1],
+  cost:t[2],
+  bonus:t[3],
+  progress:0,
+  status:"development"
+ });
+
+ render();
+
+}
+
+function developIdea(id){
+
+ const i=
+  ideas.find(
+   x=>x.id===id
+  );
+
+ const cost=
+  Math.round(
+   i.cost*.2
+  );
+
+ if(money<cost){
+
+  return notify(
+   "Za mało pieniędzy."
+  );
+
+ }
+
+ changeMoney(-cost);
+
+ const testers=
+  employees
+   .filter(
+    e=>
+     e.status==="employed"&&
+     e.department==="R&D"
+   )
+   .reduce(
+    (a,e)=>a+e.skill,
+    0
+   );
+
+ i.progress=
+  clamp(
+   i.progress+
+   rnd(15,30)+
+   Math.floor(
+    testers*.2
+   ),
+   0,
+   100
+  );
+
+ if(i.progress>=100){
+
+  i.status="ready";
+
+ }
+
+ render();
+
+}
+
+function deployIdea(id){
+
+ const i=
+  ideas.find(
+   x=>x.id===id
+  );
+
+ const cost=
+  stores.length*5000;
+
+ if(money<cost){
+
+  return notify(
+   "Za mało pieniędzy."
+  );
+
+ }
+
+ changeMoney(-cost);
+
+ stores.forEach(s=>{
+
+  if(
+   !s.ideas.includes(id)
+  ){
+
+   s.ideas.push(id);
+
+  }
+
+ });
+
+ i.status="deployed";
+
+ render();
+
+}
+
+/* =========================================================
+   ECONOMY
+========================================================= */
+
+function processStores(){
+
+ let groupIncome=0;
+
+ stores.forEach(s=>{
+
+  let customers=
+   20+rnd(5,40);
+
+  const staff=
+   employees.filter(
+    e=>
+     e.status==="employed"&&
+     e.storeId===s.id
+   );
+
+  customers+=
+   Math.floor(
+    staff.reduce(
+     (a,e)=>a+e.skill,
+     0
+    )*.5
+   );
+
+  s.sales=0;
+  s.customers=0;
+
+  for(
+   let i=0;
+   i<customers;
+   i++
+  ){
+
+   const available=
+    PRODUCTS.filter(
+     p=>
+      (s.stock[p.id]||0)>0
+    );
+
+   if(!available.length)break;
+
+   const p=
+    pick(available);
+
+   const price=
+    productPrice(p.id);
+
+   if(Math.random()<.75){
+
+    s.stock[p.id]--;
+
+    s.sales+=price;
+
+    s.customers++;
+
+   }
+
+  }
+
+  s.ideas.forEach(id=>{
+
+   const idea=
+    ideas.find(
+     x=>x.id===id
+    );
+
+   if(idea){
+
+    s.sales*=
+     1+idea.bonus;
+
+   }
+
+  });
+
+  groupIncome+=
+   s.sales*.15;
+
+  totals.sales+=
+   s.sales;
+
+  updateStorePopup(s);
+
+ });
+
+ changeMoney(
+  Math.round(groupIncome)
+ );
+
+}
+
+function processFranchise(){
+
+ let income=0;
+
+ franchisees.forEach(f=>{
+
+  let x=0;
+
+  f.stores.forEach(id=>{
+
+   const s=
+    stores.find(
+     a=>a.id===id
+    );
+
+   if(s){
+
+    x+=
+     s.sales*
+     (.08+
+      f.skill*.004);
+
+   }
+
+  });
+
+  x=Math.round(x);
+
+  f.paid+=x;
+  income+=x;
+
+ });
+
+ totals.franchise+=income;
+
+ changeMoney(income);
+
+}
+
+function processCompanies(){
+
+ companies.forEach(c=>{
+
+  c.valuation=
+   Math.max(
+    100000,
+    Math.round(
+     c.valuation*
+     (
+      1+
+      rndf(-.003,.009)
+     )
+    )
+   );
+
+  if(c.shares>0){
+
+   const dividend=
+    Math.round(
+     c.profit*
+     .04*
+     c.shares/100
+    );
+
+   totals.dividends+=
+    dividend;
+
+   changeMoney(
+    dividend
+   );
+
+  }
+
+  if(
+   Math.random()<.012&&
+   c.factories.length<8
+  ){
+
+   createFactory(
+    c,
+    false
+   );
+
+  }
+
+ });
+
+}
+
+function processSubsidiaries(){
+
+ subsidiaries.forEach(s=>{
+
+  const f=
+   calculateSubFinances(
+    s.id
+   );
+
+  /*
+   W tej wersji spółka ma własną kasę.
+   Wynik operacyjny trafia do jej kasy.
+  */
+
+  s.cash+=
+   Math.round(
+    f.profit*.1
+   );
+
+ });
+
+}
+
+function processPayroll(){
+
+ const staff=
+  employees
+   .filter(
+    e=>e.status==="employed"
+   )
+   .reduce(
+    (a,e)=>a+e.salary,
+    0
+   );
+
+ const driverPay=
+  drivers.reduce(
+   (a,d)=>a+d.salary,
+   0
+  );
+
+ const total=
+  staff+
+  driverPay+
+  25000;
+
+ changeMoney(-total);
+
+ totals.wages+=
+  staff+
+  driverPay;
+
+ addNews(
+  `💸 Koszty pracownicze: ${cash(total)}.`
+ );
+
+}
+
+function gameDay(){
+
+ if(speed===0)return;
+
+ day++;
+
+ /* Cena paliwa zmienia się KAŻDEGO dnia gry. */
+ const oldFuel=fuelPrice;
+ fuelPrice=clamp(fuelPrice*rndf(.965,1.04),3.5,12.5);
+ fuelPrice=Math.round(fuelPrice*100)/100;
+ fuelHistory.unshift({day,month,year,price:fuelPrice});
+ fuelHistory=fuelHistory.slice(0,120);
+ if(Math.abs(fuelPrice-oldFuel)>=0.15) addNews(`⛽ Paliwo: ${fuelPrice.toFixed(2)} zł/l (${fuelPrice>oldFuel?"wzrost":"spadek"}).`);
+
+ /* Spółki technologiczne automatycznie prowadzą badania. */
+ subsidiaries.filter(s=>Array.isArray(s.specializations)&&s.specializations.includes("technology")).forEach(sub=>{
+  sub.research=(sub.research||0)+rndf(.6,1.8)*(sub.researchLevel||1);
+  if(sub.research>=100){
+   sub.research-=100; sub.researchLevel=(sub.researchLevel||1)+1;
+   if(sub.researchLevel>=4) nanoUnlocked=true;
+   addNews(`🧪 ${sub.name} ukończyła automatyczne badanie. Poziom technologii: ${sub.researchLevel}.`);
+  }
+ });
+
+ processRoutes();
+ processStores();
+ processFranchise();
+ processCompanies();
+ processSubsidiaries();
+
+ Object.values(
+  prices
+ ).forEach(x=>{
+
+  if(x.days>0){
+
+   x.days--;
+
+   if(!x.days){
+
+    x.discount=0;
+
+   }
+
+  }
+
+ });
+
+ if(day>30){
+
+  day=1;
+  month++;
+
+  if(month>12){
+
+   month=1;
+   year++;
+
+  }
+
+  processPayroll();
+
+ }
+
+ if(
+  Math.random()<.08&&
+  employees.filter(
+   x=>x.status==="candidate"
+  ).length<30
+ ){
+
+  newCandidate();
+
+ }
+
+ render();
+
+}
+
+/* =========================================================
+   UI HELPERS
+========================================================= */
+
+function tabs(
+ items,
+ active,
+ fn
+){
+
+ return `
+
+ <div class="tabs">
+
+ ${
+  items.map(x=>`
+
+  <button
+  class="tab ${
+   active===x[0]
+    ?"active"
+    :""
+  }"
+  onclick="${fn}('${x[0]}')">
+
+  ${x[1]}
+
+  </button>
+
+  `).join("")
+ }
+
+ </div>
+
+ `;
+
+}
+
+function setLogTab(t){
+ logisticsTab=t;
+ renderSection();
+}
+
+function setEmployeeTab(t){
+ employeeTab=t;
+ renderSection();
+}
+
+function setCompanyTab(t){
+ companyTab=t;
+ renderSection();
+}
+
+/* =========================================================
+   DASHBOARD UI
+========================================================= */
+
+function dashboardUI(){
+
+ const activeRoutes=
+  routes.filter(
+   r=>r.active
+  ).length;
+
+ return `
+
+ <div class="title">
+ 📊 Dashboard
+ </div>
+
+ <div class="subtitle">
+ Ropucha Group — centrum zarządzania
+ </div>
+
+ <div class="kpis">
+
+ <div class="kpi">
+ <small>GOTÓWKA</small>
+ <strong class="green">
+ ${cash(money)}
+ </strong>
+ </div>
+
+ <div class="kpi">
+ <small>SKLEPY</small>
+ <strong>
+ ${stores.length}
+ </strong>
+ </div>
+
+ <div class="kpi">
+ <small>SPÓŁKI CÓRKI</small>
+ <strong>
+ ${subsidiaries.length}
+ </strong>
+ </div>
+
+ <div class="kpi">
+ <small>CENTRA</small>
+ <strong>
+ ${centers.length}
+ </strong>
+ </div>
+
+ <div class="kpi">
+ <small>AKTYWNE TRASY</small>
+ <strong>
+ ${activeRoutes}
+ </strong>
+ </div>
+
+ <div class="kpi">
+ <small>PRODUCENCI</small>
+ <strong>
+ ${companies.length}
+ </strong>
+ </div>
+
+ </div>
+
+ <div class="sectionTitle">
+ ALERTY
+ </div>
+
+ <div class="card">
+
+ ${
+  stores.some(
+   s=>
+    Object.values(s.stock)
+     .some(v=>v<15)
+  )
+   ?`
+   <div class="orange">
+   ⚠️ Niektóre sklepy mają niski stan magazynowy.
+   </div>
+   `
+   :`
+   <div class="green">
+   ✓ Stany sklepów wyglądają dobrze.
+   </div>
+   `
+ }
+
+ ${
+  centers.length===0
+   ?`
+   <div class="orange">
+   ⚠️ Nie masz centrum logistycznego.
+   </div>
+   `
+   :""
+ }
+
+ ${
+  stores.length>0&&
+  routes.length===0
+   ?`
+   <div class="orange">
+   ⚠️ Sklepy nie mają tras dostaw.
+   </div>
+   `
+   :""
+ }
+
+ </div>
+
+ <div class="sectionTitle">
+ OSTATNIE WYDARZENIA
+ </div>
+
+ ${
+  news.slice(0,5)
+   .map(n=>`
+
+   <div class="card">
+
+   <b>
+   ${n.year}
+   • M${n.month}
+   D${n.day}
+   </b>
+
+   <br>
+
+   <span class="muted">
+   ${esc(n.text)}
+   </span>
+
+   </div>
+
+   `).join("")
+ }
+
+ `;
+
+}
+
+/* =========================================================
+   STORES UI
+========================================================= */
+
+function storesUI(){
+
+ return `
+
+ <div class="title">
+ 🏪 Sklepy
+ </div>
+
+ <div class="subtitle">
+ Zarządzanie siecią sklepów
+ </div>
+
+ <button
+ class="btn"
+ onclick="openBuildStore()">
+ ＋ Zbuduj sklep
+ </button>
+
+ <div class="sectionTitle">
+ SIEĆ
+ </div>
+
+ ${
+  stores.length
+   ?`
+
+   <table class="table">
+
+   <tr>
+   <th>Sklep</th>
+   <th>Miasto</th>
+   <th>Spółka</th>
+   <th>Sprzedaż</th>
+   </tr>
+
+   ${
+    stores.map(s=>`
+
+    <tr
+    onclick="openEditor(${s.id})"
+    style="cursor:pointer">
+
+    <td>
+    <b>${esc(s.name)}</b>
+    </td>
+
+    <td>
+    ${esc(s.city)}
+    </td>
+
+    <td>
+    ${esc(subName(s.subsidiaryId))}
+    </td>
+
+    <td class="green">
+    ${cash(s.sales)}
+    </td>
+
+    </tr>
+
+    `).join("")
+   }
+
+   </table>
+
+   `
+   :`
+   <div class="empty">
+   Nie masz jeszcze sklepów.
+   </div>
+   `
+ }
+
+ `;
+
+}
+
+/* =========================================================
+   EMPLOYEES UI
+========================================================= */
+
+function employeesUI(){
+
+ const tabHtml=
+  tabs(
+   [
+    ["staff","Pracownicy"],
+    ["candidates","Kandydaci"],
+    ["drivers","Kierowcy"]
+   ],
+   employeeTab,
+   "setEmployeeTab"
+  );
+
+ if(employeeTab==="drivers"){
+
+  return `
+
+  <div class="title">
+  👥 Zespół
+  </div>
+
+  ${tabHtml}
+
+  ${driversUI()}
+
+  `;
+
+ }
+
+ if(
+  employeeTab===
+  "candidates"
+ ){
+
+  const list=
+   employees.filter(
+    e=>e.status==="candidate"
+   );
+
+  return `
+
+  <div class="title">
+  👥 Zespół
+  </div>
+
+  ${tabHtml}
+
+  <button
+  class="btn blue"
+  onclick="newCandidate()">
+  🔎 Szukaj kandydata
+  </button>
+
+  <br><br>
+
+  ${
+   list.map(e=>`
+
+   <div class="card">
+
+   <b>${esc(e.name)}</b>
+
+   <span class="badge">
+   ${e.department}
+   </span>
+
+   <div class="row">
+   <span>Stanowisko</span>
+   <b>${e.role}</b>
+   </div>
+
+   <div class="row">
+   <span>Umiejętność</span>
+   <b>${e.skill}/10</b>
+   </div>
+
+   <div class="row">
+   <span>Perk</span>
+   <b>${e.perk}</b>
+   </div>
+
+   <div class="row">
+   <span>Pensja</span>
+   <b>${cash(e.salary)}</b>
+   </div>
+
+   <button
+   class="btn"
+   onclick="hireEmployee(${e.id})">
+   Zatrudnij
+   </button>
+
+   </div>
+
+   `).join("")
+   ||
+   `
+   <div class="empty">
+   Brak kandydatów.
+   </div>
+   `
+  }
+
+  `;
+
+ }
+
+ const staff=
+  employees.filter(
+   e=>e.status==="employed"
+  );
+
+ return `
+
+ <div class="title">
+ 👥 Zespół
+ </div>
+
+ ${tabHtml}
+
+ ${
+  staff.map(e=>`
+
+  <div class="card">
+
+  <b>${esc(e.name)}</b>
+
+  <span class="badge">
+  ${e.department}
+  </span>
+
+  <div class="row">
+  <span>${e.role}</span>
+  <b>${e.perk}</b>
+  </div>
+
+  <div class="row">
+  <span>Pensja</span>
+  <b>${cash(e.salary)}</b>
+  </div>
+
+  ${
+   e.department==="Sklep"
+    ?`
+
+    <select
+    class="full"
+    onchange="
+     assignEmployee(
+      ${e.id},
+      this.value
+     )
+    ">
+
+    <option value="">
+    Nieprzypisany
+    </option>
+
+    ${
+     stores.map(s=>`
+
+     <option
+     value="${s.id}"
+     ${e.storeId===s.id?"selected":""}>
+
+     ${esc(s.name)}
+
+     </option>
+
+     `).join("")
+    }
+
+    </select>
+
+    `
+    :""
+  }
+
+  <button
+  class="btn redBtn"
+  onclick="fireEmployee(${e.id})">
+  Zwolnij
+  </button>
+
+  </div>
+
+  `).join("")
+  ||
+  `
+  <div class="empty">
+  Nie zatrudniasz jeszcze pracowników.
+  </div>
+  `
+ }
+
+ `;
+
+}
+
+/* =========================================================
+   DESIGN UI
+========================================================= */
+
+function applyStoreAsNetworkStandard(id){
+ const source=stores.find(s=>s.id===id); if(!source)return;
+ networkLayout=cloneLayout(source.layout); networkLayoutVersion++;
+ stores.forEach(s=>{ if(s.format!=="nano") s.layout=cloneLayout(networkLayout); });
+ addNews(`📐 Wdrożono Standard Sieci v${networkLayoutVersion} do ${stores.filter(s=>s.format!=="nano").length} sklepów.`);
+ notify("Projekt wdrożony do całej sieci."); render();
+}
+function resetNetworkLayout(){ networkLayout=emptyLayout(12); networkLayoutVersion++; stores.forEach(s=>{if(s.format!=="nano")s.layout=cloneLayout(networkLayout)}); render(); }
+function designUI(){
+ const source=stores[0];
+ return `
+ <div class="title">📐 Projekt sklepu</div>
+ <div class="subtitle">Jeden układ dla całej sieci • Standard v${networkLayoutVersion}</div>
+ <div class="card"><b>🏪 Standard całej sieci</b><div class="muted">Każdy nowy zwykły sklep dostaje ten sam układ. Edytuj dowolny sklep wzorcowy, a potem wdroż go do całej sieci.</div>
+ ${source?`<button class="btn" onclick="openEditor(${source.id})">✏️ Edytuj sklep wzorcowy</button><button class="btn blue" onclick="applyStoreAsNetworkStandard(${source.id})">🌐 Ustaw jego układ dla wszystkich sklepów</button>`:`<div class="empty">Zbuduj pierwszy sklep, aby utworzyć projekt sieci.</div>`}
+ <button class="btn gray" onclick="resetNetworkLayout()">↺ Pusty standard 12×12</button></div>
+ <div class="card"><b>🤖 Ropucha Nano</b><div class="row"><span>Status</span><b class="${nanoUnlocked?'green':'orange'}">${nanoUnlocked?'ODBLOKOWANE':'WYMAGA TECHNOLOGII POZIOM 4'}</b></div><div class="muted">Spółki ze specjalizacją Technologia prowadzą badania automatycznie każdego dnia.</div></div>
+ <div class="sectionTitle">SKLEPY KORZYSTAJĄCE ZE STANDARDU</div>
+ ${stores.map(s=>`<div class="card"><b>🏪 ${esc(s.name)}</b><div class="row"><span>Lokalizacja</span><b>${esc(s.city)}, ${esc(s.country)}</b></div><div class="row"><span>Właściciel</span><b>${esc(subName(s.subsidiaryId))}</b></div><button class="btn gray" onclick="openEditor(${s.id})">Podejrzyj / edytuj</button></div>`).join("")||'<div class="empty">Brak sklepów.</div>'}`;
+}
+
+/* =========================================================
+   PRICES UI
+========================================================= */
+
+function pricesUI(){
+ return `
+ <div class="title">🏷️ Ceny i promocje</div>
+ <div class="subtitle">Ceny całej sieci, rabaty i wielosztuki</div>
+ <div class="card">
+  <div class="row"><span>⛽ Dzisiejsza cena paliwa</span><b class="orange">${fuelPrice.toFixed(2)} zł/l</b></div>
+  <div class="muted">Cena losowo zmienia się każdego dnia gry i wpływa na koszt dostaw.</div>
+ </div>
+ <table class="table">
+ <tr><th>Produkt</th><th>Koszt</th><th>Cena</th><th>Marża</th><th>Promocja</th></tr>
+ ${PRODUCTS.map(p=>{
+  const x=prices[p.id];
+  const margin=Math.round((x.price-p.cost)/x.price*100);
+  let promo="Ustaw";
+  if(x.days>0) promo=x.promoType==="multi"?`${x.multiQty} szt. za ${Number(x.multiPrice).toFixed(2)} zł (${x.days}d)`:`-${x.discount}% (${x.days}d)`;
+  return `<tr><td>${p.e} <b>${p.n}</b></td><td>${p.cost.toFixed(2)}</td><td><input style="width:76px" type="number" step=".01" value="${x.price}" onchange="prices['${p.id}'].price=Math.max(.01,Number(this.value)||.01);render()"></td><td>${margin}%</td><td><button onclick="setPromotion('${p.id}')">${promo}</button></td></tr>`;
+ }).join("")}
+ </table>`;
+}
+
+function setPromotion(id){
+ const x=prices[id];
+ modal(`
+ <button class="close" onclick="closeModal()">X</button>
+ <h2>🏷️ Promocja — ${PRODUCTS.find(p=>p.id===id)?.n||id}</h2>
+ <label class="formLabel">TYP PROMOCJI</label>
+ <select id="promoType" class="full" onchange="document.getElementById('discBox').style.display=this.value==='discount'?'block':'none';document.getElementById('multiBox').style.display=this.value==='multi'?'block':'none'">
+  <option value="discount">Rabat procentowy</option><option value="multi">Wielosztuka</option>
+ </select>
+ <div id="discBox"><label class="formLabel">RABAT %</label><input id="promoDiscount" class="full" type="number" min="0" max="90" value="${x.discount||20}"></div>
+ <div id="multiBox" style="display:none"><div class="grid2"><div><label class="formLabel">ILE SZTUK</label><input id="multiQty" class="full" type="number" min="2" value="${x.multiQty||2}"></div><div><label class="formLabel">CENA ZESTAWU</label><input id="multiPrice" class="full" type="number" step=".01" min=".01" value="${Number(x.multiPrice||x.price*2).toFixed(2)}"></div></div></div>
+ <label class="formLabel">CZAS — DNI</label><input id="promoDays" class="full" type="number" min="1" value="${x.days||7}">
+ <button class="btn" onclick="savePromotion('${id}')">💾 Uruchom promocję</button>
+ <button class="btn gray" onclick="clearPromotion('${id}')">Usuń promocję</button>`);
+}
+function savePromotion(id){
+ const x=prices[id], type=document.getElementById('promoType').value;
+ x.promoType=type; x.days=Math.max(1,Math.floor(Number(document.getElementById('promoDays').value)||1));
+ if(type==='discount') x.discount=clamp(Number(document.getElementById('promoDiscount').value)||0,0,90);
+ else { x.multiQty=Math.max(2,Math.floor(Number(document.getElementById('multiQty').value)||2)); x.multiPrice=Math.max(.01,Number(document.getElementById('multiPrice').value)||x.price*x.multiQty); }
+ closeModal(); render();
+}
+function clearPromotion(id){ prices[id].days=0; prices[id].discount=0; closeModal(); render(); }
+
+/* =========================================================
+   FRANCHISE UI
+========================================================= */
+
+function franchiseUI(){
+
+ return `
+
+ <div class="title">
+ 🤝 Franczyza
+ </div>
+
+ <div class="subtitle">
+ Franczyzobiorcy prowadzą sklepy
+ i wpłacają część obrotu
+ </div>
+
+ <button
+ class="btn"
+ onclick="recruitFranchise()">
+ ＋ Rekrutuj franczyzobiorcę
+ — 10 000 zł
+ </button>
+
+ <div class="sectionTitle">
+ FRANCZYZOBIORCY
+ ${franchisees.length}/${maxFranchisees}
+ </div>
+
+ ${
+  franchisees.map(f=>`
+
+  <div class="card">
+
+  <b>
+  ${esc(f.name)}
+  </b>
+
+  <div class="row">
+  <span>Umiejętność</span>
+  <b>${f.skill}/10</b>
+  </div>
+
+  <div class="row">
+  <span>Sklepy</span>
+  <b>${f.stores.length}</b>
+  </div>
+
+  <div class="row">
+  <span>Wpłacono</span>
+  <b class="green">
+  ${cash(f.paid)}
+  </b>
+  </div>
+
+  </div>
+
+  `).join("")
+  ||
+  `
+  <div class="empty">
+  Brak franczyzobiorców.
+  </div>
+  `
+ }
+
+ `;
+
+}
+
+/* =========================================================
+   LOGISTICS UI
+========================================================= */
+
+function logisticsUI(){
+
+ const tabHtml=
+  tabs(
+   [
+    ["centers","Centra"],
+    ["routes","Trasy"],
+    ["fleet","Flota"],
+    ["drivers","Kierowcy"]
+   ],
+   logisticsTab,
+   "setLogTab"
+  );
+
+ let content="";
+
+ if(logisticsTab==="centers"){
+  content=centersUI();
+ }
+
+ if(logisticsTab==="routes"){
+  content=routesUI();
+ }
+
+ if(logisticsTab==="fleet"){
+  content=fleetUI();
+ }
+
+ if(logisticsTab==="drivers"){
+  content=driversUI();
+ }
+
+ return `
+
+ <div class="title">
+ 🚛 Logistyka
+ </div>
+
+ <div class="subtitle">
+ Automatyczne centra, flota, kierowcy
+ i dostawy do sklepów
+ </div>
+
+ ${tabHtml}
+
+ ${content}
+
+ `;
+
+}
+
+function centersUI(){
+
+ return `
+
+ <button
+ class="btn"
+ onclick="startBuildCenter()">
+ ＋ Zbuduj centrum
+ — 200 000 zł
+ </button>
+
+ <div class="sectionTitle">
+ CENTRA LOGISTYCZNE
+ </div>
+
+ ${
+  centers.map(c=>{
+
+   const stock=
+    centerStock(c);
+
+   const load=
+    Math.round(
+     stock/
+     c.capacity*
+     100
+    );
+
+   return `
+
+   <div class="card">
+
+   <b>
+   📦 ${esc(c.name)}
+   </b>
+
+   <span class="badge ok">
+   LVL ${c.level}
+   </span>
+
+   <div class="row">
+   <span>Lokalizacja</span>
+   <b>
+   ${esc(c.city)},
+   ${esc(c.country)}
+   </b>
+   </div>
+
+   <div class="row">
+   <span>Spółka</span>
+   <b>
+   ${esc(subName(c.subsidiaryId))}
+   </b>
+   </div>
+
+   <div class="row">
+   <span>Magazyn</span>
+   <b>
+   ${stock}/${c.capacity}
+   </b>
+   </div>
+
+   <div class="progress">
+
+   <div
+   style="
+    width:
+    ${clamp(load,0,100)}%
+   ">
+   </div>
+
+   </div>
+
+   <div class="row">
+   <span>Kierowcy</span>
+   <b>
+   ${
+    drivers.filter(
+     d=>d.centerId===c.id
+    ).length
+   }
+   </b>
+   </div>
+
+   <div class="row">
+   <span>Ciężarówki</span>
+   <b>
+   ${
+    trucks.filter(
+     t=>t.centerId===c.id
+    ).length
+   }
+   </b>
+   </div>
+
+   <div class="row">
+   <span>Trasy AUTO</span>
+   <b>${routes.filter(r=>r.centerId===c.id).length}</b>
+   </div>
+
+   <div class="row">
+   <span>Przypisane sklepy</span>
+   <b>${stores.filter(s=>s.logisticsCenterId===c.id).length}</b>
+   </div>
+
+   ${(()=>{
+    const sc=stores.filter(s=>s.logisticsCenterId===c.id).length;
+    const dc=drivers.filter(d=>d.centerId===c.id).length;
+    const tc=trucks.filter(t=>t.centerId===c.id).length;
+    const need=Math.ceil(sc/6);
+    const missD=Math.max(0,need-dc);
+    const missT=Math.max(0,need-tc);
+    return (missD||missT)?`<div class="card" style="margin-top:8px">⚠️ Brakuje ${missD} kierowców i ${missT} ciężarówek do pełnej obsługi.</div>`:"";
+   })()}
+
+   <button
+   class="btn blue"
+   onclick="upgradeCenter(${c.id})">
+
+   ⬆ Rozbuduj
+   — ${cash(c.level*150000)}
+
+   </button>
+
+   </div>
+
+   `;
+
+  }).join("")
+  ||
+  `
+  <div class="empty">
+  Nie masz centrum logistycznego.
+  </div>
+  `
+ }
+
+ `;
+
+}
+
+
+function setStoreLogisticsCenter(storeId,value){
+ const s=stores.find(x=>Number(x.id)===Number(storeId));
+ if(!s)return;
+
+ if(value==="auto"){
+  s.logisticsManual=false;
+  s.logisticsCenterId=null;
+  autoAssignStoresToCenters();
+ }else{
+  s.logisticsManual=true;
+  s.logisticsCenterId=Number(value);
+ }
+
+ autoBuildRoutes(true);
+ render();
+}
+
+function routesUI(){
+ autoAssignStoresToCenters();
+
+ return `
+ <div class="card">
+  <b>🤖 Automatyczna logistyka</b>
+  <div class="muted">
+   Sklepy są automatycznie przypisywane do najbliższego centrum w promieniu 180 km. Dalej położony sklep pozostaje bez centrum, chyba że przypiszesz go ręcznie.
+   Kierowcy i ciężarówki są parowani automatycznie, a trasy przeliczają się każdego dnia.
+  </div>
+  <button class="btn blue" onclick="autoBuildRoutes(true);render();">
+   🔄 Przelicz trasy teraz
+  </button>
+ </div>
+
+ <div class="sectionTitle">TRASY AUTOMATYCZNE</div>
+
+ <div class="sectionTitle">PRZYPISANIE SKLEPÓW DO CENTRÓW</div>
+ ${stores.map(s=>{
+   const c=centers.find(x=>Number(x.id)===Number(s.logisticsCenterId));
+   const km=c?Math.round(logisticsDistance(c,s)):null;
+   return `<div class="card">
+    <b>🏪 ${esc(s.name||("Sklep #"+s.id))}</b>
+    <div class="row"><span>Tryb</span><b>${s.logisticsManual?"RĘCZNY":"AUTO"}</b></div>
+    <div class="row"><span>Centrum</span><b>${c?esc(c.name):"Brak w zasięgu"}</b></div>
+    ${km!==null?`<div class="row"><span>Odległość</span><b>${km} km</b></div>`:""}
+    <select class="full" onchange="setStoreLogisticsCenter(${s.id},this.value)">
+      <option value="auto" ${!s.logisticsManual?"selected":""}>🤖 Automatycznie — najbliższe do 180 km</option>
+      ${centers.map(x=>`<option value="${x.id}" ${s.logisticsManual&&Number(s.logisticsCenterId)===Number(x.id)?"selected":""}>${esc(x.name)} (${Math.round(logisticsDistance(x,s))} km)</option>`).join("")}
+    </select>
+   </div>`;
+ }).join("") || `<div class="empty">Brak sklepów.</div>`}
+
+ ${routes.map(r=>{
+   const c=centers.find(x=>x.id===r.centerId);
+   const d=drivers.find(x=>x.id===r.driverId);
+   const t=trucks.find(x=>x.id===r.truckId);
+   return `
+   <div class="card">
+    <b>🚛 Trasa #${r.id}</b>
+    <span class="badge ok">AUTO</span>
+    <div class="row"><span>Centrum</span><b>${esc(c?.name||"-")}</b></div>
+    <div class="row"><span>Kierowca</span><b>${esc(d?.name||"-")}</b></div>
+    <div class="row"><span>Ciężarówka</span><b>${t?.name||"-"}</b></div>
+    <div class="row"><span>Sklepy</span><b>${r.storeIds.length}</b></div>
+    <div class="row"><span>Dystans</span><b>${r.distance} km</b></div>
+    <div class="row"><span>Dostawy</span><b>codziennie</b></div>
+   </div>`;
+  }).join("") || `<div class="empty">Zbuduj centrum, kup ciężarówki i zatrudnij kierowców. Trasy utworzą się same.</div>`}
+ `;
+}
+
+function fleetUI(){
+ return `
+ <div class="card">
+  <b>🚛 Kup ciężarówki do centrum</b>
+  <div class="grid2">
+   <input id="bulkTruckAmount" class="full" type="number" min="1" max="1000" value="1">
+   <select id="bulkTruckCenter" class="full">
+    ${centers.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join("")}
+   </select>
+  </div>
+  <button class="btn" onclick="buyTruck(document.getElementById('bulkTruckCenter').value,document.getElementById('bulkTruckAmount').value)">
+   ＋ Kup — 120 000 zł / szt.
+  </button>
+ </div>
+
+ <div class="sectionTitle">FLOTA (${trucks.length})</div>
+
+ ${trucks.map(t=>`
+  <div class="card">
+   <b>🚛 ${t.name}</b>
+   <span class="badge ${t.condition>60?"ok":t.condition>30?"warn":"bad"}">${Math.round(t.condition)}%</span>
+   <div class="row"><span>Centrum</span><b>${esc(centers.find(c=>c.id===t.centerId)?.name||"Brak")}</b></div>
+   <div class="row"><span>Status</span><b>${t.status==="route"?"W TRASIE":t.routeId?"GOTOWA DO TRASY":"W CENTRUM"}</b></div>
+   <div class="row"><span>Pojemność</span><b>${t.capacity} szt.</b></div>
+   <div class="row"><span>Przebieg</span><b>${Math.round(t.mileage)} km</b></div>
+  </div>`).join("") || `<div class="empty">Nie masz ciężarówek.</div>`}
+ `;
+}
+
+function driversUI(){
+ return `
+ <div class="card">
+  <b>👷 Zatrudnij kierowców do centrum</b>
+  <div class="grid2">
+   <input id="bulkDriverAmount" class="full" type="number" min="1" max="1000" value="1">
+   <select id="bulkDriverCenter" class="full">
+    ${centers.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join("")}
+   </select>
+  </div>
+  <button class="btn blue" onclick="hireDriver(document.getElementById('bulkDriverCenter').value,document.getElementById('bulkDriverAmount').value)">
+   ＋ Zatrudnij — 5 000 zł / osoba
+  </button>
+ </div>
+
+ <div class="sectionTitle">KIEROWCY ${drivers.length}/${maxDrivers}</div>
+
+ ${drivers.map(d=>`
+  <div class="card">
+   <b>👷 ${esc(d.name)}</b>
+   <span class="badge ${d.status==="route"?"warn":"ok"}">${d.status==="route"?"W TRASIE":"GOTOWY"}</span>
+   <div class="row"><span>Centrum</span><b>${esc(centers.find(c=>c.id===d.centerId)?.name||"Brak")}</b></div>
+   <div class="row"><span>Doświadczenie</span><b>${d.experience}/10</b></div>
+   <div class="row"><span>Perk</span><b>${d.perk}</b></div>
+   <div class="row"><span>Pensja</span><b>${cash(d.salary)}</b></div>
+  </div>`).join("") || `<div class="empty">Nie zatrudniasz kierowców.</div>`}
+ `;
+}
+
+/* =========================================================
+   PRODUCERS UI
+========================================================= */
+
+
+function rgDeleteSub(id){
+ const list=rgSubs();
+ const s=list.find(x=>String(getSubId(x))===String(id));
+ if(!s)return;
+ const m=subMeta(s);
+ const children=list.filter(x=>String(subMeta(x).parentId)===String(id));
+ const ownedStores=rgStores().filter(st=>String(st.companyId)===String(id)||String(st.companyOverride)===String(id));
+ const ownedFactories=(Array.isArray(window.companies)?window.companies:[])
+   .flatMap(c=>(c.factories||[]).map(f=>({c,f})))
+   .filter(x=>String(x.f.subsidiaryId)===String(id));
+
+ if(!confirm(`Usunąć spółkę "${getSubName(s)}"?\n\nSklepy: ${ownedStores.length}\nFabryki: ${ownedFactories.length}\nSpółki zależne: ${children.length}\n\nAktywa zostaną odpięte od tej spółki.`))return;
+
+ ownedStores.forEach(st=>{st.companyId=null;st.companyOverride=null});
+ ownedFactories.forEach(x=>x.f.subsidiaryId=null);
+ children.forEach(ch=>subMeta(ch).parentId=null);
+
+ const idx=list.indexOf(s);
+ if(idx>=0)list.splice(idx,1);
+ autoAssignOwnership();
+ rgNotify("Usunięto spółkę "+getSubName(s));
+ rgRender();
+}
+
+function rgChangeSubLocation(id){
+ const s=rgSubs().find(x=>String(getSubId(x))===String(id)); if(!s)return;
+ const m=subMeta(s);
+ const v=prompt("Nowa siedziba / lokalizacja spółki:",m.headquarters||"");
+ if(v===null)return;
+ m.headquarters=v.trim();
+ rgRender();
+}
+
+function rgSetSubCountries(id){
+ const s=rgSubs().find(x=>String(getSubId(x))===String(id)); if(!s)return;
+ const m=subMeta(s);
+ const a=document.getElementById("rg_country1_"+id);
+ const b=document.getElementById("rg_country2_"+id);
+ const vals=[a?.value.trim(),b?.value.trim()].filter(Boolean);
+ m.countries=[...new Set(vals)].slice(0,2);
+
+ // Te same kraje nie są automatycznie odbierane innym spółkom:
+ // o przypisaniu sklepów decyduje spółka handlowa.
+ autoAssignOwnership();
+ rgRender();
+}
+
+function rgAssetsForSub(s){
+ const id=getSubId(s), sp=subMeta(s).specializations||[];
+ const allFactories=(Array.isArray(window.companies)?window.companies:[])
+   .flatMap(c=>(c.factories||[]).map(f=>({company:c,factory:f})));
+ return {
+   stores: sp.includes("retail") ? rgStores().filter(st=>String(st.companyId)===String(id)||String(st.companyOverride)===String(id)) : [],
+   centers: sp.includes("logistics") && Array.isArray(window.centers) ? centers.filter(c=>String(c.subsidiaryId)===String(id)||String(c.companyId)===String(id)) : [],
+   factories: sp.includes("production") ? allFactories.filter(x=>String(x.factory.subsidiaryId)===String(id)) : []
+ };
+}
+
+function companiesUI(){
+ autoAssignOwnership();
+ const subs=rgSubs();
+
+ return `<div class="rg-panel">
+  <b>🏢 Spółki córki</b>
+  <p>Każda spółka może działać w jednym albo dwóch krajach. Drugi kraj jest opcjonalny. Zawartość panelu zależy od specjalizacji spółki.</p>
+ </div>
+
+ ${subs.map(s=>{
+   const m=subMeta(s), id=getSubId(s), specs=m.specializations||[], assets=rgAssetsForSub(s);
+   const c1=m.countries?.[0]||"", c2=m.countries?.[1]||"";
+   const safeName=rgEsc(getSubName(s));
+   const location=rgEsc(m.headquarters||"nie ustawiono");
+
+   return `<div class="rg-panel">
+    <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start;flex-wrap:wrap">
+      <div><b style="font-size:16px">${safeName}</b><div style="opacity:.7;font-size:11px">📍 ${location}</div></div>
+      <div>
+       <button onclick="RGX.renameSub('${id}')">✏️ Nazwa</button>
+       <button onclick="RGX.changeSubLocation('${id}')">📍 Siedziba</button>
+       <button style="background:#54242a;color:#ffd9dd" onclick="RGX.deleteSub('${id}')">🗑️ Usuń</button>
+      </div>
+    </div>
+
+    <div style="margin-top:9px"><small>Profil działalności:</small><br>
+     ${Object.entries(SPEC).map(([k,v])=>`<label class="rg-chip">
+       <input type="checkbox" ${specs.includes(k)?"checked":""} onchange="RGX.toggleSpec('${id}','${k}')"> ${v}
+     </label>`).join("")}
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px;margin-top:9px">
+      <div><small>Kraj działania 1</small>${countryPickerHTML("rg_country1_"+id,c1)}</div>
+      <div><small>Kraj działania 2 — opcjonalny</small>${countryPickerHTML("rg_country2_"+id,c2)}</div>
+    </div>
+    <button class="btn" style="margin-top:7px" onclick="RGX.setSubCountries('${id}')">💾 Zapisz kraje</button>
+
+    <div style="margin-top:8px">Spółka nadrzędna:
+      <select onchange="RGX.setParent('${id}',this.value)">
+       <option value="">Ropucha Group</option>
+       ${subs.filter(x=>String(getSubId(x))!==String(id)).map(x=>`<option value="${getSubId(x)}" ${String(m.parentId)===String(getSubId(x))?"selected":""}>${rgEsc(getSubName(x))}</option>`).join("")}
+      </select>
+    </div>
+
+    ${specs.includes("retail") ? `
+      <div class="sectionTitle">🏪 HANDEL — SKLEPY (${assets.stores.length})</div>
+      ${assets.stores.map(st=>`<div class="card"><b>${rgEsc(st.name||("Sklep #"+st.id))}</b><div>${rgEsc(st.country||"")}</div></div>`).join("")||"<div class='empty'>Brak sklepów tej spółki.</div>"}
+    ` : ""}
+
+    ${specs.includes("logistics") ? `
+      <div class="sectionTitle">🚛 LOGISTYKA</div>
+      <div class="rg-grid">
+       <div class="rg-kpi">Centra: <b>${assets.centers.length}</b></div>
+       <div class="rg-kpi">Kierowcy: <b>${Array.isArray(window.drivers)?drivers.filter(d=>assets.centers.some(c=>Number(c.id)===Number(d.centerId))).length:0}</b></div>
+       <div class="rg-kpi">Ciężarówki: <b>${Array.isArray(window.trucks)?trucks.filter(t=>assets.centers.some(c=>Number(c.id)===Number(t.centerId))).length:0}</b></div>
+      </div>
+      ${assets.centers.map(c=>`<div class="card"><b>📦 ${rgEsc(c.name||("Centrum #"+c.id))}</b></div>`).join("")||"<div class='empty'>Nie przypisano centrów do tej spółki.</div>"}
+    ` : ""}
+
+    ${specs.includes("production") ? `
+      <div class="sectionTitle">🏭 PRODUKCJA</div>
+      ${assets.factories.map(x=>`<div class="card"><b>${rgEsc(x.factory.name||"Fabryka")}</b><div>${rgEsc(x.factory.city||"")} ${rgEsc(x.factory.country||"")}</div></div>`).join("")||"<div class='empty'>Nie przypisano fabryk.</div>"}
+    ` : ""}
+
+    ${(specs.includes("technology")||specs.includes("research")) ? `
+      <div class="sectionTitle">🧪 TECHNOLOGIA / R&D</div>
+      <div class="card">Poziom technologii: <b>${m.techLevel||0}</b><br><small>Badania tej spółki są prowadzone automatycznie.</small></div>
+    ` : ""}
+
+    ${specs.includes("innovation") ? `
+      <div class="sectionTitle">💡 NOWE KONCEPTY</div>
+      <div class="card">Pilotaże, Nano i nowe formaty sieci.</div>
+    ` : ""}
+   </div>`;
+ }).join("") || `<div class="empty">Nie masz jeszcze spółek córek.</div>`}`;
+}
+
+/* =========================================================
+   HOLDING UI
+========================================================= */
+
+function holdingTree(
+ parentId=null,
+ depth=0
+){
+
+ const children=
+  subsidiaries.filter(
+   s=>s.parentId===parentId
+  );
+
+ if(!children.length){
+
+  return "";
+
+ }
+
+ return children.map(s=>{
+
+  const a=
+   subAssets(s.id);
+
+  const f=
+   calculateSubFinances(s.id);
+
+  const type=
+   SUB_TYPES[s.type]||
+   {
+    emoji:"🏛️",
+    name:s.type
+   };
+
+  return `
+
+  <div class="companyNode">
+
+   <div
+   class="companyBox ${
+    selectedSubsidiary===s.id
+     ?"selected"
+     :""
+   }">
+
+    <div
+    onclick="openSubsidiary(${s.id})"
+    style="cursor:pointer">
+
+     <b>
+     ${type.emoji}
+     ${esc(s.name)}
+     </b>
+
+     <div class="muted">
+     ${esc(s.country)}
+     • ${type.name}
+     </div>
+
+     <div class="assetGrid">
+
+      <div class="asset">
+      🏪 ${a.stores.length}
+      </div>
+
+      <div class="asset">
+      📦 ${a.centers.length}
+      </div>
+
+      <div class="asset">
+      🏭 ${a.factories.length}
+      </div>
+
+      <div class="asset">
+      ${
+       f.profit>=0
+        ?"📈"
+        :"📉"
+      }
+      ${cash(f.profit)}
+      </div>
+
+     </div>
+
+    </div>
+
+    <div class="grid2">
+
+     <button
+     class="btn blue"
+     onclick="openSubsidiary(${s.id})">
+     Zarządzaj
+     </button>
+
+     <button
+     class="btn"
+     onclick="openCreateSubsidiary(${s.id})">
+     ＋ Córka
+     </button>
+
+    </div>
+
+   </div>
+
+   ${holdingTree(s.id,depth+1)}
+
+  </div>
+
+  `;
+
+ }).join("");
+
+}
+
+function holdingUI(){
+
+ const directStores=
+  stores.filter(
+   s=>!s.subsidiaryId
+  ).length;
+
+ const directCenters=
+  centers.filter(
+   c=>!c.subsidiaryId
+  ).length;
+
+ let directFactories=0;
+
+ companies.forEach(c=>{
+
+  if(!c.owned)return;
+
+  c.factories.forEach(f=>{
+
+   if(!f.subsidiaryId){
+    directFactories++;
+   }
+
+  });
+
+ });
+
+ const directCompanies=
+  companies.filter(
+   c=>
+    c.owned&&
+    !c.subsidiaryId
+  ).length;
+
+ return `
+
+ <div class="title">
+ 🏛️ Holding
+ </div>
+
+ <div class="subtitle">
+ Struktura własności Ropucha Group
+ </div>
+
+ <button
+ class="btn"
+ onclick="openCreateSubsidiary()">
+ ＋ Utwórz spółkę córkę
+ </button>
+
+ <div class="sectionTitle">
+ STRUKTURA GRUPY
+ </div>
+
+ <div class="holdingRoot">
+
+  <b>
+  🐸 Ropucha Group
+  </b>
+
+  <div class="muted">
+  Spółka nadrzędna grupy
+  </div>
+
+  <div class="assetGrid">
+
+   <div class="asset">
+   🏪 Bezpośrednie sklepy
+   <br>
+   <b>${directStores}</b>
+   </div>
+
+   <div class="asset">
+   📦 Bezpośrednie centra
+   <br>
+   <b>${directCenters}</b>
+   </div>
+
+   <div class="asset">
+   🏭 Bezpośrednie fabryki
+   <br>
+   <b>${directFactories}</b>
+   </div>
+
+   <div class="asset">
+   🏢 Bezpośrednie firmy
+   <br>
+   <b>${directCompanies}</b>
+   </div>
+
+  </div>
+
+ </div>
+
+ ${
+  holdingTree(null)
+  ||
+  `
+  <div class="empty">
+  Nie masz jeszcze spółek córek.
+  <br><br>
+  Utwórz np.
+  <b>Ropucha Polska</b>,
+  a później pod nią
+  <b>Ropucha Logistics</b>
+  lub
+  <b>Ropucha Foods</b>.
+  </div>
+  `
+ }
+
+ <div class="sectionTitle">
+ PODSUMOWANIE
+ </div>
+
+ <div class="kpis">
+
+  <div class="kpi">
+  <small>SPÓŁKI</small>
+  <strong>
+  ${subsidiaries.length}
+  </strong>
+  </div>
+
+  <div class="kpi">
+  <small>AKTYWA GRUPY</small>
+  <strong>
+  ${
+   cash(
+    subsidiaries.reduce(
+     (sum,s)=>
+      sum+
+      subAssetValue(s.id),
+     0
+    )
+   )
+  }
+  </strong>
+  </div>
+
+ </div>
+
+ `;
+
+}
+
+/* =========================================================
+   R&D UI
+========================================================= */
+
+function ideasUI(){
+
+ return `
+
+ <div class="title">
+ 💡 R&D
+ </div>
+
+ <div class="subtitle">
+ Twórz i wdrażaj nowe pomysły
+ w sieci
+ </div>
+
+ <button
+ class="btn purple"
+ onclick="newIdea()">
+ ＋ Nowy projekt
+ </button>
+
+ <div class="sectionTitle">
+ PROJEKTY
+ </div>
+
+ ${
+  ideas.map(i=>`
+
+  <div class="card">
+
+  <b>
+  ${i.emoji}
+  ${i.name}
+  </b>
+
+  <span class="badge">
+  ${i.status}
+  </span>
+
+  ${
+   i.status==="development"
+    ?`
+
+    <div class="progress">
+    <div
+    style="width:${i.progress}%">
+    </div>
+    </div>
+
+    <div class="row">
+    <span>Postęp</span>
+    <b>${i.progress}%</b>
+    </div>
+
+    <button
+    class="btn"
+    onclick="developIdea(${i.id})">
+    Rozwijaj
+    </button>
+
+    `
+    :""
+  }
+
+  ${
+   i.status==="ready"
+    ?`
+
+    <button
+    class="btn orangeBtn"
+    onclick="deployIdea(${i.id})">
+    🚀 Wdróż do sieci
+    </button>
+
+    `
+    :""
+  }
+
+  ${
+   i.status==="deployed"
+    ?`
+
+    <span class="badge ok">
+    WDROŻONE
+    </span>
+
+    `
+    :""
+  }
+
+  </div>
+
+  `).join("")
+  ||
+  `
+  <div class="empty">
+  Brak projektów.
+  </div>
+  `
+ }
+
+ `;
+
+}
+
+/* =========================================================
+   FINANCE UI
+========================================================= */
+
+
+function financeUI(){
+ const ss=rgStores();
+ const totalProfit=ss.reduce((a,s)=>a+(Number(s.monthProfit)||0),0);
+ const profitable=ss.filter(s=>(Number(s.monthProfit)||0)>=0).length;
+ const losing=ss.length-profitable;
+ const avg=ss.length?Math.round(totalProfit/ss.length):0;
+ const fuel=Number(window.fuelPrice||0);
+ const fuelSpent=Number(window.totals?.fuel||0);
+ const companyValue=Math.max(0,
+   Number(window.money||0)
+   + ss.length*250000
+   + (Array.isArray(window.centers)?centers.length*900000:0)
+   + (Array.isArray(window.trucks)?trucks.length*120000:0)
+ );
+ const best=ss.slice().sort((a,b)=>(Number(b.monthProfit)||0)-(Number(a.monthProfit)||0));
+ const byCountry={};
+ ss.forEach(s=>{
+   const c=s.country||"Polska";
+   byCountry[c]=(byCountry[c]||0)+(Number(s.monthProfit)||0);
+ });
+
+ return `
+ <div class="rg-panel">
+  <b>💰 Finanse grupy</b>
+  <p>Tu widzisz wynik sieci, koszty logistyki i rentowność sklepów. Kwoty sklepów są wynikiem bieżącej symulacji.</p>
+ </div>
+
+ <div class="rg-grid">
+  <div class="rg-kpi"><small>💵 Gotówka</small><div style="font-size:21px"><b>${rgCash(Number(window.money||0))}</b></div></div>
+  <div class="rg-kpi"><small>📈 Wynik sklepów</small><div style="font-size:21px" class="${totalProfit>=0?"rg-good":"rg-bad"}"><b>${totalProfit>=0?"+":""}${rgCash(totalProfit)}</b></div></div>
+  <div class="rg-kpi"><small>🏪 Średnio / sklep</small><div style="font-size:21px" class="${avg>=0?"rg-good":"rg-bad"}"><b>${avg>=0?"+":""}${rgCash(avg)}</b></div></div>
+  <div class="rg-kpi"><small>🏢 Szacowana wartość grupy</small><div style="font-size:21px"><b>${rgCash(companyValue)}</b></div></div>
+  <div class="rg-kpi"><small>⛽ Paliwo</small><div style="font-size:21px"><b>${fuel.toFixed(2)} zł/l</b></div><small>Łączny koszt: ${rgCash(fuelSpent)}</small></div>
+  <div class="rg-kpi"><small>✅ Rentowne / 🔻 stratne</small><div style="font-size:21px"><b>${profitable} / ${losing}</b></div></div>
+ </div>
+
+ <div class="sectionTitle">WYNIK WEDŁUG KRAJU</div>
+ <div class="rg-grid">
+ ${Object.entries(byCountry).sort((a,b)=>b[1]-a[1]).map(([country,val])=>`
+   <div class="rg-kpi">
+    <b>🌍 ${rgEsc(country)}</b>
+    <div class="${val>=0?"rg-good":"rg-bad"}">${val>=0?"+":""}${rgCash(val)}</div>
+    <small>${ss.filter(s=>(s.country||"Polska")===country).length} sklepów</small>
+   </div>`).join("") || `<div class="empty">Brak danych.</div>`}
+ </div>
+
+ <div class="sectionTitle">RENTOWNOŚĆ SKLEPÓW</div>
+ ${best.map((s,index)=>`
+  <div class="card">
+   <b>${index===0?"🏆 ":""}${rgEsc(s.name||("Sklep #"+s.id))}</b>
+   <span class="badge ${(Number(s.monthProfit)||0)>=0?"ok":"bad"}">
+    ${(Number(s.monthProfit)||0)>=0?"+":""}${rgCash(Number(s.monthProfit)||0)}
+   </span>
+   <div class="row"><span>Kraj</span><b>${rgEsc(s.country||"Polska")}</b></div>
+   <div class="row"><span>Reputacja</span><b>${Math.round(Number(s.reputation)||50)}/100</b></div>
+   <div class="row"><span>Format</span><b>${s.format==="nano"?"🤖 Nano":"🏪 Standard v"+(s.templateVersion||1)}</b></div>
+   <div class="row"><span>Centrum logistyczne</span><b>${(()=>{
+      const c=Array.isArray(window.centers)?centers.find(x=>Number(x.id)===Number(s.logisticsCenterId)):null;
+      return c?rgEsc(c.name):"Brak";
+   })()}</b></div>
+  </div>`).join("") || `<div class="empty">Nie masz jeszcze sklepów.</div>`}
+
+ <div class="rg-panel">
+  <b>ℹ️ Jak czytać finanse?</b>
+  <p><span class="rg-good">Zielony</span> = sklep zarabia, <span class="rg-bad">czerwony</span> = generuje stratę.
+  Na wynik wpływają m.in. sprzedaż, personel, energia, promocje oraz logistyka i aktualna cena paliwa.</p>
+ </div>`;
+}
+
+/* =========================================================
+   NEWS UI
+========================================================= */
+
+function newsUI(){
+
+ return `
+
+ <div class="title">
+ 📰 Wiadomości
+ </div>
+
+ <div class="subtitle">
+ Historia Ropucha Group i rynku
+ </div>
+
+ ${
+  news.map(n=>`
+
+  <div class="card">
+
+  <b>
+  ${n.year}
+  • M${n.month}
+  D${n.day}
+  </b>
+
+  <div class="muted">
+  ${esc(n.text)}
+  </div>
+
+  </div>
+
+  `).join("")
+ }
+
+ `;
+
+}
+
+/* =========================================================
+   RENDER
+========================================================= */
+
+function renderSection(){
+
+ const p=
+  document.getElementById(
+   "panel"
+  );
+
+ if(current==="dashboard"){
+  p.innerHTML=dashboardUI();
+ }
+
+ if(current==="stores"){
+  p.innerHTML=storesUI();
+ }
+
+ if(current==="employees"){
+  p.innerHTML=employeesUI();
+ }
+
+ if(current==="design"){
+  p.innerHTML=designUI();
+ }
+
+ if(current==="prices"){
+  p.innerHTML=pricesUI();
+ }
+
+ if(current==="franchise"){
+  p.innerHTML=franchiseUI();
+ }
+
+ if(current==="logistics"){
+  p.innerHTML=logisticsUI();
+ }
+
+ if(current==="companies"){
+  p.innerHTML=companiesUI();
+ }
+
+ if(current==="holding"){
+  p.innerHTML=holdingUI();
+ }
+
+ if(current==="ideas"){
+  p.innerHTML=ideasUI();
+ }
+
+ if(current==="holding11"){
+ panel.innerHTML=`<h2>🏛️ Ropucha Group — Holding</h2><div id="holding11root"></div>`;
+ setTimeout(()=>{try{H11.render()}catch(e){}},0);
+ return;
+}
+
+if(current==="finance"){
+  p.innerHTML=financeUI();
+ }
+
+ if(current==="news"){
+  p.innerHTML=newsUI();
+ }
+
+}
+
+function openSection(
+ sec,
+ button
+){
+
+ current=sec;
+
+ document
+  .querySelectorAll(".nav")
+  .forEach(
+   x=>x.classList.remove("active")
+  );
+
+ if(button){
+  button.classList.add("active");
+ }
+
+ const p=
+  document.getElementById(
+   "panel"
+  );
+
+ if(sec==="map"){
+
+  p.classList.add(
+   "hidden"
+  );
+
+ }else{
+
+  p.classList.remove(
+   "hidden"
+  );
+
+  renderSection();
+
+ }
+
+ setTimeout(
+  ()=>map.invalidateSize(
+   {pan:false}
+  ),
+  0
+ );
+
+}
+
+function hud(){
+
+ document
+  .getElementById("hudMoney")
+  .textContent=
+  cash(money);
+
+ document
+  .getElementById("hudStores")
+  .textContent=
+  stores.length;
+
+ document
+  .getElementById("hudCenters")
+  .textContent=
+  centers.length;
+
+ document
+  .getElementById("hudSubs")
+  .textContent=
+  subsidiaries.length;
+
+ document
+  .getElementById("hudDate")
+  .textContent=
+  `${day}/${month}/${year}`;
+
+}
+
+function render(){
+
+ hud();
+
+ centers.forEach(
+  updateCenterPopup
+ );
+
+ stores.forEach(
+  updateStorePopup
+ );
+
+ companies.forEach(c=>{
+
+  c.factories.forEach(f=>{
+
+   updateFactoryPopup(
+    c,
+    f
+   );
+
+  });
+
+ });
+
+ if(current!=="map"){
+
+  renderSection();
+
+ }
+
+}
+
+/* =========================================================
+   MAP CLICK
+========================================================= */
+
+map.on(
+"click",
+e=>{
+
+ if(buildMode==="store"){
+
+  createStore(
+   e.latlng.lat,
+   e.latlng.lng
+  );
+
+ }
+
+ if(buildMode==="center"){
+
+  createCenter(
+   e.latlng.lat,
+   e.latlng.lng
+  );
+
+ }
+
+ buildMode=null;
+
+ document
+  .getElementById(
+   "buildInfo"
+  )
+  .style.display="none";
+
+}
+);
+
+/* =========================================================
+   SPEED
+========================================================= */
+
+let timer=null;
+
+function setSpeed(v){
+
+ speed=v;
+
+ document
+  .querySelectorAll(
+   ".time button"
+  )
+  .forEach(
+   x=>x.classList.remove(
+    "active"
+   )
+  );
+
+ document
+  .getElementById(
+   "sp"+v
+  )
+  .classList.add(
+   "active"
+  );
+
+ clearInterval(timer);
+
+ if(v>0){
+
+  timer=setInterval(
+   gameDay,
+   10000/v
+  );
+
+ }
+
+}
+
+/* =========================================================
+   SAVE
+========================================================= */
+
+function saveGame(){
+
+ const data={
+
+  money,
+  day,
+  month,
+  year,
+
+  maxStaff,
+  maxFranchisees,
+  maxDrivers,
+
+  stores:
+   stores.map(
+    ({marker,...x})=>x
+   ),
+
+  employees,
+  franchisees,
+
+  companies:
+   companies.map(c=>({
+
+    ...c,
+
+    factories:
+     c.factories.map(
+      ({marker,...f})=>f
+     )
+
+   })),
+
+  subsidiaries,
+
+  centers:
+   centers.map(
+    ({marker,...x})=>x
+   ),
+
+  drivers,
+  trucks,
+
+  routes:
+   routes.map(
+    ({line,...x})=>x
+   ),
+
+  ideas,
+  news,
+  prices,
+  ids,
+  totals,
+  fuelPrice, fuelHistory, networkLayout, networkLayoutVersion, nanoUnlocked
+
+ };
+
+ localStorage.setItem(
+  "ropucha_group_v4",
+  JSON.stringify(data)
+ );
+
+ notify(
+  "💾 Gra zapisana."
+ );
+
+}
+
+function resetGame(){
+
+ if(
+  confirm(
+   "Na pewno rozpocząć nową grę?"
+  )
+ ){
+
+  localStorage.removeItem(
+   "ropucha_group_v4"
+  );
+
+  location.reload();
+
+ }
+
+}
+
+/* =========================================================
+   DEV CONSOLE
+========================================================= */
+
+let consoleOpen=false;
+
+window.addEventListener(
+"keydown",
+e=>{
+
+ if(
+  e.key==="`"||
+  e.key==="~"
+ ){
+
+  e.preventDefault();
+
+  consoleOpen=
+   !consoleOpen;
+
+  document
+   .getElementById(
+    "console"
+   )
+   .style.display=
+   consoleOpen
+    ?"block"
+    :"none";
+
+  if(consoleOpen){
+
+   document
+    .getElementById(
+     "consoleInput"
+    )
+    .focus();
+
+  }
+
+ }
+
+ if(e.key==="Escape"){
+
+  buildMode=null;
+
+  document
+   .getElementById(
+    "buildInfo"
+   )
+   .style.display="none";
+
+ }
+
+}
+);
+
+document
+.getElementById(
+ "consoleInput"
+)
+.addEventListener(
+"keydown",
+e=>{
+
+ if(e.key!=="Enter")return;
+
+ const input=
+  e.target.value.trim();
+
+ e.target.value="";
+
+ const h=
+  document.getElementById(
+   "consoleHistory"
+  );
+
+ h.textContent+=
+  "\n> "+input;
+
+ const a=
+  input.split(/\s+/);
+
+ const cmd=
+  (a[0]||"")
+   .toLowerCase();
+
+ const value=
+  Number(a[1]);
+
+ if(cmd==="help"){
+
+  h.textContent+=`
+
+help
+kasa [kwota]
+maxstaff [liczba]
+maxfranczyzobiorcy [liczba]
+maxkierowcy [liczba]
+kandydat
+dzien
+save
+status
+
+`;
+
+ }
+
+ else if(
+  cmd==="kasa"&&
+  Number.isFinite(value)
+ ){
+
+  money=value;
+
+ }
+
+ else if(
+  cmd==="maxstaff"&&
+  Number.isFinite(value)
+ ){
+
+  maxStaff=
+   Math.max(
+    0,
+    Math.floor(value)
+   );
+
+ }
+
+ else if(
+  cmd==="maxfranczyzobiorcy"&&
+  Number.isFinite(value)
+ ){
+
+  maxFranchisees=
+   Math.max(
+    0,
+    Math.floor(value)
+   );
+
+ }
+
+ else if(
+  cmd==="maxkierowcy"&&
+  Number.isFinite(value)
+ ){
+
+  maxDrivers=
+   Math.max(
+    0,
+    Math.floor(value)
+   );
+
+ }
+
+ else if(cmd==="kandydat"){
+
+  newCandidate();
+
+ }
+
+ else if(cmd==="dzien"){
+
+  gameDay();
+
+ }
+
+ else if(cmd==="save"){
+
+  saveGame();
+
+ }
+
+ else if(cmd==="status"){
+
+  h.textContent+=`
+
+Kasa: ${cash(money)}
+Sklepy: ${stores.length}
+Centra: ${centers.length}
+Trasy: ${routes.length}
+Kierowcy: ${drivers.length}
+Ciężarówki: ${trucks.length}
+Firmy: ${companies.length}
+Spółki córki: ${subsidiaries.length}
+
+`;
+
+ }
+
+ else{
+
+  h.textContent+=
+   "\nNieznana komenda.";
+
+ }
+
+ render();
+
+ h.scrollTop=
+  h.scrollHeight;
+
+}
+);
+
+/* =========================================================
+   START
+========================================================= */
+
+/* kandydaci */
+
+for(
+ let i=0;
+ i<15;
+ i++
+){
+
+ newCandidate();
+
+}
+
+/* producenci */
+
+for(
+ let i=0;
+ i<35;
+ i++
+){
+
+ generateCompany(true);
+
+}
+
+if(!networkLayout) networkLayout=emptyLayout(12);
+
+addNews(
+ "🐸 Ropucha Group rozpoczyna działalność z kapitałem 500 000 zł."
+);
+
+addNews(
+ "🚛 Uruchomiono system centrów logistycznych, kierowców, ciężarówek i tras."
+);
+
+addNews(
+ "🏭 Producenci rozwijają się automatycznie."
+);
+
+addNews(
+ "🏛️ Uruchomiono rozbudowany system spółek córek i struktury holdingu."
+);
+
+render();
+
+setSpeed(1);
+
+/* nowe firmy powstają automatycznie */
+
+setInterval(
+()=>{
+
+ if(
+  companies.length<300
+ ){
+
+  generateCompany(false);
+
+  render();
+
+ }
+
+},
+25000
+);
+
+/* firmy rozwijają fabryki */
+
+setInterval(
+()=>{
+
+ companies.forEach(c=>{
+
+  c.valuation=
+   Math.round(
+    c.valuation*
+    rndf(
+     1.001,
+     1.02
+    )
+   );
+
+  if(
+   Math.random()<.08&&
+   c.factories.length<10
+  ){
+
+   createFactory(
+    c,
+    false
+   );
+
+  }
+
+ });
+
+ render();
+
+},
+45000
+);
+
+/* nowi kandydaci */
+
+setInterval(
+()=>{
+
+ if(
+  employees.filter(
+   e=>e.status==="candidate"
+  ).length<35
+ ){
+
+  newCandidate();
+
+ }
+
+},
+40000
+);
+
+</script>
+
+
+
+<script>
+/* ===== PEŁNA LISTA KRAJÓW + WYSZUKIWANIE ===== */
+(function(){
+const ISO2 = [
+"AD","AE","AF","AG","AL","AM","AO","AR","AT","AU","AZ","BA","BB","BD","BE","BF","BG","BH","BI","BJ","BN","BO","BR","BS","BT","BW","BY","BZ",
+"CA","CD","CF","CG","CH","CI","CL","CM","CN","CO","CR","CU","CV","CY","CZ","DE","DJ","DK","DM","DO","DZ","EC","EE","EG","ER","ES","ET",
+"FI","FJ","FM","FR","GA","GB","GD","GE","GH","GM","GN","GQ","GR","GT","GW","GY","HN","HR","HT","HU","ID","IE","IL","IN","IQ","IR","IS","IT",
+"JM","JO","JP","KE","KG","KH","KI","KM","KN","KP","KR","KW","KZ","LA","LB","LC","LI","LK","LR","LS","LT","LU","LV","LY","MA","MC","MD","ME",
+"MG","MH","MK","ML","MM","MN","MR","MT","MU","MV","MW","MX","MY","MZ","NA","NE","NG","NI","NL","NO","NP","NR","NZ","OM","PA","PE","PG","PH",
+"PK","PL","PS","PT","PW","PY","QA","RO","RS","RU","RW","SA","SB","SC","SD","SE","SG","SI","SK","SL","SM","SN","SO","SR","SS","ST","SV","SY",
+"SZ","TD","TG","TH","TJ","TL","TM","TN","TO","TR","TT","TV","TZ","UA","UG","US","UY","UZ","VA","VC","VE","VN","VU","WS","YE","ZA","ZM","ZW"
+];
+
+const dn = (typeof Intl!=="undefined" && Intl.DisplayNames)
+ ? new Intl.DisplayNames(["pl"],{type:"region"})
+ : null;
+
+const ALL_WORLD_COUNTRIES = ISO2.map(code=>({
+ code,
+ name: dn ? dn.of(code) : code
+})).filter(x=>x.name && x.name!==x.code)
+  .sort((a,b)=>a.name.localeCompare(b.name,"pl"));
+
+window.ALL_WORLD_COUNTRIES=ALL_WORLD_COUNTRIES;
+
+function norm(s){
+ return String(s||"").toLocaleLowerCase("pl-PL")
+  .normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+}
+function countryMatches(q){
+ q=norm(q);
+ if(!q)return ALL_WORLD_COUNTRIES;
+ const starts=[], contains=[];
+ ALL_WORLD_COUNTRIES.forEach(c=>{
+   const n=norm(c.name), code=norm(c.code);
+   if(n.startsWith(q)||code.startsWith(q))starts.push(c);
+   else if(n.includes(q))contains.push(c);
+ });
+ return starts.concat(contains);
+}
+window.countryMatches=countryMatches;
+
+function countryPickerHTML(inputId, selected="", onPick=""){
+ const listId=inputId+"_country_results";
+ return `
+ <div class="countryPicker" style="position:relative">
+  <input id="${inputId}" class="full" autocomplete="off"
+   placeholder="🌍 Wpisz kraj, np. Pol..."
+   value="${String(selected||"").replace(/"/g,"&quot;")}"
+   oninput="WORLD_COUNTRY_PICKER.search('${inputId}','${listId}')"
+   onfocus="WORLD_COUNTRY_PICKER.search('${inputId}','${listId}')">
+  <div id="${listId}" class="countryResults"
+   style="display:none;position:absolute;z-index:99999;left:0;right:0;top:100%;max-height:260px;overflow:auto;background:#111b15;border:1px solid #385044;border-radius:8px;box-shadow:0 8px 24px #0008"></div>
+ </div>`;
+}
+window.countryPickerHTML=countryPickerHTML;
+
+window.WORLD_COUNTRY_PICKER={
+ search(inputId,listId){
+   const input=document.getElementById(inputId),box=document.getElementById(listId);
+   if(!input||!box)return;
+   const items=countryMatches(input.value).slice(0,40);
+   box.innerHTML=items.map(c=>`<button type="button"
+     style="display:block;width:100%;text-align:left;padding:8px 10px;border:0;border-bottom:1px solid #24362c;background:#111b15;color:#e7efe9;cursor:pointer"
+     onmousedown="event.preventDefault();WORLD_COUNTRY_PICKER.pick('${inputId}','${listId}','${c.name.replace(/'/g,"\\'")}')">
+     ${c.name} <span style="opacity:.55">${c.code}</span>
+   </button>`).join("") || `<div style="padding:10px">Nie znaleziono kraju.</div>`;
+   box.style.display="block";
+ },
+ pick(inputId,listId,name){
+   const input=document.getElementById(inputId),box=document.getElementById(listId);
+   if(input){input.value=name;input.dispatchEvent(new Event("change",{bubbles:true}))}
+   if(box)box.style.display="none";
+ },
+ value(inputId){
+   const el=document.getElementById(inputId);
+   return el?el.value.trim():"";
+ }
+};
+
+document.addEventListener("mousedown",e=>{
+ document.querySelectorAll(".countryResults").forEach(box=>{
+   if(!box.parentElement.contains(e.target))box.style.display="none";
+ });
+});
+})();
+</script>
+
+<style>
+/* ===== ROPUCHA GROUP: EXPANSION PACK ===== */
+.rg-tabs{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.rg-tabs button{border:1px solid #2f3d34;background:#18231d;color:#dce9df;border-radius:9px;padding:8px 10px;cursor:pointer}
+.rg-tabs button:hover{background:#213129}
+.rg-panel{border:1px solid #314239;background:#121b16;border-radius:12px;padding:12px;margin:10px 0}
+.rg-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px}
+.rg-kpi{padding:10px;border:1px solid #2c3b32;border-radius:10px;background:#17221c}
+.rg-good{color:#78e08f}.rg-bad{color:#ff7b7b}.rg-warn{color:#ffd166}
+.rg-layout{display:grid;grid-template-columns:repeat(10,34px);grid-auto-rows:34px;gap:2px;overflow:auto;padding:10px;background:#0b120e;border-radius:10px}
+.rg-cell{border:1px solid #314239;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:17px;cursor:pointer;user-select:none}
+.rg-cell:hover{outline:1px solid #65d97b}
+.rg-techbar{height:8px;background:#26342b;border-radius:99px;overflow:hidden}.rg-techbar>i{display:block;height:100%;background:#65d97b}
+.rg-chip{display:inline-block;padding:3px 7px;border-radius:99px;background:#26372d;margin:2px;font-size:11px}
+</style>
+
+<script>
+/* ===== ROPUCHA GROUP: EXPANSION PACK ===== */
+(function(){
+const RG = window.RG = window.RG || {
+ version: "6.0",
+ storeTemplate: {
+   version: 1, width: 10, height: 8,
+   cells: Array(80).fill("floor"),
+   equipment: {shelf:12,fridge:3,cash:2,coffee:1,hotdog:1,oven:1,printer:1,parcel:1},
+   backroomLevel:1
+ },
+ nanoTemplate: {
+   version:1,width:8,height:6,cells:Array(48).fill("floor"),
+   equipment:{smartShelf:8,camera:10,gate:2,fridge:2}
+ },
+ promotions: {},
+ companies: [],
+ marketRules: {},
+ research: [],
+ pilots: [],
+ competitors: [],
+ countryMarket: {},
+ ideas: [],
+ daily: {lastFuelDay:null},
+ ui: {section:"overview", layoutTool:"shelf"}
+};
+
+const SPEC = {
+ retail:"🏪 Handel", technology:"💻 Technologia", research:"🧪 R&D",
+ logistics:"🚛 Logistyka", production:"🏭 Produkcja", innovation:"💡 Nowe koncepty"
+};
+const LAYOUT_TOOLS = {
+ floor:["⬛","Pusta podłoga"], shelf:["🗄️","Regał"], fridge:["🧊","Lodówka"],
+ cash:["💳","Kasa"], coffee:["☕","Ekspres"], hotdog:["🌭","Hot-dog"],
+ oven:["🍕","Piec"], printer:["🖨️","Drukarka"], parcel:["📦","Paczki"],
+ backroom:["🚪","Zaplecze"]
+};
+const COUNTRIES=(window.ALL_WORLD_COUNTRIES||[]).map(x=>x.name);
+if(!COUNTRIES.length)COUNTRIES.push("Polska","Niemcy","Czechy","Słowacja");
+
+function rgCash(n){ try{return cash(n)}catch(e){return Math.round(n).toLocaleString("pl-PL")+" zł"} }
+function rgEsc(s){ try{return esc(s)}catch(e){return String(s??"").replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]))} }
+function rgNotify(s){ try{return notify(s)}catch(e){console.log(s)} }
+function rgNews(s){ try{return addNews(s)}catch(e){console.log(s)} }
+function rgRnd(a,b){return Math.floor(Math.random()*(b-a+1))+a}
+function rgPick(a){return a[Math.floor(Math.random()*a.length)]}
+function rgMoney(delta){try{return changeMoney(delta)}catch(e){window.money=(window.money||0)+delta}}
+function rgStores(){return Array.isArray(window.stores)?window.stores:[]}
+function rgCenters(){return Array.isArray(window.centers)?window.centers:[]}
+function rgProducts(){return Array.isArray(window.PRODUCTS)?window.PRODUCTS:[]}
+function rgSubs(){return Array.isArray(window.subsidiaries)?window.subsidiaries:[]}
+
+function ensureStoreFields(){
+ rgStores().forEach(s=>{
+   if(!s.country) s.country = guessCountry(s);
+   if(s.companyOverride===undefined) s.companyOverride=null;
+   if(!s.templateVersion) s.templateVersion=RG.storeTemplate.version;
+   if(!s.format) s.format="standard";
+   if(s.reputation===undefined) s.reputation=50;
+   if(s.monthProfit===undefined) s.monthProfit=0;
+ });
+}
+function guessCountry(s){
+ const text=((s.city||"")+" "+(s.name||"")).toLowerCase();
+ if(/berlin|hamburg|munich|münchen|germany/.test(text)) return "Niemcy";
+ if(/prag|praha|brno|czech/.test(text)) return "Czechy";
+ if(/vilnius|kaunas|lith/.test(text)) return "Litwa";
+ return "Polska";
+}
+function getSubId(x){return x?.id ?? x?.companyId ?? x?.sid}
+function getSubName(x){return x?.name || x?.companyName || ("Spółka #"+getSubId(x))}
+function subMeta(s){
+ s.rg = s.rg || {countries:[], specializations:["retail"], budget:0, parentId:null, techLevel:0};
+ return s.rg;
+}
+function autoAssignOwnership(){
+ ensureStoreFields();
+ const subs=rgSubs();
+ rgStores().forEach(st=>{
+   if(st.companyOverride!==null && st.companyOverride!==undefined){
+     st.companyId=Number(st.companyOverride)||st.companyOverride;
+     return;
+   }
+   const owner=subs.find(s=>{
+   const m=subMeta(s);
+   return m.specializations.includes("retail") && m.countries.includes(st.country);
+ });
+   st.companyId=owner?getSubId(owner):null;
+ });
+}
+function setStoreOwner(id,val){
+ const s=rgStores().find(x=>x.id==id); if(!s)return;
+ s.companyOverride=val==="auto"?null:Number(val);
+ autoAssignOwnership(); rgNotify("Zmieniono właściciela sklepu."); rgRender();
+}
+function setCompanyCountry(id,country,on){
+ const s=rgSubs().find(x=>getSubId(x)==id); if(!s)return;
+ // Jeden domyślny właściciel rynku, żeby nie było konfliktów.
+ if(on) rgSubs().forEach(x=>{if(getSubId(x)!=id) subMeta(x).countries=subMeta(x).countries.filter(c=>c!==country)});
+ const m=subMeta(s);
+ if(on && !m.countries.includes(country))m.countries.push(country);
+ if(!on)m.countries=m.countries.filter(c=>c!==country);
+ autoAssignOwnership(); rgRender();
+}
+function toggleSpec(id,key){
+ const s=rgSubs().find(x=>getSubId(x)==id); if(!s)return;
+ const m=subMeta(s); const i=m.specializations.indexOf(key);
+ if(i>=0)m.specializations.splice(i,1); else m.specializations.push(key);
+ rgRender();
+}
+function renameSub(id){
+ const s=rgSubs().find(x=>getSubId(x)==id); if(!s)return;
+ const n=prompt("Nowa nazwa spółki:",getSubName(s));
+ if(n&&n.trim()){s.name=n.trim();rgRender();}
+}
+function setParent(id,parentId){
+ const s=rgSubs().find(x=>getSubId(x)==id); if(!s)return;
+ subMeta(s).parentId=parentId?Number(parentId):null; rgRender();
+}
+
+function applyTemplateAll(){
+ RG.storeTemplate.version++;
+ rgStores().filter(s=>s.format!=="nano").forEach(s=>s.templateVersion=RG.storeTemplate.version);
+ rgMoney(-rgStores().length*2500);
+ rgNews("📐 Wdrożono Standard Sieci v"+RG.storeTemplate.version+" we wszystkich zwykłych sklepach.");
+ rgRender();
+}
+function cycleLayoutCell(i){
+ const keys=Object.keys(LAYOUT_TOOLS);
+ const tool=RG.ui.layoutTool||"shelf";
+ RG.storeTemplate.cells[i]=tool;
+ rgRender();
+}
+function setLayoutTool(k){RG.ui.layoutTool=k;rgRender();}
+function upgradeBackroom(){
+ const cost=RG.storeTemplate.backroomLevel*50000;
+ if((window.money||0)<cost)return rgNotify("Za mało pieniędzy.");
+ rgMoney(-cost); RG.storeTemplate.backroomLevel++;
+ rgRender();
+}
+
+function setPromo(pid,type){
+ RG.promotions[pid]=RG.promotions[pid]||{type:"none",qty:2,bundlePrice:10,discount:20,days:7};
+ RG.promotions[pid].type=type; rgRender();
+}
+function updatePromo(pid,key,val){
+ RG.promotions[pid]=RG.promotions[pid]||{};
+ RG.promotions[pid][key]=Number(val); rgRender();
+}
+function promoMultiplier(pid){
+ const p=RG.promotions[pid]; if(!p||p.type==="none")return 1;
+ if(p.type==="discount")return 1+Math.min(0.7,p.discount/100*.8);
+ if(p.type==="multi")return 1.25;
+ if(p.type==="second50")return 1.18;
+ return 1;
+}
+
+function createIdea(){
+ const names=["Smart Shelf","Ropucha Pay","Szybki Hot-Dog","Automatyczny piec","Dynamiczny planogram","Ropucha Box","Nowa kasa samoobsługowa","Prognoza popytu AI"];
+ const idea={id:Date.now(),name:rgPick(names)+" "+rgRnd(1,99),status:"gotowy",stores:[],effect:rgRnd(2,12),cost:rgRnd(10000,90000)};
+ RG.ideas.push(idea); rgRender();
+}
+function pilotIdea(id){
+ const idea=RG.ideas.find(x=>x.id==id); if(!idea)return;
+ const sample=rgStores().slice(0,Math.min(5,rgStores().length));
+ if(!sample.length)return rgNotify("Najpierw otwórz sklepy.");
+ idea.status="pilot"; idea.stores=sample.map(s=>s.id); idea.days=30; idea.result=null;
+ rgMoney(-idea.cost); rgRender();
+}
+function deployIdea(id){
+ const idea=RG.ideas.find(x=>x.id==id); if(!idea)return;
+ const cost=rgStores().length*Math.max(1000,Math.round(idea.cost/5));
+ if((window.money||0)<cost)return rgNotify("Brakuje pieniędzy na wdrożenie.");
+ rgMoney(-cost); idea.status="wdrożony"; idea.stores=rgStores().map(s=>s.id);
+ rgNews("💡 "+idea.name+" wdrożono w całej sieci."); rgRender();
+}
+
+function ensureResearch(){
+ rgSubs().forEach(s=>{
+   const m=subMeta(s);
+   if((m.specializations.includes("technology")||m.specializations.includes("research")) &&
+      !RG.research.some(r=>r.companyId==getSubId(s)&&r.status==="research")){
+      RG.research.push({
+       id:Date.now()+Math.random(),companyId:getSubId(s),
+       name:rgPick(["Computer Vision","Smart Shelf","Prognozowanie popytu","Automatyczna logistyka","Nano Store","Ropucha Pay","Dynamiczne ceny"])+" "+rgRnd(1,4),
+       progress:0,status:"research"
+      });
+   }
+ });
+}
+function processResearchDay(){
+ ensureResearch();
+ RG.research.filter(r=>r.status==="research").forEach(r=>{
+   const s=rgSubs().find(x=>getSubId(x)==r.companyId); if(!s)return;
+   const m=subMeta(s);
+   r.progress+=Math.max(0.5,1+(m.techLevel||0)*.15);
+   if(r.progress>=100){
+     r.progress=100;r.status="done";m.techLevel=(m.techLevel||0)+1;
+     rgNews("🧪 "+getSubName(s)+" ukończyła badanie: "+r.name+".");
+   }
+ });
+ RG.ideas.filter(i=>i.status==="pilot").forEach(i=>{
+   i.days--;
+   if(i.days<=0){i.status="tested";i.result=rgRnd(-3,14);rgNews("🧪 Zakończono pilotaż "+i.name+": wynik "+(i.result>=0?"+":"")+i.result+"%.");}
+ });
+}
+
+function ensureCompetitors(){
+ while(RG.competitors.length<8){
+   RG.competitors.push({
+    id:Date.now()+Math.random(),
+    name:rgPick(["QuickMart","Froggo","DailyBox","MikroMarket","FreshGo","City24","FoodPoint","GoShop"])+" "+rgRnd(1,99),
+    cash:rgRnd(500000,12000000), stores:rgRnd(3,30), countries:[rgPick(COUNTRIES)],
+    tech:rgRnd(0,5), reputation:rgRnd(35,75)
+   });
+ }
+}
+function processCompetitors(){
+ ensureCompetitors();
+ RG.competitors.forEach(c=>{
+   c.cash+=rgRnd(-50000,180000);
+   if(c.cash>350000 && Math.random()<.08){c.cash-=250000;c.stores++}
+   if(c.stores>2 && Math.random()<.02)c.stores--;
+   if(Math.random()<.015 && c.countries.length<4){
+     const co=rgPick(COUNTRIES); if(!c.countries.includes(co))c.countries.push(co);
+   }
+   c.tech=Math.min(20,c.tech+(Math.random()<.03?1:0));
+ });
+ if(Math.random()<.02 && RG.competitors.length<25){
+   RG.competitors.push({id:Date.now()+Math.random(),name:"NewFood "+rgRnd(100,999),cash:rgRnd(400000,3000000),stores:1,countries:[rgPick(COUNTRIES)],tech:0,reputation:50});
+ }
+}
+function computeMarkets(){
+ ensureCompetitors();
+ COUNTRIES.forEach(co=>{
+   const ours=rgStores().filter(s=>s.country===co).length;
+   const rivals=RG.competitors.filter(c=>c.countries.includes(co)).reduce((a,c)=>a+c.stores/c.countries.length,0);
+   const total=Math.max(1,ours+rivals+10);
+   RG.countryMarket[co]={ours:Math.round(ours/total*100),rivals:Math.round(rivals/total*100),other:Math.max(0,100-Math.round((ours+rivals)/total*100))};
+ });
+}
+function processStoreEconomy(){
+ rgStores().forEach(s=>{
+   let demand=1;
+   Object.keys(RG.promotions).forEach(pid=>demand*=Math.pow(promoMultiplier(pid),.05));
+   const revenue=Math.round(rgRnd(2500,7500)*demand*(.75+s.reputation/200));
+   const staffCost=rgRnd(500,1300);
+   const energy=rgRnd(120,400);
+   const logistics=Math.round((window.fuelPrice||6.5)*rgRnd(8,25));
+   const profit=revenue-staffCost-energy-logistics;
+   s.monthProfit=(s.monthProfit||0)+profit;
+   s.reputation=Math.max(0,Math.min(100,s.reputation+rgRnd(-1,1)));
+   rgMoney(profit);
+ });
+}
+
+function dailyFuel(){
+ const d=window.day??0;
+ if(RG.daily.lastFuelDay===d)return;
+ RG.daily.lastFuelDay=d;
+ const old=Number(window.fuelPrice||6.49);
+ let next=old*(1+(Math.random()-.5)*.045);
+ if(Math.random()<.03)next*=1+(Math.random()-.5)*.15;
+ window.fuelPrice=Math.max(3.5,Math.min(12,Math.round(next*100)/100));
+}
+
+function rgDailyTick(){
+ dailyFuel();
+ autoAssignOwnership();
+ processResearchDay();
+ processCompetitors();
+ processStoreEconomy();
+ computeMarkets();
+ try{ if(typeof autoBuildRoutes==="function") autoBuildRoutes(true); }catch(e){}
+}
+
+function nanoUnlocked(){
+ return rgSubs().some(s=>subMeta(s).techLevel>=3 && (subMeta(s).specializations.includes("technology")||subMeta(s).specializations.includes("research")));
+}
+function convertNano(id){
+ const s=rgStores().find(x=>x.id==id); if(!s)return;
+ if(!nanoUnlocked())return rgNotify("Nano wymaga poziomu technologii 3 w spółce technologicznej.");
+ if((window.money||0)<180000)return rgNotify("Konwersja kosztuje 180 000 zł.");
+ rgMoney(-180000);s.format="nano";s.templateVersion=RG.nanoTemplate.version;rgRender();
+}
+
+function overviewUI(){
+ computeMarkets();
+ return `<div class="rg-grid">
+  <div class="rg-kpi"><b>⛽ Paliwo dzisiaj</b><div style="font-size:22px">${Number(window.fuelPrice||0).toFixed(2)} zł/l</div><small>Zmiana każdego dnia gry</small></div>
+  <div class="rg-kpi"><b>🏪 Sklepy</b><div style="font-size:22px">${rgStores().length}</div><small>Nano: ${rgStores().filter(s=>s.format==="nano").length}</small></div>
+  <div class="rg-kpi"><b>🧪 Badania</b><div style="font-size:22px">${RG.research.filter(r=>r.status==="research").length}</div><small>Technologiczne spółki badają same</small></div>
+  <div class="rg-kpi"><b>🚛 Automatyczne trasy</b><div style="font-size:22px">${Array.isArray(window.routes)?routes.length:0}</div><small>Przeliczane automatycznie</small></div>
+ </div>
+ <div class="rg-panel"><b>Najważniejsze zasady</b><p>Jeden standard zwykłego sklepu dla całej sieci. Nano ma osobny format. Sklepy mogą być przypisywane do spółki automatycznie według kraju albo ręcznie. Spółki technologiczne prowadzą R&D w tle. Promocje, wielosztuki, paliwo, konkurencja i rentowność wpływają na symulację.</p></div>`;
+}
+function layoutUI(){
+ const t=RG.storeTemplate;
+ return `<div class="rg-panel"><b>📐 Standard sieci v${t.version}</b>
+ <p>Ten sam układ jest używany przez wszystkie zwykłe sklepy.</p>
+ <div class="rg-tabs">${Object.entries(LAYOUT_TOOLS).map(([k,v])=>`<button onclick="RGX.setLayoutTool('${k}')">${v[0]} ${v[1]}</button>`).join("")}</div>
+ <div class="rg-layout">${t.cells.map((c,i)=>`<div class="rg-cell" onclick="RGX.cycleLayoutCell(${i})" title="${rgEsc(LAYOUT_TOOLS[c]?.[1]||c)}">${LAYOUT_TOOLS[c]?.[0]||"·"}</div>`).join("")}</div>
+ <div class="rg-grid" style="margin-top:10px"><div class="rg-kpi">Zaplecze: <b>poziom ${t.backroomLevel}</b><br><button class="btn" onclick="RGX.upgradeBackroom()">Rozbuduj zaplecze</button></div>
+ <div class="rg-kpi">Wdrożenie aktualnego układu: <b>${rgCash(rgStores().length*2500)}</b><br><button class="btn blue" onclick="RGX.applyTemplateAll()">💾 Ustaw dla całej sieci</button></div></div></div>`;
+}
+function promoUI(){
+ return `<div class="rg-grid">${rgProducts().map(p=>{
+  const id=p.id, pr=RG.promotions[id]||{type:"none",qty:2,bundlePrice:10,discount:20,days:7};
+  return `<div class="rg-panel"><b>${rgEsc(p.name||id)}</b>
+   <select class="full" onchange="RGX.setPromo('${id}',this.value)">
+    <option value="none" ${pr.type==="none"?"selected":""}>Brak</option>
+    <option value="discount" ${pr.type==="discount"?"selected":""}>Rabat %</option>
+    <option value="multi" ${pr.type==="multi"?"selected":""}>Wielosztuka</option>
+    <option value="second50" ${pr.type==="second50"?"selected":""}>Drugi -50%</option>
+   </select>
+   ${pr.type==="discount"?`<label>Rabat <input type="number" value="${pr.discount}" min="1" max="80" onchange="RGX.updatePromo('${id}','discount',this.value)">%</label>`:""}
+   ${pr.type==="multi"?`<label>Ilość <input type="number" value="${pr.qty}" min="2" max="10" onchange="RGX.updatePromo('${id}','qty',this.value)"></label><label>Za <input type="number" value="${pr.bundlePrice}" min="1" step=".01" onchange="RGX.updatePromo('${id}','bundlePrice',this.value)"> zł</label>`:""}
+   <label>Dni <input type="number" value="${pr.days}" min="1" max="90" onchange="RGX.updatePromo('${id}','days',this.value)"></label>
+  </div>`}).join("")||"<div class='empty'>Brak produktów.</div>"}</div>`;
+}
+function companiesUI(){
+ autoAssignOwnership();
+ const subs=rgSubs();
+ return `<div class="rg-panel"><b>🏢 Spółki, rynki i specjalizacje</b><p>Rynek kraju przypisuje sklepy automatycznie. Ręczne przypisanie sklepu ma pierwszeństwo.</p></div>
+ ${subs.map(s=>{const m=subMeta(s),id=getSubId(s);return `<div class="rg-panel">
+  <b>${rgEsc(getSubName(s))}</b> <button onclick="RGX.renameSub('${id}')">✏️</button>
+  <div><small>Specjalizacje:</small><br>${Object.entries(SPEC).map(([k,v])=>`<label class="rg-chip"><input type="checkbox" ${m.specializations.includes(k)?"checked":""} onchange="RGX.toggleSpec('${id}','${k}')"> ${v}</label>`).join("")}</div>
+  <div><small>Rynki:</small><br>${COUNTRIES.map(c=>`<label class="rg-chip"><input type="checkbox" ${m.countries.includes(c)?"checked":""} onchange="RGX.setCompanyCountry('${id}','${c}',this.checked)"> ${c}</label>`).join("")}</div>
+  <div>Spółka nadrzędna: <select onchange="RGX.setParent('${id}',this.value)"><option value="">Ropucha Group</option>${subs.filter(x=>getSubId(x)!=id).map(x=>`<option value="${getSubId(x)}" ${m.parentId==getSubId(x)?"selected":""}>${rgEsc(getSubName(x))}</option>`).join("")}</select></div>
+  <div>Poziom technologii: <b>${m.techLevel||0}</b></div>
+ </div>`}).join("")||`<div class="empty">Utwórz spółkę córkę w dotychczasowym panelu holdingu.</div>`}
+ <div class="sectionTitle">SKLEPY — WŁAŚCICIEL</div>
+ ${rgStores().map(st=>`<div class="card"><b>${rgEsc(st.name||("Sklep #"+st.id))}</b><div>${st.country||"Polska"} • ${st.format==="nano"?"🤖 Nano":"🏪 Standard"}</div>
+ <select class="full" onchange="RGX.setStoreOwner('${st.id}',this.value)"><option value="auto" ${st.companyOverride==null?"selected":""}>Automatycznie według kraju</option>${subs.map(s=>`<option value="${getSubId(s)}" ${st.companyOverride==getSubId(s)?"selected":""}>${rgEsc(getSubName(s))}</option>`).join("")}</select>
+ ${st.format!=="nano"?`<button class="btn" onclick="RGX.convertNano('${st.id}')">🤖 Przekształć w Nano</button>`:""}
+ </div>`).join("")}`;
+}
+function researchUI(){
+ ensureResearch();
+ return `<div class="rg-panel"><b>🧪 Automatyczne R&D</b><p>Spółki ze specjalizacją Technologia lub R&D same rozpoczynają kolejne projekty.</p></div>
+ ${RG.research.map(r=>{const s=rgSubs().find(x=>getSubId(x)==r.companyId);return `<div class="rg-panel"><b>${rgEsc(r.name)}</b><div>${rgEsc(getSubName(s||{}))}</div><div class="rg-techbar"><i style="width:${r.progress}%"></i></div><small>${Math.round(r.progress)}% • ${r.status==="done"?"ukończone":"badanie trwa"}</small></div>`}).join("")||"<div class='empty'>Nadaj spółce specjalizację Technologia lub R&D.</div>"}
+ <div class="sectionTitle">POMYSŁY I PILOTAŻE</div><button class="btn blue" onclick="RGX.createIdea()">＋ Nowy pomysł</button>
+ ${RG.ideas.map(i=>`<div class="card"><b>💡 ${rgEsc(i.name)}</b><div>Status: ${i.status}${i.result!=null?" • wynik "+(i.result>=0?"+":"")+i.result+"%":""}</div>
+ ${i.status==="gotowy"?`<button class="btn" onclick="RGX.pilotIdea('${i.id}')">Testuj w kilku sklepach</button>`:""}
+ ${i.status==="tested"?`<button class="btn blue" onclick="RGX.deployIdea('${i.id}')">Wdróż w całej sieci</button>`:""}
+ </div>`).join("")}`;
+}
+function marketUI(){
+ computeMarkets();
+ return `<div class="rg-grid">${COUNTRIES.map(c=>{const m=RG.countryMarket[c];return `<div class="rg-kpi"><b>🌍 ${c}</b><div>Ropucha: <b>${m.ours}%</b></div><div>Konkurenci: ${m.rivals}%</div><div>Inni: ${m.other}%</div></div>`}).join("")}</div>
+ <div class="sectionTitle">KONKURENCJA AI</div>
+ ${RG.competitors.map(c=>`<div class="card"><b>🏪 ${rgEsc(c.name)}</b><div class="row"><span>Sklepy</span><b>${c.stores}</b></div><div class="row"><span>Technologia</span><b>${c.tech}</b></div><div class="row"><span>Rynki</span><b>${c.countries.join(", ")}</b></div></div>`).join("")}`;
+}
+function financeUI(){
+ const ss=rgStores().slice().sort((a,b)=>(b.monthProfit||0)-(a.monthProfit||0));
+ return `<div class="rg-panel"><b>📊 Rentowność sklepów</b><p>Przychód, personel, energia i logistyka są symulowane każdego dnia.</p></div>
+ ${ss.map(s=>`<div class="card"><b>${rgEsc(s.name||("Sklep #"+s.id))}</b><span class="badge ${(s.monthProfit||0)>=0?"ok":"bad"}">${rgCash(s.monthProfit||0)}</span><div class="row"><span>Reputacja</span><b>${Math.round(s.reputation||50)}/100</b></div><div class="row"><span>Format</span><b>${s.format==="nano"?"Nano":"Standard v"+(s.templateVersion||1)}</b></div></div>`).join("")||"<div class='empty'>Brak sklepów.</div>"}`;
+}
+function rgRender(){
+ ensureStoreFields();ensureCompetitors();computeMarkets();
+ const root=document.getElementById("rgExpansion");
+ if(!root)return;
+ const tabs=[["overview","📊 Centrum"],["layout","📐 Projekt sklepu"],["promo","🏷️ Ceny i promocje"],["companies","🏢 Spółki i rynki"],["research","🧪 R&D / Nano"],["market","🌍 Rynek"],["finance","💰 Finanse"]];
+ const content={overview:overviewUI,layout:layoutUI,promo:promoUI,companies:companiesUI,research:researchUI,market:marketUI,finance:financeUI}[RG.ui.section]();
+ root.innerHTML=`<div class="sectionTitle">ROPUCHA GROUP — ROZSZERZENIA</div><div class="rg-tabs">${tabs.map(([k,n])=>`<button onclick="RGX.section('${k}')">${n}</button>`).join("")}</div>${content}`;
+}
+function installPanel(){
+ if(document.getElementById("rgExpansion"))return;
+ const host=document.querySelector("#sideContent,.sideContent,.panel-content,#content,.content,aside")||document.body;
+ const d=document.createElement("div");d.id="rgExpansion";d.style.padding="10px";host.appendChild(d);rgRender();
+}
+
+// Wrap day processors without assuming one exact engine function name.
+["nextDay","advanceDay","processDay","gameDay","tickDay"].forEach(name=>{
+ const old=window[name];
+ if(typeof old==="function"&&!old.__rgWrapped){
+   const wrapped=function(){const r=old.apply(this,arguments);try{rgDailyTick();rgRender()}catch(e){console.error("RG daily",e)}return r};
+   wrapped.__rgWrapped=true;window[name]=wrapped;
+ }
+});
+
+// Fallback observes day changes even if the game uses another timer.
+let observedDay=window.day;
+setInterval(()=>{
+ if(window.day!==observedDay){
+   observedDay=window.day;
+   try{rgDailyTick();rgRender()}catch(e){console.error(e)}
+ }
+},500);
+
+window.RGX={
+ section(k){RG.ui.section=k;rgRender()},
+ setLayoutTool,cycleLayoutCell,upgradeBackroom,applyTemplateAll,
+ setPromo,updatePromo,setCompanyCountry,toggleSpec,renameSub,setParent,setStoreOwner,
+ createIdea,pilotIdea,deployIdea,convertNano,
+ deleteSub:rgDeleteSub,
+ changeSubLocation:rgChangeSubLocation,
+ setSubCountries:rgSetSubCountries
+};
+
+ensureStoreFields();ensureCompetitors();autoAssignOwnership();ensureResearch();
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",installPanel);else installPanel();
+})();
+</script>
+
+
+<script>
+(function(){
+  const KEY="ropucha_rg_expansion_v6";
+  function saveRG(){
+    try{ if(window.RG) localStorage.setItem(KEY,JSON.stringify(window.RG)); }catch(e){}
+  }
+  function loadRG(){
+    try{
+      const raw=localStorage.getItem(KEY);
+      if(raw){
+        const x=JSON.parse(raw);
+        if(window.RG) Object.assign(window.RG,x);
+      }
+    }catch(e){}
+  }
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",loadRG);else loadRG();
+  setInterval(saveRG,2500);
+  window.addEventListener("beforeunload",saveRG);
+})();
+</script>
+
+
+<style>
+/* ===== ROPUCHA TYCOON — SUPPLY / MANAGEMENT v7 ===== */
+.v7panel{border:1px solid #304238;background:#111a15;border-radius:12px;padding:12px;margin:10px 0}
+.v7grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(205px,1fr));gap:9px}
+.v7kpi{background:#17221c;border:1px solid #2c3c32;border-radius:10px;padding:10px}
+.v7bar{height:8px;border-radius:20px;background:#26342b;overflow:hidden}.v7bar i{height:100%;display:block;background:#72dc88}
+.v7red{color:#ff8585}.v7green{color:#7be091}.v7yellow{color:#ffd166}
+.v7tabs{display:flex;gap:5px;flex-wrap:wrap;margin:8px 0}.v7tabs button{padding:7px 9px;border-radius:8px;border:1px solid #314239;background:#18231d;color:#e7efe9;cursor:pointer}
+.v7small{font-size:11px;color:#9fb0a5}.v7table{width:100%;border-collapse:collapse}.v7table td,.v7table th{padding:6px;border-bottom:1px solid #26372d;text-align:left;font-size:12px}
+</style>
+<script>
+(function(){
+const V7=window.V7=window.V7||{
+ version:7, ui:"supply", contracts:[], privateBrands:[], loans:[], bonds:[],
+ news:[], managers:[], companyTransfers:[], locationReports:{},
+ countryEconomy:{}, history:[], lastDay:null, lastMonth:null, lastYear:null,
+ app:{level:1,members:0,pointsIssued:0},
+ settings:{autosave:true,autoOrders:true,autoExpansion:false}
+};
+const vStores=()=>Array.isArray(window.stores)?window.stores:[];
+const vCenters=()=>Array.isArray(window.centers)?window.centers:[];
+const vTrucks=()=>Array.isArray(window.trucks)?window.trucks:[];
+const vDrivers=()=>Array.isArray(window.drivers)?window.drivers:[];
+const vProducts=()=>Array.isArray(window.PRODUCTS)?window.PRODUCTS:[];
+const vCompanies=()=>Array.isArray(window.companies)?window.companies:[];
+const vSubs=()=>Array.isArray(window.subsidiaries)?window.subsidiaries:[];
+const vr=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+const vp=a=>a[Math.floor(Math.random()*a.length)];
+const vc=n=>{try{return cash(n)}catch(e){return Math.round(n).toLocaleString("pl-PL")+" zł"}};
+const ve=s=>{try{return esc(s)}catch(e){return String(s??"")}};
+const vm=d=>{try{return changeMoney(d)}catch(e){window.money=(window.money||0)+d}};
+const vn=s=>{try{addNews(s)}catch(e){};V7.news.unshift({day:window.day||0,text:s});V7.news=V7.news.slice(0,80)};
+const countries=(window.ALL_WORLD_COUNTRIES||[]).map(x=>x.name);
+if(!countries.length)countries.push("Polska","Niemcy","Czechy","Słowacja");
+
+function ensureEconomy(){
+ countries.forEach(c=>{
+  V7.countryEconomy[c]=V7.countryEconomy[c]||{
+   wage:vr(80,135)/100,tax:vr(12,28),energy:vr(75,145)/100,demand:vr(80,125)/100,
+   rent:vr(70,150)/100
+  };
+ });
+}
+function ensureSupplyFields(){
+ ensureEconomy();
+ vCenters().forEach(c=>{
+  c.capacity=c.capacity||30000;c.throughput=c.throughput||12000;c.usedThroughput=0;
+  c.stock=c.stock||{}; vProducts().forEach(p=>{if(c.stock[p.id]==null)c.stock[p.id]=vr(300,1600)});
+  c.autoOrders=c.autoOrders!==false;
+ });
+ vStores().forEach(s=>{
+  s.stock=s.stock||{};s.pendingOrders=s.pendingOrders||[];s.lostSales=s.lostSales||0;
+  s.dailyRevenue=s.dailyRevenue||0;s.dailyCOGS=s.dailyCOGS||0;s.customers=s.customers||0;
+  s.customerMix=s.customerMix||{uczniowie:25,biura:25,kierowcy:25,rodziny:25};
+  s.rentOwned=s.rentOwned||false;s.propertyValue=s.propertyValue||vr(350000,900000);
+  vProducts().forEach(p=>{if(s.stock[p.id]==null)s.stock[p.id]=vr(30,120)});
+ });
+}
+function nearestCenter(s){
+ if(!vCenters().length)return null;
+ return vCenters().map(c=>({c,d:typeof logisticsDistance==="function"?logisticsDistance(c,s):999}))
+   .sort((a,b)=>a.d-b.d)[0];
+}
+function productCost(p){return Number(p.cost||p.buyPrice||p.baseCost||3)}
+function productPrice(p){return Number(p.price||p.sellPrice||p.basePrice||Math.max(5,productCost(p)*1.65))}
+function promoBoost(pid){
+ try{return typeof promoMultiplier==="function"?promoMultiplier(pid):1}catch(e){return 1}
+}
+function demandFor(s,p){
+ const rep=.65+(Number(s.reputation||50)/100)*.7;
+ const country=V7.countryEconomy[s.country||"Polska"]||V7.countryEconomy.Polska;
+ const hourMix=(s.customerMix.uczniowie+s.customerMix.biura*1.1+s.customerMix.kierowcy*.9+s.customerMix.rodziny)/100;
+ return Math.max(1,Math.round(vr(5,18)*rep*country.demand*hourMix*promoBoost(p.id)));
+}
+function createAutoOrders(){
+ if(!V7.settings.autoOrders)return;
+ vStores().forEach(s=>{
+  const c=vCenters().find(x=>Number(x.id)===Number(s.logisticsCenterId)) || nearestCenter(s)?.c;
+  if(!c)return;
+  vProducts().forEach(p=>{
+   const current=Number(s.stock[p.id]||0);
+   const target=120+Math.round((s.reputation||50)*1.6);
+   if(current<target*.45 && !s.pendingOrders.some(o=>o.pid===p.id)){
+    s.pendingOrders.push({pid:p.id,qty:Math.max(20,target-current),centerId:c.id,created:window.day||0});
+   }
+  });
+ });
+}
+function fulfillOrders(){
+ vCenters().forEach(c=>c.usedThroughput=0);
+ vStores().forEach(s=>{
+  const remaining=[];
+  s.pendingOrders.forEach(o=>{
+   const c=vCenters().find(x=>Number(x.id)===Number(o.centerId));
+   if(!c){remaining.push(o);return}
+   const room=Math.max(0,c.throughput-c.usedThroughput);
+   const available=Number(c.stock[o.pid]||0);
+   const qty=Math.min(o.qty,available,room);
+   if(qty>0){
+    c.stock[o.pid]-=qty;s.stock[o.pid]=(s.stock[o.pid]||0)+qty;c.usedThroughput+=qty;o.qty-=qty;
+   }
+   if(o.qty>0)remaining.push(o);
+  });
+  s.pendingOrders=remaining;
+ });
+}
+function replenishCenters(){
+ vCenters().forEach(c=>{
+  vProducts().forEach(p=>{
+   const ownedFactories=vCompanies().filter(x=>x.owned).flatMap(x=>x.factories||[]);
+   const prod=ownedFactories.length?Math.round(ownedFactories.reduce((a,f)=>a+Number(f.production||0),0)/Math.max(1,vProducts().length)):0;
+   let external=0;
+   V7.contracts.filter(x=>x.active&&x.pid===p.id).forEach(x=>external+=x.dailyQty);
+   const qty=Math.min(c.capacity-Object.values(c.stock).reduce((a,b)=>a+Number(b||0),0),Math.max(0,prod+external));
+   if(qty>0)c.stock[p.id]=(c.stock[p.id]||0)+qty;
+  });
+ });
+}
+function simulateCustomers(){
+ vStores().forEach(s=>{
+  let revenue=0,cogs=0,customers=0,lost=0;
+  vProducts().forEach(p=>{
+   const want=demandFor(s,p),have=Number(s.stock[p.id]||0),sold=Math.min(want,have);
+   s.stock[p.id]=have-sold;lost+=want-sold;
+   revenue+=sold*productPrice(p);cogs+=sold*productCost(p);customers+=Math.ceil(sold/2.7);
+  });
+  const co=V7.countryEconomy[s.country||"Polska"]||V7.countryEconomy.Polska;
+  const wage=vr(350,650)*co.wage, energy=vr(90,250)*co.energy;
+  const rent=s.rentOwned?0:vr(180,420)*co.rent;
+  const loyalty=1+Math.min(.12,V7.app.level*.01);
+  revenue*=loyalty;
+  const profit=Math.round(revenue-cogs-wage-energy-rent);
+  s.dailyRevenue=Math.round(revenue);s.dailyCOGS=Math.round(cogs);s.customers=customers;
+  s.lostSales=(s.lostSales||0)+lost;
+  s.monthProfit=(s.monthProfit||0)+profit;
+  s.lastStoreProfit=profit;
+
+  // Każdy sklep księguje swój wynik dokładnie raz na dzień gry.
+  const today=Number(window.day||0);
+  if(Number(s.lastProfitPaidDay)!==today){
+    vm(profit);
+    s.lastProfitPaidDay=today;
+    s.totalStoreProfit=(s.totalStoreProfit||0)+profit;
+  }
+  if(lost>20)s.reputation=Math.max(0,(s.reputation||50)-.15);
+  else s.reputation=Math.min(100,(s.reputation||50)+.03);
+ });
+}
+function processContracts(){
+ V7.contracts.filter(x=>x.active).forEach(x=>{
+  const cost=x.dailyQty*x.unitCost;
+  vm(-cost);
+ });
+}
+function processFinance(){
+ V7.loans.filter(x=>x.balance>0).forEach(l=>{
+  const interest=l.balance*(l.rate/365);
+  l.balance+=interest;
+  if((window.day||0)%30===0){
+   const pay=Math.min(l.balance,l.monthly);
+   vm(-pay);l.balance-=pay;
+  }
+ });
+}
+function marketShock(){
+ if(Math.random()<.035){
+  const c=vp(countries),e=V7.countryEconomy[c],kind=vp(["popyt","energia","czynsze","płace"]);
+  if(kind==="popyt")e.demand=Math.max(.65,Math.min(1.5,e.demand*(.9+Math.random()*.22)));
+  if(kind==="energia")e.energy=Math.max(.6,Math.min(1.8,e.energy*(.9+Math.random()*.25)));
+  if(kind==="czynsze")e.rent=Math.max(.6,Math.min(1.8,e.rent*(.92+Math.random()*.18)));
+  if(kind==="płace")e.wage=Math.max(.7,Math.min(1.6,e.wage*(.96+Math.random()*.12)));
+  vn("📰 "+c+": zmiana gospodarcza — "+kind+".");
+ }
+}
+function recordHistory(){
+ const profit=vStores().reduce((a,s)=>a+Number(s.monthProfit||0),0);
+ V7.history.push({day:window.day||0,money:Number(window.money||0),stores:vStores().length,profit,fuel:Number(window.fuelPrice||0)});
+ V7.history=V7.history.slice(-365);
+}
+function v7day(){
+ ensureSupplyFields();
+
+ // Nowy miesiąc zeruje tylko raport miesięczny. Nie zatrzymuje zarabiania sklepów.
+ const monthKey=String(window.year||0)+"-"+String(window.month||0);
+ if(V7.lastMonth!==monthKey){
+   vStores().forEach(s=>s.monthProfit=0);
+   V7.lastMonth=monthKey;
+ }
+
+ replenishCenters();createAutoOrders();fulfillOrders();simulateCustomers();
+ processContracts();processFinance();marketShock();recordHistory();
+ if(typeof autoBuildRoutes==="function")try{autoBuildRoutes(true)}catch(e){}
+}
+function newContract(pid){
+ const p=vProducts().find(x=>String(x.id)===String(pid));if(!p)return;
+ const q=Number(prompt("Ile sztuk dziennie?",500));if(!q||q<1)return;
+ const years=Number(prompt("Umowa na ile lat?",1))||1;
+ const discount=Math.min(.22,Math.log10(q+10)*.05+years*.025);
+ V7.contracts.push({id:Date.now(),pid:p.id,name:"Kontrakt: "+(p.name||p.id),dailyQty:q,unitCost:Math.max(.5,productCost(p)*(1-discount)),years,active:true});
+ vRender();
+}
+function createBrand(){
+ const name=prompt("Nazwa własnej marki / produktu:","Ropucha Select");if(!name)return;
+ const cost=Number(prompt("Koszt produkcji za sztukę:",3))||3;
+ const price=Number(prompt("Cena sprzedaży:",6.99))||6.99;
+ V7.privateBrands.push({id:Date.now(),name,cost,price,quality:vr(45,90),producer:"Ropucha Foods"});
+ vn("🛒 Utworzono własną markę: "+name);vRender();
+}
+function takeLoan(){
+ const amount=Number(prompt("Kwota kredytu:",1000000));if(!amount||amount<=0)return;
+ const rate=Math.max(.03,Math.min(.18,.065+Math.max(0,V7.loans.length-2)*.01));
+ V7.loans.push({id:Date.now(),amount,balance:amount,rate,monthly:Math.max(10000,Math.round(amount/60))});
+ vm(amount);vn("🏦 Uruchomiono finansowanie "+vc(amount)+".");vRender();
+}
+function buyProperty(id){
+ const s=vStores().find(x=>x.id==id);if(!s||s.rentOwned)return;
+ if((window.money||0)<s.propertyValue)return alert("Za mało gotówki.");
+ vm(-s.propertyValue);s.rentOwned=true;vn("🏗️ Kupiono nieruchomość sklepu "+(s.name||s.id)+".");vRender();
+}
+function upgradeCenter(id){
+ const c=vCenters().find(x=>x.id==id);if(!c)return;
+ const cost=Math.round(c.throughput*35);
+ if((window.money||0)<cost)return alert("Za mało gotówki.");
+ vm(-cost);c.throughput=Math.round(c.throughput*1.5);c.capacity=Math.round(c.capacity*1.4);vRender();
+}
+function upgradeApp(){
+ const cost=V7.app.level*250000;if((window.money||0)<cost)return alert("Za mało gotówki.");
+ vm(-cost);V7.app.level++;V7.app.members+=vr(5000,25000)*V7.app.level;vRender();
+}
+function analyzeLocation(){
+ const city=prompt("Miasto / nazwa lokalizacji:","Warszawa");if(!city)return;
+ V7.locationReports[city]={traffic:vr(35,100),competition:vr(10,95),rent:vr(20,100),sales:vr(2500,12000),score:vr(35,95)};
+ vRender();
+}
+function hireManager(){
+ const sub=vSubs()[0]; if(!sub)return alert("Najpierw utwórz spółkę córkę.");
+ V7.managers.push({id:Date.now(),name:vp(["Anna","Marek","Julia","Kamil","Ola","Tomasz"])+" "+vp(["Nowak","Kowalski","Lis","Mazur","Wójcik"]),skill:vp(["Ekspansja","Logistyka","Technologia","Finanse"]),level:vr(1,10),subId:sub.id});
+ vRender();
+}
+function transferCompany(){
+ const subs=vSubs();if(subs.length<2)return alert("Potrzebujesz co najmniej 2 spółek.");
+ const amount=Number(prompt("Kwota transferu:",100000));if(!amount)return;
+ V7.companyTransfers.push({day:window.day||0,from:subs[0].name,to:subs[1].name,amount});
+ vRender();
+}
+
+function supplyUI(){
+ ensureSupplyFields();
+ return `<div class="v7panel"><b>📦 Pełny łańcuch dostaw</b><p>Fabryka/kontrakt → centrum → automatyczne zamówienie sklepu → ciężarówka → półka → klient. Brak produktu powoduje utraconą sprzedaż.</p></div>
+ <div class="v7grid">${vCenters().map(c=>{const used=Object.values(c.stock||{}).reduce((a,b)=>a+Number(b||0),0),load=Math.round(c.usedThroughput/c.throughput*100);return `<div class="v7kpi"><b>📦 ${ve(c.name)}</b><div>Magazyn: ${Math.round(used).toLocaleString()} / ${c.capacity.toLocaleString()}</div><div>Przepustowość: ${c.usedThroughput.toLocaleString()} / ${c.throughput.toLocaleString()}/dzień</div><div class="v7bar"><i style="width:${Math.min(100,load)}%"></i></div><small class="${load>90?"v7red":""}">${load}% obciążenia</small><br><button class="btn" onclick="V7X.upgradeCenter('${c.id}')">Rozbuduj centrum</button></div>`}).join("")||"<div class='empty'>Brak centrów.</div>"}</div>
+ <div class="sectionTitle">ZAMÓWIENIA SKLEPÓW</div>${vStores().slice(0,30).map(s=>`<div class="card"><b>🏪 ${ve(s.name||s.id)}</b><div class="row"><span>Oczekujące zamówienia</span><b>${s.pendingOrders.length}</b></div><div class="row"><span>Utracona sprzedaż</span><b>${Math.round(s.lostSales||0)} szt.</b></div><div class="row"><span>Klienci dziś</span><b>${s.customers||0}</b></div></div>`).join("")}`;
+}
+function contractsUI(){
+ return `<div class="v7panel"><b>📃 Dostawcy i własne marki</b><p>Nie musisz kupować producenta. Możesz podpisać długoterminowy kontrakt; większa ilość i dłuższa umowa obniżają cenę.</p></div>
+ <div class="v7grid">${vProducts().map(p=>`<div class="v7kpi"><b>${ve(p.name||p.id)}</b><div>Koszt bazowy: ${vc(productCost(p))}</div><button class="btn" onclick="V7X.newContract('${p.id}')">Podpisz kontrakt</button></div>`).join("")}</div>
+ ${V7.contracts.map(x=>`<div class="card"><b>📃 ${ve(x.name)}</b><div>${x.dailyQty}/dzień • ${vc(x.unitCost)}/szt. • ${x.years} lat</div></div>`).join("")}
+ <div class="sectionTitle">WŁASNE MARKI</div><button class="btn blue" onclick="V7X.createBrand()">＋ Stwórz produkt</button>
+ ${V7.privateBrands.map(x=>`<div class="card"><b>🛒 ${ve(x.name)}</b><div>Koszt ${vc(x.cost)} → cena ${vc(x.price)} • jakość ${x.quality}/100</div></div>`).join("")}`;
+}
+function customersUI(){
+ return `<div class="v7panel"><b>👥 Klienci i aplikacja</b><p>Różne grupy klientów tworzą popyt. Program lojalnościowy zwiększa sprzedaż całej sieci.</p></div>
+ <div class="v7grid"><div class="v7kpi"><b>📱 Ropucha App lvl ${V7.app.level}</b><div>${V7.app.members.toLocaleString()} użytkowników</div><button class="btn blue" onclick="V7X.upgradeApp()">Rozwiń aplikację — ${vc(V7.app.level*250000)}</button></div>
+ ${vStores().slice(0,20).map(s=>`<div class="v7kpi"><b>${ve(s.name||s.id)}</b><div>👨‍🎓 ${s.customerMix.uczniowie}% • 💼 ${s.customerMix.biura}% • 🚗 ${s.customerMix.kierowcy}% • 👨‍👩‍👧 ${s.customerMix.rodziny}%</div><div>Dzisiaj: ${s.customers||0} klientów / ${vc(s.dailyRevenue||0)}</div></div>`).join("")}</div>`;
+}
+function propertyUI(){
+ return `<div class="v7panel"><b>📍 Lokalizacje i nieruchomości</b><button class="btn blue" onclick="V7X.analyzeLocation()">🔎 Analizuj nową lokalizację</button></div>
+ ${Object.entries(V7.locationReports).map(([n,r])=>`<div class="card"><b>📍 ${ve(n)}</b><div>Ruch ${r.traffic}/100 • konkurencja ${r.competition}/100 • czynsz ${r.rent}/100</div><div>Prognoza ${vc(r.sales)}/dzień • ocena ${r.score}/100</div></div>`).join("")}
+ <div class="sectionTitle">NIERUCHOMOŚCI SKLEPÓW</div>${vStores().map(s=>`<div class="card"><b>${ve(s.name||s.id)}</b><span class="badge ${s.rentOwned?"ok":"warn"}">${s.rentOwned?"WŁASNOŚĆ":"WYNAJEM"}</span><div>Wartość: ${vc(s.propertyValue)}</div>${!s.rentOwned?`<button class="btn" onclick="V7X.buyProperty('${s.id}')">Kup budynek</button>`:""}</div>`).join("")}`;
+}
+function fundingUI(){
+ const debt=V7.loans.reduce((a,l)=>a+l.balance,0);
+ return `<div class="v7grid"><div class="v7kpi"><b>🏦 Zadłużenie</b><div style="font-size:20px">${vc(debt)}</div><button class="btn blue" onclick="V7X.takeLoan()">＋ Kredyt / finansowanie</button></div><div class="v7kpi"><b>📊 Historia</b><div>${V7.history.length} dni danych</div><div>Gotówka: ${vc(window.money||0)}</div></div></div>
+ ${V7.loans.map(l=>`<div class="card"><b>Kredyt #${String(l.id).slice(-5)}</b><div>Saldo ${vc(l.balance)} • ${(l.rate*100).toFixed(1)}% • rata ${vc(l.monthly)}/mies.</div></div>`).join("")}`;
+}
+function managersUI(){
+ return `<div class="v7panel"><b>👔 Prezesi i przepływy między spółkami</b><button class="btn blue" onclick="V7X.hireManager()">＋ Zatrudnij prezesa</button> <button class="btn" onclick="V7X.transferCompany()">↔ Transfer między spółkami</button></div>
+ ${V7.managers.map(m=>`<div class="card"><b>👔 ${ve(m.name)}</b><div>${m.skill} • poziom ${m.level}/10</div></div>`).join("")}
+ <div class="sectionTitle">TRANSFER PRICING / PRZEPŁYWY</div>${V7.companyTransfers.slice().reverse().slice(0,20).map(t=>`<div class="card">${ve(t.from)} → ${ve(t.to)}: <b>${vc(t.amount)}</b></div>`).join("")}`;
+}
+function economyUI(){
+ return `<div class="v7grid">${countries.map(c=>{const e=V7.countryEconomy[c];return `<div class="v7kpi"><b>🌍 ${c}</b><div>Popyt ${(e.demand*100).toFixed(0)}%</div><div>Płace ${(e.wage*100).toFixed(0)}% • energia ${(e.energy*100).toFixed(0)}%</div><div>Podatek ${e.tax}% • czynsze ${(e.rent*100).toFixed(0)}%</div></div>`}).join("")}</div>
+ <div class="sectionTitle">📰 GAZETA GRY</div>${V7.news.slice(0,25).map(n=>`<div class="card"><small>Dzień ${n.day}</small><br>${ve(n.text)}</div>`).join("")||"<div class='empty'>Brak wiadomości.</div>"}`;
+}
+function vRender(){
+ ensureSupplyFields();
+ let root=document.getElementById("v7root");
+ if(!root){root=document.createElement("div");root.id="v7root";const host=document.getElementById("rgExpansion")||document.querySelector("#sideContent,.sideContent,.content,aside")||document.body;host.appendChild(root)}
+ const tabs=[["supply","📦 Łańcuch dostaw"],["contracts","📃 Dostawcy"],["customers","👥 Klienci"],["property","📍 Nieruchomości"],["funding","🏦 Finansowanie"],["managers","👔 Zarząd"],["economy","🌍 Gospodarka"]];
+ const f={supply:supplyUI,contracts:contractsUI,customers:customersUI,property:propertyUI,funding:fundingUI,managers:managersUI,economy:economyUI}[V7.ui]||supplyUI;
+ root.innerHTML=`<div class="sectionTitle">ROPUCHA TYCOON v7</div><div class="v7tabs">${tabs.map(([k,n])=>`<button onclick="V7X.tab('${k}')">${n}</button>`).join("")}</div>${f()}`;
+}
+window.V7X={tab(k){V7.ui=k;vRender()},upgradeCenter,newContract,createBrand,takeLoan,buyProperty,upgradeApp,analyzeLocation,hireManager,transferCompany};
+
+ensureSupplyFields();
+let last=window.day;
+setInterval(()=>{
+ if(window.day!==last){last=window.day;try{v7day();vRender()}catch(e){console.error("v7",e)}}
+},600);
+
+const SAVEKEY="ropucha_tycoon_v7";
+function saveV7(){try{localStorage.setItem(SAVEKEY,JSON.stringify(V7))}catch(e){}}
+function loadV7(){try{const x=JSON.parse(localStorage.getItem(SAVEKEY)||"null");if(x)Object.assign(V7,x)}catch(e){}}
+loadV7();setInterval(saveV7,2500);window.addEventListener("beforeunload",saveV7);
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",vRender);else vRender();
+})();
+</script>
+
+
+<script>
+(function(){
+function drawV7Chart(){
+ const root=document.getElementById("v7root"); if(!root||!window.V7||V7.ui!=="funding")return;
+ if(document.getElementById("v7chart"))return;
+ const box=document.createElement("div");box.className="v7panel";
+ box.innerHTML='<b>📈 Gotówka — ostatnie dni</b><canvas id="v7chart" width="700" height="180" style="width:100%;height:180px"></canvas>';
+ root.appendChild(box);
+ const cv=document.getElementById("v7chart"),ctx=cv.getContext("2d"),data=V7.history.slice(-90);
+ ctx.clearRect(0,0,cv.width,cv.height); if(data.length<2)return;
+ const vals=data.map(x=>x.money),mn=Math.min(...vals),mx=Math.max(...vals),range=Math.max(1,mx-mn);
+ ctx.beginPath();
+ data.forEach((x,i)=>{const px=10+i*(cv.width-20)/(data.length-1),py=cv.height-10-(x.money-mn)/range*(cv.height-30);i?ctx.lineTo(px,py):ctx.moveTo(px,py)});
+ ctx.strokeStyle="#72dc88";ctx.lineWidth=2;ctx.stroke();
+}
+setInterval(drawV7Chart,800);
+})();
+</script>
+
+
+<script>
+(function(){
+function enhanceCountrySelects(root=document){
+ root.querySelectorAll("select").forEach(sel=>{
+   if(sel.dataset.worldCountryEnhanced)return;
+   const text=((sel.id||"")+" "+(sel.name||"")+" "+(sel.previousElementSibling?.textContent||"")).toLowerCase();
+   const opts=[...sel.options].map(o=>o.textContent.trim());
+   const looksCountry=/country|kraj|rynek/.test(text) ||
+      opts.some(x=>["Polska","Niemcy","Czechy","Francja"].includes(x));
+   if(!looksCountry)return;
+
+   sel.dataset.worldCountryEnhanced="1";
+   const id="world_country_"+Math.random().toString(36).slice(2);
+   const wrap=document.createElement("div");
+   wrap.innerHTML=countryPickerHTML(id,sel.options[sel.selectedIndex]?.textContent||"");
+   const picker=wrap.firstElementChild;
+   sel.style.display="none";
+   sel.parentNode.insertBefore(picker,sel);
+
+   const inp=picker.querySelector("input");
+   inp.addEventListener("change",()=>{
+     const chosen=countryMatches(inp.value).find(c=>c.name===inp.value) || countryMatches(inp.value)[0];
+     if(!chosen)return;
+     let opt=[...sel.options].find(o=>o.textContent.trim()===chosen.name);
+     if(!opt){
+       opt=document.createElement("option");opt.value=chosen.name;opt.textContent=chosen.name;sel.appendChild(opt);
+     }
+     sel.value=opt.value;
+     sel.dispatchEvent(new Event("change",{bubbles:true}));
+   });
+ });
+}
+const obs=new MutationObserver(()=>enhanceCountrySelects(document));
+obs.observe(document.body,{childList:true,subtree:true});
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>enhanceCountrySelects());else enhanceCountrySelects();
+})();
+</script>
+
+
+
+
+
+<script>
+/* ===== NAWIGACJA / PRZYCISKI FIX v9 ===== */
+(function(){
+ function syncMainNav(){
+   document.querySelectorAll(".nav").forEach(btn=>{
+     const oc=btn.getAttribute("onclick")||"";
+     const m=oc.match(/openSection\(['"]([^'"]+)/);
+     btn.classList.toggle("active",!!m && m[1]===window.current);
+   });
+ }
+
+ // Stable wrappers. Some panels are fully rebuilt after every click,
+ // so we never keep references to old buttons.
+ window.safeOpenSection=function(sec){
+   window.current=sec;
+   const p=document.getElementById("panel");
+   if(!p)return;
+   if(sec==="map"){
+     p.classList.add("hidden");
+   }else{
+     p.classList.remove("hidden");
+     if(typeof renderSection==="function")renderSection();
+   }
+   syncMainNav();
+   if(window.map)setTimeout(()=>{try{map.invalidateSize({pan:false,animate:false})}catch(e){}},50);
+ };
+
+ // Delegated fallback for sidebar navigation. It still works after rerenders.
+ document.addEventListener("click",function(e){
+   const btn=e.target.closest(".nav");
+   if(!btn)return;
+   const oc=btn.getAttribute("onclick")||"";
+   const m=oc.match(/openSection\(['"]([^'"]+)/);
+   if(!m)return;
+   e.preventDefault();
+   e.stopPropagation();
+   safeOpenSection(m[1]);
+ },true);
+
+ // If an exception occurs in an inline tab handler, use the visible tab label
+ // to switch the correct state anyway.
+ document.addEventListener("click",function(e){
+   const b=e.target.closest(".tab");
+   if(!b)return;
+   const oc=b.getAttribute("onclick")||"";
+   let m=oc.match(/setLogTab\(['"]([^'"]+)/);
+   if(m){e.preventDefault();window.logisticsTab=m[1];renderSection();return}
+   m=oc.match(/setEmployeeTab\(['"]([^'"]+)/);
+   if(m){e.preventDefault();window.employeeTab=m[1];renderSection();return}
+   m=oc.match(/setCompanyTab\(['"]([^'"]+)/);
+   if(m){e.preventDefault();window.companyTab=m[1];renderSection();return}
+ },true);
+
+ window.addEventListener("error",function(ev){
+   console.error("Błąd interfejsu:",ev.error||ev.message);
+ });
+ setTimeout(syncMainNav,100);
+})();
+</script>
+
+
+<script>
+/* ===== SKLEPY / FINANSE FIX v10 ===== */
+(function(){
+ const oldSafe = window.safeOpenSection;
+ window.safeOpenSection = function(sec){
+   if(["layout","planogram","storelayout","template","storeTemplate"].includes(String(sec))){
+     sec="stores";
+   }
+   if(oldSafe) return oldSafe(sec);
+   window.current=sec;
+   if(typeof renderSection==="function")renderSection();
+ };
+
+ // Ukrywamy stare przyciski planogramu/ustawienia sklepu, również po ponownym renderze.
+ function hideLegacyStoreEditors(){
+   document.querySelectorAll("button,.nav,.tab").forEach(el=>{
+     const txt=(el.textContent||"").toLowerCase();
+     const oc=(el.getAttribute("onclick")||"").toLowerCase();
+     if(txt.includes("planogram") || txt.includes("ustawienie sklepu") ||
+        txt.includes("układ sklepu") || oc.includes("setlayouttool") ||
+        oc.includes("applytemplateall")){
+       el.style.display="none";
+     }
+   });
+ }
+ new MutationObserver(hideLegacyStoreEditors).observe(document.body,{childList:true,subtree:true});
+ setTimeout(hideLegacyStoreEditors,50);
+})();
+</script>
+
+
+<script>
+(function(){
+ function addStoreIncomeSummary(){
+   if(window.current!=="stores")return;
+   const panel=document.getElementById("panel"); if(!panel)return;
+   if(document.getElementById("storeIncomeSummary"))return;
+   const ss=Array.isArray(window.stores)?stores:[];
+   const daily=ss.reduce((a,s)=>a+Number(s.lastStoreProfit||0),0);
+   const monthly=ss.reduce((a,s)=>a+Number(s.monthProfit||0),0);
+   const total=ss.reduce((a,s)=>a+Number(s.totalStoreProfit||0),0);
+   const div=document.createElement("div");
+   div.id="storeIncomeSummary";
+   div.className="card";
+   div.innerHTML=`<b>💰 Wynik sklepów</b>
+    <div class="row"><span>Dzisiaj</span><b>${daily>=0?"+":""}${typeof cash==="function"?cash(daily):daily+" zł"}</b></div>
+    <div class="row"><span>Ten miesiąc</span><b>${monthly>=0?"+":""}${typeof cash==="function"?cash(monthly):monthly+" zł"}</b></div>
+    <div class="row"><span>Łącznie od uruchomienia systemu</span><b>${total>=0?"+":""}${typeof cash==="function"?cash(total):total+" zł"}</b></div>
+    <small>Sklepy rozliczają sprzedaż i koszty każdego dnia gry. Brak towaru może obniżyć lub odwrócić wynik.</small>`;
+   panel.insertBefore(div,panel.firstChild);
+ }
+ setInterval(addStoreIncomeSummary,500);
+})();
+</script>
+
+
+<style>
+/* ===== HOLDING / STRATEGIA v11 ===== */
+.v11grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:8px}
+.v11card{background:#152019;border:1px solid #304238;border-radius:10px;padding:10px;margin:7px 0}
+.v11tree{border-left:2px solid #365344;margin-left:9px;padding-left:13px}
+.v11big{font-size:20px;font-weight:800}
+.v11good{color:#79df91}.v11bad{color:#ff8989}
+</style>
+<script>
+(function(){
+const H=window.HOLDING11=window.HOLDING11||{
+ managers:[], goals:[], fleetService:{}, energy:{}, market:{}, budgets:{},
+ season:{}, lastDay:null, lastMonth:null
+};
+const hs=()=>Array.isArray(window.subsidiaries)?subsidiaries:[];
+const hstores=()=>Array.isArray(window.stores)?stores:[];
+const hcenters=()=>Array.isArray(window.centers)?centers:[];
+const htrucks=()=>Array.isArray(window.trucks)?trucks:[];
+const hdrivers=()=>Array.isArray(window.drivers)?drivers:[];
+const he=s=>{try{return esc(s)}catch(e){return String(s||"")}};
+const hc=n=>{try{return cash(n)}catch(e){return Math.round(n||0).toLocaleString("pl-PL")+" zł"}};
+const hsid=s=>s?.id;
+const hmeta=s=>{s.h11=s.h11||{budget:0,strategy:"profit",managerId:null};return s.h11};
+
+function initHolding(){
+ hs().forEach(s=>{const m=hmeta(s);if(!H.budgets[s.id])H.budgets[s.id]={cash:Number(s.cash||s.capital||0),revenue:0,costs:0,dividends:0}});
+ htrucks().forEach(t=>{H.fleetService[t.id]=H.fleetService[t.id]||{km:0,condition:100,lastService:0}});
+ hstores().forEach(s=>{H.energy[s.id]=H.energy[s.id]||{solar:false,efficiency:0}});
+ if(!H.goals.length)H.goals=[
+  {id:1,name:"100 sklepów",target:100,type:"stores",reward:500000,done:false},
+  {id:2,name:"Działalność w 5 krajach",target:5,type:"countries",reward:750000,done:false},
+  {id:3,name:"10 centrów logistycznych",target:10,type:"centers",reward:1000000,done:false}
+ ];
+}
+function subCountries(s){
+ const a=s.rg?.countries||s.countries||[s.country].filter(Boolean);return [...new Set(a.filter(Boolean))];
+}
+function subStores(s){const cs=subCountries(s);return hstores().filter(x=>cs.includes(x.country))}
+function subCenters(s){return hcenters().filter(x=>String(x.subsidiaryId)===String(s.id)||String(x.companyId)===String(s.id))}
+function subFactories(s){
+ let a=[];(window.companies||[]).forEach(c=>(c.factories||[]).forEach(f=>{if(String(f.subsidiaryId)===String(s.id))a.push(f)}));return a;
+}
+function holdingValue(){
+ return Math.max(0,Number(window.money||0)+hstores().length*250000+hcenters().length*900000+htrucks().length*120000);
+}
+function countriesCount(){return new Set(hstores().map(s=>s.country).filter(Boolean)).size}
+function kpis(){
+ const month=hstores().reduce((a,s)=>a+Number(s.monthProfit||0),0);
+ return {cash:Number(window.money||0),profit:month,value:holdingValue(),stores:hstores().length,countries:countriesCount(),staff:(window.employees||[]).length+hdrivers().length,debt:(window.V7?.loans||[]).reduce((a,l)=>a+Number(l.balance||0),0)};
+}
+function addCapital(id){
+ const s=hs().find(x=>String(x.id)===String(id));if(!s)return;
+ const n=Number(prompt("Ile kapitału przekazać spółce?",100000));if(!n||n<=0)return;
+ if(Number(window.money||0)<n)return alert("Za mało gotówki grupy.");
+ try{changeMoney(-n)}catch(e){window.money-=n}
+ H.budgets[id].cash+=n;renderHolding();
+}
+function dividend(id){
+ const b=H.budgets[id];if(!b)return;
+ const n=Number(prompt("Dywidenda do Ropucha Group:",Math.min(100000,b.cash)));if(!n||n<=0||n>b.cash)return;
+ b.cash-=n;b.dividends+=n;try{changeMoney(n)}catch(e){window.money+=n};renderHolding();
+}
+function hireManager11(id){
+ const s=hs().find(x=>String(x.id)===String(id));if(!s)return;
+ const names=["Anna Nowak","Marek Kowalski","Julia Mazur","Kamil Wójcik","Oliwia Lis","Tomasz Król"];
+ const m={id:Date.now(),name:names[Math.floor(Math.random()*names.length)],level:Math.ceil(Math.random()*10),subId:s.id};
+ H.managers.push(m);hmeta(s).managerId=m.id;renderHolding();
+}
+function setStrategy(id,v){const s=hs().find(x=>String(x.id)===String(id));if(s)hmeta(s).strategy=v}
+function serviceTruck(id){
+ const x=H.fleetService[id];if(!x)return;
+ const cost=15000;if(Number(window.money||0)<cost)return alert("Za mało gotówki.");
+ try{changeMoney(-cost)}catch(e){window.money-=cost};x.condition=100;x.lastService=window.day||0;renderHolding();
+}
+function solar(id){
+ const x=H.energy[id];if(!x)return;
+ const cost=120000;if(Number(window.money||0)<cost)return alert("Za mało gotówki.");
+ try{changeMoney(-cost)}catch(e){window.money-=cost};x.solar=true;x.efficiency=Math.max(x.efficiency,25);renderHolding();
+}
+function checkGoals(){
+ const K=kpis();
+ H.goals.forEach(g=>{
+  if(g.done)return;
+  let v=g.type==="stores"?K.stores:g.type==="countries"?K.countries:hcenters().length;
+  if(v>=g.target){g.done=true;try{changeMoney(g.reward)}catch(e){window.money+=g.reward}}
+ });
+}
+function holdingDay(){
+ initHolding();
+ htrucks().forEach(t=>{const x=H.fleetService[t.id];x.km+=Math.round(Math.random()*220);x.condition=Math.max(0,x.condition-Math.random()*.35)});
+ // Seasonal demand marker.
+ const m=Number(window.month||1);
+ H.season.name=[12,1,2].includes(m)?"Zima":[6,7,8].includes(m)?"Lato":[3,4,5].includes(m)?"Wiosna":"Jesień";
+ checkGoals();
+}
+function treeNode(s,depth=0){
+ const children=hs().filter(x=>String(x.parentId||x.rg?.parentId||"")===String(s.id));
+ return `<div class="v11tree"><b>🏢 ${he(s.name)}</b><small> — ${subCountries(s).join(", ")||"bez rynku"}</small>
+ ${children.map(x=>treeNode(x,depth+1)).join("")}</div>`;
+}
+function treeUI(){
+ const roots=hs().filter(s=>!s.parentId&&!s.rg?.parentId);
+ return `<div class="v11card"><div class="v11big">🐸 Ropucha Group</div>${roots.map(s=>treeNode(s)).join("")||"<small>Brak spółek córek.</small>"}</div>`;
+}
+function dashboardUI(){
+ const K=kpis();
+ return `<div class="v11grid">
+ <div class="v11card"><small>Gotówka</small><div class="v11big">${hc(K.cash)}</div></div>
+ <div class="v11card"><small>Wynik sklepów / miesiąc</small><div class="v11big ${K.profit>=0?"v11good":"v11bad"}">${hc(K.profit)}</div></div>
+ <div class="v11card"><small>Wartość grupy</small><div class="v11big">${hc(K.value)}</div></div>
+ <div class="v11card"><small>Zadłużenie</small><div class="v11big">${hc(K.debt)}</div></div>
+ <div class="v11card"><small>Sklepy / kraje</small><div class="v11big">${K.stores} / ${K.countries}</div></div>
+ <div class="v11card"><small>Pracownicy</small><div class="v11big">${K.staff}</div></div></div>${treeUI()}`;
+}
+function subsidiariesUI11(){
+ return hs().map(s=>{const b=H.budgets[s.id],m=H.managers.find(x=>x.id===hmeta(s).managerId);return `<div class="v11card">
+ <b>🏢 ${he(s.name)}</b><div>${subCountries(s).join(" + ")||"Brak kraju"}</div>
+ <div class="row"><span>Konto spółki</span><b>${hc(b.cash)}</b></div>
+ <div class="row"><span>Sklepy / centra / fabryki</span><b>${subStores(s).length} / ${subCenters(s).length} / ${subFactories(s).length}</b></div>
+ <div class="row"><span>Prezes</span><b>${m?he(m.name)+" • lvl "+m.level:"brak"}</b></div>
+ <select onchange="H11.setStrategy('${s.id}',this.value)">
+ <option value="profit" ${hmeta(s).strategy==="profit"?"selected":""}>💰 Maksymalizacja zysku</option>
+ <option value="expansion" ${hmeta(s).strategy==="expansion"?"selected":""}>🚀 Szybka ekspansja</option>
+ <option value="saving" ${hmeta(s).strategy==="saving"?"selected":""}>🛡️ Oszczędzanie</option>
+ <option value="technology" ${hmeta(s).strategy==="technology"?"selected":""}>💻 Technologia</option>
+ <option value="logistics" ${hmeta(s).strategy==="logistics"?"selected":""}>🚛 Logistyka</option></select><br>
+ <button onclick="H11.addCapital('${s.id}')">＋ Kapitał</button>
+ <button onclick="H11.dividend('${s.id}')">💸 Dywidenda</button>
+ ${m?"":`<button onclick="H11.hireManager('${s.id}')">👔 Zatrudnij prezesa</button>`}</div>`}).join("")||"<div class='empty'>Brak spółek.</div>";
+}
+function fleetUI(){
+ return `<div class="v11grid">${htrucks().map(t=>{const x=H.fleetService[t.id];return `<div class="v11card"><b>🚛 ${he(t.name||("Ciężarówka #"+t.id))}</b><div>Przebieg: ${Math.round(x.km).toLocaleString()} km</div><div>Stan: ${Math.round(x.condition)}%</div><div class="v7bar"><i style="width:${x.condition}%"></i></div>${x.condition<70?`<button onclick="H11.serviceTruck('${t.id}')">🔧 Serwis 15 000 zł</button>`:""}</div>`}).join("")||"<div class='empty'>Brak ciężarówek.</div>"}</div>`;
+}
+function energyUI(){
+ return hstores().slice(0,40).map(s=>{const x=H.energy[s.id];return `<div class="v11card"><b>⚡ ${he(s.name||s.id)}</b><div>${x.solar?"☀️ Fotowoltaika • oszczędność "+x.efficiency+"%":"Brak własnej energii"}</div>${!x.solar?`<button onclick="H11.solar('${s.id}')">☀️ Fotowoltaika — 120 000 zł</button>`:""}</div>`}).join("");
+}
+function goalsUI(){
+ return `<div class="v11card"><b>📆 Sezon: ${H.season.name||"—"}</b><div>Popyt zmienia się wraz z porą roku.</div></div>`+
+ H.goals.map(g=>`<div class="v11card"><b>${g.done?"✅":"🎯"} ${he(g.name)}</b><div>Nagroda: ${hc(g.reward)}</div></div>`).join("");
+}
+function renderHolding(){
+ initHolding();
+ const root=document.getElementById("holding11root");if(!root)return;
+ const tab=H.ui||"dashboard";
+ root.innerHTML=`<div class="v7tabs">
+ ${[["dashboard","📊 Holding"],["subs","🏢 Budżety spółek"],["fleet","🚛 Flota"],["energy","⚡ Energia"],["goals","🎯 Cele"]].map(([k,n])=>`<button onclick="H11.tab('${k}')">${n}</button>`).join("")}</div>
+ ${{dashboard:dashboardUI,subs:subsidiariesUI11,fleet:fleetUI,energy:energyUI,goals:goalsUI}[tab]()}`;
+}
+window.H11={tab(k){H.ui=k;renderHolding()},addCapital,dividend,hireManager:hireManager11,setStrategy,serviceTruck,solar,render:renderHolding};
+initHolding();
+let hd=window.day;
+setInterval(()=>{if(window.day!==hd){hd=window.day;holdingDay();renderHolding()}},700);
+})();
+</script>
+
+
+<div id="speed11" style="position:fixed;right:12px;bottom:12px;z-index:9998;background:#101914;border:1px solid #365344;border-radius:10px;padding:6px">
+ <button onclick="setGameSpeed11(0)">⏸</button><button onclick="setGameSpeed11(1)">x1</button><button onclick="setGameSpeed11(2)">x2</button><button onclick="setGameSpeed11(5)">x5</button><button onclick="setGameSpeed11(10)">x10</button>
+</div>
+<script>
+window.gameSpeed11=1;
+function setGameSpeed11(x){window.gameSpeed11=x;document.querySelectorAll("#speed11 button").forEach(b=>b.style.opacity=".65");event?.target&&(event.target.style.opacity="1")}
+</script>
+
+</body>
+</html>
