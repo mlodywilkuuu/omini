@@ -3,395 +3,161 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-
 <title>Ropucha Group Tycoon</title>
 
-<link rel="stylesheet"
-href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 
 <style>
 *{box-sizing:border-box}
-
-html,body{
-margin:0;
-width:100%;
-height:100%;
-overflow:hidden;
-font-family:Arial,sans-serif;
-background:#111;
-color:#fff
-}
-
+html,body{margin:0;width:100%;height:100%;overflow:hidden;font-family:Arial,sans-serif;background:#111;color:#fff}
 button,input,select{font:inherit}
+button{cursor:pointer}
+#map{position:fixed;inset:0;z-index:1}
+.leaflet-tile{image-rendering:auto!important}
 
-#map{
-position:absolute;
-inset:0;
-z-index:1
+/* LEFT NAV */
+#nav{
+ position:fixed;left:0;top:0;bottom:0;width:190px;z-index:2000;
+ background:#101310f2;border-right:1px solid #333;padding:12px 8px;
+ backdrop-filter:blur(8px);overflow:auto
 }
-
-.leaflet-tile{
-image-rendering:auto!important
+.logo{font-weight:900;font-size:17px;color:#72ef83;padding:8px;margin-bottom:8px}
+.navBtn{
+ width:100%;border:0;background:transparent;color:#bbb;text-align:left;
+ padding:11px 10px;border-radius:7px;margin:2px 0;font-size:13px
 }
+.navBtn:hover{background:#242824;color:#fff}
+.navBtn.active{background:#176d38;color:#fff;font-weight:bold}
 
-/* HUD */
-
-#hud{
-position:fixed;
-top:10px;
-left:50%;
-transform:translateX(-50%);
-display:flex;
-gap:5px;
-z-index:1500;
-pointer-events:none
+/* PANEL */
+#panel{
+ position:fixed;left:190px;top:0;bottom:0;width:390px;z-index:1900;
+ background:#151715f2;border-right:1px solid #333;padding:13px;
+ overflow:auto;backdrop-filter:blur(8px)
 }
+#panel.mapOnly{display:none}
+.panelTitle{font-size:20px;font-weight:900;margin:5px 0 13px}
 
-.hud{
-background:#111e;
-border:2px solid #333;
-border-radius:9px;
-padding:7px 11px;
-min-width:90px;
-text-align:center
+.box,.card{
+ background:#252825;border:1px solid #353935;border-radius:9px;
+ padding:10px;margin-bottom:8px
 }
-
-.hud small{
-display:block;
-font-size:9px;
-color:#999;
-text-transform:uppercase
-}
-
-.hud strong{font-size:16px}
-#money{color:#68e97a}
-
-/* SIDEBAR */
-
-#sidebar{
-position:fixed;
-top:75px;
-bottom:10px;
-left:10px;
-width:390px;
-z-index:1400;
-background:#111e;
-border:2px solid #333;
-border-radius:13px;
-padding:11px;
-overflow-y:auto;
-backdrop-filter:blur(8px)
-}
-
-.logo{
-font-size:19px;
-font-weight:900;
-color:#68e97a;
-margin-bottom:9px
-}
-
-.tabs{
-display:grid;
-grid-template-columns:repeat(2,1fr);
-gap:4px;
-margin-bottom:9px
-}
-
-.tab{
-border:0;
-border-radius:6px;
-padding:8px 4px;
-background:#292929;
-color:#fff;
-cursor:pointer;
-font-size:11px
-}
-
-.tab.active{background:#176d38}
-
-.panel{display:none}
-.panel.active{display:block}
-
-.box,.company,.card{
-background:#252525;
-border-radius:8px;
-padding:9px;
-margin-bottom:7px
-}
-
-.box h3,.company h3,.card h3{
-margin:0 0 7px;
-font-size:14px
-}
-
-.row{
-display:flex;
-justify-content:space-between;
-align-items:center;
-gap:8px;
-margin:5px 0;
-font-size:12px;
-color:#ccc
-}
-
-.row b{
-color:#fff;
-text-align:right
-}
+.box h3,.card h3{margin:0 0 8px;font-size:14px}
+.row{display:flex;justify-content:space-between;gap:8px;align-items:center;margin:6px 0;font-size:12px;color:#bbb}
+.row b{color:#fff;text-align:right}
+.muted{color:#888;font-size:11px}
+.green{color:#72ef83!important}
+.redText{color:#ff7676!important}
+.yellow{color:#ffd76a!important}
 
 .btn{
-width:100%;
-border:0;
-border-radius:6px;
-padding:8px;
-margin-top:5px;
-background:#176d38;
-color:#fff;
-font-weight:bold;
-cursor:pointer
+ width:100%;border:0;border-radius:6px;padding:8px;margin-top:5px;
+ background:#176d38;color:#fff;font-weight:bold
 }
-
-.btn:hover{filter:brightness(1.15)}
-.btn:disabled{opacity:.4;cursor:not-allowed}
-
-.blue{background:#285e9b}
-.orange{background:#9c5e22}
-.red{background:#8d3838}
-.gray{background:#555}
-.purple{background:#68458d}
+.btn:hover{filter:brightness(1.13)}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.blue{background:#28609e}
+.red{background:#923d3d}
+.orange{background:#a26225}
+.purple{background:#704c9a}
+.gray{background:#4d524d}
 
 input,select{
-background:#333;
-color:#fff;
-border:1px solid #555;
-border-radius:5px;
-padding:6px
+ background:#333;color:#fff;border:1px solid #555;border-radius:5px;padding:6px
 }
-
 .full{width:100%}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
 
-.grid2{
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:5px
+/* HUD */
+#hud{
+ position:fixed;top:10px;left:600px;right:10px;z-index:1800;
+ display:flex;justify-content:center;gap:5px;pointer-events:none
 }
-
-.grid3{
-display:grid;
-grid-template-columns:repeat(3,1fr);
-gap:4px
+.hud{
+ min-width:95px;background:#101310e8;border:1px solid #333;border-radius:8px;
+ padding:7px 10px;text-align:center
 }
+.hud small{display:block;color:#888;font-size:9px;text-transform:uppercase}
+.hud strong{font-size:15px}
+#money{color:#72ef83}
 
-.badge{
-display:inline-block;
-padding:3px 7px;
-border-radius:10px;
-font-size:10px;
-background:#444;
-margin:2px
+/* MARKERS */
+.marker{
+ width:34px;height:34px;border-radius:50%;display:flex;align-items:center;
+ justify-content:center;border:3px solid white;font-size:17px;
+ box-shadow:0 3px 10px #0009
 }
+.playerStore{background:#16723a}
+.compStore{background:#9a3838}
+.centerMarker{background:#28609e}
+.factoryMarker{background:#9b632b}
 
-.green{color:#68e97a}
-.redText{color:#ff7070}
-.yellow{color:#ffd56b}
+/* GROUP TREE */
+.tree{border-left:3px solid #62df74;padding-left:10px}
+.treeNode{margin:6px 0}
+.treeChildren{border-left:2px solid #555;margin-left:10px;padding-left:10px}
+.badge{display:inline-block;background:#444;padding:3px 7px;border-radius:10px;font-size:10px;margin:2px}
+.sharebar{height:7px;background:#444;border-radius:6px;overflow:hidden;margin:6px 0}
+.sharefill{height:100%;background:#6eea7e}
 
-.shareBar{
-height:7px;
-background:#444;
-border-radius:5px;
-overflow:hidden;
-margin:7px 0
+/* NEWS */
+.news{border-left:3px solid #5fcf70;padding-left:8px;margin:7px 0;font-size:11px}
+
+/* NOTIFY */
+#notifications{position:fixed;right:12px;bottom:12px;width:310px;z-index:10000}
+.notification{
+ background:#111f;border-left:4px solid #6bea7c;border-radius:6px;
+ padding:9px;margin-top:5px;font-size:12px
 }
-
-.shareFill{
-height:100%;
-background:#68e97a
-}
-
-.investor{
-background:#303030;
-padding:7px;
-border-radius:6px;
-margin-top:5px
-}
-
-.groupTree{
-border-left:3px solid #68e97a;
-padding-left:10px;
-margin:8px 0
-}
-
-.childTree{
-border-left:2px solid #555;
-margin-left:12px;
-padding-left:10px;
-margin-top:6px
-}
-
-/* MAP MARKERS */
-
-.gameMarker{
-width:35px;
-height:35px;
-border-radius:50%;
-border:3px solid white;
-display:flex;
-align-items:center;
-justify-content:center;
-font-size:18px;
-box-shadow:0 3px 10px #0008
-}
-
-.storeMarker{background:#18733b}
-.centerMarker{background:#285e9d}
-.factoryMarker{background:#9d612b}
-.competitorMarker{background:#8d3838}
 
 /* BUILD */
-
 #buildInfo{
-display:none;
-position:fixed;
-bottom:20px;
-left:50%;
-transform:translateX(-50%);
-z-index:4000;
-background:#111e;
-border:2px solid #555;
-border-radius:8px;
-padding:10px 18px
+ display:none;position:fixed;bottom:18px;left:50%;transform:translateX(-50%);
+ z-index:9000;background:#111e;border:1px solid #555;border-radius:8px;padding:10px 18px
 }
 
-/* NOTIFICATIONS */
-
-#notifications{
-position:fixed;
-right:12px;
-bottom:12px;
-width:320px;
-z-index:9000
-}
-
-.notification{
-background:#111f;
-border-left:5px solid #63df73;
-border-radius:6px;
-padding:9px;
-margin-top:5px;
-font-size:12px
-}
-
-/* MONEY */
-
+/* MONEY FX */
 .moneyFx{
-position:fixed;
-top:70px;
-left:50%;
-z-index:10000;
-font-size:24px;
-font-weight:900;
-pointer-events:none;
-animation:moneyFx 1.3s forwards
+ position:fixed;top:70px;left:50%;z-index:12000;font-size:25px;font-weight:900;
+ pointer-events:none;animation:moneyFx 1.3s forwards
 }
-
-.plus{color:#68f079}
-.minus{color:#ff6262}
-
+.moneyPlus{color:#72ef83}.moneyMinus{color:#ff6f6f}
 @keyframes moneyFx{
-0%{opacity:0;transform:translate(-50%,15px)}
-20%{opacity:1;transform:translate(-50%,0) scale(1.1)}
-100%{opacity:0;transform:translate(-50%,-45px)}
+ 0%{opacity:0;transform:translate(-50%,15px)}
+ 20%{opacity:1;transform:translate(-50%,0)}
+ 100%{opacity:0;transform:translate(-50%,-50px)}
 }
 
 /* MODAL */
-
-#modalBackground{
-display:none;
-position:fixed;
-inset:0;
-z-index:8000;
-background:#000a;
-align-items:center;
-justify-content:center
+#modalBg{
+ display:none;position:fixed;inset:0;background:#000b;z-index:15000;
+ align-items:center;justify-content:center
 }
-
 #modal{
-width:min(760px,92vw);
-max-height:88vh;
-overflow-y:auto;
-background:#181818;
-border:2px solid #444;
-border-radius:13px;
-padding:15px
+ width:min(750px,94vw);max-height:90vh;overflow:auto;background:#191c19;
+ border:1px solid #555;border-radius:12px;padding:15px
 }
-
-.close{
-float:right;
-border:0;
-border-radius:5px;
-padding:6px 9px;
-background:#8d3838;
-color:#fff;
-cursor:pointer
-}
+.close{float:right;background:#923d3d;color:#fff;border:0;border-radius:5px;padding:6px 10px}
 
 /* CONSOLE */
-
 #console{
-display:none;
-position:fixed;
-left:50%;
-top:50%;
-transform:translate(-50%,-50%);
-width:min(700px,92vw);
-height:430px;
-z-index:20000;
-background:#080b09f8;
-border:2px solid #59e36d;
-border-radius:9px;
-overflow:hidden;
-font-family:Consolas,monospace
+ display:none;position:fixed;z-index:20000;left:50%;top:50%;
+ transform:translate(-50%,-50%);width:min(700px,94vw);height:430px;
+ background:#080b09f8;border:2px solid #64df74;border-radius:9px;overflow:hidden;
+ font-family:Consolas,monospace
 }
+#consoleHead{height:42px;padding:12px;background:#142117;color:#6bea7c}
+#consoleHistory{height:325px;padding:10px;overflow:auto;white-space:pre-wrap;font-size:13px}
+#consoleBottom{height:60px;border-top:1px solid #315d38;padding:9px;display:flex;gap:8px;align-items:center}
+#consoleInput{flex:1;background:transparent;border:0;outline:0}
 
-#consoleHeader{
-height:43px;
-padding:12px;
-background:#142117;
-color:#69ef7d
-}
-
-#consoleHistory{
-height:325px;
-overflow:auto;
-padding:10px;
-font-size:13px;
-white-space:pre-wrap
-}
-
-#consoleBottom{
-height:60px;
-display:flex;
-align-items:center;
-gap:7px;
-padding:9px;
-border-top:1px solid #315d38
-}
-
-#consoleInput{
-flex:1;
-background:transparent;
-border:0;
-outline:0
-}
-
-@media(max-width:800px){
-
-#sidebar{width:300px}
-
-.hud:nth-child(n+4){
-display:none
-}
-
+@media(max-width:850px){
+ #nav{width:65px}
+ .logo{font-size:0}.logo:after{content:"🐸";font-size:25px}
+ .navBtn{font-size:0;text-align:center}.navBtn span{font-size:20px}
+ #panel{left:65px;width:310px}
+ #hud{left:380px}
 }
 </style>
 </head>
@@ -400,5068 +166,1039 @@ display:none
 
 <div id="map"></div>
 
+<nav id="nav">
+ <div class="logo">🐸 ROPUCHA GROUP</div>
+ <button class="navBtn active" onclick="openSection('map',this)"><span>🗺️</span> Mapa</button>
+ <button class="navBtn" onclick="openSection('stores',this)"><span>🏪</span> Sklepy</button>
+ <button class="navBtn" onclick="openSection('group',this)"><span>🏛️</span> Grupa</button>
+ <button class="navBtn" onclick="openSection('products',this)"><span>📦</span> Produkty</button>
+ <button class="navBtn" onclick="openSection('companies',this)"><span>🏭</span> Producenci</button>
+ <button class="navBtn" onclick="openSection('logistics',this)"><span>🚛</span> Logistyka</button>
+ <button class="navBtn" onclick="openSection('competition',this)"><span>⚔️</span> Konkurencja</button>
+ <button class="navBtn" onclick="openSection('market',this)"><span>🌍</span> Rynek</button>
+ <button class="navBtn" onclick="openSection('finance',this)"><span>📊</span> Finanse</button>
+ <button class="navBtn" onclick="openSection('news',this)"><span>📰</span> Wiadomości</button>
+</nav>
+
+<main id="panel" class="mapOnly"></main>
+
 <div id="hud">
-
-<div class="hud">
-<small>Kasa</small>
-<strong id="money">0</strong>
-</div>
-
-<div class="hud">
-<small>Sklepy</small>
-<strong id="storesHUD">0</strong>
-</div>
-
-<div class="hud">
-<small>Reputacja</small>
-<strong id="repHUD">50</strong>
-</div>
-
-<div class="hud">
-<small>Grupa</small>
-<strong id="groupHUD">0</strong>
-</div>
-
-<div class="hud">
-<small>Dzień</small>
-<strong id="dayHUD">1</strong>
-</div>
-
-</div>
-
-<div id="sidebar">
-
-<div class="logo">
-🐸 ROPUCHA GROUP
-</div>
-
-<div class="tabs">
-
-<button class="tab active"
-onclick="showTab('network',this)">
-🏪 Sieć
-</button>
-
-<button class="tab"
-onclick="showTab('group',this)">
-🏛️ Grupa
-</button>
-
-<button class="tab"
-onclick="showTab('products',this)">
-📦 Produkty
-</button>
-
-<button class="tab"
-onclick="showTab('companies',this)">
-🏭 Firmy
-</button>
-
-<button class="tab"
-onclick="showTab('logistics',this)">
-🚛 Logistyka
-</button>
-
-<button class="tab"
-onclick="showTab('competition',this)">
-⚔️ Konkurencja
-</button>
-
-<button class="tab"
-onclick="showTab('finance',this)">
-💰 Finanse
-</button>
-
-</div>
-
-<div id="network" class="panel active"></div>
-<div id="group" class="panel"></div>
-<div id="products" class="panel"></div>
-<div id="companies" class="panel"></div>
-<div id="logistics" class="panel"></div>
-<div id="competition" class="panel"></div>
-<div id="finance" class="panel"></div>
-
+ <div class="hud"><small>Kasa</small><strong id="money">0</strong></div>
+ <div class="hud"><small>Sklepy</small><strong id="storeHud">0</strong></div>
+ <div class="hud"><small>Wartość grupy</small><strong id="valueHud">0</strong></div>
+ <div class="hud"><small>Reputacja</small><strong id="repHud">50</strong></div>
+ <div class="hud"><small>Dzień</small><strong id="dayHud">1</strong></div>
 </div>
 
 <div id="buildInfo"></div>
 <div id="notifications"></div>
 
-<div id="modalBackground">
-<div id="modal"></div>
-</div>
+<div id="modalBg"><div id="modal"></div></div>
 
 <div id="console">
-
-<div id="consoleHeader">
-🛠 DEV CONSOLE — ~ zamknij
-</div>
-
-<div id="consoleHistory">
-Wpisz help.
-</div>
-
-<div id="consoleBottom">
-<span>&gt;</span>
-<input id="consoleInput" autocomplete="off">
-</div>
-
+ <div id="consoleHead">🛠 ROPUCHA DEV CONSOLE — ~ zamknij</div>
+ <div id="consoleHistory">Wpisz help.</div>
+ <div id="consoleBottom">&gt; <input id="consoleInput" autocomplete="off"></div>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
-
 /* =========================================================
-GAME STATE
+   CORE
 ========================================================= */
 
 let money=500000;
 let day=1;
 let reputation=50;
 let fuelPrice=6.20;
-
+let currentSection="map";
 let buildMode=null;
 
 let maxFranchisees=5;
 let maxDrivers=5;
-
-let franchisees=[];
-let stores=[];
-let centers=[];
-let drivers=[];
-let trucks=[];
-let routes=[];
-let companies=[];
-let contracts=[];
-let competitors=[];
-
-/*
-Spółki córki należące bezpośrednio
-do Ropucha Group.
-*/
-
-let subsidiaries=[];
+let maxStaff=20;
 
 let nextStoreId=1;
+let nextSubsidiaryId=1;
+let nextCompanyId=1;
+let nextInvestorId=1;
 let nextCenterId=1;
 let nextDriverId=1;
 let nextTruckId=1;
-let nextRouteId=1;
-let nextCompanyId=1;
-let nextContractId=1;
-let nextSubsidiaryId=1;
-let nextInvestorId=1;
+let nextCompetitorId=1;
+let nextCompetitorStoreId=1;
+
+let stores=[];
+let subsidiaries=[];
+let companies=[];
+let centers=[];
+let drivers=[];
+let trucks=[];
+let franchisees=[];
+let competitors=[];
+let newsFeed=[];
 
 let totalRevenue=0;
 let totalExpenses=0;
 let totalDividends=0;
-let totalCustomers=0;
-let lostCustomers=0;
 
 const DAY_TIME=10000;
 
 /* =========================================================
-PRODUCTS
+   HELPERS
 ========================================================= */
 
-const productCatalog=[
+function rnd(a,b){return Math.floor(Math.random()*(b-a+1))+a}
+function rndf(a,b){return Math.random()*(b-a)+a}
+function pick(a){return a[Math.floor(Math.random()*a.length)]}
+function cash(v){return Math.round(v).toLocaleString("pl-PL")+" zł"}
+function num(v){return Math.round(v).toLocaleString("pl-PL")}
+function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
+function product(id){return PRODUCTS.find(p=>p.id===id)}
 
-{
-id:"hotdog",
-name:"Hot-dog",
-emoji:"🌭",
-baseBuy:3.10,
-defaultPrice:7.99
-},
-
-{
-id:"pizza",
-name:"Pizza",
-emoji:"🍕",
-baseBuy:7,
-defaultPrice:15.99
-},
-
-{
-id:"coffee",
-name:"Kawa",
-emoji:"☕",
-baseBuy:2.20,
-defaultPrice:7.49
-},
-
-{
-id:"drink",
-name:"Napój",
-emoji:"🥤",
-baseBuy:2.80,
-defaultPrice:6.49
-},
-
-{
-id:"sandwich",
-name:"Kanapka",
-emoji:"🥪",
-baseBuy:5,
-defaultPrice:11.99
-},
-
-{
-id:"icecream",
-name:"Lody",
-emoji:"🍦",
-baseBuy:3.20,
-defaultPrice:7.99
+function esc(s){
+ return String(s).replaceAll("&","&amp;").replaceAll("<","&lt;")
+ .replaceAll(">","&gt;").replaceAll('"',"&quot;");
 }
 
+function randomName(){
+ return pick(["Adam","Marek","Kamil","Julia","Natalia","Ola","Michał","Piotr","Anna","Karol"])+" "+
+ pick(["Nowak","Kowalski","Lis","Król","Mazur","Wójcik","Zieliński","Lewandowski"]);
+}
+
+function notify(text){
+ const n=document.createElement("div");
+ n.className="notification";n.textContent=text;
+ document.getElementById("notifications").appendChild(n);
+ setTimeout(()=>n.remove(),4200);
+}
+
+function addNews(text){
+ newsFeed.unshift({day,text});
+ newsFeed=newsFeed.slice(0,100);
+}
+
+function changeMoney(amount,fx=true){
+ money+=amount;
+ if(fx){
+  const el=document.createElement("div");
+  el.className="moneyFx "+(amount>=0?"moneyPlus":"moneyMinus");
+  el.textContent=(amount>=0?"+":"")+cash(amount);
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(),1400);
+ }
+ updateHud();
+}
+
+function openModal(html){
+ document.getElementById("modal").innerHTML=html;
+ document.getElementById("modalBg").style.display="flex";
+}
+function closeModal(){document.getElementById("modalBg").style.display="none"}
+
+/* =========================================================
+   PRODUCTS
+========================================================= */
+
+const PRODUCTS=[
+ {id:"hotdog",name:"Hot-dog",emoji:"🌭",buy:3.1,price:7.99},
+ {id:"pizza",name:"Pizza",emoji:"🍕",buy:7,price:15.99},
+ {id:"coffee",name:"Kawa",emoji:"☕",buy:2.2,price:7.49},
+ {id:"drink",name:"Napój",emoji:"🥤",buy:2.8,price:6.49},
+ {id:"sandwich",name:"Kanapka",emoji:"🥪",buy:5,price:11.99},
+ {id:"icecream",name:"Lody",emoji:"🍦",buy:3.2,price:7.99},
+ {id:"bun",name:"Bułka",emoji:"🥖",buy:1.1,price:3.49}
 ];
 
-function makeStoreProducts(){
-
-let obj={};
-
-productCatalog.forEach(p=>{
-
-obj[p.id]={
-stock:0,
-price:p.defaultPrice,
-promotion:0,
-promotionDays:0
-};
-
-});
-
-return obj;
-
+function freshProducts(){
+ const o={};
+ PRODUCTS.forEach(p=>o[p.id]={stock:150,price:p.price,promo:0,promoDays:0});
+ return o;
 }
 
 /* =========================================================
-MAP
+   WORLD
+========================================================= */
+
+const LOCATIONS=[
+ ["Warszawa","Polska",52.23,21.01],["Kraków","Polska",50.06,19.94],
+ ["Białystok","Polska",53.13,23.16],["Gdańsk","Polska",54.35,18.65],
+ ["Berlin","Niemcy",52.52,13.40],["Hamburg","Niemcy",53.55,10],
+ ["Praga","Czechy",50.07,14.43],["Paryż","Francja",48.85,2.35],
+ ["Londyn","Wielka Brytania",51.50,-0.12],["Rzym","Włochy",41.90,12.49],
+ ["Madryt","Hiszpania",40.41,-3.70],["Amsterdam","Holandia",52.37,4.89],
+ ["Sztokholm","Szwecja",59.32,18.06],["Oslo","Norwegia",59.91,10.75],
+ ["Nowy Jork","USA",40.71,-74],["Los Angeles","USA",34.05,-118.24],
+ ["Chicago","USA",41.87,-87.62],["Toronto","Kanada",43.65,-79.38],
+ ["São Paulo","Brazylia",-23.55,-46.63],["Tokio","Japonia",35.67,139.65],
+ ["Seul","Korea Południowa",37.56,126.97],["Pekin","Chiny",39.90,116.40],
+ ["Singapur","Singapur",1.35,103.81],["Bangkok","Tajlandia",13.75,100.50],
+ ["Delhi","Indie",28.61,77.20],["Dubaj","ZEA",25.20,55.27],
+ ["Kair","Egipt",30.04,31.23],["Johannesburg","RPA",-26.20,28.04],
+ ["Sydney","Australia",-33.86,151.20],["Melbourne","Australia",-37.81,144.96]
+];
+
+const COUNTRIES=[...new Set(LOCATIONS.map(x=>x[1]))];
+
+function detectCountry(lat,lng){
+ let best=null,dist=Infinity;
+ LOCATIONS.forEach(l=>{
+  const d=(lat-l[2])**2+(lng-l[3])**2;
+  if(d<dist){dist=d;best=l}
+ });
+ return best?best[1]:"Nieznany";
+}
+
+/* =========================================================
+   MAP
 ========================================================= */
 
 const map=L.map("map",{
+ zoomControl:true,
+ zoomAnimation:false,
+ fadeAnimation:false,
+ markerZoomAnimation:false,
+ minZoom:2,maxZoom:19,
+ zoomSnap:1
+}).setView([35,10],3);
 
-zoomControl:true,
+L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{
+ maxZoom:19,maxNativeZoom:19,keepBuffer:5,
+ attribution:"&copy; OpenStreetMap contributors"
+}).addTo(map);
 
-zoomAnimation:false,
-fadeAnimation:false,
-markerZoomAnimation:false,
-
-zoomSnap:1,
-zoomDelta:1,
-
-wheelPxPerZoomLevel:100,
-
-minZoom:2,
-maxZoom:19
-
-}).setView([30,10],3);
-
-L.tileLayer(
-"https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-{
-
-maxZoom:19,
-maxNativeZoom:19,
-keepBuffer:4,
-
-attribution:
-"&copy; OpenStreetMap contributors"
-
-}
-).addTo(map);
-
-function makeIcon(emoji,type){
-
-return L.divIcon({
-
-className:"",
-
-html:
-`<div class="gameMarker ${type}">
-${emoji}
-</div>`,
-
-iconSize:[35,35],
-iconAnchor:[17,17]
-
-});
-
+function icon(emoji,cls){
+ return L.divIcon({
+  className:"",
+  html:`<div class="marker ${cls}">${emoji}</div>`,
+  iconSize:[34,34],iconAnchor:[17,17]
+ });
 }
 
-const icons={
-
-store:
-makeIcon("🏪","storeMarker"),
-
-center:
-makeIcon("📦","centerMarker"),
-
-factory:
-makeIcon("🏭","factoryMarker"),
-
-competitor:
-makeIcon("🏬","competitorMarker")
-
+const ICON={
+ store:icon("🏪","playerStore"),
+ comp:icon("🏬","compStore"),
+ center:icon("📦","centerMarker"),
+ factory:icon("🏭","factoryMarker")
 };
 
 /* =========================================================
-COUNTRIES / CITIES
+   PLAYER STORES
 ========================================================= */
 
-const locations=[
+function storePrice(){return 100000+stores.length*12000}
 
-["Warszawa","Polska",52.23,21.01],
-["Kraków","Polska",50.06,19.94],
-["Białystok","Polska",53.13,23.16],
-
-["Berlin","Niemcy",52.52,13.40],
-["Hamburg","Niemcy",53.55,10.00],
-
-["Praga","Czechy",50.07,14.43],
-
-["Paryż","Francja",48.85,2.35],
-
-["Londyn","Wielka Brytania",51.50,-0.12],
-
-["Rzym","Włochy",41.90,12.49],
-
-["Madryt","Hiszpania",40.41,-3.70],
-
-["Amsterdam","Holandia",52.37,4.89],
-
-["Sztokholm","Szwecja",59.32,18.06],
-
-["Nowy Jork","USA",40.71,-74],
-
-["Los Angeles","USA",34.05,-118.24],
-
-["Toronto","Kanada",43.65,-79.38],
-
-["São Paulo","Brazylia",-23.55,-46.63],
-
-["Tokio","Japonia",35.67,139.65],
-
-["Seul","Korea Południowa",37.56,126.97],
-
-["Pekin","Chiny",39.90,116.40],
-
-["Singapur","Singapur",1.35,103.81],
-
-["Bangkok","Tajlandia",13.75,100.50],
-
-["Delhi","Indie",28.61,77.20],
-
-["Dubaj","ZEA",25.20,55.27],
-
-["Kair","Egipt",30.04,31.23],
-
-["Johannesburg","RPA",-26.20,28.04],
-
-["Sydney","Australia",-33.86,151.20]
-
-];
-
-const countries=[
-"Polska",
-"Niemcy",
-"Czechy",
-"Francja",
-"Wielka Brytania",
-"Włochy",
-"Hiszpania",
-"Holandia",
-"Szwecja",
-"USA",
-"Kanada",
-"Brazylia",
-"Japonia",
-"Korea Południowa",
-"Chiny",
-"Singapur",
-"Tajlandia",
-"Indie",
-"ZEA",
-"Egipt",
-"RPA",
-"Australia"
-];
-
-/*
-Proste wykrywanie kraju.
-
-Nie jest to geokoder granic państw.
-W tej wersji wybiera najbliższe
-znane miasto z locations[].
-
-Dzięki temu gra działa bez kolejnego API.
-*/
-
-function detectCountry(lat,lng){
-
-let closest=null;
-let best=Infinity;
-
-locations.forEach(loc=>{
-
-let dx=lat-loc[2];
-let dy=lng-loc[3];
-
-let distance=
-dx*dx+dy*dy;
-
-if(distance<best){
-
-best=distance;
-closest=loc;
-
+function buildStore(){
+ if(franchisees.length===0){notify("❌ Najpierw zatrudnij franczyzobiorcę.");return}
+ if(money<storePrice()){notify("❌ Brakuje pieniędzy.");return}
+ buildMode="store";showBuild("🏪 Kliknij na mapie miejsce nowego sklepu • ESC anuluj");
 }
 
-});
-
-return closest
-?closest[1]
-:"Nieznany";
-
-}
-
-/* =========================================================
-INVESTORS
-========================================================= */
-
-const investorNames=[
-
-"North Capital",
-"Atlas Investments",
-"Global Equity",
-"GreenRock Fund",
-"Nova Partners",
-"Mercury Capital",
-"Orion Ventures",
-"Europa Holding",
-"Prime Asset Management",
-"Founders Fund"
-
-];
-
-function generateShareholders(){
-
-/*
-Ropucha zaczyna z 0%.
-
-Pozostałe 100% jest dzielone
-między 3-5 inwestorów.
-*/
-
-let count=random(3,5);
-
-let remaining=100;
-
-let investors=[];
-
-for(let i=0;i<count;i++){
-
-let share;
-
-if(i===count-1){
-
-share=remaining;
-
-}else{
-
-let minRemaining=
-(count-i-1)*5;
-
-share=random(
-5,
-Math.max(
-5,
-remaining-minRemaining
-)
-);
-
-}
-
-remaining-=share;
-
-investors.push({
-
-id:nextInvestorId++,
-
-name:
-i===0
-?"Założyciele"
-:choice(investorNames),
-
-shares:share
-
-});
-
-}
-
-return investors;
-
-}
-
-/* =========================================================
-COMPANIES
-========================================================= */
-
-const companyPrefixes=[
-"Fresh","Golden","Green","Prime",
-"Happy","Royal","Urban","Global",
-"Sun","Blue","North","Mega",
-"Best","Smart","Daily","Family",
-"Nature","Good","World"
-];
-
-const companySuffixes=[
-"Foods","Group","Kitchen",
-"Foodworks","Industries",
-"Products","Taste","Factory"
-];
-
-function generateCompany(silent=false){
-
-let loc=choice(locations);
-
-let product=
-choice(productCatalog);
-
-let valuation=
-random(
-300000,
-12000000
-);
-
-let company={
-
-id:
-"company_"+
-nextCompanyId++,
-
-name:
-product.emoji+
-" "+
-choice(companyPrefixes)+
-choice(companySuffixes),
-
-productId:
-product.id,
-
-city:
-loc[0],
-
-country:
-loc[1],
-
-lat:
-loc[2]+
-(Math.random()-.5)*.6,
-
-lng:
-loc[3]+
-(Math.random()-.5)*.6,
-
-valuation,
-
-profit:
-Math.floor(
-valuation*
-random(3,9)/
-1000
-),
-
-capacity:
-random(
-5000,
-40000
-),
-
-shares:0,
-
-shareholders:
-generateShareholders(),
-
-controlled:false,
-
-inGroup:false,
-
-acquired:false,
-
-marker:null
-
-};
-
-companies.push(
-company
-);
-
-company.marker=
-L.marker(
-[
-company.lat,
-company.lng
-],
-{
-icon:
-icons.factory
-}
-)
-.addTo(map);
-
-updateCompanyPopup(
-company
-);
-
-if(!silent){
-
-notify(
-"🌍 Nowa firma: "+
-company.name
-);
-
-}
-
-return company;
-
-}
-
-function updateCompanyPopup(c){
-
-let p=
-getProduct(
-c.productId
-);
-
-c.marker.bindPopup(`
-
-<b>
-${c.name}
-</b>
-
-<br><br>
-
-📍
-${c.city},
-${c.country}
-
-<br>
-
-${p.emoji}
-${p.name}
-
-<br>
-
-💰
-${moneyText(
-c.valuation
-)}
-
-<br>
-
-📈
-${moneyText(
-c.profit
-)}/dzień
-
-<br>
-
-📊 Ropucha Group:
-${c.shares}%
-
-<br>
-
-${
-c.inGroup
-?"🏛️ Firma w Ropucha Group"
-:""
-}
-
-`);
-
-}
-
-/* =========================================================
-START COMPANIES
-========================================================= */
-
-for(
-let i=0;
-i<24;
-i++
-){
-
-generateCompany(
-true
-);
-
-}
-
-setInterval(()=>{
-
-if(
-companies.length<
-150
-){
-
-generateCompany();
-
-render();
-
-}
-
-},45000);
-
-/* =========================================================
-INVESTOR OFFER
-========================================================= */
-
-function openShareholders(
-companyId
-){
-
-let c=
-companies.find(
-x=>x.id===companyId
-);
-
-if(!c)return;
-
-openModal(`
-
-<button
-class="close"
-onclick="closeModal()">
-X
-</button>
-
-<h2>
-📊 Akcjonariat
-</h2>
-
-<div class="box">
-
-<h3>
-${c.name}
-</h3>
-
-<div class="row">
-<span>Ropucha Group</span>
-<b class="green">
-${c.shares}%
-</b>
-</div>
-
-<div class="shareBar">
-
-<div
-class="shareFill"
-style="width:${c.shares}%">
-</div>
-
-</div>
-
-</div>
-
-${c.shareholders.map(inv=>`
-
-<div class="investor">
-
-<div class="row">
-
-<span>
-👤 ${inv.name}
-</span>
-
-<b>
-${inv.shares}%
-</b>
-
-</div>
-
-${
-inv.shares>0
-?`
-
-<div class="grid3">
-
-<button
-class="btn"
-onclick="
-openInvestorOffer(
-'${c.id}',
-${inv.id},
-1
-)
-">
-Kup 1%
-</button>
-
-<button
-class="btn"
-onclick="
-openInvestorOffer(
-'${c.id}',
-${inv.id},
-5
-)
-">
-Kup 5%
-</button>
-
-<button
-class="btn orange"
-onclick="
-openInvestorOffer(
-'${c.id}',
-${inv.id},
-${inv.shares}
-)
-">
-Cały pakiet
-</button>
-
-</div>
-
-`
-:""}
-
-</div>
-
-`).join("")}
-
-${
-c.controlled &&
-!c.inGroup
-?`
-
-<button
-class="btn purple"
-onclick="
-addCompanyToGroup(
-'${c.id}'
-)
-">
-🏛️ Włącz firmę do Ropucha Group
-</button>
-
-`
-:""}
-
-${
-c.inGroup
-?`
-
-<div class="box green">
-🏛️ Firma należy do grupy kapitałowej.
-</div>
-
-`
-:""}
-
-`);
-
-}
-
-/* =========================================================
-NEGOTIATIONS
-========================================================= */
-
-function openInvestorOffer(
-companyId,
-investorId,
-wanted
-){
-
-let c=
-companies.find(
-x=>x.id===companyId
-);
-
-if(!c)return;
-
-let investor=
-c.shareholders.find(
-x=>x.id===investorId
-);
-
-if(!investor)return;
-
-wanted=
-Math.min(
-wanted,
-investor.shares
-);
-
-let marketValue=
-c.valuation*
-wanted/100;
-
-openModal(`
-
-<button
-class="close"
-onclick="
-openShareholders(
-'${c.id}'
-)
-">
-←
-</button>
-
-<h2>
-🤝 Oferta odkupu
-</h2>
-
-<div class="box">
-
-<h3>
-${investor.name}
-</h3>
-
-<div class="row">
-<span>Posiada</span>
-<b>
-${investor.shares}%
-</b>
-</div>
-
-<div class="row">
-<span>Chcesz kupić</span>
-<b>
-${wanted}%
-</b>
-</div>
-
-<div class="row">
-<span>Wartość rynkowa</span>
-<b>
-${moneyText(
-marketValue
-)}
-</b>
-</div>
-
-</div>
-
-<button
-class="btn gray"
-onclick="
-makeInvestorOffer(
-'${c.id}',
-${investor.id},
-${wanted},
-1
-)
-">
-💬 100% wartości
-—
-${moneyText(
-marketValue
-)}
-</button>
-
-<button
-class="btn blue"
-onclick="
-makeInvestorOffer(
-'${c.id}',
-${investor.id},
-${wanted},
-1.15
-)
-">
-💬 115% wartości
-—
-${moneyText(
-marketValue*1.15
-)}
-</button>
-
-<button
-class="btn orange"
-onclick="
-makeInvestorOffer(
-'${c.id}',
-${investor.id},
-${wanted},
-1.35
-)
-">
-💰 135% wartości
-—
-${moneyText(
-marketValue*1.35
-)}
-</button>
-
-<button
-class="btn red"
-onclick="
-makeInvestorOffer(
-'${c.id}',
-${investor.id},
-${wanted},
-1.60
-)
-">
-🔥 160% wartości
-—
-${moneyText(
-marketValue*1.60
-)}
-</button>
-
-`);
-
-}
-
-function makeInvestorOffer(
-companyId,
-investorId,
-wanted,
-multiplier
-){
-
-let c=
-companies.find(
-x=>x.id===companyId
-);
-
-if(!c)return;
-
-let investor=
-c.shareholders.find(
-x=>x.id===investorId
-);
-
-if(!investor)return;
-
-wanted=
-Math.min(
-wanted,
-investor.shares
-);
-
-if(wanted<=0)return;
-
-let price=
-Math.floor(
-c.valuation*
-wanted/100*
-multiplier
-);
-
-if(money<price){
-
-notify(
-"❌ Brakuje pieniędzy."
-);
-
-return;
-
-}
-
-/*
-Szansa akceptacji.
-*/
-
-let chance;
-
-if(multiplier>=1.6)
-chance=.98;
-
-else if(multiplier>=1.35)
-chance=.85;
-
-else if(multiplier>=1.15)
-chance=.60;
-
-else
-chance=.30;
-
-/*
-Im większy pakiet,
-tym trudniej.
-*/
-
-if(wanted>=20)
-chance-=.12;
-
-if(
-Math.random()>
-chance
-){
-
-notify(
-"❌ "+
-investor.name+
-" odrzucił ofertę."
-);
-
-openShareholders(
-companyId
-);
-
-return;
-
-}
-
-/*
-Transakcja.
-*/
-
-changeMoney(
--price
-);
-
-investor.shares-=
-wanted;
-
-c.shares+=
-wanted;
-
-if(c.shares>50){
-
-c.controlled=true;
-
-}
-
-if(c.shares>=100){
-
-c.shares=100;
-c.controlled=true;
-c.acquired=true;
-
-}
-
-updateCompanyPopup(c);
-
-notify(
-"🤝 Kupiono "+
-wanted+
-"% od "+
-investor.name
-);
-
-openShareholders(
-companyId
-);
-
-render();
-
-}
-
-/* =========================================================
-GROUP
-========================================================= */
-
-function addCompanyToGroup(
-companyId
-){
-
-let c=
-companies.find(
-x=>x.id===companyId
-);
-
-if(!c)return;
-
-if(
-c.shares<=50
-){
-
-notify(
-"❌ Potrzebujesz ponad 50% udziałów."
-);
-
-return;
-
-}
-
-c.inGroup=true;
-
-notify(
-"🏛️ "+
-c.name+
-" została włączona do Ropucha Group."
-);
-
-updateCompanyPopup(c);
-
-closeModal();
-
-render();
-
-}
-
-/* =========================================================
-SUBSIDIARIES
-========================================================= */
-
-function createSubsidiary(){
-
-let cost=50000;
-
-if(money<cost){
-
-notify(
-"❌ Utworzenie spółki kosztuje 50 000 zł."
-);
-
-return;
-
-}
-
-changeMoney(
--cost
-);
-
-let subsidiary={
-
-id:
-nextSubsidiaryId++,
-
-name:
-"Ropucha "+
-(nextSubsidiaryId-1),
-
-countries:[],
-
-capital:0
-
-};
-
-subsidiaries.push(
-subsidiary
-);
-
-notify(
-"🏢 Utworzono spółkę córkę."
-);
-
-render();
-
-}
-
-function renameSubsidiary(
-id,
-newName
-){
-
-let s=
-subsidiaries.find(
-x=>x.id===id
-);
-
-if(!s)return;
-
-newName=
-String(newName)
-.trim();
-
-if(
-newName.length<2
-){
-
-notify(
-"❌ Nazwa jest za krótka."
-);
-
-return;
-
-}
-
-if(
-newName.length>40
-){
-
-notify(
-"❌ Maksymalnie 40 znaków."
-);
-
-return;
-
-}
-
-s.name=
-newName;
-
-notify(
-"✏️ Zmieniono nazwę spółki."
-);
-
-render();
-
-}
-
-/* =========================================================
-COUNTRY ASSIGNMENT
-========================================================= */
-
-function assignCountry(
-subsidiaryId,
-country
-){
-
-let subsidiary=
-subsidiaries.find(
-x=>x.id===subsidiaryId
-);
-
-if(!subsidiary)return;
-
-/*
-Jeden kraj może być przypisany
-tylko do jednej spółki.
-*/
-
-subsidiaries.forEach(s=>{
-
-s.countries=
-s.countries.filter(
-c=>c!==country
-);
-
-});
-
-subsidiary.countries.push(
-country
-);
-
-notify(
-"🌍 "+
-country+
-" → "+
-subsidiary.name
-);
-
-autoAssignStores();
-
-render();
-
-}
-
-function removeCountry(
-subsidiaryId,
-country
-){
-
-let subsidiary=
-subsidiaries.find(
-x=>x.id===subsidiaryId
-);
-
-if(!subsidiary)return;
-
-subsidiary.countries=
-subsidiary.countries.filter(
-c=>c!==country
-);
-
-autoAssignStores();
-
-render();
-
-}
-
-/* =========================================================
-STORE OWNERSHIP
-========================================================= */
-
-function autoAssignStores(){
-
-stores.forEach(store=>{
-
-let subsidiary=
-subsidiaries.find(
-s=>
-s.countries.includes(
-store.country
-)
-);
-
-store.subsidiaryId=
-subsidiary
-?subsidiary.id
-:null;
-
-});
-
-}
-
-function getStoreOwner(
-store
-){
-
-if(
-!store.subsidiaryId
-){
-
-return "Ropucha Group";
-
-}
-
-let s=
-subsidiaries.find(
-x=>x.id===store.subsidiaryId
-);
-
-return s
-?s.name
-:"Ropucha Group";
-
-}
-
-/* =========================================================
-FRANCHISE
-========================================================= */
-
-function recruitFranchisee(){
-
-if(
-franchisees.length>=
-maxFranchisees
-){
-
-notify(
-"❌ Limit franczyzobiorców."
-);
-
-return;
-
-}
-
-if(
-money<5000
-){
-
-notify(
-"❌ Brakuje pieniędzy."
-);
-
-return;
-
-}
-
-changeMoney(
--5000
-);
-
-franchisees.push({
-
-id:
-Date.now()+
-Math.random(),
-
-name:
-randomName(),
-
-stores:[],
-
-skill:
-random(1,5)
-
-});
-
-notify(
-"🤝 Zatrudniono franczyzobiorcę."
-);
-
-render();
-
-}
-
-/* =========================================================
-STORE
-========================================================= */
-
-function storePrice(){
-
-return (
-100000+
-stores.length*
-15000
-);
-
-}
-
-function startStoreBuild(){
-
-if(
-franchisees.length===0
-){
-
-notify(
-"❌ Najpierw zatrudnij franczyzobiorcę."
-);
-
-return;
-
-}
-
-if(
-money<
-storePrice()
-){
-
-notify(
-"❌ Brakuje pieniędzy."
-);
-
-return;
-
-}
-
-buildMode=
-"store";
-
-showBuild(
-"🏪 Kliknij miejsce dla sklepu • ESC anuluj"
-);
-
-}
-
-function createStore(
-lat,
-lng
-){
-
-let price=
-storePrice();
-
-if(
-money<
-price
-)return;
-
-let franchisee=
-franchisees
-.slice()
-.sort(
-(a,b)=>
-a.stores.length-
-b.stores.length
-)[0];
-
-let country=
-detectCountry(
-lat,
-lng
-);
-
-changeMoney(
--price
-);
-
-let store={
-
-id:
-nextStoreId++,
-
-lat,
-lng,
-
-country,
-
-subsidiaryId:null,
-
-franchiseeId:
-franchisee.id,
-
-warehouseLevel:1,
-
-warehouseCapacity:300,
-
-checkoutLevel:1,
-
-coffeeMachine:false,
-pizzaOven:false,
-hotdogMachine:false,
-
-products:
-makeStoreProducts(),
-
-customersToday:0,
-lostToday:0,
-
-revenueToday:0,
-
-marker:null
-
-};
-
-stores.push(
-store
-);
-
-franchisee.stores.push(
-store.id
-);
-
-autoAssignStores();
-
-store.marker=
-L.marker(
-[lat,lng],
-{
-icon:
-icons.store
-}
-)
-.addTo(map);
-
-updateStorePopup(
-store
-);
-
-notify(
-"🏪 Otwarto sklep #"+
-store.id+
-" • "+
-country
-);
-
-render();
-
+function createStore(lat,lng,free=false,brand="Ropucha"){
+ const cost=storePrice();
+ if(!free&&money<cost)return;
+ if(!free)changeMoney(-cost);
+
+ const country=detectCountry(lat,lng);
+ const f=franchisees.length?franchisees.slice().sort((a,b)=>a.stores.length-b.stores.length)[0]:null;
+
+ const s={
+  id:nextStoreId++,lat,lng,country,brand,
+  subsidiaryId:null,franchiseeId:f?f.id:null,
+  products:freshProducts(),warehouse:500,checkout:1,
+  revenueToday:0,customersToday:0,lostToday:0,marker:null
+ };
+
+ stores.push(s);
+ if(f)f.stores.push(s.id);
+ autoAssignStores();
+
+ s.marker=L.marker([lat,lng],{icon:ICON.store}).addTo(map);
+ updateStorePopup(s);
+
+ addNews(`🏪 ${brand} otwiera sklep w ${country}.`);
+ notify(`🏪 Otwarto sklep #${s.id} • ${country}`);
+ render();
+ return s;
 }
 
 function updateStorePopup(s){
+ s.marker.bindPopup(`
+ <b>🐸 ${esc(s.brand)} #${s.id}</b><br><br>
+ 🌍 ${esc(s.country)}<br>
+ 🏛️ ${esc(storeOwner(s))}<br>
+ 👥 ${s.customersToday} klientów<br>
+ 💰 ${cash(s.revenueToday)}
+ `);
+}
 
-let stock=
-Object.values(
-s.products
-)
-.reduce(
-(a,p)=>a+p.stock,
-0
-);
+function storeOwner(s){
+ if(!s.subsidiaryId)return "Ropucha Group";
+ const sub=subsidiaries.find(x=>x.id===s.subsidiaryId);
+ return sub?sub.name:"Ropucha Group";
+}
 
-s.marker.bindPopup(`
-
-<b>
-🐸 Ropucha #${s.id}
-</b>
-
-<br><br>
-
-🌍 ${s.country}
-
-<br>
-
-🏛️ ${getStoreOwner(s)}
-
-<br>
-
-📦 ${number(stock)} szt.
-
-<br>
-
-👥 ${s.customersToday} klientów
-
-<br>
-
-💰 ${moneyText(
-s.revenueToday
-)}
-
-`);
-
+function recruitFranchisee(){
+ if(franchisees.length>=maxFranchisees){notify("❌ Limit franczyzobiorców.");return}
+ if(money<5000){notify("❌ Brakuje pieniędzy.");return}
+ changeMoney(-5000);
+ franchisees.push({id:Date.now()+Math.random(),name:randomName(),stores:[],skill:rnd(1,5)});
+ notify("🤝 Zatrudniono franczyzobiorcę.");
+ render();
 }
 
 /* =========================================================
-STORE UPGRADES
+   SUBSIDIARIES — UNLIMITED TREE
 ========================================================= */
 
-function upgradeStore(
-id,
-type
-){
+function createSubsidiary(parentId=null){
+ if(money<50000){notify("❌ Utworzenie spółki kosztuje 50 000 zł.");return}
+ changeMoney(-50000);
 
-let s=
-stores.find(
-x=>x.id===id
-);
-
-if(!s)return;
-
-let cost=0;
-
-if(type==="warehouse")
-cost=
-25000*
-s.warehouseLevel;
-
-if(type==="checkout")
-cost=
-30000*
-s.checkoutLevel;
-
-if(type==="coffee")
-cost=40000;
-
-if(type==="pizza")
-cost=60000;
-
-if(type==="hotdog")
-cost=45000;
-
-if(
-money<
-cost
-){
-
-notify(
-"❌ Brakuje pieniędzy."
-);
-
-return;
-
+ const s={
+  id:nextSubsidiaryId++,
+  parentId:parentId?Number(parentId):null,
+  name:"Ropucha Company "+nextSubsidiaryId,
+  countries:[],
+  capital:0
+ };
+ subsidiaries.push(s);
+ addNews(`🏛️ Utworzono spółkę ${s.name}.`);
+ render();
 }
 
-changeMoney(
--cost
-);
-
-if(
-type==="warehouse"
-){
-
-s.warehouseLevel++;
-
-s.warehouseCapacity+=
-250;
-
+function renameSubsidiary(id,name){
+ const s=subsidiaries.find(x=>x.id===id);
+ if(!s)return;
+ name=String(name).trim();
+ if(name.length<2||name.length>50){notify("❌ Nazwa musi mieć 2–50 znaków.");return}
+ s.name=name;notify("✏️ Zmieniono nazwę spółki.");render();
 }
 
-if(
-type==="checkout"
-){
-
-s.checkoutLevel++;
-
+function isDescendant(parentId,targetId){
+ let cur=subsidiaries.find(x=>x.id===targetId);
+ while(cur){
+  if(cur.parentId===parentId)return true;
+  cur=subsidiaries.find(x=>x.id===cur.parentId);
+ }
+ return false;
 }
 
-if(
-type==="coffee"
-){
-
-s.coffeeMachine=true;
-
+function changeParent(id,parentId){
+ const s=subsidiaries.find(x=>x.id===id);if(!s)return;
+ parentId=parentId?Number(parentId):null;
+ if(parentId===id||isDescendant(id,parentId)){notify("❌ Nie można utworzyć pętli w strukturze.");return}
+ s.parentId=parentId;render();
 }
 
-if(
-type==="pizza"
-){
-
-s.pizzaOven=true;
-
+function assignCountry(subId,country){
+ subsidiaries.forEach(s=>s.countries=s.countries.filter(c=>c!==country));
+ const s=subsidiaries.find(x=>x.id===subId);if(!s)return;
+ s.countries.push(country);autoAssignStores();
+ notify(`🌍 ${country} → ${s.name}`);render();
 }
 
-if(
-type==="hotdog"
-){
-
-s.hotdogMachine=true;
-
+function autoAssignStores(){
+ stores.forEach(store=>{
+  const sub=subsidiaries.find(s=>s.countries.includes(store.country));
+  store.subsidiaryId=sub?sub.id:null;
+ });
 }
 
-render();
-
+function treeHTML(parentId=null,depth=0){
+ const list=subsidiaries.filter(s=>s.parentId===parentId);
+ return list.map(s=>{
+  const count=stores.filter(x=>x.subsidiaryId===s.id).length;
+  return `<div class="treeNode">
+   🏢 <b>${esc(s.name)}</b> <span class="badge">🏪 ${count}</span>
+   <div class="muted">${s.countries.length?s.countries.map(esc).join(", "):"brak przypisanych krajów"}</div>
+   <div class="treeChildren">${treeHTML(s.id,depth+1)}</div>
+  </div>`;
+ }).join("");
 }
 
 /* =========================================================
-PRICE / PROMOTIONS
+   PRODUCERS / SHAREHOLDERS
 ========================================================= */
 
-function setProductPrice(
-storeId,
-productId,
-value
-){
+const investorNames=["North Capital","Atlas Investments","Global Equity","GreenRock Fund","Nova Partners","Mercury Capital","Orion Ventures","Europa Holding"];
 
-let store=
-stores.find(
-x=>x.id===storeId
-);
-
-if(!store)return;
-
-let valueNumber=
-Number(value);
-
-if(
-!Number.isFinite(
-valueNumber
-)
-)return;
-
-store.products[
-productId
-].price=
-Math.max(
-.5,
-valueNumber
-);
-
+function shareholders(){
+ const arr=[];
+ let left=100;
+ const count=rnd(3,5);
+ for(let i=0;i<count;i++){
+  let sh=i===count-1?left:rnd(5,Math.max(5,left-(count-i-1)*5));
+  left-=sh;
+  arr.push({id:nextInvestorId++,name:i===0?"Założyciele":pick(investorNames),shares:sh});
+ }
+ return arr;
 }
 
-function setPromotion(
-storeId,
-productId
-){
+function generateCompany(silent=false){
+ const l=pick(LOCATIONS),p=pick(PRODUCTS),valuation=rnd(300000,12000000);
+ const c={
+  id:"co_"+nextCompanyId++,
+  name:p.emoji+" "+pick(["Fresh","Golden","Prime","Urban","Global","North","Mega","Daily"])+" "+pick(["Foods","Kitchen","Industries","Products","Factory"]),
+  productId:p.id,city:l[0],country:l[1],
+  lat:l[2]+rndf(-.35,.35),lng:l[3]+rndf(-.35,.35),
+  valuation,profit:Math.floor(valuation*rndf(.003,.009)),
+  shares:0,shareholders:shareholders(),controlled:false,inGroup:false,
+  groupParentId:null,marker:null
+ };
+ companies.push(c);
+ c.marker=L.marker([c.lat,c.lng],{icon:ICON.factory}).addTo(map);
+ updateCompanyPopup(c);
+ if(!silent)addNews(`🏭 Powstała firma ${c.name} w ${c.country}.`);
+ return c;
+}
 
-let store=
-stores.find(
-x=>x.id===storeId
-);
+function updateCompanyPopup(c){
+ c.marker.bindPopup(`<b>${esc(c.name)}</b><br>📍 ${esc(c.city)}, ${esc(c.country)}<br>💰 ${cash(c.valuation)}<br>📊 Twoje udziały: ${c.shares}%`);
+}
 
-if(!store)return;
+function openShareholders(id){
+ const c=companies.find(x=>x.id===id);if(!c)return;
+ openModal(`
+ <button class="close" onclick="closeModal()">X</button>
+ <h2>📊 ${esc(c.name)}</h2>
+ <div class="box">
+  <div class="row"><span>Twoje udziały</span><b class="green">${c.shares}%</b></div>
+  <div class="sharebar"><div class="sharefill" style="width:${c.shares}%"></div></div>
+ </div>
+ ${c.shareholders.map(i=>`
+ <div class="card">
+  <div class="row"><span>👤 ${esc(i.name)}</span><b>${i.shares}%</b></div>
+  ${i.shares?`<div class="grid3">
+   <button class="btn" onclick="buyCompanyShares('${c.id}',${i.id},1,1.15)">1%</button>
+   <button class="btn blue" onclick="buyCompanyShares('${c.id}',${i.id},5,1.25)">5%</button>
+   <button class="btn orange" onclick="buyCompanyShares('${c.id}',${i.id},${i.shares},1.4)">Całość</button>
+  </div>`:""}
+ </div>`).join("")}
+ ${c.shares>50&&!c.inGroup?`<button class="btn purple" onclick="putCompanyInGroup('${c.id}')">🏛️ Włącz do grupy</button>`:""}
+ `);
+}
 
-store.products[
-productId
-].promotion=
-20;
+function buyCompanyShares(cid,iid,amount,mult){
+ const c=companies.find(x=>x.id===cid),i=c?.shareholders.find(x=>x.id===iid);
+ if(!c||!i)return;
+ amount=Math.min(amount,i.shares);
+ const price=Math.floor(c.valuation*amount/100*mult);
+ if(money<price){notify("❌ Brakuje pieniędzy.");return}
 
-store.products[
-productId
-].promotionDays=
-3;
+ let chance=mult>=1.4?.9:mult>=1.25?.7:.55;
+ if(Math.random()>chance){notify(`❌ ${i.name} odrzucił ofertę.`);return}
 
-notify(
-"🏷️ Promocja -20% przez 3 dni."
-);
+ changeMoney(-price);i.shares-=amount;c.shares+=amount;
+ c.shares=clamp(c.shares,0,100);c.controlled=c.shares>50;
+ updateCompanyPopup(c);
+ addNews(`🤝 Ropucha Group kupiła ${amount}% ${c.name}.`);
+ openShareholders(cid);render();
+}
 
-render();
-
+function putCompanyInGroup(id){
+ const c=companies.find(x=>x.id===id);if(!c||c.shares<=50)return;
+ c.inGroup=true;closeModal();
+ addNews(`🏛️ ${c.name} dołącza do Ropucha Group.`);
+ render();
 }
 
 /* =========================================================
-CONTRACTS
+   COMPETITORS WITH REAL STORES
 ========================================================= */
 
-function createContract(
-companyId
-){
+const COMP_NAMES=["Żuczek","Borsuk Market","Mini24","HopShop","FrogGo","QuickMart"];
 
-let company=
-companies.find(
-x=>x.id===companyId
-);
-
-if(!company)return;
-
-let product=
-getProduct(
-company.productId
-);
-
-let amount=1000;
-
-let unitPrice=
-product.baseBuy*
-randomFloat(
-.8,
-1.15
-);
-
-let total=
-amount*
-unitPrice;
-
-if(
-money<
-total
-){
-
-notify(
-"❌ Kontrakt kosztuje "+
-moneyText(total)
-);
-
-return;
-
+function makeCompetitor(name){
+ const c={
+  id:nextCompetitorId++,name,cash:rnd(900000,2500000),
+  reputation:rnd(35,70),stores:[],valuation:rnd(1500000,7000000),
+  shares:0,shareholders:shareholders(),controlled:false,acquired:false
+ };
+ competitors.push(c);
+ for(let i=0;i<rnd(2,4);i++)competitorOpenStore(c,true);
+ return c;
 }
 
-changeMoney(
--total
-);
-
-contracts.push({
-
-id:
-nextContractId++,
-
-companyId:
-company.id,
-
-productId:
-company.productId,
-
-amount,
-
-remaining:
-amount,
-
-unitPrice,
-
-active:true
-
-});
-
-notify(
-"📄 Kupiono "+
-number(amount)+
-" szt. "+
-product.name
-);
-
-render();
-
+function competitorOpenStore(c,silent=false){
+ if(c.acquired)return;
+ const l=pick(LOCATIONS);
+ const s={
+  id:nextCompetitorStoreId++,competitorId:c.id,
+  lat:l[2]+rndf(-.15,.15),lng:l[3]+rndf(-.15,.15),
+  country:l[1],city:l[0],revenue:rnd(3000,10000),marker:null
+ };
+ c.stores.push(s);
+ s.marker=L.marker([s.lat,s.lng],{icon:ICON.comp}).addTo(map);
+ s.marker.bindPopup(`<b>🏬 ${esc(c.name)}</b><br>📍 ${esc(s.city)}, ${esc(s.country)}<br>Sklep konkurencji`);
+ if(!silent)addNews(`⚔️ ${c.name} otwiera sklep w ${s.city}.`);
 }
 
-function deliverContract(
-contractId,
-storeId
-){
+function processCompetitors(){
+ competitors.forEach(c=>{
+  if(c.acquired)return;
+  const income=c.stores.length*rnd(2500,6500);
+  c.cash+=income;
+  c.valuation=Math.max(500000,c.valuation+rnd(-50000,90000));
 
-let contract=
-contracts.find(
-x=>x.id===contractId
-);
-
-let store=
-stores.find(
-x=>x.id===storeId
-);
-
-if(
-!contract ||
-!store
-)return;
-
-let stock=
-Object.values(
-store.products
-)
-.reduce(
-(a,p)=>a+p.stock,
-0
-);
-
-let space=
-store.warehouseCapacity-
-stock;
-
-if(
-space<=0
-){
-
-notify(
-"❌ Magazyn pełny."
-);
-
-return;
-
+  if(c.cash>180000&&Math.random()<.22){
+   c.cash-=120000;competitorOpenStore(c);
+  }
+ });
 }
 
-let amount=
-Math.min(
-200,
-space,
-contract.remaining
-);
+function openCompetitor(id){
+ const c=competitors.find(x=>x.id===id);if(!c)return;
 
-if(
-amount<=0
-)return;
+ openModal(`
+ <button class="close" onclick="closeModal()">X</button>
+ <h2>🏬 ${esc(c.name)}</h2>
+ <div class="box">
+  <div class="row"><span>Sklepy</span><b>${c.stores.length}</b></div>
+  <div class="row"><span>Wycena</span><b>${cash(c.valuation)}</b></div>
+  <div class="row"><span>Twoje udziały</span><b class="green">${c.shares}%</b></div>
+  <div class="sharebar"><div class="sharefill" style="width:${c.shares}%"></div></div>
+ </div>
+ ${c.shareholders.map(i=>`
+ <div class="card">
+  <div class="row"><span>${esc(i.name)}</span><b>${i.shares}%</b></div>
+  ${i.shares?`<div class="grid3">
+   <button class="btn" onclick="buyCompetitorShares(${c.id},${i.id},1,1.15)">1%</button>
+   <button class="btn blue" onclick="buyCompetitorShares(${c.id},${i.id},5,1.25)">5%</button>
+   <button class="btn orange" onclick="buyCompetitorShares(${c.id},${i.id},${i.shares},1.45)">Całość</button>
+  </div>`:""}
+ </div>`).join("")}
+ ${c.shares>50&&!c.acquired?`
+ <button class="btn purple" onclick="acquireCompetitor(${c.id},false)">👑 Przejmij — zachowaj markę</button>
+ <button class="btn orange" onclick="acquireCompetitor(${c.id},true)">🐸 Przejmij i zmień na Ropucha</button>`:""}
+ `);
+}
 
-store.products[
-contract.productId
-].stock+=
-amount;
+function buyCompetitorShares(cid,iid,amount,mult){
+ const c=competitors.find(x=>x.id===cid),i=c?.shareholders.find(x=>x.id===iid);
+ if(!c||!i)return;
+ amount=Math.min(amount,i.shares);
+ const price=Math.floor(c.valuation*amount/100*mult);
+ if(money<price){notify("❌ Brakuje pieniędzy.");return}
+ const chance=mult>=1.45?.93:mult>=1.25?.72:.55;
+ if(Math.random()>chance){notify("❌ Inwestor odrzucił ofertę.");return}
 
-contract.remaining-=
-amount;
+ changeMoney(-price);i.shares-=amount;c.shares=clamp(c.shares+amount,0,100);
+ c.controlled=c.shares>50;
+ addNews(`📈 Kupiono ${amount}% udziałów ${c.name}.`);
+ openCompetitor(cid);render();
+}
 
-notify(
-"📦 Dostarczono "+
-amount+
-" szt."
-);
+function acquireCompetitor(id,rebrand){
+ const c=competitors.find(x=>x.id===id);
+ if(!c||c.shares<=50||c.acquired)return;
 
-updateStorePopup(
-store
-);
+ c.acquired=true;
 
-render();
+ const oldName=c.name;
+ const converted=[...c.stores];
 
+ converted.forEach(cs=>{
+  if(cs.marker)map.removeLayer(cs.marker);
+  createStore(cs.lat,cs.lng,true,rebrand?"Ropucha":oldName);
+ });
+
+ c.stores=[];
+ closeModal();
+ addNews(`👑 Ropucha Group przejęła ${oldName}. ${converted.length} sklepów stało się częścią grupy.`);
+ notify(`👑 Przejęto ${oldName}!`);
+ render();
 }
 
 /* =========================================================
-LOGISTICS
+   LOGISTICS
 ========================================================= */
 
-function centerPrice(){
+function centerPrice(){return 200000+centers.length*100000}
 
-return (
-200000+
-centers.length*
-100000
-);
-
+function buildCenter(){
+ if(money<centerPrice()){notify("❌ Brakuje pieniędzy.");return}
+ buildMode="center";showBuild("📦 Kliknij miejsce centrum logistycznego • ESC anuluj");
 }
 
-function startCenterBuild(){
-
-if(
-money<
-centerPrice()
-){
-
-notify(
-"❌ Brakuje pieniędzy."
-);
-
-return;
-
-}
-
-buildMode=
-"center";
-
-showBuild(
-"📦 Kliknij miejsce dla centrum • ESC anuluj"
-);
-
-}
-
-function createCenter(
-lat,
-lng
-){
-
-let price=
-centerPrice();
-
-if(
-money<
-price
-)return;
-
-changeMoney(
--price
-);
-
-let center={
-
-id:
-nextCenterId++,
-
-lat,
-lng,
-
-drivers:[],
-trucks:[],
-routes:[],
-
-marker:null
-
-};
-
-centers.push(
-center
-);
-
-center.marker=
-L.marker(
-[lat,lng],
-{
-icon:
-icons.center
-}
-)
-.addTo(map);
-
-updateCenterPopup(
-center
-);
-
-notify(
-"📦 Centrum #"+
-center.id
-);
-
-render();
-
-}
-
-function updateCenterPopup(c){
-
-c.marker.bindPopup(`
-
-<b>
-📦 Centrum #${c.id}
-</b>
-
-<br><br>
-
-👷 ${c.drivers.length}
-
-<br>
-
-🚛 ${c.trucks.length}
-
-<br>
-
-🗺️ ${c.routes.length}
-
-`);
-
+function createCenter(lat,lng){
+ const price=centerPrice();if(money<price)return;
+ changeMoney(-price);
+ const c={id:nextCenterId++,lat,lng,drivers:[],trucks:[],marker:null};
+ centers.push(c);
+ c.marker=L.marker([lat,lng],{icon:ICON.center}).addTo(map);
+ c.marker.bindPopup(`<b>📦 Centrum #${c.id}</b>`);
+ addNews(`📦 Ropucha Group otwiera centrum logistyczne.`);
+ render();
 }
 
 function hireDriver(){
-
-if(
-drivers.length>=
-maxDrivers
-){
-
-notify(
-"❌ Limit kierowców."
-);
-
-return;
-
+ if(drivers.length>=maxDrivers){notify("❌ Limit kierowców.");return}
+ if(money<4000){notify("❌ Brakuje pieniędzy.");return}
+ changeMoney(-4000);
+ drivers.push({id:nextDriverId++,name:randomName(),salary:rnd(350,550),centerId:null});
+ render();
 }
 
-if(
-money<
-4000
-){
-
-notify(
-"❌ Brakuje pieniędzy."
-);
-
-return;
-
-}
-
-changeMoney(
--4000
-);
-
-drivers.push({
-
-id:
-nextDriverId++,
-
-name:
-randomName(),
-
-salary:
-random(
-350,
-550
-),
-
-centerId:null,
-routeId:null
-
-});
-
-notify(
-"👷 Zatrudniono kierowcę."
-);
-
-render();
-
-}
-
-function assignDriver(
-driverId,
-centerId
-){
-
-let d=
-drivers.find(
-x=>x.id===driverId
-);
-
-if(!d)return;
-
-centers.forEach(c=>{
-
-c.drivers=
-c.drivers.filter(
-id=>id!==driverId
-);
-
-});
-
-centerId=
-Number(
-centerId
-);
-
-if(!centerId){
-
-d.centerId=null;
-
-render();
-
-return;
-
-}
-
-let center=
-centers.find(
-x=>x.id===centerId
-);
-
-if(!center)return;
-
-d.centerId=
-center.id;
-
-if(
-!center.drivers.includes(
-d.id
-)
-){
-
-center.drivers.push(
-d.id
-);
-
-}
-
-updateCenterPopup(
-center
-);
-
-render();
-
-}
-
-const truckTypes=[
-
-{
-id:"van",
-name:"🚚 Dostawczak",
-price:50000,
-fuel:10
-},
-
-{
-id:"truck",
-name:"🚛 Ciężarówka",
-price:120000,
-fuel:24
-},
-
-{
-id:"cold",
-name:"❄️ Chłodnia",
-price:180000,
-fuel:28
-}
-
-];
-
-function buyTruck(
-typeId,
-centerId
-){
-
-let type=
-truckTypes.find(
-x=>x.id===typeId
-);
-
-let center=
-centers.find(
-x=>x.id===centerId
-);
-
-if(
-!type ||
-!center
-)return;
-
-if(
-money<
-type.price
-){
-
-notify(
-"❌ Brakuje pieniędzy."
-);
-
-return;
-
-}
-
-changeMoney(
--type.price
-);
-
-let truck={
-
-id:
-nextTruckId++,
-
-typeId,
-
-centerId,
-
-condition:100,
-
-routeId:null
-
-};
-
-trucks.push(
-truck
-);
-
-center.trucks.push(
-truck.id
-);
-
-updateCenterPopup(
-center
-);
-
-notify(
-"🚛 Kupiono "+
-type.name
-);
-
-render();
-
+function buyTruck(centerId){
+ const c=centers.find(x=>x.id===centerId);if(!c)return;
+ if(money<120000){notify("❌ Brakuje pieniędzy.");return}
+ changeMoney(-120000);
+ const t={id:nextTruckId++,centerId:c.id,condition:100};
+ trucks.push(t);c.trucks.push(t.id);render();
 }
 
 /* =========================================================
-ROUTES
+   SALES / ECONOMY
 ========================================================= */
 
-function createRoute(
-centerId,
-storeId
-){
+function processSales(){
+ let revenue=0;
 
-let center=
-centers.find(
-x=>x.id===centerId
-);
+ stores.forEach(s=>{
+  s.revenueToday=0;s.customersToday=0;s.lostToday=0;
 
-let store=
-stores.find(
-x=>x.id===storeId
-);
+  let potential=Math.max(10,Math.floor(35+reputation+rnd(-10,25)));
+  let capacity=50+s.checkout*35;
 
-if(
-!center ||
-!store
-)return;
+  for(let i=0;i<Math.min(potential,capacity);i++){
+   const available=PRODUCTS.filter(p=>s.products[p.id].stock>0);
+   if(!available.length){s.lostToday++;continue}
 
-let driver=
-drivers.find(
-x=>
-x.centerId===centerId &&
-!x.routeId
-);
+   const p=pick(available),item=s.products[p.id];
+   const finalPrice=item.promoDays?item.price*(1-item.promo/100):item.price;
+   const chance=clamp(1.12-(finalPrice/p.price)*.42+(item.promoDays?.12:0),.15,.95);
 
-let truck=
-trucks.find(
-x=>
-x.centerId===centerId &&
-!x.routeId
-);
+   if(Math.random()<chance){
+    item.stock--;s.customersToday++;s.revenueToday+=finalPrice;revenue+=finalPrice;
+   }else s.lostToday++;
+  }
 
-if(!driver){
+  Object.values(s.products).forEach(i=>{
+   if(i.promoDays>0){i.promoDays--;if(i.promoDays<=0)i.promo=0}
+  });
+  updateStorePopup(s);
+ });
 
-notify(
-"❌ Brak wolnego kierowcy."
-);
-
-return;
-
+ return Math.floor(revenue);
 }
-
-if(!truck){
-
-notify(
-"❌ Brak wolnej ciężarówki."
-);
-
-return;
-
-}
-
-let route={
-
-id:
-nextRouteId++,
-
-centerId,
-storeId,
-
-driverId:
-driver.id,
-
-truckId:
-truck.id,
-
-line:null
-
-};
-
-driver.routeId=
-route.id;
-
-truck.routeId=
-route.id;
-
-center.routes.push(
-route.id
-);
-
-route.line=
-L.polyline(
-[
-[
-center.lat,
-center.lng
-],
-[
-store.lat,
-store.lng
-]
-],
-{
-weight:4,
-opacity:.7
-}
-)
-.addTo(map);
-
-routes.push(
-route
-);
-
-updateCenterPopup(
-center
-);
-
-notify(
-"🗺️ Trasa → sklep #"+
-store.id
-);
-
-render();
-
-}
-
-/* =========================================================
-SALES
-========================================================= */
-
-function productAvailable(
-store,
-product
-){
-
-if(
-product.id==="coffee" &&
-!store.coffeeMachine
-)
-return false;
-
-if(
-product.id==="pizza" &&
-!store.pizzaOven
-)
-return false;
-
-if(
-product.id==="hotdog" &&
-!store.hotdogMachine
-)
-return false;
-
-return true;
-
-}
-
-function processStores(){
-
-let revenue=0;
-
-stores.forEach(store=>{
-
-store.customersToday=0;
-store.lostToday=0;
-store.revenueToday=0;
-
-let capacity=
-40+
-store.checkoutLevel*
-35;
-
-let potential=
-Math.floor(
-40+
-reputation*.8+
-random(
--10,
-20
-)
-);
-
-potential=
-Math.max(
-5,
-potential
-);
-
-let served=
-Math.min(
-potential,
-capacity
-);
-
-store.lostToday+=
-Math.max(
-0,
-potential-capacity
-);
-
-for(
-let i=0;
-i<served;
-i++
-){
-
-let available=
-productCatalog.filter(
-p=>
-productAvailable(
-store,
-p
-) &&
-store.products[
-p.id
-].stock>0
-);
-
-if(
-available.length===0
-){
-
-store.lostToday++;
-
-continue;
-
-}
-
-let product=
-choice(
-available
-);
-
-let item=
-store.products[
-product.id
-];
-
-let price=
-item.price;
-
-if(
-item.promotionDays>0
-){
-
-price*=
-1-
-item.promotion/
-100;
-
-}
-
-let ratio=
-price/
-product.defaultPrice;
-
-let chance=
-Math.max(
-.15,
-Math.min(
-.95,
-1.15-
-ratio*.45
-)
-);
-
-if(
-item.promotionDays>0
-){
-
-chance+=.12;
-
-}
-
-if(
-Math.random()<
-chance
-){
-
-item.stock--;
-
-revenue+=
-price;
-
-store.revenueToday+=
-price;
-
-store.customersToday++;
-
-}else{
-
-store.lostToday++;
-
-}
-
-}
-
-/*
-Promocje liczymy raz na dzień,
-a nie raz na klienta.
-*/
-
-Object.values(
-store.products
-)
-.forEach(item=>{
-
-if(
-item.promotionDays>0
-){
-
-item.promotionDays--;
-
-if(
-item.promotionDays<=0
-){
-
-item.promotion=0;
-
-}
-
-}
-
-});
-
-totalCustomers+=
-store.customersToday;
-
-lostCustomers+=
-store.lostToday;
-
-updateStorePopup(
-store
-);
-
-});
-
-return Math.floor(
-revenue
-);
-
-}
-
-/* =========================================================
-DIVIDENDS
-========================================================= */
 
 function processDividends(){
-
-let total=0;
-
-companies.forEach(c=>{
-
-if(
-c.shares<=0
-)
-return;
-
-/*
-Przykładowo 25% zysku
-spółka wypłaca jako dywidendę.
-*/
-
-let dividendPool=
-c.profit*
-.25;
-
-total+=
-dividendPool*
-c.shares/
-100;
-
-});
-
-return Math.floor(
-total
-);
-
+ let d=0;
+ companies.forEach(c=>d+=c.profit*.25*c.shares/100);
+ return Math.floor(d);
 }
-
-/* =========================================================
-EXPENSES
-========================================================= */
 
 function processExpenses(){
-
-let cost=0;
-
-drivers.forEach(d=>{
-
-cost+=
-d.salary;
-
-});
-
-routes.forEach(route=>{
-
-let truck=
-trucks.find(
-x=>x.id===route.truckId
-);
-
-if(!truck)return;
-
-let type=
-truckTypes.find(
-x=>x.id===truck.typeId
-);
-
-if(!type)return;
-
-cost+=
-type.fuel*
-fuelPrice;
-
-truck.condition=
-Math.max(
-0,
-truck.condition-
-randomFloat(
-.1,
-.6
-)
-);
-
-});
-
-return Math.floor(
-cost
-);
-
+ let e=drivers.reduce((a,d)=>a+d.salary,0);
+ e+=trucks.length*fuelPrice*20;
+ return Math.floor(e);
 }
 
-/* =========================================================
-MARKET
-========================================================= */
-
-function processMarket(){
-
-companies.forEach(c=>{
-
-let change=
-randomFloat(
--.03,
-.04
-);
-
-c.profit=
-Math.max(
-500,
-Math.floor(
-c.profit*
-(1+change)
-)
-);
-
-c.valuation=
-Math.max(
-100000,
-Math.floor(
-c.valuation*
-(
-1+
-change*.35
-)
-)
-);
-
-updateCompanyPopup(
-c
-);
-
-});
-
+function processCompanies(){
+ companies.forEach(c=>{
+  const change=rndf(-.03,.04);
+  c.profit=Math.max(300,Math.floor(c.profit*(1+change)));
+  c.valuation=Math.max(100000,Math.floor(c.valuation*(1+change*.4)));
+  updateCompanyPopup(c);
+ });
 }
-
-/* =========================================================
-REPUTATION
-========================================================= */
-
-function updateReputation(){
-
-if(
-stores.length===0
-)return;
-
-let customers=
-stores.reduce(
-(a,s)=>
-a+s.customersToday,
-0
-);
-
-let lost=
-stores.reduce(
-(a,s)=>
-a+s.lostToday,
-0
-);
-
-if(
-customers>
-lost
-){
-
-reputation+=.3;
-
-}else{
-
-reputation-=.5;
-
-}
-
-reputation=
-Math.max(
-0,
-Math.min(
-100,
-reputation
-)
-);
-
-}
-
-/* =========================================================
-COMPETITORS
-========================================================= */
-
-const competitorNames=[
-"Żuczek",
-"Borsuk Market",
-"Mini24",
-"HopShop"
-];
-
-function createCompetitors(){
-
-competitorNames.forEach(
-(name,index)=>{
-
-let loc=
-locations[
-index
-];
-
-let c={
-
-id:
-index+1,
-
-name,
-
-cash:
-random(
-500000,
-2000000
-),
-
-stores:
-random(
-3,
-10
-),
-
-reputation:
-random(
-35,
-70
-),
-
-lat:
-loc[2],
-
-lng:
-loc[3],
-
-marker:null
-
-};
-
-c.marker=
-L.marker(
-[c.lat,c.lng],
-{
-icon:
-icons.competitor
-}
-)
-.addTo(map);
-
-c.marker.bindPopup(`
-
-<b>
-🏬 ${c.name}
-</b>
-
-<br>
-
-Sklepy:
-${c.stores}
-
-<br>
-
-Reputacja:
-${c.reputation}
-
-`);
-
-competitors.push(
-c
-);
-
-});
-
-}
-
-createCompetitors();
-
-function processCompetitors(){
-
-competitors.forEach(c=>{
-
-c.cash+=
-c.stores*
-random(
-2000,
-5000
-);
-
-if(
-c.cash>
-150000 &&
-Math.random()<.12
-){
-
-c.cash-=
-100000;
-
-c.stores++;
-
-notify(
-"⚔️ "+
-c.name+
-" otwiera sklep."
-);
-
-}
-
-});
-
-}
-
-/* =========================================================
-EVENTS
-========================================================= */
-
-function randomEvent(){
-
-if(
-Math.random()>.18
-)return;
-
-let event=
-random(
-1,
-4
-);
-
-if(event===1){
-
-fuelPrice*=1.1;
-
-notify(
-"⛽ Wzrost cen paliwa."
-);
-
-}
-
-if(event===2){
-
-fuelPrice*=.92;
-
-notify(
-"⛽ Paliwo potaniało."
-);
-
-}
-
-if(event===3){
-
-reputation=
-Math.min(
-100,
-reputation+3
-);
-
-notify(
-"⭐ Wzrost popularności sieci."
-);
-
-}
-
-if(
-event===4 &&
-companies.length
-){
-
-let c=
-choice(
-companies
-);
-
-c.profit=
-Math.floor(
-c.profit*.8
-);
-
-notify(
-"⚠️ Problemy w "+
-c.name
-);
-
-}
-
-}
-
-/* =========================================================
-DAY
-========================================================= */
 
 function processDay(){
+ day++;
+ processCompetitors();
+ processCompanies();
 
-day++;
+ const rev=processSales();
+ const div=processDividends();
+ const exp=processExpenses();
 
-processMarket();
-processCompetitors();
+ changeMoney(rev+div-exp,false);
+ totalRevenue+=rev;totalDividends+=div;totalExpenses+=exp;
 
-let revenue=
-processStores();
+ if(stores.length){
+  const served=stores.reduce((a,s)=>a+s.customersToday,0);
+  const lost=stores.reduce((a,s)=>a+s.lostToday,0);
+  reputation=clamp(reputation+(served>lost?.25:-.35),0,100);
+ }
 
-let dividends=
-processDividends();
+ if(Math.random()<.12){
+  fuelPrice*=rndf(.94,1.08);
+  addNews(`⛽ Cena paliwa zmieniła się do ${fuelPrice.toFixed(2)} zł/l.`);
+ }
 
-let expenses=
-processExpenses();
-
-changeMoney(
-revenue+
-dividends-
-expenses,
-false
-);
-
-totalRevenue+=
-revenue;
-
-totalDividends+=
-dividends;
-
-totalExpenses+=
-expenses;
-
-updateReputation();
-
-randomEvent();
-
-notify(
-"📊 Dzień "+
-day+
-" | sprzedaż +"+
-moneyText(revenue)+
-" | dywidendy +"+
-moneyText(dividends)+
-" | koszty -"+
-moneyText(expenses)
-);
-
-saveGame(
-true
-);
-
-render();
-
+ addNews(`📊 Dzień ${day}: sprzedaż ${cash(rev)}, dywidendy ${cash(div)}, koszty ${cash(exp)}.`);
+ render();
 }
 
 /* =========================================================
-MAP BUILD
+   MARKET SHARE
 ========================================================= */
 
-map.on(
-"click",
-e=>{
-
-if(
-!buildMode
-)return;
-
-if(
-buildMode===
-"store"
-){
-
-createStore(
-e.latlng.lat,
-e.latlng.lng
-);
-
-}
-
-if(
-buildMode===
-"center"
-){
-
-createCenter(
-e.latlng.lat,
-e.latlng.lng
-);
-
-}
-
-buildMode=null;
-
-hideBuild();
-
-}
-);
-
-function showBuild(
-text
-){
-
-let el=
-document.getElementById(
-"buildInfo"
-);
-
-el.textContent=
-text;
-
-el.style.display=
-"block";
-
-}
-
-function hideBuild(){
-
-document.getElementById(
-"buildInfo"
-)
-.style.display=
-"none";
-
+function countryStats(country){
+ const ours=stores.filter(s=>s.country===country).length;
+ const others=competitors.reduce((n,c)=>n+c.stores.filter(s=>s.country===country).length,0);
+ const total=ours+others;
+ return {ours,others,total,share:total?ours/total*100:0};
 }
 
 /* =========================================================
-NETWORK UI
+   UI
 ========================================================= */
 
-function renderNetwork(){
+function openSection(id,btn){
+ currentSection=id;
+ document.querySelectorAll(".navBtn").forEach(b=>b.classList.remove("active"));
+ if(btn)btn.classList.add("active");
 
-document.getElementById(
-"network"
-).innerHTML=`
-
-<div class="box">
-
-<h3>
-🐸 Sieć Ropucha
-</h3>
-
-<div class="row">
-<span>Reputacja</span>
-<b>
-${reputation.toFixed(1)}/100
-</b>
-</div>
-
-<div class="row">
-<span>Franczyzobiorcy</span>
-<b>
-${franchisees.length}
-/
-${maxFranchisees}
-</b>
-</div>
-
-<button
-class="btn blue"
-onclick="recruitFranchisee()">
-🤝 Rekrutuj — 5 000 zł
-</button>
-
-<button
-class="btn"
-onclick="startStoreBuild()">
-🏗️ Nowy sklep —
-${moneyText(
-storePrice()
-)}
-</button>
-
-</div>
-
-${stores.map(s=>`
-
-<div class="card">
-
-<h3>
-🏪 Ropucha #${s.id}
-</h3>
-
-<div class="row">
-<span>Kraj</span>
-<b>
-${s.country}
-</b>
-</div>
-
-<div class="row">
-<span>Spółka</span>
-<b>
-${getStoreOwner(s)}
-</b>
-</div>
-
-<div class="row">
-<span>Klienci</span>
-<b>
-${s.customersToday}
-</b>
-</div>
-
-<div class="row">
-<span>Sprzedaż</span>
-<b>
-${moneyText(
-s.revenueToday
-)}
-</b>
-</div>
-
-<button
-class="btn gray"
-onclick="
-openStore(
-${s.id}
-)
-">
-⚙️ Zarządzaj
-</button>
-
-<button
-class="btn gray"
-onclick="
-map.setView(
-[
-${s.lat},
-${s.lng}
-],
-13
-)
-">
-📍 Pokaż
-</button>
-
-</div>
-
-`).join("")}
-
-`;
-
+ const panel=document.getElementById("panel");
+ if(id==="map"){
+  panel.className="mapOnly";
+  setTimeout(()=>map.invalidateSize(),50);
+  return;
+ }
+ panel.className="";
+ renderSection();
+ setTimeout(()=>map.invalidateSize(),50);
 }
 
-/* =========================================================
-STORE UI
-========================================================= */
+function renderSection(){
+ const p=document.getElementById("panel");
 
-function openStore(
-id
-){
-
-let s=
-stores.find(
-x=>x.id===id
-);
-
-if(!s)return;
-
-openModal(`
-
-<button
-class="close"
-onclick="closeModal()">
-X
-</button>
-
-<h2>
-🏪 Ropucha #${s.id}
-</h2>
-
-<div class="box">
-
-<div class="row">
-<span>Kraj</span>
-<b>
-${s.country}
-</b>
-</div>
-
-<div class="row">
-<span>Właściciel operacyjny</span>
-<b>
-${getStoreOwner(s)}
-</b>
-</div>
-
-<div class="row">
-<span>Magazyn</span>
-<b>
-${s.warehouseCapacity}
-</b>
-</div>
-
-<div class="row">
-<span>Kasy lvl</span>
-<b>
-${s.checkoutLevel}
-</b>
-</div>
-
-<button
-class="btn"
-onclick="
-upgradeStore(
-${s.id},
-'warehouse'
-);
-openStore(
-${s.id}
-)
-">
-📦 Rozbuduj magazyn
-</button>
-
-<button
-class="btn"
-onclick="
-upgradeStore(
-${s.id},
-'checkout'
-);
-openStore(
-${s.id}
-)
-">
-🧾 Rozbuduj kasy
-</button>
-
-</div>
-
-<div class="box">
-
-<h3>
-🍔 Wyposażenie
-</h3>
-
-<button
-class="btn"
-${s.hotdogMachine?"disabled":""}
-onclick="
-upgradeStore(
-${s.id},
-'hotdog'
-);
-openStore(
-${s.id}
-)
-">
-🌭 Hot-dogi
-</button>
-
-<button
-class="btn"
-${s.pizzaOven?"disabled":""}
-onclick="
-upgradeStore(
-${s.id},
-'pizza'
-);
-openStore(
-${s.id}
-)
-">
-🍕 Piec
-</button>
-
-<button
-class="btn"
-${s.coffeeMachine?"disabled":""}
-onclick="
-upgradeStore(
-${s.id},
-'coffee'
-);
-openStore(
-${s.id}
-)
-">
-☕ Ekspres
-</button>
-
-</div>
-
-${productCatalog.map(p=>{
-
-let item=
-s.products[
-p.id
-];
-
-return `
-
-<div class="box">
-
-<h3>
-${p.emoji}
-${p.name}
-</h3>
-
-<div class="row">
-<span>Stan</span>
-<b>
-${item.stock}
-</b>
-</div>
-
-<div class="row">
-
-<span>Cena</span>
-
-<input
-type="number"
-step=".10"
-style="width:90px"
-value="${item.price}"
-onchange="
-setProductPrice(
-${s.id},
-'${p.id}',
-this.value
-)
-">
-
-</div>
-
-<div class="row">
-<span>Promocja</span>
-<b>
-${
-item.promotionDays>0
-?item.promotion+
-"% / "+
-item.promotionDays+
-" dni"
-:"brak"
-}
-</b>
-</div>
-
-<button
-class="btn orange"
-onclick="
-setPromotion(
-${s.id},
-'${p.id}'
-);
-openStore(
-${s.id}
-)
-">
-🏷️ -20% / 3 dni
-</button>
-
-</div>
-
-`;
-
-}).join("")}
-
-`);
-
+ if(currentSection==="stores")p.innerHTML=storesUI();
+ if(currentSection==="group")p.innerHTML=groupUI();
+ if(currentSection==="products")p.innerHTML=productsUI();
+ if(currentSection==="companies")p.innerHTML=companiesUI();
+ if(currentSection==="logistics")p.innerHTML=logisticsUI();
+ if(currentSection==="competition")p.innerHTML=competitionUI();
+ if(currentSection==="market")p.innerHTML=marketUI();
+ if(currentSection==="finance")p.innerHTML=financeUI();
+ if(currentSection==="news")p.innerHTML=newsUI();
 }
 
-/* =========================================================
-GROUP UI
-========================================================= */
-
-function renderGroup(){
-
-let groupCompanies=
-companies.filter(
-c=>c.inGroup
-);
-
-document.getElementById(
-"group"
-).innerHTML=`
-
-<div class="box">
-
-<h3>
-🏛️ Ropucha Group
-</h3>
-
-<div class="row">
-<span>Spółki córki</span>
-<b>
-${subsidiaries.length}
-</b>
-</div>
-
-<div class="row">
-<span>Przejęte firmy</span>
-<b>
-${groupCompanies.length}
-</b>
-</div>
-
-<div class="row">
-<span>Sklepy</span>
-<b>
-${stores.length}
-</b>
-</div>
-
-<button
-class="btn purple"
-onclick="
-createSubsidiary()
-">
-➕ Utwórz spółkę córkę
-— 50 000 zł
-</button>
-
-</div>
-
-<div class="box">
-
-<h3>
-🌳 Struktura grupy
-</h3>
-
-<div class="groupTree">
-
-<b>
-🐸 Ropucha Group
-</b>
-
-${subsidiaries.map(s=>`
-
-<div class="childTree">
-
-🏢
-<b>
-${s.name}
-</b>
-
-<br>
-
-<span style="font-size:11px;color:#aaa">
-
-${
-s.countries.length
-?s.countries.join(", ")
-:"brak krajów"
+function storesUI(){
+ return `<div class="panelTitle">🏪 Sklepy</div>
+ <div class="box">
+  <div class="row"><span>Franczyzobiorcy</span><b>${franchisees.length}/${maxFranchisees}</b></div>
+  <button class="btn blue" onclick="recruitFranchisee()">🤝 Rekrutuj — 5 000 zł</button>
+  <button class="btn" onclick="buildStore()">🏗️ Nowy sklep — ${cash(storePrice())}</button>
+ </div>
+ ${stores.map(s=>`
+ <div class="card">
+  <h3>🏪 ${esc(s.brand)} #${s.id}</h3>
+  <div class="row"><span>Kraj</span><b>${esc(s.country)}</b></div>
+  <div class="row"><span>Spółka</span><b>${esc(storeOwner(s))}</b></div>
+  <div class="row"><span>Klienci</span><b>${s.customersToday}</b></div>
+  <div class="row"><span>Sprzedaż</span><b>${cash(s.revenueToday)}</b></div>
+  <div class="grid2">
+   <button class="btn gray" onclick="openStore(${s.id})">⚙️ Zarządzaj</button>
+   <button class="btn gray" onclick="map.setView([${s.lat},${s.lng}],13)">📍 Pokaż</button>
+  </div>
+ </div>`).join("")}`;
 }
 
-</span>
-
-<br>
-
-<span style="font-size:11px">
-
-🏪
-${
-stores.filter(
-store=>
-store.subsidiaryId===
-s.id
-).length
-}
-sklepów
-
-</span>
-
-</div>
-
-`).join("")}
-
-${groupCompanies.map(c=>`
-
-<div class="childTree">
-
-🏭
-<b>
-${c.name}
-</b>
-
-<br>
-
-<span style="font-size:11px">
-
-${c.shares}% udziałów
-
-</span>
-
-</div>
-
-`).join("")}
-
-</div>
-
-</div>
-
-${subsidiaries.map(s=>{
-
-let subsidiaryStores=
-stores.filter(
-store=>
-store.subsidiaryId===
-s.id
-);
-
-let revenue=
-subsidiaryStores.reduce(
-(sum,store)=>
-sum+
-store.revenueToday,
-0
-);
-
-return `
-
-<div class="card">
-
-<h3>
-🏢 ${s.name}
-</h3>
-
-<div class="row">
-
-<span>Nazwa</span>
-
-<input
-id="subName_${s.id}"
-value="${escapeHtmlAttribute(
-s.name
-)}"
-style="width:180px">
-
-</div>
-
-<button
-class="btn blue"
-onclick="
-renameSubsidiary(
-${s.id},
-document.getElementById(
-'subName_${s.id}'
-).value
-)
-">
-✏️ Zmień nazwę
-</button>
-
-<div class="row">
-<span>Sklepy</span>
-<b>
-${subsidiaryStores.length}
-</b>
-</div>
-
-<div class="row">
-<span>Sprzedaż dzisiaj</span>
-<b>
-${moneyText(
-revenue
-)}
-</b>
-</div>
-
-<div class="row">
-<span>Kapitał</span>
-<b>
-${moneyText(
-s.capital
-)}
-</b>
-</div>
-
-<h3 style="margin-top:10px">
-🌍 Kraje
-</h3>
-
-${
-s.countries.length
-?s.countries.map(country=>`
-
-<div class="investor">
-
-<div class="row">
-
-<span>
-🌍 ${country}
-</span>
-
-<button
-onclick="
-removeCountry(
-${s.id},
-'${escapeJs(
-country
-)}'
-)
-"
-style="
-background:#8d3838;
-color:white;
-border:0;
-border-radius:4px;
-padding:4px 7px;
-cursor:pointer
-">
-X
-</button>
-
-</div>
-
-</div>
-
-`).join("")
-:`
-<div style="font-size:11px;color:#999">
-Brak przypisanych krajów.
-</div>
-`
+function openStore(id){
+ const s=stores.find(x=>x.id===id);if(!s)return;
+ openModal(`
+ <button class="close" onclick="closeModal()">X</button>
+ <h2>🏪 ${esc(s.brand)} #${s.id}</h2>
+ <div class="box">
+  <div class="row"><span>Kraj</span><b>${esc(s.country)}</b></div>
+  <div class="row"><span>Spółka</span><b>${esc(storeOwner(s))}</b></div>
+  <div class="row"><span>Magazyn</span><b>${s.warehouse}</b></div>
+ </div>
+ ${PRODUCTS.map(p=>{
+  const i=s.products[p.id];
+  return `<div class="box">
+   <h3>${p.emoji} ${p.name}</h3>
+   <div class="row"><span>Stan</span><b>${i.stock}</b></div>
+   <div class="row"><span>Cena</span>
+    <input type="number" step=".1" value="${i.price}" style="width:90px"
+     onchange="setPrice(${s.id},'${p.id}',this.value)">
+   </div>
+   <div class="row"><span>Promocja</span><b>${i.promoDays?`-${i.promo}% / ${i.promoDays} dni`:"brak"}</b></div>
+   <button class="btn orange" onclick="promotion(${s.id},'${p.id}')">🏷️ -20% przez 3 dni</button>
+  </div>`;
+ }).join("")}
+ `);
 }
 
-<select
-id="country_${s.id}"
-class="full"
-style="margin-top:7px">
-
-${countries.map(country=>`
-
-<option value="${escapeHtmlAttribute(
-country
-)}">
-${country}
-</option>
-
-`).join("")}
-
-</select>
-
-<button
-class="btn"
-onclick="
-assignCountry(
-${s.id},
-document.getElementById(
-'country_${s.id}'
-).value
-)
-">
-🌍 Przypisz kraj
-</button>
-
-</div>
-
-`;
-
-}).join("")}
-
-`;
-
+function setPrice(sid,pid,v){
+ const s=stores.find(x=>x.id===sid);if(!s)return;
+ s.products[pid].price=Math.max(.5,Number(v)||.5);
+}
+function promotion(sid,pid){
+ const s=stores.find(x=>x.id===sid);if(!s)return;
+ s.products[pid].promo=20;s.products[pid].promoDays=3;
+ openStore(sid);
 }
 
-/* =========================================================
-PRODUCTS UI
-========================================================= */
+/* GROUP UI */
+function groupUI(){
+ const controlled=companies.filter(c=>c.inGroup);
+ return `<div class="panelTitle">🏛️ Ropucha Group</div>
+ <div class="box">
+  <div class="row"><span>Spółki córki</span><b>${subsidiaries.length}</b></div>
+  <div class="row"><span>Producenci w grupie</span><b>${controlled.length}</b></div>
+  <button class="btn purple" onclick="createSubsidiary(null)">➕ Nowa spółka — 50 000 zł</button>
+ </div>
 
-function renderProducts(){
+ <div class="box">
+  <h3>🌳 Struktura holdingu</h3>
+  <div class="tree"><b>🐸 Ropucha Group</b><div class="treeChildren">${treeHTML(null)}</div></div>
+ </div>
 
-document.getElementById(
-"products"
-).innerHTML=`
+ ${subsidiaries.map(s=>`
+ <div class="card">
+  <h3>🏢 ${esc(s.name)}</h3>
 
-<div class="box">
+  <input class="full" id="name_${s.id}" value="${esc(s.name)}">
+  <button class="btn blue" onclick="renameSubsidiary(${s.id},document.getElementById('name_${s.id}').value)">✏️ Zmień nazwę</button>
 
-<h3>
-📦 Kontrakty
-</h3>
+  <div class="row"><span>Spółka nadrzędna</span></div>
+  <select class="full" onchange="changeParent(${s.id},this.value)">
+   <option value="" ${s.parentId===null?"selected":""}>🐸 Ropucha Group</option>
+   ${subsidiaries.filter(x=>x.id!==s.id).map(x=>`<option value="${x.id}" ${s.parentId===x.id?"selected":""}>${esc(x.name)}</option>`).join("")}
+  </select>
 
-Kupuj produkty od producentów,
-a następnie dostarczaj je do sklepów.
+  <button class="btn purple" onclick="createSubsidiary(${s.id})">➕ Utwórz spółkę córkę tej spółki</button>
 
-</div>
+  <div class="row"><span>Kraje</span><b>${s.countries.map(esc).join(", ")||"brak"}</b></div>
+  <select id="country_${s.id}" class="full">
+   ${COUNTRIES.map(c=>`<option>${esc(c)}</option>`).join("")}
+  </select>
+  <button class="btn" onclick="assignCountry(${s.id},document.getElementById('country_${s.id}').value)">🌍 Przypisz kraj</button>
 
-${
-contracts.length===0
-?`
-<div class="box">
-Brak kontraktów.
-</div>
-`
-:""
+  <div class="row"><span>Sklepy</span><b>${stores.filter(x=>x.subsidiaryId===s.id).length}</b></div>
+ </div>`).join("")}
+
+ ${controlled.map(c=>`
+ <div class="card"><h3>🏭 ${esc(c.name)}</h3>
+ <div class="row"><span>Udziały</span><b>${c.shares}%</b></div></div>`).join("")}`;
 }
 
-${contracts.map(c=>{
-
-let company=
-companies.find(
-x=>x.id===c.companyId
-);
-
-let product=
-getProduct(
-c.productId
-);
-
-return `
-
-<div class="box">
-
-<h3>
-${product.emoji}
-${product.name}
-</h3>
-
-<div class="row">
-<span>Producent</span>
-<b>
-${company
-?company.name
-:"?"}
-</b>
-</div>
-
-<div class="row">
-<span>Pozostało</span>
-<b>
-${number(
-c.remaining
-)}
-</b>
-</div>
-
-${
-stores.length
-?`
-
-<select
-id="delivery_${c.id}"
-class="full">
-
-${stores.map(store=>`
-
-<option value="${store.id}">
-
-#${store.id}
-•
-${store.country}
-•
-${getStoreOwner(store)}
-
-</option>
-
-`).join("")}
-
-</select>
-
-<button
-class="btn blue"
-onclick="
-deliverContract(
-${c.id},
-Number(
-document.getElementById(
-'delivery_${c.id}'
-).value
-)
-)
-">
-🚚 Dostarcz 200
-</button>
-
-`
-:""
+/* PRODUCTS */
+function productsUI(){
+ return `<div class="panelTitle">📦 Produkty</div>
+ ${PRODUCTS.map(p=>{
+  const stock=stores.reduce((a,s)=>a+s.products[p.id].stock,0);
+  const avg=stores.length?stores.reduce((a,s)=>a+s.products[p.id].price,0)/stores.length:p.price;
+  return `<div class="card">
+   <h3>${p.emoji} ${p.name}</h3>
+   <div class="row"><span>Stan w sieci</span><b>${num(stock)}</b></div>
+   <div class="row"><span>Średnia cena</span><b>${avg.toFixed(2)} zł</b></div>
+   <div class="row"><span>Koszt bazowy</span><b>${p.buy.toFixed(2)} zł</b></div>
+  </div>`;
+ }).join("")}`;
 }
 
-</div>
-
-`;
-
-}).join("")}
-
-`;
-
+/* PRODUCERS */
+function companiesUI(){
+ return `<div class="panelTitle">🏭 Producenci</div>
+ <div class="box"><button class="btn" onclick="generateCompany();render()">🌍 Wygeneruj nową firmę</button></div>
+ ${companies.slice().sort((a,b)=>b.shares-a.shares).slice(0,50).map(c=>`
+ <div class="card">
+  <h3>${esc(c.name)}</h3>
+  <div class="row"><span>📍</span><b>${esc(c.country)}</b></div>
+  <div class="row"><span>Wycena</span><b>${cash(c.valuation)}</b></div>
+  <div class="row"><span>Zysk / dzień</span><b>${cash(c.profit)}</b></div>
+  <div class="row"><span>Twoje udziały</span><b class="green">${c.shares}%</b></div>
+  <div class="sharebar"><div class="sharefill" style="width:${c.shares}%"></div></div>
+  <button class="btn blue" onclick="openShareholders('${c.id}')">👥 Akcjonariat</button>
+  ${c.inGroup?`<span class="badge">🏛️ W grupie</span>`:""}
+ </div>`).join("")}`;
 }
 
-/* =========================================================
-COMPANIES UI
-========================================================= */
-
-let companySearch="";
-
-function setCompanySearch(
-value
-){
-
-companySearch=
-value.toLowerCase();
-
-renderCompanies();
-
+/* LOGISTICS */
+function logisticsUI(){
+ return `<div class="panelTitle">🚛 Logistyka</div>
+ <div class="box">
+  <div class="row"><span>Paliwo</span><b>${fuelPrice.toFixed(2)} zł/l</b></div>
+  <div class="row"><span>Kierowcy</span><b>${drivers.length}/${maxDrivers}</b></div>
+  <button class="btn" onclick="buildCenter()">📦 Nowe centrum — ${cash(centerPrice())}</button>
+  <button class="btn blue" onclick="hireDriver()">👷 Zatrudnij kierowcę — 4 000 zł</button>
+ </div>
+ ${centers.map(c=>`
+ <div class="card">
+  <h3>📦 Centrum #${c.id}</h3>
+  <div class="row"><span>Kierowcy</span><b>${drivers.filter(d=>d.centerId===c.id).length}</b></div>
+  <div class="row"><span>Ciężarówki</span><b>${c.trucks.length}</b></div>
+  <button class="btn gray" onclick="buyTruck(${c.id})">🚛 Kup ciężarówkę — 120 000 zł</button>
+ </div>`).join("")}
+ ${drivers.map(d=>`
+ <div class="card"><h3>👷 ${esc(d.name)}</h3>
+ <select class="full" onchange="dAssign(${d.id},this.value)">
+  <option value="">Bez centrum</option>
+  ${centers.map(c=>`<option value="${c.id}" ${d.centerId===c.id?"selected":""}>Centrum #${c.id}</option>`).join("")}
+ </select></div>`).join("")}`;
 }
 
-function renderCompanies(){
-
-let list=
-companies.filter(c=>{
-
-let p=
-getProduct(
-c.productId
-);
-
-return (
-
-c.name
-.toLowerCase()
-.includes(
-companySearch
-)
-
-||
-
-c.country
-.toLowerCase()
-.includes(
-companySearch
-)
-
-||
-
-p.name
-.toLowerCase()
-.includes(
-companySearch
-)
-
-);
-
-});
-
-list.sort(
-(a,b)=>
-b.shares-
-a.shares
-);
-
-document.getElementById(
-"companies"
-).innerHTML=`
-
-<div class="box">
-
-<h3>
-🏭 Rynek firm
-</h3>
-
-<input
-class="full"
-placeholder="Szukaj..."
-value="${escapeHtmlAttribute(
-companySearch
-)}"
-oninput="
-setCompanySearch(
-this.value
-)
-">
-
-</div>
-
-${list.slice(0,40).map(c=>{
-
-let product=
-getProduct(
-c.productId
-);
-
-return `
-
-<div class="company">
-
-<h3>
-${c.name}
-</h3>
-
-<div class="row">
-<span>📍</span>
-<b>
-${c.city},
-${c.country}
-</b>
-</div>
-
-<div class="row">
-<span>Produkt</span>
-<b>
-${product.emoji}
-${product.name}
-</b>
-</div>
-
-<div class="row">
-<span>Wycena</span>
-<b>
-${moneyText(
-c.valuation
-)}
-</b>
-</div>
-
-<div class="row">
-<span>Zysk</span>
-<b>
-${moneyText(
-c.profit
-)}
-</b>
-</div>
-
-<div class="row">
-<span>Ropucha Group</span>
-<b class="green">
-${c.shares}%
-</b>
-</div>
-
-<div class="shareBar">
-
-<div
-class="shareFill"
-style="
-width:
-${c.shares}%
-">
-</div>
-
-</div>
-
-<button
-class="btn blue"
-onclick="
-openShareholders(
-'${c.id}'
-)
-">
-👥 Akcjonariat / odkup udziałów
-</button>
-
-<button
-class="btn"
-onclick="
-createContract(
-'${c.id}'
-)
-">
-📄 Kup 1000 szt.
-</button>
-
-${
-c.controlled &&
-!c.inGroup
-?`
-
-<button
-class="btn purple"
-onclick="
-addCompanyToGroup(
-'${c.id}'
-)
-">
-🏛️ Włącz do grupy
-</button>
-
-`
-:""
+function dAssign(id,cid){
+ const d=drivers.find(x=>x.id===id);if(!d)return;
+ d.centerId=cid?Number(cid):null;render();
 }
 
-${
-c.inGroup
-?`
-
-<div class="badge">
-🏛️ Ropucha Group
-</div>
-
-`
-:""
+/* COMPETITION */
+function competitionUI(){
+ return `<div class="panelTitle">⚔️ Konkurencja</div>
+ <div class="box muted">Konkurenci zarabiają i samodzielnie otwierają nowe sklepy na mapie. Po przejęciu ich sklepy stają się Twoje.</div>
+ ${competitors.map(c=>`
+ <div class="card">
+  <h3>🏬 ${esc(c.name)}</h3>
+  <div class="row"><span>Status</span><b>${c.acquired?"🏛️ Przejęta":"⚔️ Konkurent"}</b></div>
+  <div class="row"><span>Sklepy</span><b>${c.stores.length}</b></div>
+  <div class="row"><span>Kapitał</span><b>${cash(c.cash)}</b></div>
+  <div class="row"><span>Wycena</span><b>${cash(c.valuation)}</b></div>
+  <div class="row"><span>Twoje udziały</span><b class="green">${c.shares}%</b></div>
+  <div class="sharebar"><div class="sharefill" style="width:${c.shares}%"></div></div>
+  ${!c.acquired?`<button class="btn red" onclick="openCompetitor(${c.id})">📈 Kup udziały / przejmij</button>`:""}
+ </div>`).join("")}`;
 }
 
-${
-c.acquired
-?`
-
-<div class="badge">
-👑 100% własności
-</div>
-
-`
-:""
+/* MARKET */
+function marketUI(){
+ return `<div class="panelTitle">🌍 Udział w rynku</div>
+ ${COUNTRIES.map(c=>{
+  const s=countryStats(c);
+  if(!s.total)return "";
+  return `<div class="card">
+   <h3>🌍 ${esc(c)}</h3>
+   <div class="row"><span>Twoje sklepy</span><b>${s.ours}</b></div>
+   <div class="row"><span>Konkurencja</span><b>${s.others}</b></div>
+   <div class="row"><span>Udział Ropucha Group</span><b class="green">${s.share.toFixed(1)}%</b></div>
+   <div class="sharebar"><div class="sharefill" style="width:${s.share}%"></div></div>
+  </div>`;
+ }).join("")}`;
 }
 
-<button
-class="btn gray"
-onclick="
-map.setView(
-[
-${c.lat},
-${c.lng}
-],
-10
-)
-">
-📍 Pokaż
-</button>
-
-</div>
-
-`;
-
-}).join("")}
-
-`;
-
+/* FINANCE */
+function groupValue(){
+ const portfolio=companies.reduce((a,c)=>a+c.valuation*c.shares/100,0);
+ const storesValue=stores.length*100000;
+ const centersValue=centers.length*200000;
+ return Math.floor(money+portfolio+storesValue+centersValue);
 }
 
-/* =========================================================
-LOGISTICS UI
-========================================================= */
-
-function renderLogistics(){
-
-document.getElementById(
-"logistics"
-).innerHTML=`
-
-<div class="box">
-
-<h3>
-🚛 Logistyka
-</h3>
-
-<div class="row">
-<span>Paliwo</span>
-<b>
-${fuelPrice.toFixed(2)}
-zł/l
-</b>
-</div>
-
-<div class="row">
-<span>Kierowcy</span>
-<b>
-${drivers.length}
-/
-${maxDrivers}
-</b>
-</div>
-
-<button
-class="btn"
-onclick="
-startCenterBuild()
-">
-📦 Centrum —
-${moneyText(
-centerPrice()
-)}
-</button>
-
-<button
-class="btn blue"
-onclick="
-hireDriver()
-">
-👷 Kierowca —
-4 000 zł
-</button>
-
-</div>
-
-${drivers.map(d=>`
-
-<div class="box">
-
-<h3>
-👷 ${d.name}
-</h3>
-
-<div class="row">
-<span>Pensja</span>
-<b>
-${moneyText(
-d.salary
-)}
-</b>
-</div>
-
-<select
-class="full"
-onchange="
-assignDriver(
-${d.id},
-this.value
-)
-">
-
-<option value="0">
-Brak centrum
-</option>
-
-${centers.map(c=>`
-
-<option
-value="${c.id}"
-${
-d.centerId===c.id
-?"selected"
-:""
-}
->
-Centrum #${c.id}
-</option>
-
-`).join("")}
-
-</select>
-
-</div>
-
-`).join("")}
-
-${centers.map(c=>`
-
-<div class="box">
-
-<h3>
-📦 Centrum #${c.id}
-</h3>
-
-<div class="row">
-<span>Kierowcy</span>
-<b>
-${c.drivers.length}
-</b>
-</div>
-
-<div class="row">
-<span>Pojazdy</span>
-<b>
-${c.trucks.length}
-</b>
-</div>
-
-${truckTypes.map(t=>`
-
-<button
-class="btn gray"
-onclick="
-buyTruck(
-'${t.id}',
-${c.id}
-)
-">
-${t.name}
-—
-${moneyText(
-t.price
-)}
-</button>
-
-`).join("")}
-
-${
-stores.length
-?`
-
-<select
-id="routeStore_${c.id}"
-class="full"
-style="margin-top:6px">
-
-${stores.map(s=>`
-
-<option value="${s.id}">
-Sklep #${s.id}
-•
-${s.country}
-</option>
-
-`).join("")}
-
-</select>
-
-<button
-class="btn blue"
-onclick="
-createRoute(
-${c.id},
-Number(
-document.getElementById(
-'routeStore_${c.id}'
-).value
-)
-)
-">
-🗺️ Utwórz trasę
-</button>
-
-`
-:""
+function financeUI(){
+ return `<div class="panelTitle">📊 Finanse</div>
+ <div class="box">
+  <div class="row"><span>Gotówka</span><b>${cash(money)}</b></div>
+  <div class="row"><span>Wartość grupy</span><b>${cash(groupValue())}</b></div>
+  <div class="row"><span>Sprzedaż łącznie</span><b>${cash(totalRevenue)}</b></div>
+  <div class="row"><span>Dywidendy</span><b>${cash(totalDividends)}</b></div>
+  <div class="row"><span>Koszty</span><b>${cash(totalExpenses)}</b></div>
+ </div>
+ <div class="box">
+  <button class="btn blue" onclick="saveGame()">💾 Zapisz grę</button>
+  <button class="btn red" onclick="resetGame()">🗑️ Nowa gra</button>
+ </div>`;
 }
 
-</div>
-
-`).join("")}
-
-`;
-
+function newsUI(){
+ return `<div class="panelTitle">📰 Wiadomości</div>
+ <div class="box">${newsFeed.length?newsFeed.map(n=>`<div class="news"><b>Dzień ${n.day}</b><br>${esc(n.text)}</div>`).join(""):"Brak wiadomości."}</div>`;
 }
 
-/* =========================================================
-COMPETITION UI
-========================================================= */
-
-function renderCompetition(){
-
-document.getElementById(
-"competition"
-).innerHTML=`
-
-<div class="box">
-
-<h3>
-⚔️ Konkurencja
-</h3>
-
-Konkurenci rozwijają własne sieci.
-
-</div>
-
-${competitors.map(c=>`
-
-<div class="box">
-
-<h3>
-🏬 ${c.name}
-</h3>
-
-<div class="row">
-<span>Sklepy</span>
-<b>
-${c.stores}
-</b>
-</div>
-
-<div class="row">
-<span>Reputacja</span>
-<b>
-${Number(
-c.reputation
-).toFixed(1)}
-</b>
-</div>
-
-<div class="row">
-<span>Kapitał</span>
-<b>
-${moneyText(
-c.cash
-)}
-</b>
-</div>
-
-</div>
-
-`).join("")}
-
-`;
-
+function updateHud(){
+ document.getElementById("money").textContent=cash(money);
+ document.getElementById("storeHud").textContent=stores.length;
+ document.getElementById("valueHud").textContent=cash(groupValue());
+ document.getElementById("repHud").textContent=Math.round(reputation);
+ document.getElementById("dayHud").textContent=day;
 }
-
-/* =========================================================
-FINANCE UI
-========================================================= */
-
-function renderFinance(){
-
-let portfolio=
-companies.reduce(
-(sum,c)=>
-sum+
-c.valuation*
-c.shares/
-100,
-0
-);
-
-document.getElementById(
-"finance"
-).innerHTML=`
-
-<div class="box">
-
-<h3>
-💰 Finanse grupy
-</h3>
-
-<div class="row">
-<span>Gotówka</span>
-<b>
-${moneyText(
-money
-)}
-</b>
-</div>
-
-<div class="row">
-<span>Portfel udziałów</span>
-<b>
-${moneyText(
-portfolio
-)}
-</b>
-</div>
-
-<div class="row">
-<span>Sprzedaż łącznie</span>
-<b>
-${moneyText(
-totalRevenue
-)}
-</b>
-</div>
-
-<div class="row">
-<span>Dywidendy</span>
-<b>
-${moneyText(
-totalDividends
-)}
-</b>
-</div>
-
-<div class="row">
-<span>Koszty</span>
-<b>
-${moneyText(
-totalExpenses
-)}
-</b>
-</div>
-
-</div>
-
-<div class="box">
-
-<h3>
-💾 Gra
-</h3>
-
-<button
-class="btn"
-onclick="
-saveGame()
-">
-💾 Zapisz
-</button>
-
-<button
-class="btn red"
-onclick="
-newGame()
-">
-🗑️ Nowa gra
-</button>
-
-</div>
-
-`;
-
-}
-
-/* =========================================================
-SAVE
-========================================================= */
-
-function cleanObject(
-object
-){
-
-let copy={
-...object
-};
-
-delete copy.marker;
-delete copy.line;
-
-return copy;
-
-}
-
-function saveGame(
-silent=false
-){
-
-let data={
-
-money,
-day,
-reputation,
-fuelPrice,
-
-maxFranchisees,
-maxDrivers,
-
-franchisees,
-
-stores:
-stores.map(
-cleanObject
-),
-
-centers:
-centers.map(
-cleanObject
-),
-
-drivers,
-trucks,
-
-routes:
-routes.map(r=>{
-
-let copy={
-...r
-};
-
-delete copy.line;
-
-return copy;
-
-}),
-
-companies:
-companies.map(
-cleanObject
-),
-
-contracts,
-
-competitors:
-competitors.map(
-cleanObject
-),
-
-subsidiaries,
-
-nextStoreId,
-nextCenterId,
-nextDriverId,
-nextTruckId,
-nextRouteId,
-nextCompanyId,
-nextContractId,
-nextSubsidiaryId,
-nextInvestorId,
-
-totalRevenue,
-totalExpenses,
-totalDividends,
-totalCustomers,
-lostCustomers
-
-};
-
-localStorage.setItem(
-"ropucha_group_save_v3",
-JSON.stringify(
-data
-)
-);
-
-if(!silent){
-
-notify(
-"💾 Gra zapisana."
-);
-
-}
-
-}
-
-/*
-Ta wersja zapisuje stan.
-Przy zmianach struktury kodu
-stare save'y mogą nie być zgodne.
-*/
-
-/* =========================================================
-NEW GAME
-========================================================= */
-
-function newGame(){
-
-if(
-!confirm(
-"Usunąć zapis i zacząć od nowa?"
-)
-)return;
-
-localStorage.removeItem(
-"ropucha_group_save_v3"
-);
-
-location.reload();
-
-}
-
-/* =========================================================
-MODAL
-========================================================= */
-
-function openModal(
-html
-){
-
-document.getElementById(
-"modal"
-).innerHTML=
-html;
-
-document.getElementById(
-"modalBackground"
-)
-.style.display=
-"flex";
-
-}
-
-function closeModal(){
-
-document.getElementById(
-"modalBackground"
-)
-.style.display=
-"none";
-
-}
-
-/* =========================================================
-TABS
-========================================================= */
-
-function showTab(
-id,
-button
-){
-
-document
-.querySelectorAll(
-".panel"
-)
-.forEach(
-panel=>
-panel.classList.remove(
-"active"
-)
-);
-
-document
-.querySelectorAll(
-".tab"
-)
-.forEach(
-tab=>
-tab.classList.remove(
-"active"
-)
-);
-
-document
-.getElementById(
-id
-)
-.classList.add(
-"active"
-);
-
-button.classList.add(
-"active"
-);
-
-}
-
-/* =========================================================
-MONEY
-========================================================= */
-
-function changeMoney(
-amount,
-animate=true
-){
-
-money+=
-amount;
-
-if(animate){
-
-let fx=
-document.createElement(
-"div"
-);
-
-fx.className=
-"moneyFx "+
-(
-amount>=0
-?"plus"
-:"minus"
-);
-
-fx.textContent=
-(
-amount>=0
-?"+"
-:""
-)+
-moneyText(
-amount
-);
-
-document.body.appendChild(
-fx
-);
-
-setTimeout(
-()=>fx.remove(),
-1400
-);
-
-}
-
-document.getElementById(
-"money"
-)
-.textContent=
-moneyText(
-money
-);
-
-}
-
-/* =========================================================
-NOTIFY
-========================================================= */
-
-function notify(
-text
-){
-
-let div=
-document.createElement(
-"div"
-);
-
-div.className=
-"notification";
-
-div.textContent=
-text;
-
-document.getElementById(
-"notifications"
-)
-.appendChild(
-div
-);
-
-setTimeout(
-()=>div.remove(),
-4500
-);
-
-}
-
-/* =========================================================
-RENDER
-========================================================= */
 
 function render(){
-
-document.getElementById(
-"money"
-)
-.textContent=
-moneyText(
-money
-);
-
-document.getElementById(
-"storesHUD"
-)
-.textContent=
-stores.length;
-
-document.getElementById(
-"repHUD"
-)
-.textContent=
-Math.round(
-reputation
-);
-
-document.getElementById(
-"groupHUD"
-)
-.textContent=
-subsidiaries.length+
-companies.filter(
-c=>c.inGroup
-).length;
-
-document.getElementById(
-"dayHUD"
-)
-.textContent=
-day;
-
-renderNetwork();
-renderGroup();
-renderProducts();
-renderCompanies();
-renderLogistics();
-renderCompetition();
-renderFinance();
-
+ updateHud();
+ if(currentSection!=="map")renderSection();
 }
 
 /* =========================================================
-CONSOLE
+   MAP BUILD
 ========================================================= */
 
-const devConsole=
-document.getElementById(
-"console"
-);
+map.on("click",e=>{
+ if(!buildMode)return;
+ if(buildMode==="store")createStore(e.latlng.lat,e.latlng.lng);
+ if(buildMode==="center")createCenter(e.latlng.lat,e.latlng.lng);
+ buildMode=null;hideBuild();
+});
 
-const consoleInput=
-document.getElementById(
-"consoleInput"
-);
+function showBuild(t){
+ const e=document.getElementById("buildInfo");
+ e.textContent=t;e.style.display="block";
+}
+function hideBuild(){document.getElementById("buildInfo").style.display="none"}
 
-const consoleHistory=
-document.getElementById(
-"consoleHistory"
-);
+/* =========================================================
+   SAVE
+========================================================= */
 
-let consoleOpen=false;
+function saveGame(){
+ const cleanStores=stores.map(s=>({...s,marker:null}));
+ const cleanCompanies=companies.map(c=>({...c,marker:null}));
+ const cleanCenters=centers.map(c=>({...c,marker:null}));
+ const cleanCompetitors=competitors.map(c=>({
+  ...c,
+  stores:c.stores.map(s=>({...s,marker:null}))
+ }));
 
-window.addEventListener(
-"keydown",
-event=>{
-
-if(
-event.key==="`" ||
-event.key==="~"
-){
-
-event.preventDefault();
-
-consoleOpen=
-!consoleOpen;
-
-devConsole.style.display=
-consoleOpen
-?"block"
-:"none";
-
-if(consoleOpen){
-
-setTimeout(
-()=>consoleInput.focus(),
-20
-);
-
+ const data={
+  money,day,reputation,fuelPrice,maxFranchisees,maxDrivers,maxStaff,
+  stores:cleanStores,subsidiaries,companies:cleanCompanies,centers:cleanCenters,
+  drivers,trucks,franchisees,competitors:cleanCompetitors,newsFeed,
+  nextStoreId,nextSubsidiaryId,nextCompanyId,nextInvestorId,nextCenterId,
+  nextDriverId,nextTruckId,nextCompetitorId,nextCompetitorStoreId,
+  totalRevenue,totalExpenses,totalDividends
+ };
+ localStorage.setItem("ropuchaMegaSave",JSON.stringify(data));
+ notify("💾 Zapisano grę.");
 }
 
-return;
-
+function resetGame(){
+ if(confirm("Usunąć zapis i rozpocząć od nowa?")){
+  localStorage.removeItem("ropuchaMegaSave");location.reload();
+ }
 }
 
-if(
-event.key==="Escape"
-){
+/* =========================================================
+   CONSOLE ~
+========================================================= */
 
-if(consoleOpen){
+const con=document.getElementById("console");
+const conInput=document.getElementById("consoleInput");
+const conHistory=document.getElementById("consoleHistory");
+let conOpen=false;
 
-consoleOpen=false;
+window.addEventListener("keydown",e=>{
+ if(e.key==="`"||e.key==="~"){
+  e.preventDefault();conOpen=!conOpen;
+  con.style.display=conOpen?"block":"none";
+  if(conOpen)setTimeout(()=>conInput.focus(),20);
+ }else if(e.key==="Escape"){
+  if(conOpen){conOpen=false;con.style.display="none"}
+  else{buildMode=null;hideBuild()}
+ }
+});
 
-devConsole.style.display=
-"none";
+conInput.addEventListener("keydown",e=>{
+ if(e.key!=="Enter")return;
+ const cmd=conInput.value.trim();conInput.value="";
+ printCon("> "+cmd,"#fff");execute(cmd);
+});
 
-}else{
-
-buildMode=null;
-hideBuild();
-
+function printCon(t,c="#b9c9bc"){
+ const d=document.createElement("div");d.textContent=t;d.style.color=c;
+ conHistory.appendChild(d);conHistory.scrollTop=conHistory.scrollHeight;
 }
 
-}
+function execute(str){
+ const a=str.split(/\s+/),cmd=a[0]?.toLowerCase(),v=Number(a[1]);
 
-}
-);
-
-consoleInput.addEventListener(
-"keydown",
-event=>{
-
-if(
-event.key!=="Enter"
-)
-return;
-
-let command=
-consoleInput.value.trim();
-
-consoleInput.value="";
-
-if(!command)
-return;
-
-consolePrint(
-"> "+command,
-"#fff"
-);
-
-executeCommand(
-command
-);
-
-}
-);
-
-function consolePrint(
-text,
-color="#bacabd"
-){
-
-let line=
-document.createElement(
-"div"
-);
-
-line.textContent=
-text;
-
-line.style.color=
-color;
-
-consoleHistory.appendChild(
-line
-);
-
-consoleHistory.scrollTop=
-consoleHistory.scrollHeight;
-
-}
-
-function executeCommand(
-command
-){
-
-let args=
-command.split(
-/\s+/
-);
-
-let cmd=
-args[0]
-.toLowerCase();
-
-let value=
-Number(
-args[1]
-);
-
-if(
-cmd==="help"
-){
-
-consolePrint(
-`KOMENDY:
-
+ if(cmd==="help"){
+  printCon(`KOMENDY:
 kasa [kwota]
+maxstaff [liczba]
 maxfranczyzobiorcy [liczba]
 maxkierowcy [liczba]
 reputacja [0-100]
@@ -5469,418 +1206,72 @@ firma
 firmy [liczba]
 dzien
 paliwo [cena]
+sklep
 status
 save
-clear`
-);
+clear`);
+  return;
+ }
 
-return;
-
-}
-
-if(
-cmd==="kasa"
-){
-
-if(
-!Number.isFinite(
-value
-)
-)return;
-
-money=
-Math.max(
-0,
-value
-);
-
-render();
-
-return;
-
-}
-
-if(
-cmd===
-"maxfranczyzobiorcy"
-){
-
-if(
-!Number.isFinite(
-value
-)
-)return;
-
-maxFranchisees=
-Math.max(
-0,
-Math.floor(
-value
-)
-);
-
-render();
-
-return;
-
-}
-
-if(
-cmd===
-"maxkierowcy"
-){
-
-if(
-!Number.isFinite(
-value
-)
-)return;
-
-maxDrivers=
-Math.max(
-0,
-Math.floor(
-value
-)
-);
-
-render();
-
-return;
-
-}
-
-if(
-cmd==="reputacja"
-){
-
-if(
-!Number.isFinite(
-value
-)
-)return;
-
-reputation=
-Math.max(
-0,
-Math.min(
-100,
-value
-)
-);
-
-render();
-
-return;
-
-}
-
-if(
-cmd==="firma"
-){
-
-generateCompany();
-
-render();
-
-return;
-
-}
-
-if(
-cmd==="firmy"
-){
-
-let count=
-Math.max(
-1,
-Math.min(
-100,
-Math.floor(
-value||1
-)
-)
-);
-
-for(
-let i=0;
-i<count;
-i++
-){
-
-generateCompany(
-true
-);
-
-}
-
-render();
-
-return;
-
-}
-
-if(
-cmd==="dzien"
-){
-
-processDay();
-
-return;
-
-}
-
-if(
-cmd==="paliwo"
-){
-
-if(
-!Number.isFinite(
-value
-)
-)return;
-
-fuelPrice=
-Math.max(
-.1,
-value
-);
-
-render();
-
-return;
-
-}
-
-if(
-cmd==="save"
-){
-
-saveGame();
-
-return;
-
-}
-
-if(
-cmd==="status"
-){
-
-consolePrint(
-`Dzień: ${day}
-Kasa: ${moneyText(money)}
-Reputacja: ${reputation.toFixed(1)}
+ if(cmd==="kasa"&&Number.isFinite(v))money=Math.max(0,v);
+ else if(cmd==="maxstaff"&&Number.isFinite(v))maxStaff=Math.max(0,Math.floor(v));
+ else if(cmd==="maxfranczyzobiorcy"&&Number.isFinite(v))maxFranchisees=Math.max(0,Math.floor(v));
+ else if(cmd==="maxkierowcy"&&Number.isFinite(v))maxDrivers=Math.max(0,Math.floor(v));
+ else if(cmd==="reputacja"&&Number.isFinite(v))reputation=clamp(v,0,100);
+ else if(cmd==="firma"){generateCompany();render();return}
+ else if(cmd==="firmy"){
+  for(let i=0;i<clamp(Math.floor(v||1),1,100);i++)generateCompany(true);
+ }
+ else if(cmd==="dzien"){processDay();return}
+ else if(cmd==="paliwo"&&Number.isFinite(v))fuelPrice=Math.max(.1,v);
+ else if(cmd==="sklep"){
+  if(!franchisees.length)franchisees.push({id:Date.now(),name:"DEV",stores:[],skill:5});
+  const l=pick(LOCATIONS);createStore(l[2],l[3],true);return;
+ }
+ else if(cmd==="save"){saveGame();return}
+ else if(cmd==="clear"){conHistory.innerHTML="";return}
+ else if(cmd==="status"){
+  printCon(`Dzień: ${day}
+Kasa: ${cash(money)}
+Wartość grupy: ${cash(groupValue())}
 Sklepy: ${stores.length}
 Spółki córki: ${subsidiaries.length}
-Firmy w grupie: ${companies.filter(c=>c.inGroup).length}
-Firmy 100%: ${companies.filter(c=>c.acquired).length}
-Franczyzobiorcy: ${franchisees.length}/${maxFranchisees}
+Producenci: ${companies.length}
+Konkurenci: ${competitors.filter(c=>!c.acquired).length}
 Centra: ${centers.length}
-Kierowcy: ${drivers.length}/${maxDrivers}
-Ciężarówki: ${trucks.length}
-Trasy: ${routes.length}
-Kontrakty: ${contracts.length}`
-);
+Kierowcy: ${drivers.length}/${maxDrivers}`);
+  return;
+ }else{
+  printCon("Nieznana komenda. Wpisz help.","#ff7070");return;
+ }
 
-return;
-
-}
-
-if(
-cmd==="clear"
-){
-
-consoleHistory.innerHTML="";
-
-return;
-
-}
-
-consolePrint(
-"Nieznana komenda. Wpisz help.",
-"#ff6969"
-);
-
+ render();
 }
 
 /* =========================================================
-UTILS
+   START WORLD
 ========================================================= */
 
-const firstNames=[
-"Adam","Marek","Kamil",
-"Julia","Ola","Natalia",
-"Karolina","Michał",
-"Patryk","Bartek",
-"Anna","Piotr"
-];
+for(let i=0;i<22;i++)generateCompany(true);
+COMP_NAMES.forEach(n=>makeCompetitor(n));
 
-const lastNames=[
-"Nowak","Kowalski",
-"Lis","Król","Mazur",
-"Wójcik","Zieliński",
-"Kaczmarek","Lewandowski"
-];
-
-function random(
-min,
-max
-){
-
-return Math.floor(
-Math.random()*
-(
-max-min+1
-)
-)+min;
-
-}
-
-function randomFloat(
-min,
-max
-){
-
-return (
-Math.random()*
-(
-max-min
-)
-)+min;
-
-}
-
-function choice(
-array
-){
-
-return array[
-Math.floor(
-Math.random()*
-array.length
-)
-];
-
-}
-
-function randomName(){
-
-return (
-choice(
-firstNames
-)+
-" "+
-choice(
-lastNames
-)
-);
-
-}
-
-function getProduct(
-id
-){
-
-return productCatalog.find(
-x=>x.id===id
-);
-
-}
-
-function moneyText(
-value
-){
-
-return Math.round(
-value
-)
-.toLocaleString(
-"pl-PL"
-)+
-" zł";
-
-}
-
-function number(
-value
-){
-
-return Math.round(
-value
-)
-.toLocaleString(
-"pl-PL"
-);
-
-}
-
-function escapeHtmlAttribute(
-value
-){
-
-return String(
-value
-)
-.replaceAll(
-"&",
-"&amp;"
-)
-.replaceAll(
-'"',
-"&quot;"
-)
-.replaceAll(
-"<",
-"&lt;"
-)
-.replaceAll(
-">",
-"&gt;"
-);
-
-}
-
-function escapeJs(
-value
-){
-
-return String(
-value
-)
-.replaceAll(
-"\\",
-"\\\\"
-)
-.replaceAll(
-"'",
-"\\'"
-);
-
-}
-
-/* =========================================================
-START
-========================================================= */
+addNews("🐸 Ropucha Group rozpoczyna działalność z kapitałem 500 000 zł.");
+addNews("⚔️ Konkurencyjne sieci rozpoczęły ekspansję.");
+addNews("🏭 Na świecie działają niezależni producenci żywności.");
 
 render();
 
-setInterval(
-processDay,
-DAY_TIME
-);
+setInterval(processDay,DAY_TIME);
 
-notify(
-"🐸 Ropucha Group wystartowała."
-);
+setInterval(()=>{
+ if(companies.length<150){
+  generateCompany();
+  render();
+ }
+},45000);
 
-notify(
-"💰 Kapitał: 500 000 zł"
-);
-
-notify(
-"🏛️ Możesz tworzyć własne spółki córki."
-);
-
+notify("🐸 Ropucha Group wystartowała.");
+notify("💰 Kapitał początkowy: 500 000 zł");
 </script>
 
 </body>
