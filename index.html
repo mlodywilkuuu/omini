@@ -386,7 +386,7 @@ input,select{
 </head>
 
 <body>
-<div id="buildBadge" style="position:fixed;right:10px;bottom:10px;z-index:999999;background:#163522;border:1px solid #4f8a62;color:#dff7e6;padding:7px 10px;border-radius:10px;font:700 11px system-ui;box-shadow:0 4px 18px #0006">BUILD 2026-10-06 • INTEGRATED ECONOMY V1</div>
+<div id="buildBadge" style="position:fixed;right:10px;bottom:10px;z-index:999999;background:#163522;border:1px solid #4f8a62;color:#dff7e6;padding:7px 10px;border-radius:10px;font:700 11px system-ui;box-shadow:0 4px 18px #0006">BUILD 2026-10-06 • MENU ROUTER FIX V2</div>
 
 <div id="map"></div>
 
@@ -430,7 +430,10 @@ input,select{
 </button>
 
 <button class="nav" onclick="openSection('factories',this)">
-<button class="nav" onclick="openSection('supply',this)"><span>📦</span>Produkcja i dostawy</button><span>🏭</span>Własne fabryki</button>
+<span>🏭</span>Własne fabryki</button>
+<button class="nav" onclick="openSection('supply',this)"><span>📦</span>Produkcja i dostawy</button>
+<button class="nav" onclick="openSection('finance2',this)"><span>💰</span>Finanse grupy</button>
+<button class="nav" onclick="openSection('acquisitions',this)"><span>🤝</span>Przejęcia i udziały</button>
 <button class="nav" onclick="openSection('producers',this)">
 <span>🏭</span>Producenci
 </button>
@@ -455,8 +458,8 @@ input,select{
 <span>💰</span>Finanse
 </button>
 
-<button class="nav" onclick="openSection('finance2',this)"><span>💰</span>Finanse grupy</button>
-<button class="nav" onclick="openSection('acquisitions',this)"><span>🤝</span>Przejęcia i udziały</button>
+
+
 <button class="nav" onclick="openSection('news',this)">
 <span>📰</span>Wiadomości
 </button>
@@ -5959,6 +5962,14 @@ function openSection(
  sec,
  button
 ){
+ // FIX MENU V2: nowe sekcje mają własne renderery i nie wpadają do starego routera.
+ try{
+   const sec = arguments[0];
+   if(sec==="supply" && window.ECONOMY_API){ current=sec; ECONOMY_API.show(); return; }
+   if(sec==="finance2" && window.ECONOMY_API){ current=sec; ECONOMY_API.showFinance(); return; }
+   if(sec==="acquisitions" && window.MA_API){ current=sec; MA_API.show(); return; }
+ }catch(e){ console.error("menu route fix",e); }
+
 
  current=sec;
 
@@ -10468,6 +10479,40 @@ setInterval(()=>document.querySelectorAll(".nav,button").forEach(el=>{
      if(typeof current!=="undefined"&&current==="finance2")renderFinance();
    }
  },700);
+})();
+</script>
+
+
+<script>
+/* ===== MENU CLICK FIX v2 ===== */
+(function(){
+ const routes={
+   supply:()=>window.ECONOMY_API&&ECONOMY_API.show(),
+   finance2:()=>window.ECONOMY_API&&ECONOMY_API.showFinance(),
+   acquisitions:()=>window.MA_API&&MA_API.show()
+ };
+ document.addEventListener("click",function(e){
+   const b=e.target.closest("button.nav");
+   if(!b)return;
+   const oc=b.getAttribute("onclick")||"";
+   const m=oc.match(/openSection\(['"]([^'"]+)/);
+   if(!m||!routes[m[1]])return;
+   e.preventDefault();e.stopImmediatePropagation();
+   try{window.current=m[1]}catch(_){}
+   try{current=m[1]}catch(_){}
+   routes[m[1]]();
+   document.querySelectorAll("button.nav").forEach(x=>x.classList.remove("active"));
+   b.classList.add("active");
+ },true);
+
+ // Usuń każdy naprawdę pusty przycisk w menu po parsowaniu DOM.
+ function clean(){
+   document.querySelectorAll("button.nav").forEach(b=>{
+     if(!(b.textContent||"").trim() && !(b.querySelector("svg,img"))) b.remove();
+   });
+ }
+ clean();
+ new MutationObserver(clean).observe(document.body,{childList:true,subtree:true});
 })();
 </script>
 
