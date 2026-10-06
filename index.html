@@ -1,0 +1,4518 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>StreamForge Simulator</title>
+
+<style>
+:root{
+ --bg:#070a0f;
+ --side:#0b1017;
+ --panel:#101720;
+ --panel2:#151e29;
+ --line:#263344;
+ --txt:#eef4fa;
+ --mut:#8f9caf;
+ --red:#ff4058;
+ --green:#39d98a;
+ --yellow:#ffc857;
+ --blue:#55a8ff;
+ --purple:#a47cff
+}
+
+*{box-sizing:border-box}
+
+body{
+ margin:0;
+ background:var(--bg);
+ color:var(--txt);
+ font:14px system-ui,Arial;
+}
+
+.app{
+ display:grid;
+ grid-template-columns:250px 1fr;
+ min-height:100vh;
+}
+
+aside{
+ background:var(--side);
+ border-right:1px solid var(--line);
+ padding:17px 12px;
+ height:100vh;
+ overflow:auto;
+ position:sticky;
+ top:0;
+}
+
+.logo{
+ font-size:21px;
+ font-weight:900;
+ margin:5px 8px 20px;
+}
+
+.logo b{color:var(--red)}
+
+.small{
+ font-size:11px;
+ color:var(--mut);
+}
+
+.nav{
+ width:100%;
+ border:0;
+ background:transparent;
+ color:#aab6c5;
+ padding:10px 11px;
+ margin:2px 0;
+ border-radius:9px;
+ text-align:left;
+ cursor:pointer;
+}
+
+.nav span{
+ display:inline-block;
+ width:27px;
+}
+
+.nav:hover,
+.nav.active{
+ background:#1b2633;
+ color:white;
+}
+
+main{
+ min-width:0;
+}
+
+.top{
+ min-height:68px;
+ border-bottom:1px solid var(--line);
+ background:#0b1017;
+ padding:10px 20px;
+ display:flex;
+ align-items:center;
+ justify-content:space-between;
+ gap:10px;
+ position:sticky;
+ top:0;
+ z-index:10;
+}
+
+.topstats,
+.row{
+ display:flex;
+ gap:8px;
+ align-items:center;
+ flex-wrap:wrap;
+}
+
+.pill{
+ background:#151e29;
+ border:1px solid var(--line);
+ border-radius:10px;
+ padding:8px 11px;
+}
+
+.content{
+ padding:22px;
+ max-width:1500px;
+ margin:auto;
+}
+
+.hero{
+ padding:20px;
+ border-radius:17px;
+ border:1px solid #343246;
+ background:linear-gradient(135deg,#1c1929,#111923);
+ margin-bottom:14px;
+}
+
+.grid{
+ display:grid;
+ grid-template-columns:repeat(auto-fit,minmax(205px,1fr));
+ gap:11px;
+ margin:12px 0;
+}
+
+.card{
+ background:var(--panel);
+ border:1px solid var(--line);
+ border-radius:13px;
+ padding:14px;
+ margin-bottom:10px;
+}
+
+.card h2,
+.card h3{
+ margin-top:3px;
+}
+
+.mut{color:var(--mut)}
+.good{color:var(--green)}
+.bad{color:#ff7183}
+.warn{color:var(--yellow)}
+.blue{color:var(--blue)}
+
+.btn{
+ border:1px solid #3a495d;
+ background:#202c3a;
+ color:white;
+ padding:9px 11px;
+ border-radius:9px;
+ cursor:pointer;
+}
+
+.btn:hover{
+ filter:brightness(1.15);
+}
+
+.btn:disabled{
+ opacity:.4;
+ cursor:not-allowed;
+}
+
+.primary{
+ background:var(--red);
+ border-color:var(--red);
+ font-weight:800;
+}
+
+.goodbtn{
+ background:#16734b;
+ border-color:#239963;
+}
+
+input,
+select{
+ background:#0b1119;
+ color:white;
+ border:1px solid #354458;
+ border-radius:8px;
+ padding:8px;
+}
+
+table{
+ width:100%;
+ border-collapse:collapse;
+ background:var(--panel);
+ border-radius:12px;
+ overflow:hidden;
+}
+
+th,td{
+ padding:10px;
+ border-bottom:1px solid var(--line);
+ text-align:left;
+}
+
+th{
+ color:#aab7c7;
+}
+
+.tag{
+ display:inline-block;
+ border:1px solid #3a4a5f;
+ border-radius:20px;
+ padding:3px 7px;
+ margin:2px;
+ font-size:11px;
+}
+
+.bar{
+ height:8px;
+ background:#222c39;
+ border-radius:20px;
+ overflow:hidden;
+ margin:7px 0;
+}
+
+.bar i{
+ display:block;
+ height:100%;
+ background:var(--red);
+}
+
+.notice{
+ border-left:4px solid var(--yellow);
+}
+
+.danger{
+ border-left:4px solid #ff536b;
+}
+
+.success{
+ border-left:4px solid var(--green);
+}
+
+h1{
+ margin-top:0;
+}
+
+@media(max-width:800px){
+ .app{grid-template-columns:1fr}
+ aside{
+   position:relative;
+   height:auto;
+ }
+ .top{
+   position:relative;
+ }
+ .content{
+   padding:12px;
+ }
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<aside>
+
+<div class="logo">
+▶ <b>Stream</b>Forge
+<div class="small">VIDEO PLATFORM TYCOON</div>
+</div>
+
+<button class="nav active" data-page="dashboard">
+<span>📊</span>Dashboard
+</button>
+
+<button class="nav" data-page="startup">
+<span>🚀</span>Start i MVP
+</button>
+
+<button class="nav" data-page="staff">
+<span>👥</span>Pracownicy
+</button>
+
+<button class="nav" data-page="departments">
+<span>🏢</span>Działy firmy
+</button>
+
+<button class="nav" data-page="projects">
+<span>📋</span>Projekty
+</button>
+
+<button class="nav" data-page="research">
+<span>🧪</span>Badania
+</button>
+
+<button class="nav" data-page="maintenance">
+<span>🛠️</span>Technicy
+</button>
+
+<button class="nav" data-page="infrastructure">
+<span>🖥️</span>Infrastruktura
+</button>
+
+<button class="nav" data-page="products">
+<span>📱</span>Produkty
+</button>
+
+<button class="nav" data-page="creators">
+<span>🎬</span>Twórcy
+</button>
+
+<button class="nav" data-page="partners">
+<span>🤝</span>Program partnerski
+</button>
+
+<button class="nav" data-page="algorithm">
+<span>🤖</span>Algorytm
+</button>
+
+<button class="nav" data-page="monetization">
+<span>💎</span>Monetyzacja
+</button>
+
+<button class="nav" data-page="markets">
+<span>🌍</span>Ekspansja
+</button>
+
+<button class="nav" data-page="competition">
+<span>🏦</span>Firmy i udziały
+</button>
+
+<button class="nav" data-page="holding">
+<span>🏛️</span>Holding i spółki córki
+</button>
+
+<button class="nav" data-page="investors">
+<span>💼</span>Inwestorzy
+</button>
+
+<button class="nav" data-page="analytics">
+<span>📈</span>Analityka
+</button>
+
+<button class="nav" data-page="achievements">
+<span>🏆</span>Osiągnięcia
+</button>
+
+<button class="nav" data-page="history">
+<span>📜</span>Historia firmy
+</button>
+
+<button class="nav" data-page="finance">
+<span>💰</span>Finanse
+</button>
+
+<button class="nav" data-page="decisions">
+<span>🔔</span>Decyzje
+</button>
+
+</aside>
+
+<main>
+
+<div class="top">
+
+<b id="date"></b>
+
+<div class="topstats">
+
+<div class="pill">
+💰 <b id="money"></b>
+</div>
+
+<div class="pill">
+👥 <b id="users"></b>
+</div>
+
+<div class="pill">
+⭐ <b id="rep"></b>
+</div>
+
+<button class="btn" onclick="changeSpeed()">
+⏩ <span id="speed"></span>
+</button>
+
+<button class="btn" onclick="saveGame()">
+💾
+</button>
+
+</div>
+
+</div>
+
+<div id="panel" class="content"></div>
+
+</main>
+
+</div>
+
+<script>
+
+/* ================================
+   PODSTAWOWE FUNKCJE
+================================ */
+
+const fmt=n=>
+ Math.round(Number(n)||0)
+ .toLocaleString("pl-PL");
+
+const rnd=(a,b)=>
+ Math.floor(Math.random()*(b-a+1))+a;
+
+const pick=a=>
+ a[Math.floor(Math.random()*a.length)];
+
+const clamp=(v,a,b)=>
+ Math.max(a,Math.min(b,v));
+
+const uid=()=>G.nextId++;
+
+
+/* ================================
+   NOWA GRA
+================================ */
+
+function fresh(){
+
+ return{
+
+  day:1,
+  month:1,
+  year:2026,
+
+  nextId:1,
+
+  speed:1,
+
+  money:250000,
+
+  launched:false,
+
+  users:0,
+  dau:0,
+
+  creators:[],
+
+  totalVideos:0,
+
+  reputation:10,
+
+  version:"0.1 Alpha",
+
+  staff:[],
+
+  candidates:[],
+
+  projects:[],
+
+  technologies:[],
+
+  unlocked:[],
+
+  devPoints:0,
+
+  techLevel:1,
+
+  bugs:0,
+
+  stability:70,
+
+  security:50,
+
+  recommendation:10,
+
+  serverCount:1,
+
+  serverCapacity:2000,
+
+  serverHealth:100,
+
+  cloudCapacity:0,
+
+  storage:5,
+
+  premiumPrice:19.99,
+
+  premiumUsers:0,
+
+  adCPM:5,
+
+  adIntensity:2,
+
+  creatorShare:55,
+
+  partnerMinSubs:1000,
+
+  countries:["Polska"],
+
+  officeLevel:1,
+
+  officeCapacity:8,
+
+  competitors:[
+   {
+    name:"Viewly",
+    users:120000,
+    tech:15,
+    reputation:45
+   },
+   {
+    name:"Clipster",
+    users:65000,
+    tech:12,
+    reputation:38
+   },
+   {
+    name:"VibeVideo",
+    users:30000,
+    tech:9,
+    reputation:33
+   }
+  ],
+
+  products:{
+   Web:{level:1,quality:45,bugs:0,unlocked:true},
+   Android:{level:0,quality:0,bugs:0,unlocked:false},
+   iOS:{level:0,quality:0,bugs:0,unlocked:false},
+   "Smart TV":{level:0,quality:0,bugs:0,unlocked:false}
+  },
+
+  trend:"Vlogi",
+
+  worldEvent:"Brak",
+
+  companyShares:100,
+
+  valuation:250000,
+
+  debt:0,
+
+  ledger:[],
+
+  history:[],
+
+  decisions:[],
+
+  achievements:[],
+
+  outages:[],
+
+  creatorDeals:[],
+
+  lastCandidateDay:0,
+
+  lastTechDay:0,
+
+  lastWorldEvent:0,
+
+  lastCreatorDay:0
+
+ };
+
+}
+
+let G;
+
+try{
+
+ G=
+ JSON.parse(
+  localStorage.getItem(
+   "streamforge-mega"
+  )
+ )
+ || fresh();
+
+}catch(e){
+
+ G=fresh();
+
+}
+
+const base=fresh();
+
+for(const k in base){
+
+ if(G[k]===undefined)
+  G[k]=base[k];
+
+}
+
+
+/* ================================
+   PRACOWNICY
+================================ */
+
+const roles={
+
+ "Programista":{
+  salary:8500,
+  department:"Development",
+  dev:8,
+  research:2,
+  repair:2
+ },
+
+ "Badacz R&D":{
+  salary:9500,
+  department:"R&D",
+  dev:2,
+  research:10,
+  repair:0
+ },
+
+ "Technik":{
+  salary:7000,
+  department:"Techniczny",
+  dev:1,
+  research:1,
+  repair:10
+ },
+
+ "Administrator":{
+  salary:8000,
+  department:"Techniczny",
+  dev:1,
+  research:1,
+  repair:8
+ },
+
+ "Designer UI/UX":{
+  salary:7200,
+  department:"Design",
+  dev:5,
+  research:2,
+  repair:0
+ },
+
+ "Moderator":{
+  salary:5200,
+  department:"Moderacja",
+  dev:0,
+  research:0,
+  repair:0
+ },
+
+ "Marketing":{
+  salary:6800,
+  department:"Marketing",
+  dev:0,
+  research:1,
+  repair:0
+ },
+
+ "Creator Manager":{
+  salary:7500,
+  department:"Creator Relations",
+  dev:0,
+  research:1,
+  repair:0
+ },
+
+ "Sprzedaż reklam":{
+  salary:7800,
+  department:"Sprzedaż",
+  dev:0,
+  research:0,
+  repair:0
+ },
+
+ "Cybersecurity":{
+  salary:10500,
+  department:"Security",
+  dev:2,
+  research:4,
+  repair:3
+ },
+
+ "HR":{
+  salary:6500,
+  department:"HR",
+  dev:0,
+  research:0,
+  repair:0
+ }
+
+};
+
+const perks=[
+
+ "Badacz",
+ "Wizjoner",
+ "Technik",
+ "Serwisant",
+ "Administrator",
+ "Optymalizator",
+ "Debuger",
+ "Architekt",
+ "Growth Hacker",
+ "Negocjator",
+ "Cyber Expert",
+ "Lider",
+ "Szybki uczeń"
+
+];
+
+const perkBonus={
+
+ "Badacz":{
+  research:4
+ },
+
+ "Wizjoner":{
+  research:7
+ },
+
+ "Technik":{
+  repair:3
+ },
+
+ "Serwisant":{
+  repair:6
+ },
+
+ "Administrator":{
+  repair:4
+ },
+
+ "Optymalizator":{
+  repair:3,
+  dev:2
+ },
+
+ "Debuger":{
+  repair:4,
+  dev:2
+ },
+
+ "Architekt":{
+  dev:6
+ },
+
+ "Growth Hacker":{},
+
+ "Negocjator":{},
+
+ "Cyber Expert":{
+  research:3,
+  repair:2
+ },
+
+ "Lider":{
+  dev:2,
+  research:2,
+  repair:2
+ },
+
+ "Szybki uczeń":{
+  dev:1,
+  research:1,
+  repair:1
+ }
+
+};
+
+const firstNames=[
+ "Maja","Julia","Zofia","Lena","Oliwia",
+ "Kacper","Jakub","Michał","Adam","Filip",
+ "Emilia","Natalia","Igor","Antoni","Amelia"
+];
+
+const lastNames=[
+ "Nowak","Kowalski","Wiśniewski",
+ "Wójcik","Kamiński","Lewandowski",
+ "Zieliński","Szymański","Woźniak"
+];
+
+function employeeLevel(e){
+
+ if(e.exp>=100)
+  return "Lead";
+
+ if(e.exp>=60)
+  return "Senior";
+
+ if(e.exp>=25)
+  return "Mid";
+
+ return "Junior";
+
+}
+
+function levelBonus(e){
+
+ const l=employeeLevel(e);
+
+ if(l==="Lead")return 1.65;
+ if(l==="Senior")return 1.4;
+ if(l==="Mid")return 1.18;
+
+ return 1;
+
+}
+
+function staffPower(type){
+
+ return G.staff.reduce(
+  (sum,e)=>{
+
+   const role=
+    roles[e.role]?.[type]||0;
+
+   const perk=
+    perkBonus[e.perk]?.[type]||0;
+
+   return sum+
+    (role+perk)*
+    levelBonus(e)*
+    (.6+e.skill/100);
+
+  },0
+ );
+
+}
+
+function generateCandidates(){
+
+ const count=rnd(4,7);
+
+ for(let i=0;i<count;i++){
+
+  const role=
+   pick(Object.keys(roles));
+
+  const skill=
+   rnd(35,95);
+
+  const salary=
+   Math.round(
+    roles[role].salary*
+    (.75+skill/130)
+    /100
+   )*100;
+
+  G.candidates.push({
+
+   id:uid(),
+
+   name:
+    pick(firstNames)+" "+
+    pick(lastNames),
+
+   role,
+
+   perk:pick(perks),
+
+   skill,
+
+   salary,
+
+   exp:rnd(0,18)
+
+  });
+
+ }
+
+ G.candidates=
+  G.candidates.slice(-25);
+
+ G.lastCandidateDay=
+  absoluteDay();
+
+}
+
+function hire(id){
+
+ if(
+  G.staff.length>=
+  G.officeCapacity
+ ){
+
+  alert(
+   "Brak miejsca w biurze."
+  );
+
+  return;
+
+ }
+
+ const c=
+  G.candidates.find(
+   x=>x.id===id
+  );
+
+ if(!c)return;
+
+ if(G.money<c.salary){
+
+  alert(
+   "Za mało pieniędzy."
+  );
+
+  return;
+
+ }
+
+ cash(
+  -c.salary,
+  "HR",
+  "Rekrutacja "+c.name
+ );
+
+ G.staff.push({...c});
+
+ G.candidates=
+  G.candidates.filter(
+   x=>x.id!==id
+  );
+
+ addHistory(
+  "Zatrudniono "+c.name+
+  " — "+c.role
+ );
+
+ render();
+
+}
+
+function fireEmployee(id){
+
+ G.staff=
+  G.staff.filter(
+   x=>x.id!==id
+  );
+
+ render();
+
+}
+
+
+/* ================================
+   DZIAŁY
+================================ */
+
+function departmentData(){
+
+ const d={};
+
+ G.staff.forEach(e=>{
+
+  const name=
+   roles[e.role].department;
+
+  if(!d[name])
+   d[name]=[];
+
+  d[name].push(e);
+
+ });
+
+ return d;
+
+}
+
+
+/* ================================
+   TECHNOLOGIE
+================================ */
+
+const techPrefix=[
+ "Adaptive","Neural","Quantum",
+ "Smart","Hyper","Edge","Cloud",
+ "Auto","Creator","Stream",
+ "Vision","Safe","Dynamic"
+];
+
+const techCore=[
+ "Codec","Streaming","CDN",
+ "Search","Discovery","Upload",
+ "Compression","Security",
+ "Moderation","Recommendations",
+ "Analytics","Creator Tools",
+ "Transcoding","Player"
+];
+
+const techCategories=[
+ "Streaming",
+ "AI",
+ "Security",
+ "Creator",
+ "Infrastructure",
+ "Applications"
+];
+
+function generateTechnology(){
+
+ let name;
+
+ do{
+
+  name=
+   pick(techPrefix)+" "+
+   pick(techCore)+" "+
+   rnd(1,20);
+
+ }while(
+  G.technologies.some(
+   x=>x.name===name
+  )
+ );
+
+ const difficulty=
+  Math.round(
+   rnd(80,170)*
+   (
+    1+
+    G.techLevel*.12
+   )
+  );
+
+ G.technologies.push({
+
+  id:uid(),
+
+  name,
+
+  category:
+   pick(techCategories),
+
+  difficulty,
+
+  progress:0,
+
+  done:false,
+
+  level:G.techLevel
+
+ });
+
+ G.lastTechDay=
+  absoluteDay();
+
+}
+
+function researchTick(){
+
+ const power=
+  staffPower("research");
+
+ const tech=
+  G.technologies.find(
+   x=>!x.done
+  );
+
+ if(
+  !tech ||
+  power<=0
+ )
+ return;
+
+ tech.progress+=
+  power/7;
+
+ if(
+  tech.progress>=
+  tech.difficulty
+ ){
+
+  tech.progress=
+   tech.difficulty;
+
+  tech.done=true;
+
+  G.techLevel++;
+
+  G.reputation+=2;
+
+  G.unlocked.push(
+   tech.name
+  );
+
+  if(
+   tech.category===
+   "Infrastructure"
+  ){
+
+   G.serverCapacity=
+    Math.round(
+     G.serverCapacity*1.12
+    );
+
+  }
+
+  if(
+   tech.category==="Security"
+  ){
+
+   G.security=
+    clamp(
+     G.security+8,
+     0,
+     100
+    );
+
+  }
+
+  if(
+   tech.category==="AI"
+  ){
+
+   G.recommendation=
+    clamp(
+     G.recommendation+6,
+     0,
+     100
+    );
+
+  }
+
+  addHistory(
+   "Opracowano technologię: "+
+   tech.name
+  );
+
+  addDecision(
+   "Nowa technologia",
+   tech.name+
+   " została opracowana automatycznie."
+  );
+
+ }
+
+}
+
+
+/* ================================
+   PROJEKTY
+================================ */
+
+const projectTypes={
+
+ "Nowy player":{
+  cost:35000,
+  work:100,
+  rep:4
+ },
+
+ "Aplikacja Android":{
+  cost:70000,
+  work:180,
+  rep:8,
+  product:"Android"
+ },
+
+ "Aplikacja iOS":{
+  cost:80000,
+  work:200,
+  rep:8,
+  product:"iOS"
+ },
+
+ "Smart TV":{
+  cost:110000,
+  work:250,
+  rep:10,
+  product:"Smart TV"
+ },
+
+ "Transmisje Live":{
+  cost:100000,
+  work:220,
+  rep:10
+ },
+
+ "Short Videos":{
+  cost:90000,
+  work:190,
+  rep:9
+ },
+
+ "Nowy wygląd":{
+  cost:40000,
+  work:110,
+  rep:5
+ },
+
+ "AI Moderation":{
+  cost:160000,
+  work:320,
+  rep:10
+ }
+
+};
+
+function startProject(name){
+
+ const p=
+  projectTypes[name];
+
+ if(!p)return;
+
+ if(G.money<p.cost){
+
+  alert(
+   "Za mało pieniędzy."
+  );
+
+  return;
+
+ }
+
+ cash(
+  -p.cost,
+  "Projekt",
+  name
+ );
+
+ G.projects.push({
+
+  id:uid(),
+
+  name,
+
+  work:p.work,
+
+  progress:0,
+
+  rep:p.rep,
+
+  product:p.product||null,
+
+  done:false
+
+ });
+
+ render();
+
+}
+
+function projectsTick(){
+
+ const power=
+  staffPower("dev");
+
+ G.devPoints+=
+  power/15;
+
+ const p=
+  G.projects.find(
+   x=>!x.done
+  );
+
+ if(
+  !p ||
+  power<=0
+ )
+ return;
+
+ p.progress+=
+  power/9;
+
+ if(
+  p.progress>=p.work
+ ){
+
+  p.progress=p.work;
+
+  p.done=true;
+
+  G.reputation+=p.rep;
+
+  if(p.product){
+
+   G.products[p.product]
+   .unlocked=true;
+
+   G.products[p.product]
+   .level=1;
+
+   G.products[p.product]
+   .quality=50;
+
+  }
+
+  addHistory(
+   "Ukończono projekt: "+
+   p.name
+  );
+
+ }
+
+}
+
+
+/* ================================
+   TECHNICY / AWARIE
+================================ */
+
+function technicalTick(){
+
+ const repair=
+  staffPower("repair");
+
+ if(repair>0){
+
+  G.bugs=
+   Math.max(
+    0,
+    G.bugs-repair/18
+   );
+
+  G.stability=
+   clamp(
+    G.stability+
+    repair/140,
+    0,
+    100
+   );
+
+  G.serverHealth=
+   clamp(
+    G.serverHealth+
+    repair/180,
+    0,
+    100
+   );
+
+ }
+
+ G.outages.forEach(o=>{
+
+  if(!o.fixed){
+
+   o.progress+=
+    repair/8;
+
+   if(o.progress>=100){
+
+    o.progress=100;
+    o.fixed=true;
+
+    addHistory(
+     "Naprawiono awarię: "+
+     o.name
+    );
+
+   }
+
+  }
+
+ });
+
+}
+
+function randomOutage(){
+
+ if(!G.launched)return;
+
+ let risk=
+  .01;
+
+ risk+=
+  (100-G.serverHealth)/4000;
+
+ risk+=
+  G.bugs/5000;
+
+ if(
+  Math.random()<risk
+ ){
+
+  const name=
+   pick([
+    "Awaria CDN",
+    "Problemy z uploadem",
+    "Awaria playera",
+    "Problemy z bazą danych",
+    "Awaria API",
+    "Problemy z logowaniem"
+   ]);
+
+  G.outages.push({
+
+   id:uid(),
+
+   name,
+
+   progress:0,
+
+   fixed:false
+
+  });
+
+  G.reputation=
+   Math.max(
+    0,
+    G.reputation-2
+   );
+
+  addDecision(
+   "Awaria",
+   name+
+   ". Technicy rozpoczęli automatyczną naprawę."
+  );
+
+ }
+
+}
+
+
+/* ================================
+   TWÓRCY
+================================ */
+
+const channelA=[
+ "Tech","Game","Daily","Pixel",
+ "Mega","Neo","Pro","Studio",
+ "Crazy","World","Epic","Next"
+];
+
+const channelB=[
+ "Zone","TV","Hub","Play",
+ "Lab","Show","Life","Gaming",
+ "Vision","Channel","Media"
+];
+
+const categories=[
+ "Gaming",
+ "Technologia",
+ "Muzyka",
+ "Vlogi",
+ "Edukacja",
+ "Sport",
+ "Rozrywka",
+ "News"
+];
+
+function createCreator(){
+
+ const subs=
+  rnd(0,Math.max(
+   10,
+   Math.round(
+    G.users*.05
+   )
+  ));
+
+ G.creators.push({
+
+  id:uid(),
+
+  name:
+   pick(channelA)+
+   pick(channelB),
+
+  category:
+   pick(categories),
+
+  subs,
+
+  views:rnd(0,subs*10+100),
+
+  loyalty:rnd(45,95),
+
+  quality:rnd(30,95),
+
+  partner:false,
+
+  videos:rnd(1,20)
+
+ });
+
+}
+
+function creatorsTick(){
+
+ if(!G.launched)return;
+
+ if(
+  absoluteDay()-
+  G.lastCreatorDay>=3
+ ){
+
+  const amount=
+   Math.max(
+    1,
+    Math.floor(
+     G.users/5000
+    )
+   );
+
+  for(
+   let i=0;
+   i<Math.min(amount,5);
+   i++
+  ){
+
+   createCreator();
+
+  }
+
+  G.lastCreatorDay=
+   absoluteDay();
+
+ }
+
+ G.creators.forEach(c=>{
+
+  let growth=
+   rnd(0,5)+
+   G.recommendation/20;
+
+  if(c.category===G.trend)
+   growth*=2;
+
+  c.subs+=growth;
+
+  c.views+=
+   growth*rnd(5,30);
+
+  if(
+   Math.random()<.003
+  ){
+
+   const viral=
+    rnd(
+     1000,
+     Math.max(
+      2000,
+      Math.round(
+       G.users*.4
+      )
+     )
+    );
+
+   c.views+=viral;
+
+   c.subs+=
+    Math.round(
+     viral*.03
+    );
+
+   G.users+=
+    Math.round(
+     viral*.015
+    );
+
+   addDecision(
+    "🔥 Viral",
+    c.name+
+    " opublikował viralowy film: "+
+    fmt(viral)+
+    " dodatkowych wyświetleń."
+   );
+
+   addHistory(
+    "Viral na kanale "+
+    c.name
+   );
+
+  }
+
+ });
+
+ G.totalVideos=
+  G.creators.reduce(
+   (a,c)=>a+c.videos,
+   0
+  );
+
+}
+
+
+/* ================================
+   PROGRAM PARTNERSKI TWÓRCÓW
+================================ */
+
+function togglePartner(id){
+
+ const c=
+  G.creators.find(
+   x=>x.id===id
+  );
+
+ if(!c)return;
+
+ if(
+  !c.partner &&
+  c.subs<G.partnerMinSubs
+ ){
+
+  alert(
+   "Kanał nie spełnia wymagań."
+  );
+
+  return;
+
+ }
+
+ c.partner=
+  !c.partner;
+
+ render();
+
+}
+
+
+/* ================================
+   INFRASTRUKTURA
+================================ */
+
+function ownCapacity(){
+
+ return(
+  G.serverCount*
+  G.serverCapacity
+ );
+
+}
+
+function totalCapacity(){
+
+ return(
+  ownCapacity()+
+  G.cloudCapacity
+ );
+
+}
+
+function serverLoad(){
+
+ if(!G.launched)
+  return 0;
+
+ return clamp(
+  G.users/
+  Math.max(
+   1,
+   totalCapacity()
+  )*100,
+  0,
+  300
+ );
+
+}
+
+function buyServer(){
+
+ if(G.money<60000){
+
+  alert(
+   "Za mało pieniędzy."
+  );
+
+  return;
+
+ }
+
+ cash(
+  -60000,
+  "Infrastruktura",
+  "Nowy serwer"
+ );
+
+ G.serverCount++;
+
+ render();
+
+}
+
+function addCloud(){
+
+ G.cloudCapacity+=5000;
+
+ render();
+
+}
+
+function removeCloud(){
+
+ G.cloudCapacity=
+  Math.max(
+   0,
+   G.cloudCapacity-5000
+  );
+
+ render();
+
+}
+
+
+/* ================================
+   BIURO
+================================ */
+
+function upgradeOffice(){
+
+ const cost=
+  G.officeLevel*
+  80000;
+
+ if(G.money<cost){
+
+  alert(
+   "Za mało pieniędzy."
+  );
+
+  return;
+
+ }
+
+ cash(
+  -cost,
+  "Biuro",
+  "Rozbudowa biura"
+ );
+
+ G.officeLevel++;
+
+ G.officeCapacity+=10;
+
+ addHistory(
+  "Rozbudowano biuro do poziomu "+
+  G.officeLevel
+ );
+
+ render();
+
+}
+
+
+/* ================================
+   START PLATFORMY
+================================ */
+
+function canLaunch(){
+
+ return(
+  G.staff.some(
+   x=>x.role==="Programista"
+  )
+  &&
+  G.devPoints>=60
+  &&
+  G.stability>=60
+ );
+
+}
+
+function launchPlatform(){
+
+ if(G.launched)return;
+
+ if(!canLaunch()){
+
+  alert(
+   "Potrzebujesz programisty, 60 developmentu i 60% stabilności."
+  );
+
+  return;
+
+ }
+
+ G.launched=true;
+
+ G.version="1.0";
+
+ G.reputation+=10;
+
+ addHistory(
+  "🚀 Oficjalna premiera StreamForge"
+ );
+
+ addDecision(
+  "Premiera!",
+  "Platforma została uruchomiona."
+ );
+
+ render();
+
+}
+
+
+/* ================================
+   EKSPANSJA
+================================ */
+
+const availableCountries=[
+ "Niemcy",
+ "Francja",
+ "Niderlandy",
+ "Belgia",
+ "Hiszpania",
+ "Włochy",
+ "Szwecja",
+ "Norwegia",
+ "Dania",
+ "Finlandia",
+ "Czechy",
+ "Austria",
+ "Szwajcaria",
+ "Wielka Brytania",
+ "Irlandia",
+ "Kanada",
+ "USA",
+ "Japonia",
+ "Korea Południowa",
+ "Australia",
+ "Brazylia",
+ "Meksyk"
+];
+
+function openCountry(name){
+
+ if(
+  G.countries.includes(name)
+ )
+ return;
+
+ const cost=
+  100000+
+  G.countries.length*
+  50000;
+
+ if(G.money<cost){
+
+  alert(
+   "Za mało pieniędzy."
+  );
+
+  return;
+
+ }
+
+ cash(
+  -cost,
+  "Ekspansja",
+  "Wejście na rynek: "+name
+ );
+
+ G.countries.push(name);
+
+ G.reputation+=3;
+
+ addHistory(
+  "Otwarto rynek: "+name
+ );
+
+ render();
+
+}
+
+
+/* ================================
+   INWESTORZY
+================================ */
+
+function investment(
+ amount,
+ shares
+){
+
+ if(
+  G.companyShares<
+  shares
+ ){
+
+  alert(
+   "Nie masz tylu udziałów."
+  );
+
+  return;
+
+ }
+
+ G.companyShares-=shares;
+
+ cash(
+  amount,
+  "Inwestor",
+  "Runda finansowania"
+ );
+
+ addHistory(
+  "Pozyskano "+
+  fmt(amount)+
+  " zł za "+
+  shares+
+  "% firmy"
+ );
+
+ render();
+
+}
+
+
+/* ================================
+   ŚWIAT GRY
+================================ */
+
+function worldEventTick(){
+
+ if(
+  absoluteDay()-
+  G.lastWorldEvent<20
+ )
+ return;
+
+ G.lastWorldEvent=
+  absoluteDay();
+
+ const events=[
+
+   {
+    name:"Boom na gaming",
+    trend:"Gaming"
+   },
+
+   {
+    name:"Boom na muzykę",
+    trend:"Muzyka"
+   },
+
+   {
+    name:"Popularność edukacji",
+    trend:"Edukacja"
+   },
+
+   {
+    name:"Moda na vlogi",
+    trend:"Vlogi"
+   },
+
+   {
+    name:"Wzrost popularności technologii",
+    trend:"Technologia"
+   }
+
+ ];
+
+ const e=
+  pick(events);
+
+ G.worldEvent=e.name;
+
+ G.trend=e.trend;
+
+ addDecision(
+  "🌍 Trend rynkowy",
+  e.name+
+  ". Kategoria "+
+  e.trend+
+  " zyskuje popularność."
+ );
+
+}
+
+
+/* ================================
+   CYBERBEZPIECZEŃSTWO
+================================ */
+
+function securityTick(){
+
+ if(!G.launched)return;
+
+ const cyber=
+  G.staff.filter(
+   x=>
+    x.role==="Cybersecurity"
+  ).length;
+
+ G.security=
+  clamp(
+   G.security+
+   cyber*.03,
+   0,
+   100
+  );
+
+ if(
+  Math.random()<
+  Math.max(
+   .0005,
+   (70-G.security)/6000
+  )
+ ){
+
+  G.security=
+   Math.max(
+    0,
+    G.security-5
+   );
+
+  G.reputation=
+   Math.max(
+    0,
+    G.reputation-3
+   );
+
+  addDecision(
+   "🛡️ Incydent bezpieczeństwa",
+   "Wykryto problem bezpieczeństwa. Zespół Security rozpoczął działania."
+  );
+
+ }
+
+}
+
+
+/* ================================
+   KONKURENCJA
+================================ */
+
+function competitionTick(){
+
+ G.competitors.forEach(c=>{
+
+  c.users*=
+   1+
+   rnd(-2,5)/1000;
+
+  if(
+   Math.random()<.01
+  ){
+
+   c.tech++;
+
+  }
+
+ });
+
+}
+
+
+/* ================================
+   HOLDING / FIRMY / UDZIAŁY
+================================ */
+
+const investorNames=[
+ "North Capital","Atlas Growth Fund","Nova Ventures","Horizon Partners",
+ "BluePeak Capital","Vertex Ventures","Orion Investments","Future Media Fund",
+ "Baltic Growth","Summit Equity","Digital Ventures","Mercury Capital"
+];
+
+const ceoFirst=["Anna","Marek","Julia","Tomasz","Maja","Kacper","Natalia","Adam","Oliwia","Michał"];
+const ceoLast=["Nowak","Kowalski","Wójcik","Kamiński","Lewandowski","Zieliński","Mazur","Krawczyk"];
+
+function makeCEO(){
+ return {
+  id:uid(), name:pick(ceoFirst)+" "+pick(ceoLast),
+  management:rnd(45,95), tech:rnd(35,95), finance:rnd(40,95), growth:rnd(35,95),
+  risk:rnd(20,90), salary:rnd(180,420)*100
+ };
+}
+
+function normalizeShareholders(c){
+ c.playerShares=clamp(Number(c.playerShares)||0,0,100);
+ let target=100-c.playerShares;
+ c.shareholders=(c.shareholders||[]).filter(x=>x.shares>.05);
+ let sum=c.shareholders.reduce((a,x)=>a+x.shares,0);
+ if(sum<=0 && target>0) c.shareholders=[{id:uid(),name:"Inwestorzy rynkowi",type:"Rynek",shares:target,willingness:70}];
+ else if(sum>0){
+  c.shareholders.forEach(x=>x.shares=x.shares/sum*target);
+ }
+}
+
+function makeMarketCompany(name,users,tech,rep,valuation){
+ const founder=rnd(24,42), fund=rnd(18,30), vc=rnd(10,22);
+ return {
+  id:uid(),name,users,tech,reputation:rep,valuation,
+  cash:Math.round(valuation*.12),debt:Math.round(valuation*rnd(0,18)/100),
+  servers:Math.max(2,Math.round(users/18000)),employees:rnd(18,75),
+  monthlyProfit:Math.round(valuation*rnd(1,5)/100),dividendRate:pick([0,20,30,40]),
+  playerShares:0,audited:false,controlled:false,integrated:false,
+  technologies:[name+" CDN",name+" Analytics"],
+  shareholders:[
+   {id:uid(),name:"Założyciel "+pick(ceoFirst)+" "+pick(ceoLast),type:"Założyciel",shares:founder,willingness:20},
+   {id:uid(),name:pick(investorNames),type:"Fundusz",shares:fund,willingness:rnd(45,80)},
+   {id:uid(),name:pick(investorNames),type:"VC",shares:vc,willingness:rnd(50,85)},
+   {id:uid(),name:"Inwestorzy rynkowi",type:"Rynek",shares:100-founder-fund-vc,willingness:90}
+  ],
+  ceo:makeCEO(), strategy:"Zrównoważona", autonomy:"Średnia"
+ };
+}
+
+function initHolding(){
+ if(!Array.isArray(G.marketCompanies))G.marketCompanies=[];
+ if(!G.marketCompanies.length){
+  G.marketCompanies=[
+   makeMarketCompany("Viewly",120000,15,45,6200000),
+   makeMarketCompany("Clipster",65000,12,38,3600000),
+   makeMarketCompany("VibeVideo",30000,9,33,2100000),
+   makeMarketCompany("LiveNest",85000,14,41,4800000),
+   makeMarketCompany("ShortWave",210000,17,52,9800000)
+  ];
+ }
+ if(!Array.isArray(G.subsidiaries))G.subsidiaries=[];
+ if(!Array.isArray(G.shareHistory))G.shareHistory=[];
+ G.marketCompanies.forEach(normalizeShareholders);
+}
+
+function companyById(id){return G.marketCompanies.find(x=>x.id===id)}
+function subById(id){return G.subsidiaries.find(x=>x.id===id)}
+function ownershipStatus(p){
+ if(p>=100)return "👑 100% — pełna własność";
+ if(p>50)return "👑 kontrola nad spółką";
+ if(p>=25)return "🟠 duży akcjonariusz";
+ if(p>=10)return "🟡 inwestor strategiczny";
+ return p>0?"🔵 inwestor":"⚪ brak udziałów";
+}
+
+function logShare(text){
+ G.shareHistory.unshift({date:`${G.day}.${G.month}.${G.year}`,text});
+ G.shareHistory=G.shareHistory.slice(0,80);
+}
+
+function buyShares(id,amount){
+ const c=companyById(id); if(!c)return;
+ amount=Math.max(.1,Number(amount)||0);
+ const available=100-c.playerShares;
+ amount=Math.min(amount,available);
+ const sellers=c.shareholders.filter(x=>x.shares>.05).sort((a,b)=>b.willingness-a.willingness);
+ if(!sellers.length||amount<=0){alert("Brak udziałów dostępnych do zakupu.");return}
+ let remaining=amount, premium=1;
+ sellers.forEach(x=>{if(remaining>0)premium=Math.max(premium,1+(100-x.willingness)/220)});
+ const cost=Math.round(c.valuation*(amount/100)*premium);
+ if(G.money<cost){alert("Za mało pieniędzy. Potrzeba "+fmt(cost)+" zł.");return}
+ let bought=0;
+ for(const sh of sellers){
+  if(remaining<=.001)break;
+  const take=Math.min(sh.shares,remaining);
+  sh.shares-=take; remaining-=take; bought+=take;
+ }
+ c.playerShares+=bought;
+ cash(-cost,"Udziały","Zakup "+bought.toFixed(1)+"% "+c.name);
+ normalizeShareholders(c);
+ logShare("StreamForge Group kupił "+bought.toFixed(1)+"% "+c.name+" za "+fmt(cost)+" zł.");
+ if(c.playerShares>50&&!c.controlled){c.controlled=true;addDecision("👑 Przejęto kontrolę",`Masz ${c.playerShares.toFixed(1)}% ${c.name}. Odblokowano zarządzanie.`)}
+ render();
+}
+
+function dueDiligence(id){
+ const c=companyById(id);if(!c||c.audited)return;
+ const cost=Math.max(50000,Math.round(c.valuation*.012));
+ if(G.money<cost){alert("Za mało pieniędzy na audyt.");return}
+ cash(-cost,"Due diligence","Audyt "+c.name);c.audited=true;
+ addDecision("🔎 Audyt zakończony",`${c.name}: gotówka ${fmt(c.cash)} zł, dług ${fmt(c.debt)} zł, serwery ${c.servers}, pracownicy ${c.employees}.`);render();
+}
+
+function setCompanyDividend(id,val){const c=companyById(id);if(!c||c.playerShares<=50)return;c.dividendRate=clamp(+val,0,80);render()}
+
+function acquireRest(id){
+ const c=companyById(id);if(!c||c.playerShares<=50)return;
+ const rest=100-c.playerShares;if(rest<=.01)return;
+ const cost=Math.round(c.valuation*(rest/100)*1.22);
+ if(G.money<cost){alert("Pełny wykup kosztuje "+fmt(cost)+" zł.");return}
+ cash(-cost,"Przejęcie","Wykup pozostałych udziałów "+c.name);
+ c.playerShares=100;c.shareholders=[];c.controlled=true;
+ logShare("StreamForge Group przejął 100% "+c.name+".");render();
+}
+
+function convertToSubsidiary(id){
+ const c=companyById(id);if(!c||c.playerShares<99.99)return;
+ if(G.subsidiaries.some(x=>x.sourceCompanyId===id)){alert("Ta firma jest już spółką córką.");return}
+ G.subsidiaries.push({
+  id:uid(),sourceCompanyId:id,name:c.name,capital:c.cash,debt:c.debt,users:c.users,servers:c.servers,
+  employees:c.employees,techLevel:c.tech,technologies:[...c.technologies],products:[],ceo:c.ceo||makeCEO(),
+  strategy:"Zrównoważona",priority:"Wzrost",autonomy:"Średnia",profit:c.monthlyProfit,
+  serverHealth:90,research:0
+ });
+ addHistory(c.name+" została spółką córką StreamForge Group.");render();
+}
+
+function integrateCompany(id){
+ const c=companyById(id);if(!c||c.playerShares<99.99||c.integrated)return;
+ const retained=Math.round(c.users*(.88+c.reputation/1000));
+ G.users+=retained;G.serverCount+=c.servers;G.money+=c.cash-c.debt;
+ c.technologies.forEach(t=>{if(!G.unlocked.includes(t))G.unlocked.push(t)});
+ c.integrated=true;
+ addHistory(`Wchłonięto ${c.name}: +${fmt(retained)} użytkowników, +${c.servers} serwerów.`);
+ addDecision("🔀 Integracja zakończona",`${c.name} została włączona do StreamForge. Przejęto użytkowników, infrastrukturę, technologie, gotówkę i zobowiązania.`);render();
+}
+
+function createSubsidiary(){
+ const name=(prompt("Nazwa nowej spółki córki:","ForgeAI")||"").trim();if(!name)return;
+ const capital=Math.max(100000,Number(prompt("Kapitał początkowy (zł):","500000"))||500000);
+ if(G.money<capital){alert("Za mało pieniędzy.");return}
+ cash(-capital,"Holding","Kapitał dla "+name);
+ G.subsidiaries.push({id:uid(),name,capital,debt:0,users:0,servers:1,employees:0,techLevel:1,technologies:[],products:[],ceo:null,strategy:"Zrównoważona",priority:"Wzrost",autonomy:"Średnia",profit:0,serverHealth:100,research:0});
+ addHistory("Założono spółkę córkę "+name+".");render();
+}
+
+function hireSubsidiaryCEO(id){const s=subById(id);if(!s)return;s.ceo=makeCEO();s.capital-=s.ceo.salary;addHistory("Zatrudniono CEO "+s.ceo.name+" w "+s.name+".");render()}
+function fundSubsidiary(id){const s=subById(id);if(!s)return;const v=Math.max(10000,Number(prompt("Kwota dokapitalizowania:","250000"))||0);if(G.money<v){alert("Za mało pieniędzy.");return}cash(-v,"Holding","Dokapitalizowanie "+s.name);s.capital+=v;render()}
+function setSubField(id,key,val){const s=subById(id);if(!s)return;s[key]=val;render()}
+
+function assignProduct(id,name){
+ const s=subById(id);if(!s||!G.products[name])return;
+ G.subsidiaries.forEach(x=>x.products=x.products.filter(p=>p!==name));
+ s.products.push(name);render();
+}
+function unassignProduct(id,name){const s=subById(id);if(!s)return;s.products=s.products.filter(x=>x!==name);render()}
+
+function shareholderTick(){
+ if(absoluteDay()-G.lastShareholderDay<12)return;
+ G.lastShareholderDay=absoluteDay();
+ G.marketCompanies.forEach(c=>{
+  if(c.integrated||c.playerShares>=99.99)return;
+  const holders=c.shareholders.filter(x=>x.shares>1);
+  if(holders.length<2)return;
+  const seller=pick(holders), amount=Math.min(seller.shares*.25,rnd(5,30)/10);
+  let buyer=c.shareholders.filter(x=>x.id!==seller.id)[rnd(0,Math.max(0,c.shareholders.length-2))];
+  if(Math.random()<.22){buyer={id:uid(),name:pick(investorNames),type:"Fundusz",shares:0,willingness:rnd(40,85)};c.shareholders.push(buyer)}
+  seller.shares-=amount;buyer.shares+=amount;
+  normalizeShareholders(c);
+  logShare(`${seller.name} sprzedał ${amount.toFixed(1)}% ${c.name} → ${buyer.name}.`);
+ });
+}
+
+function companyAITick(){
+ G.marketCompanies.forEach(c=>{
+  if(c.integrated)return;
+  const growth=(rnd(-8,18)/10000)+(c.tech/120000);
+  c.users=Math.max(1000,c.users*(1+growth));
+  c.monthlyProfit=Math.round((c.users*(.7+c.reputation/100))-c.servers*900-c.employees*4200);
+  c.cash+=c.monthlyProfit/30;
+  if(Math.random()<.012)c.tech++;
+  if(Math.random()<.008)c.servers++;
+  c.valuation=Math.max(200000,Math.round(c.users*18+c.tech*120000+c.reputation*35000+c.cash-c.debt));
+ });
+ G.subsidiaries.forEach(s=>{
+  if(!s.ceo)return;
+  const q=(s.ceo.management+s.ceo.tech+s.ceo.finance+s.ceo.growth)/400;
+  const aggressive=s.strategy==="Agresywna"?1.45:s.strategy==="Ostrożna"?.7:1;
+  if(s.capital>120000 && Math.random()<.025*q*aggressive){s.employees++;s.capital-=rnd(45,90)*1000/30}
+  if(s.capital>180000 && s.users>s.servers*15000 && Math.random()<.08){s.servers++;s.capital-=60000}
+  s.research+=q*aggressive*(1+s.employees/25);
+  if(s.research>=100){s.research-=100;s.techLevel++;s.technologies.push("AI Tech "+s.techLevel);}
+  const ug=Math.max(1,(s.users||100)*(.0015+s.ceo.growth/50000)*aggressive);
+  s.users+=ug;
+  s.profit=Math.round(s.users*.55-s.employees*4300-s.servers*950);
+  s.capital+=s.profit/30;
+  s.products.forEach(name=>{const p=G.products[name];if(p&&p.unlocked&&Math.random()<.01*q){p.quality=clamp(p.quality+1,0,100);p.level=Math.max(p.level,1)}});
+ });
+}
+
+function dividendTick(){
+ if(absoluteDay()-G.lastDividendDay<30)return;
+ G.lastDividendDay=absoluteDay();
+ G.marketCompanies.forEach(c=>{
+  if(c.playerShares<=0||c.monthlyProfit<=0||c.dividendRate<=0||c.integrated)return;
+  const div=Math.round(c.monthlyProfit*(c.dividendRate/100)*(c.playerShares/100));
+  if(div>0)cash(div,"Dywidenda",c.name+" — "+c.playerShares.toFixed(1)+"% udziałów");
+ });
+}
+
+/* ================================
+   FINANSE
+================================ */
+
+function cash(
+ value,
+ category,
+ description
+){
+
+ G.money+=value;
+
+ G.ledger.unshift({
+
+  date:
+   `${G.day}.${G.month}.${G.year}`,
+
+  value,
+
+  category,
+
+  description
+
+ });
+
+ G.ledger=
+  G.ledger.slice(0,500);
+
+}
+
+function financeTick(){
+
+ const salaries=
+  G.staff.reduce(
+   (a,e)=>
+    a+e.salary/30,
+   0
+  );
+
+ const serverCost=
+  G.serverCount*60;
+
+ const cloudCost=
+  G.cloudCapacity*
+  .018;
+
+ const officeCost=
+  G.officeLevel*
+  100;
+
+ let ads=0;
+
+ let premium=0;
+
+ let creatorPayments=0;
+
+ if(G.launched){
+
+  ads=
+   G.dau*
+   G.adIntensity*
+   G.adCPM/
+   1000;
+
+  premium=
+   G.premiumUsers*
+   G.premiumPrice/
+   30;
+
+  const partnerViews=
+   G.creators
+   .filter(x=>x.partner)
+   .reduce(
+    (a,c)=>a+c.views*.001,
+    0
+   );
+
+  creatorPayments=
+   partnerViews*
+   G.adCPM/
+   1000*
+   (
+    G.creatorShare/100
+   );
+
+ }
+
+ const result=
+  ads+
+  premium-
+  creatorPayments-
+  salaries-
+  serverCost-
+  cloudCost-
+  officeCost;
+
+ cash(
+  result,
+  "Dzienny wynik",
+  "Przychody i koszty operacyjne"
+ );
+
+}
+
+
+/* ================================
+   WZROST PLATFORMY
+================================ */
+
+function platformTick(){
+
+ if(!G.launched)return;
+
+ let growth=
+  .003+
+  G.reputation/18000+
+  G.recommendation/50000+
+  G.countries.length*.0004;
+
+ const marketing=
+  G.staff.filter(
+   x=>x.role==="Marketing"
+  ).length;
+
+ growth+=
+  marketing*.0005;
+
+ if(serverLoad()>90)
+  growth-=.012;
+
+ if(G.bugs>20)
+  growth-=.008;
+
+ const gain=
+  Math.max(
+   1,
+   G.users*growth
+  );
+
+ G.users+=gain;
+
+ G.dau=
+  G.users*
+  clamp(
+   .2+
+   G.recommendation/250,
+   .2,
+   .7
+  );
+
+ G.premiumUsers+=
+  (
+   G.users*.03-
+   G.premiumUsers
+  )*.015;
+
+ if(Math.random()<.05){
+
+  G.bugs+=rnd(1,4);
+
+ }
+
+ G.serverHealth=
+  Math.max(
+   0,
+   G.serverHealth-
+   .03-
+   serverLoad()/5000
+  );
+
+}
+
+
+/* ================================
+   OSIĄGNIĘCIA
+================================ */
+
+function achievement(
+ id,
+ condition,
+ title
+){
+
+ if(
+  condition &&
+  !G.achievements.includes(id)
+ ){
+
+  G.achievements.push(id);
+
+  addDecision(
+   "🏆 Osiągnięcie",
+   title
+  );
+
+  addHistory(
+   "Osiągnięcie: "+title
+  );
+
+ }
+
+}
+
+function achievementsTick(){
+
+ achievement(
+  "firstUser",
+  G.users>=1,
+  "Pierwszy użytkownik"
+ );
+
+ achievement(
+  "1000",
+  G.users>=1000,
+  "1000 użytkowników"
+ );
+
+ achievement(
+  "100k",
+  G.users>=100000,
+  "100 000 użytkowników"
+ );
+
+ achievement(
+  "million",
+  G.users>=1000000,
+  "Milion użytkowników"
+ );
+
+ achievement(
+  "employees10",
+  G.staff.length>=10,
+  "10 pracowników"
+ );
+
+ achievement(
+  "countries5",
+  G.countries.length>=5,
+  "Platforma w 5 krajach"
+ );
+
+ achievement(
+  "tech10",
+  G.techLevel>=10,
+  "10 poziom technologii"
+ );
+
+}
+
+
+/* ================================
+   HISTORIA
+================================ */
+
+function addHistory(text){
+
+ G.history.unshift({
+
+  date:
+   `${G.day}.${G.month}.${G.year}`,
+
+  text
+
+ });
+
+ G.history=
+  G.history.slice(0,200);
+
+}
+
+
+/* ================================
+   DECYZJE
+================================ */
+
+function addDecision(
+ title,
+ text
+){
+
+ if(
+  G.decisions.some(
+   x=>
+    x.open &&
+    x.title===title
+  )
+ )
+ return;
+
+ G.decisions.unshift({
+
+  id:uid(),
+
+  title,
+
+  text,
+
+  open:true
+
+ });
+
+}
+
+
+/* ================================
+   CZAS
+================================ */
+
+function absoluteDay(){
+
+ return(
+  (
+   G.year*12+
+   G.month
+  )*30+
+  G.day
+ );
+
+}
+
+function nextDate(){
+
+ G.day++;
+
+ if(G.day>30){
+
+  G.day=1;
+  G.month++;
+
+ }
+
+ if(G.month>12){
+
+  G.month=1;
+  G.year++;
+
+ }
+
+}
+
+
+/* ================================
+   GŁÓWNY TICK
+================================ */
+
+function gameDay(){
+
+ if(
+  !G.candidates.length ||
+  absoluteDay()-
+  G.lastCandidateDay>=7
+ ){
+
+  generateCandidates();
+
+ }
+
+ if(
+  !G.technologies.some(
+   x=>!x.done
+  )
+  ||
+  absoluteDay()-
+  G.lastTechDay>=18
+ ){
+
+  generateTechnology();
+
+ }
+
+ projectsTick();
+
+ researchTick();
+
+ technicalTick();
+
+ platformTick();
+
+ creatorsTick();
+
+ securityTick();
+
+ competitionTick();
+
+ companyAITick();
+
+ shareholderTick();
+
+ dividendTick();
+
+ randomOutage();
+
+ worldEventTick();
+
+ financeTick();
+
+ achievementsTick();
+
+ G.staff.forEach(e=>{
+
+  e.exp+=
+   e.perk==="Szybki uczeń"
+   ? .09
+   : .05;
+
+  if(
+   e.exp>60 &&
+   !e.secondPerk &&
+   Math.random()<.003
+  ){
+
+   e.secondPerk=
+    pick(perks);
+
+  }
+
+ });
+
+ G.valuation=
+  Math.max(
+   10000,
+   G.money+
+   G.users*8+
+   G.reputation*5000+
+   G.techLevel*30000
+  );
+
+ if(G.money<0){
+
+  addDecision(
+   "⚠️ Problemy finansowe",
+   "Firma ma ujemne saldo. Poszukaj inwestora albo ogranicz koszty."
+  );
+
+ }
+
+ nextDate();
+
+}
+
+
+/* ================================
+   SAVE
+================================ */
+
+function saveGame(){
+
+ localStorage.setItem(
+  "streamforge-mega",
+  JSON.stringify(G)
+ );
+
+}
+
+
+/* ================================
+   SPEED
+================================ */
+
+function changeSpeed(){
+
+ G.speed=
+  G.speed===1
+  ?2
+  :G.speed===2
+  ?5
+  :1;
+
+ render();
+
+}
+
+setInterval(()=>{
+
+ for(
+  let i=0;
+  i<G.speed;
+  i++
+ ){
+
+  gameDay();
+
+ }
+
+ saveGame();
+
+ // Nie przebudowuj aktywnej zakładki podczas edycji pól.
+ // Naprawia m.in. Cenę Premium i ustawienia Programu partnerskiego.
+ const active = document.activeElement;
+ const isEditing = active && (
+  active.tagName === "INPUT" ||
+  active.tagName === "SELECT" ||
+  active.tagName === "TEXTAREA"
+ );
+
+ if(!isEditing){
+  render();
+ }
+
+},1200);
+
+
+/* ================================
+   UI
+================================ */
+
+function stat(
+ title,
+ value,
+ desc
+){
+
+ return`
+
+ <div class="card">
+
+  <div class="mut">
+   ${title}
+  </div>
+
+  <h2>
+   ${value}
+  </h2>
+
+  <div class="mut">
+   ${desc}
+  </div>
+
+ </div>
+
+ `;
+
+}
+
+
+/* ================================
+   DASHBOARD
+================================ */
+
+function dashboard(){
+
+ return`
+
+ <div class="hero">
+
+  <h1>
+   ▶ StreamForge
+  </h1>
+
+  <p class="mut">
+
+   ${
+    G.launched
+    ?
+    "Zarządzaj rosnącą platformą wideo."
+    :
+    "Zaczynasz od zera. Zbuduj zespół, przygotuj MVP i uruchom platformę."
+   }
+
+  </p>
+
+ </div>
+
+ <div class="grid">
+
+ ${stat(
+  "👥 Użytkownicy",
+  fmt(G.users),
+  fmt(G.dau)+" DAU"
+ )}
+
+ ${stat(
+  "🎬 Twórcy",
+  fmt(G.creators.length),
+  fmt(G.totalVideos)+" filmów"
+ )}
+
+ ${stat(
+  "👨‍💻 Pracownicy",
+  G.staff.length,
+  G.officeCapacity+" miejsc"
+ )}
+
+ ${stat(
+  "🧪 Technologia",
+  "Lv. "+G.techLevel,
+  G.unlocked.length+" opracowanych"
+ )}
+
+ ${stat(
+  "🖥️ Obciążenie",
+  serverLoad().toFixed(1)+"%",
+  fmt(totalCapacity())+" pojemności"
+ )}
+
+ ${stat(
+  "🛠️ Stabilność",
+  G.stability.toFixed(1)+"%",
+  G.bugs.toFixed(1)+" błędów"
+ )}
+
+ ${stat(
+  "🛡️ Security",
+  G.security.toFixed(0)+"%",
+  "bezpieczeństwo"
+ )}
+
+ ${stat(
+  "🤖 Algorytm",
+  G.recommendation.toFixed(0)+"/100",
+  "rekomendacje"
+ )}
+
+ ${stat(
+  "🌍 Kraje",
+  G.countries.length,
+  G.countries.join(", ")
+ )}
+
+ ${stat(
+  "🏢 Wycena",
+  fmt(G.valuation)+" zł",
+  G.companyShares+"% udziałów"
+ )}
+
+ </div>
+
+ <div class="card">
+
+  <b>🌍 Aktualny trend:</b>
+  ${G.trend}
+
+  <br><br>
+
+  <b>📰 Rynek:</b>
+  ${G.worldEvent}
+
+ </div>
+
+ `;
+
+}
+
+
+/* ================================
+   START
+================================ */
+
+function startupPage(){
+
+ return`
+
+ <h1>🚀 Start i MVP</h1>
+
+ <div class="hero">
+
+ <h2>
+ ${
+  G.launched
+  ?"Platforma działa"
+  :"Budowa pierwszej wersji"
+ }
+ </h2>
+
+ <div class="grid">
+
+ ${stat(
+  "Programiści",
+  G.staff.filter(
+   x=>x.role==="Programista"
+  ).length,
+  "minimum 1"
+ )}
+
+ ${stat(
+  "Development",
+  G.devPoints.toFixed(1),
+  "minimum 60"
+ )}
+
+ ${stat(
+  "Stabilność",
+  G.stability.toFixed(1)+"%",
+  "minimum 60%"
+ )}
+
+ </div>
+
+ <button
+ class="btn primary"
+ onclick="launchPlatform()"
+ ${G.launched?"disabled":""}
+ >
+ 🚀 Uruchom platformę
+ </button>
+
+ </div>
+
+ <div class="card">
+
+ <h3>🏢 Biuro</h3>
+
+ <p>
+ Poziom ${G.officeLevel}
+ • ${G.staff.length}/${G.officeCapacity}
+ miejsc
+ </p>
+
+ <button
+ class="btn"
+ onclick="upgradeOffice()"
+ >
+ Rozbuduj biuro —
+ ${fmt(G.officeLevel*80000)} zł
+ </button>
+
+ </div>
+
+ `;
+
+}
+
+
+/* ================================
+   STAFF PAGE
+================================ */
+
+function staffPage(){
+
+ return`
+
+ <h1>👥 Pracownicy</h1>
+
+ <h2>Kandydaci</h2>
+
+ <div class="grid">
+
+ ${
+  G.candidates.map(c=>`
+
+  <div class="card">
+
+   <h3>${c.name}</h3>
+
+   <b>${c.role}</b>
+
+   <p>
+   Skill ${c.skill}/100
+   </p>
+
+   <span class="tag">
+   ✨ ${c.perk}
+   </span>
+
+   <p>
+   ${fmt(c.salary)} zł/mies.
+   </p>
+
+   <button
+   class="btn primary"
+   onclick="hire(${c.id})"
+   >
+   Zatrudnij
+   </button>
+
+  </div>
+
+  `).join("")
+ }
+
+ </div>
+
+ <h2>Zespół</h2>
+
+ <table>
+
+ <tr>
+ <th>Pracownik</th>
+ <th>Poziom</th>
+ <th>Stanowisko</th>
+ <th>Perk</th>
+ <th>Skill</th>
+ <th>Pensja</th>
+ <th></th>
+ </tr>
+
+ ${
+  G.staff.map(e=>`
+
+  <tr>
+
+  <td>${e.name}</td>
+
+  <td>
+  ${employeeLevel(e)}
+  </td>
+
+  <td>${e.role}</td>
+
+  <td>
+  ${e.perk}
+  ${
+   e.secondPerk
+   ?"<br>"+e.secondPerk
+   :""
+  }
+  </td>
+
+  <td>${e.skill}</td>
+
+  <td>
+  ${fmt(e.salary)} zł
+  </td>
+
+  <td>
+
+  <button
+  class="btn"
+  onclick="fireEmployee(${e.id})"
+  >
+  Zwolnij
+  </button>
+
+  </td>
+
+  </tr>
+
+  `).join("")
+ }
+
+ </table>
+
+ `;
+
+}
+
+
+/* ================================
+   DEPARTMENTS
+================================ */
+
+function departmentsPage(){
+
+ const data=
+  departmentData();
+
+ return`
+
+ <h1>🏢 Działy firmy</h1>
+
+ <div class="grid">
+
+ ${
+  Object.keys(roles)
+  .map(
+   x=>roles[x].department
+  )
+  .filter(
+   (x,i,a)=>
+   a.indexOf(x)===i
+  )
+  .map(name=>{
+
+   const people=
+    data[name]||[];
+
+   const leader=
+    people
+    .slice()
+    .sort(
+     (a,b)=>
+     b.exp-a.exp
+    )[0];
+
+   return`
+
+   <div class="card">
+
+   <h3>${name}</h3>
+
+   <h2>
+   ${people.length}
+   </h2>
+
+   <div class="mut">
+   pracowników
+   </div>
+
+   <p>
+   Kierownik:
+   ${
+    leader
+    ?leader.name+
+     " ("+
+     employeeLevel(leader)+
+     ")"
+    :"brak"
+   }
+   </p>
+
+   </div>
+
+   `;
+
+  }).join("")
+ }
+
+ </div>
+
+ `;
+
+}
+
+
+/* ================================
+   PROJECTS
+================================ */
+
+function projectsPage(){
+
+ return`
+
+ <h1>📋 Projekty</h1>
+
+ <div class="card row">
+
+ <select id="projectSelect">
+
+ ${
+  Object.keys(projectTypes)
+  .map(
+   x=>`<option>${x}</option>`
+  )
+  .join("")
+ }
+
+ </select>
+
+ <button
+ class="btn primary"
+ onclick="
+ startProject(
+ document.getElementById(
+ 'projectSelect'
+ ).value
+ )
+ "
+ >
+ ＋ Rozpocznij
+ </button>
+
+ </div>
+
+ ${
+  G.projects.map(p=>`
+
+  <div class="card">
+
+  <b>
+  ${p.done?"✅":"📋"}
+  ${p.name}
+  </b>
+
+  <div class="bar">
+  <i style="
+  width:${
+   Math.min(
+    100,
+    p.progress/p.work*100
+   )
+  }%
+  "></i>
+  </div>
+
+  ${p.progress.toFixed(1)}
+  /
+  ${p.work}
+
+  </div>
+
+  `).join("")
+  ||
+  "<div class='card'>Brak projektów.</div>"
+ }
+
+ `;
+
+}
+
+
+/* ================================
+   RESEARCH
+================================ */
+
+function researchPage(){
+
+ return`
+
+ <h1>🧪 Badania</h1>
+
+ <div class="hero">
+
+ <h2>
+ Moc R&D:
+ ${staffPower("research").toFixed(1)}
+ </h2>
+
+ <p>
+ Badacze pracują automatycznie.
+ Im więcej badaczy i lepszych perków,
+ tym szybsze badania.
+ </p>
+
+ </div>
+
+ ${
+  G.technologies
+  .slice()
+  .reverse()
+  .map(t=>`
+
+  <div class="card">
+
+  <h3>
+  ${t.done?"✅":"🔬"}
+  ${t.name}
+  </h3>
+
+  <span class="tag">
+  ${t.category}
+  </span>
+
+  <span class="tag">
+  poziom ${t.level}
+  </span>
+
+  <div class="bar">
+
+  <i style="
+  width:${
+   Math.min(
+    100,
+    t.progress/t.difficulty*100
+   )
+  }%
+  "></i>
+
+  </div>
+
+  ${t.progress.toFixed(1)}
+  /
+  ${t.difficulty}
+
+  </div>
+
+  `).join("")
+ }
+
+ `;
+
+}
+
+
+/* ================================
+   MAINTENANCE
+================================ */
+
+function maintenancePage(){
+
+ return`
+
+ <h1>🛠️ Technicy</h1>
+
+ <div class="grid">
+
+ ${stat(
+  "Moc techniczna",
+  staffPower("repair").toFixed(1),
+  "automatyczne naprawy"
+ )}
+
+ ${stat(
+  "Błędy",
+  G.bugs.toFixed(1),
+  "aktywnych problemów"
+ )}
+
+ ${stat(
+  "Stabilność",
+  G.stability.toFixed(1)+"%",
+  "serwis"
+ )}
+
+ ${stat(
+  "Stan serwerów",
+  G.serverHealth.toFixed(1)+"%",
+  "sprzęt"
+ )}
+
+ </div>
+
+ <h2>Awarie</h2>
+
+ ${
+  G.outages
+  .slice()
+  .reverse()
+  .map(o=>`
+
+  <div class="card">
+
+  <b>
+  ${o.fixed?"✅":"⚠️"}
+  ${o.name}
+  </b>
+
+  <div class="bar">
+  <i style="
+  width:${o.progress}%
+  "></i>
+  </div>
+
+  ${o.progress.toFixed(0)}%
+
+  </div>
+
+  `).join("")
+  ||
+  "<div class='card'>Brak awarii.</div>"
+ }
+
+ `;
+
+}
+
+
+/* ================================
+   INFRA
+================================ */
+
+function infrastructurePage(){
+
+ return`
+
+ <h1>🖥️ Infrastruktura</h1>
+
+ <div class="grid">
+
+ ${stat(
+  "Własne serwery",
+  G.serverCount,
+  fmt(ownCapacity())+
+  " pojemności"
+ )}
+
+ ${stat(
+  "Chmura",
+  fmt(G.cloudCapacity),
+  "elastyczna pojemność"
+ )}
+
+ ${stat(
+  "Łącznie",
+  fmt(totalCapacity()),
+  "użytkowników"
+ )}
+
+ ${stat(
+  "Obciążenie",
+  serverLoad().toFixed(1)+"%",
+  "cel <80%"
+ )}
+
+ ${stat(
+  "Stan sprzętu",
+  G.serverHealth.toFixed(1)+"%",
+  "technicy konserwują"
+ )}
+
+ </div>
+
+ <div class="card row">
+
+ <button
+ class="btn primary"
+ onclick="buyServer()"
+ >
+ ＋ Serwer — 60 000 zł
+ </button>
+
+ <button
+ class="btn"
+ onclick="addCloud()"
+ >
+ ☁️ +5000 chmury
+ </button>
+
+ <button
+ class="btn"
+ onclick="removeCloud()"
+ >
+ Usuń 5000 chmury
+ </button>
+
+ </div>
+
+ `;
+
+}
+
+
+/* ================================
+   PRODUCTS
+================================ */
+
+function productsPage(){
+
+ return`
+
+ <h1>📱 Produkty</h1>
+
+ <div class="grid">
+
+ ${
+  Object.entries(G.products)
+  .map(([name,p])=>`
+
+  <div class="card">
+
+  <h3>
+  ${p.unlocked?"✅":"🔒"}
+  ${name}
+  </h3>
+
+  <h2>
+  ${
+   p.unlocked
+   ?"v"+p.level
+   :"Niedostępne"
+  }
+  </h2>
+
+  <div class="mut">
+  Jakość:
+  ${p.quality}/100
+  </div>
+
+  </div>
+
+  `).join("")
+ }
+
+ </div>
+
+ `;
+
+}
+
+
+/* ================================
+   CREATORS
+================================ */
+
+function creatorsPage(){
+
+ const list=
+  G.creators
+  .slice()
+  .sort(
+   (a,b)=>
+   b.subs-a.subs
+  )
+  .slice(0,50);
+
+ return`
+
+ <h1>🎬 Twórcy</h1>
+
+ <div class="grid">
+
+ ${stat(
+  "Kanały",
+  fmt(G.creators.length),
+  "aktywni twórcy"
+ )}
+
+ ${stat(
+  "Filmy",
+  fmt(G.totalVideos),
+  "biblioteka"
+ )}
+
+ ${stat(
+  "Trend",
+  G.trend,
+  "popularna kategoria"
+ )}
+
+ </div>
+
+ <table>
+
+ <tr>
+ <th>Kanał</th>
+ <th>Kategoria</th>
+ <th>Suby</th>
+ <th>Wyświetlenia</th>
+ <th>Jakość</th>
+ <th>Lojalność</th>
+ </tr>
+
+ ${
+  list.map(c=>`
+
+  <tr>
+
+  <td>
+  <b>${c.name}</b>
+  </td>
+
+  <td>${c.category}</td>
+
+  <td>${fmt(c.subs)}</td>
+
+  <td>${fmt(c.views)}</td>
+
+  <td>${c.quality}</td>
+
+  <td>${c.loyalty}%</td>
+
+  </tr>
+
+  `).join("")
+ }
+
+ </table>
+
+ `;
+
+}
+
+
+/* ================================
+   PROGRAM PARTNERSKI
+================================ */
+
+function partnersPage(){
+
+ return`
+
+ <h1>🤝 Program partnerski</h1>
+
+ <div class="hero">
+
+ <h2>
+ Monetyzacja twórców
+ </h2>
+
+ <p>
+ To tutaj zarządzasz wypłatami
+ i dostępem twórców do programu
+ partnerskiego.
+ </p>
+
+ <div class="row">
+
+ <label>
+ Minimalna liczba subów
+
+ <input
+ type="number"
+ value="${G.partnerMinSubs}"
+ onchange="
+ G.partnerMinSubs=
+ Math.max(
+ 0,
+ +this.value
+ )
+ "
+ >
+
+ </label>
+
+ <label>
+
+ Udział twórców
+
+ <input
+ type="range"
+ min="30"
+ max="80"
+ value="${G.creatorShare}"
+ onchange="
+ G.creatorShare=+this.value;
+ render()
+ "
+ >
+
+ ${G.creatorShare}%
+
+ </label>
+
+ </div>
+
+ </div>
+
+ <table>
+
+ <tr>
+ <th>Kanał</th>
+ <th>Suby</th>
+ <th>Status</th>
+ <th></th>
+ </tr>
+
+ ${
+  G.creators
+  .slice()
+  .sort(
+   (a,b)=>
+   b.subs-a.subs
+  )
+  .slice(0,50)
+  .map(c=>`
+
+  <tr>
+
+  <td>${c.name}</td>
+
+  <td>${fmt(c.subs)}</td>
+
+  <td>
+  ${
+   c.partner
+   ?"💰 Partner"
+   :"Brak monetyzacji"
+  }
+  </td>
+
+  <td>
+
+  <button
+  class="btn"
+  onclick="togglePartner(${c.id})"
+  >
+  ${
+   c.partner
+   ?"Wyłącz"
+   :"Włącz"
+  }
+  </button>
+
+  </td>
+
+  </tr>
+
+  `).join("")
+ }
+
+ </table>
+
+ `;
+
+}
+
+
+/* ================================
+   ALGORITHM
+================================ */
+
+function algorithmPage(){
+
+ return`
+
+ <h1>🤖 Algorytm rekomendacji</h1>
+
+ <div class="grid">
+
+ ${stat(
+  "Jakość algorytmu",
+  G.recommendation.toFixed(0)+"/100",
+  "wpływa na oglądalność"
+ )}
+
+ ${stat(
+  "DAU",
+  fmt(G.dau),
+  "aktywni dziennie"
+ )}
+
+ ${stat(
+  "Trend",
+  G.trend,
+  "promowana kategoria"
+ )}
+
+ </div>
+
+ <div class="card">
+
+ Badania AI automatycznie
+ poprawiają system rekomendacji.
+
+ Im lepszy algorytm,
+ tym większa aktywność użytkowników
+ i łatwiejsze odkrywanie twórców.
+
+ </div>
+
+ `;
+
+}
+
+
+/* ================================
+   MONETYZACJA PLATFORMY
+================================ */
+
+function monetizationPage(){
+
+ return`
+
+ <h1>💎 Monetyzacja platformy</h1>
+
+ <p class="mut">
+
+ Ta zakładka dotyczy pieniędzy
+ platformy.
+
+ Monetyzacja twórców znajduje się
+ w zakładce
+ <b>Program partnerski</b>.
+
+ </p>
+
+ <div class="grid">
+
+ ${stat(
+  "Premium",
+  fmt(G.premiumUsers),
+  G.premiumPrice.toFixed(2)+
+  " zł/mies."
+ )}
+
+ ${stat(
+  "CPM",
+  G.adCPM.toFixed(2)+" zł",
+  "reklamy"
+ )}
+
+ ${stat(
+  "Reklamy",
+  G.adIntensity,
+  "na użytkownika"
+ )}
+
+ </div>
+
+ <div class="card row">
+
+ <label>
+
+ Cena Premium
+
+ <input
+ type="number"
+ step=".01"
+ value="${G.premiumPrice}"
+ onchange="
+ G.premiumPrice=
+ Math.max(
+ 1,
+ +this.value
+ )
+ "
+ >
+
+ zł
+
+ </label>
+
+ <label>
+
+ Intensywność reklam
+
+ <input
+ type="range"
+ min="1"
+ max="6"
+ value="${G.adIntensity}"
+ onchange="
+ G.adIntensity=+this.value;
+ render()
+ "
+ >
+
+ ${G.adIntensity}
+
+ </label>
+
+ </div>
+
+ `;
+
+}
+
+
+/* ================================
+   MARKETS
+================================ */
+
+function marketsPage(){
+
+ return`
+
+ <h1>🌍 Ekspansja</h1>
+
+ <div class="hero">
+
+ <h2>
+ ${G.countries.length}
+ krajów
+ </h2>
+
+ <p>
+ ${G.countries.join(", ")}
+ </p>
+
+ </div>
+
+ <div class="grid">
+
+ ${
+  availableCountries
+  .filter(
+   x=>
+   !G.countries.includes(x)
+  )
+  .map(c=>{
+
+   const cost=
+    100000+
+    G.countries.length*
+    50000;
+
+   return`
+
+   <div class="card">
+
+   <h3>🌍 ${c}</h3>
+
+   <p>
+   Koszt:
+   ${fmt(cost)} zł
+   </p>
+
+   <button
+   class="btn primary"
+   onclick='openCountry(${JSON.stringify(c)})'
+   >
+   Wejdź na rynek
+   </button>
+
+   </div>
+
+   `;
+
+  }).join("")
+ }
+
+ </div>
+
+ `;
+
+}
+
+
+/* ================================
+   COMPETITION
+================================ */
+
+function competitionPage(){
+ initHolding();
+ return`
+ <h1>🏦 Firmy i udziały</h1>
+ <div class="hero"><h2>Rynek przejęć</h2><p class="mut">Kupuj pakiety od realnych udziałowców. Akcjonariat zmienia się automatycznie. Po przekroczeniu 50% przejmujesz kontrolę, a przy 100% możesz utworzyć spółkę córkę albo wchłonąć firmę.</p></div>
+ <div class="grid">
+ ${G.marketCompanies.filter(c=>!c.integrated).map(c=>`
+  <div class="card">
+   <h2>${c.name}</h2>
+   <div class="row"><span class="tag">👥 ${fmt(c.users)}</span><span class="tag">🏢 ${fmt(c.valuation)} zł</span><span class="tag">🖥️ ${c.servers}</span></div>
+   <p><b>Twoje udziały: ${c.playerShares.toFixed(1)}%</b><br><span class="${c.playerShares>50?'good':'mut'}">${ownershipStatus(c.playerShares)}</span></p>
+   <p>Wynik/mies.: <span class="${c.monthlyProfit>=0?'good':'bad'}">${fmt(c.monthlyProfit)} zł</span> • dywidenda ${c.dividendRate}%</p>
+   <div class="row">
+    <button class="btn" onclick="buyShares(${c.id},1)">Kup 1%</button>
+    <button class="btn" onclick="buyShares(${c.id},5)">Kup 5%</button>
+    <button class="btn" onclick="buyShares(${c.id},10)">Kup 10%</button>
+    <button class="btn" onclick="dueDiligence(${c.id})" ${c.audited?'disabled':''}>🔎 ${c.audited?'Audyt wykonany':'Due diligence'}</button>
+   </div>
+   ${c.audited?`<p class="mut">Gotówka ${fmt(c.cash)} zł • dług ${fmt(c.debt)} zł • pracownicy ${c.employees} • tech ${c.tech}</p>`:''}
+   <h3>Udziałowcy</h3>
+   ${(c.shareholders||[]).map(sh=>`<div class="row" style="justify-content:space-between"><span>${sh.type==='Założyciel'?'👤':'💼'} ${sh.name}</span><b>${sh.shares.toFixed(1)}%</b></div>`).join('')}
+   ${c.playerShares>0?`<div class="row" style="justify-content:space-between"><span>▶ StreamForge Group</span><b>${c.playerShares.toFixed(1)}%</b></div>`:''}
+   ${c.playerShares>50?`<hr style="border-color:var(--line)"><h3>👑 Zarządzanie</h3><div class="row"><label>Dywidenda <input type="range" min="0" max="80" value="${c.dividendRate}" onchange="setCompanyDividend(${c.id},this.value)"> ${c.dividendRate}%</label>${c.playerShares<99.99?`<button class="btn primary" onclick="acquireRest(${c.id})">🤝 Wykup resztę</button>`:''}</div>`:''}
+   ${c.playerShares>=99.99?`<div class="row"><button class="btn goodbtn" onclick="convertToSubsidiary(${c.id})">🏢 Zostaw jako spółkę córkę</button><button class="btn primary" onclick="integrateCompany(${c.id})">🔀 Wchłoń do StreamForge</button></div>`:''}
+  </div>`).join('')}
+ </div>
+ <h2>📜 Historia akcjonariatu</h2>
+ ${G.shareHistory.slice(0,15).map(h=>`<div class="card"><b>${h.date}</b> — ${h.text}</div>`).join('')||'<div class="card">Rynek dopiero zaczyna działać.</div>'}
+ `;
+}
+
+function holdingPage(){
+ initHolding();
+ const totalUsers=G.subsidiaries.reduce((a,s)=>a+s.users,0);
+ const totalCash=G.subsidiaries.reduce((a,s)=>a+s.capital,0);
+ return`
+ <h1>🏛️ Holding StreamForge Group</h1>
+ <div class="grid">${stat("Spółki córki",G.subsidiaries.length,"kontrolowane podmioty")}${stat("Użytkownicy spółek",fmt(totalUsers),"poza StreamForge")}${stat("Kapitał spółek",fmt(totalCash)+" zł","własne budżety")}</div>
+ <div class="card row"><button class="btn primary" onclick="createSubsidiary()">＋ Załóż spółkę córkę</button><span class="mut">Spółka ma własne saldo. Po zatrudnieniu CEO sama zatrudnia ludzi, rozwija serwery, technologie i przypisane produkty.</span></div>
+ ${G.subsidiaries.map(s=>`
+  <div class="card">
+   <div class="row" style="justify-content:space-between"><h2>🏢 ${s.name}</h2><span class="tag">${s.autonomy} autonomia</span></div>
+   <div class="grid">
+    ${stat("Kapitał",fmt(s.capital)+" zł",s.profit>=0?"firma rentowna":"firma pod presją")}
+    ${stat("Użytkownicy",fmt(s.users),"AI rozwija bazę")}
+    ${stat("Pracownicy",s.employees,"zatrudniani przez CEO")}
+    ${stat("Serwery",s.servers,"zarządzane automatycznie")}
+    ${stat("Technologia","Lv. "+s.techLevel,s.technologies.length+" technologii")}
+    ${stat("Wynik/mies.",fmt(s.profit)+" zł","szacunek")}
+   </div>
+   ${s.ceo?`<div class="card"><h3>👤 CEO: ${s.ceo.name}</h3><div class="row"><span class="tag">Zarządzanie ${s.ceo.management}</span><span class="tag">Tech ${s.ceo.tech}</span><span class="tag">Finanse ${s.ceo.finance}</span><span class="tag">Wzrost ${s.ceo.growth}</span><span class="tag">Ryzyko ${s.ceo.risk}</span></div></div>`:`<button class="btn primary" onclick="hireSubsidiaryCEO(${s.id})">👤 Zatrudnij CEO</button>`}
+   <div class="row">
+    <label>Strategia <select onchange="setSubField(${s.id},'strategy',this.value)"><option ${s.strategy==='Ostrożna'?'selected':''}>Ostrożna</option><option ${s.strategy==='Zrównoważona'?'selected':''}>Zrównoważona</option><option ${s.strategy==='Agresywna'?'selected':''}>Agresywna</option></select></label>
+    <label>Priorytet <select onchange="setSubField(${s.id},'priority',this.value)"><option>Wzrost</option><option ${s.priority==='Rentowność'?'selected':''}>Rentowność</option><option ${s.priority==='Technologia'?'selected':''}>Technologia</option><option ${s.priority==='Infrastruktura'?'selected':''}>Infrastruktura</option></select></label>
+    <label>Autonomia <select onchange="setSubField(${s.id},'autonomy',this.value)"><option ${s.autonomy==='Niska'?'selected':''}>Niska</option><option ${s.autonomy==='Średnia'?'selected':''}>Średnia</option><option ${s.autonomy==='Pełna'?'selected':''}>Pełna</option></select></label>
+    <button class="btn" onclick="fundSubsidiary(${s.id})">💰 Dokapitalizuj</button>
+   </div>
+   <h3>📦 Przypisane produkty</h3>
+   <div class="row">${Object.keys(G.products).map(name=>s.products.includes(name)?`<span class="tag">${name} <button class="btn" style="padding:2px 5px" onclick='unassignProduct(${s.id},${JSON.stringify(name)})'>×</button></span>`:`<button class="btn" onclick='assignProduct(${s.id},${JSON.stringify(name)})'>＋ ${name}</button>`).join('')}</div>
+   <p class="mut">Postęp R&D: ${s.research.toFixed(1)}/100. CEO sam podejmuje codzienne decyzje w ramach kapitału spółki.</p>
+  </div>`).join('')||'<div class="card">Nie masz jeszcze spółek córek. Możesz założyć własną albo przejąć 100% firmy w zakładce „Firmy i udziały”.</div>'}
+ `;
+}
+
+/* ================================
+   INVESTORS
+================================ */
+
+function investorsPage(){
+
+ return`
+
+ <h1>💼 Inwestorzy</h1>
+
+ <div class="grid">
+
+ ${stat(
+  "Wycena",
+  fmt(G.valuation)+" zł",
+  "szacowana wartość firmy"
+ )}
+
+ ${stat(
+  "Twoje udziały",
+  G.companyShares+"%",
+  "własność"
+ )}
+
+ </div>
+
+ <div class="card">
+
+ <h3>Seed Investor</h3>
+
+ <p>
+ 500 000 zł za 10%
+ </p>
+
+ <button
+ class="btn primary"
+ onclick="investment(500000,10)"
+ >
+ Przyjmij
+ </button>
+
+ </div>
+
+ <div class="card">
+
+ <h3>Growth Fund</h3>
+
+ <p>
+ 2 000 000 zł za 20%
+ </p>
+
+ <button
+ class="btn primary"
+ onclick="investment(2000000,20)"
+ >
+ Przyjmij
+ </button>
+
+ </div>
+
+ `;
+
+}
+
+
+/* ================================
+   ANALYTICS
+================================ */
+
+function analyticsPage(){
+
+ const mau=
+  G.dau*18;
+
+ const arpu=
+  G.users>0
+  ?
+  (
+   G.premiumUsers*
+   G.premiumPrice/
+   G.users
+  )
+  :0;
+
+ return`
+
+ <h1>📈 Analityka</h1>
+
+ <div class="grid">
+
+ ${stat(
+  "Użytkownicy",
+  fmt(G.users),
+  "łącznie"
+ )}
+
+ ${stat(
+  "DAU",
+  fmt(G.dau),
+  "aktywni dziennie"
+ )}
+
+ ${stat(
+  "MAU",
+  fmt(mau),
+  "szacunek"
+ )}
+
+ ${stat(
+  "Premium",
+  fmt(G.premiumUsers),
+  (
+   G.premiumUsers/
+   Math.max(1,G.users)*
+   100
+  ).toFixed(2)+"%"
+ )}
+
+ ${stat(
+  "ARPU Premium",
+  arpu.toFixed(2)+" zł",
+  "na użytkownika"
+ )}
+
+ ${stat(
+  "Twórcy",
+  fmt(G.creators.length),
+  fmt(G.totalVideos)+" filmów"
+ )}
+
+ </div>
+
+ `;
+
+}
+
+
+/* ================================
+   ACHIEVEMENTS
+================================ */
+
+function achievementsPage(){
+
+ const all=[
+
+  ["firstUser","Pierwszy użytkownik"],
+
+  ["1000","1000 użytkowników"],
+
+  ["100k","100 000 użytkowników"],
+
+  ["million","Milion użytkowników"],
+
+  ["employees10","10 pracowników"],
+
+  ["countries5","5 krajów"],
+
+  ["tech10","Poziom technologii 10"]
+
+ ];
+
+ return`
+
+ <h1>🏆 Osiągnięcia</h1>
+
+ <div class="grid">
+
+ ${
+  all.map(a=>`
+
+  <div class="card">
+
+  <h3>
+  ${
+   G.achievements.includes(a[0])
+   ?"🏆"
+   :"🔒"
+  }
+
+  ${a[1]}
+  </h3>
+
+  </div>
+
+  `).join("")
+ }
+
+ </div>
+
+ `;
+
+}
+
+
+/* ================================
+   HISTORY
+================================ */
+
+function historyPage(){
+
+ return`
+
+ <h1>📜 Historia firmy</h1>
+
+ ${
+  G.history.map(h=>`
+
+  <div class="card">
+
+  <b>${h.date}</b>
+
+  <br>
+
+  ${h.text}
+
+  </div>
+
+  `).join("")
+  ||
+  "<div class='card'>Historia dopiero się zaczyna.</div>"
+ }
+
+ `;
+
+}
+
+
+/* ================================
+   FINANCE
+================================ */
+
+function financePage(){
+
+ return`
+
+ <h1>💰 Finanse</h1>
+
+ <div class="grid">
+
+ ${stat(
+  "Gotówka",
+  fmt(G.money)+" zł",
+  "saldo"
+ )}
+
+ ${stat(
+  "Wycena",
+  fmt(G.valuation)+" zł",
+  "wartość firmy"
+ )}
+
+ ${stat(
+  "Dług",
+  fmt(G.debt)+" zł",
+  "zadłużenie"
+ )}
+
+ </div>
+
+ <table>
+
+ <tr>
+ <th>Data</th>
+ <th>Kategoria</th>
+ <th>Opis</th>
+ <th>Kwota</th>
+ </tr>
+
+ ${
+  G.ledger
+  .slice(0,50)
+  .map(x=>`
+
+  <tr>
+
+  <td>${x.date}</td>
+
+  <td>${x.category}</td>
+
+  <td>${x.description}</td>
+
+  <td
+  class="${
+   x.value>=0
+   ?"good"
+   :"bad"
+  }"
+  >
+
+  ${fmt(x.value)} zł
+
+  </td>
+
+  </tr>
+
+  `).join("")
+ }
+
+ </table>
+
+ `;
+
+}
+
+
+/* ================================
+   DECISIONS
+================================ */
+
+function decisionsPage(){
+
+ const list=
+  G.decisions.filter(
+   x=>x.open
+  );
+
+ return`
+
+ <h1>🔔 Centrum decyzji</h1>
+
+ ${
+  list.map(x=>`
+
+  <div class="card notice">
+
+  <h3>${x.title}</h3>
+
+  <p>${x.text}</p>
+
+  <button
+  class="btn"
+  onclick="
+  G.decisions.find(
+   d=>d.id===${x.id}
+  ).open=false;
+  render()
+  "
+  >
+  ✓ Zamknij
+  </button>
+
+  </div>
+
+  `).join("")
+  ||
+  "<div class='card'>Brak pilnych spraw.</div>"
+ }
+
+ `;
+
+}
+
+
+/* ================================
+   ROUTER
+================================ */
+
+document
+.querySelectorAll(".nav")
+.forEach(button=>{
+
+ button.onclick=()=>{
+
+  document
+  .querySelectorAll(".nav")
+  .forEach(
+   x=>x.classList.remove(
+    "active"
+   )
+  );
+
+  button.classList.add(
+   "active"
+  );
+
+  render();
+
+ };
+
+});
+
+
+/* ================================
+   RENDER
+================================ */
+
+function render(){
+
+ document
+ .getElementById("date")
+ .textContent=
+ `Dzień ${G.day} • ${G.month}/${G.year}`;
+
+ document
+ .getElementById("money")
+ .textContent=
+ fmt(G.money)+" zł";
+
+ document
+ .getElementById("users")
+ .textContent=
+ fmt(G.users);
+
+ document
+ .getElementById("rep")
+ .textContent=
+ G.reputation.toFixed(0);
+
+ document
+ .getElementById("speed")
+ .textContent=
+ "x"+G.speed;
+
+ const page=
+ document
+ .querySelector(
+  ".nav.active"
+ )
+ .dataset.page;
+
+ const pages={
+
+  dashboard,
+
+  startup:startupPage,
+
+  staff:staffPage,
+
+  departments:departmentsPage,
+
+  projects:projectsPage,
+
+  research:researchPage,
+
+  maintenance:maintenancePage,
+
+  infrastructure:infrastructurePage,
+
+  products:productsPage,
+
+  creators:creatorsPage,
+
+  partners:partnersPage,
+
+  algorithm:algorithmPage,
+
+  monetization:monetizationPage,
+
+  markets:marketsPage,
+
+  competition:competitionPage,
+
+  holding:holdingPage,
+
+  investors:investorsPage,
+
+  analytics:analyticsPage,
+
+  achievements:achievementsPage,
+
+  history:historyPage,
+
+  finance:financePage,
+
+  decisions:decisionsPage
+
+ };
+
+ document
+ .getElementById("panel")
+ .innerHTML=
+ pages[page]();
+
+}
+
+
+/* ================================
+   PIERWSZE URUCHOMIENIE
+================================ */
+
+if(!G.candidates.length){
+
+ generateCandidates();
+
+}
+
+if(!G.technologies.length){
+
+ generateTechnology();
+
+}
+
+initHolding();
+
+if(!G.history.length){
+
+ addHistory(
+  "Założono StreamForge. Firma zaczyna od zera."
+ );
+
+}
+
+render();
+
+</script>
+
+</body>
+</html>
