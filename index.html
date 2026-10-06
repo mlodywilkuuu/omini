@@ -3,18 +3,19 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>StreamForge</title>
+<title>StreamForge — Startup Video Platform Simulator</title>
 
 <style>
 :root{
   --bg:#080b10;
-  --p:#10151d;
-  --p2:#151c26;
+  --panel:#10151d;
+  --panel2:#151c26;
   --line:#263141;
   --txt:#eef3f8;
   --mut:#91a0b3;
-  --a:#ff3d55;
-  --g:#3ddc97
+  --accent:#ff3d55;
+  --good:#3ddc97;
+  --warn:#ffc857
 }
 
 *{box-sizing:border-box}
@@ -23,28 +24,32 @@ body{
   margin:0;
   background:var(--bg);
   color:var(--txt);
-  font:14px system-ui
+  font:14px system-ui,Arial
 }
 
 .app{
   display:grid;
-  grid-template-columns:230px 1fr;
+  grid-template-columns:240px 1fr;
   min-height:100vh
 }
 
 aside{
   background:#0c1118;
   border-right:1px solid var(--line);
-  padding:20px 14px
+  padding:18px 12px;
+  position:sticky;
+  top:0;
+  height:100vh;
+  overflow:auto
 }
 
 .logo{
   font-size:21px;
   font-weight:900;
-  margin:4px 8px 25px
+  margin:5px 8px 22px
 }
 
-.logo b{color:var(--a)}
+.logo b{color:var(--accent)}
 
 .nav{
   width:100%;
@@ -54,14 +59,13 @@ aside{
   padding:11px;
   border-radius:9px;
   text-align:left;
-  margin:2px;
+  margin:2px 0;
   cursor:pointer
 }
 
-.nav.active,
-.nav:hover{
+.nav:hover,.nav.active{
   background:#1c2633;
-  color:white
+  color:#fff
 }
 
 .nav span{
@@ -69,78 +73,100 @@ aside{
   width:28px
 }
 
+main{min-width:0}
+
 .top{
-  height:70px;
+  min-height:68px;
   border-bottom:1px solid var(--line);
   display:flex;
   align-items:center;
   justify-content:space-between;
-  padding:0 24px;
-  background:#0c1118
+  gap:10px;
+  padding:10px 22px;
+  background:#0c1118;
+  position:sticky;
+  top:0;
+  z-index:5
 }
 
-.stats,
-.row{
+.topstats,.row{
   display:flex;
-  gap:9px;
+  gap:8px;
   align-items:center;
   flex-wrap:wrap
 }
 
-.pill,
-.card{
-  background:var(--p);
+.pill,.card{
+  background:var(--panel);
   border:1px solid var(--line);
   border-radius:12px;
   padding:12px
 }
 
 .content{
-  padding:24px;
-  max-width:1400px;
+  padding:22px;
+  max-width:1450px;
   margin:auto
 }
 
 .hero{
   background:linear-gradient(135deg,#1c1a28,#121923);
   border:1px solid #343246;
-  padding:22px;
-  border-radius:18px;
-  margin-bottom:16px
+  padding:20px;
+  border-radius:17px;
+  margin-bottom:14px
 }
 
 .grid{
   display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
-  gap:12px;
-  margin:12px 0
+  grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  gap:11px;
+  margin:11px 0
 }
 
 .mut{color:var(--mut)}
+.good{color:var(--good)}
+.bad{color:#ff7183}
+.warn{color:var(--warn)}
 
-button,input,select{
-  font:inherit
-}
+button,input,select{font:inherit}
 
 .btn{
   border:1px solid #39475a;
   background:#202b39;
-  color:white;
-  padding:9px 12px;
+  color:#fff;
+  padding:9px 11px;
   border-radius:9px;
   cursor:pointer
 }
 
+.btn:hover{filter:brightness(1.14)}
+
 .primary{
-  background:var(--a);
-  border-color:var(--a);
+  background:var(--accent);
+  border-color:var(--accent);
   font-weight:800
+}
+
+.btn:disabled{
+  opacity:.45;
+  cursor:not-allowed
+}
+
+input,select{
+  background:#0b1017;
+  color:#fff;
+  border:1px solid #354254;
+  border-radius:8px;
+  padding:8px
 }
 
 table{
   width:100%;
   border-collapse:collapse;
-  background:var(--p)
+  background:var(--panel);
+  border-radius:12px;
+  overflow:hidden
 }
 
 th,td{
@@ -149,24 +175,44 @@ th,td{
   text-align:left
 }
 
-input,select{
-  background:#0b1017;
-  color:white;
-  border:1px solid #354254;
-  border-radius:8px;
-  padding:8px
+.tag{
+  display:inline-block;
+  padding:3px 7px;
+  border:1px solid #3a485a;
+  border-radius:20px;
+  margin:2px;
+  font-size:12px
 }
 
-.good{color:var(--g)}
-.bad{color:#ff7183}
+.bar{
+  height:8px;
+  background:#222b38;
+  border-radius:20px;
+  overflow:hidden
+}
+
+.bar i{
+  display:block;
+  height:100%;
+  background:var(--accent)
+}
 
 .decision{
-  border-left:4px solid #ffc857
+  border-left:4px solid var(--warn)
 }
 
-@media(max-width:760px){
+.tech-card.done{
+  opacity:.6
+}
+
+.small{
+  font-size:12px
+}
+
+@media(max-width:780px){
   .app{grid-template-columns:1fr}
-  .top{height:auto;padding:12px}
+  aside{height:auto;position:relative}
+  .top{position:relative}
   .content{padding:12px}
 }
 </style>
@@ -180,49 +226,51 @@ input,select{
 
 <div class="logo">
 ▶ <b>Stream</b>Forge
-<div class="mut" style="font-size:10px">
-VIDEO PLATFORM SIMULATOR
-</div>
+<div class="mut small">STARTUP SIMULATOR</div>
 </div>
 
-<button class="nav active" data-p="dash">
+<button class="nav active" data-page="dashboard">
 <span>📊</span>Dashboard
 </button>
 
-<button class="nav" data-p="office">
-<span>🏢</span>Biuro i pracownicy
+<button class="nav" data-page="launch">
+<span>🚀</span>Start i MVP
 </button>
 
-<button class="nav" data-p="service">
-<span>🎨</span>Serwis
+<button class="nav" data-page="staff">
+<span>👥</span>Pracownicy
 </button>
 
-<button class="nav" data-p="tech">
-<span>🧪</span>Technologie
+<button class="nav" data-page="projects">
+<span>📋</span>Projekty
 </button>
 
-<button class="nav" data-p="infra">
-<span>🖥️</span>Infrastruktura
+<button class="nav" data-page="research">
+<span>🧪</span>Badania
 </button>
 
-<button class="nav" data-p="creators">
+<button class="nav" data-page="service">
+<span>🛠️</span>Serwis i technicy
+</button>
+
+<button class="nav" data-page="infra">
+<span>🖥️</span>Serwery
+</button>
+
+<button class="nav" data-page="creators">
 <span>🎬</span>Twórcy
 </button>
 
-<button class="nav" data-p="premium">
-<span>💎</span>Subskrypcje
+<button class="nav" data-page="business">
+<span>💎</span>Monetyzacja
 </button>
 
-<button class="nav" data-p="ads">
-<span>📣</span>Reklamy
-</button>
-
-<button class="nav" data-p="finance">
+<button class="nav" data-page="finance">
 <span>💰</span>Finanse
 </button>
 
-<button class="nav" data-p="decisions">
-<span>🔔</span>Centrum decyzji
+<button class="nav" data-page="decisions">
+<span>🔔</span>Decyzje
 </button>
 
 </aside>
@@ -233,7 +281,7 @@ VIDEO PLATFORM SIMULATOR
 
 <b id="date"></b>
 
-<div class="stats">
+<div class="topstats">
 
 <div class="pill">
 💰 <b id="money"></b>
@@ -244,208 +292,385 @@ VIDEO PLATFORM SIMULATOR
 </div>
 
 <div class="pill">
-🖥️ <b id="load"></b>
+⭐ <b id="rep"></b>
 </div>
 
-<button class="btn" onclick="speed()">
-⏩ <span id="speed">x1</span>
+<button class="btn" onclick="cycleSpeed()">
+⏩ <span id="speed"></span>
 </button>
 
-<button class="btn" onclick="save()">
-💾
+<button class="btn" onclick="saveGame()">
+💾 Zapisz
 </button>
 
 </div>
 </div>
 
-<div class="content" id="panel"></div>
+<div id="panel" class="content"></div>
 
 </main>
 </div>
 
 <script>
 
-const F=n=>Math.round(n).toLocaleString('pl-PL');
+const fmt=n=>
+  Math.round(Number(n)||0)
+  .toLocaleString("pl-PL");
 
-const fresh=()=>({
+const rnd=(a,b)=>
+  Math.floor(
+    Math.random()*(b-a+1)
+  )+a;
+
+const pick=a=>
+  a[
+    Math.floor(
+      Math.random()*a.length
+    )
+  ];
+
+const clamp=(v,a,b)=>
+  Math.max(
+    a,
+    Math.min(b,v)
+  );
+
+/* =========================
+   NOWA GRA
+========================= */
+
+function fresh(){
+
+ return {
+
   day:1,
   month:1,
   year:2026,
 
   money:250000,
 
-  users:1500,
-  active:.42,
-
-  reputation:50,
-
-  dev:0,
-  design:0,
-
-  servers:2,
-  serverCapacity:5000,
-
-  storage:10,
-
-  premiumPrice:24.99,
-  premiumUsers:0,
-
-  adCPM:8,
-  adLoad:2,
-
-  creators:12,
-  videos:45,
-
-  version:1,
-  ui:'Klasyczny',
-
   speed:1,
 
-  staff:[],
+  launched:false,
 
-  unlocked:[
-    'Komentarze'
-  ],
+  users:0,
+  creators:0,
+  videos:0,
+
+  reputation:15,
+
+  bugs:0,
+
+  stability:65,
+  security:45,
+
+  devPoints:0,
+  researchPoints:0,
+
+  techLevel:1,
+
+  version:"0.1 Alpha",
+
+  servers:1,
+  serverCapacity:1500,
+  storage:2,
+
+  staff:[],
+  candidates:[],
+
+  projects:[],
+
+  technologies:[],
+  unlocked:[],
+
+  premiumPrice:19.99,
+  premiumUsers:0,
+
+  adCPM:5,
+
+  creatorShare:55,
 
   ledger:[],
 
   decisions:[],
 
-  nextDecision:1
-});
+  nextId:1,
+
+  lastCandidateDay:0,
+  lastTechDay:0
+
+ };
+
+}
 
 let G;
 
 try{
-  G=JSON.parse(
-    localStorage.getItem('streamforge-save')
-  ) || fresh();
+
+ G=
+   JSON.parse(
+     localStorage.getItem(
+       "streamforge-v2"
+     )
+   )
+   ||
+   fresh();
+
 }
 catch(e){
-  G=fresh();
+
+ G=fresh();
+
+}
+
+for(
+ const [k,v]
+ of Object.entries(fresh())
+){
+
+ if(G[k]===undefined)
+   G[k]=v;
+
 }
 
 /* =========================
-   PRACOWNICY
+   ROLE PRACOWNIKÓW
 ========================= */
 
 const roles={
 
-  'Programista':{
-    salary:8500,
-    dev:7,
-    design:0
-  },
+ "Programista":{
+   salary:8000,
+   dev:7,
+   repair:2,
+   research:1,
+   perks:[
+     "Badacz",
+     "Architekt",
+     "Debuger"
+   ]
+ },
 
-  'Designer UI/UX':{
-    salary:7200,
-    dev:1,
-    design:8
-  },
+ "Technik":{
+   salary:6500,
+   dev:1,
+   repair:9,
+   research:1,
+   perks:[
+     "Serwisant",
+     "Administrator",
+     "Optymalizator"
+   ]
+ },
 
-  'Administrator serwerów':{
-    salary:7800,
-    dev:1,
-    design:0
-  },
+ "Badacz R&D":{
+   salary:9000,
+   dev:2,
+   repair:1,
+   research:9,
+   perks:[
+     "Badacz",
+     "Wizjoner",
+     "Analityk"
+   ]
+ },
 
-  'Moderator':{
-    salary:5200,
-    dev:0,
-    design:0
-  },
+ "Designer UI/UX":{
+   salary:7000,
+   dev:4,
+   repair:1,
+   research:2,
+   perks:[
+     "Projektant",
+     "Analityk UX"
+   ]
+ },
 
-  'Marketing':{
-    salary:6500,
-    dev:0,
-    design:1
-  },
+ "Moderator":{
+   salary:5000,
+   dev:0,
+   repair:1,
+   research:0,
+   perks:[
+     "Moderator",
+     "Community"
+   ]
+ },
 
-  'Sprzedaż reklam':{
-    salary:7000,
-    dev:0,
-    design:0
-  },
+ "Marketing":{
+   salary:6500,
+   dev:0,
+   repair:0,
+   research:1,
+   perks:[
+     "Growth",
+     "PR"
+   ]
+ },
 
-  'Support':{
-    salary:5000,
-    dev:0,
-    design:0
-  }
+ "Creator Manager":{
+   salary:7200,
+   dev:0,
+   repair:0,
+   research:1,
+   perks:[
+     "Negocjator",
+     "Community"
+   ]
+ }
+
 };
 
 /* =========================
-   TECHNOLOGIE
+   BONUSY PERKÓW
 ========================= */
 
-const techs=[
+const perkBonus={
 
-  ['Wyszukiwarka',120,20000],
+ "Badacz":{
+   research:4
+ },
 
-  ['Kanały twórców',160,30000],
+ "Wizjoner":{
+   research:6
+ },
 
-  ['1080p',220,50000],
+ "Analityk":{
+   research:3
+ },
 
-  ['Aplikacja mobilna',300,80000],
+ "Serwisant":{
+   repair:5
+ },
 
-  ['Rekomendacje v1',380,100000],
+ "Administrator":{
+   repair:4
+ },
 
-  ['Transmisje live',500,150000],
+ "Optymalizator":{
+   repair:3,
+   dev:2
+ },
 
-  ['Krótkie filmy',600,180000],
+ "Architekt":{
+   dev:5
+ },
 
-  ['4K',750,250000],
+ "Debuger":{
+   repair:3,
+   dev:2
+ },
 
-  ['Smart TV',900,320000],
+ "Projektant":{
+   dev:4
+ },
 
-  ['Rekomendacje AI',1200,500000],
+ "Analityk UX":{
+   dev:3
+ },
 
-  ['Studio twórcy Pro',1500,700000]
+ "Moderator":{},
+ "Community":{},
+ "Growth":{},
+ "PR":{},
+ "Negocjator":{}
 
+};
+
+/* =========================
+   GENEROWANIE PRACOWNIKÓW
+========================= */
+
+const names=[
+ "Kacper",
+ "Maja",
+ "Oliwia",
+ "Jan",
+ "Zofia",
+ "Michał",
+ "Julia",
+ "Antoni",
+ "Lena",
+ "Filip",
+ "Amelia",
+ "Jakub",
+ "Natalia",
+ "Igor",
+ "Emilia",
+ "Adam"
+];
+
+const surnames=[
+ "Nowak",
+ "Kowalski",
+ "Wiśniewski",
+ "Wójcik",
+ "Kamiński",
+ "Lewandowski",
+ "Zieliński",
+ "Szymański",
+ "Woźniak",
+ "Dąbrowski"
 ];
 
 /* =========================
-   SAVE
+   GENEROWANIE TECHNOLOGII
 ========================= */
 
-function save(){
+const techNamesA=[
+ "Adaptive",
+ "Quantum",
+ "Smart",
+ "Creator",
+ "Stream",
+ "Cloud",
+ "Vision",
+ "Pulse",
+ "Auto",
+ "Hyper",
+ "Safe",
+ "Studio",
+ "Neural",
+ "Edge"
+];
 
-  localStorage.setItem(
-    'streamforge-save',
-    JSON.stringify(G)
-  );
+const techNamesB=[
+ "Codec",
+ "Discovery",
+ "CDN",
+ "Moderation",
+ "Search",
+ "Analytics",
+ "Player",
+ "Upload",
+ "Recommendations",
+ "Transcoding",
+ "Security",
+ "Creator Tools",
+ "Compression",
+ "Streaming"
+];
 
-}
+const techEffects=[
+ "capacity",
+ "growth",
+ "stability",
+ "research",
+ "reputation"
+];
 
 /* =========================
-   INFRASTRUKTURA
+   CZAS
 ========================= */
 
-function cap(){
+function absDay(){
 
-  return G.servers *
-         G.serverCapacity;
-
-}
-
-function load(){
-
-  return Math.min(
-    200,
-    G.users / cap() * 100
-  );
-
-}
-
-/* =========================
-   PRACOWNICY
-========================= */
-
-function cnt(r){
-
-  return G.staff.filter(
-    x=>x.role===r
-  ).length;
+ return (
+   (
+     G.year*12+
+     G.month
+   )*30
+ )+G.day;
 
 }
 
@@ -453,349 +678,74 @@ function cnt(r){
    FINANSE
 ========================= */
 
-function cash(v,c,d){
+function cash(
+ v,
+ cat,
+ desc
+){
 
-  G.money+=v;
+ G.money+=v;
 
-  G.ledger.unshift({
+ G.ledger.unshift({
 
-    date:`${G.day}.${G.month}.${G.year}`,
+   date:
+     `${G.day}.${G.month}.${G.year}`,
 
-    value:v,
+   value:v,
 
-    category:c,
+   cat,
 
-    description:d
+   desc
 
-  });
+ });
 
-  G.ledger=
-    G.ledger.slice(0,300);
-
-}
-
-/* =========================
-   DECYZJE
-========================= */
-
-function decision(title,text){
-
-  if(
-    G.decisions.some(
-      d=>d.open &&
-      d.title===title
-    )
-  ) return;
-
-  G.decisions.unshift({
-
-    id:G.nextDecision++,
-
-    title,
-
-    text,
-
-    open:true
-
-  });
-
-}
-
-function closeDecision(id){
-
-  const d=
-    G.decisions.find(
-      x=>x.id===id
-    );
-
-  if(d)
-    d.open=false;
-
-  render();
+ G.ledger=
+   G.ledger.slice(0,400);
 
 }
 
 /* =========================
-   DZIEŃ GRY
+   SAVE
 ========================= */
 
-function day(){
-
-  /* R&D */
-
-  G.dev +=
-    G.staff.reduce(
-      (a,s)=>
-        a+(roles[s.role].dev||0),
-      0
-    ) / 30;
-
-  G.design +=
-    G.staff.reduce(
-      (a,s)=>
-        a+(roles[s.role].design||0),
-      0
-    ) / 30;
-
-
-  /* WZROST UŻYTKOWNIKÓW */
-
-  let growth =
-    .002 +
-    (G.reputation-50)/50000 +
-    G.unlocked.length*.00012;
-
-
-  /* PRZECIĄŻENIE */
-
-  if(load()>90)
-    growth-=.008;
-
-
-  const newUsers =
-    Math.max(
-      -G.users*.02,
-      G.users*growth
-    );
-
-
-  G.users=
-    Math.max(
-      0,
-      G.users+newUsers
-    );
-
-
-  /* TWÓRCY */
-
-  G.creators +=
-    Math.max(
-      0,
-      newUsers/700
-    );
-
-
-  G.videos +=
-    Math.max(
-      1,
-      G.creators*.015
-    );
-
-
-  /* PREMIUM */
-
-  const premiumTarget=
-    Math.min(
-      .18,
-      .005 +
-      G.reputation/1200 +
-      G.unlocked.length/1000
-    );
-
-
-  G.premiumUsers +=
-    (
-      G.users*premiumTarget -
-      G.premiumUsers
-    )*.01;
-
-
-  /* REKLAMY */
-
-  const adRevenue=
-
-    G.users *
-    G.active *
-    3 /
-    1000 *
-    G.adCPM *
-    G.adLoad *
-    .55;
-
-
-  /* PREMIUM */
-
-  const premiumRevenue=
-
-    G.premiumUsers *
-    G.premiumPrice /
-    30;
-
-
-  /* PENSJE */
-
-  const salaries=
-
-    G.staff.reduce(
-      (a,s)=>
-        a+
-        roles[s.role].salary/30,
-      0
-    );
-
-
-  /* SERWERY */
-
-  const serversCost=
-
-    G.servers*55 +
-    G.storage*3;
-
-
-  /* WYNIK */
-
-  cash(
-
-    adRevenue +
-    premiumRevenue -
-    salaries -
-    serversCost,
-
-    'Dzienny wynik',
-
-    'Reklamy + Premium - koszty'
-
-  );
-
-
-  /* ALERT SERWERÓW */
-
-  if(load()>85){
-
-    decision(
-
-      'Serwery przeciążone',
-
-      `Obciążenie wynosi ${load().toFixed(0)}%. Rozbuduj infrastrukturę.`
-
-    );
-
-  }
-
-
-  /* ALERT MODERATORÓW */
-
-  if(
-    G.staff.length>8 &&
-    !cnt('Moderator')
-  ){
-
-    decision(
-
-      'Brak moderatorów',
-
-      'Platforma rośnie. Zatrudnij moderatorów.'
-
-    );
-
-  }
-
-
-  /* DATA */
-
-  G.day++;
-
-  if(G.day>30){
-
-    G.day=1;
-    G.month++;
-
-    if(G.month>12){
-
-      G.month=1;
-      G.year++;
-
-    }
-
-  }
+function saveGame(){
+
+ localStorage.setItem(
+   "streamforge-v2",
+   JSON.stringify(G)
+ );
 
 }
 
 /* =========================
-   CZAS
+   MOC PRACOWNIKÓW
 ========================= */
 
-setInterval(()=>{
+function staffPower(type){
 
-  for(
-    let i=0;
-    i<G.speed;
-    i++
-  ){
+ return G.staff.reduce(
+   (sum,s)=>{
 
-    day();
+     const base=
+       roles[s.role]?.[type]
+       ||
+       0;
 
-  }
+     const perk=
+       perkBonus[s.perk]?.[type]
+       ||
+       0;
 
-  save();
-  render();
+     return sum+
+       (base+perk)*
+       (
+         0.7+
+         s.skill/100
+       );
 
-},1200);
-
-
-function speed(){
-
-  G.speed =
-    G.speed===1
-      ? 2
-      : G.speed===2
-        ? 5
-        : 1;
-
-  render();
-
-}
-
-/* =========================
-   ZATRUDNIANIE
-========================= */
-
-function hire(role){
-
-  const salary=
-    roles[role].salary;
-
-  if(G.money<salary){
-
-    alert(
-      'Za mało pieniędzy.'
-    );
-
-    return;
-
-  }
-
-  cash(
-    -salary,
-    'HR',
-    'Zatrudnienie: '+role
-  );
-
-  G.staff.push({
-
-    id:
-      Date.now()+
-      Math.random(),
-
-    role,
-
-    exp:1
-
-  });
-
-  render();
-
-}
-
-
-function fire(id){
-
-  G.staff=
-    G.staff.filter(
-      x=>x.id!==id
-    );
-
-  render();
+   },
+   0
+ );
 
 }
 
@@ -803,192 +753,906 @@ function fire(id){
    SERWERY
 ========================= */
 
-function buyServer(){
+function capacity(){
 
-  if(G.money<60000){
-
-    alert(
-      'Za mało pieniędzy.'
-    );
-
-    return;
-
-  }
-
-  cash(
-    -60000,
-    'Infrastruktura',
-    'Nowy serwer'
-  );
-
-  G.servers++;
-
-  render();
+ return (
+   G.servers *
+   G.serverCapacity *
+   (
+     1+
+     G.techLevel*.08
+   )
+ );
 
 }
 
+function load(){
 
-function buyStorage(){
+ return G.launched
 
-  if(G.money<15000){
+ ? clamp(
+     G.users /
+     Math.max(
+       1,
+       capacity()
+     )
+     *100,
+     0,
+     250
+   )
 
-    alert(
-      'Za mało pieniędzy.'
-    );
-
-    return;
-
-  }
-
-  cash(
-    -15000,
-    'Infrastruktura',
-    'Storage +10 TB'
-  );
-
-  G.storage+=10;
-
-  render();
+ : 0;
 
 }
 
 /* =========================
-   TECHNOLOGIE
+   DECYZJE
 ========================= */
 
-function unlock(
-  name,
-  costDev,
-  costMoney
+function addDecision(
+ title,
+ text
 ){
 
-  if(
-    G.unlocked.includes(name)
-  )
-    return;
+ if(
+   G.decisions.some(
+     d=>
+       d.open &&
+       d.title===title
+   )
+ )
+ return;
 
+ G.decisions.unshift({
 
-  if(
-    G.dev<costDev ||
-    G.money<costMoney
-  ){
+   id:G.nextId++,
 
-    alert(
-      'Brakuje punktów R&D lub pieniędzy.'
-    );
+   title,
 
-    return;
+   text,
 
-  }
+   open:true,
 
+   date:
+     `${G.day}.${G.month}.${G.year}`
 
-  G.dev-=costDev;
-
-
-  cash(
-    -costMoney,
-    'R&D',
-    'Technologia: '+name
-  );
-
-
-  G.unlocked.push(name);
-
-
-  G.reputation+=2;
-
-
-  render();
+ });
 
 }
 
 /* =========================
-   NOWY WYGLĄD
+   KANDYDACI
 ========================= */
 
-function redesign(){
+function generateCandidates(){
 
-  if(
-    G.design<80 ||
-    G.money<25000
-  ){
+ const count=
+   rnd(3,6);
 
-    alert(
-      'Potrzebujesz 80 pkt designu i 25 000 zł.'
-    );
+ for(
+   let i=0;
+   i<count;
+   i++
+ ){
 
-    return;
+   const role=
+     pick(
+       Object.keys(roles)
+     );
 
-  }
+   const skill=
+     rnd(35,92);
 
+   const perk=
+     pick(
+       roles[role].perks
+     );
 
-  G.design-=80;
+   const salary=
+     Math.round(
+       roles[role].salary *
+       (
+         .8+
+         skill/150
+       )
+       /100
+     )*100;
 
+   G.candidates.push({
 
-  cash(
-    -25000,
-    'Serwis',
-    'Nowy wygląd'
-  );
+     id:G.nextId++,
 
+     name:
+       pick(names)
+       +" "+
+       pick(surnames),
 
-  G.version++;
+     role,
 
+     skill,
 
-  const styles=[
+     perk,
 
-    'Klasyczny',
-    'Nowoczesny',
-    'Minimal',
-    'Cinema',
-    'Dynamic'
+     salary
 
-  ];
+   });
 
+ }
 
-  G.ui=
-    styles[
-      G.version %
-      styles.length
-    ];
+ G.candidates=
+   G.candidates.slice(-20);
 
-
-  G.reputation+=3;
-
-
-  render();
+ G.lastCandidateDay=
+   absDay();
 
 }
 
 /* =========================
-   KARTY
+   ZATRUDNIANIE
+========================= */
+
+function hire(id){
+
+ const c=
+   G.candidates.find(
+     x=>x.id===id
+   );
+
+ if(!c)
+   return;
+
+ if(G.money<c.salary){
+
+   alert(
+     "Za mało gotówki na koszt rekrutacji."
+   );
+
+   return;
+
+ }
+
+ cash(
+   -c.salary,
+   "HR",
+   "Rekrutacja: "+c.name
+ );
+
+ G.staff.push({
+
+   ...c,
+
+   experience:0
+
+ });
+
+ G.candidates=
+   G.candidates.filter(
+     x=>x.id!==id
+   );
+
+ render();
+
+}
+
+function fire(id){
+
+ G.staff=
+   G.staff.filter(
+     x=>x.id!==id
+   );
+
+ render();
+
+}
+
+/* =========================
+   NOWE TECHNOLOGIE
+========================= */
+
+function generateTech(){
+
+ let name;
+
+ do{
+
+   name=
+     pick(techNamesA)
+     +" "+
+     pick(techNamesB)
+     +" "+
+     rnd(1,9);
+
+ }
+ while(
+   G.technologies.some(
+     t=>t.name===name
+   )
+ );
+
+ const effect=
+   pick(techEffects);
+
+ const difficulty=
+   Math.round(
+     (
+       80+
+       rnd(0,100)
+     )
+     *
+     (
+       1+
+       G.techLevel*.15
+     )
+   );
+
+ G.technologies.push({
+
+   id:G.nextId++,
+
+   name,
+
+   effect,
+
+   difficulty,
+
+   progress:0,
+
+   done:false,
+
+   created:absDay()
+
+ });
+
+ G.lastTechDay=
+   absDay();
+
+ G.technologies=
+   G.technologies.slice(-25);
+
+}
+
+/* =========================
+   AUTOMATYCZNE BADANIA
+========================= */
+
+function researchTick(){
+
+ const p=
+   staffPower(
+     "research"
+   );
+
+ if(p<=0)
+   return;
+
+ const t=
+   G.technologies.find(
+     x=>!x.done
+   );
+
+ if(!t)
+   return;
+
+ t.progress+=
+   p/8;
+
+ if(
+   t.progress>=
+   t.difficulty
+ ){
+
+   t.done=true;
+
+   t.progress=
+     t.difficulty;
+
+   G.unlocked.push(
+     t.name
+   );
+
+   G.techLevel++;
+
+   G.reputation+=2;
+
+   if(
+     t.effect==="capacity"
+   ){
+
+     G.serverCapacity=
+       Math.round(
+         G.serverCapacity*
+         1.12
+       );
+
+   }
+
+   if(
+     t.effect==="stability"
+   ){
+
+     G.stability=
+       clamp(
+         G.stability+8,
+         0,
+         100
+       );
+
+   }
+
+   if(
+     t.effect==="reputation"
+   ){
+
+     G.reputation=
+       clamp(
+         G.reputation+4,
+         0,
+         100
+       );
+
+   }
+
+   addDecision(
+     "Technologia opracowana",
+     `${t.name} została automatycznie ukończona przez dział badań.`
+   );
+
+ }
+
+}
+
+/* =========================
+   TECHNICY
+========================= */
+
+function techniciansTick(){
+
+ const p=
+   staffPower(
+     "repair"
+   );
+
+ if(p<=0)
+   return;
+
+ G.bugs=
+   Math.max(
+     0,
+     G.bugs-p/20
+   );
+
+ G.stability=
+   clamp(
+     G.stability+
+     p/120,
+     0,
+     100
+   );
+
+ if(
+   G.stability>85 &&
+   Math.random()<
+   p/3000
+ ){
+
+   G.serverCapacity=
+     Math.round(
+       G.serverCapacity*
+       1.01
+     );
+
+ }
+
+}
+
+/* =========================
+   PREMIERA PLATFORMY
+========================= */
+
+function canLaunch(){
+
+ return (
+
+   G.staff.some(
+     s=>
+       s.role===
+       "Programista"
+   )
+
+   &&
+
+   G.devPoints>=60
+
+   &&
+
+   G.stability>=60
+
+ );
+
+}
+
+function launch(){
+
+ if(G.launched)
+   return;
+
+ if(!canLaunch()){
+
+   alert(
+     "Potrzebujesz programisty, 60 pkt developmentu i minimum 60% stabilności."
+   );
+
+   return;
+
+ }
+
+ G.launched=true;
+
+ G.version="1.0";
+
+ G.reputation+=10;
+
+ addDecision(
+   "Platforma wystartowała",
+   "Serwis jest publiczny. Od teraz mogą pojawiać się pierwsi użytkownicy i twórcy."
+ );
+
+ render();
+
+}
+
+/* =========================
+   NOWY SERWER
+========================= */
+
+function buyServer(){
+
+ if(G.money<50000){
+
+   alert(
+     "Za mało pieniędzy."
+   );
+
+   return;
+
+ }
+
+ cash(
+   -50000,
+   "Infrastruktura",
+   "Nowy serwer"
+ );
+
+ G.servers++;
+
+ render();
+
+}
+
+/* =========================
+   PROJEKTY
+========================= */
+
+function createProject(type){
+
+ const defs={
+
+   "Player 2.0":[
+     120,
+     45000,
+     8
+   ],
+
+   "Aplikacja mobilna":[
+     180,
+     70000,
+     12
+   ],
+
+   "Live":[
+     250,
+     110000,
+     18
+   ],
+
+   "Short videos":[
+     220,
+     90000,
+     15
+   ],
+
+   "Premium":[
+     160,
+     60000,
+     10
+   ],
+
+   "Nowy interfejs":[
+     100,
+     35000,
+     7
+   ]
+
+ };
+
+ const d=
+   defs[type];
+
+ if(!d)
+   return;
+
+ if(G.money<d[1]){
+
+   alert(
+     "Za mało pieniędzy."
+   );
+
+   return;
+
+ }
+
+ cash(
+   -d[1],
+   "Projekt",
+   type
+ );
+
+ G.projects.push({
+
+   id:G.nextId++,
+
+   name:type,
+
+   need:d[0],
+
+   progress:0,
+
+   rep:d[2],
+
+   done:false
+
+ });
+
+ render();
+
+}
+
+/* =========================
+   AUTOMATYCZNE PROJEKTY
+========================= */
+
+function projectTick(){
+
+ const p=
+   staffPower(
+     "dev"
+   );
+
+ G.devPoints+=
+   p/15;
+
+ const active=
+   G.projects.find(
+     x=>!x.done
+   );
+
+ if(
+   !active ||
+   p<=0
+ )
+ return;
+
+ active.progress+=
+   p/10;
+
+ if(
+   active.progress>=
+   active.need
+ ){
+
+   active.progress=
+     active.need;
+
+   active.done=true;
+
+   G.reputation+=
+     active.rep;
+
+   G.version=
+     (
+       (parseFloat(G.version)||1)
+       +
+       0.1
+     )
+     +"";
+
+   addDecision(
+     "Projekt ukończony",
+     `${active.name} jest gotowy do użycia.`
+   );
+
+ }
+
+}
+
+/* =========================
+   DZIEŃ GRY
+========================= */
+
+function daily(){
+
+ /* KANDYDACI */
+
+ if(
+   absDay()-
+   G.lastCandidateDay>=7
+   ||
+   !G.candidates.length
+ ){
+
+   generateCandidates();
+
+ }
+
+ /* TECHNOLOGIE */
+
+ if(
+   absDay()-
+   G.lastTechDay>=
+   rnd(12,22)
+   ||
+   !G.technologies.length
+ ){
+
+   generateTech();
+
+ }
+
+ /* AUTOMATYZACJA */
+
+ projectTick();
+
+ researchTick();
+
+ techniciansTick();
+
+ /* PENSJE */
+
+ const salaries=
+   G.staff.reduce(
+     (a,s)=>
+       a+
+       s.salary/30,
+     0
+   );
+
+ /* INFRA */
+
+ const infra=
+   G.servers*45+
+   G.storage*2;
+
+ let revenue=0;
+
+ /* DZIAŁAJĄCA PLATFORMA */
+
+ if(G.launched){
+
+   let growth=
+     .004+
+     G.reputation/15000+
+     G.techLevel*.00025+
+     G.staff.filter(
+       s=>
+         s.role===
+         "Marketing"
+     ).length*.0004;
+
+   if(load()>90)
+     growth-=.015;
+
+   if(G.bugs>20)
+     growth-=.01;
+
+   const newUsers=
+     Math.max(
+       -G.users*.03,
+       Math.max(
+         1,
+         G.users*growth
+         ||
+         rnd(1,5)
+       )
+     );
+
+   G.users=
+     Math.max(
+       0,
+       G.users+
+       newUsers
+     );
+
+   /* TWÓRCY */
+
+   G.creators+=
+     Math.max(
+       .02,
+       newUsers/800
+     );
+
+   /* FILMY */
+
+   G.videos+=
+     Math.max(
+       .1,
+       G.creators*.008
+     );
+
+   /* PREMIUM */
+
+   G.premiumUsers+=
+     (
+       G.users*.025-
+       G.premiumUsers
+     )
+     *.015;
+
+   /* PRZYCHÓD */
+
+   revenue=
+     G.users*.03+
+     G.premiumUsers*
+     G.premiumPrice/30;
+
+   /* LOSOWE BUGI */
+
+   if(
+     Math.random()<.06
+   ){
+
+     G.bugs+=
+       rnd(1,4);
+
+   }
+
+   /* ALERT SERWERÓW */
+
+   if(load()>85){
+
+     addDecision(
+       "Wysokie obciążenie serwerów",
+       `Obciążenie: ${load().toFixed(0)}%. Rozbuduj infrastrukturę lub opracuj lepszą technologię.`
+     );
+
+   }
+
+   /* ALERT BUGÓW */
+
+   if(G.bugs>15){
+
+     addDecision(
+       "Dużo błędów",
+       `W serwisie jest ${Math.round(G.bugs)} punktów błędów. Technicy i programiści naprawiają je automatycznie.`
+     );
+
+   }
+
+ }
+
+ /* DZIENNY WYNIK */
+
+ cash(
+
+   revenue-
+   salaries-
+   infra,
+
+   "Dzienny wynik",
+
+   "Przychody - pensje - infrastruktura"
+
+ );
+
+ /* DOŚWIADCZENIE */
+
+ G.staff.forEach(
+   s=>
+     s.experience+=.01
+ );
+
+ /* DATA */
+
+ G.day++;
+
+ if(G.day>30){
+
+   G.day=1;
+
+   G.month++;
+
+   if(G.month>12){
+
+     G.month=1;
+
+     G.year++;
+
+   }
+
+ }
+
+}
+
+/* =========================
+   PRĘDKOŚĆ
+========================= */
+
+function cycleSpeed(){
+
+ G.speed=
+   G.speed===1
+   ? 2
+   : G.speed===2
+   ? 5
+   : 1;
+
+ render();
+
+}
+
+/* =========================
+   PĘTLA GRY
+========================= */
+
+setInterval(
+ ()=>{
+
+   for(
+     let i=0;
+     i<G.speed;
+     i++
+   ){
+
+     daily();
+
+   }
+
+   saveGame();
+
+   render();
+
+ },
+ 1200
+);
+
+/* =========================
+   KARTA STATYSTYKI
 ========================= */
 
 function stat(
-  title,
-  value,
-  description
+ t,
+ v,
+ d
 ){
 
-  return `
+ return `
 
-  <div class="card">
+ <div class="card">
 
-    <div class="mut">
-      ${title}
-    </div>
+   <div class="mut">
+     ${t}
+   </div>
 
-    <h2>
-      ${value}
-    </h2>
+   <h2>
+     ${v}
+   </h2>
 
-    <div class="mut">
-      ${description}
-    </div>
+   <div class="mut">
+     ${d}
+   </div>
 
-  </div>
+ </div>
 
-  `;
+ `;
 
 }
 
@@ -996,360 +1660,597 @@ function stat(
    DASHBOARD
 ========================= */
 
-function dash(){
+function dashboard(){
 
-  return `
+ return `
 
-  <div class="hero">
+ <div class="hero">
 
-    <h1>
-      ▶ StreamForge
-    </h1>
+   <h1>
+     ▶ StreamForge
+   </h1>
 
-    <p class="mut">
-      Buduj własną platformę wideo.
-      Zatrudniaj pracowników,
-      rozwijaj technologie,
-      zdobywaj użytkowników
-      i skaluj infrastrukturę.
-    </p>
+   <p class="mut">
 
-  </div>
+     ${
+       G.launched
 
+       ?
 
-  <div class="grid">
+       "Platforma działa. Rozwijaj zespół, badania, technologię i infrastrukturę."
 
-    ${stat(
-      '👥 Użytkownicy',
-      F(G.users),
-      (G.active*100).toFixed(0)
-      +'% aktywnych'
-    )}
+       :
 
+       "Zaczynasz od zera: 0 użytkowników, 0 twórców i niedziałający jeszcze publicznie serwis."
+     }
 
-    ${stat(
-      '🎬 Twórcy',
-      F(G.creators),
-      F(G.videos)+' filmów'
-    )}
+   </p>
 
+ </div>
 
-    ${stat(
-      '💎 Premium',
-      F(G.premiumUsers),
-      G.premiumPrice.toFixed(2)
-      +' zł/mies.'
-    )}
+ <div class="grid">
 
+   ${stat(
+     "👥 Użytkownicy",
+     fmt(G.users),
+     G.launched
+     ? "platforma online"
+     : "przed premierą"
+   )}
 
-    ${stat(
-      '⭐ Reputacja',
-      G.reputation.toFixed(0)
-      +'/100',
-      'Wersja '+G.version
-    )}
+   ${stat(
+     "👨‍💻 Pracownicy",
+     G.staff.length,
+     `${staffPower("dev").toFixed(1)} dev / ${staffPower("research").toFixed(1)} R&D`
+   )}
 
+   ${stat(
+     "🧪 Technologie",
+     G.unlocked.length,
+     `poziom ${G.techLevel}`
+   )}
 
-    ${stat(
-      '🧪 R&D',
-      G.dev.toFixed(1),
-      G.design.toFixed(1)
-      +' design'
-    )}
+   ${stat(
+     "🛠️ Stabilność",
+     G.stability.toFixed(1)+"%",
+     `${G.bugs.toFixed(1)} błędów`
+   )}
 
+   ${stat(
+     "🖥️ Serwery",
+     load().toFixed(1)+"%",
+     `${fmt(capacity())} pojemności`
+   )}
 
-    ${stat(
-      '🖥️ Obciążenie',
-      load().toFixed(1)+'%',
-      F(cap())+
-      ' pojemności'
-    )}
+   ${stat(
+     "⭐ Reputacja",
+     G.reputation.toFixed(0)+"/100",
+     G.version
+   )}
 
-  </div>
+ </div>
 
-  `;
-
-}
-
-/* =========================
-   BIURO
-========================= */
-
-function office(){
-
-  return `
-
-  <h1>
-    🏢 Biuro i pracownicy
-  </h1>
-
-
-  <div class="card row">
-
-    <select id="role">
-
-      ${Object.keys(roles)
-        .map(
-          r=>`<option>${r}</option>`
-        )
-        .join('')}
-
-    </select>
-
-
-    <button
-      class="btn primary"
-      onclick="
-        hire(
-          document.getElementById('role').value
-        )
-      "
-    >
-
-      ＋ Zatrudnij
-
-    </button>
-
-  </div>
-
-
-  <div class="grid">
-
-    ${Object.entries(roles)
-      .map(
-        ([role,data])=>
-          stat(
-            role,
-            cnt(role),
-            F(data.salary)
-            +' zł/mies.'
-          )
-      )
-      .join('')}
-
-  </div>
-
-
-  <table>
-
-    <tr>
-
-      <th>
-        Stanowisko
-      </th>
-
-      <th>
-        Doświadczenie
-      </th>
-
-      <th>
-        Pensja
-      </th>
-
-      <th></th>
-
-    </tr>
-
-
-    ${G.staff
-      .map(
-        s=>`
-
-        <tr>
-
-          <td>
-            ${s.role}
-          </td>
-
-          <td>
-            ${s.exp.toFixed(1)}
-          </td>
-
-          <td>
-            ${F(
-              roles[s.role].salary
-            )} zł
-          </td>
-
-          <td>
-
-            <button
-              class="btn"
-              onclick="
-                fire(${s.id})
-              "
-            >
-
-              Zwolnij
-
-            </button>
-
-          </td>
-
-        </tr>
-
-        `
-      )
-      .join('')}
-
-  </table>
-
-  `;
+ `;
 
 }
 
 /* =========================
-   SERWIS
+   START / MVP
 ========================= */
 
-function service(){
+function launchPage(){
 
-  return `
+ return `
 
-  <h1>
-    🎨 Rozwój serwisu
-  </h1>
+ <h1>
+   🚀 Start i MVP
+ </h1>
 
+ <div class="hero">
 
-  <div class="hero">
+   <h2>
 
-    <h2>
-      Interfejs:
-      ${G.ui}
-    </h2>
+     ${
+       G.launched
+       ? "Platforma uruchomiona"
+       : "Budowa MVP"
+     }
 
+   </h2>
 
-    <p>
-      Wersja ${G.version}.0
-      • reputacja
-      ${G.reputation.toFixed(0)}/100
-    </p>
+   <p>
 
+     Warunki premiery:
+     co najmniej 1 programista,
+     60 pkt developmentu
+     i 60% stabilności.
 
-    <button
-      class="btn primary"
-      onclick="redesign()"
-    >
+   </p>
 
-      🎨 Wydaj nowy wygląd
-      — 80 design /
-      25 000 zł
+   <div class="grid">
 
-    </button>
+     ${stat(
+       "Programiści",
+       G.staff.filter(
+         s=>
+           s.role===
+           "Programista"
+       ).length,
+       "minimum 1"
+     )}
 
-  </div>
+     ${stat(
+       "Development",
+       G.devPoints.toFixed(1),
+       "minimum 60"
+     )}
 
+     ${stat(
+       "Stabilność",
+       G.stability.toFixed(1)+"%",
+       "minimum 60%"
+     )}
 
-  <div class="grid">
+   </div>
 
-    ${G.unlocked
-      .map(
-        x=>`
+   <button
+     class="btn primary"
+     onclick="launch()"
+     ${G.launched?"disabled":""}
+   >
 
-        <div class="card">
+     🚀 Uruchom platformę
 
-          ✅
-          <b>${x}</b>
+   </button>
 
-        </div>
+ </div>
 
-        `
-      )
-      .join('')}
-
-  </div>
-
-  `;
+ `;
 
 }
 
 /* =========================
-   TECHNOLOGIE
+   PRACOWNICY
 ========================= */
 
-function technology(){
+function staffPage(){
 
-  return `
+ return `
 
-  <h1>
-    🧪 Technologie
-  </h1>
+ <h1>
+   👥 Rekrutacja i pracownicy
+ </h1>
 
+ <p class="mut">
 
-  <p>
+   Nowi kandydaci pojawiają się
+   co około 7 dni.
 
-    R&D:
+   Perki zmieniają specjalizację
+   pracownika.
 
-    <b>
-      ${G.dev.toFixed(1)}
-    </b>
+ </p>
 
-    pkt
+ <h2>
+   Kandydaci
+ </h2>
 
-  </p>
+ <div class="grid">
 
+ ${
+   G.candidates
+   .map(
+     c=>`
 
-  <div class="grid">
+     <div class="card">
 
-    ${techs
-      .map(
-        t=>`
+       <h3>
+         ${c.name}
+       </h3>
 
-        <div class="card">
+       <b>
+         ${c.role}
+       </b>
 
-          <h3>
+       <p>
+         Umiejętność:
+         ${c.skill}/100
+       </p>
 
-            ${
-              G.unlocked.includes(t[0])
-              ? '✅'
-              : '🔬'
-            }
+       <span class="tag">
+         ✨ ${c.perk}
+       </span>
 
-            ${t[0]}
+       <p>
+         ${fmt(c.salary)}
+         zł/mies.
+       </p>
 
-          </h3>
+       <button
+         class="btn primary"
+         onclick="hire(${c.id})"
+       >
 
+         Zatrudnij
 
-          <p class="mut">
+       </button>
 
-            ${t[1]} R&D
-            •
-            ${F(t[2])} zł
+     </div>
 
-          </p>
+     `
+   )
+   .join("")
 
+   ||
 
-          <button
-            class="btn"
+   "<div class='card'>Brak kandydatów.</div>"
+ }
 
-            ${
-              G.unlocked.includes(t[0])
-              ? 'disabled'
-              : ''
-            }
+ </div>
 
-            onclick='
-              unlock(
-                ${JSON.stringify(t[0])},
-                ${t[1]},
-                ${t[2]}
-              )
-            '
-          >
+ <h2>
+   Zespół
+ </h2>
 
-            Opracuj
+ <table>
 
-          </button>
+ <tr>
 
-        </div>
+   <th>Pracownik</th>
 
-        `
-      )
-      .join('')}
+   <th>Rola</th>
 
-  </div>
+   <th>Perk</th>
 
-  `;
+   <th>Skill</th>
+
+   <th>Pensja</th>
+
+   <th></th>
+
+ </tr>
+
+ ${
+   G.staff
+   .map(
+     s=>`
+
+     <tr>
+
+       <td>
+         ${s.name}
+       </td>
+
+       <td>
+         ${s.role}
+       </td>
+
+       <td>
+         ${s.perk}
+       </td>
+
+       <td>
+         ${s.skill}
+       </td>
+
+       <td>
+         ${fmt(s.salary)} zł
+       </td>
+
+       <td>
+
+         <button
+           class="btn"
+           onclick="fire(${s.id})"
+         >
+
+           Zwolnij
+
+         </button>
+
+       </td>
+
+     </tr>
+
+     `
+   )
+   .join("")
+ }
+
+ </table>
+
+ `;
+
+}
+
+/* =========================
+   PROJEKTY
+========================= */
+
+function projectsPage(){
+
+ const opts=[
+   "Player 2.0",
+   "Aplikacja mobilna",
+   "Live",
+   "Short videos",
+   "Premium",
+   "Nowy interfejs"
+ ];
+
+ return `
+
+ <h1>
+   📋 Projekty
+ </h1>
+
+ <div class="card row">
+
+   <select id="proj">
+
+     ${
+       opts
+       .map(
+         x=>
+           `<option>${x}</option>`
+       )
+       .join("")
+     }
+
+   </select>
+
+   <button
+     class="btn primary"
+     onclick="
+       createProject(
+         document.getElementById('proj').value
+       )
+     "
+   >
+
+     ＋ Rozpocznij projekt
+
+   </button>
+
+ </div>
+
+ ${
+   G.projects
+   .map(
+     p=>`
+
+     <div class="card">
+
+       <b>
+
+         ${
+           p.done
+           ? "✅"
+           : "📋"
+         }
+
+         ${p.name}
+
+       </b>
+
+       <div class="bar">
+
+         <i
+           style="
+             width:
+             ${
+               Math.min(
+                 100,
+                 p.progress/
+                 p.need*
+                 100
+               )
+             }%
+           "
+         ></i>
+
+       </div>
+
+       <small>
+
+         ${p.progress.toFixed(1)}
+         /
+         ${p.need}
+
+       </small>
+
+     </div>
+
+     `
+   )
+   .join("")
+
+   ||
+
+   "<div class='card'>Brak projektów.</div>"
+ }
+
+ `;
+
+}
+
+/* =========================
+   BADANIA
+========================= */
+
+function researchPage(){
+
+ return `
+
+ <h1>
+   🧪 Automatyczne badania
+ </h1>
+
+ <div class="hero">
+
+   <h2>
+
+     Moc badawcza:
+     ${staffPower("research").toFixed(1)}
+
+   </h2>
+
+   <p class="mut">
+
+     Pracownicy z perkami
+     Badacz, Wizjoner i Analityk
+     oraz dział R&D
+     automatycznie badają
+     pierwszą nieukończoną
+     technologię.
+
+     Im więcej dobrych badaczy,
+     tym szybciej.
+
+   </p>
+
+ </div>
+
+ ${
+   G.technologies
+   .slice()
+   .reverse()
+   .map(
+     t=>`
+
+     <div
+       class="
+         card
+         tech-card
+         ${t.done?"done":""}
+       "
+     >
+
+       <h3>
+
+         ${
+           t.done
+           ? "✅"
+           : "🔬"
+         }
+
+         ${t.name}
+
+       </h3>
+
+       <div class="mut">
+
+         Efekt:
+         ${t.effect}
+
+         •
+
+         trudność
+         ${t.difficulty}
+
+       </div>
+
+       <div class="bar">
+
+         <i
+           style="
+             width:
+             ${
+               Math.min(
+                 100,
+                 t.progress/
+                 t.difficulty*
+                 100
+               )
+             }%
+           "
+         ></i>
+
+       </div>
+
+       <small>
+
+         ${t.progress.toFixed(1)}
+         /
+         ${t.difficulty}
+
+       </small>
+
+     </div>
+
+     `
+   )
+   .join("")
+ }
+
+ `;
+
+}
+
+/* =========================
+   TECHNICY
+========================= */
+
+function servicePage(){
+
+ return `
+
+ <h1>
+   🛠️ Technicy i utrzymanie
+ </h1>
+
+ <div class="grid">
+
+   ${stat(
+     "Moc naprawcza",
+     staffPower("repair").toFixed(1),
+     "technicy + perki"
+   )}
+
+   ${stat(
+     "Błędy",
+     G.bugs.toFixed(1),
+     "naprawiane automatycznie"
+   )}
+
+   ${stat(
+     "Stabilność",
+     G.stability.toFixed(1)+"%",
+     "rośnie dzięki technikom"
+   )}
+
+   ${stat(
+     "Pojemność / serwer",
+     fmt(G.serverCapacity),
+     "technicy mogą ją lekko optymalizować"
+   )}
+
+ </div>
+
+ <div class="card">
+
+   <p>
+
+     Technicy działają
+     automatycznie każdego dnia:
+
+     usuwają błędy,
+     zwiększają stabilność
+     i przy wysokiej sprawności
+     mogą optymalizować serwery.
+
+     Perki
+     <b>Serwisant</b>,
+     <b>Administrator</b>
+     i
+     <b>Optymalizator</b>
+     przyspieszają pracę.
+
+   </p>
+
+ </div>
+
+ `;
 
 }
 
@@ -1357,68 +2258,49 @@ function technology(){
    INFRASTRUKTURA
 ========================= */
 
-function infra(){
+function infraPage(){
 
-  return `
+ return `
 
-  <h1>
-    🖥️ Infrastruktura
-  </h1>
+ <h1>
+   🖥️ Infrastruktura
+ </h1>
 
+ <div class="grid">
 
-  <div class="grid">
+   ${stat(
+     "Serwery",
+     G.servers,
+     fmt(capacity())+
+     " użytkowników"
+   )}
 
-    ${stat(
-      'Serwery',
-      G.servers,
-      F(cap())+
-      ' użytkowników'
-    )}
+   ${stat(
+     "Obciążenie",
+     load().toFixed(1)+"%",
+     "zalecane < 80%"
+   )}
 
+   ${stat(
+     "Storage",
+     G.storage+" TB",
+     fmt(G.videos)+
+     " filmów"
+   )}
 
-    ${stat(
-      'Storage',
-      G.storage+' TB',
-      F(G.videos)+
-      ' filmów'
-    )}
+ </div>
 
+ <button
+   class="btn primary"
+   onclick="buyServer()"
+ >
 
-    ${stat(
-      'Obciążenie',
-      load().toFixed(1)+'%',
-      'Cel: poniżej 80%'
-    )}
+   ＋ Kup serwer
+   — 50 000 zł
 
-  </div>
+ </button>
 
-
-  <div class="card row">
-
-    <button
-      class="btn primary"
-      onclick="buyServer()"
-    >
-
-      ＋ Serwer
-      — 60 000 zł
-
-    </button>
-
-
-    <button
-      class="btn"
-      onclick="buyStorage()"
-    >
-
-      ＋ 10 TB
-      — 15 000 zł
-
-    </button>
-
-  </div>
-
-  `;
+ `;
 
 }
 
@@ -1426,222 +2308,124 @@ function infra(){
    TWÓRCY
 ========================= */
 
-function creators(){
+function creatorsPage(){
 
-  const top=
-    Math.max(
-      100,
-      Math.round(
-        G.users*.12
-      )
-    );
+ return `
 
+ <h1>
+   🎬 Twórcy i filmy
+ </h1>
 
-  return `
+ <div class="grid">
 
-  <h1>
-    🎬 Twórcy
-  </h1>
+   ${stat(
+     "Twórcy",
+     fmt(G.creators),
+     "pojawiają się po premierze"
+   )}
 
+   ${stat(
+     "Filmy",
+     fmt(G.videos),
+     "publikowane automatycznie"
+   )}
 
-  <div class="grid">
+   ${stat(
+     "Użytkownicy",
+     fmt(G.users),
+     "widownia platformy"
+   )}
 
-    ${stat(
-      'Kanały',
-      F(G.creators),
-      'rosną automatycznie'
-    )}
+ </div>
 
-
-    ${stat(
-      'Filmy',
-      F(G.videos),
-      'biblioteka platformy'
-    )}
-
-
-    ${stat(
-      'Największy kanał',
-      F(top),
-      'subskrybentów'
-    )}
-
-  </div>
-
-
-  <div class="card">
-
-    <h3>
-      Ekosystem twórców
-    </h3>
-
-    <p class="mut">
-
-      Wzrost liczby użytkowników
-      przyciąga nowych twórców.
-
-      Technologie takie jak
-      transmisje live,
-      4K czy Studio Pro
-      zwiększają atrakcyjność
-      platformy.
-
-    </p>
-
-  </div>
-
-  `;
+ `;
 
 }
 
 /* =========================
-   PREMIUM
+   MONETYZACJA
 ========================= */
 
-function premium(){
+function businessPage(){
 
-  return `
+ return `
 
-  <h1>
-    💎 Subskrypcje
-  </h1>
+ <h1>
+   💎 Monetyzacja
+ </h1>
 
+ <div class="grid">
 
-  <div class="grid">
+   ${stat(
+     "Premium",
+     fmt(G.premiumUsers),
+     G.premiumPrice.toFixed(2)+
+     " zł/mies."
+   )}
 
-    ${stat(
-      'Premium',
-      F(G.premiumUsers),
-      (
-        G.premiumUsers /
-        Math.max(1,G.users) *
-        100
-      ).toFixed(2)
-      +'% użytkowników'
-    )}
+   ${stat(
+     "CPM reklam",
+     G.adCPM.toFixed(2)+
+     " zł",
+     "średnia stawka"
+   )}
 
+   ${stat(
+     "Udział twórców",
+     G.creatorShare+"%",
+     "przychodu reklamowego"
+   )}
 
-    ${stat(
-      'Cena',
-      G.premiumPrice.toFixed(2)
-      +' zł',
-      'miesięcznie'
-    )}
+ </div>
 
-  </div>
+ <div class="card row">
 
+   <label>
 
-  <div class="card">
+     Premium
 
-    <label>
+     <input
+       type="number"
+       value="${G.premiumPrice}"
+       onchange="
+         G.premiumPrice=
+           Math.max(
+             1,
+             +this.value
+           );
 
-      Cena Premium:
+         render();
+       "
+     >
 
-      <input
-        type="number"
-        step=".01"
-        value="${G.premiumPrice}"
+     zł
 
-        onchange="
-          G.premiumPrice=
-            Math.max(
-              1,
-              Number(this.value)
-            );
+   </label>
 
-          render();
-        "
-      >
+   <label>
 
-      zł
+     Udział twórców
 
-    </label>
+     <input
+       type="range"
+       min="30"
+       max="80"
+       value="${G.creatorShare}"
+       onchange="
+         G.creatorShare=
+           +this.value;
 
+         render();
+       "
+     >
 
-    <p class="mut">
+     ${G.creatorShare}%
 
-      Rozwój funkcji,
-      reputacja platformy
-      i cena wpływają
-      na zainteresowanie Premium.
+   </label>
 
-    </p>
+ </div>
 
-  </div>
-
-  `;
-
-}
-
-/* =========================
-   REKLAMY
-========================= */
-
-function ads(){
-
-  const views=
-    G.users *
-    G.active *
-    3;
-
-
-  return `
-
-  <h1>
-    📣 Reklamy
-  </h1>
-
-
-  <div class="grid">
-
-    ${stat(
-      'CPM',
-      G.adCPM.toFixed(2)
-      +' zł',
-      'za 1000 wyświetleń'
-    )}
-
-
-    ${stat(
-      'Dzienne odsłony reklam',
-      F(
-        views *
-        G.adLoad
-      ),
-      G.adLoad+
-      ' sloty'
-    )}
-
-  </div>
-
-
-  <div class="card">
-
-    <label>
-
-      Liczba reklam:
-
-      <input
-        type="range"
-        min="1"
-        max="5"
-        value="${G.adLoad}"
-
-        onchange="
-          G.adLoad=
-            Number(this.value);
-
-          render();
-        "
-      >
-
-      ${G.adLoad}
-
-    </label>
-
-  </div>
-
-  `;
+ `;
 
 }
 
@@ -1649,188 +2433,142 @@ function ads(){
    FINANSE
 ========================= */
 
-function finance(){
+function financePage(){
 
-  const groups={};
+ return `
 
+ <h1>
+   💰 Finanse
+ </h1>
 
-  G.ledger.forEach(
-    x=>{
+ ${stat(
+   "Gotówka",
+   fmt(G.money)+" zł",
+   "saldo firmy"
+ )}
 
-      groups[x.category] =
-        (
-          groups[x.category] ||
-          0
-        )
-        +
-        x.value;
+ <table>
 
-    }
-  );
+ <tr>
 
+   <th>Data</th>
 
-  return `
+   <th>Kategoria</th>
 
-  <h1>
-    💰 Finanse
-  </h1>
+   <th>Opis</th>
 
+   <th>Kwota</th>
 
-  <div class="grid">
+ </tr>
 
-    ${stat(
-      'Gotówka',
-      F(G.money)+' zł',
-      'saldo firmy'
-    )}
+ ${
+   G.ledger
+   .slice(0,40)
+   .map(
+     x=>`
 
+     <tr>
 
-    ${Object.entries(groups)
-      .slice(0,5)
-      .map(
-        ([name,value])=>
-          stat(
-            name,
-            F(value)+' zł',
-            'zaksięgowane'
-          )
-      )
-      .join('')}
+       <td>
+         ${x.date}
+       </td>
 
-  </div>
+       <td>
+         ${x.cat}
+       </td>
 
+       <td>
+         ${x.desc}
+       </td>
 
-  <table>
+       <td
+         class="
+           ${
+             x.value>=0
+             ? "good"
+             : "bad"
+           }
+         "
+       >
 
-    <tr>
+         ${fmt(x.value)}
+         zł
 
-      <th>
-        Data
-      </th>
+       </td>
 
-      <th>
-        Kategoria
-      </th>
+     </tr>
 
-      <th>
-        Opis
-      </th>
+     `
+   )
+   .join("")
+ }
 
-      <th>
-        Kwota
-      </th>
+ </table>
 
-    </tr>
-
-
-    ${G.ledger
-      .slice(0,30)
-      .map(
-        x=>`
-
-        <tr>
-
-          <td>
-            ${x.date}
-          </td>
-
-          <td>
-            ${x.category}
-          </td>
-
-          <td>
-            ${x.description}
-          </td>
-
-          <td
-            class="${
-              x.value>=0
-              ? 'good'
-              : 'bad'
-            }"
-          >
-
-            ${F(x.value)} zł
-
-          </td>
-
-        </tr>
-
-        `
-      )
-      .join('')}
-
-  </table>
-
-  `;
+ `;
 
 }
 
 /* =========================
-   CENTRUM DECYZJI
+   DECYZJE
 ========================= */
 
-function decisions(){
+function decisionsPage(){
 
-  const open=
-    G.decisions.filter(
-      x=>x.open
-    );
+ const d=
+   G.decisions.filter(
+     x=>x.open
+   );
 
+ return `
 
-  return `
+ <h1>
+   🔔 Centrum decyzji
+ </h1>
 
-  <h1>
-    🔔 Centrum decyzji
-  </h1>
+ ${
+   d.map(
+     x=>`
 
+     <div class="card decision">
 
-  ${
-    open
-      .map(
-        x=>`
+       <h3>
+         ${x.title}
+       </h3>
 
-        <div class="card decision">
+       <p>
+         ${x.text}
+       </p>
 
-          <h3>
-            ${x.title}
-          </h3>
+       <button
+         class="btn"
+         onclick="
+           G.decisions
+           .find(
+             d=>d.id===${x.id}
+           )
+           .open=false;
 
-          <p>
-            ${x.text}
-          </p>
+           render();
+         "
+       >
 
-          <button
-            class="btn"
-            onclick="
-              closeDecision(${x.id})
-            "
-          >
+         ✓ Zamknij
 
-            ✓ Zamknij
+       </button>
 
-          </button>
+     </div>
 
-        </div>
+     `
+   )
+   .join("")
 
-        `
-      )
-      .join('')
+   ||
 
-      ||
+   "<div class='card'>Brak pilnych spraw.</div>"
+ }
 
-      `
-
-      <div class="card">
-
-        Brak pilnych spraw.
-
-      </div>
-
-      `
-  }
-
-  `;
+ `;
 
 }
 
@@ -1839,33 +2577,28 @@ function decisions(){
 ========================= */
 
 document
-.querySelectorAll('.nav')
+.querySelectorAll(".nav")
 .forEach(
 
-  button=>{
+ b=>
+   b.onclick=()=>{
 
-    button.onclick=()=>{
+     document
+     .querySelectorAll(".nav")
+     .forEach(
+       x=>
+         x.classList.remove(
+           "active"
+         )
+     );
 
-      document
-      .querySelectorAll('.nav')
-      .forEach(
-        x=>
-          x.classList.remove(
-            'active'
-          )
-      );
+     b.classList.add(
+       "active"
+     );
 
+     render();
 
-      button
-      .classList
-      .add('active');
-
-
-      render();
-
-    };
-
-  }
+   }
 
 );
 
@@ -1875,73 +2608,88 @@ document
 
 function render(){
 
-  document
-  .getElementById('date')
-  .textContent=
-    `Dzień ${G.day} • ${G.month}/${G.year}`;
+ document
+ .getElementById("date")
+ .textContent=
+   `Dzień ${G.day} • ${G.month}/${G.year}`;
 
+ document
+ .getElementById("money")
+ .textContent=
+   fmt(G.money)+" zł";
 
-  document
-  .getElementById('money')
-  .textContent=
-    F(G.money)+' zł';
+ document
+ .getElementById("users")
+ .textContent=
+   fmt(G.users);
 
+ document
+ .getElementById("rep")
+ .textContent=
+   G.reputation.toFixed(0);
 
-  document
-  .getElementById('users')
-  .textContent=
-    F(G.users);
+ document
+ .getElementById("speed")
+ .textContent=
+   "x"+G.speed;
 
+ const p=
+   document
+   .querySelector(
+     ".nav.active"
+   )
+   .dataset.page;
 
-  document
-  .getElementById('load')
-  .textContent=
-    load().toFixed(0)+'%';
+ const pages={
 
+   dashboard,
 
-  document
-  .getElementById('speed')
-  .textContent=
-    'x'+G.speed;
+   launch:launchPage,
 
+   staff:staffPage,
 
-  const current=
-    document
-    .querySelector(
-      '.nav.active'
-    )
-    .dataset.p;
+   projects:projectsPage,
 
+   research:researchPage,
 
-  const pages={
+   service:servicePage,
 
-    dash,
+   infra:infraPage,
 
-    office,
+   creators:creatorsPage,
 
-    service,
+   business:businessPage,
 
-    tech:technology,
+   finance:financePage,
 
-    infra,
+   decisions:decisionsPage
 
-    creators,
+ };
 
-    premium,
+ document
+ .getElementById("panel")
+ .innerHTML=
+   pages[p]();
 
-    ads,
+}
 
-    finance,
+/* =========================
+   START
+========================= */
 
-    decisions
+if(
+ !G.candidates.length
+){
 
-  };
+ generateCandidates();
 
+}
 
-  document
-  .getElementById('panel')
-  .innerHTML=
-    pages[current]();
+if(
+ !G.technologies.length
+){
+
+ generateTech();
 
 }
 
