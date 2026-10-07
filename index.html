@@ -3,789 +3,1225 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Tech Holding Tycoon</title>
+<title>Telecom Empire</title>
+
 <style>
 *{box-sizing:border-box}
-:root{
- --bg:#05080d;--panel:#0d141e;--panel2:#111b28;--line:#223044;
- --text:#f4f7fb;--muted:#8492a6;--green:#3de596;--red:#ff6074;
- --blue:#628cff;--yellow:#ffc95d;--purple:#a980ff
-}
-html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);
-font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif}
-body{background:radial-gradient(circle at 15% 0,#14243c 0,transparent 28%),var(--bg)}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;font-family:Arial,sans-serif;background:#0b1020;color:#fff}
 button,input,select{font:inherit}
 button{cursor:pointer}
-input,select{background:#070c12;color:white;border:1px solid var(--line);
-border-radius:8px;padding:8px}
-header{position:sticky;top:0;z-index:50;min-height:68px;padding:9px 16px;
-display:flex;align-items:center;justify-content:space-between;gap:12px;
-background:#070b11eb;backdrop-filter:blur(16px);border-bottom:1px solid var(--line)}
-.logo{font-weight:950;font-size:19px}.logo span{color:var(--green)}
-.top{display:flex;gap:7px;align-items:center;flex-wrap:wrap}
-.pill{padding:7px 10px;min-width:100px;background:#0d141e;border:1px solid var(--line);border-radius:9px}
-.pill small,.stat small,.metric small{display:block;color:var(--muted);font-size:8px;text-transform:uppercase}
-.pill strong{font-size:12px}
-.layout{display:grid;grid-template-columns:205px minmax(0,1fr);min-height:calc(100vh - 68px)}
-aside{position:sticky;top:68px;height:calc(100vh - 68px);padding:12px 8px;
-border-right:1px solid var(--line);background:#070b11cc}
-.nav{display:block;width:100%;padding:10px;border:0;border-radius:8px;margin:2px 0;
-text-align:left;background:transparent;color:var(--muted);font-size:11px;font-weight:800}
-.nav:hover,.nav.active{background:#131c29;color:white}
-.nav.active{box-shadow:inset 3px 0 var(--green)}
-.dev{margin-top:18px;padding:10px;background:#0d141e;border:1px solid var(--line);border-radius:9px}
-.dev small{font-size:8px;color:var(--muted)}
-main{padding:23px;width:100%;max-width:1700px;margin:auto;min-width:0}
-.page{display:none;width:100%;vertical-align:top}
-.page.active{display:block}
-.pageHeader{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;
-margin:0 0 18px;text-align:left}
-.pageHeader h1{margin:0;font-size:27px;line-height:1.05;letter-spacing:-1px}
-.pageHeader p{margin:6px 0 0;color:var(--muted);font-size:11px}
-.btn{border:0;border-radius:8px;padding:8px 11px;background:#192538;color:white;
-font-size:10px;font-weight:850}
-.btn:hover{filter:brightness(1.12)}
-.btn.green{background:var(--green);color:#03130c}
-.btn.red{background:var(--red)}
-.btn.blue{background:var(--blue)}
-.btn.yellow{background:var(--yellow);color:#221900}
-.btn.purple{background:var(--purple)}
-.btn.ghost{background:#101824;border:1px solid var(--line)}
-.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin-bottom:12px}
-.stat,.panel,.card{background:linear-gradient(145deg,#101823,#090e15);border:1px solid var(--line);border-radius:11px}
-.stat{padding:13px;min-width:0}
-.stat strong{display:block;font-size:18px;margin-top:5px;overflow:hidden;text-overflow:ellipsis}
-.delta{font-size:9px;margin-top:4px}
-.panel{padding:14px;margin-bottom:12px}
-.panelTitle{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:10px}
-.panelTitle h2{font-size:14px;margin:0}.panelTitle p{margin:3px 0 0;color:var(--muted);font-size:9px}
-.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
-.card{padding:13px}.card:hover{border-color:#40526b}.card h3{margin:0;font-size:15px}
-.clickable{cursor:pointer}.controlled{border-color:#3de59666}
-.muted{color:var(--muted);font-size:10px}.good{color:var(--green)!important}.bad{color:var(--red)!important}
-.badge{display:inline-block;padding:4px 7px;margin:5px 2px 2px 0;border-radius:20px;
-background:#192536;color:#bdc8d7;font-size:8px}.badge.good{background:#123225}
-.badge.red{background:#351821;color:#ff93a0}.badge.yellow{background:#342c17;color:var(--yellow)}
-.two{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
-.metric{padding:7px;background:#070c12;border:1px solid #182334;border-radius:7px}
-.metric strong{font-size:10px}
-.row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid #192434}
-.row:last-child{border-bottom:0}
-.actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}
-.progress{height:7px;background:#060a0f;border-radius:20px;overflow:hidden;margin:7px 0}
-.progress div{height:100%;background:var(--green)}
-.financeGrid{display:grid;grid-template-columns:minmax(0,2fr) minmax(280px,1fr);gap:11px}
-.chartBox{height:270px;background:#070c12;border:1px solid #182334;border-radius:9px;padding:8px}
-canvas{width:100%;height:100%}
-.legend{display:flex;gap:14px;color:var(--muted);font-size:9px;margin-bottom:8px}
-.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px}
-.dot.green{background:var(--green)}.dot.red{background:var(--red)}
-.rank{display:grid;grid-template-columns:35px minmax(0,1fr) auto;gap:7px;align-items:center;
-padding:9px 0;border-bottom:1px solid #192434}.rankNum{font-weight:950;color:var(--muted);font-size:16px}
-.rank.first{padding:9px;background:#17180f;border:1px solid #4c4722;border-radius:8px}
-.rank.first .rankNum{color:var(--yellow)}
-.event{padding:8px 10px;margin:5px 0;background:#0e1722;border-left:3px solid var(--blue);border-radius:6px;font-size:10px}
-.event small{color:var(--muted)}
-.empty{padding:24px;color:var(--muted);font-size:11px;border:1px dashed var(--line);border-radius:9px;text-align:left}
-.tree{padding:11px;margin:7px 0;background:#0e1620;border:1px solid var(--line);border-radius:9px}
-.tree.child{margin-left:18px;background:#090f17}
-.tableWrap{overflow:auto}table{width:100%;border-collapse:collapse;font-size:10px}
-th,td{padding:9px;text-align:left;border-bottom:1px solid #192434;white-space:nowrap}
-th{color:var(--muted);font-size:8px}
-.overlay{position:fixed;inset:0;z-index:100;display:none;align-items:flex-start;justify-content:center;
-padding:5vh 18px;background:#000d;overflow:auto}.overlay.show{display:flex}
-.modal{width:min(1080px,100%);max-height:90vh;overflow:auto;padding:17px;background:#0d141e;
-border:1px solid var(--line);border-radius:13px}
-.modalTop{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:12px}
-.modalTop h2{margin:0;font-size:21px}
-.tabs{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px}
-.tab{padding:7px 9px;background:#101824;border:1px solid var(--line);border-radius:7px;color:var(--muted);font-size:9px}
-.tab.active{background:#1b293b;color:white}
-.formGrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
-.field label{display:block;color:var(--muted);font-size:8px;margin-bottom:4px}.field input,.field select{width:100%}
-.checkGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;max-height:280px;overflow:auto}
-.check{display:flex;gap:5px;align-items:center;padding:7px;background:#080d14;border:1px solid #192434;border-radius:7px;font-size:9px}
-.consoleBtn{position:fixed;right:18px;bottom:18px;z-index:80;width:48px;height:48px;border-radius:50%;
-background:#111b29;color:var(--green);border:1px solid #30415a;font-weight:950}
-.console{position:fixed;right:18px;bottom:76px;z-index:200;display:none;flex-direction:column;
-width:min(620px,calc(100vw - 25px));height:420px;background:#05080d;border:1px solid #30415a;border-radius:11px}
-.console.show{display:flex}.consoleTop{padding:9px;display:flex;justify-content:space-between;border-bottom:1px solid #263348}
-.consoleOutput{flex:1;overflow:auto;padding:10px;font:11px/1.5 Consolas,monospace;color:#bcc9da;white-space:pre-wrap}
-.consoleInput{display:flex;border-top:1px solid #263348}.consoleInput span{padding:9px;color:var(--green)}
-.consoleInput input{flex:1;border:0;border-radius:0}
-.toast{position:fixed;right:18px;bottom:18px;z-index:500;padding:10px 13px;background:#192536;
-border:1px solid var(--line);border-radius:8px;opacity:0;pointer-events:none}.toast.show{opacity:1}
-@media(max-width:1100px){.stats{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:repeat(2,1fr)}.financeGrid{grid-template-columns:1fr}}
-@media(max-width:720px){header{position:relative;flex-direction:column;align-items:flex-start}.layout{display:block}
-aside{position:relative;top:0;height:auto;display:flex;overflow:auto;border-right:0;border-bottom:1px solid var(--line)}
-.nav{width:auto;white-space:nowrap}.dev{display:none}main{padding:13px}.stats,.grid,.formGrid{grid-template-columns:1fr}
-.checkGrid{grid-template-columns:repeat(2,1fr)}}
+
+#app{
+  height:100vh;
+  display:grid;
+  grid-template-rows:62px 1fr;
+}
+
+header{
+  background:#11182b;
+  border-bottom:1px solid #29324b;
+  display:flex;
+  align-items:center;
+  gap:20px;
+  padding:0 18px;
+  z-index:20;
+}
+
+.logo{font-size:20px;font-weight:800;color:#65d4ff}
+.stat{font-size:14px}
+.stat b{color:#71f59b}
+
+#speedButtons{margin-left:auto;display:flex;gap:5px}
+#speedButtons button,.toolBtn,.normalBtn{
+  background:#1d2945;
+  color:white;
+  border:1px solid #354568;
+  border-radius:7px;
+  padding:8px 11px;
+}
+button:hover{background:#29395e}
+button.active{background:#087ea4;border-color:#5de1ff}
+
+#game{
+  display:grid;
+  grid-template-columns:250px 1fr 310px;
+  min-height:0;
+}
+
+aside{
+  background:#11182b;
+  overflow:auto;
+  padding:12px;
+}
+
+#left{border-right:1px solid #29324b}
+#right{border-left:1px solid #29324b}
+
+h3{margin:8px 0 12px}
+small,.muted{color:#9ba9c8}
+
+.toolBtn{
+  display:block;
+  width:100%;
+  margin-bottom:7px;
+  text-align:left;
+}
+
+.card{
+  background:#18223a;
+  border:1px solid #2d3a5a;
+  border-radius:9px;
+  padding:10px;
+  margin-bottom:9px;
+}
+
+.card strong{color:#70dcff}
+
+#mapWrap{
+  position:relative;
+  overflow:hidden;
+  background:
+    radial-gradient(circle at 30% 30%,#193c43,#101d2a 50%,#0a101a);
+  user-select:none;
+}
+
+#world{
+  position:absolute;
+  left:0;
+  top:0;
+  width:3000px;
+  height:2000px;
+  transform-origin:0 0;
+  background-color:#152d2d;
+  background-image:
+    linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);
+  background-size:50px 50px;
+}
+
+#network{
+  position:absolute;
+  inset:0;
+  width:3000px;
+  height:2000px;
+  pointer-events:none;
+}
+
+.city{
+  position:absolute;
+  transform:translate(-50%,-50%);
+  padding:8px 12px;
+  border-radius:20px;
+  background:#27344c;
+  border:2px solid #8da2c8;
+  white-space:nowrap;
+  font-size:13px;
+  z-index:2;
+}
+
+.city.covered{
+  border-color:#63f7a1;
+  box-shadow:0 0 18px #43d982;
+}
+
+.antenna{
+  position:absolute;
+  transform:translate(-50%,-50%);
+  font-size:27px;
+  filter:drop-shadow(0 0 8px #55eaff);
+  z-index:4;
+}
+
+.hub{
+  position:absolute;
+  transform:translate(-50%,-50%);
+  font-size:24px;
+  z-index:4;
+}
+
+#zoomInfo{
+  position:absolute;
+  bottom:12px;
+  left:12px;
+  background:#0c1323dd;
+  padding:8px 11px;
+  border-radius:7px;
+  pointer-events:none;
+}
+
+#console{
+  position:fixed;
+  left:15%;
+  right:15%;
+  bottom:20px;
+  height:290px;
+  background:#05080eeF;
+  border:1px solid #5c739b;
+  border-radius:10px;
+  z-index:100;
+  display:none;
+  flex-direction:column;
+  box-shadow:0 10px 50px #000;
+}
+
+#console.open{display:flex}
+
+#consoleOutput{
+  flex:1;
+  overflow:auto;
+  padding:12px;
+  font-family:monospace;
+  color:#8dffac;
+  white-space:pre-wrap;
+}
+
+#consoleInput{
+  border:0;
+  border-top:1px solid #354568;
+  outline:0;
+  background:#090e18;
+  color:#fff;
+  padding:13px;
+  font-family:monospace;
+}
+
+.modal{
+  position:fixed;
+  inset:0;
+  background:#000a;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:80;
+}
+
+.modal.open{display:flex}
+
+.modalBox{
+  width:min(600px,90vw);
+  max-height:80vh;
+  overflow:auto;
+  background:#121b30;
+  border:1px solid #435679;
+  border-radius:12px;
+  padding:20px;
+}
+
+input,select{
+  width:100%;
+  background:#0e1627;
+  border:1px solid #354568;
+  color:white;
+  border-radius:6px;
+  padding:9px;
+  margin:5px 0 10px;
+}
+
+.green{color:#65ef91}
+.red{color:#ff7272}
+.line{height:1px;background:#2c3854;margin:12px 0}
 </style>
 </head>
+
 <body>
 
+<div id="app">
+
 <header>
- <div class="logo">TECH <span>HOLDING</span></div>
- <div class="top">
-  <div class="pill"><small>GOTÓWKA HOLDINGU</small><strong id="cashTop">$0</strong></div>
-  <div class="pill"><small>NET WORTH</small><strong id="worthTop">$0</strong></div>
-  <div class="pill"><small>DATA</small><strong id="dateTop">01/2026</strong></div>
-  <div class="pill"><small>CZAS</small>
-   <button class="btn ghost" onclick="setSpeed(0)">⏸</button>
-   <button class="btn ghost" onclick="setSpeed(1)">1×</button>
-   <button class="btn ghost" onclick="setSpeed(2)">2×</button>
-   <button class="btn ghost" onclick="setSpeed(4)">4×</button>
+  <div class="logo">📡 TELECOM EMPIRE</div>
+
+  <div class="stat">💰 <b id="money"></b></div>
+  <div class="stat">👥 Klienci: <b id="customers">0</b></div>
+  <div class="stat">👷 <b id="staff">10</b>/<span id="maxStaff">50</span></div>
+  <div class="stat">📅 <span id="date"></span></div>
+
+  <div id="speedButtons">
+    <button onclick="setSpeed(0)">⏸</button>
+    <button class="active" onclick="setSpeed(1)">1×</button>
+    <button onclick="setSpeed(3)">3×</button>
+    <button onclick="setSpeed(10)">10×</button>
   </div>
- </div>
 </header>
 
-<div class="layout">
-<aside>
- <button class="nav active" data-page="dashboard">Dashboard</button>
- <button class="nav" data-page="market">Rynek</button>
- <button class="nav" data-page="holding">Holding</button>
- <button class="nav" data-page="products">Produkty</button>
- <button class="nav" data-page="research">R&D</button>
- <button class="nav" data-page="finance">Finanse</button>
- <button class="nav" data-page="ranking">Ranking</button>
- <button class="nav" data-page="decisions">Decyzje <span id="decisionCount"></span></button>
- <button class="nav" data-page="history">Historia</button>
+<div id="game">
 
- <div class="dev">
-  <small>DEV CASH — mld $</small>
-  <div class="actions">
-   <input id="cashInput" type="number" value="10" style="width:90px">
-   <button class="btn green" onclick="addCash()">+</button>
-  </div>
- </div>
+<aside id="left">
+  <h3>Budowa</h3>
+
+  <button class="toolBtn active" data-tool="move" onclick="tool('move',this)">✋ Przesuwanie mapy</button>
+  <button class="toolBtn" data-tool="antenna" onclick="tool('antenna',this)">📡 Antena 5G — 75 000 zł</button>
+  <button class="toolBtn" data-tool="fiber" onclick="tool('fiber',this)">🟦 Światłowód — 120 zł/m</button>
+  <button class="toolBtn" data-tool="cable" onclick="tool('cable',this)">🟧 Kabel — 45 zł/m</button>
+  <button class="toolBtn" data-tool="hub" onclick="tool('hub',this)">🏢 Węzeł sieci — 150 000 zł</button>
+
+  <div class="line"></div>
+
+  <h3>Firma</h3>
+  <button class="toolBtn" onclick="openCompanies()">🏢 Spółki córki</button>
+  <button class="toolBtn" onclick="openProducts()">📦 Produkty</button>
+  <button class="toolBtn" onclick="openShares()">📈 Udziały i przejęcia</button>
+
+  <div class="line"></div>
+
+  <small>
+    🖱️ Kółko — zoom<br>
+    ✋ Przeciągnij — mapa<br>
+    ~ — konsola<br><br>
+    Przy budowie kabla kliknij punkt początkowy, a potem końcowy.
+  </small>
 </aside>
 
-<main>
-
-<section class="page active" id="dashboard">
- <div class="pageHeader"><div><h1>Dashboard</h1><p>Centrum dowodzenia całym holdingiem.</p></div></div>
- <div class="stats" id="dashboardStats"></div>
- <div class="financeGrid">
-  <div class="panel">
-   <div class="panelTitle"><div><h2>Finanse holdingu</h2><p>Przychody holdingu to dywidendy i transfery z firm.</p></div></div>
-   <div class="legend"><span><i class="dot green"></i>Przychody</span><span><i class="dot red"></i>Wydatki</span></div>
-   <div class="chartBox"><canvas id="dashboardChart"></canvas></div>
+<main id="mapWrap">
+  <div id="world">
+    <svg id="network"></svg>
   </div>
-  <div class="panel"><div class="panelTitle"><div><h2>Top produkty</h2></div></div><div id="dashProducts"></div></div>
- </div>
- <div class="panel"><div class="panelTitle"><div><h2>Wydarzenia</h2></div></div><div id="dashEvents"></div></div>
-</section>
-
-<section class="page" id="market">
- <div class="pageHeader">
-  <div><h1>Rynek</h1><p>Fikcyjne firmy technologiczne konkurujące o kapitał i klientów.</p></div>
-  <input id="marketSearch" placeholder="Szukaj firmy..." oninput="renderMarket()">
- </div>
- <div class="stats" id="marketStats"></div>
- <div class="grid" id="marketGrid"></div>
-</section>
-
-<section class="page" id="holding">
- <div class="pageHeader">
-  <div><h1>Holding</h1><p>Firmy kontrolowane przez Tech Holding i ich spółki-córki.</p></div>
-  <button class="btn green" onclick="openCreateSubsidiary()">+ Utwórz spółkę-córkę</button>
- </div>
- <div class="stats" id="holdingStats"></div>
- <div id="holdingTree"></div>
-</section>
-
-<section class="page" id="products">
- <div class="pageHeader">
-  <div><h1>Produkty</h1><p>Rozwój, premiery, marketing i wyniki produktów.</p></div>
-  <button class="btn green" onclick="openGlobalProductCreator()">+ Utwórz produkt</button>
- </div>
- <div class="stats" id="productStats"></div>
- <div class="panel"><div class="panelTitle"><div><h2>Projekty w produkcji</h2><p>Concept → Development → Beta</p></div></div><div id="projectList"></div></div>
- <div class="panel"><div class="panelTitle"><div><h2>Aktywne produkty</h2><p>Launch → Growth → Mature</p></div></div><div id="liveProductList"></div></div>
-</section>
-
-<section class="page" id="research">
- <div class="pageHeader"><div><h1>R&D</h1><p>Technologie kontrolowanych firm.</p></div></div>
- <div id="researchList"></div>
-</section>
-
-<section class="page" id="finance">
- <div class="pageHeader"><div><h1>Finanse</h1><p>Oddzielne finanse holdingu i kontrolowanych firm.</p></div></div>
- <div class="stats" id="financeStats"></div>
- <div class="panel">
-  <div class="legend"><span><i class="dot green"></i>Przychody</span><span><i class="dot red"></i>Wydatki</span></div>
-  <div class="chartBox"><canvas id="financeChart"></canvas></div>
- </div>
- <div class="panel"><div class="panelTitle"><div><h2>Firmy</h2></div></div>
-  <div class="tableWrap"><table><thead><tr><th>Firma</th><th>Cash</th><th>Przychód</th><th>Wydatki</th><th>Zysk</th><th>Marża</th><th>Dywidenda</th></tr></thead><tbody id="financeRows"></tbody></table></div>
- </div>
-</section>
-
-<section class="page" id="ranking">
- <div class="pageHeader"><div><h1>Ranking</h1><p>Największe firmy i najbardziej dochodowe produkty.</p></div></div>
- <div class="financeGrid">
-  <div class="panel"><div class="panelTitle"><div><h2>Produkty</h2></div></div><div id="productRanking"></div></div>
-  <div class="panel"><div class="panelTitle"><div><h2>Firmy</h2></div></div><div id="companyRanking"></div></div>
- </div>
-</section>
-
-<section class="page" id="decisions">
- <div class="pageHeader"><div><h1>Decyzje</h1><p>Sprawy wymagające decyzji właściciela.</p></div></div>
- <div id="decisionList"></div>
-</section>
-
-<section class="page" id="history">
- <div class="pageHeader"><div><h1>Historia</h1><p>Chronologia świata gry.</p></div></div>
- <div class="panel" id="historyList"></div>
-</section>
-
+  <div id="zoomInfo">Zoom: <span id="zoomText">100%</span></div>
 </main>
-</div>
 
-<div class="overlay" id="overlay">
- <div class="modal">
-  <div class="modalTop">
-   <div><h2 id="modalTitle"></h2><div class="muted" id="modalSubtitle"></div></div>
-   <button class="btn ghost" onclick="closeModal()">✕</button>
+<aside id="right">
+  <h3>Operator</h3>
+
+  <div class="card">
+    <strong>TeleNova Group</strong><br>
+    <small>Holding telekomunikacyjno-medialny</small>
   </div>
-  <div id="modalBody"></div>
- </div>
+
+  <div class="card">
+    📡 Anteny: <b id="antennaCount">0</b><br>
+    🏢 Węzły: <b id="hubCount">0</b><br>
+    🟦 Światłowód: <b id="fiberLength">0</b> m<br>
+    🟧 Kabel: <b id="cableLength">0</b> m
+  </div>
+
+  <div class="card">
+    📈 Przychód/miesiąc<br>
+    <strong id="income">0 zł</strong>
+  </div>
+
+  <div class="card">
+    💸 Koszty/miesiąc<br>
+    <strong id="expenses">0 zł</strong>
+  </div>
+
+  <div class="card">
+    📦 Produkty
+    <div id="productMini"></div>
+  </div>
+
+  <div class="card">
+    🏢 Grupa
+    <div id="companyMini"></div>
+  </div>
+</aside>
+
+</div>
 </div>
 
-<button class="consoleBtn" onclick="toggleConsole()">&gt;_</button>
-<div class="console" id="console">
- <div class="consoleTop"><strong>TECH HOLDING CONSOLE</strong><button class="btn ghost" onclick="toggleConsole()">✕</button></div>
- <div class="consoleOutput" id="consoleOutput"></div>
- <div class="consoleInput"><span>&gt;</span><input id="consoleCommand" autocomplete="off"></div>
+<div id="console">
+  <div id="consoleOutput">Telecom Empire Developer Console
+Wpisz "help", aby zobaczyć komendy.
+</div>
+  <input id="consoleInput" autocomplete="off" placeholder="> wpisz komendę...">
 </div>
 
-<div class="toast" id="toast"></div>
+<div class="modal" id="companyModal">
+<div class="modalBox">
+  <h2>🏢 Spółki córki</h2>
+
+  <label>Nazwa nowej spółki</label>
+  <input id="companyName" placeholder="np. TeleNova Streaming">
+
+  <label>Kapitał początkowy</label>
+  <input id="companyCapital" type="number" value="1000000">
+
+  <label>Maks. pracowników</label>
+  <input id="companyStaff" type="number" value="50">
+
+  <button class="normalBtn" onclick="createCompany()">Utwórz spółkę</button>
+
+  <div class="line"></div>
+  <div id="companyList"></div>
+
+  <button class="normalBtn" onclick="closeModal('companyModal')">Zamknij</button>
+</div>
+</div>
+
+<div class="modal" id="productModal">
+<div class="modalBox">
+  <h2>📦 Produkty</h2>
+
+  <input id="productName" placeholder="Nazwa produktu">
+
+  <select id="productType">
+    <option>Internet</option>
+    <option>Światłowód</option>
+    <option>5G</option>
+    <option>Telewizja</option>
+    <option>Streaming</option>
+  </select>
+
+  <select id="productCompany"></select>
+
+  <button class="normalBtn" onclick="createProduct()">Dodaj produkt</button>
+
+  <div class="line"></div>
+  <div id="productList"></div>
+
+  <button class="normalBtn" onclick="closeModal('productModal')">Zamknij</button>
+</div>
+</div>
+
+<div class="modal" id="sharesModal">
+<div class="modalBox">
+  <h2>📈 Udziały i przejęcia</h2>
+  <div id="shareList"></div>
+  <button class="normalBtn" onclick="closeModal('sharesModal')">Zamknij</button>
+</div>
+</div>
 
 <script>
-"use strict";
+const state={
+  money:5000000,
+  customers:0,
+  staff:10,
+  maxStaff:50,
 
-const ACTIVITIES=["Artificial Intelligence","Cloud","Półprzewodniki","Robotyka","Cybersecurity","SaaS","Gaming","Fintech","Hardware","Search","Social Media","Streaming","Data Centers","Autonomous Vehicles","Quantum Computing","E-commerce"];
-const COUNTRIES=["Polska","Niemcy","Francja","Wielka Brytania","Hiszpania","Włochy","Czechy","Słowacja","Austria","Szwajcaria","Szwecja","Norwegia","Finlandia","Dania","Niderlandy","Belgia","Irlandia","Portugalia","Estonia","Litwa","Łotwa","Ukraina","Rumunia","Grecja","USA","Kanada","Meksyk","Brazylia","Argentyna","Chile","Kolumbia","Japonia","Korea Południowa","Chiny","Indie","Singapur","Indonezja","Malezja","Tajlandia","Wietnam","Australia","Nowa Zelandia","ZEA","Arabia Saudyjska","Izrael","Turcja","RPA","Nigeria","Egipt","Kenia"];
-const PRODUCT_CATALOG={
- "AI":["LLM","Agent AI","AI Assistant","Image AI","Video AI","Voice AI","Enterprise AI","AI Search","AI Coding"],
- "Software":["SaaS","Office Suite","IDE","Database","Operating System","Browser","DevTool","Collaboration","Analytics","CRM","ERP","HR Software"],
- "Cloud":["Cloud Platform","Hosting","Object Storage","CDN","Serverless","API Platform","Data Warehouse","AI Cloud"],
- "Hardware":["Laptop","Smartphone","Tablet","Desktop PC","Workstation","Smartwatch","AR/VR Headset","Smart Home"],
- "Chips":["CPU","GPU","AI Accelerator","Mobile SoC","Server CPU","Networking Chip","Memory Controller"],
- "Gaming":["PC Game","Console Game","Mobile Game","Game Console","Game Engine","Cloud Gaming","Game Store"],
- "Internet":["Search Engine","Social Network","Messaging","Email","Maps","Creator Platform","E-commerce Platform"],
- "Media":["Video Streaming","Music Streaming","Podcast Platform","Creator Platform","News Platform"],
- "Fintech":["Payments","Digital Banking","Trading","Business Finance","Wallet","Crypto Infrastructure"],
- "Security":["Antivirus","Enterprise Security","Identity","VPN","Cloud Security","Endpoint Security","Password Manager"],
- "Robotics":["Industrial Robot","Humanoid Robot","Drone","Warehouse Robot","Delivery Robot","Medical Robot"],
- "Automotive":["Autonomous Driving","EV Software","Robotaxi","Fleet Platform","Vehicle OS"],
- "Data":["Database","Data Warehouse","Data Platform","Analytics","Vector Database","Data Lake"],
- "Quantum":["Quantum Computer","Quantum Cloud","Quantum Software","Quantum Security"],
- "Enterprise":["CRM","ERP","Analytics","HR Software","Collaboration","Project Management","Customer Support"]
+  day:1,
+  month:1,
+  year:2026,
+
+  speed:1,
+
+  antennas:[],
+  hubs:[],
+  lines:[],
+
+  companies:[
+    {
+      id:1,
+      name:"TeleNova S.A.",
+      capital:5000000,
+      staff:10,
+      maxStaff:50,
+      owned:100
+    }
+  ],
+
+  products:[],
+
+  competitors:[
+    {name:"BlueMobile",owned:0,value:15000000},
+    {name:"StreamStar",owned:0,value:9000000},
+    {name:"FiberOne",owned:0,value:20000000}
+  ]
 };
-const PRODUCT_CATEGORIES=Object.keys(PRODUCT_CATALOG);
-const PRODUCT_TYPES=[...new Set(Object.values(PRODUCT_CATALOG).flat())];
-const BUSINESS_MODELS=["Subscription","One-time","Free + Ads","Freemium","Enterprise Contract","Usage Based","Marketplace Fee"];
-const CUSTOMER_SEGMENTS=["Budget","Mainstream","Premium","Business","Enterprise","Government","Developers"];
-const MARKET_SIZE=Object.fromEntries(PRODUCT_TYPES.map((t,i)=>[t,10+(i%11)*3]));
-const PRIORITIES=["Balanced","Quality","Fast Launch","User Growth","Profit"];
-const STRATEGIES=["Balanced","Aggressive Growth","AI First","Profit First","Cost Cutting","Product Innovation","R&D First"];
-const AUTONOMY=["Niska","Średnia","Pełna"];
-const TECHS=["AI","Cloud","Chips","Software","Robotics","Cybersecurity"];
-const NAME_A=["Nova","Vertex","Astra","Nexus","Helix","Orbit","Quantum","Neural","Titan","Synapse","Pulse","Lumina","Vortex","Zenith","Omni","Delta","Horizon","Echo","Fusion","Vector"];
-const NAME_B=["Systems","Labs","Compute","Dynamics","Networks","Logic","Digital","Robotics","Cloud","Technologies","Works","Data","Machines","Industries","Software"];
-const OWNERS=["Northstar Capital","Atlas Ventures","Blue Horizon","Vertex Fund","Orbital Partners","Founders","Employees","Growth Capital"];
-const FIRST=["Maya","Alex","Sofia","Daniel","Emma","Noah","Mia","Leo","Nora","Ethan","Ava","Lucas","Elena","Oliver"];
-const LAST=["Chen","Stone","Morgan","Park","Lee","Reed","Taylor","Wilson","Rivera","Martin","Walker","Kim","Clark"];
-const PERKS=["Visionary","Cost Cutter","AI Genius","Talent Magnet","Growth Expert","Infrastructure Expert"];
-const AI_STYLES=["Aggressive","Innovator","Empire Builder","Value Investor","Cost Cutter","Risk Taker"];
-const HOLDER_TYPES=["Founder","Growth Fund","Index Fund","Activist","Long-term Fund","Employees"];
-const DEPARTMENTS=["Engineering","R&D","Sales","Marketing","Operations"];
-const RATINGS=["AAA","AA","A","BBB","BB","B","CCC"];
-const LIVE_STAGES=["Launch","Growth","Mature"];
-const DEV_STAGES=["Concept","Development","Beta"];
 
-const G={year:2026,month:1,cash:25,speed:1,events:[],decisions:[],financeHistory:[],trend:null,trendMonths:0,patents:[],contracts:[],achievements:[],marketMonth:0};
-const COMPANIES=[];
+let selectedTool="move";
+let scale=1;
+let offsetX=-700;
+let offsetY=-450;
 
-const rnd=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
-const rf=(a,b)=>+(a+Math.random()*(b-a)).toFixed(5);
-const uid=()=>Math.random().toString(36).slice(2)+Date.now().toString(36);
-const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
-const sample=(a,n)=>[...a].sort(()=>Math.random()-.5).slice(0,n);
-const date=()=>String(G.month).padStart(2,"0")+"/"+G.year;
+let dragging=false;
+let dragStartX=0;
+let dragStartY=0;
+let startOffsetX=0;
+let startOffsetY=0;
 
-function money(v){
- v=Number(v)||0;
- const s=v<0?"-":"",n=Math.abs(v);
- if(n>=1000)return s+"$"+(n/1000).toFixed(2)+"T";
- if(n>=1)return s+"$"+n.toFixed(2)+"B";
- if(n>=.001)return s+"$"+(n*1000).toFixed(1)+"M";
- return s+"$"+(n*1e6).toFixed(0)+"K";
-}
-function toast(t){let e=document.getElementById("toast");e.textContent=t;e.classList.add("show");setTimeout(()=>e.classList.remove("show"),1500)}
-function log(t,cid=null){G.events.unshift({date:date(),text:t,cid});G.events=G.events.slice(0,500)}
-function controlled(){return COMPANIES.filter(c=>c.isPlayerCompany||c.player>50)}
-function canControl(c){return !!c&&(c.isPlayerCompany||c.player>50)}
-function nameCompany(){return NAME_A[rnd(0,NAME_A.length-1)]+" "+NAME_B[rnd(0,NAME_B.length-1)]}
-function nameProduct(){return NAME_A[rnd(0,NAME_A.length-1)]+" "+["AI","Cloud","One","OS","Agent","Studio","Drive","Grid"][rnd(0,7)]}
+let lineStart=null;
 
-function makeCEO(){
- return{
-  name:FIRST[rnd(0,FIRST.length-1)]+" "+LAST[rnd(0,LAST.length-1)],
-  leadership:rnd(45,95),technology:rnd(40,98),finance:rnd(40,95),product:rnd(40,98),
-  perk:PERKS[rnd(0,PERKS.length-1)]
- };
-}
-function makeOwners(){
- let left=100,out=[];
- for(let i=0;i<4;i++){
-  let p=i===3?left:+Math.min(left-(3-i)*5,rf(8,28)).toFixed(2);
-  left-=p;
-  out.push({id:uid(),name:i===3?"Market Investors":OWNERS[rnd(0,OWNERS.length-1)],pct:+p.toFixed(2),type:HOLDER_TYPES[rnd(0,HOLDER_TYPES.length-1)],sellPremium:rf(.06,.42),attitude:["Friendly","Neutral","Defensive"][rnd(0,2)]});
- }
- return normalizeOwners(out,0);
-}
-function normalizeOwners(owners,player){
- const available=Math.max(0,100-player);
- const total=owners.reduce((a,o)=>a+Math.max(0,o.pct),0);
- if(total<=0)return [];
- owners.forEach(o=>o.pct=Math.max(0,o.pct)/total*available);
- let diff=available-owners.reduce((a,o)=>a+o.pct,0);
- if(owners[0])owners[0].pct+=diff;
- return owners.filter(o=>o.pct>.0001);
-}
-function makeDepartments(total=0){let e=Math.floor(total*.42),r=Math.floor(total*.18),sa=Math.floor(total*.15),m=Math.floor(total*.1);return {Engineering:e,"R&D":r,Sales:sa,Marketing:m,Operations:Math.max(0,total-e-r-sa-m)}}
-function normalizeDepartments(n){n.departments??=makeDepartments(n.employees||0);let sum=Object.values(n.departments).reduce((a,b)=>a+(+b||0),0);if(sum!==(n.employees||0))n.departments=makeDepartments(n.employees||0)}
-function worldProducts(){let out=[];COMPANIES.forEach(c=>{(c.products||[]).forEach(p=>out.push({c,s:c,p}));walkNodes(c.subsidiaries||[],n=>(n.products||[]).forEach(p=>out.push({c,s:n,p})))});return out}
-function productById(id){return worldProducts().find(x=>x.p.id===id)}
-function setProductMarketing(id,v){let x=productById(id);if(x){x.p.marketing=Math.max(0,+v||0);save()}}
-function marketFor(type){return MARKET_SIZE[type]||10}
-function updateMarketShares(){let live=worldProducts().filter(x=>LIVE_STAGES.includes(x.p.stage)&&!x.p.discontinued);for(const type of PRODUCT_TYPES){let a=live.filter(x=>x.p.type===type);let total=0;a.forEach(x=>{let p=x.p,c=x.c,s=x.s;let tech=s.tech||Object.values(c.rd||{}).reduce((u,v)=>u+v,0)/TECHS.length||50;let priceFit=1/(1+Math.max(0,(p.price||.05)-.08)*4);p._score=Math.max(.01,(p.quality||50)*.35+(p.innovation||50)*.2+(p.reliability||50)*.12+(p.ux||50)*.12+(c.brand||50)*.08+tech*.08+(p.hype||0)*.05)*(1+(p.marketing||0)*8)*priceFit;total+=p._score});a.forEach(x=>{let p=x.p;p.marketShare=total?p._score/total*100:0;let market=marketFor(type);p.lastRevenue=p.revenue||0;p.revenue=market*(p.marketShare/100)*(.035+Math.min(.08,(p.price||.05)*.2));p.users=Math.max(.01,market*(p.marketShare/100)*2.5);p.rating=clamp(((p.quality||50)+(p.innovation||50)+(p.reliability||50)+(p.ux||50))/4,0,100)})}}
-function creditRating(c){let ratio=(c.debt||0)/Math.max(.05,c.value||.1);let i=ratio<.08?0:ratio<.18?1:ratio<.32?2:ratio<.5?3:ratio<.75?4:ratio<1?5:6;c.creditRating=RATINGS[i];return c.creditRating}
-function makeProduct(){
- return{
-  id:uid(),name:nameProduct(),type:PRODUCT_TYPES[rnd(0,PRODUCT_TYPES.length-1)],
-  stage:"Launch",progress:100,version:1,users:rf(.1,5),quality:rnd(45,90),
-  revenue:rf(.005,.06),lastRevenue:.01,expenses:rf(.002,.025),
-  workers:rnd(30,250),priority:"Balanced",marketing:.005,price:rf(.01,.2),
-  countries:sample(COUNTRIES,rnd(1,7)),age:0,marketShare:0,rating:rnd(45,88),innovation:rnd(40,90),reliability:rnd(50,95),ux:rnd(40,92),hype:rnd(10,60),cyber:rnd(40,85),discontinued:false
- };
-}
-function makeSub(parent){
- return{
-  id:uid(),name:parent+" "+["Labs","AI","Cloud","Digital","Research"][rnd(0,4)],
-  activities:sample(ACTIVITIES,rnd(1,3)),countries:sample(COUNTRIES,rnd(1,6)),
-  employees:rnd(150,3000),maxEmployees:rnd(5000,30000),budget:.03,
-  strategy:"Balanced",autonomy:"Pełna",cash:rf(.05,.5),tech:rnd(40,80),
-  products:[makeProduct()],children:[],departments:makeDepartments(rnd(150,3000)),morale:rnd(55,90),reputation:rnd(40,80),debt:0
- };
-}
-function makeCompany(){
- let name=nameCompany(),value=rf(.2,5);
- let c={
-  id:uid(),name,sector:ACTIVITIES[rnd(0,ACTIVITIES.length-1)],value,lastValue:value,
-  cash:value*rf(.08,.3),player:0,shareholders:makeOwners(),employees:rnd(1000,15000),
-  servers:rnd(500,15000),gpu:rnd(100,7000),dc:rnd(0,5),health:rnd(55,95),brand:rnd(30,85),
-  ceo:makeCEO(),executives:{CTO:makeCEO(),CFO:makeCEO(),CPO:makeCEO()},aiStyle:AI_STYLES[rnd(0,AI_STYLES.length-1)],public:Math.random()>.35,sharePrice:rf(5,180),sharesOutstanding:rnd(20,500),priceHistory:[],debt:0,creditRating:"A",reputation:rnd(40,85),cybersecurity:rnd(35,85),patents:[],rd:Object.fromEntries(TECHS.map(x=>[x,rnd(20,70)])),
-  products:[],subsidiaries:[makeSub(name)],revenue:0,expenses:0,profit:0,dividendRate:.2,
-  crisis:"Stabilna",financeHistory:[],history:[{date:date(),text:"Założenie firmy."}]
- };
- recalc(c);return c;
+const world=document.getElementById("world");
+const mapWrap=document.getElementById("mapWrap");
+const svg=document.getElementById("network");
+
+const cities=[
+  ["Warszawa",1550,850],
+  ["Kraków",1600,1350],
+  ["Gdańsk",1450,300],
+  ["Wrocław",950,1250],
+  ["Poznań",900,750],
+  ["Łódź",1350,900],
+  ["Białystok",2050,650],
+  ["Lublin",1950,1150],
+  ["Szczecin",450,550],
+  ["Katowice",1400,1350],
+  ["Rzeszów",2050,1450],
+  ["Olsztyn",1750,500],
+  ["Bydgoszcz",1100,550]
+];
+
+function formatMoney(n){
+  return Math.round(n).toLocaleString("pl-PL")+" zł";
 }
 
-function productProfit(s,p){return Math.max(0,p.revenue*(1+(s.tech||50)/400))-p.expenses-p.marketing}
-function walkNodes(nodes,fn,depth=0){(nodes||[]).forEach(n=>{fn(n,depth);walkNodes(n.children||[],fn,depth+1)})}
-function flatNodes(c){let out=[];walkNodes(c.subsidiaries||[],n=>out.push(n));return out}
-function findNode(c,id){let hit=null;walkNodes(c.subsidiaries||[],n=>{if(n.id===id)hit=n});return hit}
-function findNodeGlobal(id){for(const c of COMPANIES){let n=findNode(c,id);if(n)return {c,n}}return null}
-function countChildren(c){let n=0;walkNodes(c.subsidiaries||[],()=>n++);return n}
-function recalc(c){
- let productRev=0,productCost=0,budgets=0,totalEmployees=0;
- c.products??=[];
- c.products.forEach(p=>{if(["Launch","Growth","Mature"].includes(p.stage))productRev+=p.revenue*(1+50/400);productCost+=(p.expenses||0)+(p.marketing||0)});
- walkNodes(c.subsidiaries||[],s=>{
-  s.children??=[];s.products??=[];s.employees??=0;s.maxEmployees??=30000;s.cash??=.05;s.tech??=50;
-  normalizeDepartments(s);totalEmployees+=s.employees;budgets+=s.budget||0;
-  s.products.forEach(p=>{if(["Launch","Growth","Mature"].includes(p.stage))productRev+=p.revenue*(1+s.tech/400);productCost+=(p.expenses||0)+(p.marketing||0)});
- });
- c.employees=totalEmployees;
- let salaries=c.employees*.000000007;
- let infra=c.servers*.000000001+c.gpu*.000000004+c.dc*.004;
- let interest=(c.debt||0)*(.004+RATINGS.indexOf(creditRating(c))*.0015);c.revenue=c.value*.0015+productRev;c.expenses=salaries+infra+productCost+budgets+interest;c.profit=c.revenue-c.expenses;return c;
-}
-function assets(){return COMPANIES.reduce((a,c)=>a+c.value*c.player/100,0)}
-function worth(){return G.cash+assets()}
-function allProducts(){let a=[];controlled().forEach(c=>{(c.products||[]).forEach(p=>a.push({c,s:c,p,profit:productProfit({tech:50},p)}));walkNodes(c.subsidiaries||[],s=>s.products.forEach(p=>a.push({c,s,p,profit:productProfit(s,p)})))});return a}
-
-
-function buyShares(c,o,amount){
- amount=clamp(+amount||0,0,Math.min(o.pct,100-c.player));
- if(amount<=0)return;
- let cost=c.value*amount/100*1.05;
- if(G.cash<cost)return toast("Za mało gotówki.");
- G.cash-=cost;c.player=clamp(c.player+amount,0,100);o.pct-=amount;
- c.shareholders=c.shareholders.filter(x=>x.pct>.0001);
- c.shareholders=normalizeOwners(c.shareholders,c.player);
- log(`Kupiono ${amount.toFixed(2)}% ${c.name} od ${o.name}.`,c.id);
- render();openCompany(c.id,"shares");
-}
-function ownerBuyModal(cid,oid){
- let c=COMPANIES.find(x=>x.id===cid),o=c?.shareholders.find(x=>x.id===oid);if(!o)return;
- let max=Math.min(o.pct,100-c.player);
- document.getElementById("modalTitle").textContent="Odkup udziałów";
- document.getElementById("modalSubtitle").textContent=o.name+" • "+c.name;
- document.getElementById("modalBody").innerHTML=`
- <div class="panel">
-  <div class="row"><span>Udziałowiec</span><strong>${o.name}</strong></div>
-  <div class="row"><span>Posiadane udziały</span><strong>${o.pct.toFixed(2)}%</strong></div>
-  <div class="row"><span>Twoje udziały</span><strong>${c.player.toFixed(2)}%</strong></div>
-  <div class="field"><label>ILE % ODKUPIĆ</label><input id="ownerAmount" type="number" min=".01" max="${max}" step=".1" value="${Math.min(5,max).toFixed(2)}"></div>
-  <div class="actions">
-   <button class="btn blue" onclick="confirmOwnerBuy('${cid}','${oid}')">Odkup</button>
-   <button class="btn green" onclick="buyShares(COMPANIES.find(x=>x.id==='${cid}'),COMPANIES.find(x=>x.id==='${cid}').shareholders.find(x=>x.id==='${oid}'),${max})">Odkup wszystkie</button>
-   <button class="btn ghost" onclick="openCompany('${cid}','shares')">Wróć</button>
-  </div>
- </div>`;
-}
-function confirmOwnerBuy(cid,oid){
- let c=COMPANIES.find(x=>x.id===cid),o=c?.shareholders.find(x=>x.id===oid);
- if(o)buyShares(c,o,document.getElementById("ownerAmount").value);
-}
-
-function openCompany(cid,tab="overview"){
- let c=COMPANIES.find(x=>x.id===cid);if(!c)return;
- overlay.classList.add("show");modalTitle.textContent=c.name;modalSubtitle.textContent=`${c.sector} • ${money(c.value)} • twoje ${c.player.toFixed(2)}%`;
- let tabs=["overview","shares",...(canControl(c)?["manage","subs","products","rd","people","ma"]:[]),"history"];
- let names={overview:"Firma",shares:"Udziały",manage:"Zarządzanie",subs:"Spółki-córki",products:"Produkty",rd:"R&D",people:"Ludzie",ma:"M&A / Giełda",history:"Historia"};
- let h=`<div class="tabs">${tabs.map(x=>`<button class="tab ${x===tab?"active":""}" onclick="openCompany('${cid}','${x}')">${names[x]}</button>`).join("")}</div>`;
- if(tab==="overview")h+=companyOverview(c);
- if(tab==="shares")h+=sharesHTML(c);
- if(tab==="manage")h+=manageHTML(c);
- if(tab==="subs")h+=subsHTML(c);
- if(tab==="products")h+=productsCompanyHTML(c);
- if(tab==="rd")h+=rdCompanyHTML(c);
- if(tab==="people")h+=peopleHTML(c);
- if(tab==="ma")h+=maHTML(c);
- if(tab==="history")h+=c.history.map(x=>`<div class="event"><small>${x.date}</small><div>${x.text}</div></div>`).join("");
- modalBody.innerHTML=h;
-}
-function companyOverview(c){
- recalc(c);let margin=c.revenue?c.profit/c.revenue*100:0;
- return `<div class="stats">
- ${stat("Wycena",money(c.value))}${stat("Cash firmy",money(c.cash))}${stat("Przychód",money(c.revenue),"good")}
- ${stat("Zysk",money(c.profit),c.profit>=0?"good":"bad")}${stat("Marża",margin.toFixed(1)+"%")}
- ${stat("Pracownicy",c.employees.toLocaleString())}${stat("Kondycja",c.health+"/100")}${stat("Rating",c.creditRating)}${stat("Dług",money(c.debt||0))}${stat("Reputacja",(c.reputation||50)+"/100")}${stat("AI",c.aiStyle||"Player")}${stat("Status",c.crisis)}
- </div>
- <div class="panel"><div class="panelTitle"><div><h2>CEO — ${c.ceo.name}</h2><p>${c.ceo.perk}</p></div></div>
- <div class="two">${metric("Leadership",c.ceo.leadership)}${metric("Technology",c.ceo.technology)}${metric("Finance",c.ceo.finance)}${metric("Product",c.ceo.product)}</div></div>`;
-}
-function sharesHTML(c){
- return `<div class="panel"><div class="row"><span>Tech Holding</span><strong class="good">${c.player.toFixed(2)}%</strong></div>
- ${c.shareholders.map(o=>`<div class="row"><div class="clickable" onclick="ownerBuyModal('${c.id}','${o.id}')"><strong>${o.name}</strong><div class="muted">Kliknij nazwę, aby odkupić udziały</div></div><strong>${o.pct.toFixed(2)}%</strong></div>`).join("")}
- <div class="row"><span>SUMA</span><strong>${(c.player+c.shareholders.reduce((a,o)=>a+o.pct,0)).toFixed(2)}%</strong></div></div>`;
-}
-function manageHTML(c){
- return `<div class="stats">${stat("Cash",money(c.cash))}${stat("CEO",c.ceo.name)}${stat("GPU",c.gpu.toLocaleString())}${stat("Data Centers",c.dc)}</div>
- <div class="panel"><div class="panelTitle"><div><h2>Kapitał</h2></div></div>
- <div class="actions"><button class="btn blue" onclick="fund('${c.id}',.1)">Przelej $100M</button><button class="btn blue" onclick="fund('${c.id}',.5)">Przelej $500M</button><button class="btn green" onclick="takeDividend('${c.id}')">Wypłać dywidendę</button></div></div>
- <div class="panel"><div class="panelTitle"><div><h2>Infrastruktura</h2></div></div>
- <div class="actions"><button class="btn purple" onclick="buyInfra('${c.id}','gpu')">+1000 GPU</button><button class="btn purple" onclick="buyInfra('${c.id}','server')">+5000 serwerów</button><button class="btn purple" onclick="buyInfra('${c.id}','dc')">+ Data Center</button></div></div>
- <div class="panel"><div class="panelTitle"><div><h2>CEO</h2></div></div><button class="btn yellow" onclick="replaceCEO('${c.id}')">Zatrudnij nowego CEO • $25M</button></div>
- <div class="panel"><div class="panelTitle"><div><h2>Finansowanie i bezpieczeństwo</h2></div></div><div class="actions"><button class="btn blue" onclick="borrow('${c.id}',.5)">Obligacje +$500M</button><button class="btn blue" onclick="repayDebt('${c.id}',.25)">Spłać $250M</button><button class="btn purple" onclick="investCyber('${c.id}')">Cyber +10 • $50M</button></div></div>`;
-}
-function nodeHTML(c,s,depth=0){
- return `<div class="panel" style="margin-left:${Math.min(depth*18,72)}px"><div class="panelTitle"><div><h2>${s.name}</h2><p>${(s.activities||[]).join(" • ")}</p></div><span class="badge">${(s.countries||[]).length} krajów</span></div>
- <div class="stats">${stat("Cash",money(s.cash))}${stat("Pracownicy",s.employees.toLocaleString()+" / "+s.maxEmployees.toLocaleString())}${stat("Tech",s.tech+"/100")}${stat("Produkty",s.products.length)}</div>
- <div class="actions"><button class="btn green" onclick="openProductCreator('${c.id}','${s.id}')">+ Produkt</button><button class="btn blue" onclick="openCreateSubsidiary('${c.id}','${s.id}')">+ Spółka-córka</button><button class="btn yellow" onclick="maxStaff('${c.id}','${s.id}')">Max Staff</button></div>
- ${(s.children||[]).map(ch=>nodeHTML(c,ch,depth+1)).join("")}</div>`;
-}
-function subsHTML(c){return `<div class="actions"><button class="btn green" onclick="openCreateSubsidiary('${c.id}')">+ Spółka-córka</button><button class="btn blue" onclick="openProductCreator('${c.id}','ROOT')">+ Produkt w firmie głównej</button><button class="btn yellow" onclick="maxStaff('${c.id}')">Max Staff</button></div><br>${(c.subsidiaries||[]).map(s=>nodeHTML(c,s)).join("")}`}
-
-function productsCompanyHTML(c){let list=[];(c.products||[]).forEach(p=>list.push({s:c,p}));walkNodes(c.subsidiaries||[],s=>s.products.forEach(p=>list.push({s,p})));return list.map(x=>productCard(c,x.s,x.p)).join("")||`<div class="empty">Brak produktów.</div>`}
-
-function rdCompanyHTML(c){
- return `<div class="panel">${TECHS.map(t=>`<div class="row"><div style="width:100%"><strong>${t}</strong><div class="progress"><div style="width:${c.rd[t]}%"></div></div></div><strong>${c.rd[t].toFixed(0)}</strong><button class="btn blue" onclick="investRD('${c.id}','${t}')">+$50M</button></div>`).join("")}</div>`;
-}
-
-function openCreateSubsidiary(cid=null,parentNodeId=null){
- let cs=controlled();if(!cs.length)return toast("Brak własnej lub kontrolowanej firmy.");
- let options=[];cs.forEach(c=>{options.push(`<option value="${c.id}|ROOT" ${c.id===cid&&!parentNodeId?"selected":""}>${c.name} (firma główna)</option>`);walkNodes(c.subsidiaries||[],(n,d)=>options.push(`<option value="${c.id}|${n.id}" ${n.id===parentNodeId?"selected":""}>${"— ".repeat(d+1)}${n.name}</option>`))});
- overlay.classList.add("show");modalTitle.textContent="Nowa spółka-córka";modalSubtitle.textContent="Spółki mogą posiadać własne spółki-córki.";
- modalBody.innerHTML=`<div class="panel"><div class="formGrid"><div class="field"><label>SPÓŁKA-MATKA</label><select id="subParent">${options.join("")}</select></div><div class="field"><label>NAZWA</label><input id="subName" value="Nova Labs"></div><div class="field"><label>BUDŻET STARTOWY B $</label><input id="subBudget" type="number" value=".1" step=".05"></div><div class="field"><label>PRACOWNICY</label><input id="subEmployees" type="number" value="500"></div><div class="field"><label>MAX STAFF</label><input id="subMaxEmployees" type="number" value="30000"></div><div class="field"><label>STRATEGIA</label><select id="subStrategy">${STRATEGIES.map(x=>`<option>${x}</option>`).join("")}</select></div><div class="field"><label>AUTONOMIA</label><select id="subAutonomy">${AUTONOMY.map(x=>`<option>${x}</option>`).join("")}</select></div></div><h3>Działalności</h3><div class="checkGrid">${ACTIVITIES.map((x,i)=>`<label class="check"><input class="newSubActivity" type="checkbox" value="${i}" ${i===0?"checked":""}>${x}</label>`).join("")}</div><h3>Kraje</h3><div class="checkGrid">${COUNTRIES.map((x,i)=>`<label class="check"><input class="newSubCountry" type="checkbox" value="${i}" ${i===0?"checked":""}>${x}</label>`).join("")}</div><div class="actions"><button class="btn green" onclick="createSubsidiary()">Utwórz spółkę</button></div></div>`;
-}
-function createSubsidiary(){
- let [cid,pid]=subParent.value.split("|"),c=COMPANIES.find(x=>x.id===cid),cost=Math.max(.01,+subBudget.value||.1);if(!canControl(c))return toast("Nie kontrolujesz tej firmy.");if(G.cash<cost)return toast("Za mało gotówki.");
- let acts=[...document.querySelectorAll(".newSubActivity:checked")].map(x=>ACTIVITIES[+x.value]),countries=[...document.querySelectorAll(".newSubCountry:checked")].map(x=>COUNTRIES[+x.value]);if(!acts.length||!countries.length)return toast("Wybierz działalność i kraj.");
- let node={id:uid(),name:subName.value.trim()||c.name+" Labs",activities:acts,countries,employees:Math.max(1,+subEmployees.value||500),maxEmployees:Math.max(1,+subMaxEmployees.value||30000),budget:.02,strategy:subStrategy.value,autonomy:subAutonomy.value,cash:cost,tech:50,products:[],children:[]};
- G.cash-=cost;if(pid==="ROOT")c.subsidiaries.push(node);else{let parent=findNode(c,pid);if(!parent)return toast("Nie znaleziono spółki-matki.");parent.children??=[];parent.children.push(node)}
- log(`Utworzono ${node.name} jako spółkę-córkę.`,c.id);closeModal();render();
-}
-
-
-function openGlobalProductCreator(){
- let cs=controlled();if(!cs.length)return toast("Brak własnej lub kontrolowanej firmy.");
- openProductSelector();
-}
-function openProductSelector(){
- overlay.classList.add("show");modalTitle.textContent="Utwórz produkt";modalSubtitle.textContent="Wybierz spółkę-córkę.";
- let options=[];controlled().forEach(c=>{options.push(`<option value="${c.id}|ROOT">${c.name} (firma główna)</option>`);walkNodes(c.subsidiaries||[],(s,d)=>options.push(`<option value="${c.id}|${s.id}">${c.name} → ${"— ".repeat(d)}${s.name}</option>`))});options=options.join("");
- modalBody.innerHTML=`<div class="panel"><div class="field"><label>SPÓŁKA</label><select id="productTarget">${options}</select></div>
- <div class="actions"><button class="btn green" onclick="let a=productTarget.value.split('|');openProductCreator(a[0],a[1])">Dalej</button></div></div>`;
-}
-function productTypeOptions(category){return (PRODUCT_CATALOG[category]||[]).map(x=>`<option>${x}</option>`).join("")}
-function refreshProductTypes(){let cat=document.getElementById("pCategory"),type=document.getElementById("pType");if(cat&&type)type.innerHTML=productTypeOptions(cat.value)}
-function openProductCreator(cid,sid){
- let c=COMPANIES.find(x=>x.id===cid),s=c?(sid==="ROOT"?c:findNode(c,sid)):null;if(!s||!canControl(c))return toast("Nie masz kontroli nad tą firmą.");
- overlay.classList.add("show");modalTitle.textContent="Product Studio";modalSubtitle.textContent=`${c.name} → ${s.name}`;
- let first=PRODUCT_CATEGORIES[0];
- modalBody.innerHTML=`<div class="panel"><div class="panelTitle"><div><h2>1. Produkt i rynek</h2><p>Kategoria wpływa na konkurencję, wymagania i wielkość rynku.</p></div></div><div class="formGrid">
- <div class="field"><label>NAZWA</label><input id="pName" value="${nameProduct()}"></div>
- <div class="field"><label>KATEGORIA</label><select id="pCategory" onchange="refreshProductTypes()">${PRODUCT_CATEGORIES.map(x=>`<option>${x}</option>`).join("")}</select></div>
- <div class="field"><label>TYP PRODUKTU</label><select id="pType">${productTypeOptions(first)}</select></div>
- <div class="field"><label>SEGMENT KLIENTA</label><select id="pSegment">${CUSTOMER_SEGMENTS.map(x=>`<option>${x}</option>`).join("")}</select></div>
- <div class="field"><label>MODEL BIZNESOWY</label><select id="pModel">${BUSINESS_MODELS.map(x=>`<option>${x}</option>`).join("")}</select></div>
- <div class="field"><label>CENA $</label><input id="pPrice" type="number" value="29" min="0" step="1"></div></div></div>
- <div class="panel"><div class="panelTitle"><div><h2>2. Development</h2><p>Większy zespół przyspiesza projekt, ale podnosi koszty.</p></div></div><div class="formGrid">
- <div class="field"><label>BUDŻET STARTOWY B $</label><input id="pBudget" type="number" value=".08" step=".01"></div>
- <div class="field"><label>PRACOWNICY</label><input id="pWorkers" type="number" value="150" min="1"></div>
- <div class="field"><label>MARKETING / MIES. B $</label><input id="pMarketing" type="number" value=".006" step=".001"></div>
- <div class="field"><label>PRIORYTET</label><select id="pPriority">${PRIORITIES.map(x=>`<option>${x}</option>`).join("")}</select></div>
- <div class="field"><label>CEL JAKOŚCI 1–100</label><input id="pQualityTarget" type="number" value="80" min="1" max="100"></div>
- <div class="field"><label>CEL INNOWACJI 1–100</label><input id="pInnovationTarget" type="number" value="75" min="1" max="100"></div>
- <div class="field"><label>CEL UX 1–100</label><input id="pUxTarget" type="number" value="75" min="1" max="100"></div>
- <div class="field"><label>SECURITY 1–100</label><input id="pSecurityTarget" type="number" value="70" min="1" max="100"></div></div></div>
- <div class="panel"><div class="panelTitle"><div><h2>3. Premiera</h2><p>Wybierz rynki startowe. Kolejne regiony możesz rozwijać po premierze.</p></div></div><div class="checkGrid">${COUNTRIES.map((x,i)=>`<label class="check"><input class="pCountry" type="checkbox" value="${i}" ${(s.countries||["Polska"]).includes(x)?"checked":""}>${x}</label>`).join("")}</div>
- <div class="actions"><button class="btn green" onclick="createProductProject('${cid}','${sid}')">Rozpocznij projekt</button></div></div>`;
-}
-function productRequirements(category,type){let gpu=0,servers=0,complexity=1;if(category==="AI"){gpu=500;servers=250;complexity=1.35}if(category==="Cloud"){servers=1500;complexity=1.2}if(category==="Chips"){complexity=1.55}if(category==="Hardware"){complexity=1.3}if(category==="Quantum"){gpu=250;complexity=1.8}if(category==="Robotics"||category==="Automotive")complexity=1.45;return{gpu,servers,complexity}}
-function createProductProject(cid,sid){
- let c=COMPANIES.find(x=>x.id===cid),s=c?(sid==="ROOT"?c:findNode(c,sid)):null;if(!s||!canControl(c))return toast("Nie masz kontroli nad tą firmą.");
- const $=id=>document.getElementById(id);let budget=Math.max(.001,+$("pBudget").value||.08);let countries=[...document.querySelectorAll(".pCountry:checked")].map(x=>COUNTRIES[+x.value]);if(!countries.length)return toast("Wybierz przynajmniej jeden kraj.");
- if(c.cash<budget&&G.cash<budget)return toast("Firma i holding nie mają środków.");if(c.cash>=budget)c.cash-=budget;else G.cash-=budget;
- let category=$("pCategory").value,type=$("pType").value,req=productRequirements(category,type),generation=1;
- let siblings=(s.products||[]).filter(p=>p.type===type);if(siblings.length)generation=Math.max(...siblings.map(p=>p.generation||1))+1;
- let product={id:uid(),name:$("pName").value.trim()||nameProduct(),category,type,segment:$("pSegment").value,businessModel:$("pModel").value,stage:"Concept",progress:0,version:0,generation,users:0,quality:rnd(25,40),qualityTarget:clamp(+$("pQualityTarget").value||80,1,100),innovation:rnd(25,45),innovationTarget:clamp(+$("pInnovationTarget").value||75,1,100),ux:rnd(30,50),uxTarget:clamp(+$("pUxTarget").value||75,1,100),cyber:rnd(35,55),securityTarget:clamp(+$("pSecurityTarget").value||70,1,100),reliability:rnd(45,65),rating:40,hype:10,revenue:0,lastRevenue:0,expenses:budget*.035,workers:Math.max(1,+$("pWorkers").value||150),priority:$("pPriority").value,marketing:Math.max(0,+$("pMarketing").value||0),price:Math.max(0,+$("pPrice").value||0),countries,age:0,marketShare:0,requirements:req,roadmap:["Concept","Development","Beta","Launch"],discontinued:false};
- s.products??=[];s.products.push(product);log(`${s.name} rozpoczyna ${category}: ${product.name} (${type}, Gen ${generation}).`,c.id);closeModal();render();
-}
-
-function productCard(c,s,p){
- let live=["Launch","Growth","Mature"].includes(p.stage),profit=productProfit(s,p);
- return `<div class="panel"><div class="panelTitle"><div><h2>${p.name}</h2><p>${c.name} → ${s.name} • ${p.category||"Technology"} / ${p.type} • Gen ${p.generation||1}</p></div><span class="badge ${live?"good":""}">${p.stage}</span></div>
- ${live?`<div class="stats">${stat("Przychód",money(p.revenue),"good")}${stat("Zysk",money(profit),profit>=0?"good":"bad")}${stat("Użytkownicy",p.users.toFixed(2)+"M")}${stat("Udział rynku",(p.marketShare||0).toFixed(1)+"%")}${stat("Rating",(p.rating||p.quality).toFixed(0)+"/100")}${stat("Jakość",p.quality+"/100")}${stat("Segment",p.segment||"Mainstream")}${stat("Model",p.businessModel||"Subscription")}</div>
- <div class="row"><span>Marketing / miesiąc</span><input type="number" step=".001" value="${p.marketing}" onchange="setProductMarketing('${p.id}',this.value)"></div><div class="actions"><button class="btn blue" onclick="productUpdate('${p.id}')">Duży update</button><button class="btn purple" onclick="productHype('${p.id}')">Launch event</button><button class="btn red" onclick="discontinueProduct('${p.id}')">Wycofaj</button></div>`
- :`<div class="progress"><div style="width:${p.progress}%"></div></div><div class="muted">${p.progress.toFixed(1)}% • ${p.workers} pracowników</div>`}</div>`;
-}
-
-function peopleHTML(c){let nodes=[{name:c.name,employees:c.employees,departments:makeDepartments(c.employees)},...flatNodes(c)];return `<div class="panel"><div class="panelTitle"><div><h2>Zarząd</h2><p>CEO + kluczowi dyrektorzy.</p></div></div><div class="grid">${[["CEO",c.ceo],...Object.entries(c.executives||{})].map(([r,e])=>`<div class="card"><h3>${r}: ${e.name}</h3><div class="muted">${e.perk}</div><div class="two">${metric("Leadership",e.leadership)}${metric("Tech",e.technology)}${metric("Finance",e.finance)}${metric("Product",e.product)}</div></div>`).join("")}</div></div><div class="panel"><div class="panelTitle"><div><h2>Działy</h2></div></div>${flatNodes(c).map(n=>{normalizeDepartments(n);return `<div class="row"><div><strong>${n.name}</strong><div class="muted">Morale ${n.morale||70}/100</div></div><span>${Object.entries(n.departments).map(([k,v])=>`${k}: ${v.toLocaleString()}`).join(" • ")}</span></div>`}).join("")||`<div class="empty">Dodaj spółkę, aby budować zespoły.</div>`}</div>`}
-function maHTML(c){let targets=COMPANIES.filter(x=>x.id!==c.id&&!canControl(x)).sort((a,b)=>a.value-b.value).slice(0,8);return `<div class="stats">${stat("Kurs",'$'+(c.sharePrice||0).toFixed(2))}${stat("Publiczna",c.public?'TAK':'NIE')}${stat("Dług",money(c.debt||0))}${stat("Rating",c.creditRating||'A')}</div><div class="panel"><div class="panelTitle"><div><h2>Giełda</h2></div></div><div class="actions"><button class="btn green" onclick="toggleIPO('${c.id}')">${c.public?'Buyback 2%':'IPO'}</button><button class="btn blue" onclick="issueShares('${c.id}')">Emisja 5%</button></div></div><div class="panel"><div class="panelTitle"><div><h2>Cele przejęcia</h2><p>Oferta za 100% firmy; akcjonariusze mogą odrzucić niską premię.</p></div></div>${targets.map(t=>`<div class="row"><div><strong>${t.name}</strong><div class="muted">${money(t.value)} • ${t.creditRating||'A'}</div></div><div class="actions"><button class="btn blue" onclick="takeoverOffer('${c.id}','${t.id}',15)">+15%</button><button class="btn purple" onclick="takeoverOffer('${c.id}','${t.id}',30)">+30%</button><button class="btn red" onclick="takeoverOffer('${c.id}','${t.id}',50)">+50%</button></div></div>`).join('')}</div>`}
-function borrow(cid,a){let c=COMPANIES.find(x=>x.id===cid);if(!c||!canControl(c))return;c.debt=(c.debt||0)+a;c.cash+=a;creditRating(c);log(`${c.name} emituje obligacje za ${money(a)}.`);render();openCompany(cid,'manage')}
-function repayDebt(cid,a){let c=COMPANIES.find(x=>x.id===cid);if(!c)return;let x=Math.min(a,c.debt||0,c.cash||0);c.debt-=x;c.cash-=x;creditRating(c);render();openCompany(cid,'manage')}
-function investCyber(cid){let c=COMPANIES.find(x=>x.id===cid);if(!c||c.cash<.05)return toast('Za mało cashu firmy.');c.cash-=.05;c.cybersecurity=clamp((c.cybersecurity||50)+10,0,100);render();openCompany(cid,'manage')}
-function productUpdate(pid){let x=productById(pid);if(!x||!canControl(x.c))return;let cost=.04;if(x.c.cash<cost)return toast('Firma potrzebuje $40M.');x.c.cash-=cost;x.p.version=(x.p.version||0)+1;x.p.quality=clamp((x.p.quality||50)+rnd(3,8),0,100);x.p.innovation=clamp((x.p.innovation||50)+rnd(2,7),0,100);x.p.hype=clamp((x.p.hype||20)+10,0,100);log(`${x.p.name} otrzymuje duży update v${x.p.version}.`,x.c.id);render()}
-function productHype(pid){let x=productById(pid);if(!x||!canControl(x.c)||x.c.cash<.025)return toast('Potrzeba $25M.');x.c.cash-=.025;x.p.hype=clamp((x.p.hype||20)+25,0,100);x.p.marketing=(x.p.marketing||0)+.003;log(`${x.p.name}: wielki event produktowy zwiększa hype.`,x.c.id);render()}
-function discontinueProduct(pid){let x=productById(pid);if(!x||!canControl(x.c))return;x.p.discontinued=true;x.p.stage='Discontinued';x.p.revenue=0;log(`${x.p.name} zostaje wycofany z rynku.`,x.c.id);render()}
-function toggleIPO(cid){let c=COMPANIES.find(x=>x.id===cid);if(!c)return;if(!c.public){c.public=true;c.cash+=c.value*.12;c.player=Math.max(75,c.player-10);c.shareholders.push({id:uid(),name:'IPO Investors',pct:100-c.player,type:'Index Fund',sellPremium:.12,attitude:'Neutral'});c.shareholders=normalizeOwners(c.shareholders,c.player);log(`${c.name} debiutuje na giełdzie.`)}else{let amt=Math.min(2,100-c.player);if(amt<=0)return toast('Masz już 100%.');let cost=c.value*amt/100;if(G.cash<cost)return toast('Za mało gotówki holdingu.');G.cash-=cost;c.player+=amt;c.shareholders=normalizeOwners(c.shareholders,c.player);log(`${c.name} wykonuje buyback ${amt.toFixed(1)}%.`)}render();openCompany(cid,'ma')}
-function issueShares(cid){let c=COMPANIES.find(x=>x.id===cid);if(!c||!c.public)return toast('Najpierw IPO.');let dilution=5;c.cash+=c.value*.05;c.player*=.95;c.shareholders.forEach(o=>o.pct*=.95);c.shareholders.push({id:uid(),name:'New Issue Investors',pct:5,type:'Growth Fund',sellPremium:.15,attitude:'Neutral'});c.shareholders=normalizeOwners(c.shareholders,c.player);log(`${c.name} emituje 5% nowych akcji.`);render();openCompany(cid,'ma')}
-function takeoverOffer(buyerId,targetId,premium){let b=COMPANIES.find(x=>x.id===buyerId),t=COMPANIES.find(x=>x.id===targetId);if(!b||!t||!canControl(b))return;let cost=t.value*(1+premium/100);let available=(b.cash||0)+G.cash;if(available<cost)return toast(`Potrzeba ${money(cost)}.`);let resistance=(t.shareholders||[]).reduce((a,o)=>a+(o.sellPremium||.15)*(o.pct||0),0)/100;let accepted=premium/100>=Math.max(.08,resistance*.8)||premium>=50;if(!accepted){log(`${t.name} odrzuca ofertę ${b.name} z premią +${premium}%.`);return toast('Akcjonariusze odrzucili ofertę.')}let local=Math.min(b.cash,cost);b.cash-=local;G.cash-=cost-local;t.player=100;t.shareholders=[];t.isPlayerCompany=true;log(`${b.name} przejmuje ${t.name} za ${money(cost)} (+${premium}%).`,t.id);toast('Przejęcie zakończone sukcesem.');render()}
-function fund(cid,a){let c=COMPANIES.find(x=>x.id===cid);if(!c||G.cash<a)return toast("Za mało gotówki.");G.cash-=a;c.cash+=a;c.health=clamp(c.health+5,0,100);render();openCompany(cid,"manage")}
-function takeDividend(cid){
- let c=COMPANIES.find(x=>x.id===cid);if(!c||c.player<=50)return;
- let amount=Math.min(c.cash*.2,Math.max(0,c.profit*.5));if(amount<=0)return toast("Brak środków na dywidendę.");
- c.cash-=amount;G.cash+=amount*c.player/100;log(`${c.name} wypłaca dywidendę ${money(amount*c.player/100)}.`);render();openCompany(cid,"manage");
-}
-function buyInfra(cid,type){
- let c=COMPANIES.find(x=>x.id===cid),cost=type==="gpu"?.08:type==="server"?.04:.3;if(c.cash<cost)return toast("Firma ma za mało cashu.");
- c.cash-=cost;if(type==="gpu")c.gpu+=1000;if(type==="server")c.servers+=5000;if(type==="dc")c.dc++;render();openCompany(cid,"manage");
-}
-function replaceCEO(cid){let c=COMPANIES.find(x=>x.id===cid);if(G.cash<.025)return toast("Za mało gotówki.");G.cash-=.025;c.ceo=makeCEO();log(`${c.name} zatrudnia nowego CEO: ${c.ceo.name}.`);render();openCompany(cid,"manage")}
-function investRD(cid,t){let c=COMPANIES.find(x=>x.id===cid);if(!c||c.cash<.05)return toast("Firma ma za mało cashu.");c.cash-=.05;c.rd[t]=clamp(c.rd[t]+rf(1,5),0,100);render();openCompany(cid,"rd")}
-
-function simulateProduct(c,s,p){
- p.age++;p.lastRevenue=p.revenue;p.hype=Math.max(0,(p.hype||0)-rf(0,2));if(p.discontinued)return;
- if(["Concept","Development","Beta"].includes(p.stage)){
-  let req=p.requirements||{complexity:1};let infraBonus=1;if((req.gpu||0)>0)infraBonus*=Math.min(1.25,.65+(c.gpu||0)/Math.max(1,req.gpu)/4);if((req.servers||0)>0)infraBonus*=Math.min(1.25,.65+(c.servers||0)/Math.max(1,req.servers)/5);p.progress+=(p.workers/100+s.tech/45+c.ceo.product/80)*(p.priority==="Fast Launch"?1.4:1)*infraBonus/(req.complexity||1);
-  if(p.progress>=100){
-   p.progress=0;
-   if(p.stage==="Concept")p.stage="Development";
-   else if(p.stage==="Development"){p.stage="Beta";p.quality=clamp(p.quality+rnd(5,15)+(p.qualityTarget||70)/20,0,100);p.innovation=clamp((p.innovation||40)+rnd(3,10)+(p.innovationTarget||70)/25,0,100);p.ux=clamp((p.ux||40)+rnd(3,9)+(p.uxTarget||70)/30,0,100);p.cyber=clamp((p.cyber||45)+rnd(2,7)+(p.securityTarget||70)/35,0,100)}
-   else{p.stage="Launch";p.progress=100;p.version=1;p.users=rf(.1,2)*(1+p.countries.length/20);p.revenue=rf(.005,.03)*(1+p.countries.length/20);p.expenses=Math.max(.001,p.revenue*.4);log(`${p.name} trafia na rynek.`,c.id)}
-  }
- }else{
-  let competition=marketCompetition(p.type,p.id);
-  let growth=rf(.97,1.05)+(p.quality-50)/5000+p.marketing*1.5-competition*.002;
-  if(p.priority==="User Growth")growth+=.015;
-  p.users=Math.max(.001,p.users*growth);p.revenue=Math.max(.0001,p.revenue*growth);
-  if(p.age>10&&p.stage==="Launch")p.stage="Growth";if(p.age>35&&p.stage==="Growth")p.stage="Mature";
-  if(Math.random()<.04){p.version++;p.quality=clamp(p.quality+rnd(1,3),0,100)}
- }
-}
-function marketCompetition(type,id){
- let products=[];COMPANIES.forEach(c=>walkNodes(c.subsidiaries||[],s=>products.push(...s.products)));let rivals=products.filter(p=>p.id!==id&&p.type===type&&["Launch","Growth","Mature"].includes(p.stage));
- return Math.min(20,rivals.length);
-}
-function npcAct(c){if(Math.random()>.28)return;let style=c.aiStyle||'Innovator';if((style==='Innovator'||style==='Risk Taker')&&Math.random()<.45){let nodes=flatNodes(c);let target=nodes.length?nodes[rnd(0,nodes.length-1)]:null;if(target&&target.products.length<6&&c.cash>.08){c.cash-=.04;let p=makeProduct();p.stage='Concept';p.progress=0;p.version=0;p.revenue=0;p.users=0;target.products.push(p);log(`TechWire: ${c.name} rozpoczyna projekt ${p.name}.`,c.id)}}if(style==='Empire Builder'&&Math.random()<.3&&c.cash>.12){c.cash-=.08;let n=makeSub(c.name);n.products=[];c.subsidiaries.push(n);log(`TechWire: ${c.name} tworzy spółkę ${n.name}.`,c.id)}if(style==='Cost Cutter'){walkNodes(c.subsidiaries||[],n=>{n.morale=clamp((n.morale||70)-1,0,100);n.budget=Math.max(.005,(n.budget||.02)*.98)})}if(Math.random()<.08&&c.cash>.05){let t=TECHS[rnd(0,TECHS.length-1)];c.cash-=.03;c.rd[t]=clamp((c.rd[t]||50)+rf(1,4),0,100);if(c.rd[t]>92&&Math.random()<.18){let patent={id:uid(),name:`${t} Patent ${rnd(100,999)}`,tech:t,owner:c.id,value:rf(.02,.12)};c.patents.push(patent);log(`TechWire: ${c.name} zdobywa patent ${patent.name}.`,c.id)}}}
-function simulateCompany(c){
- c.lastValue=c.value;
- (c.products||[]).forEach(p=>simulateProduct(c,{tech:50},p));walkNodes(c.subsidiaries||[],s=>s.products.forEach(p=>simulateProduct(c,s,p)));
- if(!canControl(c))npcAct(c);
- recalc(c);c.cash+=c.profit;
- let g=rf(-.025,.035)+c.profit/Math.max(.1,c.value)*.04;
- if(G.trend===c.sector)g+=.02;c.value=Math.max(.01,c.value*(1+g));
- if(c.cash<0)c.health-=rnd(3,8);else c.health+=rnd(0,2);c.health=clamp(c.health,0,100);
- c.crisis=c.health>60?"Stabilna":c.health>40?"Problemy":c.health>20?"Kryzys":c.health>5?"Restrukturyzacja":"Bankructwo";
- c.sharePrice=Math.max(.2,(c.sharePrice||20)*(1+g*.65));c.priceHistory??=[];c.priceHistory.push({date:date(),price:c.sharePrice});if(c.priceHistory.length>48)c.priceHistory.shift();
- if(Math.random()<.006*(1-(c.cybersecurity||50)/120)){let loss=Math.min(c.cash*.15,.15);c.cash-=loss;c.reputation=clamp((c.reputation||50)-rnd(3,10),0,100);log(`TechWire: incydent cyberbezpieczeństwa w ${c.name}; strata ${money(loss)}.`,c.id)}
- c.financeHistory.push({date:date(),revenue:c.revenue,expenses:c.expenses});if(c.financeHistory.length>36)c.financeHistory.shift();
-}
-function simulateMonth(){
- let holdingIncome=0;
- controlled().forEach(c=>{
-  if(c.profit>0&&c.cash>0){
-   let div=Math.min(c.cash*.03,c.profit*c.dividendRate)*c.player/100;
-   c.cash-=div;holdingIncome+=div;
-  }
- });
- G.cash+=holdingIncome;
- COMPANIES.forEach(simulateCompany);updateMarketShares();G.marketMonth=(G.marketMonth||0)+1;
- if(G.trendMonths>0){G.trendMonths--;if(!G.trendMonths)G.trend=null}
- else if(Math.random()<.1){G.trend=ACTIVITIES[rnd(0,ACTIVITIES.length-1)];G.trendMonths=rnd(5,12);log(`Boom technologiczny: ${G.trend}.`)}
- if(Math.random()<.4&&COMPANIES.length<100){let c=makeCompany();COMPANIES.push(c);log(`Nowa firma: ${c.name}.`)}
- if(Math.random()<.12){let a=COMPANIES[rnd(0,COMPANIES.length-1)],b=COMPANIES[rnd(0,COMPANIES.length-1)];if(a&&b&&a!==b){let v=rf(.003,.025);a.cash-=Math.min(a.cash,v);b.cash+=v;G.contracts.push({date:date(),buyer:a.name,seller:b.name,value:v});G.contracts=G.contracts.slice(-50);log(`TechWire: ${a.name} podpisuje kontrakt B2B z ${b.name} za ${money(v)}/m.`)}}
- let dead=COMPANIES.filter(c=>!c.isPlayerCompany&&c.health<=0&&c.cash<-.05);dead.forEach(c=>{c.health=25;c.cash=.03;c.debt=(c.debt||0)+.15;c.value*=.45;c.crisis='Restrukturyzacja';log(`TechWire: ${c.name} wchodzi w restrukturyzację po kryzysie płynności.`,c.id)});
- G.financeHistory.push({date:date(),revenue:holdingIncome,expenses:0});if(G.financeHistory.length>36)G.financeHistory.shift();
- G.month++;if(G.month>12){G.month=1;G.year++}render();
-}
-
-let timer;
-function setSpeed(s){G.speed=s;clearInterval(timer);if(s)timer=setInterval(simulateMonth,Math.max(1200,6000/s));save()}
-function stat(a,b,cls=""){return `<div class="stat"><small>${a}</small><strong class="${cls}">${b}</strong></div>`}
-function metric(a,b){return `<div class="metric"><small>${a}</small><strong>${b}</strong></div>`}
-
-function holdingNodeTree(c,nodes,depth){return (nodes||[]).map(n=>`<div class="tree child" style="margin-left:${Math.min((depth+1)*18,90)}px"><div class="panelTitle"><div><strong>${n.name}</strong><div class="muted">${(n.activities||[]).join(" • ")} • ${n.products.length} produktów • ${n.employees.toLocaleString()}/${n.maxEmployees.toLocaleString()} prac.</div></div><div class="actions"><button class="btn green" onclick="openProductCreator('${c.id}','${n.id}')">+ Produkt</button><button class="btn blue" onclick="openCreateSubsidiary('${c.id}','${n.id}')">+ Spółka</button><button class="btn yellow" onclick="maxStaff('${c.id}','${n.id}')">Max Staff</button></div></div>${holdingNodeTree(c,n.children||[],depth+1)}</div>`).join("")}
-function maxStaff(cid,sid=null){let c=COMPANIES.find(x=>x.id===cid);if(!c)return;let nodes=sid?[findNode(c,sid)]:flatNodes(c);nodes=nodes.filter(Boolean);let hired=0,cost=0;for(const n of nodes){n.maxEmployees??=30000;n.employees??=0;let missing=Math.max(0,n.maxEmployees-n.employees);let unit=.000000008;let affordable=Math.floor(((n.cash||0)+G.cash)/unit);let add=Math.min(missing,affordable);if(add<=0)continue;let need=add*unit,local=Math.min(n.cash||0,need);n.cash-=local;G.cash-=need-local;n.employees+=add;n.departments=makeDepartments(n.employees);n.morale=clamp((n.morale||70)-Math.min(8,add/5000),0,100);hired+=add;cost+=need}recalc(c);log(`${c.name}: Max Staff zatrudnił ${hired.toLocaleString()} pracowników za ${money(cost)}.`,c.id);toast(hired?`Zatrudniono ${hired.toLocaleString()} pracowników.`:"Brak wolnych miejsc lub środków.");render()}
-
-function render(){
- COMPANIES.forEach(recalc);
- cashTop.textContent=money(G.cash);worthTop.textContent=money(worth());dateTop.textContent=date();
- let cs=controlled(),ps=allProducts(),live=ps.filter(x=>["Launch","Growth","Mature"].includes(x.p.stage)),projects=ps.filter(x=>["Concept","Development","Beta"].includes(x.p.stage));
- let companyRevenue=cs.reduce((a,c)=>a+c.revenue,0),companyProfit=cs.reduce((a,c)=>a+c.profit,0);
- dashboardStats.innerHTML=stat("Net Worth",money(worth()))+stat("Gotówka",money(G.cash))+stat("Aktywa",money(assets()))+stat("Firmy",cs.length)+stat("Przychód firm",money(companyRevenue),"good")+stat("Zysk firm",money(companyProfit),companyProfit>=0?"good":"bad")+stat("Produkty",ps.length)+stat("Pracownicy",cs.reduce((a,c)=>a+c.employees,0).toLocaleString());
- holdingStats.innerHTML=stat("Firmy",cs.length)+stat("Spółki-córki",cs.reduce((a,c)=>a+countChildren(c),0))+stat("Produkty",ps.length)+stat("Cash firm",money(cs.reduce((a,c)=>a+c.cash,0)));
- productStats.innerHTML=stat("Wszystkie",ps.length)+stat("Projekty",projects.length)+stat("Aktywne",live.length)+stat("Łączny zysk",money(live.reduce((a,x)=>a+x.profit,0)));
- let hi=G.financeHistory.at(-1)||{revenue:0,expenses:0};financeStats.innerHTML=stat("Cash holdingu",money(G.cash))+stat("Ostatnie dywidendy",money(hi.revenue),"good")+stat("Aktywa",money(assets()))+stat("Net Worth",money(worth()));
- renderMarket();
- holdingTree.innerHTML=cs.length?cs.map(c=>`<div class="tree"><div class="panelTitle"><div class="clickable" onclick="openCompany('${c.id}')"><h2>${c.name}</h2><p>${money(c.value)} • ${c.player.toFixed(1)}%</p></div><button class="btn green" onclick="openCreateSubsidiary('${c.id}')">+ Spółka-córka</button></div>${holdingNodeTree(c,c.subsidiaries||[],0)}</div>`).join(""):`<div class="empty">Brak kontrolowanych firm.</div>`;
- projectList.innerHTML=projects.length?projects.map(x=>productCard(x.c,x.s,x.p)).join(""):`<div class="empty">Brak projektów.</div>`;
- liveProductList.innerHTML=live.length?live.sort((a,b)=>b.profit-a.profit).map(x=>productCard(x.c,x.s,x.p)).join(""):`<div class="empty">Brak aktywnych produktów.</div>`;
- researchList.innerHTML=cs.length?cs.map(c=>`<div class="panel"><div class="panelTitle"><div><h2>${c.name}</h2></div></div>${TECHS.map(t=>`<div class="row"><span>${t}</span><strong>${c.rd[t].toFixed(0)}/100</strong></div>`).join("")}</div>`).join(""):`<div class="empty">Brak kontrolowanych firm.</div>`;
- financeRows.innerHTML=cs.map(c=>`<tr onclick="openCompany('${c.id}')"><td>${c.name}</td><td>${money(c.cash)}</td><td class="good">${money(c.revenue)}</td><td class="bad">${money(c.expenses)}</td><td class="${c.profit>=0?"good":"bad"}">${money(c.profit)}</td><td>${c.revenue?(c.profit/c.revenue*100).toFixed(1):0}%</td><td>${(c.dividendRate*100).toFixed(0)}%</td></tr>`).join("");
- let sorted=[...live].sort((a,b)=>b.profit-a.profit);
- productRanking.innerHTML=rankProducts(sorted);
- dashProducts.innerHTML=rankProducts(sorted.slice(0,6));
- companyRanking.innerHTML=[...cs].sort((a,b)=>b.value-a.value).map((c,i)=>`<div class="rank ${i===0?"first":""}"><div class="rankNum">#${i+1}</div><div><strong>${c.name}</strong><div class="muted">${c.sector}</div></div><strong>${money(c.value)}</strong></div>`).join("")||`<div class="empty">Brak firm.</div>`;
- dashEvents.innerHTML=eventsHTML(G.events.slice(0,7));historyList.innerHTML=eventsHTML(G.events.slice(0,200));
- decisionCount.textContent=G.decisions.length?"("+G.decisions.length+")":"";
- decisionList.innerHTML=G.decisions.length?G.decisions.map(d=>`<div class="event"><strong>${d.title}</strong><div>${d.text}</div></div>`).join(""):`<div class="empty">Brak decyzji.</div>`;
- save();setTimeout(()=>{drawChart(dashboardChart,G.financeHistory);drawChart(financeChart,G.financeHistory)},20);
-}
-function renderMarket(){
- let q=(document.getElementById("marketSearch")?.value||"").toLowerCase();
- let list=COMPANIES.filter(c=>c.name.toLowerCase().includes(q)||c.sector.toLowerCase().includes(q));
- let leader=[...COMPANIES].sort((a,b)=>b.value-a.value)[0];
- marketStats.innerHTML=stat("Firmy",COMPANIES.length)+stat("Wartość rynku",money(COMPANIES.reduce((a,c)=>a+c.value,0)))+stat("Lider",leader?.name||"—")+stat("Trend",G.trend||"Brak")+stat("Produkty świata",worldProducts().length);
- marketGrid.innerHTML=list.sort((a,b)=>b.value-a.value).map(c=>`<div class="card clickable ${c.player>50?"controlled":""}" onclick="openCompany('${c.id}')"><h3>${c.name}</h3><div class="muted">${c.sector}</div><span class="badge">${money(c.value)}</span>${c.player?`<span class="badge good">${c.player.toFixed(1)}% TWOJE</span>`:""}<div class="two">${metric("Cash",money(c.cash))}${metric("Zysk",money(c.profit))}${metric("CEO",c.ceo.name)}${metric("Status",c.crisis)}</div></div>`).join("");
-}
-function rankProducts(a){return a.length?a.map((x,i)=>`<div class="rank ${i===0?"first":""}"><div class="rankNum">#${i+1}</div><div><strong>${x.p.name}</strong><div class="muted">${x.c.name} • ${x.p.type}</div></div><strong class="${x.profit>=0?"good":"bad"}">${money(x.profit)}/m</strong></div>`).join(""):`<div class="empty">Brak produktów.</div>`}
-function eventsHTML(a){return a.length?a.map(e=>`<div class="event"><small>${e.date}</small><div>${e.text}</div></div>`).join(""):`<div class="empty">Brak wydarzeń.</div>`}
-
-function drawChart(canvas,h){
- if(!canvas)return;let ctx=canvas.getContext("2d"),w=canvas.clientWidth,hgt=canvas.clientHeight,d=devicePixelRatio||1;
- canvas.width=w*d;canvas.height=hgt*d;ctx.scale(d,d);ctx.clearRect(0,0,w,hgt);
- if(!h.length){ctx.fillStyle="#8492a6";ctx.fillText("Brak danych.",20,25);return}
- let a=h.slice(-24),max=Math.max(.001,...a.map(x=>Math.max(x.revenue||0,x.expenses||0)))*1.1,p=35;
- function line(k,col){ctx.beginPath();ctx.strokeStyle=col;ctx.lineWidth=2;a.forEach((x,i)=>{let px=p+(a.length===1?(w-p*2)/2:i/(a.length-1)*(w-p*2)),py=15+(hgt-45)*(1-(x[k]||0)/max);i?ctx.lineTo(px,py):ctx.moveTo(px,py)});ctx.stroke()}
- line("revenue","#3de596");line("expenses","#ff6074");
-}
-
-function addCash(){let a=Math.max(0,+cashInput.value||0);G.cash+=a;log(`DEV: dodano ${money(a)}.`);render()}
-function closeModal(){overlay.classList.remove("show")}
-
-document.querySelectorAll(".nav").forEach(b=>b.onclick=()=>{
- document.querySelectorAll(".nav").forEach(x=>x.classList.remove("active"));document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
- b.classList.add("active");document.getElementById(b.dataset.page).classList.add("active");scrollTo(0,0);setTimeout(render,10);
-});
-
-function toggleConsole(){console.classList.toggle("show");if(console.classList.contains("show"))setTimeout(()=>consoleCommand.focus(),20)}
-function cprint(t){consoleOutput.textContent+=t+"\n\n";consoleOutput.scrollTop=consoleOutput.scrollHeight}
-function parse(t){return(t.match(/"[^"]*"|\S+/g)||[]).map(x=>x.replace(/^"|"$/g,""))}
-function command(raw){
- let a=parse(raw),cmd=(a[0]||"").toLowerCase();cprint("> "+raw);
- if(["help","commands","komendy"].includes(cmd))return cprint(`help
-companies
-holding
-products
-finance
-cash 50
-hiremax
-product create "Nazwa Firmy" "Produkt"
-world
-pause
-speed 1
-speed 2
-speed 4
-clear`);
- if(cmd==="companies")return cprint(COMPANIES.map(c=>`${c.name} | ${money(c.value)} | ${c.player.toFixed(1)}%`).join("\n"));
- if(cmd==="holding")return cprint(controlled().map(c=>`${c.name} | ${money(c.value)} | ${c.player.toFixed(1)}%`).join("\n")||"Brak.");
- if(cmd==="products")return cprint(allProducts().map(x=>`${x.p.name} | ${x.p.stage} | ${x.c.name}`).join("\n")||"Brak.");
- if(cmd==="finance")return cprint(`Cash: ${money(G.cash)}\nAktywa: ${money(assets())}\nNet Worth: ${money(worth())}`);
- if(cmd==="cash"){let n=Math.max(0,+a[1]||0);G.cash+=n;render();return cprint("Dodano "+money(n))}
- if(cmd==="hiremax"){let before=controlled().reduce((a,c)=>a+c.employees,0);controlled().forEach(c=>maxStaff(c.id));let after=controlled().reduce((a,c)=>a+c.employees,0);return cprint(`Max Staff zatrudnił ${(after-before).toLocaleString()} pracowników.`)}
- if(cmd==="product"&&(a[1]||'').toLowerCase()==='create'){let c=controlled().find(x=>x.name.toLowerCase()===(a[2]||'').toLowerCase())||controlled()[0];if(!c)return cprint('Brak kontrolowanej firmy.');let p=makeProduct();p.name=a[3]||nameProduct();p.stage='Concept';p.progress=0;p.revenue=0;p.users=0;c.products.push(p);render();return cprint(`Utworzono projekt ${p.name} w ${c.name}.`)}
- if(cmd==="world")return cprint(`Firmy: ${COMPANIES.length}\nProdukty: ${worldProducts().length}\nKontrakty B2B: ${G.contracts.length}\nPatenty: ${COMPANIES.reduce((a,c)=>a+(c.patents||[]).length,0)}`);
- if(cmd==="pause"){setSpeed(0);return cprint("Pauza.")}
- if(cmd==="speed"&&[1,2,4].includes(+a[1])){setSpeed(+a[1]);return cprint("Speed "+a[1]+"x")}
- if(cmd==="clear"){consoleOutput.textContent="";return}
- cprint("Nieznana komenda. Wpisz help.");
-}
-consoleCommand.addEventListener("keydown",e=>{if(e.key==="Enter"){let v=e.target.value.trim();e.target.value="";if(v)command(v)}});
-
-/* fizyczny klawisz pod ESC działa także na różnych układach klawiatury */
-document.addEventListener("keydown",e=>{
- let hot=e.code==="Backquote"||e.key==="`"||e.key==="~";
- if(!hot)return;
- let active=document.activeElement;
- if(["INPUT","TEXTAREA","SELECT"].includes(active?.tagName)&&active!==consoleCommand)return;
- e.preventDefault();toggleConsole();
-});
-document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeModal();console.classList.remove("show")}});
-
-function normalizeNode(s,c){s.cash??=.05;s.tech??=50;s.products??=[];s.children??=[];s.maxEmployees??=30000;s.employees??=0;s.departments??=makeDepartments(s.employees);s.morale??=70;s.reputation??=50;s.debt??=0;s.activities??=[c.sector];s.countries??=["Polska"];s.products.forEach(p=>{p.marketing??=.005;p.countries??=s.countries;p.lastRevenue??=p.revenue||0;p.expenses??=.001;p.age??=0;p.marketShare??=0;p.rating??=p.quality||50;p.innovation??=50;p.reliability??=60;p.ux??=55;p.hype??=20;p.cyber??=50;p.discontinued??=false});s.children.forEach(ch=>normalizeNode(ch,c))}
-const SAVE="techHoldingMegaV3";const OLD_SAVE="techHoldingMegaV2";
-function save(){localStorage.setItem(SAVE,JSON.stringify({G,COMPANIES}))}
-function load(){
- try{
-  let raw=localStorage.getItem(SAVE)||localStorage.getItem(OLD_SAVE);let d=JSON.parse(raw);if(!d)return false;
-  Object.assign(G,d.G||{});COMPANIES.splice(0,COMPANIES.length,...(d.COMPANIES||[]));
-  COMPANIES.forEach(c=>{
-   c.player=clamp(+c.player||0,0,100);c.shareholders=normalizeOwners(c.shareholders||[],c.player);c.shareholders.forEach(o=>{o.type??=HOLDER_TYPES[rnd(0,HOLDER_TYPES.length-1)];o.sellPremium??=rf(.06,.42);o.attitude??="Neutral"});
-   c.ceo??=makeCEO();c.executives??={CTO:makeCEO(),CFO:makeCEO(),CPO:makeCEO()};c.aiStyle??=AI_STYLES[rnd(0,AI_STYLES.length-1)];c.public??=Math.random()>.35;c.sharePrice??=rf(5,180);c.sharesOutstanding??=100;c.priceHistory??=[];c.debt??=0;c.creditRating??="A";c.reputation??=50;c.cybersecurity??=50;c.patents??=[];c.rd??=Object.fromEntries(TECHS.map(x=>[x,50]));c.cash??=.1;c.dividendRate??=.2;c.crisis??="Stabilna";
-   c.products??=[];c.subsidiaries??=[];c.financeHistory??=[];c.history??=[];
-   c.subsidiaries.forEach(s=>normalizeNode(s,c));recalc(c);
+function renderCities(){
+  cities.forEach(([name,x,y])=>{
+    const c=document.createElement("div");
+    c.className="city";
+    c.dataset.x=x;
+    c.dataset.y=y;
+    c.style.left=x+"px";
+    c.style.top=y+"px";
+    c.innerHTML="🏙️ "+name;
+    world.appendChild(c);
   });
-  if(!COMPANIES.some(c=>c.isPlayerCompany||c.player>50)){let c=COMPANIES[0];if(c){c.isPlayerCompany=true;c.player=100;c.shareholders=[];c.name="Apex Technologies";c.aiStyle="Player";c.products??=[];log("Migracja save: Apex Technologies została ustawiona jako Twoja firma założycielska (100%).",c.id)}}
-  return true;
- }catch(e){return false}
 }
-if(!load()){
- let founder=makeCompany();founder.name="Apex Technologies";founder.aiStyle="Player";founder.isPlayerCompany=true;founder.player=100;founder.shareholders=[];founder.value=1;founder.cash=1;founder.products=[];founder.subsidiaries=[];COMPANIES.push(founder);
- for(let i=0;i<17;i++)COMPANIES.push(makeCompany());
- log("Apex Technologies rozpoczyna działalność jako Twoja firma założycielska (100%).",founder.id);
+
+renderCities();
+
+function applyTransform(){
+  scale=Math.max(.35,Math.min(2.5,scale));
+
+  const rect=mapWrap.getBoundingClientRect();
+  const worldW=3000*scale;
+  const worldH=2000*scale;
+
+  const margin=100;
+
+  offsetX=Math.min(margin,offsetX);
+  offsetY=Math.min(margin,offsetY);
+
+  offsetX=Math.max(rect.width-worldW-margin,offsetX);
+  offsetY=Math.max(rect.height-worldH-margin,offsetY);
+
+  world.style.transform=
+    `translate(${offsetX}px,${offsetY}px) scale(${scale})`;
+
+  document.getElementById("zoomText").textContent=
+    Math.round(scale*100)+"%";
 }
-cprint("TECH HOLDING CONSOLE\n~ otwiera konsolę\nWpisz help.");
-updateMarketShares();
-render();
-setSpeed(G.speed??1);
+
+applyTransform();
+
+mapWrap.addEventListener("wheel",e=>{
+  e.preventDefault();
+
+  const rect=mapWrap.getBoundingClientRect();
+
+  const mx=e.clientX-rect.left;
+  const my=e.clientY-rect.top;
+
+  const worldX=(mx-offsetX)/scale;
+  const worldY=(my-offsetY)/scale;
+
+  const old=scale;
+
+  scale*=e.deltaY<0?1.12:.89;
+  scale=Math.max(.35,Math.min(2.5,scale));
+
+  if(scale!==old){
+    offsetX=mx-worldX*scale;
+    offsetY=my-worldY*scale;
+  }
+
+  applyTransform();
+},{passive:false});
+
+mapWrap.addEventListener("mousedown",e=>{
+  if(selectedTool==="move"){
+    dragging=true;
+    dragStartX=e.clientX;
+    dragStartY=e.clientY;
+    startOffsetX=offsetX;
+    startOffsetY=offsetY;
+  }
+});
+
+window.addEventListener("mousemove",e=>{
+  if(!dragging)return;
+
+  offsetX=startOffsetX+(e.clientX-dragStartX);
+  offsetY=startOffsetY+(e.clientY-dragStartY);
+
+  applyTransform();
+});
+
+window.addEventListener("mouseup",()=>{
+  dragging=false;
+});
+
+function screenToWorld(clientX,clientY){
+  const rect=mapWrap.getBoundingClientRect();
+
+  return{
+    x:(clientX-rect.left-offsetX)/scale,
+    y:(clientY-rect.top-offsetY)/scale
+  };
+}
+
+mapWrap.addEventListener("click",e=>{
+  if(selectedTool==="move")return;
+
+  const p=screenToWorld(e.clientX,e.clientY);
+
+  if(
+    p.x<0 || p.y<0 ||
+    p.x>3000 || p.y>2000
+  ) return;
+
+  if(selectedTool==="antenna"){
+    buildAntenna(p.x,p.y);
+  }
+
+  if(selectedTool==="hub"){
+    buildHub(p.x,p.y);
+  }
+
+  if(selectedTool==="fiber"){
+    buildLinePoint(p.x,p.y,"fiber");
+  }
+
+  if(selectedTool==="cable"){
+    buildLinePoint(p.x,p.y,"cable");
+  }
+});
+
+function tool(name,button){
+  selectedTool=name;
+  lineStart=null;
+
+  document.querySelectorAll(".toolBtn[data-tool]")
+    .forEach(b=>b.classList.remove("active"));
+
+  if(button)button.classList.add("active");
+}
+
+function buildAntenna(x,y){
+  const price=75000;
+
+  if(state.money<price){
+    alert("Brak pieniędzy!");
+    return;
+  }
+
+  state.money-=price;
+  state.antennas.push({x,y});
+
+  const a=document.createElement("div");
+  a.className="antenna";
+  a.style.left=x+"px";
+  a.style.top=y+"px";
+  a.textContent="📡";
+
+  world.appendChild(a);
+
+  updateCoverage();
+  updateUI();
+}
+
+function buildHub(x,y){
+  const price=150000;
+
+  if(state.money<price){
+    alert("Brak pieniędzy!");
+    return;
+  }
+
+  state.money-=price;
+  state.hubs.push({x,y});
+
+  const h=document.createElement("div");
+  h.className="hub";
+  h.style.left=x+"px";
+  h.style.top=y+"px";
+  h.textContent="🏢";
+
+  world.appendChild(h);
+
+  updateUI();
+}
+
+function buildLinePoint(x,y,type){
+  if(!lineStart){
+    lineStart={x,y};
+    return;
+  }
+
+  const dx=x-lineStart.x;
+  const dy=y-lineStart.y;
+  const length=Math.round(Math.sqrt(dx*dx+dy*dy));
+
+  const costPerMeter=type==="fiber"?120:45;
+  const price=length*costPerMeter;
+
+  if(state.money<price){
+    alert("Budowa kosztowałaby "+formatMoney(price));
+    lineStart=null;
+    return;
+  }
+
+  state.money-=price;
+
+  state.lines.push({
+    type,
+    x1:lineStart.x,
+    y1:lineStart.y,
+    x2:x,
+    y2:y,
+    length
+  });
+
+  drawNetworks();
+
+  lineStart=null;
+  updateCoverage();
+  updateUI();
+}
+
+function drawNetworks(){
+  svg.innerHTML="";
+
+  state.lines.forEach(l=>{
+    const line=document.createElementNS(
+      "http://www.w3.org/2000/svg","line"
+    );
+
+    line.setAttribute("x1",l.x1);
+    line.setAttribute("y1",l.y1);
+    line.setAttribute("x2",l.x2);
+    line.setAttribute("y2",l.y2);
+
+    line.setAttribute(
+      "stroke",
+      l.type==="fiber"?"#3fdcff":"#ff9d3f"
+    );
+
+    line.setAttribute("stroke-width","8");
+    line.setAttribute("stroke-linecap","round");
+
+    svg.appendChild(line);
+  });
+}
+
+function updateCoverage(){
+  let covered=0;
+
+  document.querySelectorAll(".city").forEach(city=>{
+    const cx=+city.dataset.x;
+    const cy=+city.dataset.y;
+
+    const hasCoverage=state.antennas.some(a=>{
+      return Math.hypot(a.x-cx,a.y-cy)<300;
+    });
+
+    city.classList.toggle("covered",hasCoverage);
+
+    if(hasCoverage)covered++;
+  });
+
+  state.customers=
+    covered*8500+
+    Math.floor(totalFiber()/10);
+}
+
+function totalFiber(){
+  return state.lines
+    .filter(x=>x.type==="fiber")
+    .reduce((a,b)=>a+b.length,0);
+}
+
+function totalCable(){
+  return state.lines
+    .filter(x=>x.type==="cable")
+    .reduce((a,b)=>a+b.length,0);
+}
+
+function monthlyIncome(){
+  let result=state.customers*49;
+
+  state.products.forEach(()=>{
+    result+=25000;
+  });
+
+  return result;
+}
+
+function monthlyExpenses(){
+  return(
+    state.antennas.length*6500+
+    state.hubs.length*9000+
+    state.staff*6500+
+    state.companies.length*5000
+  );
+}
+
+function updateUI(){
+  document.getElementById("money").textContent=
+    formatMoney(state.money);
+
+  document.getElementById("customers").textContent=
+    state.customers.toLocaleString("pl-PL");
+
+  document.getElementById("staff").textContent=state.staff;
+  document.getElementById("maxStaff").textContent=state.maxStaff;
+
+  document.getElementById("date").textContent=
+    `${String(state.day).padStart(2,"0")}.${String(state.month).padStart(2,"0")}.${state.year}`;
+
+  document.getElementById("antennaCount").textContent=
+    state.antennas.length;
+
+  document.getElementById("hubCount").textContent=
+    state.hubs.length;
+
+  document.getElementById("fiberLength").textContent=
+    totalFiber().toLocaleString("pl-PL");
+
+  document.getElementById("cableLength").textContent=
+    totalCable().toLocaleString("pl-PL");
+
+  document.getElementById("income").textContent=
+    formatMoney(monthlyIncome());
+
+  document.getElementById("expenses").textContent=
+    formatMoney(monthlyExpenses());
+
+  document.getElementById("productMini").innerHTML=
+    state.products.length
+      ? state.products.map(p=>`<div>${p.name}</div>`).join("")
+      : `<small>Brak produktów</small>`;
+
+  document.getElementById("companyMini").innerHTML=
+    state.companies.map(c=>`<div>${c.name}</div>`).join("");
+}
+
+function nextDay(){
+  state.day++;
+
+  if(state.day>30){
+    state.day=1;
+    state.month++;
+
+    state.money+=monthlyIncome()-monthlyExpenses();
+
+    if(state.month>12){
+      state.month=1;
+      state.year++;
+    }
+  }
+
+  updateUI();
+}
+
+setInterval(()=>{
+  if(state.speed===0)return;
+
+  for(let i=0;i<state.speed;i++){
+    nextDay();
+  }
+},1000);
+
+function setSpeed(s){
+  state.speed=s;
+
+  document.querySelectorAll("#speedButtons button")
+    .forEach(b=>b.classList.remove("active"));
+
+  event.currentTarget.classList.add("active");
+}
+
+function openCompanies(){
+  document.getElementById("companyModal").classList.add("open");
+  renderCompanies();
+}
+
+function renderCompanies(){
+  document.getElementById("companyList").innerHTML=
+    state.companies.map(c=>`
+      <div class="card">
+        <strong>${c.name}</strong><br>
+        Kapitał: ${formatMoney(c.capital)}<br>
+        Pracownicy: ${c.staff}/${c.maxStaff}<br>
+        Udział holdingu: ${c.owned}%
+      </div>
+    `).join("");
+}
+
+function createCompany(){
+  const name=document.getElementById("companyName").value.trim();
+  const capital=+document.getElementById("companyCapital").value;
+  const maxStaff=+document.getElementById("companyStaff").value;
+
+  if(!name)return;
+
+  if(capital<0 || capital>state.money){
+    alert("Nieprawidłowy kapitał.");
+    return;
+  }
+
+  state.money-=capital;
+
+  state.companies.push({
+    id:Date.now(),
+    name,
+    capital,
+    staff:0,
+    maxStaff,
+    owned:100
+  });
+
+  document.getElementById("companyName").value="";
+
+  renderCompanies();
+  updateUI();
+}
+
+function openProducts(){
+  document.getElementById("productModal").classList.add("open");
+
+  document.getElementById("productCompany").innerHTML=
+    state.companies.map(c=>
+      `<option value="${c.id}">${c.name}</option>`
+    ).join("");
+
+  renderProducts();
+}
+
+function createProduct(){
+  const name=document.getElementById("productName").value.trim();
+  const type=document.getElementById("productType").value;
+  const companyId=+document.getElementById("productCompany").value;
+
+  if(!name)return;
+
+  state.products.push({
+    id:Date.now(),
+    name,
+    type,
+    companyId
+  });
+
+  document.getElementById("productName").value="";
+
+  renderProducts();
+  updateUI();
+}
+
+function renderProducts(){
+  document.getElementById("productList").innerHTML=
+    state.products.length
+    ? state.products.map(p=>{
+        const company=state.companies.find(c=>c.id===p.companyId);
+
+        return`
+          <div class="card">
+            <strong>${p.name}</strong><br>
+            ${p.type}<br>
+            Spółka: ${company?company.name:"?"}
+          </div>
+        `;
+      }).join("")
+    : "<small>Nie utworzono produktów.</small>";
+}
+
+function openShares(){
+  document.getElementById("sharesModal").classList.add("open");
+  renderShares();
+}
+
+function renderShares(){
+  document.getElementById("shareList").innerHTML=
+    state.competitors.map((c,i)=>`
+      <div class="card">
+        <strong>${c.name}</strong><br>
+        Wartość firmy: ${formatMoney(c.value)}<br>
+        Twoje udziały: ${c.owned}%<br><br>
+
+        <button class="normalBtn"
+          onclick="buyShares(${i},10)">
+          Kup 10%
+        </button>
+
+        <button class="normalBtn"
+          onclick="offerTakeover(${i})">
+          Złóż ofertę przejęcia
+        </button>
+      </div>
+    `).join("");
+}
+
+function buyShares(index,percent){
+  const c=state.competitors[index];
+
+  if(c.owned>=100)return;
+
+  percent=Math.min(percent,100-c.owned);
+
+  const price=c.value*(percent/100)*1.1;
+
+  if(state.money<price){
+    alert("Brak pieniędzy.");
+    return;
+  }
+
+  state.money-=price;
+  c.owned+=percent;
+
+  if(c.owned>=51){
+    alert("Masz kontrolę nad "+c.name+"!");
+  }
+
+  renderShares();
+  updateUI();
+}
+
+function offerTakeover(index){
+  const c=state.competitors[index];
+
+  const remaining=100-c.owned;
+
+  if(remaining<=0){
+    alert("Firma już należy do Ciebie.");
+    return;
+  }
+
+  const price=c.value*(remaining/100)*1.25;
+
+  if(state.money<price){
+    alert(
+      "Oferta przejęcia wymaga około "+
+      formatMoney(price)
+    );
+    return;
+  }
+
+  if(confirm(
+    `Złożyć ofertę ${formatMoney(price)} za pozostałe ${remaining}%?`
+  )){
+    const accepted=Math.random()<0.7;
+
+    if(accepted){
+      state.money-=price;
+      c.owned=100;
+
+      state.companies.push({
+        id:Date.now(),
+        name:c.name,
+        capital:c.value,
+        staff:0,
+        maxStaff:100,
+        owned:100
+      });
+
+      alert("Oferta została zaakceptowana!");
+    }else{
+      alert("Właściciele odrzucili ofertę.");
+    }
+
+    renderShares();
+    updateUI();
+  }
+}
+
+function closeModal(id){
+  document.getElementById(id).classList.remove("open");
+}
+
+/* =========================
+   KONSOLA
+========================= */
+
+const consoleBox=document.getElementById("console");
+const consoleInput=document.getElementById("consoleInput");
+const consoleOutput=document.getElementById("consoleOutput");
+
+window.addEventListener("keydown",e=>{
+  if(e.key==="`" || e.key==="~"){
+    e.preventDefault();
+    consoleBox.classList.toggle("open");
+
+    if(consoleBox.classList.contains("open")){
+      consoleInput.focus();
+    }
+  }
+
+  if(e.key==="Escape"){
+    consoleBox.classList.remove("open");
+
+    document.querySelectorAll(".modal")
+      .forEach(x=>x.classList.remove("open"));
+  }
+});
+
+consoleInput.addEventListener("keydown",e=>{
+  if(e.key==="Enter"){
+    const cmd=consoleInput.value.trim();
+    consoleInput.value="";
+
+    printConsole("> "+cmd);
+    executeCommand(cmd);
+  }
+});
+
+function printConsole(text){
+  consoleOutput.textContent+=text+"\n";
+  consoleOutput.scrollTop=consoleOutput.scrollHeight;
+}
+
+function parseAmount(value){
+  if(!value)return 0;
+
+  value=value.toLowerCase().replace(",",".");
+  let multiplier=1;
+
+  if(value.endsWith("k")){
+    multiplier=1000;
+    value=value.slice(0,-1);
+  }
+
+  if(value.endsWith("m")){
+    multiplier=1000000;
+    value=value.slice(0,-1);
+  }
+
+  if(value.endsWith("b")){
+    multiplier=1000000000;
+    value=value.slice(0,-1);
+  }
+
+  return Number(value)*multiplier;
+}
+
+function executeCommand(raw){
+  const args=raw.split(/\s+/);
+  const command=(args.shift()||"").toLowerCase();
+
+  if(command==="help"){
+    printConsole(
+`DOSTĘPNE KOMENDY
+
+kasa [kwota]
+  dodaje pieniądze
+  przykład: kasa 10m
+
+maxstaff [liczba]
+  ustawia limit pracowników spółki głównej
+
+maxstaff [liczba] all
+  ustawia limit dla wszystkich spółek
+
+money
+  pokazuje gotówkę
+
+companies
+  pokazuje spółki
+
+products
+  pokazuje produkty
+
+customers [liczba]
+  ustawia liczbę klientów
+
+day [liczba]
+  przesuwa czas
+
+clear
+  czyści konsolę`
+    );
+    return;
+  }
+
+  if(command==="kasa"){
+    const amount=parseAmount(args[0]);
+
+    if(!Number.isFinite(amount)){
+      printConsole("Błędna kwota.");
+      return;
+    }
+
+    state.money+=amount;
+    printConsole("+ "+formatMoney(amount));
+    updateUI();
+    return;
+  }
+
+  if(command==="money"){
+    printConsole(formatMoney(state.money));
+    return;
+  }
+
+  if(command==="maxstaff"){
+    const amount=Math.floor(parseAmount(args[0]));
+
+    if(!Number.isFinite(amount) || amount<0){
+      printConsole("Błędna liczba.");
+      return;
+    }
+
+    if((args[1]||"").toLowerCase()==="all"){
+      state.companies.forEach(c=>c.maxStaff=amount);
+      state.maxStaff=amount;
+
+      printConsole(
+        "Limit wszystkich spółek ustawiono na "+amount
+      );
+    }else{
+      state.maxStaff=amount;
+      state.companies[0].maxStaff=amount;
+
+      printConsole("Limit ustawiono na "+amount);
+    }
+
+    updateUI();
+    return;
+  }
+
+  if(command==="companies"){
+    state.companies.forEach(c=>{
+      printConsole(
+        `${c.name} | pracownicy ${c.staff}/${c.maxStaff}`
+      );
+    });
+    return;
+  }
+
+  if(command==="products"){
+    if(!state.products.length){
+      printConsole("Brak produktów.");
+    }
+
+    state.products.forEach(p=>{
+      printConsole(`${p.name} | ${p.type}`);
+    });
+
+    return;
+  }
+
+  if(command==="customers"){
+    const n=parseAmount(args[0]);
+
+    if(Number.isFinite(n)){
+      state.customers=Math.floor(n);
+      updateUI();
+      printConsole("Ustawiono klientów: "+state.customers);
+    }
+
+    return;
+  }
+
+  if(command==="day"){
+    const days=Math.max(0,Math.floor(parseAmount(args[0])));
+
+    for(let i=0;i<days;i++){
+      nextDay();
+    }
+
+    printConsole("Przesunięto czas o "+days+" dni.");
+    return;
+  }
+
+  if(command==="clear"){
+    consoleOutput.textContent="";
+    return;
+  }
+
+  printConsole(
+    'Nieznana komenda. Wpisz "help".'
+  );
+}
+
+updateCoverage();
+updateUI();
 </script>
+
 </body>
 </html>
