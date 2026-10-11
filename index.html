@@ -1,0 +1,230 @@
+<!doctype html><html lang="pl"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Medieval Empire</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+:root{--bg:#111a17;--panel:#1c2923;--panel2:#26382e;--gold:#e8c27a;--gold2:#ad8b50;--text:#f4ecd9;--muted:#b9c6b5;--line:#536650}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(ellipse at 60% 0%,#314235 0%,#111a17 56%);color:var(--text);font:14px/1.55 Inter,system-ui,sans-serif;min-height:100vh}
+header{display:flex;align-items:center;gap:9px;flex-wrap:wrap;padding:14px 22px;background:linear-gradient(100deg,#1b2b24,#354632 65%,#25352a);border-bottom:2px solid #c4a36a;box-shadow:0 5px 25px #0007;position:sticky;top:0;z-index:4}
+h1,h2,h3{font-family:Cinzel,Georgia,serif;letter-spacing:.025em}h1{color:#f5dca0;font-size:23px;margin:0 16px 0 0;text-shadow:0 2px 12px #0009}h2{font-size:21px;color:var(--gold);margin:4px 0 17px}h3{font-size:16px;color:#e6c78a}
+button,select{font:600 13px Inter,system-ui,sans-serif;padding:10px 12px;background:linear-gradient(#47654d,#304c3b);color:#fff0ce;border:1px solid #8a956d;border-radius:8px;cursor:pointer;transition:background .15s,transform .15s,border-color .15s,box-shadow .15s}
+button:hover{background:#58775c;border-color:#e8c27a;box-shadow:0 3px 14px #0005}button:active{transform:translateY(1px)}button:disabled{opacity:.45;cursor:not-allowed}button:focus-visible,select:focus-visible{outline:2px solid #ffda87;outline-offset:2px}
+.stats{padding:8px 11px;background:#12231dcc;border:1px solid #536b50;border-radius:9px;white-space:nowrap;font-size:13px;font-weight:700;box-shadow:inset 0 1px #ffffff13}
+section{display:grid;grid-template-columns:205px minmax(0,1fr) 310px;min-height:calc(100vh - 80px)}
+nav{background:linear-gradient(#213128,#17241e);border-right:1px solid #647456;padding:17px 13px;box-shadow:inset -6px 0 14px #0002}
+nav button{width:100%;text-align:left;margin-bottom:8px;padding:12px 13px}
+nav button.nav-active{background:linear-gradient(95deg,#84683c,#57482e);border-color:#edcf8c;box-shadow:inset 3px 0 #f3d797,0 4px 12px #0003}
+nav hr{border:0;border-top:1px solid #667458;margin:15px 0}
+main{padding:22px 24px;min-width:0}aside{padding:19px 15px;background:linear-gradient(#202e26,#15231c);border-left:1px solid #657354}
+canvas{display:block;width:100%;height:550px;background:#294c57;border:4px solid #927f52;border-radius:12px;cursor:pointer;box-shadow:0 10px 30px #0008}
+.card{padding:16px 17px;background:linear-gradient(145deg,#2d4334,#203329);border:1px solid #617653;border-radius:12px;margin:12px 0;box-shadow:0 5px 15px #0003}
+.card h3{margin-top:0}.muted,.legend{color:var(--muted);font-size:13px}.hidden{display:none!important}
+.row{display:flex;gap:9px;flex-wrap:wrap;align-items:center}.row button{flex:1;min-width:110px}.scroll{max-height:450px;overflow:auto}select{max-width:100%}
+#info .card{border-top:3px solid var(--gold2)}#balance .card{line-height:2}#events p{border-bottom:1px solid #4b6149;padding:7px 0;margin:0}
+#settlementCanvas{height:auto;aspect-ratio:18/12;max-height:680px;touch-action:manipulation;background:#4c6e40}
+.tool{margin:3px;padding:10px;min-width:110px}.tool.active{background:linear-gradient(#b58b4c,#78572c);border-color:#f5dba4;color:white;box-shadow:0 0 0 2px #f4cf8e55}
+.citytools{display:flex;flex-wrap:wrap;gap:4px;margin:15px 0}
+.trade-note{color:#e7d09b;font-size:13px}.positive{color:#a9e4a3}.negative{color:#ffaaa0}
+#map>p{padding:10px 4px}
+@media(max-width:1150px){section{grid-template-columns:165px minmax(0,1fr)}aside{grid-column:1/-1;border-left:0;border-top:1px solid #647456;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}aside h2,aside h3{grid-column:1/-1;margin-bottom:0}main{padding:16px}canvas{height:460px}}
+@media(max-width:680px){header{position:static;padding:12px}h1{width:100%}section{display:block}nav{display:flex;overflow:auto;gap:6px;padding:10px}nav button{min-width:120px;width:auto;margin:0}nav hr{display:none}main{padding:13px}aside{display:block}canvas{height:340px}.card{padding:12px}}
+</style>
+<header><h1>⚜ Medieval Empire</h1><span class="stats" id="date"></span><span class="stats" id="gold"></span><span class="stats" id="food"></span><span class="stats" id="wood"></span><span class="stats" id="stone"></span><span class="stats" id="land"></span><button onclick="paused=!paused;this.textContent=paused?'▶ Wznów':'⏸ Pauza'">⏸ Pauza</button><select id="speed"><option value="1">1×</option><option value="3">3×</option><option value="6">6×</option></select></header><section><nav><button onclick="tab('map')">🗺 Mapa</button><button onclick="tab('cities')">🏘 Miasta</button><button onclick="tab('army')">⚔ Armie</button><button onclick="tab('court')">👑 Dwór</button><button onclick="tab('tech')">📜 Technologie</button><button onclick="tab('dip')">🤝 Dyplomacja</button><button onclick="tab('trade')">⚖ Handel</button><button onclick="tab('history')">📖 Kronika</button><hr><button onclick="save()">💾 Zapisz</button><button onclick="load()">📂 Wczytaj</button><button onclick="if(confirm('Nowa gra?')){G=newGame();render()}">🔄 Nowa gra</button></nav><main><div id="map"><h2>Mapa królestw</h2><canvas id="canvas"></canvas><p class="muted">Kliknij prowincję. Zielone obszary należą do Ciebie. Gra przesuwa się automatycznie co 3 sekundy.</p></div><div id="cities" class="hidden"></div><div id="settlement" class="hidden"><h2 id="settlementTitle">🏘 Plan osady</h2><p class="legend">Wybierz budynek i kliknij pole na mapie. Drogi łączą zabudowę. Budynki produkują zasoby w istniejącej gospodarce.</p><div id="cityTools" class="citytools"></div><canvas id="settlementCanvas" width="900" height="600"></canvas><p id="cityStatus" class="legend"></p><button onclick="tab('cities')">← Lista miast</button></div><div id="army" class="hidden"></div><div id="court" class="hidden"></div><div id="tech" class="hidden"></div><div id="dip" class="hidden"></div><div id="trade" class="hidden"></div><div id="history" class="hidden"></div></main><aside><h2>Wybrana prowincja</h2><div id="info"></div><h3>Bilans miesięczny</h3><div id="balance"></div><h3>Wydarzenia</h3><div id="events" class="scroll"></div></aside></section><script>
+'use strict';const $=x=>document.getElementById(x),R=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+const cityNames=['Kraków','Sandomierz','Lublin','Warszawa','Płock','Gniezno','Poznań','Wrocław','Legnica','Gdańsk','Toruń','Kalisz','Opole','Szczecin','Elbląg','Olsztyn','Brześć','Wilno','Grodno','Lwów','Przemyśl','Halicz','Łuck','Chełm','Bydgoszcz','Kielce','Radom','Racibórz','Kołobrzeg','Białystok','Kowno','Rzeszów','Tarnów','Piotrków','Czersk','Malbork'];
+const nations=[['Korona','#78b07c','Bolesław I'],['Księstwo Zachodu','#cf9770','Henryk II'],['Królestwo Północy','#7db5c8','Eryk I'],['Księstwo Wschodu','#d5bd77','Władysław I'],['Marchia Południa','#b293cf','Otton I']];
+const types={farm:['🌾 Folwark',{gold:130,wood:30}],wood:['🪵 Tartak',{gold:150,wood:20}],stone:['⛏ Kamieniołom',{gold:180,wood:35}],market:['🏪 Targ',{gold:320,wood:40,stone:20}],walls:['🏰 Mury',{gold:380,stone:80}],school:['📚 Skryptorium',{gold:450,wood:35,stone:25}],barracks:['🛡 Koszary',{gold:260,wood:45,stone:25}]};
+const technologies=[['Pług żelazny',100,'+20% żywności'],['Trójpolówka',180,'+20% żywności'],['Gildie',220,'+20% podatków'],['Kamienne fortyfikacje',200,'+20% obrony'],['Stal hartowana',260,'+20% siły armii'],['Kusze',320,'+15% siły armii'],['Medycyna klasztorna',280,'+50% wzrostu ludności'],['Architektura gotycka',360,'-10% kosztów budowy'],['Machiny oblężnicze',420,'+25% ataku'],['Żegluga',390,'+15% podatków']];
+let G,chosen=0,paused=false,current='map',settlementId=0,buildTool='road';
+function newGame(){return {year:1200,month:1,gold:2500,food:900,wood:350,stone:180,science:0,known:[],rel:[0,-10,-20,5,0],alliances:[],tradeRoutes:[],embargoes:[],tradeHistory:[],king:{name:'Bolesław I',age:30,heir:'Mieszko',heirAge:8},vassals:[{name:'Wojewoda Dobiesław',loyal:78},{name:'Kasztelan Jarosław',loyal:67}],log:['Rok 1200: Powstaje Twoje królestwo.'],tick:0,provinces:cityNames.map((name,id)=>({id,name,owner:id<5?0:id<12?1:id<18?2:id<25?3:4,pop:R(700,1800),army:R(30,85),loyal:R(55,95),fort:R(10,20),b:{farm:1,wood:1,stone:0,market:0,walls:0,school:0,barracks:0}}))}}
+function owned(){return G.provinces.filter(p=>p.owner===0)}function news(t){G.log.unshift(`${G.month}/${G.year}: ${t}`);G.log=G.log.slice(0,120)}
+function afford(cost){return Object.entries(cost).every(([k,v])=>G[k]>=v)}function pay(cost){if(!afford(cost)){news('Brakuje surowców.');render();return false}for(let k in cost)G[k]-=cost[k];return true}function price(c){return Object.entries(c).map(([k,v])=>v+' '+({gold:'zł',wood:'drew.',stone:'kam.',food:'żyw.'}[k])).join(' • ')}
+function economy(){let x={gold:0,food:0,wood:0,stone:0,science:0};owned().forEach(p=>{x.gold+=Math.floor(p.pop/85)+p.b.market*65-Math.floor(p.army*.3);x.food+=p.b.farm*25-Math.ceil(p.pop/190);x.wood+=p.b.wood*13;x.stone+=p.b.stone*10;x.science+=p.b.school*5});if(G.known.includes('Pług żelazny'))x.food=Math.floor(x.food*1.2);if(G.known.includes('Trójpolówka'))x.food=Math.floor(x.food*1.2);if(G.known.includes('Gildie'))x.gold=Math.floor(x.gold*1.2);return x}
+function build(id,key){let p=G.provinces[id];if(p.owner!==0)return;let cost={...types[key][1]};if(G.known.includes('Architektura gotycka'))for(let k in cost)cost[k]=Math.floor(cost[k]*.9);if(pay(cost)){p.b[key]++;news('Zbudowano '+types[key][0]+' w '+p.name);render()}}
+function recruit(id){let p=G.provinces[id];if(p.owner!==0)return;if(pay({gold:p.b.barracks?105:130,food:40})){p.army+=30;news('Rekrutacja 30 wojowników w '+p.name);render()}}
+function adjacent(a,b){return Math.abs(a%6-b%6)+Math.abs(Math.floor(a/6)-Math.floor(b/6))===1}
+function march(from,to){from=+from;to=+to;let a=G.provinces[from],b=G.provinces[to];if(!a||!b||a.owner!==0||a.army<15||!adjacent(from,to))return;let n=Math.floor(a.army*.7);a.army-=n;if(b.owner===0){b.army+=n;news('Przesunięto '+n+' wojowników do '+b.name)}else{let attack=n*(G.known.includes('Stal hartowana')?1.2:1)*(G.known.includes('Kusze')?1.15:1)*(G.known.includes('Machiny oblężnicze')?1.25:1)*R(80,120)/100;let defense=b.army*(1+b.fort/100+b.b.walls*.25)*(G.known.includes('Kamienne fortyfikacje')?1.2:1)*R(80,120)/100;if(attack>defense){b.owner=0;b.army=Math.max(8,Math.floor(n*.5));b.loyal=40;news('⚔ Zwycięstwo! Zdobyto '+b.name)}else{b.army=Math.max(8,Math.floor(b.army*.65));news('⚔ Porażka pod '+b.name)}}render()}
+function discover(i){let t=technologies[i];if(G.known.includes(t[0]))return;if(G.science<t[1]){news('Za mało punktów nauki');render();return}G.science-=t[1];G.known.push(t[0]);news('📜 Odkryto '+t[0]);render()}
+function diplomacy(i,act){if(act==='gift'){if(!pay({gold:250}))return;G.rel[i]=Math.min(100,G.rel[i]+25);news('Wysłano dar do '+nations[i][0])}if(act==='ally'){if(G.rel[i]<35)news('Wymagane relacje +35');else{if(!G.alliances.includes(i))G.alliances.push(i);news('Zawarto sojusz z '+nations[i][0])}}if(act==='vassal'){if(G.rel[i]<65||!pay({gold:450}))news('Wymagane relacje +65 i 450 zł');else{let p=G.provinces.find(p=>p.owner===i);if(p){p.owner=0;p.loyal=60;news(p.name+' dołącza do Korony')}}}render()}
+
+const tradeGoods={
+ food:{label:'🌾 Żywność',base:3},
+ wood:{label:'🪵 Drewno',base:5},
+ stone:{label:'🪨 Kamień',base:7}
+};
+function tradeState(){
+ if(!Array.isArray(G.tradeRoutes))G.tradeRoutes=[];
+ if(!Array.isArray(G.embargoes))G.embargoes=[];
+ if(!Array.isArray(G.tradeHistory))G.tradeHistory=[];
+}
+function isEmbargoed(i){tradeState();return G.embargoes.includes(i)}
+function changeEmbargo(i){
+ tradeState();
+ if(i<1||i>=nations.length)return;
+ if(isEmbargoed(i)){
+  G.embargoes=G.embargoes.filter(x=>x!==i);
+  G.rel[i]=Math.min(100,G.rel[i]+3);
+  news('Zniesiono embargo wobec '+nations[i][0]+'.');
+ }else{
+  G.embargoes.push(i);
+  G.tradeRoutes=G.tradeRoutes.filter(x=>x.partner!==i);
+  G.rel[i]=Math.max(-100,G.rel[i]-20);
+  news('⛔ Nałożono embargo na '+nations[i][0]+'. Szlaki handlowe zamknięto.');
+ }
+ render();
+}
+function tradePrice(i,good,mode){
+ let factor=1+(i-2)*.08;
+ return Math.max(1,Math.round(tradeGoods[good].base*factor*(mode==='buy'?1.3:.85)));
+}
+function createTrade(i,good,mode,qty){
+ tradeState();i=Number(i);qty=Number(qty);
+ if(!Number.isInteger(i)||i<1||i>=nations.length||!tradeGoods[good]||!['buy','sell'].includes(mode)||!Number.isInteger(qty)||qty<5||qty>100)return;
+ if(isEmbargoed(i)){news('Nie możesz handlować z krajem objętym embargiem.');render();return}
+ if(G.rel[i]<-45){news('Zbyt złe relacje na zawarcie umowy handlowej.');render();return}
+ if(G.tradeRoutes.some(x=>x.partner===i&&x.good===good&&x.mode===mode)){news('Taki szlak już działa.');render();return}
+ if(G.tradeRoutes.length>=12){news('Osiągnięto limit 12 szlaków handlowych.');render();return}
+ let setup=75;
+ if(!pay({gold:setup}))return;
+ G.tradeRoutes.push({partner:i,good,mode,qty,months:0});
+ G.rel[i]=Math.min(100,G.rel[i]+4);
+ news('⚖ Otwarto szlak: '+(mode==='buy'?'import':'eksport')+' '+tradeGoods[good].label+' ×'+qty+' z '+nations[i][0]+'. Relacje +4.');
+ render();
+}
+function closeTrade(index){
+ tradeState();let route=G.tradeRoutes[index];if(!route)return;
+ news('Zamknięto szlak handlowy z '+nations[route.partner][0]+'.');
+ G.tradeRoutes.splice(index,1);render();
+}
+function processTrade(){
+ tradeState();
+ for(const route of G.tradeRoutes){
+  if(isEmbargoed(route.partner))continue;
+  const price=tradePrice(route.partner,route.good,route.mode);
+  if(route.mode==='buy'){
+   const qty=Math.min(route.qty,Math.floor(Math.max(0,G.gold)/price));
+   if(qty>0){G.gold-=qty*price;G[route.good]+=qty}
+   if(qty<route.qty&&G.tick%3===0)news('Kupcy nie mieli dość złota na pełny import z '+nations[route.partner][0]+'.');
+  }else{
+   const qty=Math.min(route.qty,Math.max(0,Math.floor(G[route.good])));
+   if(qty>0){G[route.good]-=qty;G.gold+=qty*price}
+   if(qty<route.qty&&G.tick%3===0)news('Brak pełnego zapasu towarów na eksport do '+nations[route.partner][0]+'.');
+  }
+  route.months++;
+  // Długotrwały, działający handel powoli wzmacnia relacje.
+  if(route.months%3===0){
+   G.rel[route.partner]=Math.min(100,G.rel[route.partner]+1);
+   if(route.months%12===0)news('🤝 Handel z '+nations[route.partner][0]+' umocnił relacje.');
+  }
+ }
+}
+function tradeRender(){
+ tradeState();
+ const options=nations.slice(1).map((n,j)=>`<option value="${j+1}">${n[0]} (relacje ${G.rel[j+1]})${isEmbargoed(j+1)?' — EMBARGO':''}</option>`).join('');
+ $('trade').innerHTML=`<h2>⚖ Handel międzynarodowy</h2>
+ <p class="trade-note">Szlaki działają co miesiąc. Otwarcie szlaku poprawia relacje o 4, a każde 3 miesiące współpracy o kolejne 1. Embargo zrywa handel i pogarsza relacje o 20.</p>
+ <div class="card"><h3>Nowa umowa handlowa</h3>
+ <div class="row"><label>Królestwo<br><select id="tradePartner">${options}</select></label>
+ <label>Towar<br><select id="tradeGood">${Object.entries(tradeGoods).map(([k,v])=>`<option value="${k}">${v.label}</option>`).join('')}</select></label>
+ <label>Kierunek<br><select id="tradeMode"><option value="sell">Eksport — sprzedawaj</option><option value="buy">Import — kupuj</option></select></label>
+ <label>Ilość miesięcznie<br><select id="tradeQty"><option value="10">10</option><option value="25" selected>25</option><option value="50">50</option><option value="100">100</option></select></label></div>
+ <p class="muted">Otwarcie szlaku: 75 zł. Ceny zależą od królestwa i rodzaju transakcji.</p>
+ <button onclick="createTrade(+$('tradePartner').value,$('tradeGood').value,$('tradeMode').value,+$('tradeQty').value)">Zawrzyj umowę</button></div>
+ <h3>Aktywne szlaki (${G.tradeRoutes.length}/12)</h3>
+ ${G.tradeRoutes.length?G.tradeRoutes.map((r,i)=>`<div class="card">${r.mode==='buy'?'📥 Import':'📤 Eksport'} ${tradeGoods[r.good].label} ×${r.qty} / miesiąc<br>${nations[r.partner][0]} • ${tradePrice(r.partner,r.good,r.mode)} zł / szt. • ${r.months} mies. współpracy<br><button onclick="closeTrade(${i})">Zamknij szlak</button></div>`).join(''):'<p class="muted">Nie masz jeszcze aktywnych umów.</p>'}
+ <h3>Embarga i polityka handlowa</h3>
+ ${nations.slice(1).map((n,j)=>{let i=j+1;return `<div class="card"><b>${n[0]}</b> — relacje ${G.rel[i]} ${isEmbargoed(i)?'<span class="negative">⛔ EMBARGO</span>':'<span class="positive">✓ Handel dozwolony</span>'}<br><button onclick="changeEmbargo(${i})">${isEmbargoed(i)?'Znieś embargo':'Nałóż embargo'}</button></div>`}).join('')}`;
+}
+function nextMonth(){G.month++;if(G.month>12){G.month=1;G.year++;G.king.age++;G.king.heirAge++}G.tick++;let x=economy();for(let k in x)G[k]+=x[k];processTrade();if(G.food<0){G.food=0;owned().forEach(p=>{p.pop=Math.floor(p.pop*.98);p.loyal=Math.max(0,p.loyal-5)});news('⚠ Głód w królestwie!')}G.provinces.forEach(p=>{if(p.owner===0){p.pop+=Math.max(1,Math.floor(p.pop*(G.known.includes('Medycyna klasztorna')?.005:.003)));p.loyal=Math.min(100,p.loyal+1);if(p.loyal<15&&Math.random()<.05){p.owner=R(1,4);news('Bunt w '+p.name)}}else if(Math.random()<.08)p.army+=R(1,5)});if(G.tick%6===0){let p=G.provinces.filter(p=>p.owner!==0);if(p.length){let q=p[R(0,p.length-1)];q.b.farm++;news(nations[q.owner][0]+' rozbudowuje '+q.name)}}if(G.tick%12===0){G.rel=G.rel.map((x,i)=>i?Math.max(-100,Math.min(100,x+R(-6,6))):x);G.vassals.forEach(v=>v.loyal=Math.max(0,Math.min(100,v.loyal+R(-5,5))));save(false)}if(G.king.age>65&&Math.random()<.06){G.king={name:G.king.heir+' I',age:Math.max(18,G.king.heirAge),heir:'Kazimierz',heirAge:1};news('👑 Nowy władca: '+G.king.name)}render()}
+
+const GRID_W=18,GRID_H=12;
+const buildingSymbols={farm:'🌾',wood:'🪵',stone:'⛏',market:'🏪',walls:'🏰',school:'📚',barracks:'🛡',road:'═'};
+function hashTile(x,y,seed){let t=Math.sin(x*127.1+y*311.7+seed*74.7)*43758.5453;return t-Math.floor(t)}
+function ensureTown(p){
+ if(!p.town){
+  p.town={tiles:Array.from({length:GRID_W*GRID_H},(_,i)=>{
+   let x=i%GRID_W,y=Math.floor(i/GRID_W),r=hashTile(x,y,p.id+3);
+   return {terrain:Math.abs(y-(3+Math.sin(x*.52+p.id)*1.4))<.75?'river':r<.13?'forest':r>.91?'rock':'grass',building:null};
+  })};
+  // central crossing and an initial village square
+  for(let x=4;x<14;x++){let t=p.town.tiles[6*GRID_W+x];if(t.terrain!=='river')t.building='road'}
+  let c=p.town.tiles[5*GRID_W+8];if(c.terrain!=='river')c.building='hall';
+ }
+ return p.town;
+}
+function openSettlement(id){if(G.provinces[id].owner!==0)return;settlementId=id;ensureTown(G.provinces[id]);tab('settlement')}
+function chooseTool(k){buildTool=k;renderSettlement()}
+function placeTown(x,y){
+ let p=G.provinces[settlementId],town=ensureTown(p),tile=town.tiles[y*GRID_W+x];
+ if(p.owner!==0)return;
+ if(tile.building){$('cityStatus').textContent='To pole jest już zajęte.';return}
+ if(tile.terrain==='river'){$('cityStatus').textContent='Na rzece nie można budować.';return}
+ if(tile.terrain==='rock'&&buildTool!=='stone'){$('cityStatus').textContent='Skały wymagają kamieniołomu.';return}
+ let cost=buildTool==='road'?{gold:8,wood:3}:types[buildTool][1];
+ if(!afford(cost)){$('cityStatus').textContent='Brakuje zasobów: '+price(cost);return}
+ for(let k in cost)G[k]-=cost[k];
+ tile.building=buildTool;
+ if(buildTool!=='road')p.b[buildTool]=(p.b[buildTool]||0)+1;
+ news('🏗 '+p.name+': '+(buildTool==='road'?'wytyczono drogę':`powstał ${types[buildTool][0]}`)+'.');
+ render();
+}
+function renderSettlement(){
+ let p=G.provinces[settlementId];if(!p||p.owner!==0)return;
+ let town=ensureTown(p);
+ $('settlementTitle').textContent='🏘 '+p.name+' — plan osady';
+ $('cityTools').innerHTML=['road',...Object.keys(types)].map(k=>{
+ let label=k==='road'?'🛤 Droga':types[k][0],cost=k==='road'?{gold:8,wood:3}:types[k][1];
+ return `<button class="tool ${buildTool===k?'active':''}" onclick="chooseTool('${k}')">${label}<br><small>${price(cost)}</small></button>`
+ }).join('');
+ let canvas=$('settlementCanvas'),ctx=canvas.getContext('2d'),tw=canvas.width/GRID_W,th=canvas.height/GRID_H;
+ const terrainColors={grass:'#70934f',forest:'#315e3c',rock:'#858b7b',river:'#427d9c'};
+ ctx.clearRect(0,0,canvas.width,canvas.height);
+ for(let y=0;y<GRID_H;y++)for(let x=0;x<GRID_W;x++){
+  let tile=town.tiles[y*GRID_W+x],px=x*tw,py=y*th;
+  ctx.fillStyle=terrainColors[tile.terrain];ctx.fillRect(px,py,tw,th);
+  let v=hashTile(x+19,y+7,p.id);ctx.fillStyle=v>.5?'#ffffff13':'#00000010';ctx.fillRect(px,py,tw,th);
+  if(tile.terrain==='forest'){ctx.fillStyle='#254c30';ctx.beginPath();ctx.arc(px+tw*.5,py+th*.5,tw*.22,0,Math.PI*2);ctx.fill()}
+  if(tile.terrain==='river'){ctx.strokeStyle='#9bd0d5';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(px+5,py+th*.3);ctx.quadraticCurveTo(px+tw*.5,py+th*.8,px+tw-5,py+th*.4);ctx.stroke()}
+  if(tile.building==='road'){ctx.fillStyle='#b9a57c';ctx.fillRect(px+tw*.12,py+th*.32,tw*.76,th*.36)}
+  else if(tile.building){ctx.fillStyle='#3c3425';ctx.fillRect(px+tw*.12,py+th*.12,tw*.76,th*.76);ctx.font='26px serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(tile.building==='hall'?'🏠':buildingSymbols[tile.building],px+tw*.5,py+th*.51)}
+  ctx.strokeStyle='#17261936';ctx.lineWidth=1;ctx.strokeRect(px,py,tw,th);
+ }
+ $('cityStatus').textContent=`Mieszkańcy: ${p.pop} • Budynki: ${town.tiles.filter(t=>t.building&&t.building!=='road').length} • Drogi: ${town.tiles.filter(t=>t.building==='road').length}. Wybierz narzędzie, następnie pole.`;
+}
+$('settlementCanvas').addEventListener('click',e=>{let r=e.currentTarget.getBoundingClientRect();let x=Math.floor((e.clientX-r.left)/r.width*GRID_W),y=Math.floor((e.clientY-r.top)/r.height*GRID_H);if(x>=0&&x<GRID_W&&y>=0&&y<GRID_H)placeTown(x,y)});
+function draw(){
+ let c=$('canvas'),r=c.getBoundingClientRect(),d=devicePixelRatio||1;
+ c.width=Math.max(1,Math.round(r.width*d));c.height=Math.max(1,Math.round(r.height*d));
+ let ctx=c.getContext('2d');ctx.scale(d,d);let w=r.width,h=r.height,cw=w/6,ch=h/6;
+ ctx.fillStyle='#31576b';ctx.fillRect(0,0,w,h);
+ for(let y=0;y<6;y++)for(let x=0;x<6;x++){
+  let p=G.provinces[y*6+x],px=x*cw,py=y*ch;
+  ctx.fillStyle=nations[p.owner][1];
+  ctx.beginPath();
+  ctx.moveTo(px+cw*.12,py+ch*.06);ctx.lineTo(px+cw*.88,py+ch*.06);
+  ctx.lineTo(px+cw*.97,py+ch*.5);ctx.lineTo(px+cw*.85,py+ch*.94);
+  ctx.lineTo(px+cw*.15,py+ch*.94);ctx.lineTo(px+cw*.03,py+ch*.5);ctx.closePath();ctx.fill();
+  ctx.save();ctx.clip();
+  for(let n=0;n<13;n++){
+   let rx=hashTile(n,x,p.id)*cw+px,ry=hashTile(n,y,p.id+31)*ch+py;
+   ctx.fillStyle=n%3===0?'#183c2966':'#e1ce7e22';
+   ctx.beginPath();ctx.arc(rx,ry,2+hashTile(n,4,p.id)*7,0,Math.PI*2);ctx.fill();
+  }
+  ctx.restore();
+  ctx.strokeStyle=p.id===chosen?'#fff2a6':p.owner===0?'#bdf5a8':'#293f35';
+  ctx.lineWidth=p.id===chosen?4:p.owner===0?2.5:1;ctx.stroke();
+  ctx.textAlign='center';ctx.fillStyle='#13231c';
+  ctx.font=Math.max(13,Math.min(23,cw/6))+'px serif';ctx.fillText(p.b.walls?'🏰':'🏘',px+cw*.5,py+ch*.38);
+  ctx.font='bold '+Math.max(10,Math.min(14,cw/9))+'px Georgia';
+  ctx.fillText(p.name,px+cw*.5,py+ch*.58);
+  ctx.font='12px Georgia';ctx.fillText('⚔ '+p.army,px+cw*.5,py+ch*.75);
+ }
+ // River across the region, with meandering banks
+ ctx.lineCap='round';ctx.strokeStyle='#78b8c6bb';ctx.lineWidth=9;
+ ctx.beginPath();for(let i=0;i<=60;i++){let x=i/60*w,y=h*.49+Math.sin(i*.29)*ch*.26;if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y)}ctx.stroke();
+ ctx.strokeStyle='#d6e3c55c';ctx.lineWidth=1.5;ctx.stroke();
+} 
+function render(){['date','gold','food','wood','stone','land'].forEach((k,i)=>$(k).textContent=[`📅 ${G.month}/${G.year}`,`🪙 ${G.gold}`,`🌾 ${G.food}`,`🪵 ${G.wood}`,`🪨 ${G.stone}`,`🏰 ${owned().length} prowincji`][i]);let p=G.provinces[chosen];$('info').innerHTML=`<div class="card"><h3>${p.name}</h3><p>${nations[p.owner][0]}<br>👥 ${p.pop} mieszkańców<br>⚔ ${p.army} wojowników<br>🛡 ${p.fort+p.b.walls*25} obrony<br>❤️ ${p.loyal}% lojalności</p>${p.owner===0?`<button onclick="openSettlement(${p.id})">🏘 Otwórz osadę</button> <button onclick="tab('army')">⚔ Armia</button>`:'<span class="muted">Możesz zdobyć tę prowincję.</span>'}</div>`;let x=economy();$('balance').innerHTML='<div class="card">'+Object.entries(x).map(([k,v])=>`${{gold:'🪙',food:'🌾',wood:'🪵',stone:'🪨',science:'📜'}[k]} ${v>=0?'+':''}${v}`).join('<br>')+'</div>';$('events').innerHTML=G.log.slice(0,10).map(v=>'<p class="muted">'+v+'</p>').join('');$('cities').innerHTML='<h2>🏘 Miasta i budowa</h2>'+owned().map(p=>`<div class="card"><h3>${p.name} — 👥 ${p.pop}</h3><button onclick="openSettlement(${p.id})">🏘 Otwórz mapę osady</button><p class="muted">${Object.entries(p.b).filter(v=>v[1]).map(([k,v])=>types[k][0]+' ×'+v).join(' • ')}</p><p class="muted">Buduj na mapie osady, wybierając konkretne działki.</p></div>`).join('');$('army').innerHTML='<h2>⚔ Wojsko i podboje</h2><p>Możesz atakować tylko sąsiednie prowincje. Wysyłasz 70% garnizonu.</p>'+owned().map(p=>`<div class="card"><b>${p.name} — ${p.army} wojowników</b> <button onclick="recruit(${p.id})">+30 wojowników</button><div class="row"><select id="dest${p.id}">${G.provinces.filter(q=>adjacent(p.id,q.id)).map(q=>`<option value="${q.id}">${q.name} (${nations[q.owner][0]})</option>`).join('')}</select><button onclick="march(${p.id},+$('dest${p.id}').value)">Wyślij wojsko</button></div></div>`).join('');$('court').innerHTML=`<h2>👑 Dwór i dynastia</h2><div class="card">Władca: ${G.king.name}<br>Wiek: ${G.king.age}<br>Następca: ${G.king.heir} (${G.king.heirAge} lat)</div><h3>Wasale</h3>`+G.vassals.map(v=>`<div class="card">${v.name} — lojalność ${v.loyal}%</div>`).join('')+'<p class="muted">Dynastia i wasale rozwijają się w trakcie gry.</p>';$('tech').innerHTML=`<h2>📜 Technologie</h2><p>Punkty nauki: ${G.science}. Buduj skryptoria, aby je zdobywać.</p>`+technologies.map((t,i)=>`<div class="card"><b>${t[0]}</b> — ${t[2]}<br>Koszt: ${t[1]} <button ${G.known.includes(t[0])?'disabled':''} onclick="discover(${i})">${G.known.includes(t[0])?'✓ Odkryto':'Badaj'}</button></div>`).join('');$('dip').innerHTML='<h2>🤝 Dyplomacja</h2>'+nations.slice(1).map((n,j)=>{let i=j+1;return `<div class="card"><h3>${n[0]}</h3><p>Władca: ${n[2]} • Relacje: ${G.rel[i]} • Prowincje: ${G.provinces.filter(p=>p.owner===i).length}</p><div class="row"><button onclick="diplomacy(${i},'gift')">Dar 250 zł</button><button onclick="diplomacy(${i},'ally')">Sojusz (+35)</button><button onclick="diplomacy(${i},'vassal')">Lenno (+65)</button></div></div>`}).join('');$('history').innerHTML='<h2>📖 Kronika</h2>'+G.log.map(v=>'<div class="card">'+v+'</div>').join('');if(current==='trade')tradeRender();if(current==='settlement')renderSettlement();draw()}
+function tab(id){current=id;document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('nav-active',b.getAttribute('onclick')===`tab('${id}')`));['map','cities','army','court','tech','dip','trade','history','settlement'].forEach(x=>$(x).classList.toggle('hidden',x!==id));render()}
+function save(notice=true){try{localStorage.setItem('medievalEmpireV1',JSON.stringify(G));if(notice){news('Zapisano grę');render()}}catch(e){alert('Błąd zapisu: '+e.message)}}function load(){try{let x=localStorage.getItem('medievalEmpireV1');if(!x)return alert('Brak zapisu');let y=JSON.parse(x);if(!Array.isArray(y.provinces)||!y.king)throw Error('Niepoprawny zapis');G=y;news('Wczytano grę');render()}catch(e){alert('Błąd wczytywania: '+e.message)}}
+$('canvas').onclick=e=>{let r=e.currentTarget.getBoundingClientRect();chosen=Math.min(35,Math.max(0,Math.floor((e.clientY-r.top)/r.height*6)*6+Math.floor((e.clientX-r.left)/r.width*6)));render()};window.addEventListener('resize',draw);G=newGame();tab('map');setInterval(()=>{if(!paused)for(let i=0;i<+$('speed').value;i++)nextMonth()},3000);
+</script></html>
