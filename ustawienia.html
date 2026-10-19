@@ -296,6 +296,26 @@ select {
   cursor: pointer;
 }
 
+.language-picker {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  min-width: 0;
+}
+
+.language-picker select {
+  width: 165px;
+  max-width: 100%;
+}
+
+.selected-flag {
+  font-size: 27px;
+  line-height: 1;
+  flex-shrink: 0;
+  filter: drop-shadow(0 2px 5px #0005);
+}
+
 .switch {
   position: relative;
   display: inline-block;
@@ -450,6 +470,18 @@ select {
   select {
     width: 145px;
   }
+
+  .language-picker {
+    gap: 4px;
+  }
+
+  .language-picker select {
+    width: 125px;
+  }
+
+  .selected-flag {
+    font-size: 22px;
+  }
 }
 
 @media (max-width: 360px) {
@@ -585,15 +617,21 @@ select {
           🌍 Język gry
         </label>
 
-        <select id="language">
-          <option value="pl">🇵🇱 Polski</option>
-          <option value="en">🇬🇧 English</option>
-          <option value="es">🇪🇸 Español</option>
-          <option value="ru">🇷🇺 Русский</option>
-          <option value="de">🇩🇪 Deutsch</option>
-          <option value="fr">🇫🇷 Français</option>
-          <option value="ar">🇸🇦 العربية</option>
-        </select>
+        <div class="language-picker">
+          <span id="selectedFlag" class="selected-flag">
+            🇵🇱
+          </span>
+
+          <select id="language">
+            <option value="pl">🇵🇱 Polski</option>
+            <option value="en">🇬🇧 English</option>
+            <option value="es">🇪🇸 Español</option>
+            <option value="ru">🇷🇺 Русский</option>
+            <option value="de">🇩🇪 Deutsch</option>
+            <option value="fr">🇫🇷 Français</option>
+            <option value="ar">🇸🇦 العربية</option>
+          </select>
+        </div>
       </div>
 
       <div class="setting">
@@ -869,8 +907,9 @@ pl: {
   slow:"Wolna",
   normal:"Normalna",
   fast:"Szybka",
-  resetDone:"Przywrócono ustawienia domyślne.",
-  saveError:"Nie udało się zapisać ustawień."
+  small:"Mała",
+  large:"Duża",
+  resetDone:"Przywrócono ustawienia domyślne."
 },
 
 en: {
@@ -910,8 +949,9 @@ en: {
   slow:"Slow",
   normal:"Normal",
   fast:"Fast",
-  resetDone:"Default settings restored.",
-  saveError:"Could not save settings."
+  small:"Small",
+  large:"Large",
+  resetDone:"Default settings restored."
 },
 
 es: {
@@ -951,8 +991,9 @@ es: {
   slow:"Lenta",
   normal:"Normal",
   fast:"Rápida",
-  resetDone:"Ajustes restablecidos.",
-  saveError:"No se pudieron guardar los ajustes."
+  small:"Pequeño",
+  large:"Grande",
+  resetDone:"Ajustes restablecidos."
 },
 
 ru: {
@@ -992,8 +1033,9 @@ ru: {
   slow:"Медленно",
   normal:"Обычно",
   fast:"Быстро",
-  resetDone:"Настройки сброшены.",
-  saveError:"Не удалось сохранить настройки."
+  small:"Маленький",
+  large:"Большой",
+  resetDone:"Настройки сброшены."
 },
 
 de: {
@@ -1033,8 +1075,9 @@ de: {
   slow:"Langsam",
   normal:"Normal",
   fast:"Schnell",
-  resetDone:"Einstellungen zurückgesetzt.",
-  saveError:"Einstellungen konnten nicht gespeichert werden."
+  small:"Klein",
+  large:"Groß",
+  resetDone:"Einstellungen zurückgesetzt."
 },
 
 fr: {
@@ -1074,8 +1117,9 @@ fr: {
   slow:"Lente",
   normal:"Normale",
   fast:"Rapide",
-  resetDone:"Paramètres réinitialisés.",
-  saveError:"Impossible d'enregistrer les paramètres."
+  small:"Petite",
+  large:"Grande",
+  resetDone:"Paramètres réinitialisés."
 },
 
 ar: {
@@ -1115,13 +1159,26 @@ ar: {
   slow:"بطيئة",
   normal:"عادية",
   fast:"سريعة",
-  resetDone:"تمت استعادة الإعدادات.",
-  saveError:"تعذر حفظ الإعدادات."
+  small:"صغير",
+  large:"كبير",
+  resetDone:"تمت استعادة الإعدادات."
 }
 
 };
 
-/* USTAWIENIA DOMYŚLNE */
+/* FLAGI */
+
+const flags = {
+  pl: "🇵🇱",
+  en: "🇬🇧",
+  es: "🇪🇸",
+  ru: "🇷🇺",
+  de: "🇩🇪",
+  fr: "🇫🇷",
+  ar: "🇸🇦"
+};
+
+/* DOMYŚLNE USTAWIENIA */
 
 const defaults = {
   language: "pl",
@@ -1141,7 +1198,7 @@ const defaults = {
 
 const storageKey = "wladcaNarodowSettings";
 
-/* BEZPIECZNE WCZYTYWANIE */
+/* WCZYTYWANIE */
 
 function loadSettings() {
   try {
@@ -1209,7 +1266,7 @@ Object.keys(defaults).forEach(key => {
   controls[key] = document.getElementById(key);
 });
 
-/* ODCZYT FORMULARZA */
+/* FORMULARZ */
 
 function readControls() {
   Object.keys(defaults).forEach(key => {
@@ -1225,8 +1282,6 @@ function readControls() {
   });
 }
 
-/* USTAWIANIE FORMULARZA */
-
 function fillControls() {
   Object.keys(defaults).forEach(key => {
     const el = controls[key];
@@ -1240,9 +1295,12 @@ function fillControls() {
 
   document.getElementById("volumeValue").textContent =
     settings.volume + "%";
+
+  document.getElementById("selectedFlag").textContent =
+    flags[settings.language] || "🌍";
 }
 
-/* TŁUMACZENIE */
+/* TŁUMACZENIA */
 
 function translatePage() {
   const t = translations[settings.language];
@@ -1253,7 +1311,10 @@ function translatePage() {
 
   document.querySelectorAll("[data-t]").forEach(el => {
     const key = el.dataset.t;
-    if (t[key]) el.textContent = t[key];
+
+    if (t[key]) {
+      el.textContent = t[key];
+    }
   });
 
   const optionGroups = {
@@ -1269,23 +1330,6 @@ function translatePage() {
     keys.forEach((key, index) => {
       select.options[index].textContent = t[key];
     });
-  });
-
-  Object.keys(defaults).forEach(key => {
-    const el = controls[key];
-
-    if (el.type === "checkbox") {
-      const label = document.querySelector(
-        'label[for="' + key + '"]'
-      );
-
-      if (label) {
-        el.setAttribute(
-          "aria-label",
-          label.textContent.trim()
-        );
-      }
-    }
   });
 }
 
@@ -1331,8 +1375,6 @@ function applyAppearance() {
   );
 }
 
-/* ZASTOSUJ WSZYSTKO */
-
 function applyAll() {
   fillControls();
   translatePage();
@@ -1348,9 +1390,8 @@ function saveSettings() {
       JSON.stringify(settings)
     );
     return true;
-  } catch {
-    document.getElementById("notice").textContent =
-      translations[settings.language].saveError;
+  } catch (error) {
+    console.warn("Błąd zapisu:", error);
     return false;
   }
 }
@@ -1371,10 +1412,6 @@ function playClick() {
     if (!AudioCtx) return;
 
     audioContext ||= new AudioCtx();
-
-    if (audioContext.state === "suspended") {
-      audioContext.resume();
-    }
 
     const oscillator = audioContext.createOscillator();
     const gain = audioContext.createGain();
@@ -1425,7 +1462,7 @@ document.querySelectorAll(".tab").forEach(tab => {
   });
 });
 
-/* ZMIANY USTAWIEŃ */
+/* ZMIANY OPCJI */
 
 Object.values(controls).forEach(control => {
   control.addEventListener("change", () => {
@@ -1441,16 +1478,18 @@ controls.volume.addEventListener("input", () => {
     settings.volume + "%";
 });
 
-/* ZAPISZ I WRÓĆ */
+/* ZAPISZ I WRÓĆ - POPRAWIONE */
 
 document.getElementById("save").addEventListener(
   "click", () => {
     readControls();
     playClick();
 
-    if (saveSettings()) {
-      window.location.href = "index.html";
-    }
+    // Zapisujemy ustawienia.
+    saveSettings();
+
+    // Wracamy do menu nawet przy błędzie zapisu.
+    window.location.href = "./index.html";
   }
 );
 
@@ -1461,21 +1500,22 @@ document.getElementById("reset").addEventListener(
     settings = {...defaults};
     applyAll();
     playClick();
+    saveSettings();
 
-    if (saveSettings()) {
-      document.getElementById("notice").textContent =
-        translations[settings.language].resetDone;
-    }
+    document.getElementById("notice").textContent =
+      translations[settings.language].resetDone;
   }
 );
 
-/* ZMIANA MOTYWU SYSTEMOWEGO */
+/* SYSTEMOWY MOTYW */
 
-systemTheme.addEventListener?.("change", () => {
-  if (settings.theme === "system") {
-    applyAppearance();
-  }
-});
+if (systemTheme.addEventListener) {
+  systemTheme.addEventListener("change", () => {
+    if (settings.theme === "system") {
+      applyAppearance();
+    }
+  });
+}
 
 /* START */
 
