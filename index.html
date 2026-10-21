@@ -1,0 +1,708 @@
+<!doctype html><html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Energy Empire 2.3 — World Economy</title><link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"><style>
+:root{font-family:Inter,system-ui,Arial,sans-serif;color:#e9f3ff;background:#070c18}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 15% 0%,#17345b 0%,transparent 42%),radial-gradient(circle at 95% 95%,#15295d 0%,transparent 42%),#070c18;min-height:100vh}button,input,select{font:inherit}button{color:#eff8ff;background:#ffffff13;border:1px solid #ffffff25;padding:10px 13px;border-radius:11px;cursor:pointer;transition:.2s}button:hover{background:#ffffff28;transform:translateY(-1px)}button:disabled{opacity:.35;cursor:not-allowed}.primary{background:linear-gradient(120deg,#13b9b2,#4569f5);border-color:#75e8ff55;font-weight:750}.danger{background:#a43a5155}.glass{background:linear-gradient(140deg,#ffffff18,#ffffff08);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid #ffffff22;box-shadow:0 16px 45px #0005}.top{margin:14px;display:flex;align-items:center;gap:16px;justify-content:space-between;padding:14px 20px;border-radius:19px;flex-wrap:wrap}.logo{font-size:19px;font-weight:850;letter-spacing:.5px}.logo b{color:#70f0d8}.topstat{display:flex;gap:20px;align-items:center;flex-wrap:wrap}.topstat strong{display:block;font-size:19px;color:#87f5d4}.small{font-size:12px;color:#b2c5de}.layout{display:grid;grid-template-columns:minmax(310px,1fr) minmax(350px,480px);gap:13px;margin:0 14px 14px;height:calc(100vh - 118px);min-height:650px}.mapwrap{position:relative;overflow:hidden;border-radius:20px}.map{height:100%;width:100%;background:#17263a}.maplabel{position:absolute;top:13px;left:13px;z-index:500;padding:12px 16px;border-radius:14px;pointer-events:none}.panel{border-radius:20px;display:flex;flex-direction:column;min-height:0;overflow:hidden}.panelhead{padding:17px;border-bottom:1px solid #ffffff1a;display:flex;gap:10px;align-items:center}.panelhead select{flex:1;margin:0}.content{padding:18px;overflow:auto;min-height:0}.content h2{margin:0 0 15px;font-size:24px}.content h3{font-size:15px;margin:16px 0 8px}.card{padding:15px;margin:11px 0;border-radius:15px;background:linear-gradient(135deg,#ffffff12,#ffffff07);border:1px solid #ffffff1b}.card b{font-size:14px}.muted{font-size:12px;color:#adbfda;line-height:1.6}.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0}.row>*{flex:1;min-width:0}.row button{flex:0 0 auto}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.metric{background:#ffffff0c;padding:14px;border:1px solid #ffffff1b;border-radius:14px}.metric strong{display:block;font-size:21px;color:#9af2e4;margin-top:5px}label{font-size:12px;color:#c1d0e4;display:block;margin:12px 0 5px}input,select{width:100%;background:#08152ac9;color:#eff8ff;border:1px solid #ffffff3b;padding:11px;border-radius:10px}option{background:#12223a}.full{width:100%;margin-top:9px}.tag{display:inline-block;border:1px solid #ffffff26;background:#ffffff10;border-radius:20px;padding:5px 9px;font-size:11px;margin:3px}.positive{color:#89f3b5}.negative{color:#ff9baf}.divider{height:1px;background:#ffffff1b;margin:14px 0}.progress{height:8px;background:#ffffff20;border-radius:20px;overflow:hidden}.progress>div{height:100%;background:linear-gradient(90deg,#19d2b8,#5984ff);transition:width .2s}.notice{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);padding:13px 18px;background:#183a55;border:1px solid #7adad3;border-radius:14px;z-index:2000;box-shadow:0 10px 40px #0008;max-width:90vw}.leaflet-container{font-family:inherit}.marker{display:inline-block;background:#173e7c;border:2px solid #6bd5ff;border-radius:50%;padding:3px;font-size:23px;filter:drop-shadow(0 2px 3px #000)}.marker.rival{background:#643216;border-color:#ffb65c}.tools{display:flex;gap:6px;flex-wrap:wrap}.tools button{font-size:12px;padding:7px 10px}@media(max-width:850px){.layout{grid-template-columns:1fr;height:auto}.mapwrap{height:42vh;min-height:280px}.panel{min-height:580px}.topstat{gap:10px}.topstat strong{font-size:15px}}
+.country-pick{padding:10px;border:1px solid #ffffff33;border-radius:12px;background:#081a30a8;margin:8px 0}.country-list{max-height:180px;overflow:auto;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:3px}.country-choice{display:flex;gap:7px;align-items:center;margin:0;padding:5px;font-size:12px}.country-choice input{width:auto;flex:none}.country-choice[hidden]{display:none!important}</style></head><body><header class="top glass"><div class="logo">⚡ ENERGY <b>EMPIRE</b> <span class="small">2.7 · Stabilny interfejs</span></div><div class="topstat"><div><span class="small">GOTÓWKA</span><strong id="cashTop">—</strong></div><div><span class="small">DATA GRY</span><strong id="dateTop">—</strong></div><div><span class="small">WYNIK / MIES.</span><strong id="profitTop">—</strong></div></div><div class="tools"><button id="pauseBtn" onclick="togglePause()">⏸ Pauza</button><select id="speed" onchange="setSpeed(this.value)" style="width:135px"><option value="30">30 s / miesiąc</option><option value="12">12 s / miesiąc</option><option value="5">5 s / miesiąc</option><option value="2">2 s / miesiąc</option></select><button onclick="advance()">⏭ Miesiąc</button></div></header><div class="layout"><section class="mapwrap glass"><div class="maplabel glass"><b>🌍 Mapa OpenStreetMap</b><div class="muted">🔵 Twoje obiekty · 🟠 Firmy AI</div><div class="muted" id="mapHint">Kliknij obiekt, aby zobaczyć szczegóły.</div></div><div id="map" class="map"></div></section><aside class="panel glass"><div class="panelhead"><span>☰</span><select id="nav" onchange="showTab(this.value)"></select></div><div class="content" id="content"></div></aside></div><script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><script>
+'use strict';const KEY='energy_empire_rebuild_v2';const names=["Afghanistan", "Albania", "Algeria", "American Samoa", "Andorra", "Angola", "Anguilla", "Antarctica", "Antigua and Barbuda", "Arabia Saudyjska", "Argentina", "Argentyna", "Armenia", "Aruba", "Australia", "Austria", "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgia", "Belgium", "Belize", "Benin", "Bermuda", "Bhutan", "Bolivia, Plurinational State of", "Bonaire, Sint Eustatius and Saba", "Bosnia and Herzegovina", "Botswana", "Bouvet Island", "Brazil", "Brazylia", "British Indian Ocean Territory", "Brunei Darussalam", "Bulgaria", "Burkina Faso", "Burundi", "Cabo Verde", "Cambodia", "Cameroon", "Canada", "Cayman Islands", "Central African Republic", "Chad", "Chile", "China", "Chiny", "Christmas Island", "Cocos (Keeling) Islands", "Colombia", "Comoros", "Congo", "Congo, The Democratic Republic of the", "Cook Islands", "Costa Rica", "Croatia", "Cuba", "Curaçao", "Cyprus", "Czechia", "Czechy", "Côte d'Ivoire", "Dania", "Denmark", "Djibouti", "Dominica", "Dominican Republic", "Ecuador", "Egipt", "Egypt", "El Salvador", "Equatorial Guinea", "Eritrea", "Estonia", "Eswatini", "Ethiopia", "Falkland Islands (Malvinas)", "Faroe Islands", "Fiji", "Finland", "Finlandia", "France", "Francja", "French Guiana", "French Polynesia", "French Southern Territories", "Gabon", "Gambia", "Georgia", "Germany", "Ghana", "Gibraltar", "Grecja", "Greece", "Greenland", "Grenada", "Guadeloupe", "Guam", "Guatemala", "Guernsey", "Guinea", "Guinea-Bissau", "Guyana", "Haiti", "Heard Island and McDonald Islands", "Hiszpania", "Holandia", "Holy See (Vatican City State)", "Honduras", "Hong Kong", "Hungary", "Iceland", "India", "Indie", "Indonesia", "Indonezja", "Iran, Islamic Republic of", "Iraq", "Ireland", "Isle of Man", "Israel", "Italy", "Jamaica", "Japan", "Japonia", "Jersey", "Jordan", "Kanada", "Katar", "Kazakhstan", "Kenya", "Kiribati", "Korea, Democratic People's Republic of", "Korea, Republic of", "Kuwait", "Kyrgyzstan", "Lao People's Democratic Republic", "Latvia", "Lebanon", "Lesotho", "Liberia", "Libya", "Liechtenstein", "Lithuania", "Luxembourg", "Macao", "Madagascar", "Malawi", "Malaysia", "Maldives", "Mali", "Malta", "Marshall Islands", "Martinique", "Mauritania", "Mauritius", "Mayotte", "Meksyk", "Mexico", "Micronesia, Federated States of", "Moldova, Republic of", "Monaco", "Mongolia", "Montenegro", "Montserrat", "Morocco", "Mozambique", "Myanmar", "Namibia", "Nauru", "Nepal", "Netherlands", "New Caledonia", "New Zealand", "Nicaragua", "Niemcy", "Niger", "Nigeria", "Niue", "Norfolk Island", "North Macedonia", "Northern Mariana Islands", "Norway", "Norwegia", "Oman", "Pakistan", "Palau", "Palestine, State of", "Panama", "Papua New Guinea", "Paraguay", "Peru", "Philippines", "Pitcairn", "Poland", "Polska", "Portugal", "Portugalia", "Puerto Rico", "Qatar", "RPA", "Romania", "Rumunia", "Russian Federation", "Rwanda", "Réunion", "Saint Barthélemy", "Saint Helena, Ascension and Tristan da Cunha", "Saint Kitts and Nevis", "Saint Lucia", "Saint Martin (French part)", "Saint Pierre and Miquelon", "Saint Vincent and the Grenadines", "Samoa", "San Marino", "Sao Tome and Principe", "Saudi Arabia", "Senegal", "Serbia", "Seychelles", "Sierra Leone", "Singapore", "Sint Maarten (Dutch part)", "Slovakia", "Slovenia", "Solomon Islands", "Somalia", "South Africa", "South Georgia and the South Sandwich Islands", "South Sudan", "Spain", "Sri Lanka", "Sudan", "Suriname", "Svalbard and Jan Mayen", "Sweden", "Switzerland", "Syrian Arab Republic", "Szwajcaria", "Szwecja", "Słowacja", "Taiwan, Province of China", "Tajikistan", "Tanzania, United Republic of", "Thailand", "Timor-Leste", "Togo", "Tokelau", "Tonga", "Trinidad and Tobago", "Tunisia", "Turcja", "Turkmenistan", "Turks and Caicos Islands", "Tuvalu", "Türkiye", "USA", "Uganda", "Ukraina", "Ukraine", "United Arab Emirates", "United Kingdom", "United States", "United States Minor Outlying Islands", "Uruguay", "Uzbekistan", "Vanuatu", "Venezuela, Bolivarian Republic of", "Viet Nam", "Virgin Islands, British", "Virgin Islands, U.S.", "Wallis and Futuna", "Western Sahara", "Wielka Brytania", "Węgry", "Włochy", "Yemen", "ZEA", "Zambia", "Zimbabwe", "Åland Islands"];const PRODUCTS={oil:'Ropa',gas:'Gaz',coal:'Węgiel',fuel:'Paliwo',energy:'Energia',steel:'Stal',hydrogen:'Wodór'};const TYPES={oil:{name:'Szyb naftowy',icon:'🛢️',cost:25000000,staff:16,prod:{oil:110},upkeep:85000},gas:{name:'Odwiert gazu',icon:'🔥',cost:21000000,staff:13,prod:{gas:100},upkeep:75000},coal:{name:'Kopalnia węgla',icon:'⛏️',cost:18000000,staff:22,prod:{coal:140},upkeep:65000},refinery:{name:'Rafineria',icon:'🏭',cost:48000000,staff:35,input:{oil:80},prod:{fuel:65},upkeep:150000},coalplant:{name:'Elektrownia węglowa',icon:'⚡',cost:42000000,staff:28,input:{coal:75},prod:{energy:120},upkeep:125000},gasplant:{name:'Elektrownia gazowa',icon:'🔌',cost:35000000,staff:23,input:{gas:70},prod:{energy:125},upkeep:115000},solar:{name:'Farma słoneczna',icon:'☀️',cost:12000000,staff:7,prod:{energy:55},upkeep:25000},wind:{name:'Farma wiatrowa',icon:'🌬️',cost:16000000,staff:9,prod:{energy:75},upkeep:32000},nuclear:{name:'Elektrownia jądrowa',icon:'☢️',cost:150000000,staff:70,prod:{energy:420},upkeep:450000},steel:{name:'Huta stali',icon:'🏗️',cost:65000000,staff:40,input:{coal:45},prod:{steel:60},upkeep:160000},hydrogen:{name:'Zakład wodoru',icon:'🧪',cost:33000000,staff:22,input:{energy:65},prod:{hydrogen:45},upkeep:90000},storage:{name:'Magazyn',icon:'📦',cost:8000000,staff:5,prod:{},upkeep:18000},station:{name:'Stacja paliw',icon:'⛽',cost:3500000,staff:7,input:{fuel:12},prod:{},upkeep:16000}};const TABS=[['overview','🏠 Pulpit'],['industry','🏭 Przemysł i budowa'],['employees','👷 Pracownicy i rekrutacja'],['finance','🏦 Finanse i pożyczki'],['holdings','🏢 Spółki córki'],['market','📈 Giełda i przejęcia'],['contracts','📑 Kontrakty i przetargi'],['research','🔬 Badania i technologie'],['logistics','🚚 Transport i magazyny'],['world','🌍 Kraje i działalność'],['aiworld','🤖 Rozwój AI i mapa'],['reports','📊 Raporty i historia'],['settings','⚙️ Ustawienia i zapisy']];const rnd=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;const money=n=>new Intl.NumberFormat('pl-PL',{maximumFractionDigits:0}).format(Math.round(n||0))+' $';const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));const uid=()=>Math.floor(Math.random()*1e9);const productOpts=()=>Object.entries(PRODUCTS).map(([k,v])=>`<option value="${k}">${v}</option>`).join('');const countryOpts=(selected='Polska')=>names.map(c=>`<option ${c===selected?'selected':''}>${esc(c)}</option>`).join('');const companyOpts=()=>S.companies.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');function seed(){return {cash:160000000,month:0,paused:false,speed:12,progress:0,tab:'overview',next:100,prices:{oil:30000,gas:22000,coal:14000,fuel:44000,energy:19000,steel:38000,hydrogen:54000},stock:{oil:0,gas:0,coal:0,fuel:0,energy:0,steel:0,hydrogen:0},companies:[{id:1,name:'Energy Empire Holding',parent:null,country:'Polska',countries:['Polska'],cash:0,autonomy:false}],assets:[],workers:[],candidates:[],firms:[],contracts:[],loans:[],technologies:[],researchPoints:0,researchDone:[],routes:[],aiAssets:[],mapFilter:'all',aiEvents:[],logs:[],history:[],lastProfit:0,build:null,selected:null,sandbox:false}}let S;try{S=Object.assign(seed(),JSON.parse(localStorage.getItem(KEY)||'null')||{});}catch{S=seed()}for(const k of ['companies','assets','workers','candidates','firms','contracts','loans','technologies','researchDone','routes','logs','history'])if(!Array.isArray(S[k]))S[k]=[];S.stock={...seed().stock,...S.stock};S.prices={...seed().prices,...S.prices};const nextId=()=>++S.next;const company=id=>S.companies.find(c=>c.id===Number(id));const asset=id=>S.assets.find(a=>a.id===Number(id));const toast=t=>{const e=document.createElement('div');e.className='notice';e.textContent=t;document.body.appendChild(e);setTimeout(()=>e.remove(),3200)};function log(t){S.logs.unshift(`M${S.month}: ${t}`);S.logs=S.logs.slice(0,120)}function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch{}}function spend(n){if(!S.sandbox&&S.cash<n){toast('Brak środków na koncie');return false}if(!S.sandbox)S.cash-=n;return true}function income(n){S.cash+=n}function hireCandidate(id,co){let i=S.candidates.findIndex(w=>w.id===Number(id));if(i<0)return;const w=S.candidates[i];if(!spend(w.salary))return;S.candidates.splice(i,1);S.workers.push({...w,companyId:Number(co),assetId:null,experience:0});log('Zatrudniono: '+w.name);render()}const FIRST=['Jan','Anna','Piotr','Maria','Tomasz','Julia','Michał','Zofia','Karol','Katarzyna','Adam','Natalia','Filip','Oliwia','Mateusz','Alicja'];const LAST=['Nowak','Kowalski','Wiśniewska','Lewandowski','Zielińska','Wójcik','Kamiński','Dąbrowska','Mazur','Kaczmarek'];const PERKS=['Badacz','Inżynier','Geolog','Finansista','Menedżer','Logistyk','Operator'];function genCandidate(){return{id:nextId(),name:FIRST[rnd(0,FIRST.length-1)]+' '+LAST[rnd(0,LAST.length-1)],perk:PERKS[rnd(0,PERKS.length-1)],skill:rnd(1,5),salary:rnd(28,85)*100}}const CORP=['Nordic','Atlas','Nova','Baltic','Global','Orion','Helios','Vertex','Astra','Pacific','Titan','Aurora'];const SUFFIX=['Energy','Oil','Gas','Power','Resources','Industries','Petroleum'];function genFirm(){let name=CORP[rnd(0,CORP.length-1)]+' '+SUFFIX[rnd(0,SUFFIX.length-1)]+' '+rnd(10,99);return{id:nextId(),name,country:names[rnd(0,names.length-1)],price:rnd(700000,3600000),share:0,workers:rnd(20,180),assets:rnd(1,8),cash:rnd(30,250)*1000000}}const TECH=['Wydajniejsze turbiny','Zaawansowane odwierty','Inteligentne rafinerie','Magazynowanie wodoru','Sieci wysokiego napięcia','Automatyzacja kopalń','Nowe baterie','Wychwytywanie CO₂','Robotyka przemysłowa','Cyfrowe bliźniaki','Efektywny transport LNG','Recykling paliw','Usprawniona geotermia'];function genTech(){return{id:nextId(),name:TECH[rnd(0,TECH.length-1)]+' '+rnd(2,99),cost:rnd(1,12)*1000000,bonus:rnd(2,12),created:S.month}}function genContract(){return{id:nextId(),country:names[rnd(0,names.length-1)],product:Object.keys(PRODUCTS)[rnd(0,6)],qty:rnd(15,90),months:rnd(4,18),premium:rnd(90,130)/100,companyId:1}}function ensureOffers(){while(S.candidates.length<12)S.candidates.push(genCandidate());while(S.firms.length<9)S.firms.push(genFirm());while(S.technologies.length<6)S.technologies.push(genTech());while(S.contracts.filter(c=>!c.active).length<5)S.contracts.push(genContract())}ensureOffers();
+S.aiAssets=Array.isArray(S.aiAssets)?S.aiAssets:[];S.mapFilter=S.mapFilter||'all';S.aiEvents=Array.isArray(S.aiEvents)?S.aiEvents:[];
+const AI_LOCATIONS=[['Polska',52.2,19.2],['Niemcy',51.1,10.4],['Norwegia',61.1,8.5],['USA',39.4,-98.5],['Kanada',55,-105],['Brazylia',-14.2,-51.9],['Francja',46.6,2.2],['Wielka Brytania',54,-2],['Australia',-25,134],['Japonia',36,138],['Indie',22,79],['Hiszpania',40,-4],['Szwecja',62,15],['RPA',-29,24]];
+function aiLocation(country){const v=AI_LOCATIONS.find(x=>x[0]===country)||AI_LOCATIONS[rnd(0,AI_LOCATIONS.length-1)];return {country:v[0],lat:v[1]+(Math.random()-.5)*2,lng:v[2]+(Math.random()-.5)*2}}
+function aiExpand(f){if(!f||f.share===100)return;f.cash=Math.max(0,Number(f.cash)||0);f.aiWorkers=Math.max(0,Number(f.aiWorkers??f.workers??0));f.aiStock=f.aiStock||{};f.aiDebt=f.aiDebt||0;f.aiTech=f.aiTech||0;f.aiCountries=f.aiCountries||[f.country];const owned=S.aiAssets.filter(a=>a.firmId===f.id);f.assets=owned.length;f.workers=f.aiWorkers;
+ const revenue=owned.reduce((sum,a)=>sum+Object.values(TYPES[a.type]?.prod||{}).reduce((v,n)=>v+n*9000,0)*(0.3+Math.min(1,f.aiWorkers/Math.max(1,owned.length*12))),0);
+ const upkeep=owned.reduce((sum,a)=>sum+(TYPES[a.type]?.upkeep||0),0);const wages=f.aiWorkers*3400;const debtPay=Math.min(f.cash,Math.ceil(f.aiDebt*.008));f.aiDebt=Math.max(0,f.aiDebt-debtPay);f.cash+=revenue-upkeep-wages-debtPay;
+ if(f.cash<0&&owned.length){const sold=owned[rnd(0,owned.length-1)];S.aiAssets=S.aiAssets.filter(a=>a.id!==sold.id);f.cash+=TYPES[sold.type].cost*.55;aiNews(f.name+' sprzedała zakład: '+TYPES[sold.type].name)}
+ const types=Object.keys(TYPES);const target=types[rnd(0,types.length-1)];const t=TYPES[target];const investmentChance=f.cash>t.cost*1.5?0.43:0.08;
+ if(Math.random()<investmentChance&&f.cash>=t.cost){const loc=aiLocation(Math.random()<.24?null:f.country);S.aiAssets.push({id:nextId(),firmId:f.id,type:target,country:loc.country,lat:loc.lat,lng:loc.lng,condition:100,buildLeft:rnd(1,3)});f.cash-=t.cost;f.aiCountries=[...new Set([...f.aiCountries,loc.country])];aiNews(f.name+' rozpoczęła budowę: '+t.name+' ('+loc.country+')')}
+ if(Math.random()<.5&&f.cash>300000){const n=rnd(1,4);f.aiWorkers+=n;f.cash-=n*4000;}
+ if(Math.random()<.1&&f.cash>25000000){f.aiTech++;f.cash-=1500000;aiNews(f.name+' opracowała technologię poziomu '+f.aiTech)}
+ if(Math.random()<.05&&f.cash<1000000){f.aiDebt+=10000000;f.cash+=10000000;aiNews(f.name+' zaciągnęła kredyt')}
+ for(const a of S.aiAssets.filter(a=>a.firmId===f.id&&a.buildLeft>0))a.buildLeft--;
+ f.assets=S.aiAssets.filter(a=>a.firmId===f.id).length;f.workers=f.aiWorkers;
+}
+function aiNews(s){S.aiEvents.unshift('M'+(S.month+1)+': '+s);S.aiEvents=S.aiEvents.slice(0,50);log('AI: '+s)}
+function aiSeed(){for(const f of S.firms){if(!S.aiAssets.some(a=>a.firmId===f.id)){const loc=aiLocation(f.country);const type=Object.keys(TYPES)[rnd(0,Object.keys(TYPES).length-1)];S.aiAssets.push({id:nextId(),firmId:f.id,type,country:loc.country,lat:loc.lat,lng:loc.lng,condition:100,buildLeft:0});}f.aiWorkers??=f.workers||rnd(5,25);f.aiStock??={};f.aiCountries??=[f.country]}}
+aiSeed();
+let map=null,markers=null,pin=null;try{if(window.L){map=L.map('map',{zoomControl:true}).setView([52.2,19.2],5);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap contributors'}).addTo(map);markers=L.layerGroup().addTo(map);map.on('click',e=>{if(S.build){S.build.lat=e.latlng.lat;S.build.lng=e.latlng.lng;placePin();render()}})}}catch(e){document.getElementById('map').textContent='Mapa niedostępna — wymagane połączenie z internetem.'}function placePin(){if(!map)return;if(pin){map.removeLayer(pin);pin=null}if(S.build&&S.build.lat!=null){pin=L.marker([S.build.lat,S.build.lng],{draggable:true}).addTo(map);pin.on('dragend',()=>{const p=pin.getLatLng();S.build.lat=p.lat;S.build.lng=p.lng;render()})}}function renderMap(){if(!map)return;markers.clearLayers();if(S.mapFilter!=='ai')for(const a of S.assets){const t=TYPES[a.type];if(!t||!Number.isFinite(a.lat)||!Number.isFinite(a.lng))continue;L.marker([a.lat,a.lng],{icon:L.divIcon({html:`<span class="marker owned">${t.icon}</span>`,className:'',iconSize:[36,36]})}).addTo(markers).bindTooltip(esc(t.name)).on('click',()=>{S.selected=a.id;showTab('industry')})}
+if(S.mapFilter!=='own')for(const a of S.aiAssets){const f=S.firms.find(x=>x.id===a.firmId);const t=TYPES[a.type];if(!f||!t||!Number.isFinite(a.lat)||!Number.isFinite(a.lng))continue;L.marker([a.lat,a.lng],{icon:L.divIcon({html:`<span class="marker rival" title="${esc(f.name)}">${t.icon}${a.buildLeft>0?'🚧':''}</span>`,className:'',iconSize:[42,40]})}).addTo(markers).bindPopup(`<b>${esc(f.name)}</b><br>${esc(t.name)}<br>${esc(a.country)}<br>Pracownicy firmy: ${f.aiWorkers||0}<br>${a.buildLeft>0?'Budowa: '+a.buildLeft+' mies.':'Produkcja aktywna'}<br>Udziały gracza: ${f.share||0}%`)}placePin()}
+function setMapFilter(v){S.mapFilter=v;render()}
+function focusAI(id){const a=S.aiAssets.find(x=>x.id===id);if(a&&map){map.setView([a.lat,a.lng],Math.max(map.getZoom(),8));}}
+function header(title,desc=''){return `<h2>${title}</h2>${desc?`<p class="muted">${desc}</p>`:''}`}function card(t){return `<div class="card">${t}</div>`}function btn(label,fn,cls=''){return `<button class="${cls}" onclick="${fn}">${label}</button>`}function input(id,label,type='number',value=''){return `<label for="${id}">${label}</label><input id="${id}" type="${type}" value="${esc(value)}">`}function select(id,label,options){return `<label for="${id}">${label}</label><select id="${id}">${options}</select>`}function tabOverview(){let payroll=S.workers.reduce((a,w)=>a+w.salary,0),upkeep=S.assets.reduce((a,b)=>a+(TYPES[b.type]?.upkeep||0),0),debt=S.loans.reduce((a,b)=>a+b.left,0);return header('Centrum dowodzenia','Wszystkie najważniejsze systemy w jednym miejscu.')+`<div class="grid"><div class="metric">Gotówka<strong>${money(S.cash)}</strong></div><div class="metric">Zysk ostatniego miesiąca<strong class="${S.lastProfit<0?'negative':''}">${money(S.lastProfit)}</strong></div><div class="metric">Budynki<strong>${S.assets.length}</strong></div><div class="metric">Pracownicy<strong>${S.workers.length}</strong></div><div class="metric">Spółki<strong>${S.companies.length}</strong></div><div class="metric">Zadłużenie<strong>${money(debt)}</strong></div></div>`+card(`<b>📆 Miesiąc ${S.month+1}</b><p class="muted">Pensje: ${money(payroll)} / mies. · Utrzymanie: ${money(upkeep)} / mies.</p><p class="muted">Czas płynie automatycznie. Prędkość ustawisz na górnym pasku.</p>`)+`<h3>Szybki dostęp</h3><div class="tools">${btn('🏭 Buduj','showTab(\'industry\')','primary')}${btn('👷 Zatrudniaj','showTab(\'employees\')')}${btn('🏦 Pożyczki','showTab(\'finance\')')}${btn('📈 Giełda','showTab(\'market\')')}</div><h3>Ostatnie wydarzenia</h3>`+(S.logs.slice(0,6).map(x=>card(`<span class="muted">${esc(x)}</span>`)).join('')||card('Rozpocznij budowę pierwszego zakładu.'))}
+function tabIndustry(){let build=S.build;return header('Przemysł i inwestycje','Wybierz typ budynku, wskaż punkt na mapie i zatwierdź budowę.')+select('buildType','Rodzaj obiektu',Object.entries(TYPES).map(([k,t])=>`<option value="${k}" ${build?.type===k?'selected':''}>${t.icon} ${t.name} — ${money(t.cost)}</option>`).join(''))+select('buildOwner','Spółka właściciel',companyOpts())+select('buildCountry','Kraj działalności',countryOpts(build?.country||'Polska'))+`<div class="tools" style="margin-top:13px">${btn('📍 Wskaż miejsce na mapie','startBuild()','primary')}${build?.lat!=null?btn('✓ Potwierdź budowę','confirmBuild()','primary'):''}${build?btn('Anuluj','cancelBuild()'):''}</div>`+(build?.lat!=null?card(`<b>Wybrana lokalizacja</b><p class="muted">${build.lat.toFixed(5)}, ${build.lng.toFixed(5)} — znacznik można przesuwać.</p>`):'')+`<h3>Twoje obiekty (${S.assets.length})</h3>`+(S.assets.map(a=>{const t=TYPES[a.type];return card(`<b>${t.icon} ${esc(t.name)}</b><p class="muted">${esc(a.country)} · ${esc(company(a.companyId)?.name||'Spółka')} · Obsada ${S.workers.filter(w=>w.assetId===a.id).length}/${t.staff}</p><div class="tools">${btn('Pokaż','focusAsset('+a.id+')')}${btn('Przypisz pracowników','assignWorkers('+a.id+')')}${btn('Sprzedaj','sellAsset('+a.id+')','danger')}</div>`)}).join('')||card('Nie masz jeszcze żadnych obiektów.'))}
+function tabEmployees(){return header('Kadry i rekrutacja','Kandydaci pojawiają się automatycznie. Pracownicy co miesiąc pobierają pensje.')+`<div class="grid"><div class="metric">Zatrudnieni<strong>${S.workers.length}</strong></div><div class="metric">Płace miesięczne<strong>${money(S.workers.reduce((n,w)=>n+w.salary,0))}</strong></div></div>`+select('hireCompany','Zatrudnij do spółki',companyOpts())+`<h3>Rynek pracy (${S.candidates.length})</h3>`+S.candidates.map(w=>card(`<b>👤 ${esc(w.name)}</b><p class="muted">Perk: ${esc(w.perk)} · Umiejętności ${w.skill}/5 · Pensja ${money(w.salary)}/mies.</p>${btn('Zatrudnij','hireCandidate('+w.id+',document.getElementById(\'hireCompany\').value)','primary')}`)).join('')+`<h3>Zatrudnieni (${S.workers.length})</h3>`+(S.workers.map(w=>card(`<b>${esc(w.name)}</b><p class="muted">${esc(w.perk)} · ${esc(company(w.companyId)?.name||'Spółka')} · ${money(w.salary)}/mies. · XP ${w.experience||0}</p><div class="tools">${btn('Zwolnij','fireWorker('+w.id+')','danger')}</div>`)).join('')||card('Brak zatrudnionych.'))}
+function tabFinance(){let debt=S.loans.reduce((n,l)=>n+l.left,0);return header('Finanse i bank','Kredyty, raty, saldo i własny cennik sprzedaży.')+`<div class="grid"><div class="metric">Saldo<strong>${money(S.cash)}</strong></div><div class="metric">Pozostały dług<strong>${money(debt)}</strong></div></div>`+input('loanAmount','Kwota pożyczki ($)','number',10000000)+select('loanTerm','Okres kredytu','<option value="12">12 miesięcy — 8% rocznie</option><option value="36">36 miesięcy — 10% rocznie</option><option value="60">60 miesięcy — 12% rocznie</option>')+btn('Weź pożyczkę','takeLoan()','primary')+`<h3>Aktywne kredyty</h3>`+(S.loans.map(l=>card(`<b>Pożyczka ${money(l.principal)}</b><p class="muted">Do spłaty: ${money(l.left)} · Rata: ${money(l.payment)} · Pozostało ${l.months} mies.</p>${btn('Spłać całość','repayLoan('+l.id+')')}`)).join('')||card('Brak aktywnych pożyczek.'))+`<h3>Twoje ceny sprzedaży</h3>`+Object.entries(PRODUCTS).map(([k,v])=>input('price_'+k,v+' — $ / jednostkę','number',S.prices[k])).join('')+btn('Zapisz ceny','savePrices()','primary')+`<h3>Tryb testowy</h3><div class="tools">${btn('+ 1 mln $','debugCash(1000000)')}${btn('− 1 mln $','debugCash(-1000000)')}</div>`}
+function countryPicker(id,selected=[]){return `<label>Wybierz wiele krajów działalności (Ctrl nie jest potrzebny)</label><div class="country-pick"><input type="search" placeholder="Szukaj kraju..." oninput="filterCountryChecks(this)"><div class="country-list" id="${id}">${names.map(n=>`<label class="country-choice"><input type="checkbox" value="${esc(n)}" ${selected.includes(n)?'checked':''}> ${esc(n)}</label>`).join('')}</div></div>`}function filterCountryChecks(el){const q=el.value.toLocaleLowerCase('pl');el.nextElementSibling.querySelectorAll('.country-choice').forEach(e=>e.hidden=!e.textContent.toLocaleLowerCase('pl').includes(q))}function readCountries(id){return [...(document.getElementById(id)?.querySelectorAll('input:checked')||[])].map(e=>e.value)}function countryEditor(c){return `<div id="countryEditor${c.id}" style="display:none">${countryPicker('countries'+c.id,c.countries||[c.country])}<button onclick="saveCompanyCountries(${c.id})" class="primary">Zapisz kraje działalności</button></div>`}function toggleCountryEditor(id){const e=document.getElementById('countryEditor'+id);e.style.display=e.style.display==='none'?'block':'none'}function saveCompanyCountries(id){const c=company(id);if(!c)return;c.countries=[...new Set([c.country,...readCountries('countries'+id)])];log('Zmieniono kraje działalności: '+c.name);render();toast('Zapisano '+c.countries.length+' krajów')}function tabHoldings(){return header('Holding i spółki córki','Spółka córka może mieć kolejne spółki córki i działać w wielu państwach.')+input('companyName','Nazwa nowej spółki','text','Nowa spółka')+select('companyParent','Spółka nadrzędna',companyOpts())+select('companyCountry','Kraj rejestracji',countryOpts())+countryPicker('companyCountries', ['Polska'])+btn('Utwórz spółkę','addCompany()','primary')+`<h3>Struktura holdingu</h3>`+S.companies.map(c=>card(`<b>🏢 ${esc(c.name)}</b><p class="muted">ID ${c.id} · Nadrzędna: ${esc(company(c.parent)?.name||'brak')} · ${esc(c.country)}</p><p class="muted">Kraje: ${c.countries.map(esc).join(', ')}</p><div class="tools">${btn('🌍 Wybierz wiele krajów','toggleCountryEditor('+c.id+')')}${countryEditor(c)}${btn('Przelew','transferTo('+c.id+')')}${btn(c.autonomy?'Wyłącz AI':'Włącz AI','toggleAutonomy('+c.id+')')}</div>`)).join('')}
+function tabMarket(){return header('Giełda i przejęcia','Nowe firmy AI powstają z czasem. Przy ponad 50% udziałów masz kontrolę, a przy 100% możesz przejąć majątek.')+S.firms.map(f=>card(`<b>📈 ${esc(f.name)}</b><p class="muted">${esc(f.country)} · Udziały ${f.share}% · Cena 1%: ${money(f.price)} · Pracownicy: ${f.workers} · Budynki: ${f.assets}</p><div class="tools">${btn('Kup 1%','buyShares('+f.id+',1)')}${btn('Kup 10%','buyShares('+f.id+',10)')}${btn('Do 100%','buyShares('+f.id+','+(100-f.share)+')','primary')}${f.share>50?btn('Panel zarządzania','manageFirm('+f.id+')'):''}${f.share===100?btn('Pełne przejęcie','takeover('+f.id+')','primary'):''}</div>`)).join('')}
+function tabContracts(){return header('Kontrakty i przetargi','Podpisuj umowy na dostawy. Produkty muszą być dostępne w magazynach spółki.')+`<h3>Oferty</h3>`+S.contracts.filter(c=>!c.active).map(c=>card(`<b>📃 ${esc(c.country)} — ${esc(PRODUCTS[c.product])}</b><p class="muted">${c.qty} jednostek / miesiąc · ${c.months} miesięcy · cena ${money(S.prices[c.product]*c.premium)} / jedn.</p>${btn('Podpisz kontrakt','acceptContract('+c.id+')','primary')}`)).join('')+`<h3>Aktywne umowy</h3>`+(S.contracts.filter(c=>c.active).map(c=>card(`<b>${esc(c.country)} — ${esc(PRODUCTS[c.product])}</b><p class="muted">${c.qty} jedn./mies. · ${c.months} mies. do końca</p>${btn('Rozwiąż','cancelContract('+c.id+')','danger')}`)).join('')||card('Brak aktywnych umów.'))}
+function tabResearch(){let researchers=S.workers.filter(w=>w.perk==='Badacz');let rate=2+researchers.reduce((a,w)=>a+w.skill*3,0);return header('Badania i technologie','Nowe projekty powstają automatycznie. Badacze zwiększają tempo zdobywania punktów nauki.')+`<div class="grid"><div class="metric">Punkty badań<strong>${Math.floor(S.researchPoints)}</strong></div><div class="metric">Przyrost / miesiąc<strong>+${rate}</strong></div><div class="metric">Badacze<strong>${researchers.length}</strong></div><div class="metric">Odkryte<strong>${S.researchDone.length}</strong></div></div><h3>Dostępne projekty</h3>`+S.technologies.map(t=>card(`<b>🔬 ${esc(t.name)}</b><p class="muted">Koszt: ${money(t.cost)} i ${t.bonus*7} punktów badań · Premia do wydajności +${t.bonus}%</p>${btn('Opracuj','research('+t.id+')','primary')}`)).join('')+`<h3>Opracowane technologie</h3>`+(S.researchDone.map(t=>`<span class="tag">${esc(t.name)}</span>`).join('')||'<p class="muted">Jeszcze nic nie opracowano.</p>')}
+function tabLogistics(){return header('Transport i magazyny','Produkcja trafia do zapasów. Zakłady przetwórcze zużywają surowce, a kontrakty pobierają towary.')+`<h3>Zapasy koncernu</h3><div class="grid">`+Object.entries(PRODUCTS).map(([k,v])=>`<div class="metric">${v}<strong>${Math.floor(S.stock[k]||0)}</strong></div>`).join('')+`</div><h3>Sprzedaż rynkowa</h3>`+select('sellProduct','Produkt',productOpts())+input('sellQty','Liczba jednostek','number',10)+btn('Sprzedaj zapasy','sellStock()','primary')+`<h3>Transport między zakładami</h3><p class="muted">Połączenia logistyczne są planowane między Twoimi obiektami. Transport w obecnej wersji jest uproszczony i rozliczany w ramach wspólnych zapasów koncernu.</p>`+(S.assets.length>1?select('routeFrom','Z obiektu',S.assets.map(a=>`<option value="${a.id}">${esc(TYPES[a.type].name)} (${esc(a.country)})</option>`).join(''))+select('routeTo','Do obiektu',S.assets.map(a=>`<option value="${a.id}">${esc(TYPES[a.type].name)} (${esc(a.country)})</option>`).join(''))+btn('Dodaj trasę','addRoute()'):card('Zbuduj co najmniej dwa obiekty, aby dodać trasę.'))+S.routes.map(r=>card(`<b>🚚 ${esc(TYPES[asset(r.from)?.type]?.name||'Obiekt')} → ${esc(TYPES[asset(r.to)?.type]?.name||'Obiekt')}</b>`)).join('')}
+function tabWorld(){return header('Świat i kraje','Spółki mogą prowadzić działalność w wielu krajach. Budynki przypisujesz do kraju przy inwestycji.')+`<div class="grid"><div class="metric">Kraje na liście<strong>${names.length}</strong></div><div class="metric">Kraje działalności<strong>${new Set(S.companies.flatMap(c=>c.countries)).size}</strong></div></div><h3>Państwa działalności</h3><p class="muted">W spółkach kliknij „Wybierz wiele krajów”, zaznacz państwa i zapisz.</p>`+S.companies.map(c=>card(`<b>${esc(c.name)}</b><p class="muted">${c.countries.map(esc).join(', ')}</p>`)).join('')+`<p class="muted">Lista krajów jest w tej przebudowanej wersji skrócona. Nie jest to jeszcze komplet 195 państw.</p>`}
+function tabAIWorld(){return header('Żyjące firmy AI','Konkurenci budują i zatrudniają automatycznie co miesiąc. Pomarańczowe ikony to obiekty AI.')+`<div class="tools">${btn('Wszystkie','setMapFilter(\'all\')')}${btn('Moje','setMapFilter(\'own\')')}${btn('Firmy AI','setMapFilter(\'ai\')')}</div>`+`<div class="grid"><div class="metric">Firmy AI<strong>${S.firms.length}</strong></div><div class="metric">Obiekty AI<strong>${S.aiAssets.length}</strong></div></div>`+S.firms.slice(0,35).map(f=>card(`<b>🏢 ${esc(f.name)}</b><p class="muted">${esc((f.aiCountries||[f.country]).join(', '))} · Saldo ${money(f.cash)} · Pracownicy ${f.aiWorkers||0} · Obiekty ${S.aiAssets.filter(a=>a.firmId===f.id).length} · Technologia ${f.aiTech||0}</p><div class="tools">${S.aiAssets.filter(a=>a.firmId===f.id).slice(0,3).map(a=>btn(TYPES[a.type].icon+' Pokaż','focusAI('+a.id+')')).join('')}</div>`)).join('')+`<h3>Wydarzenia AI</h3>`+S.aiEvents.slice(0,15).map(e=>card(esc(e))).join('')}
+function tabReports(){return header('Raporty i historia','Wyniki ekonomiczne naliczane co miesiąc.')+`<h3>Ostatnie miesiące</h3>`+(S.history.slice(-18).reverse().map(h=>card(`<b>Miesiąc ${h.month}</b><p class="muted">Przychód ${money(h.revenue)} · Koszty ${money(h.costs)} · Wynik <span class="${h.profit>=0?'positive':'negative'}">${money(h.profit)}</span> · Gotówka ${money(h.cash)}</p>`)).join('')||card('Historia pojawi się po pierwszym miesiącu.'))+`<h3>Dziennik zdarzeń</h3>`+S.logs.slice(0,45).map(x=>`<div class="muted" style="padding:8px 0;border-bottom:1px solid #ffffff16">${esc(x)}</div>`).join('')}
+function tabSettings(){return header('Ustawienia i zapisy','Gra zapisuje się automatycznie w tej przeglądarce.')+`<p class="muted">Zapis lokalny: ${esc(KEY)}. Po zamknięciu strony czas nie nalicza się w tle.</p><div class="tools">${btn('Zapisz teraz','save();toast(\'Zapisano grę\')','primary')}${btn('Eksport JSON','exportGame()')}${btn('Nowa gra','resetGame()','danger')}</div><label>Import zapisu JSON</label><input type="file" accept=".json,application/json" onchange="importGame(this)"><label><input type="checkbox" id="sandbox" style="width:auto" ${S.sandbox?'checked':''} onchange="S.sandbox=this.checked;render()"> Tryb sandbox — nieograniczony budżet budowy</label>`}
+const VIEWS={overview:tabOverview,industry:tabIndustry,employees:tabEmployees,finance:tabFinance,holdings:tabHoldings,market:tabMarket,contracts:tabContracts,research:tabResearch,logistics:tabLogistics,world:tabWorld,aiworld:tabAIWorld,reports:tabReports,settings:tabSettings};function render(){if(document.activeElement?.matches('input,textarea,[contenteditable="true"]') && document.getElementById('content').contains(document.activeElement)){save();return}ensureOffers();document.getElementById('cashTop').textContent=money(S.cash);document.getElementById('dateTop').textContent='Miesiąc '+(S.month+1);document.getElementById('profitTop').textContent=money(S.lastProfit);document.getElementById('profitTop').className=S.lastProfit<0?'negative':'positive';document.getElementById('pauseBtn').textContent=S.paused?'▶ Wznów':'⏸ Pauza';document.getElementById('speed').value=String(S.speed);document.getElementById('nav').value=S.tab;const content=document.getElementById('content');const oldScroll=content.scrollTop;content.innerHTML=(VIEWS[S.tab]||tabOverview)();content.scrollTop=oldScroll;document.getElementById('mapHint').textContent=S.build?'Kliknij mapę, aby ustawić dokładną lokalizację.':'Kliknij obiekt, aby nim zarządzać.';renderMap();save()}function showTab(t){S.tab=t;try{sessionStorage.setItem('energy_empire_active_tab',t)}catch{}render()}document.getElementById('nav').innerHTML=TABS.map(([id,name])=>`<option value="${id}">${name}</option>`).join('');
+function startBuild(){const type=document.getElementById('buildType').value,owner=Number(document.getElementById('buildOwner').value),country=document.getElementById('buildCountry').value;S.build={type,owner,country,lat:null,lng:null};toast('Kliknij dokładne miejsce na mapie');render()}function cancelBuild(){S.build=null;render()}function confirmBuild(){const b=S.build;if(!b||b.lat==null)return toast('Najpierw wskaż punkt na mapie');const t=TYPES[b.type];if(!spend(t.cost))return;const a={id:nextId(),type:b.type,companyId:b.owner,country:b.country,lat:b.lat,lng:b.lng,condition:100};S.assets.push(a);const c=company(b.owner);if(c&&!c.countries.includes(b.country))c.countries.push(b.country);log('Zbudowano: '+t.name+' w '+b.country);S.build=null;render()}function focusAsset(id){const a=asset(id);if(a&&map){map.setView([a.lat,a.lng],11)}}function assignWorkers(id){const a=asset(id);if(!a)return;const free=S.workers.filter(w=>w.companyId===a.companyId&&!w.assetId);if(!free.length)return toast('Brak wolnych pracowników tej spółki — zatrudnij nowych');let count=0;for(const w of free.slice(0,TYPES[a.type].staff-S.workers.filter(w=>w.assetId===id).length)){w.assetId=id;count++}toast('Przypisano '+count+' pracowników');render()}function sellAsset(id){const a=asset(id);if(!a)return;showGameDialog({title:'Sprzedaż obiektu',message:'Sprzedać obiekt za 60% kosztu budowy?',confirmText:'Sprzedaj',onSubmit:()=>{income(TYPES[a.type].cost*.6);S.workers.filter(w=>w.assetId===id).forEach(w=>w.assetId=null);S.assets=S.assets.filter(x=>x.id!==id);log('Sprzedano obiekt');render()}})}function fireWorker(id){const w=S.workers.find(w=>w.id===id);if(!w)return;S.workers=S.workers.filter(x=>x.id!==id);log('Zwolniono '+w.name);render()}function takeLoan(){let amount=Number(document.getElementById('loanAmount').value),term=Number(document.getElementById('loanTerm').value);if(!Number.isFinite(amount)||amount<100000||amount>500000000)return toast('Kwota od 100 tys. do 500 mln $');const rate=term===12?.08:term===36?.10:.12;const total=amount*(1+rate*term/12);S.loans.push({id:nextId(),principal:amount,left:total,payment:total/term,months:term});income(amount);log('Zaciągnięto kredyt '+money(amount));render()}function repayLoan(id){const l=S.loans.find(x=>x.id===id);if(!l||!spend(l.left))return;S.loans=S.loans.filter(x=>x.id!==id);log('Spłacono kredyt');render()}function savePrices(){for(const k of Object.keys(PRODUCTS)){const n=Number(document.getElementById('price_'+k).value);if(!Number.isFinite(n)||n<=0||n>1e8)return toast('Nieprawidłowa cena');S.prices[k]=n}toast('Zapisano cennik');render()}function debugCash(n){income(n);log('Zmiana gotówki w trybie testowym: '+money(n));render()}function addCompany(){const name=document.getElementById('companyName').value.trim(),parent=Number(document.getElementById('companyParent').value),country=document.getElementById('companyCountry').value;if(!name)return toast('Podaj nazwę');S.companies.push({id:nextId(),name,parent,country,countries:[...new Set([country,...readCountries('companyCountries')])],cash:0,autonomy:false});log('Założono spółkę '+name);render()}function addCountry(id){const c=company(id);if(!c)return;showGameDialog({title:'Dodaj kraj działalności',label:'Wybierz kraj',type:'select',options:typeof COUNTRIES!=='undefined'?COUNTRIES:[],onSubmit:k=>{if(k&&!c.countries.includes(k))c.countries.push(k);render()}})}function transferTo(id){const c=company(id);if(!c)return;showGameDialog({title:'Przelew do '+c.name,label:'Kwota przelewu ($)',type:'number',value:'1000000',onSubmit:v=>{const n=Number(v);if(!Number.isFinite(n)||n<=0)return toast('Nieprawidłowa kwota');if(!spend(n))return;c.cash=(c.cash||0)+n;log('Przelew do '+c.name+': '+money(n));render()}})}function toggleAutonomy(id){const c=company(id);if(c){c.autonomy=!c.autonomy;render()}}function buyShares(id,n){const f=S.firms.find(f=>f.id===id);if(!f)return;n=Math.min(n,100-f.share);if(n<=0)return;const price=f.price*n;if(!spend(price))return;f.share+=n;log('Kupiono '+n+'% udziałów '+f.name);render()}function manageFirm(id){const f=S.firms.find(f=>f.id===id);if(f&&f.share>50)showGameDialog({title:f.name,message:'Udziały: '+f.share+'% · Pracownicy: '+f.workers+' · Obiekty: '+f.assets+' · Kapitał: '+money(f.cash)+'. Pełne przejęcie majątku po zakupie 100%.',confirmText:'Zamknij',onSubmit:()=>{}})}function takeover(id){const f=S.firms.find(f=>f.id===id);if(!f||f.share<100)return;const co={id:nextId(),name:f.name,parent:1,country:f.country,countries:[...new Set(f.aiCountries||[f.country])],cash:f.cash,autonomy:false};S.companies.push(co);for(const a of S.aiAssets.filter(a=>a.firmId===f.id)){S.assets.push({id:a.id,type:a.type,companyId:co.id,country:a.country,lat:a.lat,lng:a.lng,condition:a.condition||100})}S.aiAssets=S.aiAssets.filter(a=>a.firmId!==f.id);for(let i=0;i<Math.min(f.aiWorkers||f.workers||0,100);i++){const w=genCandidate();S.workers.push({...w,companyId:co.id,assetId:null,experience:0})}S.firms=S.firms.filter(x=>x.id!==id);aiNews('Przejęto '+f.name+' z jej istniejącymi budynkami');render()}
+function acceptContract(id){const c=S.contracts.find(x=>x.id===id);if(c){c.active=true;log('Podpisano kontrakt z '+c.country);render()}}function cancelContract(id){S.contracts=S.contracts.filter(c=>c.id!==id);render()}function research(id){const t=S.technologies.find(t=>t.id===id);if(!t)return;const pts=t.bonus*7;if(S.researchPoints<pts)return toast('Za mało punktów badań');if(!spend(t.cost))return;S.researchPoints-=pts;S.researchDone.push(t);S.technologies=S.technologies.filter(x=>x.id!==id);log('Opracowano '+t.name);render()}function sellStock(){const k=document.getElementById('sellProduct').value,n=Number(document.getElementById('sellQty').value);if(!Number.isFinite(n)||n<=0||n>S.stock[k])return toast('Brak wystarczających zapasów');S.stock[k]-=n;income(n*S.prices[k]);log('Sprzedano '+n+' jedn. '+PRODUCTS[k]);render()}function addRoute(){const from=Number(document.getElementById('routeFrom').value),to=Number(document.getElementById('routeTo').value);if(from===to)return toast('Wybierz dwa różne obiekty');S.routes.push({id:nextId(),from,to});render()}function togglePause(){S.paused=!S.paused;render()}function setSpeed(v){S.speed=Number(v);S.progress=0;render()}function exportGame(){const blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='energy_empire_save.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000)}function importGame(input){const file=input.files?.[0];if(!file)return;file.text().then(t=>{try{const data=JSON.parse(t);if(!Array.isArray(data.companies)||!Array.isArray(data.assets))throw Error();S=Object.assign(seed(),data);ensureOffers();render();toast('Wczytano zapis')}catch{toast('Niepoprawny plik zapisu')}})}function resetGame(){showGameDialog({title:'Nowa gra',message:'Obecny zapis zostanie zastąpiony. Czy kontynuować?',confirmText:'Nowa gra',onSubmit:()=>{S=seed();ensureOffers();render()}})}
+function advance(){const currentTab=document.getElementById('nav').value||S.tab;S.tab=TABS.some(x=>x[0]===currentTab)?currentTab:'overview';S.month++;let revenue=0,costs=0;const bonus=1+S.researchDone.reduce((a,t)=>a+t.bonus,0)/100;for(const a of S.assets){const t=TYPES[a.type];if(!t)continue;const assigned=S.workers.filter(w=>w.assetId===a.id);const efficiency=Math.min(1,.15+assigned.length/Math.max(1,t.staff)*.85)*bonus;let factor=efficiency;for(const [k,v] of Object.entries(t.input||{})){factor=Math.min(factor,(S.stock[k]||0)/v)}factor=Math.max(0,Math.min(1.8,factor));for(const [k,v] of Object.entries(t.input||{}))S.stock[k]=Math.max(0,(S.stock[k]||0)-v*factor);for(const [k,v] of Object.entries(t.prod||{}))S.stock[k]=(S.stock[k]||0)+v*factor;costs+=t.upkeep}for(const w of S.workers){costs+=w.salary;w.experience=(w.experience||0)+1}for(const l of [...S.loans]){const p=Math.min(l.left,l.payment);l.left-=p;l.months--;costs+=p;if(l.left<1||l.months<=0)S.loans=S.loans.filter(x=>x.id!==l.id)}for(const c of [...S.contracts])if(c.active){const qty=Math.min(c.qty,S.stock[c.product]||0);S.stock[c.product]-=qty;revenue+=qty*S.prices[c.product]*c.premium;c.months--;if(c.months<=0){S.contracts=S.contracts.filter(x=>x.id!==c.id);log('Zakończono kontrakt: '+c.country)}}const staff=S.workers.filter(w=>w.perk==='Badacz');S.researchPoints+=2+staff.reduce((a,w)=>a+w.skill*3,0);for(const c of S.companies)if(c.autonomy&&c.id!==1&&c.cash>100000){c.cash-=50000;S.researchPoints+=2}for(const f of S.firms){f.price=Math.max(100000,Math.round(f.price*(.94+Math.random()*.12)));f.cash+=rnd(-3,8)*100000; if(f.cash<0)f.cash=0}if(S.month%2===0){S.candidates.push(genCandidate(),genCandidate());S.technologies.push(genTech());S.contracts.push(genContract())}if(S.month%3===0)S.firms.push(genFirm());aiSeed();for(const f of S.firms)if(Math.random()<.7)aiExpand(f);S.candidates=S.candidates.slice(-55);S.technologies=S.technologies.slice(-40);const removed=S.firms.splice(75);if(removed.length)S.aiAssets=S.aiAssets.filter(a=>!removed.some(f=>f.id===a.firmId));S.contracts=S.contracts.filter(c=>c.active).concat(S.contracts.filter(c=>!c.active).slice(-25));const profit=revenue-costs;income(profit);S.lastProfit=profit;S.history.push({month:S.month,revenue,costs,profit,cash:S.cash});S.history=S.history.slice(-120);log('Wynik miesiąca: '+money(profit));render()}
+let last=performance.now();function frame(now){let dt=Math.min(1,(now-last)/1000);last=now;if(!S.paused&&!document.querySelector('input:focus, textarea:focus, select:focus, [contenteditable="true"]:focus')&&!document.querySelector('[role="dialog"]:focus-within')){S.progress+=dt;const target=S.speed||12;if(S.progress>=target){S.progress-=target;advance()}}const pct=Math.min(100,S.progress/(S.speed||12)*100);requestAnimationFrame(frame)}render();requestAnimationFrame(frame);
+</script>
+<style>
+#gameDialogBackdrop{position:fixed;inset:0;z-index:99999;display:none;align-items:center;justify-content:center;background:#020715ba;backdrop-filter:blur(9px);padding:18px}
+#gameDialogBackdrop.open{display:flex}#gameDialogBox{width:min(440px,100%);padding:25px;border-radius:22px;background:linear-gradient(145deg,#223c60f5,#0b142af7);border:1px solid #8edaff55;box-shadow:0 25px 80px #000b;color:#eef8ff}
+#gameDialogBox h2{margin:0 0 12px;font-size:21px}#gameDialogBox p{line-height:1.55;color:#c7d8ed}#gameDialogBox label{display:block;margin:16px 0 7px;font-size:13px}#gameDialogBox input,#gameDialogBox select{width:100%;padding:12px;background:#08172d;color:#fff;border:1px solid #7198c6;border-radius:11px}#gameDialogActions{display:flex;justify-content:flex-end;gap:10px;margin-top:22px}
+</style>
+<div id="gameDialogBackdrop" role="presentation"><div id="gameDialogBox" role="dialog" aria-modal="true" aria-labelledby="gameDialogTitle"><h2 id="gameDialogTitle"></h2><p id="gameDialogMessage"></p><form id="gameDialogForm"><div id="gameDialogField"></div><div id="gameDialogActions"><button type="button" id="gameDialogCancel">Anuluj</button><button class="primary" type="submit" id="gameDialogConfirm">Zatwierdź</button></div></form></div></div>
+<script>
+function showGameDialog({title,message='',label='',type='text',options=[],value='',confirmText='Zatwierdź',onSubmit}){
+ const bg=document.getElementById('gameDialogBackdrop'),form=document.getElementById('gameDialogForm'),field=document.getElementById('gameDialogField');
+ document.getElementById('gameDialogTitle').textContent=title;const msg=document.getElementById('gameDialogMessage');msg.textContent=message;msg.style.display=message?'block':'none';document.getElementById('gameDialogConfirm').textContent=confirmText;field.replaceChildren();let control=null;
+ if(label){const lbl=document.createElement('label');lbl.textContent=label;field.append(lbl);control=document.createElement(type==='select'?'select':'input');if(type==='select'){for(const item of options){const opt=document.createElement('option');opt.value=typeof item==='string'?item:item.code||item.name||String(item);opt.textContent=typeof item==='string'?item:item.name||item.label||String(item);control.append(opt)}}else{control.type=type;control.value=value;if(type==='number'){control.min='0';control.step='any'}}control.required=true;field.append(control)}
+ bg.classList.add('open');const close=()=>{bg.classList.remove('open');form.onsubmit=null};document.getElementById('gameDialogCancel').onclick=close;bg.onclick=e=>{if(e.target===bg)close()};form.onsubmit=e=>{e.preventDefault();const v=control?control.value:undefined;close();onSubmit?.(v)};if(control)control.focus();
+}
+</script>
+<style>
+.ee21-badges{display:flex;gap:6px;flex-wrap:wrap}.ee21-badges span{background:#2b638b55;border:1px solid #66e4d944;border-radius:30px;padding:5px 9px;font-size:11px}.ee21-card{border:1px solid #ffffff24;border-radius:14px;padding:12px;margin:9px 0;background:linear-gradient(130deg,#16405a70,#121e4170)}.ee21-actions{display:flex;gap:7px;flex-wrap:wrap}.ee21-actions button{font-size:12px}.ee21-select{margin:5px 0}.ee21-maplabel{background:#061c31c9;color:white;border:1px solid #5ae3c7;border-radius:9px;padding:3px 7px;font-size:12px}.ee21-news{max-height:270px;overflow:auto}.ee21-mapbtn{position:absolute;right:12px;bottom:12px;z-index:600}
+</style><script>
+// Rozszerzenie 2.1 — zachowuje dotychczasowy format zapisu i ekrany.
+(function(){
+const previousAdvance=advance,previousRender=render,previousRenderMap=renderMap;
+const labels={oil:'Ropa',gas:'Gaz',coal:'Węgiel',fuel:'Paliwo',energy:'Energia',steel:'Stal',hydrogen:'Wodór'};
+const fmt=n=>money(Number(n)||0),rand=(a,b)=>Math.floor(a+Math.random()*(b-a+1));
+function setup(){
+ S.e21??={news:[],taxRate:0.12,subsidy:0,licences:[],maintenance:[],training:[],offers:[],aiContracts:[],grid:[],lastTax:0,workersBonus:0,marketDemand:{},companyReports:[],alerts:[],mapAI:true};
+ for(const f of S.firms){f.aiCash??=f.cash||rand(20,150)*1e6;f.aiStaff??=f.workers||rand(10,70);f.aiBuildings??=[];f.aiSubs??=[];f.aiHoldings??=[];f.aiDebt??=0;f.aiStock??={oil:0,gas:0,coal:0,fuel:0,energy:0};f.aiPolicy??='balanced';f.shareholders??=[{name:'Założyciele',pct:100-(f.share||0)},{name:'Twój holding',pct:f.share||0}];}
+ for(const a of S.assets){a.condition??=100;a.level??=1;a.maxStaff??=TYPES[a.type]?.staff||5;}
+}
+function news(msg){setup();S.e21.news.unshift({m:S.month,text:msg});S.e21.news=S.e21.news.slice(0,100);}
+function wrapTab(){if(!TABS.some(x=>x[0]==='living21'))TABS.push(['living21','🌐 Świat 2.1 i centrum dowodzenia']);VIEWS.living21=screen21;const nav=document.getElementById('nav');if(nav&&!Array.from(nav.options).some(x=>x.value==='living21')){const o=document.createElement('option');o.value='living21';o.textContent='🌐 Świat 2.1 i centrum dowodzenia';nav.append(o)}}
+function screen21(){setup();let e=S.e21;return `<h2>🌐 Gospodarka 2.1</h2><div class="ee21-badges"><span>Firmy AI: ${S.firms.length}</span><span>Aktywne kontrakty AI: ${e.aiContracts.length}</span><span>Pracownicy: ${S.workers.length}</span><span>Podatek: ${Math.round(e.taxRate*100)}%</span></div>
+<h3>🏢 Firmy AI i ich majątek</h3><div class="muted">Konkurenci inwestują co miesiąc. Kupowanie udziałów i przejęcia pozostają w zakładce Giełda.</div>${S.firms.slice(0,15).map(f=>`<div class="ee21-card"><b>${esc21(f.name)}</b><div class="muted">${esc21(f.country)} · gotówka ${fmt(f.aiCash)} · załoga ${f.aiStaff} · budynki ${f.aiBuildings.length} · spółki córki ${f.aiSubs.length} · Twój udział ${f.share}%</div><div class="ee21-actions"><button onclick="ee21Detail(${f.id})">📊 Szczegóły</button><button onclick="ee21Buy(${f.id})">🤝 Oferta udziałów</button><button onclick="showTab('market')">📈 Giełda</button></div></div>`).join('')}
+<h3>👔 Zarządzanie holdingiem</h3><label>Spółka córka</label><select id="ee21Company">${S.companies.map(c=>`<option value="${c.id}">${esc21(c.name)}</option>`).join('')}</select><div class="ee21-actions"><button onclick="ee21SetCEO()">🤖 Włącz/wyłącz prezesa AI</button><button onclick="ee21Report()">📊 Raport spółki</button></div>
+<h3>🏭 Modernizacja i serwis</h3><div class="muted">Modernizacje poprawiają produkcję, przeglądy zapobiegają awariom.</div>${S.assets.slice(0,16).map(a=>`<div class="ee21-card"><b>${esc21(TYPES[a.type]?.name||a.type)}</b> · poziom ${a.level||1} · stan ${Math.round(a.condition||0)}%<div class="ee21-actions"><button onclick="ee21Upgrade(${a.id})">⬆ Modernizuj</button><button onclick="ee21Repair(${a.id})">🔧 Remont</button></div></div>`).join('')||'<div class="muted">Najpierw wybuduj obiekt w Przemyśle.</div>'}
+<h3>👷 Szkolenia</h3><select id="ee21Worker">${S.workers.map(w=>`<option value="${w.id}">${esc21(w.name)} · ${esc21(w.perk)} · ${w.skill}/5</option>`).join('')}</select><button class="full" onclick="ee21Train()">🎓 Szkolenie — 20 000 $</button>
+<h3>🌍 Państwa i koncesje</h3><div class="row"><select id="ee21Tax"><option value="0.08">8% — niskie</option><option value="0.12" ${e.taxRate===.12?'selected':''}>12% — standard</option><option value="0.18">18% — wysokie</option></select><button onclick="ee21TaxChange()">Ustaw stawkę symulacji</button></div><div class="muted">Stawka jest uproszczoną średnią w świecie gry, nie odzwierciedla rzeczywistych przepisów.</div><button class="full" onclick="ee21Licence()">📜 Kup koncesję wydobywczą — 1 mln $</button><div class="muted">Koncesje: ${e.licences.length}</div>
+<h3>📄 Kontrakty między firmami</h3>${e.offers.slice(0,6).map(o=>`<div class="ee21-card"><b>${esc21(o.firm)} kupi ${esc21(labels[o.product])}</b><div class="muted">${o.qty} jednostek · ${fmt(o.price)} za jednostkę · wygasa za ${o.ttl} mies.</div><button onclick="ee21Contract(${o.id})">Podpisz kontrakt</button></div>`).join('')||'<div class="muted">Nowe oferty pojawiają się automatycznie.</div>'}
+<h3>⚡ Sieć i rurociągi</h3><div class="muted">Twórz połączenia między istniejącymi obiektami (widoczne na mapie).</div><div class="row"><select id="ee21From">${S.assets.map(a=>`<option value="${a.id}">${a.id} · ${esc21(TYPES[a.type]?.name||a.type)}</option>`).join('')}</select><select id="ee21To">${S.assets.map(a=>`<option value="${a.id}">${a.id} · ${esc21(TYPES[a.type]?.name||a.type)}</option>`).join('')}</select></div><button class="full" onclick="ee21Connect()">🔗 Połącz obiekty — 150 000 $</button>
+<h3>📰 Centrum powiadomień</h3><div class="ee21-news">${e.news.slice(0,30).map(n=>`<div class="ee21-card"><span class="small">Miesiąc ${n.m+1}</span><div>${esc21(n.text)}</div></div>`).join('')||'<div class="muted">Zdarzenia pojawią się po kolejnym miesiącu.</div>'}</div>`}
+function esc21(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function pick21(id){return S.firms.find(f=>f.id===id)}
+window.ee21Detail=id=>{setup();const f=pick21(id);if(!f)return;showGameDialog({title:f.name,message:`Gotówka: ${fmt(f.aiCash)} · pracownicy: ${f.aiStaff} · budynki: ${f.aiBuildings.length} · spółki córki: ${f.aiSubs.length} · zadłużenie: ${fmt(f.aiDebt)} · udział Twojego holdingu: ${f.share}%`,confirmText:'Zamknij'})};
+window.ee21Buy=id=>{const f=pick21(id);if(!f)return;showGameDialog({title:'Oferta zakupu udziałów',message:`${f.name} · posiadasz ${f.share}%. Cena bazowa 1%: ${fmt(f.price)}. Oferta może zostać odrzucona.`,label:'Ile procent udziałów chcesz kupić?',type:'number',value:'5',onSubmit:v=>{const n=Number(v);if(!Number.isInteger(n)||n<=0||n>100-f.share)return toast('Nieprawidłowa liczba udziałów');const total=n*f.price;if(S.cash<total)return toast('Brak środków');if(Math.random()<.25){news('Udziałowcy '+f.name+' odrzucili ofertę');toast('Oferta odrzucona');return}buyShares(id,n);setup();f.shareholders=[{name:'Pozostali inwestorzy',pct:100-f.share},{name:'Twój holding',pct:f.share}];news('Zakupiono '+n+'% udziałów '+f.name);}})};
+window.ee21SetCEO=()=>{const c=company(Number(document.getElementById('ee21Company')?.value));if(!c)return;c.autonomy=!c.autonomy;news('Prezes AI '+c.name+': '+(c.autonomy?'aktywny':'wyłączony'));render()};
+window.ee21Report=()=>{const c=company(Number(document.getElementById('ee21Company')?.value));if(!c)return;const assets=S.assets.filter(a=>a.companyId===c.id),staff=S.workers.filter(w=>w.companyId===c.id);showGameDialog({title:'Raport: '+c.name,message:`Saldo: ${fmt(c.cash)} · budynki: ${assets.length} · pracownicy: ${staff.length} · miesięczne płace: ${fmt(staff.reduce((n,w)=>n+w.salary,0))} · zarząd AI: ${c.autonomy?'tak':'nie'}`,confirmText:'Zamknij'})};
+window.ee21Upgrade=id=>{const a=S.assets.find(x=>x.id===id);if(!a)return;const price=1e6*(a.level||1);if(!spend(price))return;a.level=(a.level||1)+1;news('Zmodernizowano budynek '+id);render()};
+window.ee21Repair=id=>{const a=S.assets.find(x=>x.id===id);if(!a)return;if(!spend(120000))return;a.condition=100;news('Przegląd budynku '+id);render()};
+window.ee21Train=()=>{const w=S.workers.find(x=>x.id===Number(document.getElementById('ee21Worker')?.value));if(!w)return;if(w.skill>=5)return toast('Maksymalny poziom');if(!spend(20000))return;w.skill++;news('Przeszkolono '+w.name);render()};
+window.ee21TaxChange=()=>{S.e21.taxRate=Number(document.getElementById('ee21Tax').value);render()};
+window.ee21Licence=()=>{if(!spend(1e6))return;S.e21.licences.push({id:nextId(),month:S.month,country:S.companies[0]?.country||'Polska'});news('Kupiono koncesję wydobywczą');render()};
+window.ee21Contract=id=>{const o=S.e21.offers.find(x=>x.id===id);if(!o)return;S.e21.aiContracts.push({...o,remaining:rand(3,12)});S.e21.offers=S.e21.offers.filter(x=>x.id!==id);news('Podpisano kontrakt: '+o.firm);render()};
+window.ee21Connect=()=>{const a=Number(document.getElementById('ee21From')?.value),b=Number(document.getElementById('ee21To')?.value);if(!a||!b||a===b)return toast('Wybierz dwa różne obiekty');if(!spend(150000))return;S.routes.push({id:nextId(),from:a,to:b});news('Wybudowano połączenie infrastruktury');render()};
+function month21(){setup();let e=S.e21;for(const a of S.assets){a.condition=Math.max(0,(a.condition??100)-rand(0,3));if(a.condition<30&&Math.random()<.18)news('Awaria zakładu '+(TYPES[a.type]?.name||a.type));}
+ for(const f of S.firms){f.aiCash+=(f.aiBuildings.length*rand(1,5)*40000)-(f.aiStaff*rand(150,400));f.aiCash=Math.max(0,f.aiCash);if(f.aiCash>2e6&&Math.random()<.25){f.aiCash-=rand(1,4)*500000;f.aiBuildings.push({id:nextId(),type:Object.keys(TYPES)[rand(0,Object.keys(TYPES).length-1)],lat:rand(3500,6100)/100,lng:rand(-900,3500)/100});news(f.name+' wybudowała zakład');}if(Math.random()<.2){f.aiStaff+=rand(1,4);f.aiCash-=f.aiStaff*100;}if(Math.random()<.055&&f.aiCash>4e6){f.aiSubs.push({name:f.name+' Ventures '+rand(1,99)});news(f.name+' utworzyła spółkę córkę');}if(Math.random()<.045&&S.firms.length>1){const other=S.firms[rand(0,S.firms.length-1)];if(other.id!==f.id){f.aiHoldings.push({id:other.id,share:rand(1,5)});f.aiCash=Math.max(0,f.aiCash-500000);news(f.name+' kupiła udziały '+other.name)}}}
+ if(S.month%2===0){const f=S.firms[rand(0,Math.max(0,S.firms.length-1))];if(f){const p=Object.keys(labels)[rand(0,6)];e.offers.push({id:nextId(),firm:f.name,product:p,qty:rand(1,10),price:Math.round((S.prices[p]||10000)*(0.8+Math.random()*.5)),ttl:rand(2,5)});}}e.offers=e.offers.filter(o=>--o.ttl>0).slice(-30);
+ let revenue=0;for(const c of [...e.aiContracts]){const qty=Math.min(c.qty,S.stock[c.product]||0);S.stock[c.product]-=qty;revenue+=qty*c.price;c.remaining--;if(c.remaining<=0)e.aiContracts=e.aiContracts.filter(x=>x.id!==c.id)}
+ if(revenue){income(revenue);S.lastProfit+=revenue;news('Dostawy dla firm AI: '+fmt(revenue))}
+ const tax=Math.max(0,S.lastProfit)*e.taxRate;if(tax){S.cash-=tax;S.lastProfit-=tax;e.lastTax=tax}else e.lastTax=0;
+ for(const c of S.companies){if(c.id===1||!c.autonomy)continue;if(c.cash>5e5&&Math.random()<.25){c.cash-=250000;S.researchPoints+=rand(2,8);news('Zarząd '+c.name+' zainwestował w badania')}}
+ if(S.month%3===0){const ev=['Wzrost zapotrzebowania na energię','Zmiana cen surowców','Nowy przetarg na dostawy','Rozwój infrastruktury energetycznej'];news(ev[rand(0,ev.length-1)]);}
+ S.e21.companyReports.push({month:S.month,cash:S.cash,profit:S.lastProfit,tax:e.lastTax});S.e21.companyReports=e.companyReports.slice(-120);
+}
+advance=function(){setup();previousAdvance();month21();previousRender();};
+render=function(){setup();wrapTab();previousRender()};
+renderMap=function(){previousRenderMap();if(!S.e21?.mapAI||typeof L==='undefined'||typeof map==='undefined')return;try{if(window.ee21Layer)window.ee21Layer.clearLayers();else window.ee21Layer=L.layerGroup().addTo(map);for(const f of S.firms.slice(0,35))for(const b of (f.aiBuildings||[]).slice(0,4)){const marker=L.circleMarker([b.lat,b.lng],{radius:5,color:'#f9b968',weight:2,fillOpacity:.75});marker.bindPopup(esc21(f.name)+' — '+esc21(TYPES[b.type]?.name||b.type));window.ee21Layer.addLayer(marker)}}catch(e){console.warn('Warstwa AI',e)}};
+setup();wrapTab();render();
+})();
+</script><style>
+.ee23-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}.ee23-card{border:1px solid #ffffff2b;background:#152a467c;border-radius:14px;padding:12px}.ee23-card button{margin:4px 3px 0 0}.ee23-stat{display:inline-block;padding:5px 9px;margin:3px;background:#2c607c77;border-radius:20px}.ee23-tiny{font-size:12px;color:#b5c9dd}.ee23-scroll{max-height:440px;overflow:auto}.ee23-chart{display:flex;align-items:end;gap:3px;height:110px;border-bottom:1px solid #ffffff55}.ee23-chart span{flex:1;background:linear-gradient(#56d8dc,#3267ad);min-width:3px;border-radius:3px 3px 0 0}
+</style>
+<script>
+/* Energy Empire 2.3: persistent world economy, industrial chains and ownership. */
+(function(){
+const oldAdvance=advance,oldRender=render,oldMap=renderMap;
+const INDUSTRIES={iron:{name:'Kopalnia rudy żelaza',icon:'🪨',cost:23000000,staff:19,prod:{iron:125},upkeep:76000},copper:{name:'Kopalnia miedzi',icon:'🔶',cost:27000000,staff:21,prod:{copper:90},upkeep:90000},lithium:{name:'Kopalnia litu',icon:'🔋',cost:32000000,staff:22,prod:{lithium:65},upkeep:115000},uranium:{name:'Kopalnia uranu',icon:'☢️',cost:54000000,staff:30,prod:{uranium:50},upkeep:165000},battery:{name:'Fabryka baterii',icon:'🔋',cost:68000000,staff:38,input:{lithium:30,copper:15,energy:30},prod:{batteries:42},upkeep:185000},chemistry:{name:'Zakład chemiczny',icon:'🧫',cost:44000000,staff:31,input:{gas:30,energy:20},prod:{chemicals:60},upkeep:145000},turbine:{name:'Fabryka turbin',icon:'⚙️',cost:49000000,staff:34,input:{steel:20,copper:15},prod:{turbines:26},upkeep:165000}};
+Object.assign(TYPES,INDUSTRIES);Object.assign(PRODUCTS,{iron:'Ruda żelaza',copper:'Miedź',lithium:'Lit',uranium:'Uran',batteries:'Baterie',chemicals:'Chemikalia',turbines:'Turbiny'});
+const zones=[['Polska',52.2,21],['Niemcy',51.2,10.4],['Francja',46.6,2.2],['USA',39,-98],['Kanada',56,-106],['Brazylia',-14,-52],['Chiny',35,104],['Indie',22,79],['Australia',-25,133],['Norwegia',61,9],['Wielka Brytania',54,-2],['Japonia',36,138],['RPA',-29,24],['Arabia Saudyjska',24,45],['Argentyna',-34,-64],['Szwecja',62,15],['Hiszpania',40,-4],['Włochy',42,12]];
+const rand23=(a,b)=>Math.floor(a+Math.random()*(b-a+1));
+const pick23=a=>a[rand23(0,a.length-1)];
+function setup23(){
+ S.e23??={events:[],government:{},tenders:[],mergers:[],mapCompany:'all',mapIndustry:'all',mapLayer:'all',priceHistory:[],industryStats:[],workersMoved:0,marketShock:1,worldCycle:0};
+ for(const [k,v] of Object.entries(PRODUCTS)){S.stock[k]??=0;S.prices[k]??={iron:16000,copper:45000,lithium:72000,uranium:95000,batteries:86000,chemicals:26000,turbines:110000}[k]||18000;}
+ for(const f of S.firms){f.strategy??=pick23(['wydobycie','energetyka','przetwórstwo','holding']);f.aiDebt??=0;f.aiSubs??=[];f.aiResearch??=0;f.aiTech??=0;f.aiStaff??=f.workers||15;f.aiCash??=f.cash||10000000;f.aiCountries??=[f.country];f.shareholders??=[{name:'Inwestorzy',pct:100-(f.share||0)},{name:'Twój holding',pct:f.share||0}];f.aiBuildings??=[];}
+ for(const a of S.aiAssets||[]){a.condition??=100;a.level??=1;}
+ for(const [name] of zones)S.e23.government[name]??={tax:rand23(8,21)/100,subsidy:rand23(0,6)/100,budget:rand23(200,800)*1000000};
+}
+function ev23(msg){S.e23.events.unshift({m:S.month,text:msg});S.e23.events=S.e23.events.slice(0,160);if(typeof aiNews==='function')aiNews(msg)}
+function realBuildings(f){return (S.aiAssets||[]).filter(a=>a.firmId===f.id)}
+function normalizedAI(f){if(f.aiBuildings?.length){for(const b of f.aiBuildings.splice(0,10)){if(!TYPES[b.type])continue;S.aiAssets.push({id:nextId(),firmId:f.id,type:b.type,lat:b.lat,lng:b.lng,country:f.country,condition:100,level:1})}}}
+function invest23(f){const buildings=realBuildings(f);const desired=f.strategy==='wydobycie'?['oil','gas','coal','iron','copper','lithium','uranium']:f.strategy==='energetyka'?['solar','wind','coalplant','gasplant','nuclear']:f.strategy==='przetwórstwo'?['refinery','steel','battery','chemistry','turbine','hydrogen']:Object.keys(TYPES);
+ const type=pick23(desired),t=TYPES[type],price=t.cost;if(f.aiCash<price*1.25)return false;
+ const zone=pick23(zones);const lat=Math.max(-80,Math.min(80,zone[1]+(Math.random()-.5)*4)),lng=zone[2]+(Math.random()-.5)*5;
+ f.aiCash-=price;f.aiCountries=[...new Set([...(f.aiCountries||[]),zone[0]])];S.aiAssets.push({id:nextId(),firmId:f.id,type,country:zone[0],lat,lng,condition:100,level:1});f.aiStaff+=Math.ceil(t.staff*.35);ev23(f.name+' wybudował: '+t.name+' ('+zone[0]+')');return true}
+function economy23(){setup23();const e=S.e23;e.worldCycle++;
+ if(S.month%8===0){e.marketShock=.85+Math.random()*.4;ev23(e.marketShock<.98?'Spowolnienie gospodarcze i spadek popytu':'Wzrost gospodarczy i popytu');}
+ for(const [k] of Object.entries(PRODUCTS)){const prev=S.prices[k];S.prices[k]=Math.max(100,Math.round(prev*(.97+Math.random()*.06)*(.995+e.marketShock*.005)));}
+ for(const f of S.firms){normalizedAI(f);const buildings=realBuildings(f);let revenue=0,cost=0;const inventory=f.aiInventory??={};f.aiInventory=inventory;
+ for(const a of buildings){const t=TYPES[a.type];if(!t)continue;a.condition=Math.max(10,(a.condition??100)-rand23(0,2));const factor=(a.condition/100)*(1+(f.aiTech||0)*.04)*(a.level||1);let production=factor;for(const [k,v] of Object.entries(t.input||{}))production=Math.min(production,(inventory[k]||0)/v);production=Math.max(0,production);for(const [k,v] of Object.entries(t.input||{}))inventory[k]=Math.max(0,(inventory[k]||0)-v*production);for(const [k,v] of Object.entries(t.prod||{}))inventory[k]=(inventory[k]||0)+v*production;cost+=t.upkeep*(a.level||1);if(a.condition<35&&f.aiCash>t.cost*.08){f.aiCash-=t.cost*.08;a.condition=100;}}
+ for(const [k,qty] of Object.entries(inventory)){const sold=Math.min(qty,Math.max(8,buildings.length*18));inventory[k]-=sold;revenue+=sold*(S.prices[k]||1000)*e.marketShock;}
+ cost+=(f.aiStaff||0)*3200;const tax=e.government[f.country]?.tax??.12;const profit=revenue-cost;f.aiCash=Math.max(0,(f.aiCash||0)+profit-Math.max(0,profit)*tax);f.aiLastProfit=profit;f.aiRevenue=revenue;f.aiCosts=cost;f.cash=f.aiCash;f.workers=f.aiStaff;f.assets=buildings.length;
+ if(f.aiDebt>0){const repayment=Math.min(f.aiCash*.08,f.aiDebt);f.aiDebt-=repayment;f.aiCash-=repayment;}
+ if(f.aiCash<TYPES.solar.cost*.8&&f.aiDebt<80000000&&Math.random()<.09){f.aiDebt+=15000000;f.aiCash+=15000000;ev23(f.name+' zaciągnął kredyt inwestycyjny');}
+ if(Math.random()<.11&&f.aiCash>800000){f.aiCash-=650000;f.aiResearch+=rand23(2,8);if(f.aiResearch>=35){f.aiTech++;f.aiResearch=0;ev23(f.name+' opracował technologię poziomu '+f.aiTech)}}
+ if(Math.random()<.13&&buildings.length&&f.aiCash>1500000){const a=pick23(buildings);const t=TYPES[a.type];if(f.aiCash>t.cost*.22){f.aiCash-=t.cost*.2;a.level=(a.level||1)+1;ev23(f.name+' rozbudował '+t.name)}}
+ if(Math.random()<.18&&f.aiCash>1000000){f.aiStaff+=rand23(1,6);f.aiCash-=100000;}
+ if(Math.random()<.24&&buildings.length<40)invest23(f);
+ if(Math.random()<.025&&f.aiCash>50000000&&f.aiSubs.length<5){const sub=f.name+' • '+pick23(['Mining','Power','Industries','International']);f.aiSubs.push({id:nextId(),name:sub,country:pick23(zones)[0]});f.aiCash-=10000000;ev23(f.name+' założył spółkę córkę '+sub)}
+ if(f.aiCash<300000&&buildings.length>1&&Math.random()<.2){const a=pick23(buildings);S.aiAssets=S.aiAssets.filter(x=>x!==a);f.aiCash+=TYPES[a.type].cost*.45;ev23(f.name+' sprzedał nierentowny obiekt');}
+ }
+ if(S.month%4===0){const f=pick23(S.firms);if(f){const product=pick23(Object.keys(PRODUCTS));e.tenders.push({id:nextId(),country:pick23(zones)[0],product,qty:rand23(5,30),price:S.prices[product]*1.2,remaining:3,competitor:f.name});ev23('Ogłoszono przetarg: '+PRODUCTS[product]);}}
+ e.tenders=e.tenders.filter(t=>--t.remaining>0).slice(-18);
+ if(S.month%5===0){for(const [name,g] of Object.entries(e.government)){g.tax=Math.max(.05,Math.min(.28,g.tax+(Math.random()-.5)*.015));g.budget+=rand23(-20,35)*1000000;}}
+ if(S.month%6===0&&S.firms.length>1){const buyer=pick23(S.firms),target=pick23(S.firms.filter(f=>f!==buyer));if(target&&buyer.aiCash>target.price*5&&Math.random()<.25){buyer.aiCash-=target.price*5;buyer.aiHoldings??=[];buyer.aiHoldings.push({id:target.id,name:target.name,share:5});ev23(buyer.name+' kupił 5% akcji '+target.name);}}
+ e.priceHistory.push({month:S.month,...S.prices});e.priceHistory=e.priceHistory.slice(-48);
+}
+function screen23(){setup23();const e=S.e23;const firms=S.firms.slice().sort((a,b)=>(b.aiCash||0)-(a.aiCash||0));const bars=S.history.slice(-25).map(h=>h.profit);const max=Math.max(1,...bars.map(x=>Math.abs(x)));
+return `<h2>🌐 Energy Empire 2.3 — gospodarka świata</h2><p class="muted">Firmy AI produkują surowce w swoich zakładach, płacą koszty, inwestują, zatrudniają i rozwijają technologie. Dane zapisują się wraz z grą.</p>
+<div><span class="ee23-stat">Firmy AI: ${S.firms.length}</span><span class="ee23-stat">Zakłady AI: ${S.aiAssets.length}</span><span class="ee23-stat">Nowe branże: 7</span><span class="ee23-stat">Cykl gospodarczy: ${e.marketShock.toFixed(2)}×</span></div>
+<h3>🏢 Konkurenci i ich strategie</h3><div class="ee23-grid ee23-scroll">${firms.slice(0,24).map(f=>`<div class="ee23-card"><b>${esc(f.name)}</b><div class="ee23-tiny">${esc(f.strategy)} · ${esc(f.country)} · ${f.aiCountries?.length||1} krajów</div><div>Kapitał: ${money(f.aiCash)}<br>Zakłady: ${realBuildings(f).length} · pracownicy: ${f.aiStaff}<br>Wynik: ${money(f.aiLastProfit)} · technologia: ${f.aiTech||0}<br>Spółki córki: ${f.aiSubs?.length||0} · kredyty: ${money(f.aiDebt)}</div><button onclick="ee23Locate(${f.id})">🗺️ Znajdź na mapie</button><button onclick="ee23Info(${f.id})">📋 Szczegóły</button></div>`).join('')}</div>
+<h3>🗺️ Filtry mapy konkurencji</h3><div class="row"><select id="ee23Layer" onchange="ee23Filter()"><option value="all" ${e.mapLayer==='all'?'selected':''}>Wszystkie obiekty</option><option value="own" ${e.mapLayer==='own'?'selected':''}>Moje zakłady</option><option value="ai" ${e.mapLayer==='ai'?'selected':''}>Tylko AI</option></select><select id="ee23Industry" onchange="ee23Filter()"><option value="all">Wszystkie branże</option>${Object.entries(TYPES).map(([k,t])=>`<option value="${k}" ${e.mapIndustry===k?'selected':''}>${t.icon} ${esc(t.name)}</option>`).join('')}</select><select id="ee23Company" onchange="ee23Filter()"><option value="all">Wszystkie firmy</option>${S.firms.map(f=>`<option value="${f.id}" ${String(e.mapCompany)===String(f.id)?'selected':''}>${esc(f.name)}</option>`).join('')}</select></div>
+<h3>📈 Wynik finansowy holdingu</h3><div class="ee23-chart">${bars.map(x=>`<span title="${money(x)}" style="height:${Math.max(3,Math.abs(x)/max*100)}%;opacity:${x<0?.4:1}"></span>`).join('')}</div><p class="ee23-tiny">Ostatnie ${bars.length} miesięcy · słabszy kolor oznacza stratę</p>
+<h3>🏛️ Rządy, podatki i dotacje</h3><div class="ee23-grid">${zones.slice(0,12).map(([name])=>{const g=e.government[name];return `<div class="ee23-card"><b>${esc(name)}</b><div>Podatek ${Math.round(g.tax*100)}% · dotacja ${Math.round(g.subsidy*100)}%</div><div class="ee23-tiny">Budżet państwa: ${money(g.budget)}</div></div>`}).join('')}</div>
+<h3>📜 Przetargi międzynarodowe</h3>${e.tenders.map(t=>`<div class="ee23-card">${esc(t.country)} · ${esc(PRODUCTS[t.product])} · ${t.qty} jednostek · ${money(t.price)} / jednostkę · konkurent ${esc(t.competitor)} <button onclick="ee23Tender(${t.id})">Zrealizuj dostawę</button></div>`).join('')||'<p class="muted">Nowe przetargi pojawiają się co kilka miesięcy.</p>'}
+<h3>👷 Przenoszenie pracowników</h3><div class="row"><select id="ee23Worker">${S.workers.map(w=>`<option value="${w.id}">${esc(w.name)} · ${esc(w.perk)}</option>`).join('')}</select><select id="ee23Destination">${S.companies.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('')}</select><button onclick="ee23Move()">Przenieś do spółki</button></div>
+<h3>🧩 Fuzje spółek córkek</h3><div class="row"><select id="ee23MergeFrom">${S.companies.filter(c=>c.id!==1).map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('')}</select><select id="ee23MergeTo">${S.companies.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('')}</select><button onclick="ee23Merge()">Połącz spółki</button></div>
+<h3>📰 Wydarzenia świata</h3><div class="ee23-scroll">${e.events.slice(0,35).map(x=>`<div class="ee23-card"><small>Miesiąc ${x.m}</small> ${esc(x.text)}</div>`).join('')||'<p class="muted">Uruchom czas, aby obserwować rozwój świata.</p>'}</div>`}
+window.ee23Filter=()=>{const e=S.e23;e.mapLayer=document.getElementById('ee23Layer').value;e.mapIndustry=document.getElementById('ee23Industry').value;e.mapCompany=document.getElementById('ee23Company').value;renderMap()};
+window.ee23Locate=id=>{const a=S.aiAssets.find(x=>x.firmId===id);if(!a)return toast('Firma nie ma jeszcze zakładów na mapie');S.e23.mapLayer='ai';S.e23.mapCompany=String(id);S.e23.mapIndustry='all';render();if(typeof map!=='undefined')map.setView([a.lat,a.lng],6)};
+window.ee23Info=id=>{const f=S.firms.find(x=>x.id===id);if(!f)return;showGameDialog({title:f.name,message:'Strategia: '+f.strategy+' · Produkcja i sprzedaż: '+money(f.aiRevenue)+' · koszty: '+money(f.aiCosts)+' · technologie: '+f.aiTech+' · udziały holdingu: '+f.share+'% · kraje: '+(f.aiCountries||[]).join(', '),confirmText:'Zamknij'})};
+window.ee23Tender=id=>{const t=S.e23.tenders.find(x=>x.id===id);if(!t)return;if((S.stock[t.product]||0)<t.qty)return toast('Za mało surowca lub produktu');S.stock[t.product]-=t.qty;income(t.qty*t.price);S.e23.tenders=S.e23.tenders.filter(x=>x.id!==id);ev23('Wygrano przetarg w kraju '+t.country);render()};
+window.ee23Move=()=>{const w=S.workers.find(x=>x.id===Number(document.getElementById('ee23Worker').value));if(!w)return;w.companyId=Number(document.getElementById('ee23Destination').value);w.assetId=null;S.e23.workersMoved++;render()};
+window.ee23Merge=()=>{const from=Number(document.getElementById('ee23MergeFrom').value),to=Number(document.getElementById('ee23MergeTo').value);if(!from||!to||from===to)return toast('Wybierz dwie różne spółki');const a=company(from),b=company(to);if(!a||!b)return;for(const x of S.assets)if(x.companyId===from)x.companyId=to;for(const w of S.workers)if(w.companyId===from)w.companyId=to;for(const c of S.companies)if(c.parent===from)c.parent=to;b.cash=(b.cash||0)+(a.cash||0);b.countries=[...new Set([...(b.countries||[]),...(a.countries||[])])];S.companies=S.companies.filter(c=>c.id!==from);ev23('Fuzja '+a.name+' z '+b.name);render()};
+advance=function(){oldAdvance();economy23();oldRender()};
+render=function(){setup23();if(!TABS.some(x=>x[0]==='world23'))TABS.push(['world23','🌐 Gospodarka 2.3']);VIEWS.world23=screen23;oldRender()};
+renderMap=function(){oldMap();if(typeof L==='undefined'||typeof map==='undefined')return;setup23();const e=S.e23;
+ if(window.ee21Layer)window.ee21Layer.clearLayers();if(window.ee23Layer)window.ee23Layer.clearLayers();else window.ee23Layer=L.layerGroup().addTo(map);
+ const allowed=a=>e.mapIndustry==='all'||a.type===e.mapIndustry;
+ if(e.mapLayer!=='own')for(const a of S.aiAssets){if(!allowed(a)||(e.mapCompany!=='all'&&String(a.firmId)!==String(e.mapCompany)))continue;const f=S.firms.find(x=>x.id===a.firmId),t=TYPES[a.type];if(!f||!t||!Number.isFinite(a.lat)||!Number.isFinite(a.lng))continue;const icon=L.divIcon({className:'',html:`<div style="background:#a7511c;border:2px solid #fff9;border-radius:12px;padding:3px;font-size:17px;box-shadow:0 2px 8px #0009">${t.icon}</div>`,iconSize:[30,30],iconAnchor:[15,15]});L.marker([a.lat,a.lng],{icon}).bindPopup(`<b>${esc(t.name)}</b><br>${esc(f.name)}<br>${esc(a.country||f.country)}<br>Poziom: ${a.level||1} · stan: ${Math.round(a.condition||100)}%<br>Pracownicy firmy: ${f.aiStaff}`).addTo(window.ee23Layer)}
+};
+setup23();render();
+})();
+</script>
+
+<style>
+#eeConsoleShade{position:fixed;inset:0;z-index:99999;background:#020917b8;display:none;align-items:center;justify-content:center;padding:18px;backdrop-filter:blur(9px)}
+#eeConsoleShade.open{display:flex}
+#eeConsole{width:min(660px,100%);max-height:85vh;overflow:auto;background:linear-gradient(145deg,#132b48f5,#081525f5);border:1px solid #78bfff77;border-radius:20px;box-shadow:0 30px 90px #000a;color:#eaf5ff;padding:22px;font:14px system-ui}
+#eeConsole input{width:100%;box-sizing:border-box;margin:12px 0;padding:13px;background:#061321;border:1px solid #62a5da99;color:white;border-radius:11px;font:15px monospace}
+#eeConsole .eeConsoleHistory{height:175px;overflow:auto;background:#020c19aa;border-radius:12px;padding:12px;white-space:pre-wrap;line-height:1.65;font:13px monospace}
+#eeConsole button,#eeConsoleBtn{cursor:pointer;border:1px solid #69b9ee88;border-radius:11px;padding:9px 14px;background:#18466b;color:#fff}
+#eeConsole .eeConsoleActions{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+#eeConsoleBtn{position:fixed;bottom:18px;left:18px;z-index:9000;box-shadow:0 6px 22px #0007}
+</style>
+<button id="eeConsoleBtn" type="button" onclick="eeConsoleToggle(true)" title="Otwórz konsolę (~)">⌨ Konsola ~</button>
+<div id="eeConsoleShade" onclick="if(event.target===this)eeConsoleToggle(false)">
+ <section id="eeConsole" role="dialog" aria-modal="true" aria-labelledby="eeConsoleTitle">
+  <div class="eeConsoleActions"><strong id="eeConsoleTitle">⌨ Konsola Energy Empire 2.4</strong><button type="button" onclick="eeConsoleToggle(false)">✕ Zamknij</button></div>
+  <p style="color:#afcbe1">Naciśnij <b>~</b> lub <b>`</b>, aby otworzyć lub zamknąć. Wpisz <b>pomoc</b>, aby zobaczyć komendy.</p>
+  <div id="eeConsoleHistory" class="eeConsoleHistory" aria-live="polite">Konsola gotowa. Komendy: kasa 1000000, maxstaff, pomoc.</div>
+  <form onsubmit="eeConsoleRun(event)">
+   <input id="eeConsoleInput" autocomplete="off" spellcheck="false" placeholder="Wpisz komendę, np. kasa 50000000" aria-label="Komenda">
+   <div class="eeConsoleActions"><button type="submit">▶ Wykonaj</button><button type="button" onclick="document.getElementById('eeConsoleHistory').textContent='Historia wyczyszczona.'">Wyczyść historię</button></div>
+  </form>
+ </section>
+</div>
+<script>
+(function(){
+'use strict';
+const shade=document.getElementById('eeConsoleShade'),field=document.getElementById('eeConsoleInput'),history=document.getElementById('eeConsoleHistory');
+window.eeConsoleToggle=function(open){shade.classList.toggle('open',!!open);if(open)field.focus();else field.blur()};
+function output(t){history.textContent+='\n'+t;history.scrollTop=history.scrollHeight}
+function numeric(v){const n=Number(String(v||'').replace(/\s/g,'').replace(',','.'));return Number.isFinite(n)?n:NaN}
+function fillStaff(){
+ let added=0,assigned=0,upgraded=0;
+ // Każda spółka otrzymuje do 500 pracowników, w tym obsadę wszystkich budynków.
+ for(const co of S.companies){
+   const own=S.workers.filter(w=>w.companyId===co.id);
+   for(const w of own){w.skill=5;w.perk='Ekspert';w.experience=Math.max(120,w.experience||0);upgraded++}
+   const targets=S.assets.filter(a=>a.companyId===co.id);
+   for(const a of targets){
+     const type=TYPES[a.type];if(!type)continue;
+     const cap=Math.max(1,Math.min(500,type.staff*(a.level||1)));
+     a.maxStaff=cap;
+     let placed=S.workers.filter(w=>w.assetId===a.id).length;
+     while(placed<cap){
+       let w=S.workers.find(w=>w.companyId===co.id&&!w.assetId);
+       if(!w&&S.workers.filter(w=>w.companyId===co.id).length<Math.max(500,targets.reduce((n,x)=>n+(TYPES[x.type]?.staff||0)*(x.level||1),0))){
+         w={...genCandidate(),companyId:co.id,assetId:null,experience:120,skill:5,perk:'Ekspert',salary:0};
+         S.workers.push(w);added++;
+       }
+       if(!w)break;
+       w.assetId=a.id;w.skill=5;w.perk='Ekspert';w.experience=120;w.salary=0;assigned++;placed++;
+     }
+   }
+   while(S.workers.filter(w=>w.companyId===co.id).length<500){
+     S.workers.push({...genCandidate(),companyId:co.id,assetId:null,experience:120,skill:5,perk:'Ekspert',salary:0});added++;
+   }
+ }
+ // Firmy AI mają własną liczebność załogi; w przeciwieństwie do pracowników gracza
+ // jest ona przechowywana jako zagregowana wartość.
+ for(const f of S.firms){f.aiStaff=Math.max(500,f.aiStaff||0);f.workers=f.aiStaff;f.aiTech=Math.max(5,f.aiTech||0)}
+ return `Dodano ${added} pracowników, przypisano ${assigned} do zakładów, ulepszono ${upgraded}. Wszystkie spółki córki mają min. 500 ekspertów; kadra firm AI także została zwiększona. Nowi eksperci nie pobierają pensji (tryb kodów).`;
+}
+window.eeConsoleRun=function(ev){
+ ev.preventDefault();
+ const raw=field.value.trim();field.value='';if(!raw)return;
+ output('> '+raw);
+ const m=raw.match(/^(\S+)(?:\s+([\s\S]*))?$/),cmd=m[1].toLowerCase(),arg=(m[2]||'').trim();
+ try{
+  if(cmd==='pomoc'||cmd==='help')output('kasa [kwota] — dodaj pieniądze\nmaxstaff — maksymalna kadra z najlepszymi perkami, także w spółkach córkach\nbadania [punkty] — dodaj punkty badań\nnapraw — napraw wszystkie Twoje zakłady\npauza — włącz/wyłącz pauzę\nmiesiac — przejdź do kolejnego miesiąca\nsaldo — pokaż stan gotówki\nwyczysc — wyczyść historię');
+  else if(cmd==='kasa'){
+   const n=numeric(arg);
+   if(!arg||!Number.isSafeInteger(n)||n<=0||n>1e15){output('Błąd: użyj np. kasa 1000000 (od 1 do 1 000 000 000 000 000).');return}
+   S.cash+=n;output('Dodano '+money(n)+'. Saldo: '+money(S.cash));log('Kod konsoli: dodano '+money(n));
+  }else if(cmd==='maxstaff'){output(fillStaff());log('Kod konsoli: maxstaff')}
+  else if(cmd==='badania'){
+   const n=numeric(arg);if(!Number.isSafeInteger(n)||n<=0||n>1e9){output('Użycie: badania 1000');return}
+   S.researchPoints+=n;output('Dodano '+n+' punktów badań.');
+  }else if(cmd==='napraw'){for(const a of S.assets)a.condition=100;output('Wszystkie Twoje zakłady naprawione.')}
+  else if(cmd==='pauza'){S.paused=!S.paused;output(S.paused?'Gra zatrzymana.':'Gra wznowiona.')}
+  else if(cmd==='miesiac'){advance();output('Upłynął miesiąc gry.')}
+  else if(cmd==='saldo')output('Gotówka: '+money(S.cash))
+  else if(cmd==='wyczysc')history.textContent='Historia wyczyszczona.'
+  else output('Nieznana komenda. Wpisz pomoc.');
+  save();render();
+ }catch(e){output('Błąd komendy: '+e.message);console.error(e)}
+ field.focus();
+};
+document.addEventListener('keydown',e=>{
+ if(e.key==='Escape'&&shade.classList.contains('open')){e.preventDefault();eeConsoleToggle(false);return}
+ if(e.key==='`'||e.key==='~'){
+  const tag=document.activeElement?.tagName;
+  if(!shade.classList.contains('open')&&['INPUT','TEXTAREA','SELECT'].includes(tag))return;
+  e.preventDefault();eeConsoleToggle(!shade.classList.contains('open'));
+ }
+});
+})();
+</script>
+
+<style>
+#ee25btn{position:fixed;left:18px;bottom:66px;z-index:9000;background:#18466b;color:white;border:1px solid #69b9ee88;border-radius:12px;padding:10px 14px;cursor:pointer}
+#ee25shade{display:none;position:fixed;inset:0;background:#030b19c9;backdrop-filter:blur(8px);z-index:99990;align-items:center;justify-content:center;padding:14px}
+#ee25shade.open{display:flex}
+#ee25panel{background:linear-gradient(135deg,#142d4c,#081526);color:#eaf5ff;border:1px solid #79b5e777;border-radius:19px;padding:22px;width:min(790px,100%);max-height:88vh;overflow:auto;font:14px system-ui}
+#ee25panel button,#ee25panel select,#ee25panel input{padding:9px;border-radius:9px;background:#0c2440;color:white;border:1px solid #6194bd}
+#ee25panel button{cursor:pointer}
+#ee25panel .ee25grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+#ee25panel .ee25card{padding:14px;border-radius:12px;border:1px solid #6a9ac744;background:#ffffff0b}
+#ee25panel label{display:block;margin:9px 0}
+#ee25panel input,#ee25panel select{max-width:100%;box-sizing:border-box}
+</style>
+<button id="ee25btn" onclick="ee25Open()">🚀 Centrum 2.5</button>
+<div id="ee25shade" onclick="if(event.target===this)ee25Close()"><section id="ee25panel" role="dialog" aria-modal="true" aria-label="Centrum rozwoju 2.5">
+<div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><h2>🚀 Energy Empire 2.5 — Centrum rozwoju</h2><button onclick="ee25Close()">✕</button></div>
+<div id="ee25content"></div></section></div>
+<script>
+(function(){
+'use strict';
+const products=['oil','gas','coal','fuel','energy','steel','hydrogen'];
+const pretty={oil:'Ropa',gas:'Gaz',coal:'Węgiel',fuel:'Paliwo',energy:'Energia',steel:'Stal',hydrogen:'Wodór'};
+const esc25=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','&quot;':'&quot;',"'":'&#39;'}[c]));
+function data(){if(!S.center25)S.center25={trade:[],claims:[],lastMonth:-1,news:[],insured:[]};return S.center25}
+function note(t){const d=data();d.news.unshift('M'+(S.month+1)+': '+t);d.news=d.news.slice(0,35)}
+function draw(){
+ const d=data(),building=S.assets.length,staff=S.workers.length,foreign=new Set(S.assets.map(a=>a.country)).size;
+ const missions=[
+ {name:'Pierwsze zakłady',goal:3,value:building,reward:15000000},
+ {name:'Przemysłowa potęga',goal:12,value:building,reward:65000000},
+ {name:'Zespół ekspertów',goal:30,value:staff,reward:12000000},
+ {name:'Międzynarodowy koncern',goal:4,value:foreign,reward:40000000},
+ {name:'Holding wielu firm',goal:5,value:S.companies.length,reward:25000000},
+ {name:'Potęga finansowa',goal:1000000000,value:S.cash,reward:100000000}
+ ];
+ document.getElementById('ee25content').innerHTML=`
+ <p style="opacity:.75">Nowe systemy: misje z nagrodami, automatyczny handel surowcami, ubezpieczenie zakładów i dziennik operacji.</p>
+ <h3>🎯 Misje rozwoju</h3><div class="ee25grid">${missions.map((m,i)=>`<div class="ee25card"><b>${m.name}</b><p>${Math.min(m.value,m.goal).toLocaleString('pl-PL')} / ${m.goal.toLocaleString('pl-PL')}</p><p>Nagroda: ${money(m.reward)}</p><button ${d.claims.includes(i)||m.value<m.goal?'disabled':''} onclick="ee25Claim(${i})">${d.claims.includes(i)?'✓ Odebrano':'Odbierz nagrodę'}</button></div>`).join('')}</div>
+ <h3>🔁 Automatyczny handel</h3><div class="ee25card">
+ <label>Produkt <select id="ee25prod">${products.map(p=>`<option value="${p}">${pretty[p]}</option>`).join('')}</select></label>
+ <label>Sprzedawaj miesięcznie nadwyżkę ponad <input type="number" id="ee25keep" min="0" max="100000000" value="100" style="width:125px"></label>
+ <button onclick="ee25TradeAdd()">+ Dodaj regułę</button>
+ <p style="opacity:.7">Sprzedaż odbywa się po cenach z gry, raz na miesiąc. Reguły możesz usuwać.</p>
+ ${d.trade.map((r,i)=>`<div style="display:flex;gap:10px;align-items:center;justify-content:space-between;padding:6px;border-bottom:1px solid #ffffff22">${pretty[r.product]} — zostaw ${r.keep} jednostek <button onclick="ee25TradeRemove(${i})">Usuń</button></div>`).join('')||'<p>Brak reguł.</p>'}
+ </div>
+ <h3>🛡️ Ubezpieczenie zakładów</h3><div class="ee25card"><p>Ubezpieczenie kosztuje 0,3% wartości budowy miesięcznie za każdy ubezpieczony obiekt. Jeżeli stan techniczny spadnie poniżej 45%, ubezpieczyciel pokrywa remont do 80% stanu.</p>
+ <button onclick="ee25InsureAll()">${d.insured.length?'Zaktualizuj listę ubezpieczonych':'Ubezpiecz wszystkie zakłady'}</button>
+ <button onclick="ee25CancelInsurance()">Anuluj polisy</button>
+ <p>Ubezpieczone zakłady: ${d.insured.length} / ${S.assets.length}</p></div>
+ <h3>📰 Dziennik centrum</h3><div class="ee25card" style="max-height:170px;overflow:auto">${d.news.map(n=>`<p>${esc25(n)}</p>`).join('Brak zdarzeń.')}</div>`;
+}
+window.ee25Open=function(){document.getElementById('ee25shade').classList.add('open');draw()};
+window.ee25Close=function(){document.getElementById('ee25shade').classList.remove('open')};
+window.ee25Claim=function(i){
+ const d=data(),missions=[
+ [3,S.assets.length,15000000],[12,S.assets.length,65000000],[30,S.workers.length,12000000],
+ [4,new Set(S.assets.map(a=>a.country)).size,40000000],[5,S.companies.length,25000000],[1000000000,S.cash,100000000]];
+ const m=missions[i];if(!m||d.claims.includes(i)||m[1]<m[0])return;
+ S.cash+=m[2];d.claims.push(i);note('Odebrano nagrodę za misję: '+money(m[2]));save();render();draw()
+};
+window.ee25TradeAdd=function(){
+ const product=document.getElementById('ee25prod').value,keep=Number(document.getElementById('ee25keep').value);
+ if(!products.includes(product)||!Number.isSafeInteger(keep)||keep<0||keep>1e8)return toast('Podaj prawidłowy zapas');
+ const d=data();d.trade=d.trade.filter(r=>r.product!==product);d.trade.push({product,keep});note('Ustawiono automatyczną sprzedaż: '+pretty[product]);save();draw()
+};
+window.ee25TradeRemove=function(i){data().trade.splice(i,1);save();draw()};
+window.ee25InsureAll=function(){data().insured=S.assets.map(a=>a.id);note('Ubezpieczono '+data().insured.length+' zakładów');save();draw()};
+window.ee25CancelInsurance=function(){data().insured=[];note('Anulowano ubezpieczenia');save();draw()};
+function monthly(){
+ const d=data();if(d.lastMonth===S.month)return;d.lastMonth=S.month;
+ let earned=0,fees=0,repairs=0;
+ for(const r of d.trade){
+  const qty=Math.max(0,(S.stock[r.product]||0)-r.keep);
+  if(qty>0){S.stock[r.product]-=qty;const gain=qty*(S.prices[r.product]||0);S.cash+=gain;earned+=gain}
+ }
+ for(const id of d.insured){
+  const a=S.assets.find(x=>x.id===id);if(!a||!TYPES[a.type])continue;
+  const premium=Math.ceil(TYPES[a.type].cost*.003);fees+=premium;
+  if((a.condition??100)<45){a.condition=80;repairs++}
+ }
+ S.cash-=fees;
+ if(earned)note('Automatyczny handel: +'+money(earned));
+ if(fees)note('Składki ubezpieczeniowe: −'+money(fees));
+ if(repairs)note('Ubezpieczyciel wyremontował '+repairs+' zakładów');
+ save()
+}
+// Integracja z miesięczną symulacją: bez osobnego zegara i bez przestawiania zakładek.
+const originalAdvance=advance;
+advance=function(){originalAdvance();monthly();render()};
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.getElementById('ee25shade').classList.contains('open'))ee25Close()});
+})();
+</script>
+
+<style>
+#ee26button{position:fixed;bottom:114px;left:18px;z-index:9000;border:1px solid #6ba9e4;background:#183a60;color:#fff;padding:10px 13px;border-radius:11px;cursor:pointer}
+#ee26overlay{display:none;position:fixed;inset:0;background:#020817c9;backdrop-filter:blur(9px);z-index:99995;align-items:center;justify-content:center;padding:16px}
+#ee26overlay.active{display:flex}
+#ee26box{width:min(850px,100%);max-height:86vh;overflow:auto;background:linear-gradient(145deg,#17304d,#091625);border:1px solid #6caff077;border-radius:19px;padding:22px;color:#eef8ff;font:14px system-ui}
+#ee26box button,#ee26box input,#ee26box select{border:1px solid #6298c5;background:#0e2b49;color:#fff;padding:9px;border-radius:9px}
+#ee26box button{cursor:pointer}
+#ee26box input{width:145px;max-width:100%}
+#ee26box .ee26cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+#ee26box .ee26card{background:#ffffff0b;border:1px solid #ffffff24;border-radius:13px;padding:14px}
+#ee26box .ee26row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0}
+</style>
+<button id="ee26button" onclick="ee26Open()">📡 Centrum 2.6</button>
+<div id="ee26overlay" onclick="if(event.target===this)ee26Close()"><section id="ee26box" role="dialog" aria-modal="true" aria-label="Centrum 2.6">
+<div style="display:flex;justify-content:space-between;gap:10px;align-items:center"><h2>📡 Energy Empire 2.6 — Centrum strategii</h2><button onclick="ee26Close()">✕ Zamknij</button></div>
+<div id="ee26body"></div></section></div>
+<script>
+(function(){
+'use strict';
+const productNames={oil:'Ropa',gas:'Gaz',coal:'Węgiel',fuel:'Paliwo',energy:'Energia',steel:'Stal',hydrogen:'Wodór',iron:'Ruda żelaza',copper:'Miedź',lithium:'Lit',uranium:'Uran',batteries:'Baterie',chemicals:'Chemikalia',turbines:'Turbiny'};
+const safe=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function state(){if(!S.e26)S.e26={orders:[],watch:[],snapshots:[],alerts:[],lastMonth:-1,limit:10000000,autoRepair:false};return S.e26}
+function announce(t){const e=state();e.alerts.unshift('M'+S.month+' • '+t);e.alerts=e.alerts.slice(0,45)}
+function refresh(){
+ const e=state(),types=Object.keys(S.prices||{}),firms=[...S.firms].sort((a,b)=>(b.cash||0)-(a.cash||0)).slice(0,12);
+ document.getElementById('ee26body').innerHTML=`
+ <p style="opacity:.7">Nowe funkcje: zlecenia giełdowe na surowce, rezerwa finansowa, automatyczne remonty, obserwowanie konkurencji i raport miesięczny.</p>
+ <div class="ee26cards">
+ <div class="ee26card"><h3>💳 Rezerwa finansowa</h3><p>Chroń określoną kwotę gotówki przed automatycznymi zakupami i remontami.</p><div class="ee26row"><input id="ee26limit" type="number" min="0" max="1000000000000" value="${e.limit}"><button onclick="ee26Limit()">Zapisz</button></div><p>Rezerwa: ${money(e.limit)}</p></div>
+ <div class="ee26card"><h3>🔧 Automatyczne remonty</h3><p>Raz w miesiącu remontuj obiekty w stanie poniżej 65%, jeśli masz środki ponad rezerwę.</p><button onclick="ee26RepairToggle()">${e.autoRepair?'✓ Włączone — wyłącz':'Włącz remonty'}</button></div>
+ </div>
+ <h3>📈 Zlecenia zakupu i sprzedaży</h3>
+ <div class="ee26card"><div class="ee26row">
+ <select id="ee26product">${types.map(k=>`<option value="${safe(k)}">${safe(productNames[k]||k)}</option>`).join('')}</select>
+ <select id="ee26side"><option value="buy">Kup, gdy cena spadnie</option><option value="sell">Sprzedaj, gdy cena wzrośnie</option></select>
+ <label>Cena progowa <input id="ee26price" type="number" min="1" value="20000"></label>
+ <label>Ilość <input id="ee26qty" type="number" min="1" value="10"></label>
+ <button onclick="ee26Order()">Dodaj zlecenie</button></div>
+ <p style="opacity:.7">Zlecenia realizują się automatycznie podczas kolejnych miesięcy. Kupno wymaga środków ponad rezerwę, sprzedaż wymaga zapasów.</p>
+ ${e.orders.map(o=>`<div class="ee26row" style="border-top:1px solid #ffffff24;padding-top:8px">${o.side==='buy'?'🟢 Kup':'🔴 Sprzedaj'} ${safe(productNames[o.product]||o.product)} × ${o.qty} @ ${money(o.price)} <button onclick="ee26Cancel(${o.id})">Anuluj</button></div>`).join('Brak aktywnych zleceń.')}
+ </div>
+ <h3>🏢 Obserwowani konkurenci</h3><div class="ee26card">
+ <p>Wybierz firmę, aby śledzić jej gotówkę i liczbę zakładów w raportach.</p>
+ <div class="ee26row"><select id="ee26firm">${firms.map(f=>`<option value="${f.id}">${safe(f.name)}</option>`).join('')}</select><button onclick="ee26Watch()">Obserwuj</button></div>
+ ${e.watch.map(id=>{const f=S.firms.find(x=>x.id===id);return f?`<div class="ee26row">${safe(f.name)} · ${money(f.cash||0)} · ${S.aiAssets.filter(a=>a.firmId===id).length} zakładów <button onclick="ee26Unwatch(${id})">Usuń</button></div>`:''}).join('')||'Nie obserwujesz żadnej firmy.'}
+ </div>
+ <h3>📊 Raport finansowy</h3><div class="ee26cards">
+ <div class="ee26card"><b>Gotówka</b><p>${money(S.cash)}</p></div>
+ <div class="ee26card"><b>Ostatni wynik</b><p>${money(S.lastProfit||0)}</p></div>
+ <div class="ee26card"><b>Zakłady</b><p>${S.assets.length} Twoich / ${S.aiAssets.length} AI</p></div>
+ <div class="ee26card"><b>Pracownicy</b><p>${S.workers.length}</p></div></div>
+ <div class="ee26card" style="margin-top:12px"><h3>🗓️ Historia ostatnich miesięcy</h3>
+ <div style="overflow:auto"><table style="width:100%;text-align:left"><tr><th>Miesiąc</th><th>Gotówka</th><th>Zakłady</th><th>Pracownicy</th></tr>
+ ${e.snapshots.slice(-8).reverse().map(x=>`<tr><td>${x.month}</td><td>${money(x.cash)}</td><td>${x.assets}</td><td>${x.staff}</td></tr>`).join('')}</table></div></div>
+ <h3>🔔 Powiadomienia strategiczne</h3><div class="ee26card" style="max-height:200px;overflow:auto">${e.alerts.map(t=>`<p>${safe(t)}</p>`).join('Brak nowych wydarzeń.')}</div>`;
+}
+window.ee26Open=()=>{document.getElementById('ee26overlay').classList.add('active');refresh()};
+window.ee26Close=()=>document.getElementById('ee26overlay').classList.remove('active');
+window.ee26Limit=()=>{const v=Number(document.getElementById('ee26limit').value);if(!Number.isSafeInteger(v)||v<0||v>1e12)return toast('Nieprawidłowa kwota rezerwy');state().limit=v;save();refresh()};
+window.ee26RepairToggle=()=>{state().autoRepair=!state().autoRepair;save();refresh()};
+window.ee26Order=()=>{
+ const product=document.getElementById('ee26product').value,side=document.getElementById('ee26side').value,price=Number(document.getElementById('ee26price').value),qty=Number(document.getElementById('ee26qty').value);
+ if(!Object.hasOwn(S.prices,product)||!['buy','sell'].includes(side)||!Number.isSafeInteger(price)||price<=0||price>1e9||!Number.isSafeInteger(qty)||qty<1||qty>1000000)return toast('Nieprawidłowe zlecenie');
+ state().orders.push({id:nextId(),product,side,price,qty});announce('Dodano zlecenie '+side+' '+product);save();refresh()
+};
+window.ee26Cancel=id=>{state().orders=state().orders.filter(o=>o.id!==id);save();refresh()};
+window.ee26Watch=()=>{const id=Number(document.getElementById('ee26firm').value);if(S.firms.some(f=>f.id===id)&&!state().watch.includes(id))state().watch.push(id);save();refresh()};
+window.ee26Unwatch=id=>{state().watch=state().watch.filter(x=>x!==id);save();refresh()};
+function tick(){
+ const e=state();if(e.lastMonth===S.month)return;e.lastMonth=S.month;
+ for(const o of [...e.orders]){
+  const price=S.prices[o.product];if(!Number.isFinite(price))continue;
+  if(o.side==='buy'&&price<=o.price){
+   const total=price*o.qty;if(S.cash-total>=e.limit){S.cash-=total;S.stock[o.product]=(S.stock[o.product]||0)+o.qty;e.orders=e.orders.filter(x=>x.id!==o.id);announce('Kupiono '+o.qty+' × '+(productNames[o.product]||o.product)+' za '+money(total))}
+  }else if(o.side==='sell'&&price>=o.price&&(S.stock[o.product]||0)>=o.qty){
+   S.stock[o.product]-=o.qty;S.cash+=price*o.qty;e.orders=e.orders.filter(x=>x.id!==o.id);announce('Sprzedano '+o.qty+' × '+(productNames[o.product]||o.product)+' za '+money(price*o.qty))
+  }
+ }
+ if(e.autoRepair){let fixed=0;for(const a of S.assets){
+  if((a.condition??100)>=65)continue;
+  const type=TYPES[a.type];if(!type)continue;
+  const price=Math.round(type.cost*.025);
+  if(S.cash-price<e.limit)continue;
+  S.cash-=price;a.condition=Math.min(100,(a.condition??100)+35);fixed++
+ }if(fixed)announce('Wyremontowano '+fixed+' zakładów za środki firmy')}
+ for(const id of e.watch){const f=S.firms.find(x=>x.id===id);if(f&&S.month%3===0)announce(f.name+': kapitał '+money(f.cash||0)+', zakłady '+S.aiAssets.filter(a=>a.firmId===id).length)}
+ e.snapshots.push({month:S.month,cash:S.cash,assets:S.assets.length,staff:S.workers.length});e.snapshots=e.snapshots.slice(-36);
+ save();
+}
+const before=advance;
+advance=function(){before();tick();render()};
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.getElementById('ee26overlay').classList.contains('active'))ee26Close()});
+})();
+</script>
+
+<style>
+#ee27launch{position:fixed;left:18px;bottom:163px;z-index:9000;background:#16456a;color:white;border:1px solid #8bd0ff88;border-radius:11px;padding:10px 13px;cursor:pointer}
+#ee27shade{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:#030c1acb;backdrop-filter:blur(8px);z-index:99996;padding:15px}
+#ee27shade.open{display:flex}
+#ee27panel{width:min(930px,100%);max-height:88vh;overflow:auto;border:1px solid #8bc9f277;border-radius:20px;background:linear-gradient(135deg,#17334f,#081626);color:#eaf6ff;padding:23px;font:14px system-ui}
+#ee27panel button,#ee27panel select,#ee27panel input{background:#143b5d;color:white;border:1px solid #75a9d0;border-radius:9px;padding:9px;cursor:pointer}
+#ee27panel input{width:120px;max-width:100%}
+#ee27panel .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:11px}
+#ee27panel .tile{background:#ffffff0a;border:1px solid #ffffff24;border-radius:13px;padding:14px}
+#ee27panel .tile p{color:#b8d1e2;min-height:36px}
+#ee27panel .toolbar{display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+</style>
+<button id="ee27launch" onclick="ee27Open()">🌐 Rozwój 2.7</button>
+<div id="ee27shade" onclick="if(event.target===this)ee27Close()"><section id="ee27panel" role="dialog" aria-modal="true" aria-label="Rozwój 2.7">
+<div class="toolbar" style="justify-content:space-between"><h2>🌐 Energy Empire 2.7 — 20 ulepszeń</h2><button onclick="ee27Close()">✕ Zamknij</button></div>
+<div id="ee27content"></div></section></div>
+<script>
+(function(){
+'use strict';
+const e=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const features=[
+['🛡️ Fundusz kryzysowy','Odłóż 10 mln $ do osobnego funduszu.'],
+['💰 Wypłata z funduszu','Przenieś 10 mln $ z funduszu na konto.'],
+['📦 Zakup zapasów','Kup 100 jednostek wybranego surowca.'],
+['🚛 Sprzedaż zapasów','Sprzedaj 100 jednostek wybranego surowca.'],
+['👷 Rekrutacja grupowa','Zatrudnij 10 nowych osób do wybranej spółki.'],
+['🎓 Szkolenie kadry','Podnieś umiejętności 10 pracowników.'],
+['🔧 Serwis floty','Popraw stan 5 najgorszych zakładów.'],
+['🏭 Modernizacja zakładu','Podnieś poziom pierwszego zakładu.'],
+['🔬 Grant badawczy','Kup 100 punktów badań.'],
+['🌍 Ekspansja holdingu','Dodaj kraj działalności do spółki głównej.'],
+['🏢 Rezerwa spółki córki','Przelej 5 mln $ do wybranej spółki.'],
+['📊 Audyt finansowy','Wygeneruj raport kosztów i przychodów.'],
+['📈 Ranking konkurencji','Pokaż pięć najbogatszych firm AI.'],
+['🔎 Zwiad konkurencji','Pokaż liczbę budynków największego rywala.'],
+['🧭 Centrowanie mapy','Przejdź do pierwszego własnego zakładu.'],
+['🗺️ Filtr mapy: własne','Pokaż tylko własne obiekty.'],
+['🤖 Filtr mapy: AI','Pokaż tylko obiekty konkurencji.'],
+['🌐 Filtr mapy: wszystkie','Pokaż wszystkie obiekty na mapie.'],
+['📣 Kampania marki','Zwiększ zainteresowanie firmą; zapisz wydarzenie.'],
+['📝 Raport strategiczny','Zapisz migawkę firmy do dziennika.']
+];
+function st(){if(!S.e27)S.e27={fund:0,notes:[],reports:[],country:'Niemcy'};return S.e27}
+function note(t){const d=st();d.notes.unshift('M'+(S.month+1)+': '+t);d.notes=d.notes.slice(0,50);log('Centrum 2.7: '+t)}
+function selectedCompany(){return Number(document.getElementById('ee27co')?.value)||S.companies[0]?.id}
+function selectedProduct(){return document.getElementById('ee27product')?.value||'oil'}
+function paint(){
+ const d=st(),co=S.companies,product=Object.keys(S.prices),assetCount=S.assets.length;
+ document.getElementById('ee27content').innerHTML=`
+ <p style="color:#b8d1e2">Dwadzieścia narzędzi gospodarczych i zarządczych. Operacje finansowe wpływają na rzeczywiste saldo gry.</p>
+ <div class="toolbar" style="margin:15px 0"><label>Spółka <select id="ee27co">${co.map(c=>`<option value="${c.id}">${e(c.name)}</option>`).join('')}</select></label>
+ <label>Surowiec <select id="ee27product">${product.map(k=>`<option value="${e(k)}">${e(PRODUCTS[k]||k)}</option>`).join('')}</select></label>
+ <label>Kraj <select id="ee27country">${['Niemcy','Polska','Francja','USA','Kanada','Japonia','Norwegia','Australia','Wielka Brytania','Indie','Brazylia','Chiny'].map(k=>`<option>${k}</option>`).join('')}</select></label></div>
+ <div class="toolbar"><b>Gotówka: ${money(S.cash)}</b><b>Fundusz: ${money(d.fund)}</b><b>Zakłady: ${assetCount}</b></div>
+ <h3>20 nowych funkcji</h3><div class="cards">${features.map(([name,desc],i)=>`<div class="tile"><b>${i+1}. ${name}</b><p>${desc}</p><button onclick="ee27Action(${i})">Wykonaj</button></div>`).join('')}</div>
+ <h3>📚 Dziennik i raporty</h3><div class="tile" style="max-height:260px;overflow:auto">${d.notes.map(n=>`<p style="min-height:0">${e(n)}</p>`).join('Brak zdarzeń.')}</div>`;
+}
+window.ee27Open=()=>{document.getElementById('ee27shade').classList.add('open');paint()};
+window.ee27Close=()=>document.getElementById('ee27shade').classList.remove('open');
+window.ee27Action=function(i){
+ const d=st(),c=S.companies.find(x=>x.id===selectedCompany()),p=selectedProduct(),unit=S.prices[p],qty=100;
+ let msg='';
+ const pay=n=>{if(!Number.isFinite(n)||n<0||S.cash<n){toast('Brak środków');return false}S.cash-=n;return true};
+ switch(i){
+ case 0:if(!pay(1e7))return;d.fund+=1e7;msg='Odłożono 10 mln $ do funduszu.';break;
+ case 1:if(d.fund<1e7){toast('Fundusz jest za mały');return}d.fund-=1e7;S.cash+=1e7;msg='Wypłacono 10 mln $ z funduszu.';break;
+ case 2:if(!pay(unit*qty))return;S.stock[p]=(S.stock[p]||0)+qty;msg='Kupiono 100 jednostek '+p+'.';break;
+ case 3:if((S.stock[p]||0)<qty){toast('Za mało surowca');return}S.stock[p]-=qty;S.cash+=unit*qty;msg='Sprzedano 100 jednostek '+p+'.';break;
+ case 4:if(!c)return;{const group=Array.from({length:10},()=>genCandidate()),cost=group.reduce((a,w)=>a+w.salary,0);if(!pay(cost))return;for(const w of group)S.workers.push({...w,companyId:c.id,assetId:null,experience:0});msg='Zatrudniono 10 osób w '+c.name+'.'}break;
+ case 5:{const group=S.workers.filter(w=>w.companyId===c?.id).slice(0,10);if(!group.length){toast('Brak pracowników');return}if(!pay(group.length*20000))return;for(const w of group){w.skill=Math.min(5,(w.skill||1)+1);w.experience=(w.experience||0)+12}msg='Przeszkolono '+group.length+' pracowników.';}break;
+ case 6:{const a=[...S.assets].sort((x,y)=>(x.condition??100)-(y.condition??100)).slice(0,5);if(!a.length){toast('Brak zakładów');return}if(!pay(a.length*100000))return;for(const x of a)x.condition=Math.min(100,(x.condition??100)+30);msg='Serwis '+a.length+' zakładów.';}break;
+ case 7:{const a=S.assets.find(x=>x.companyId===c?.id);if(!a){toast('Spółka nie ma zakładu');return}if(!pay(Math.round((TYPES[a.type]?.cost||1e7)*.3)))return;a.level=(a.level||1)+1;msg='Zmodernizowano '+TYPES[a.type].name+' do poziomu '+a.level+'.';}break;
+ case 8:if(!pay(1e6))return;S.researchPoints+=100;msg='Zakupiono 100 punktów badań.';break;
+ case 9:if(!c)return;{const country=document.getElementById('ee27country').value;if(!pay(2e6))return;c.countries=c.countries||[c.country];if(!c.countries.includes(country))c.countries.push(country);msg='Rozszerzono działalność '+c.name+' na '+country+'.';}break;
+ case 10:if(!c||c.id===1){toast('Wybierz spółkę córkę');return}if(!pay(5e6))return;c.cash=(c.cash||0)+5e6;msg='Przelano 5 mln $ do '+c.name+'.';break;
+ case 11:{const last=S.history.slice(-6),revenue=last.reduce((n,x)=>n+(x.revenue||0),0),costs=last.reduce((n,x)=>n+(x.costs||0),0);msg='Audyt 6 miesięcy: przychody '+money(revenue)+', koszty '+money(costs)+'.';}break;
+ case 12:msg='TOP 5 AI: '+[...S.firms].sort((a,b)=>(b.cash||0)-(a.cash||0)).slice(0,5).map(f=>f.name+' ('+money(f.cash||0)+')').join('; ');break;
+ case 13:{const f=[...S.firms].sort((a,b)=>(b.cash||0)-(a.cash||0))[0];msg=f?f.name+': '+S.aiAssets.filter(a=>a.firmId===f.id).length+' zakładów.':'Brak konkurentów.';}break;
+ case 14:{const a=S.assets[0];if(!a){toast('Brak zakładów');return}if(typeof map!=='undefined'&&map)map.setView([a.lat,a.lng],10);msg='Mapa ustawiona na pierwszy zakład.';}break;
+ case 15:S.mapFilter='own';msg='Mapa: własne zakłady.';break;
+ case 16:S.mapFilter='ai';msg='Mapa: zakłady AI.';break;
+ case 17:S.mapFilter='all';msg='Mapa: wszystkie zakłady.';break;
+ case 18:if(!pay(5e5))return;msg='Przeprowadzono kampanię marki za 500 tys. $.';break;
+ case 19:msg='Raport: gotówka '+money(S.cash)+', zakłady '+S.assets.length+', pracownicy '+S.workers.length+', spółki '+S.companies.length+'.';break;
+ default:return;
+ }
+ note(msg);save();render();paint();toast('Zrealizowano: '+features[i][0]);
+};
+document.addEventListener('keydown',ev=>{if(ev.key==='Escape'&&document.getElementById('ee27shade').classList.contains('open'))ee27Close()});
+})();
+</script>
+
+<style>
+#ee28open{position:fixed;left:18px;bottom:18px;z-index:9200;background:#185782;color:#fff;border:1px solid #85c9ef;border-radius:12px;padding:12px;cursor:pointer}
+#ee28veil{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:#020918ce;backdrop-filter:blur(9px);z-index:100020;padding:12px}
+#ee28veil.active{display:flex}
+#ee28panel{width:min(950px,100%);max-height:90vh;overflow:auto;background:linear-gradient(135deg,#173650,#081524);border:1px solid #78b8e588;color:#eaf7ff;border-radius:18px;padding:20px;font:14px system-ui}
+#ee28panel button,#ee28panel select,#ee28panel input{border:1px solid #74b1dc;background:#12395c;color:#fff;border-radius:9px;padding:8px;cursor:pointer}
+#ee28panel .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+#ee28panel .tile{border:1px solid #ffffff2b;border-radius:12px;padding:12px;background:#ffffff0c}
+#ee28panel .tile p{color:#bad4e5;min-height:34px}
+#ee28panel .tools{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+</style>
+<button id="ee28open" onclick="ee28Open()">⚙️ Centrum zarządzania</button>
+<div id="ee28veil" onclick="if(event.target===this)ee28Close()"><section id="ee28panel" role="dialog" aria-modal="true" aria-label="Centrum zarządzania 2.8">
+<div class="tools" style="justify-content:space-between"><h2>⚙️ Energy Empire 2.8 — Centrum zarządzania</h2><button onclick="ee28Close()">✕ Zamknij</button></div><div id="ee28body"></div></section></div>
+<script>
+(function(){
+'use strict';
+const oldButtons=['ee25btn','ee26button','ee27launch'];
+for(const id of oldButtons){const el=document.getElementById(id);if(el)el.style.display='none'}
+const clean=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const regions=[['Polska',52.1,19.1],['Niemcy',51.1,10.4],['Norwegia',61.0,8.0],['USA',39.8,-98.6],['Kanada',56,-106],['Australia',-25,133],['Brazylia',-14,-52],['Indie',22,79],['Japonia',36,138],['RPA',-29,24]];
+const extraTypes={
+ lng:{name:'Terminal LNG',icon:'🚢',cost:80000000,staff:32,input:{gas:70},prod:{gas:64},upkeep:210000},
+ port:{name:'Port naftowy',icon:'⚓',cost:72000000,staff:28,input:{oil:60},prod:{oil:55},upkeep:170000},
+ datacenter:{name:'Centrum danych',icon:'🖥️',cost:92000000,staff:44,input:{energy:75},prod:{},upkeep:300000},
+ h2factory:{name:'Fabryka wodoru',icon:'🧪',cost:46000000,staff:28,input:{energy:85},prod:{hydrogen:60},upkeep:120000},
+ evstation:{name:'Stacja ładowania',icon:'🔋',cost:7000000,staff:8,input:{energy:16},prod:{},upkeep:24000}
+};
+Object.assign(TYPES,extraTypes);
+const labels=[
+['🤖 Strategia AI','Firmy wybierają specjalizację i inwestują zgodnie z nią.'],
+['🏭 Sieci przemysłowe','AI rozwija wydobycie, przetwarzanie i sprzedaż.'],
+['🏢 Spółki córki AI','Konkurenci tworzą własne oddziały.'],
+['📈 Przejęcia AI','Konkurenci inwestują w udziały innych firm.'],
+['🌍 Ekspansja zagraniczna','Firmy rozwijają działalność w nowych krajach.'],
+['💥 Restrukturyzacje','Słabe firmy sprzedają aktywa.'],
+['👥 Udziałowcy','Podgląd właścicieli firm.'],
+['💸 Dywidendy','Wypłaty zależne od zysku.'],
+['🛡️ Obrona przed przejęciem','Rezerwa finansowa na obronę firmy.'],
+['🔀 Fuzja spółek','Połącz dwie własne spółki.'],
+['👔 Prezes spółki','Włącz samodzielne zarządzanie.'],
+['🚢 Terminal LNG','Nowy obiekt produkcyjny.'],
+['⚓ Port naftowy','Nowy obiekt logistyczny.'],
+['🖥️ Centrum danych','Nowy obiekt usługowy.'],
+['🧪 Fabryka wodoru','Nowy zakład przemysłowy.'],
+['🔋 Ładowarki EV','Nowa sieć stacji ładowania.'],
+['👷 Automatyczny HR','Automatyczna rekrutacja do zakładów.'],
+['💼 Dyrektor finansowy','Pilnuje minimalnej rezerwy.'],
+['🎓 Rynek specjalistów','Kandydaci o różnych umiejętnościach.'],
+['🧑‍💼 Stanowiska','Podział ról w firmie.'],
+['🤝 Delegowanie zarządzania','Automatyzacja spółek córek.'],
+['🪨 Złoża na mapie','Znaczniki złóż w regionach.'],
+['🛢️ Rurociągi','Łączenie dwóch obiektów.'],
+['🚢 Transport morski','Trasy dostaw między krajami.'],
+['🌩️ Kryzysy energetyczne','Wahania cen i popytu.'],
+['🗺️ Mapa konkurencji','Podświetlanie obiektów wybranej firmy.']
+];
+function state(){if(!S.ee28)S.ee28={hr:false,cfo:false,reserve:10000000,events:[],lastMonth:-1,mergers:0,transport:[],pipelines:[],showDeposits:false,showCompetitor:null,positions:{},dividends:0};return S.ee28}
+function event(t){const x=state();x.events.unshift('M'+S.month+' · '+t);x.events=x.events.slice(0,55)}
+function redraw(){
+ const d=state(),types=Object.keys(extraTypes),companies=S.companies||[];
+ document.getElementById('ee28body').innerHTML=`
+ <p style="color:#bad4e5">Jedno centrum dla narzędzi 2.5–2.8. Wszystkie stare moduły są nadal dostępne poniżej.</p>
+ <div class="tools"><button onclick="ee25Open();ee28Close()">Misje 2.5</button><button onclick="ee26Open();ee28Close()">Strategia 2.6</button><button onclick="ee27Open();ee28Close()">Narzędzia 2.7</button><button onclick="eeConsoleToggle(true);ee28Close()">Konsola ~</button></div>
+ <h3>Automatyzacja i przemysł</h3><div class="tools">
+ <button onclick="ee28Toggle('hr')">HR: ${d.hr?'WŁ.':'WYŁ.'}</button><button onclick="ee28Toggle('cfo')">Dyrektor finansowy: ${d.cfo?'WŁ.':'WYŁ.'}</button>
+ <label>Rezerwa <input id="ee28reserve" type="number" min="0" value="${d.reserve}" style="width:140px"></label><button onclick="ee28Reserve()">Zapisz</button>
+ </div>
+ <div class="tools" style="margin:12px 0"><label>Spółka <select id="ee28company">${companies.map(c=>`<option value="${c.id}">${clean(c.name)}</option>`).join('')}</select></label>
+ <label>Zakład <select id="ee28type">${types.map(t=>`<option value="${t}">${extraTypes[t].icon} ${extraTypes[t].name} (${money(extraTypes[t].cost)})</option>`).join('')}</select></label>
+ <button onclick="ee28Build()">Buduj na mapie</button><button onclick="ee28President()">Zmień autonomię prezesa</button></div>
+ <h3>Holding i mapa</h3><div class="tools">
+ <label>Spółka A <select id="ee28a">${companies.map(c=>`<option value="${c.id}">${clean(c.name)}</option>`).join('')}</select></label>
+ <label>Spółka B <select id="ee28b">${companies.map(c=>`<option value="${c.id}">${clean(c.name)}</option>`).join('')}</select></label>
+ <button onclick="ee28Merge()">Połącz spółki</button>
+ <button onclick="ee28Deposits()">Złoża: ${d.showDeposits?'WŁ.':'WYŁ.'}</button>
+ </div>
+ <div class="tools" style="margin:12px 0"><label>Konkurent <select id="ee28firm">${S.firms.map(f=>`<option value="${f.id}">${clean(f.name)}</option>`).join('')}</select></label><button onclick="ee28Highlight()">Pokaż zakłady konkurenta</button><button onclick="ee28HighlightAll()">Pokaż wszystkie</button></div>
+ <h3>25+ mechanik rozwoju</h3><div class="tiles">${labels.map(([name,desc],i)=>`<div class="tile"><b>${i+1}. ${name}</b><p>${desc}</p><button onclick="ee28Info(${i})">Szczegóły</button></div>`).join('')}</div>
+ <h3>Wydarzenia gospodarcze</h3><div class="tile" style="max-height:170px;overflow:auto">${d.events.map(x=>`<p>${clean(x)}</p>`).join('Brak wydarzeń.')}</div>`;
+}
+window.ee28Open=()=>{document.getElementById('ee28veil').classList.add('active');redraw()};
+window.ee28Close=()=>document.getElementById('ee28veil').classList.remove('active');
+window.ee28Toggle=k=>{state()[k]=!state()[k];save();redraw()};
+window.ee28Reserve=()=>{const n=Number(document.getElementById('ee28reserve').value);if(!Number.isSafeInteger(n)||n<0||n>1e15)return toast('Nieprawidłowa rezerwa');state().reserve=n;save();redraw()};
+window.ee28Build=()=>{const t=document.getElementById('ee28type').value,c=Number(document.getElementById('ee28company').value);if(!TYPES[t]||!company(c))return;S.build={type:t,owner:c,country:company(c).country,lat:null,lng:null};ee28Close();toast('Kliknij mapę, aby wybrać miejsce nowego zakładu');render()};
+window.ee28President=()=>{const c=company(document.getElementById('ee28company').value);if(!c)return;c.autonomy=!c.autonomy;event('Autonomia '+c.name+': '+(c.autonomy?'włączona':'wyłączona'));save();redraw()};
+window.ee28Merge=()=>{
+ const a=company(document.getElementById('ee28a').value),b=company(document.getElementById('ee28b').value);
+ if(!a||!b||a.id===b.id||b.id===1)return toast('Wybierz dwie różne spółki; holding główny nie może zostać wchłonięty');
+ for(const x of S.assets)if(x.companyId===b.id)x.companyId=a.id;
+ for(const w of S.workers)if(w.companyId===b.id)w.companyId=a.id;
+ for(const c of S.companies)if(c.parent===b.id)c.parent=a.id;
+ a.cash=(a.cash||0)+(b.cash||0);a.countries=[...new Set([...(a.countries||[]),...(b.countries||[])])];
+ S.companies=S.companies.filter(x=>x.id!==b.id);state().mergers++;event('Fuzja: '+b.name+' → '+a.name);save();render();redraw()
+};
+window.ee28Deposits=()=>{state().showDeposits=!state().showDeposits;drawDeposits();save();redraw()};
+window.ee28Highlight=()=>{const id=Number(document.getElementById('ee28firm').value);state().showCompetitor=id;S.e23=S.e23||{};S.e23.mapLayer='ai';S.e23.mapCompany=String(id);render();redraw()};
+window.ee28HighlightAll=()=>{state().showCompetitor=null;S.e23=S.e23||{};S.e23.mapLayer='all';S.e23.mapCompany='all';render();redraw()};
+window.ee28Info=i=>toast(labels[i]?.[0]+' — '+labels[i]?.[1]);
+function drawDeposits(){
+ if(typeof L==='undefined'||typeof map==='undefined'||!map)return;
+ if(window.ee28DepositsLayer){map.removeLayer(window.ee28DepositsLayer);window.ee28DepositsLayer=null}
+ if(!state().showDeposits)return;
+ window.ee28DepositsLayer=L.layerGroup();
+ for(const [name,lat,lng] of regions){
+  const kind=['🛢️ Ropa','🔥 Gaz','⛏️ Węgiel','🪨 Miedź','🔋 Lit','☢️ Uran'][Math.abs(Math.floor(lat+lng))%6];
+  L.circleMarker([lat,lng],{radius:8,color:'#d7bd64',fillColor:'#e8c45a',fillOpacity:.6}).bindPopup('<b>Potencjalne złoże (symulacja)</b><br>'+clean(kind)+'<br>'+clean(name)).addTo(window.ee28DepositsLayer)
+ }
+ window.ee28DepositsLayer.addTo(map)
+}
+function month(){
+ const d=state();if(d.lastMonth===S.month)return;d.lastMonth=S.month;
+ if(d.hr){
+  let count=0;
+  for(const a of S.assets){const t=TYPES[a.type];if(!t)continue;const assigned=S.workers.filter(w=>w.assetId===a.id).length;
+   if(assigned>=t.staff||S.cash-50000<d.reserve||count>=12)continue;
+   const w=genCandidate();w.companyId=a.companyId;w.assetId=a.id;w.experience=0;S.workers.push(w);S.cash-=50000;count++
+  }if(count)event('Automatyczny HR zatrudnił '+count+' osób')
+ }
+ if(d.cfo&&S.cash<d.reserve)event('Dyrektor finansowy ostrzega: gotówka poniżej rezerwy');
+ if(S.month%4===0){
+  const shock=.85+Math.random()*.3;
+  for(const k of Object.keys(S.prices))S.prices[k]=Math.max(100,Math.round(S.prices[k]*shock));
+  event('Zmiana koniunktury: indeks cen '+shock.toFixed(2))
+ }
+ for(const f of S.firms){
+  f.strategy??=['oil','gas','coal','solar','wind','refinery'][Math.abs(f.id)%6];
+  f.aiCountries??=[f.country];
+  f.aiSubsidiaries??=[];
+  if(S.month%6===0&&f.aiCash>80000000&&f.aiSubsidiaries.length<4){
+   const name=f.name+' '+(f.aiSubsidiaries.length+1);f.aiSubsidiaries.push({id:nextId(),name,country:f.country,cash:10000000});f.aiCash-=10000000;event('AI założyło spółkę córkę: '+name)
+  }
+  if(S.month%8===0&&f.aiCash>40000000){f.aiTech=(f.aiTech||0)+1;f.aiCash-=5000000}
+  if(S.month%12===0&&f.aiCash<1000000&&S.aiAssets.some(a=>a.firmId===f.id)){
+   const a=S.aiAssets.find(a=>a.firmId===f.id);S.aiAssets=S.aiAssets.filter(x=>x!==a);f.aiCash+=(TYPES[a.type]?.cost||1e7)*.4;event('Restrukturyzacja '+f.name)
+  }
+ }
+ save()
+}
+const prev=advance;
+advance=function(){prev();month();drawDeposits();render()};
+document.addEventListener('keydown',ev=>{if(ev.key==='Escape'&&document.getElementById('ee28veil').classList.contains('active'))ee28Close()});
+})();
+</script>
+</body></html>
