@@ -1,338 +1,434 @@
-<!doctype html>
-<html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Waste Empire — prototyp</title><link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"><style>
-:root{font-family:Inter,system-ui,Arial,sans-serif;color:#e9f1ee;background:#0c1518}*{box-sizing:border-box}body{margin:0}header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 20px;background:#142328;border-bottom:1px solid #284146;flex-wrap:wrap}h1{font-size:20px;margin:0;color:#8ce1ac}small,.muted{color:#9eb4b4}.stats{display:flex;gap:14px;flex-wrap:wrap;font-size:13px}.stats b{color:white}main{display:grid;grid-template-columns:240px minmax(0,1fr) 330px;min-height:calc(100vh - 68px)}nav{padding:14px;background:#111e22;border-right:1px solid #294047}nav button{width:100%;margin-bottom:8px;text-align:left}.panel{padding:16px;background:#132126;border-left:1px solid #294047;overflow-y:auto;max-height:calc(100vh - 68px)}#map{height:calc(100vh - 68px);min-height:540px;background:#203033}button,input,select{font:inherit}button{border:1px solid #36575c;background:#21393f;color:#e9f1ee;border-radius:9px;padding:10px 12px;cursor:pointer}button:hover{background:#305259}button.primary{background:#167c5a;border-color:#269a74}button:disabled{opacity:.5;cursor:not-allowed}input,select{background:#0b191d;color:#f2f6f5;border:1px solid #426065;padding:9px;border-radius:8px;width:100%;margin:5px 0 12px}label{display:block;font-size:13px;color:#bad0ce}.card{border:1px solid #2d484e;background:#192c30;border-radius:12px;padding:12px;margin:12px 0}.card h3{margin:0 0 8px;font-size:15px}.card p{font-size:13px;margin:5px 0;color:#c2d4d1}.row{display:flex;align-items:center;justify-content:space-between;gap:8px}.row button{flex-shrink:0}.log{font-size:12px;line-height:1.6;max-height:180px;overflow:auto}.pill{display:inline-block;background:#254b40;color:#9ee2c2;border-radius:15px;padding:3px 8px;font-size:11px}h2{margin:0 0 14px;font-size:19px}.help{font-size:12px;color:#9eb4b4;line-height:1.5}.leaflet-container{font:inherit}.zone-label{background:#0e2026dd;border:1px solid #b5c9c888;border-radius:8px;color:#fff;font-weight:700;font-size:11px;padding:4px 7px;white-space:nowrap;box-shadow:0 3px 12px #0007}.zone-label:before{display:none}.zone-legend{position:absolute;z-index:600;left:12px;bottom:22px;background:#102329ed;border:1px solid #4c6970;border-radius:12px;padding:10px 12px;font-size:12px;pointer-events:none;line-height:1.9}.zone-legend span{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:7px}.zone-controls{position:absolute;top:12px;right:12px;z-index:600;background:#102329ed;padding:8px;border:1px solid #4c6970;border-radius:10px}.zone-controls button{font-size:12px;padding:7px}.zone-metric{display:grid;grid-template-columns:1fr 1fr;gap:8px}.zone-metric>div{background:#0d2025;border-radius:8px;padding:10px}.zone-metric b{display:block;font-size:16px;margin-top:3px}.zone-metric small{font-size:11px}@media(max-width:1000px){main{grid-template-columns:160px minmax(0,1fr)}.panel{grid-column:1/-1;max-height:none;border-top:1px solid #294047}#map{height:60vh;min-height:440px}}@media(max-width:600px){main{display:block}nav{display:flex;gap:7px;overflow:auto;padding:9px}nav button{min-width:max-content;width:auto}#map{height:48vh;min-height:320px}.panel{padding:13px}header{padding:10px}.stats{font-size:11px}}
 
-/* Waste Empire v0.4 — glassmorphism */
-:root{color-scheme:dark;--glass:rgba(17,34,43,.76);--line:rgba(180,238,226,.16)}body{background:radial-gradient(ellipse at 8% 5%,#164e4b 0,transparent 40%),radial-gradient(ellipse at 90% 85%,#27315d 0,transparent 42%),#091217}header{background:linear-gradient(110deg,rgba(15,52,55,.92),rgba(23,31,58,.88));backdrop-filter:blur(22px);border-bottom:1px solid var(--line)}h1{background:linear-gradient(110deg,#a5ffcc,#5ed8d5,#b7c2ff);background-clip:text;-webkit-background-clip:text;color:transparent}nav,.panel{background:var(--glass);backdrop-filter:blur(20px);border-color:var(--line)}.card{background:linear-gradient(145deg,rgba(42,77,79,.57),rgba(24,38,57,.65));border:1px solid var(--line);box-shadow:0 12px 35px rgba(0,0,0,.13),inset 0 1px rgba(255,255,255,.055);backdrop-filter:blur(16px);border-radius:17px}.card:hover{border-color:rgba(149,237,213,.32)}button{background:linear-gradient(145deg,rgba(45,81,87,.95),rgba(30,54,69,.94));border-color:var(--line);transition:transform .15s,filter .15s}button:hover{filter:brightness(1.18);transform:translateY(-1px)}button.primary{background:linear-gradient(120deg,#078b73,#267b9b);box-shadow:0 4px 18px #00b89724}input,select{background:rgba(8,22,30,.65);border-color:var(--line)}.pill{background:linear-gradient(110deg,rgba(19,148,111,.35),rgba(42,110,139,.36))}.zone-legend,.zone-controls{background:rgba(15,31,40,.72);backdrop-filter:blur(18px);border-color:var(--line)}.days{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:9px 0 15px}.days label{display:flex;align-items:center;justify-content:center;gap:4px;background:rgba(11,31,39,.7);border:1px solid var(--line);border-radius:9px;padding:8px 3px;font-size:12px}.days input{width:auto;margin:0;accent-color:#44d9ac}.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}@media(max-width:600px){.days{grid-template-columns:repeat(4,1fr)}}
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stratton Empire — Broker Tycoon</title>
+<style>
+:root {
+  --bg:#101720; --panel:#19232e; --line:#303d49;
+  --text:#f3f0e8; --muted:#94a1ab; --gold:#d9b66f;
+  --green:#70d0a1; --red:#e58484;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--text);
+  font-family:Arial,Helvetica,sans-serif;
+}
+button { cursor:pointer; font:inherit; }
+header {
+  display:flex; justify-content:space-between; align-items:center;
+  padding:20px 5%; border-bottom:1px solid var(--line);
+}
+.logo { font-size:20px; font-weight:bold; letter-spacing:2px; }
+.logo span { color:var(--gold); }
+.small { font-size:10px; color:var(--muted); letter-spacing:2px; margin-top:5px; }
+button {
+  border:1px solid var(--gold); background:transparent;
+  color:var(--gold); padding:11px 14px; border-radius:3px;
+}
+button:hover:not(:disabled) { background:#d9b66f20; }
+button:disabled { opacity:.4; cursor:not-allowed; }
+main { max-width:1200px; margin:auto; padding:25px 5%; }
+.hero {
+  padding:30px; background:linear-gradient(120deg,#263744,#151e27);
+  border:1px solid var(--line); margin-bottom:20px;
+}
+.eyebrow { color:var(--gold); font-size:11px; letter-spacing:2px; }
+h1 { font-size:clamp(30px,5vw,48px); margin:18px 0 10px; }
+h1 em { color:var(--gold); }
+p { color:var(--muted); line-height:1.65; }
+.hero p { max-width:570px; }
+.gold-button { background:var(--gold); color:#101720; font-weight:bold; }
+.gold-button:hover:not(:disabled) { background:#ecd094; }
+.stats {
+  display:grid; grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:12px; margin-bottom:30px;
+}
+.card { background:var(--panel); border:1px solid var(--line); padding:18px; }
+.stat-label { color:var(--muted); font-size:10px; letter-spacing:1px; }
+.stat-value { font-size:clamp(19px,3vw,28px); margin-top:12px; font-weight:bold; }
+.stat-value small { font-size:12px; color:var(--muted); }
+.layout { display:grid; grid-template-columns:1.5fr 1fr; gap:20px; }
+h2 { font-size:21px; margin:8px 0 18px; }
+h3 { font-size:15px; margin:0 0 8px; }
+.upgrade { display:flex; gap:14px; align-items:center; margin-bottom:12px; }
+.upgrade-info { flex:1; min-width:0; }
+.upgrade-info p { font-size:12px; margin:5px 0; }
+.cost { color:var(--gold); font-size:11px; margin-top:8px; }
+.level { color:var(--green); font-size:10px; margin-bottom:6px; }
+.activity { margin-bottom:10px; border-bottom:1px solid var(--line); padding:10px 0; font-size:12px; line-height:1.5; }
+.activity:last-child { border-bottom:0; }
+.activity small { display:block; color:var(--muted); margin-top:5px; }
+.market { margin-top:20px; }
+.market-value { font-size:29px; color:var(--green); font-weight:bold; }
+.progress { height:5px; background:#34414c; margin-top:10px; }
+.progress div { height:100%; background:var(--gold); transition:width .2s; }
+footer { border-top:1px solid var(--line); margin-top:30px; padding:20px 0; font-size:10px; color:var(--muted); }
+#toast {
+  position:fixed; bottom:20px; right:20px; background:var(--gold);
+  color:#101720; padding:14px 18px; font-weight:bold;
+  opacity:0; pointer-events:none; transition:opacity .2s;
+}
+#toast.show { opacity:1; }
+@media(max-width:750px) {
+  header { padding:16px 5%; }
+  .stats { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .layout { grid-template-columns:1fr; }
+  .hero { padding:22px; }
+  .upgrade { flex-wrap:wrap; }
+  .upgrade button { margin-left:48px; }
+}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <div class="logo">STRATTON <span>EMPIRE</span></div>
+    <div class="small">BROKER TYCOON · SINGLE PLAYER</div>
+  </div>
+  <div style="text-align:right">
+    <div id="day">DZIEŃ 1</div>
+    <div class="small">WALL STREET</div>
+  </div>
+</header>
 
-/* v1.2: full-page navigation, responsive glass dashboard */
-body{background:radial-gradient(circle at 5% 10%,#15564e 0,transparent 34%),radial-gradient(circle at 92% 78%,#252a65 0,transparent 42%),#080f19}
-main{grid-template-columns:245px minmax(0,1fr);height:calc(100vh - 76px);min-height:620px}
-main>div:nth-child(2){grid-column:2;grid-row:1;min-width:0}main>.panel{grid-column:2;grid-row:1;z-index:5;max-height:none;height:100%;width:100%;border:0;overflow:auto;padding:clamp(18px,3vw,46px);background:linear-gradient(140deg,rgba(15,30,43,.97),rgba(15,24,43,.96))}
-main:not(.page-map)>div:nth-child(2){display:none}main.page-map>.panel{position:absolute;right:14px;top:94px;width:min(390px,calc(100vw - 300px));height:calc(100vh - 112px);z-index:500;max-height:none;border:1px solid rgba(164,245,222,.22);border-radius:18px;background:rgba(11,28,39,.83);backdrop-filter:blur(20px);padding:20px}
-main.page-map #map{height:100%;min-height:620px}main.page-map .zone-controls,main.page-map .zone-legend{z-index:450}
-nav{overflow-y:auto;height:100%;background:linear-gradient(180deg,rgba(13,37,43,.98),rgba(17,21,39,.98));border-right:1px solid rgba(169,244,222,.15)}nav button{border-radius:12px;padding:12px 14px}nav button.primary{background:linear-gradient(110deg,#127e69,#315caa);box-shadow:0 5px 18px #04785b44}
-.panel .card,.panel details{background:linear-gradient(130deg,rgba(33,63,70,.68),rgba(30,42,64,.55));border:1px solid rgba(185,243,226,.15);border-radius:16px;backdrop-filter:blur(14px);box-shadow:0 10px 28px #0002}
-.panel h2{font-size:clamp(24px,3vw,35px);margin-bottom:18px}.panel h3{font-size:18px}button{transition:transform .15s,background .15s}button:hover{transform:translateY(-1px)}.panel button{background:linear-gradient(115deg,#1b685d,#34578b);border-color:#427b82}
-.we-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}.we-stat{padding:22px;border:1px solid #426d704d;border-radius:18px;background:linear-gradient(145deg,#1b484b99,#293459aa);backdrop-filter:blur(16px)}.we-stat strong{display:block;font-size:25px;margin-top:8px}.we-table{width:100%;border-collapse:collapse}.we-table td,.we-table th{padding:12px;text-align:left;border-bottom:1px solid #ffffff1b}.we-scroll{overflow-x:auto}.we-toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.we-toolbar>*{flex:1;min-width:120px}.we-tag{color:#95f2d2;font-weight:600}.we-banner{padding:12px 18px;border-radius:12px;background:#17665366;border:1px solid #36aa8955;margin:12px 0}
-#live-seconds{font-variant-numeric:tabular-nums;color:#a8f5d5}header{position:relative;z-index:600}
-@media(max-width:850px){main{display:flex;flex-direction:column;height:auto;min-height:100vh}nav{height:auto;max-height:175px;display:flex;gap:7px;overflow:auto;padding:10px}nav button{min-width:160px;width:auto;flex-shrink:0}nav .help{display:none}main>div:nth-child(2){height:70vh;min-height:500px}main>.panel{height:auto;min-height:70vh}main.page-map>.panel{position:relative;top:auto;right:auto;width:100%;height:auto;max-height:none}main.page-map #map{height:65vh;min-height:450px}header{padding:12px}}
-</style></head><body><header><div><h1>♻ WASTE EMPIRE</h1><small>Ekonomiczna strategia odpadowa · wersja 0.6 · światowe rynki</small></div><div class="stats"><span>📅 <b id="date"></b></span><span>💰 <b id="cash"></b></span><span>🚛 <b id="fleet"></b></span><span>🏢 <b id="subs"></b></span><button id="pause">⏸ Pauza</button><select id="speed" style="width:92px;margin:0"><option value="1" selected>×1 (realny)</option><option value="5">×5</option><option value="15">×15</option><option value="60">×60</option><option value="360">×360</option><option value="1440">×1440</option></select></div></header><main><nav id="nav"></nav><div style="position:relative;min-width:0"><div id="map"></div><div class="zone-controls"><div style="display:flex;gap:5px;margin-bottom:7px"><input id="city-query" placeholder="Miasto, kraj…" aria-label="Wyszukaj miasto" style="width:165px;margin:0;padding:7px"><button id="city-search" type="button">🔎</button></div><small id="city-status" style="display:block;max-width:245px;margin-bottom:6px">Białystok · rynek lokalny</small><button id="zones-toggle" type="button">▦ Ukryj strefy</button></div><div class="zone-legend"><b>STREFY ODBIORU</b><br><span style="background:#19c58c"></span>Twoje kontrakty<br><span style="background:#edaa4a"></span>Konkurencja<br><span style="background:#e7f2fa"></span>Wybrana strefa</div></div><aside class="panel" id="panel"></aside></main><script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><script>
-const money=n=>Math.round(n).toLocaleString('pl-PL')+' zł';const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));const seed=()=>({month:0,gameMinutes:Math.max(0,(Date.now()-Date.UTC(2026,0,1))/60000),paused:false,speed:1,lastDay:-1,lastWeek:-1,lastMonth:-1,research:0,tech:[],materials:{plastik:0,papier:0,szklo:0,metal:0,bio:0},prices:{plastik:510,papier:240,szklo:135,metal:920,bio:90},reputation:72,complaints:0,energy:100,loans:0,cash:4000000,vehicles:3,workers:8,subs:[],routes:[{street:'Lipowa',waste:'Zmieszane',day:'Poniedziałek',days:['Poniedziałek'],hour:'07:00',frequency:1,zone:0,price:390,vehicle:1,completed:0}],contracts:[0],shares:{},buildings:[],logs:['Witaj w Waste Empire. Wybierz strefę na mapie.'],ai:[{name:'EcoMax',cash:3800000,vehicles:5,subs:0,shares:0},{name:'GreenPol',cash:2600000,vehicles:4,subs:0,shares:0},{name:'Recyklon',cash:2100000,vehicles:3,subs:0,shares:0}]});let s;try{s=JSON.parse(localStorage.getItem('waste-empire-v1'))||seed()}catch{s=seed()};s={...seed(),...s};s.materials={...seed().materials,...s.materials};s.prices={...seed().prices,...s.prices};if(!Array.isArray(s.tech))s.tech=[];let sectors=[{name:'Centrum',xy:[53.133,23.16],radius:1350,tons:420,fee:420,owner:'Gracz'},{name:'Antoniuk',xy:[53.148,23.135],radius:1250,tons:350,fee:405,owner:'EcoMax'},{name:'Piaski',xy:[53.119,23.163],radius:1100,tons:300,fee:430,owner:'GreenPol'},{name:'Białostoczek',xy:[53.148,23.172],radius:1200,tons:370,fee:415,owner:'Recyklon'},{name:'Nowe Miasto',xy:[53.106,23.149],radius:1450,tons:470,fee:400,owner:'EcoMax'},{name:'Wygoda',xy:[53.145,23.204],radius:1250,tons:320,fee:440,owner:'GreenPol'}];let streetsByZone=[['Lipowa','Sienkiewicza','Rynek Kościuszki','Suraska','Warszawska'],['Antoniukowska','Hanki Ordonówny','Świętokrzyska','Wierzbowa'],['Zwierzyniecka','Wiejska','Młynowa','Legionowa'],['Białostoczek','Tysiąclecia Państwa Polskiego','Radzymińska'],['Kawaleryjska','Transportowa','Pogodna','Świerkowa'],['Wygoda','42 Pułku Piechoty','Dolistowska','Wasilkowska']];const tabs=[['mapa','🗺 Mapa i sektory'],['przetargi','📑 Przetargi'],['flota','🚛 Flota i kadry'],['trasy','📅 Harmonogramy'],['ceny','💳 Cennik odpadów'],['spolki','🏢 Spółki córki'],['udzialy','📈 Udziały firm'],['zarzadzanie','🏢 Zarządzanie'],['zaklady','🏭 Zakłady'],['rynek','🤖 Konkurencja AI'],['badania','🔬 Badania'],['handel','📦 Rynek surowców'],['miasto','🏙 Mieszkańcy'],['raport','💹 Finanse i zapis']];let tab='mapa',selected=0;const DAYS=['Poniedziałek','Wtorek','Środa','Czwartek','Piątek','Sobota','Niedziela'];s.tariffs=s.tariffs||{'Zmieszane':390,'Plastik i metale':350,'Papier':270,'Szkło':240,'Bio':300,'Gabaryty':680};s.ai=s.ai||[];s.ai.forEach((v,i)=>{v.id??='legacy-'+i;v.workers??=v.vehicles*2;v.contracts??=[];v.holdings??=[];v.ownerShares??=Math.max(0,100-(s.shares[i]||0));v.takenOver??=false});s.nextCompanyId??=1;s.offers??=[];s.routes=s.routes.map(r=>({...r,days:r.days||[r.day||'Poniedziałek'],hour:r.hour||'07:00',frequency:r.frequency||1,zone:r.zone??0,completed:r.completed||0}));const save=()=>{if(s.markets&&s.currentCity&&typeof marketSnapshot==='function')s.markets[s.currentCity]=marketSnapshot();localStorage.setItem('waste-empire-v1',JSON.stringify(s))};const note=t=>{s.logs.unshift('M'+(s.month+1)+': '+t);s.logs=s.logs.slice(0,35)};const owned=i=>s.contracts.includes(i);const button=(label,action,disabled=false)=>`<button ${disabled?'disabled':''} data-action="${action}">${label}</button>`;const map=L.map('map').setView([53.1325,23.165],12);L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'}).addTo(map);// Strefy są fikcyjnymi obszarami kontraktowymi, wyliczanymi jako rozłączne komórki Voronoi.
-// Nie są urzędowymi granicami dzielnic ani rzeczywistymi obszarami zamówień.
-let zoneBounds=[[53.055,23.065],[53.195,23.270]];
-let latScale=Math.cos(53.13*Math.PI/180);
-const xyPoint=ll=>[ll[1]*latScale,ll[0]];
-let seeds=sectors.map(v=>xyPoint(v.xy));
-function clipHalfPlane(poly,a,b,c){let out=[];for(let j=0;j<poly.length;j++){let p=poly[j],q=poly[(j+1)%poly.length],dp=a*p[0]+b*p[1]-c,dq=a*q[0]+b*q[1]-c; if(dp<=0)out.push(p);if((dp<0&&dq>0)||(dp>0&&dq<0)){let t=dp/(dp-dq);out.push([p[0]+t*(q[0]-p[0]),p[1]+t*(q[1]-p[1])])}}return out}
-function zonePolygon(i){let [[south,west],[north,east]]=zoneBounds;let poly=[[west*latScale,south],[east*latScale,south],[east*latScale,north],[west*latScale,north]];for(let j=0;j<seeds.length;j++){if(i===j)continue;let p=seeds[i],q=seeds[j],a=2*(q[0]-p[0]),b=2*(q[1]-p[1]),c=q[0]*q[0]+q[1]*q[1]-p[0]*p[0]-p[1]*p[1];poly=clipHalfPlane(poly,a,b,c)}return poly.map(p=>[p[1],p[0]/latScale])}
-const layers=[],zoneGroup=L.featureGroup().addTo(map);
-function rebuildZones(){zoneGroup.clearLayers();layers.length=0;sectors.forEach((x,i)=>{let l=L.polygon(zonePolygon(i),{weight:2,color:'#2bbd88',fillOpacity:.2,bubblingMouseEvents:false}).addTo(zoneGroup);l.on('click',()=>{selected=i;tab='mapa';render()});l.bindTooltip(x.name,{permanent:true,direction:'center',className:'zone-label',opacity:1});layers.push(l)});updateMap()}
-rebuildZones();
-let zonesVisible=true;document.getElementById('zones-toggle').onclick=()=>{zonesVisible=!zonesVisible;if(zonesVisible)zoneGroup.addTo(map);else map.removeLayer(zoneGroup);document.getElementById('zones-toggle').textContent=zonesVisible?'▦ Ukryj strefy':'▦ Pokaż strefy'};
-function updateMap(){sectors.forEach((x,i)=>{let color=owned(i)?'#19c58c':'#edaa4a';layers[i].setStyle({color:selected===i?'#e7f2fa':color,fillColor:color,fillOpacity:selected===i?.38:.18,weight:selected===i?4:2,dashArray:owned(i)?null:'7 4'});layers[i].bringToFront();layers[i].setTooltipContent(x.name+' · '+(owned(i)?'Twoja firma':x.owner))})}
-// Rynki świata są generowane na żądanie. Granice i firmy są fikcyjne, a OSM służy jako mapa bazowa.
-const homeMarket={sectors:JSON.parse(JSON.stringify(sectors)),streets:JSON.parse(JSON.stringify(streetsByZone)),bounds:zoneBounds,contracts:[...s.contracts],routes:JSON.parse(JSON.stringify(s.routes))};
-s.markets??={};s.currentCity??='Białystok, Polska';
-function marketSnapshot(){return {sectors:JSON.parse(JSON.stringify(sectors)),streets:JSON.parse(JSON.stringify(streetsByZone)),bounds:zoneBounds,contracts:[...s.contracts],routes:JSON.parse(JSON.stringify(s.routes))}}
-function hashCity(v){let h=2166136261;for(let i=0;i<v.length;i++)h=Math.imul(h^v.charCodeAt(i),16777619);return h>>>0}
-function makeMarket(name,lat,lon,bbox){let h=hashCity(name),count=12+(h%7);let south=Number(bbox?.[0]),north=Number(bbox?.[1]),west=Number(bbox?.[2]),east=Number(bbox?.[3]);if(![south,north,west,east].every(Number.isFinite)||north-south<.003||east-west<.003){let radius=.065; south=lat-radius;north=lat+radius;west=lon-radius/Math.max(.25,Math.cos(lat*Math.PI/180));east=lon+radius/Math.max(.25,Math.cos(lat*Math.PI/180))}let padLat=(north-south)*.025,padLon=(east-west)*.025;let bounds=[[south-padLat,west-padLon],[north+padLat,east+padLon]];let radius=(north-south)/2;let owners=s.ai.filter(v=>!v.takenOver).map(v=>v.name);if(!owners.length)owners=['GlobalEco'];let sectors=[],streets=[];for(let i=0;i<count;i++){let a=2*Math.PI*i/count,r=.28+.34*((hashCity(name+i)%100)/100);let y=(south+north)/2+Math.sin(a)*(north-south)*.43*r/.62,x=(west+east)/2+Math.cos(a)*(east-west)*.43*r/.62;let owner=owners[(h+i)%owners.length];sectors.push({name:'Sektor '+String(i+1).padStart(2,'0'),xy:[y,x],radius:1100,tons:180+((h+i*173)%650),fee:220+((h+i*53)%350),owner});streets.push(Array.from({length:5},(_,j)=>'Odcinek '+(i+1)+'-'+(j+1)+' (symulowany)'))}return {sectors,streets,bounds,contracts:[],routes:[]}}
-function switchMarket(name,lat,lon,bbox){s.markets[s.currentCity]=marketSnapshot();let m=s.markets[name]||(name==='Białystok, Polska'?homeMarket:makeMarket(name,lat,lon,bbox));s.currentCity=name;sectors=m.sectors;streetsByZone=m.streets;zoneBounds=m.bounds;latScale=Math.cos(lat*Math.PI/180);seeds=sectors.map(v=>xyPoint(v.xy));s.contracts=[...m.contracts];s.routes=JSON.parse(JSON.stringify(m.routes));selected=0;rebuildZones();map.setView([lat,lon],12);document.getElementById('city-status').textContent=name+' · '+sectors.length+' sektorów';note('Otwarto rynek: '+name);render();save();setTimeout(()=>loadCityRoads(false),500)}
-async function findCity(){let input=document.getElementById('city-query'),status=document.getElementById('city-status'),q=input.value.trim();if(q.length<2){status.textContent='Wpisz nazwę miasta i kraju';return}status.textContent='Wyszukiwanie…';try{let url='https://nominatim.openstreetmap.org/search?format=json&limit=5&featuretype=city&q='+encodeURIComponent(q);let res=await fetch(url,{headers:{'Accept-Language':'pl'}});if(!res.ok)throw Error('Serwer wyszukiwania niedostępny');let data=await res.json();if(!data.length){status.textContent='Nie znaleziono miasta. Dopisz kraj.';return}let x=data[0],name=x.display_name.split(',').slice(0,3).join(',').trim();switchMarket(name,Number(x.lat),Number(x.lon),x.boundingbox)}catch(e){status.textContent='Błąd wyszukiwania: '+e.message}}
-document.getElementById('city-search').onclick=findCity;document.getElementById('city-query').addEventListener('keydown',e=>{if(e.key==='Enter')findCity()});
-if(s.currentCity!=='Białystok, Polska'&&s.markets[s.currentCity]){let m=s.markets[s.currentCity],lat=m.sectors.reduce((a,v)=>a+v.xy[0],0)/m.sectors.length,lon=m.sectors.reduce((a,v)=>a+v.xy[1],0)/m.sectors.length;sectors=m.sectors;streetsByZone=m.streets;zoneBounds=m.bounds;latScale=Math.cos(lat*Math.PI/180);seeds=sectors.map(v=>xyPoint(v.xy));rebuildZones();map.setView([lat,lon],12);document.getElementById('city-status').textContent=s.currentCity+' · '+sectors.length+' sektorów'}
-function spend(n){if(s.cash<n){alert('Brak środków: potrzebujesz '+money(n));return false}s.cash-=n;return true}function show(t){tab=t;render()}function render(){document.getElementById('date').textContent=clockLabel();document.getElementById('cash').textContent=money(s.cash);document.getElementById('fleet').textContent=s.vehicles+' poj.';document.getElementById('subs').textContent=s.subs.length+' spółek';document.getElementById('nav').innerHTML=tabs.map(([id,label])=>`<button class="${tab===id?'primary':''}" data-tab="${id}">${label}</button>`).join('')+'<p class="help">Mapa jest prawdziwa (OSM). Granice sektorów, kontrakty i wszystkie ceny są fikcyjną symulacją.</p>';updateMap();let h='';const x=sectors[selected];if(tab==='mapa'){h=`<h2>🗺 ${x.name}</h2><div class="card"><span class="pill">${owned(selected)?'🟢 Twój kontrakt':'🟠 Konkurencja'}</span><p>Operator: <b>${owned(selected)?'Twoja firma':x.owner}</b></p><div class="zone-metric"><div><small>Odpady / mies.</small><b>${x.tons} t</b></div><div><small>Cena / tonę</small><b>${money(x.fee)}</b></div><div><small>Przychód / mies.</small><b>${money(x.tons*x.fee)}</b></div><div><small>Potrzebna flota*</small><b>${Math.max(1,Math.ceil(x.tons/110))} poj.</b></div></div><p>Strefa ${selected+1} z ${sectors.length} · ${owned(selected)?'Kontrakt aktywny':'Możesz wystartować w przetargu'}</p>${button('Pokaż cały obszar','fitzone')} ${button('Centruj','center')} ${!owned(selected)?button('Złóż ofertę','bid'):''}</div><p class="help">Kolorowe wielokąty nie nakładają się na siebie. Kliknij strefę, aby sprawdzić operatora i parametry. *Orientacyjne zapotrzebowanie.</p>`}
-if(tab==='przetargi'){h='<h2>📑 Przetargi miejskie</h2>'+sectors.map((x,i)=>`<div class="card"><h3>${x.name} ${owned(i)?'<span class="pill">Twój kontrakt</span>':''}</h3><p>${x.tons} t/mies. · stawka ${money(x.fee)}/t</p><p>Szacowany przychód: ${money(x.tons*x.fee)}/mies.</p>${!owned(i)?button('Oferta: 80 000 zł wadium','bid:'+i):'<p>Kontrakt aktywny</p>'}</div>`).join('')}
-if(tab==='flota'){h=`<h2>🚛 Flota i pracownicy</h2><div class="card"><p>Śmieciarki: <b>${s.vehicles}</b></p><p>Pracownicy: <b>${s.workers}</b></p><p>Wolne pojazdy: <b>${Math.max(0,s.vehicles-s.routes.length)}</b></p>${button('Kup śmieciarkę · 240 000 zł','vehicle')} ${button('Zatrudnij 2 osoby · 12 000 zł','hire')}</div><p class="help">Każda linia wymaga osobnego pojazdu i dwóch pracowników. Koszty utrzymania naliczane są co miesiąc.</p>`}
-if(tab==='trasy'){const wasteTypes=Object.keys(s.tariffs);h=`<h2>📅 Harmonogram ulic i gabarytów</h2><p class="help">Wybierz strefę i ulicę. Pobierz większą listę ulic z OpenStreetMap dla całego miasta.</p><div class="card"><button type="button" onclick="loadCityRoads(true)">🛣 Pobierz ulice całego miasta</button><p id="all-roads-status" class="help">Ładowanie może potrwać kilkanaście sekund.</p></div><div class="card"><h3>Nowy odbiór</h3><label>Strefa z kontraktem</label><select id="routezone">${sectors.map((z,i)=>`<option value="${i}" ${owned(i)?'':'disabled'}>${z.name}${owned(i)?'':' — brak kontraktu'}</option>`).join('')}</select><label>Szukaj ulicy</label><input id="street-filter" placeholder="Wpisz fragment nazwy ulicy…"><label>Ulica w strefie</label><select id="street"></select><label>Rodzaj odpadów</label><select id="waste">${wasteTypes.map(t=>`<option>${t}</option>`).join('')}</select><label>Dni odbioru</label><div class="days">${DAYS.map((d,i)=>`<label><input type="checkbox" class="route-day" value="${d}" ${i===0?'checked':''}>${d.slice(0,3)}</label>`).join('')}</div><div class="form-grid"><div><label>Godzina</label><input id="routehour" type="time" value="07:00"></div><div><label>Co ile tygodni</label><select id="frequency"><option value="1">1</option><option value="2">2</option><option value="4">4</option><option value="8">8</option></select></div></div>${button('Zapisz harmonogram','route')}</div><h3>Plan odbiorów (${s.routes.length})</h3>`+sectors.map((z,zi)=>`<div class="card"><h3>📍 ${z.name} ${owned(zi)?'✓':''}</h3>${streetsByZone[zi].map(st=>{let rr=s.routes.map((r,i)=>({...r,index:i})).filter(r=>r.zone===zi&&r.street===st);return `<details><summary>${esc(st)} · ${rr.length} linii</summary>${rr.length?rr.map(r=>`<p>🚛 #${r.vehicle} · ${esc(r.waste)} · ${r.days.map(d=>esc(d.slice(0,3))).join(', ')} ${esc(r.hour)} · co ${r.frequency} tyg. · wykonano ${r.completed||0} ${button('Usuń','delroute:'+r.index)}</p>`).join(''):'<p class="help">Brak zaplanowanego odbioru</p>'}</details>`}).join('')}</div>`).join('');}
-if(tab==='ceny'){h=`<h2>💳 Cennik odpadów</h2><p class="help">Wewnętrzne stawki twojej firmy w zł za tonę. Nie są to oficjalne opłaty miejskie. Zmiana stawki dotyczy kalkulacji linii; przychód z przetargu nadal wynika z umowy.</p><div class="card"><h3>Edytuj stawki</h3>${Object.entries(s.tariffs).map(([k,v],i)=>`<label>${esc(k)} · zł/t</label><input type="number" class="tariff" data-waste="${esc(k)}" min="0" max="10000" step="10" value="${v}">`).join('')}${button('Zapisz cennik','tariffs')}</div><div class="card"><h3>Stawki kontraktów miejskich</h3>${sectors.map(z=>`<p>${z.name}: <b>${money(z.fee)}/t</b></p>`).join('')}</div>`}
-if(tab==='spolki'){h=`<h2>🏢 Spółki córki</h2><div class="card"><label>Nazwa nowej spółki</label><input id="subname" maxlength="50" placeholder="np. EcoSort Polska"><label>Profil</label><select id="subtype"><option>Transport</option><option>Sortowanie</option><option>Recykling</option><option>Energia</option></select>${button('Załóż spółkę · 150 000 zł','subsidiary')}</div>`+s.subs.map((v,i)=>`<div class="card"><h3>${esc(v.name)}</h3><p>${esc(v.type)} · 100% udziałów</p><p>Kapitał zakładowy (symulacja): 150 000 zł</p></div>`).join('')}
-if(tab==='udzialy'){h='<h2>📈 Rynek udziałów i przejęć</h2><p class="help">Składasz ofertę pozostałym udziałowcom. Akceptacja zależy od ceny, wyceny firmy i losowej decyzji sprzedających. Po przekroczeniu 50% odblokujesz zarządzanie, przy 100% możesz wchłonąć aktywa.</p>'+s.ai.map((v,i)=>{let p=s.shares[i]||0,available=Math.max(0,100-p),unit=Math.round((v.cash+v.vehicles*240000+v.workers*15000+v.contracts.length*350000)/100);return `<div class="card"><h3>${esc(v.name)} ${v.takenOver?'(wchłonięta)':''}</h3><p>Twoje udziały: <b>${p}%</b> · dostępne: ${available}%</p><p>Wycena pakietu 10%: ${money(unit*10)}</p><div class="form-grid"><div><label>Pakiet (%)</label><select id="pct-${i}">${[5,10,20,25,50,100].filter(n=>n<=available).map(n=>`<option value="${n}">${n}%</option>`).join('')}</select></div><div><label>Premia ofertowa</label><select id="premium-${i}"><option value="1">0%</option><option value="1.2">20%</option><option value="1.5">50%</option><option value="2">100%</option></select></div></div>${button('Złóż ofertę udziałowcom','offer:'+i,available===0||v.takenOver)}${p>50&&!v.takenOver?button('Panel zarządzania','manage:'+i):''}${p===100&&!v.takenOver?button('Przejmij wszystkie aktywa','takeover:'+i):''}</div>`}).join('')+'<h3>Historia ofert</h3>'+s.offers.slice(0,12).map(o=>`<p>${esc(o)}</p>`).join('');}
-if(tab==='zarzadzanie'){let i=s.managedIndex||0,v=s.ai[i],p=s.shares[i]||0;h=v&&p>50?`<h2>🏢 Zarządzanie: ${esc(v.name)}</h2><p>Twój udział: ${p}% · Kapitał: ${money(v.cash)}</p><div class="card"><h3>Zasoby spółki</h3><p>🚛 ${v.vehicles} pojazdów · 👥 ${v.workers} pracowników</p><p>📄 Kontrakty: ${v.contracts.map(n=>sectors[n]?.name).join(', ')||'brak'}</p><p>Spółki córki: ${v.subs}</p>${button('Kup śmieciarkę za środki spółki','managedvehicle:'+i)} ${button('Zatrudnij 2 osoby','managedhire:'+i)} ${button('Załóż spółkę córkę','managedsub:'+i)} ${p===100?button('Wchłoń firmę','takeover:'+i):''}</div>`:'<p>Brak pakietu kontrolnego.</p>';}
-if(tab==='zaklady'){h='<h2>🏭 Zakłady przemysłowe</h2><div class="card"><p>Sortownia: 900 000 zł · miesięczny przychód 80 000 zł, utrzymanie 36 000 zł</p>'+button('Wybuduj sortownię','build:sort')+'</div><div class="card"><p>Recykling plastiku: 1 400 000 zł · miesięczny przychód 135 000 zł, utrzymanie 58 000 zł</p>'+button('Wybuduj fabrykę','build:plastic')+'</div>'+s.buildings.map(b=>`<div class="card"><h3>${b==='sort'?'Sortownia':'Fabryka recyklingu plastiku'}</h3><p>Zakład aktywny</p></div>`).join('')}
-if(tab==='rynek'){h='<h2>🤖 Konkurencja AI</h2><p class="help">Konkurenci automatycznie rozwijają firmy przy przejściu do kolejnego miesiąca.</p>'+s.ai.filter(v=>!v.takenOver).map(v=>`<div class="card"><h3>${esc(v.name)}</h3><p>Kapitał: ${money(v.cash)}</p><p>Flota: ${v.vehicles} pojazdów</p><p>Spółki córki: ${v.subs}</p><p>Pakiety udziałów innych firm: ${v.shares}</p></div>`).join('')}
-if(tab==='badania'){h='<h2>🔬 Badania i rozwój</h2><div class="card"><p>Punkty badań: <b>'+Math.floor(s.research)+'</b> · Energia zakładów: '+Math.round(s.energy)+'%</p>'+[['sort','Sortowanie optyczne',100],['fleet','Eco-driving',80],['bio','Zaawansowany biorecykling',120],['solar','Fotowoltaika',150]].map(([id,name,cost])=>'<div class="card"><h3>'+name+'</h3><p>Koszt: '+cost+' punktów</p>'+button(s.tech.includes(id)?'Odkryto':'Opracuj', 'tech:'+id,s.tech.includes(id)||s.research<cost)+'</div>').join('')+'</div><p class="help">Punkty badań naliczają się każdego dnia. Technologie obniżają koszty lub zwiększają wydajność.</p>'}
-if(tab==='handel'){h='<h2>📦 Giełda surowców</h2><p class="help">Ceny zmieniają się codziennie. Sortownie i fabryki produkują surowce co dzień.</p>'+Object.entries(s.materials).map(([k,v])=>'<div class="card"><h3>'+k+'</h3><p>Magazyn: '+v.toFixed(1)+' t · Cena: '+money(s.prices[k])+'/t</p>'+button('Sprzedaj 1 tonę','sell:'+k,v<1)+'</div>').join('')}
-if(tab==='miasto'){h='<h2>🏙 Miasto i mieszkańcy</h2><div class="card"><p>Reputacja: <b>'+Math.round(s.reputation)+'/100</b></p><p>Skargi mieszkańców: '+s.complaints+'</p><p>Obsługiwane sektory: '+s.contracts.length+' / '+sectors.length+'</p><p>Pracownicy: '+s.workers+' · Linie: '+s.routes.length+'</p>'+button('Kampania edukacyjna · 25 000 zł','campaign')+'</div>'+sectors.map((v,i)=>'<div class="card"><h3>'+v.name+'</h3><p>Produkcja: '+v.tons+' t/mies. · '+(owned(i)?'Twój kontrakt':'Konkurencja')+'</p></div>').join('')}
-if(tab==='raport'){let income=s.contracts.reduce((a,i)=>a+sectors[i].tons*sectors[i].fee,0)+s.buildings.reduce((a,b)=>a+(b==='sort'?80000:135000),0);let costs=s.vehicles*(s.tech.includes('fleet')?7200:9000)+s.workers*6500+s.routes.length*3500+s.buildings.reduce((a,b)=>a+(b==='sort'?36000:58000),0);h=`<h2>💹 Raport finansowy</h2><div class="card"><p>Przychody miesięczne: <b>${money(income)}</b></p><p>Koszty miesięczne: <b>${money(costs)}</b></p><p>Wynik przed dywidendami: <b>${money(income-costs)}</b></p><p>Gotówka: <b>${money(s.cash)}</b></p><p>Reputacja: ${Math.round(s.reputation)}/100 · Dług: ${money(s.loans)}</p><p>Punkty badań: ${Math.floor(s.research)}</p></div>${button('Zapisz teraz','save')} ${button('Nowa gra (usuwa zapis)','reset')}<h3>Dziennik zdarzeń</h3><div class="log">${s.logs.map(v=>`<div>• ${esc(v)}</div>`).join('')}</div>`}
-document.getElementById('panel').innerHTML=h;if(tab==='trasy')updateStreetOptions();save()}
-function action(a){if(a.startsWith('offer:')){let i=Number(a.split(':')[1]),v=s.ai[i],pct=Number(document.getElementById('pct-'+i)?.value),premium=Number(document.getElementById('premium-'+i)?.value),held=s.shares[i]||0;if(!v||v.takenOver||!pct||pct>100-held)return;let unit=Math.round((v.cash+v.vehicles*240000+v.workers*15000+v.contracts.length*350000)/100),cost=Math.round(unit*pct*premium);if(s.cash<cost){alert('Brak gotówki na ofertę');return}let chance=Math.min(.96,.32+(premium-1)*.65);if(Math.random()<chance){s.cash-=cost;s.shares[i]=held+pct;v.ownerShares=100-s.shares[i];note('Udziałowcy '+v.name+' przyjęli ofertę '+pct+'% za '+money(cost));s.offers.unshift('Przyjęto: '+v.name+' '+pct+'% · '+money(cost))}else{s.offers.unshift('Odrzucono: '+v.name+' '+pct+'% · '+money(cost));note('Udziałowcy '+v.name+' odrzucili ofertę')}}else if(a.startsWith('manage:')){s.managedIndex=Number(a.split(':')[1]);tab='zarzadzanie'}else if(a.startsWith('managed')){let [op,idx]=a.split(':'),v=s.ai[Number(idx)];if(!v||(s.shares[idx]||0)<=50||v.takenOver)return;let cost=op==='managedvehicle'?240000:op==='managedhire'?12000:150000;if(v.cash<cost){alert('Spółka nie ma wystarczających środków');return}v.cash-=cost;if(op==='managedvehicle')v.vehicles++;if(op==='managedhire')v.workers+=2;if(op==='managedsub')v.subs++;note('Decyzja zarządcza w '+v.name)}else if(a.startsWith('takeover:')){let i=Number(a.split(':')[1]),v=s.ai[i];if(!v||v.takenOver||(s.shares[i]||0)!==100)return;if(!confirm('Wchłonąć '+v.name+' i przenieść gotówkę, pojazdy, pracowników oraz kontrakty?'))return;s.cash+=v.cash;s.vehicles+=v.vehicles;s.workers+=v.workers;v.contracts.forEach(z=>{if(!s.contracts.includes(z))s.contracts.push(z)});v.takenOver=true;v.cash=0;v.vehicles=0;v.workers=0;note('Wchłonięto '+v.name+' wraz z majątkiem');tab='udzialy'}else if(a.startsWith('sell:')){let k=a.split(':')[1];if(s.materials[k]>=1){s.materials[k]-=1;s.cash+=s.prices[k];note('Sprzedano tonę surowca: '+k)}}else if(a.startsWith('tech:')){let id=a.split(':')[1],cost={sort:100,fleet:80,bio:120,solar:150}[id];if(!s.tech.includes(id)&&s.research>=cost){s.research-=cost;s.tech.push(id);note('Opracowano technologię '+id)}}else if(a==='campaign'){if(spend(25000)){s.reputation=Math.min(100,s.reputation+5);s.complaints=Math.max(0,s.complaints-2);note('Przeprowadzono kampanię edukacyjną')}}else if(a==='center'){map.flyTo(sectors[selected].xy,14);return}else if(a==='fitzone'){if(!zonesVisible)document.getElementById('zones-toggle').click();map.fitBounds(layers[selected].getBounds(),{padding:[35,35],maxZoom:14});return}if(a.startsWith('bid')){let i=a.includes(':')?Number(a.split(':')[1]):selected;if(owned(i))return;if(!spend(80000))return;const chance=.48+Math.min(.2,s.vehicles*.025);if(Math.random()<chance){s.contracts.push(i);note('Wygrano przetarg: '+sectors[i].name)}else note('Przegrano przetarg: '+sectors[i].name+' (wadium zwrócone)');if(!owned(i))s.cash+=80000;selected=i;tab='przetargi'}else if(a==='vehicle'){if(spend(240000)){s.vehicles++;note('Kupiono nową śmieciarkę')}}else if(a==='hire'){if(spend(12000)){s.workers+=2;note('Zatrudniono dwie osoby')}}else if(a==='tariffs'){let ok=true;document.querySelectorAll('.tariff').forEach(el=>{let v=Number(el.value);if(!Number.isFinite(v)||v<0||v>10000)ok=false});if(!ok){alert('Podaj prawidłowe stawki od 0 do 10000 zł/t');return}document.querySelectorAll('.tariff').forEach(el=>s.tariffs[el.dataset.waste]=Number(el.value));note('Zaktualizowano cennik usług')}else if(a==='route'){let street=document.getElementById('street').value.trim(),zone=Number(document.getElementById('routezone').value),days=[...document.querySelectorAll('.route-day:checked')].map(el=>el.value),hour=document.getElementById('routehour').value,frequency=Number(document.getElementById('frequency').value),waste=document.getElementById('waste').value;if(!street||!days.length||!hour||!owned(zone)){alert('Podaj ulicę, wybierz strefę z kontraktem, dzień i godzinę');return}if(s.routes.length>=s.vehicles||s.routes.length*2+2>s.workers){alert('Brak wolnego pojazdu lub załogi. Kup śmieciarkę i zatrudnij ludzi.');return}let used=new Set(s.routes.map(r=>r.vehicle)),vehicle=Array.from({length:s.vehicles},(_,i)=>i+1).find(n=>!used.has(n));s.routes.push({street,waste,zone,days,day:days[0],hour,frequency,price:s.tariffs[waste],vehicle,completed:0});note('Dodano harmonogram: '+street)}else if(a.startsWith('delroute:')){s.routes.splice(Number(a.split(':')[1]),1);note('Usunięto linię')}else if(a==='subsidiary'){let name=document.getElementById('subname').value.trim();if(!name){alert('Podaj nazwę spółki');return}if(spend(150000)){s.subs.push({name,type:document.getElementById('subtype').value});note('Założono spółkę córkę '+name)}}else if(a.startsWith('build:')){let type=a.split(':')[1],price=type==='sort'?900000:1400000;if(spend(price)){s.buildings.push(type);note('Wybudowano '+(type==='sort'?'sortownię':'fabrykę recyklingu'))}}else if(a==='save'){save();note('Gra zapisana')}else if(a==='reset'){if(confirm('Usunąć cały postęp?')){s=seed();selected=0;tab='mapa'}}render()}
-function nextMonth(){s.month++;let income=s.contracts.reduce((a,i)=>a+sectors[i].tons*sectors[i].fee,0)+s.buildings.reduce((a,b)=>a+(b==='sort'?80000:135000),0);let costs=s.vehicles*(s.tech.includes('fleet')?7200:9000)+s.workers*6500+s.routes.length*3500+s.buildings.reduce((a,b)=>a+(b==='sort'?36000:58000),0);let dividend=0;s.ai.filter(v=>!v.takenOver).forEach((v,i)=>{dividend+=Math.round((s.shares[i]||0)/100*18000);v.cash+=100000+Math.floor(Math.random()*120000);let r=Math.random();if(r<.24&&v.cash>300000){v.vehicles++;v.cash-=240000;note(v.name+' kupuje śmieciarkę')}else if(r<.38&&v.cash>200000){v.subs++;v.cash-=150000;note(v.name+' zakłada spółkę córkę')}else if(r<.51&&v.cash>350000){v.shares++;v.cash-=280000;note(v.name+' kupuje udziały innej firmy')}else if(r<.58){note(v.name+' reorganizuje harmonogramy wywozu')}});s.cash+=income-costs+dividend;s.cash-=s.loans*.007;s.reputation=Math.max(0,Math.min(100,s.reputation+(s.routes.length>=s.contracts.length?1:-2)));note('Rozliczenie: '+money(income-costs)+'; dywidendy: '+money(dividend));if(s.cash<0)note('Uwaga: ujemny stan konta!');render()}
-document.addEventListener('change',e=>{if(e.target.id==='routezone')updateStreetOptions()});function updateStreetOptions(){let z=Number(document.getElementById('routezone')?.value??0),el=document.getElementById('street');if(el)el.innerHTML=(streetsByZone[z]||[]).map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join('')}
-document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.tab)show(b.dataset.tab);if(b.dataset.action)action(b.dataset.action)});function clockLabel(){let d=Math.floor(s.gameMinutes/1440),hour=Math.floor(s.gameMinutes%1440/60),min=Math.floor(s.gameMinutes%60);let date=new Date(Date.UTC(2026,0,1+d));return date.toLocaleDateString('pl-PL',{timeZone:'UTC',day:'2-digit',month:'short',year:'numeric'})+' '+String(hour).padStart(2,'0')+':'+String(min).padStart(2,'0')}
-function daily(){s.research+=1+s.subs.length*.25;let ownedTons=s.contracts.reduce((v,i)=>v+sectors[i].tons,0)/30;let capacity=Math.min(1,(s.vehicles*85)/(Math.max(1,ownedTons*30)));let service=Math.min(1,(s.routes.length+1)/Math.max(1,s.contracts.length));if(Math.random()>.93*capacity*service){s.complaints++;s.reputation=Math.max(0,s.reputation-.35)}else{s.reputation=Math.min(100,s.reputation+.04)}let output=ownedTons*.12*(s.tech.includes('sort')?1.25:1);let factors={plastik:.32,papier:.26,szklo:.19,metal:.08,bio:.15};Object.keys(factors).forEach(k=>s.materials[k]+=output*factors[k]);if(s.buildings.includes('plastic')&&s.materials.plastik>2){s.materials.plastik-=2;s.cash+=2400}if(s.buildings.includes('sort'))s.research+=.5;if(s.tech.includes('solar'))s.energy=Math.min(100,s.energy+.2);else s.energy=Math.max(40,s.energy-.01);for(const k of Object.keys(s.prices))s.prices[k]=Math.max(30,Math.round(s.prices[k]*(.97+Math.random()*.06)));if(Math.random()<.04){let e=['Wzrost ruchu drogowego utrudnia odbiór','Przegląd instalacji zakończony','Zwiększone zapotrzebowanie na recyklat','Mieszkańcy zgłaszają przepełniony pojemnik'];note(e[Math.floor(Math.random()*e.length)])}}
-function spawnCompany(){if(s.ai.filter(v=>!v.takenOver).length>=45)return;let id=s.nextCompanyId++,names=['EcoNova','ReWaste','BioCity','SortPol','CleanLoop','GreenTruck','RecykTech','UrbanEco'];let name=names[id%names.length]+' '+id;s.ai.push({id:'new-'+id,name,cash:850000+Math.floor(Math.random()*1900000),vehicles:1+Math.floor(Math.random()*5),workers:4+Math.floor(Math.random()*10),subs:0,shares:0,contracts:[],ownerShares:100,takenOver:false});note('Powstała nowa firma AI: '+name)}
-function weekly(){if(Math.random()<.20)spawnCompany();s.ai.filter(v=>!v.takenOver).forEach((v,i)=>{v.cash+=25000+Math.round(Math.random()*35000);let r=Math.random();if(r<.3&&v.cash>250000){v.vehicles++;v.cash-=240000;note(v.name+' kupuje pojazd')}else if(r<.45&&v.cash>180000){v.subs++;v.cash-=150000;note(v.name+' tworzy spółkę córkę')}else if(r<.58&&v.cash>350000){v.shares++;v.cash-=280000;note(v.name+' kupuje udziały')}else if(r<.67)note(v.name+' aktualizuje harmonogramy odbioru')})}
-function processCollections(dayIndex){let date=new Date(Date.UTC(2026,0,1+dayIndex));let weekday=DAYS[(date.getUTCDay()+6)%7];for(const r of s.routes){if(!owned(r.zone)||!r.days.includes(weekday)||Math.floor(dayIndex/7)%r.frequency!==0)continue;r.completed=(r.completed||0)+1;note('Odbiór: '+r.street+' · '+r.waste+' · pojazd #'+r.vehicle)}}
-function advance(minutes){let oldDay=Math.floor(s.gameMinutes/1440),oldWeek=Math.floor(s.gameMinutes/10080),oldMonth=Math.floor(s.gameMinutes/43200);s.gameMinutes+=minutes;let day=Math.floor(s.gameMinutes/1440),week=Math.floor(s.gameMinutes/10080),month=Math.floor(s.gameMinutes/43200);for(let i=oldDay;i<day;i++){daily();processCollections(i+1)}for(let i=oldWeek;i<week;i++)weekly();for(let i=oldMonth;i<month;i++)nextMonth();document.getElementById('date').textContent=clockLabel();}
-const pause=document.getElementById('pause'),speed=document.getElementById('speed');speed.value=String(s.speed||1);pause.textContent=s.paused?'▶ Wznów':'⏸ Pauza';pause.onclick=()=>{s.paused=!s.paused;pause.textContent=s.paused?'▶ Wznów':'⏸ Pauza';save()};speed.onchange=()=>{s.speed=Number(speed.value);save()};let last=performance.now(),redraw=0,autosave=0;function loop(now){let delta=Math.min(3,(now-last)/1000);last=now;if(!s.paused){advance(delta*(s.speed||1)/60);redraw+=delta;autosave+=delta;if(redraw>2){redraw=0;render()}if(autosave>15){autosave=0;save()}}requestAnimationFrame(loop)}
-// v0.7: Global headquarters, international trade, dispatch and notifications.
-tabs.push(['global','🌍 Centrala globalna'],['dyspozytor','📡 Dyspozytornia'],['powiadomienia','🔔 Powiadomienia'],['waluty','💱 Waluty i eksport']);
-s.globalOps??={};s.directors??={};s.tradeHistory??=[];s.notifications??=[];s.exchangeRates??={PLN:1,EUR:4.28,USD:3.93,GBP:5.04,JPY:.026};
-const notify=(message)=>{s.notifications.unshift({at:clockLabel(),message});s.notifications=s.notifications.slice(0,100)};
+<main>
+  <section class="hero">
+    <div class="eyebrow">WALL STREET · LATA 90.</div>
+    <h1>Buduj imperium.<br><em>Graj na własnych zasadach.</em></h1>
+    <p>
+      Zaczynasz z małym biurem i wielkimi ambicjami.
+      Zatrudniaj brokerów, rozwijaj firmę i wspinaj się na szczyt
+      finansowego świata.
+    </p>
+    <button class="gold-button" onclick="nextDay()">ZAMKNIJ DZIEŃ →</button>
+    <p style="font-size:11px">Zamknięcie dnia nalicza przychody i koszty.</p>
+  </section>
 
-const originalWeekly=weekly;weekly=function(){originalWeekly();for(const [city,ops] of Object.entries(s.globalOps)){if(city===s.currentCity)continue;ops.balance=(ops.balance||0)+Math.round((ops.contracts||0)*28000-(ops.vehicles||0)*8500-(ops.workers||0)*4600);if(ops.director&&ops.balance>280000&&Math.random()<.12){ops.vehicles++;ops.workers+=2;ops.balance-=240000;notify('Dyrektor regionalny rozbudował flotę: '+city)}}for(const currency of ['EUR','USD','GBP','JPY'])s.exchangeRates[currency]=Math.max(.001,s.exchangeRates[currency]*(.995+Math.random()*.01));};
-const originalSwitchMarket=switchMarket;switchMarket=function(name,lat,lon,bbox){s.globalOps[s.currentCity]??={balance:0,vehicles:0,workers:0,contracts:0};s.globalOps[s.currentCity].vehicles=s.vehicles;s.globalOps[s.currentCity].workers=s.workers;s.globalOps[s.currentCity].contracts=s.contracts.length;originalSwitchMarket(name,lat,lon,bbox);s.globalOps[name]??={balance:0,vehicles:0,workers:0,contracts:s.contracts.length};notify('Otwarto rynek: '+name);};
-const originalRender=render;render=function(){originalRender();if(!['global','dyspozytor','powiadomienia','waluty'].includes(tab))return;let h='';const cities=Object.entries(s.globalOps);if(tab==='global'){h='<h2>🌍 Centrala globalna</h2><p class="help">Rynki zapisane podczas odwiedzania miast. Wyniki zagraniczne są symulacją uproszczoną, nie rzeczywistymi danymi.</p><div class="card"><h3>Holding</h3><p>Rynki: '+(cities.length+1)+' · Spółki córki: '+s.subs.length+' · Gotówka centrali: '+money(s.cash)+'</p></div>'+cities.map(([city,o])=>`<div class="card"><h3>${esc(city)}</h3><p>🚛 ${o.vehicles||0} · 👥 ${o.workers||0} · 📑 ${o.contracts||0} kontraktów</p><p>Saldo operacji zagranicznych: ${money(o.balance||0)}</p><p>Dyrektor AI: ${o.director?'zatrudniony':'brak'}</p>${button(o.director?'Zwolnij dyrektora':'Zatrudnij dyrektora (25 000 zł)','director:'+encodeURIComponent(city))}</div>`).join('')+'<div class="card"><h3>Ekspansja</h3><p>Wyszukaj miasto w polu nad mapą, aby utworzyć nowy rynek. Następnie wróć do centrali.</p></div>'}
-if(tab==='dyspozytor'){let routes=s.routes||[];h='<h2>📡 Centrum dyspozytorskie</h2><p class="help">Harmonogramy aktywnego miasta. Statusy są symulowane na podstawie zegara; pojazdy nie są jeszcze śledzone GPS.</p><div class="card"><h3>Flota</h3><p>Pojazdy: '+s.vehicles+' · Trasy: '+routes.length+' · Wolne: '+Math.max(0,s.vehicles-routes.length)+'</p></div>'+routes.map((r,i)=>`<div class="card"><h3>Linia #${i+1} — ${esc(r.street)}</h3><p>${esc(sectors[r.zone]?.name||'Strefa')} · ${esc(r.waste)} · ${esc((r.days||[]).join(', '))} ${esc(r.hour||'07:00')}</p><p>🚛 Pojazd #${r.vehicle} · Odbiory wykonane: ${r.completed||0}</p>${button('Pokaż strefę na mapie','dispatch:'+r.zone)}</div>`).join('')+(routes.length?'':'<div class="card">Brak tras. Dodaj je w Harmonogramach.</div>')}
-if(tab==='powiadomienia'){h='<h2>🔔 Centrum powiadomień</h2>'+button('Wyczyść powiadomienia','clearalerts')+(s.notifications.length?s.notifications.map(n=>`<div class="card"><small>${esc(n.at)}</small><p>${esc(n.message)}</p></div>`).join(''):'<div class="card">Brak nowych powiadomień.</div>')}
-if(tab==='waluty'){h='<h2>💱 Waluty i handel międzynarodowy</h2><p class="help">Fikcyjne kursy na potrzeby rozgrywki; zmieniają się co tydzień w symulacji.</p>'+Object.entries(s.exchangeRates).map(([k,v])=>`<div class="card"><b>${k}</b> · ${v.toFixed(3)} PLN</div>`).join('')+'<div class="card"><h3>Eksport surowców</h3><label>Surowiec</label><select id="exportmaterial">'+Object.keys(s.materials).map(k=>`<option value="${esc(k)}">${esc(k)} (${s.materials[k].toFixed(1)} t)</option>`).join('')+'</select><label>Rynek zbytu</label><select id="exportcurrency"><option>EUR</option><option>USD</option><option>GBP</option><option>JPY</option></select><label>Ilość (tony)</label><input id="exporttons" type="number" min="1" step="1" value="1">'+button('Eksportuj po cenie rynkowej','export')+'</div><div class="card"><h3>Ostatnie transakcje</h3>'+s.tradeHistory.slice(0,8).map(x=>`<p>${esc(x)}</p>`).join('')+'</div>'}
-document.getElementById('panel').innerHTML=h;};
-const originalAction=action;action=function(a){if(a.startsWith('director:')){let city=decodeURIComponent(a.slice(9)),o=s.globalOps[city];if(!o)return;if(o.director){o.director=false;notify('Zwolniono dyrektora: '+city)}else if(spend(25000)){o.director=true;notify('Zatrudniono dyrektora: '+city)}render();return}if(a.startsWith('dispatch:')){let z=Number(a.split(':')[1]);selected=z;tab='mapa';render();if(layers[z])map.fitBounds(layers[z].getBounds());return}if(a==='clearalerts'){s.notifications=[];render();return}if(a==='export'){let k=document.getElementById('exportmaterial')?.value,c=document.getElementById('exportcurrency')?.value,n=Math.floor(Number(document.getElementById('exporttons')?.value));if(!s.materials[k]||!Number.isFinite(n)||n<1||n>s.materials[k]){alert('Niewystarczająca ilość surowca');return}let revenue=Math.round(n*s.prices[k]*1.07);s.materials[k]-=n;s.cash+=revenue;s.tradeHistory.unshift(`${clockLabel()}: ${n} t ${k}, rynek ${c}, +${money(revenue)}`);notify('Wyeksportowano '+n+' t '+k+' za '+money(revenue));render();return}originalAction(a)};
-const subtitle=document.querySelector('header small');if(subtitle)subtitle.textContent='Ekonomiczna strategia odpadowa · wersja 0.7 · globalne rynki';
+  <section class="stats">
+    <div class="card">
+      <div class="stat-label">KAPITAŁ FIRMY</div>
+      <div class="stat-value" id="cash">$25,000</div>
+    </div>
+    <div class="card">
+      <div class="stat-label">PRZYCHÓD / DZIEŃ</div>
+      <div class="stat-value" id="income">$1,250</div>
+    </div>
+    <div class="card">
+      <div class="stat-label">REPUTACJA</div>
+      <div class="stat-value"><span id="rep">12</span><small> / 100</small></div>
+      <div class="progress"><div id="repBar" style="width:12%"></div></div>
+    </div>
+    <div class="card">
+      <div class="stat-label">BROKERZY</div>
+      <div class="stat-value" id="brokers">3</div>
+    </div>
+  </section>
 
-/* v0.8: ulice OSM, dyspozytornia, pojemniki, rynek pojazdów, zarządy */
-tabs.push(['uliceosm','🛣 Ulice OSM'],['pojemniki','🗑 Pojemniki'],['pojazdyplus','🚚 Rynek pojazdów'],['zarzady','👔 Zarządy i przetargi']);
-s.osmRoads??={};s.bins??={};s.usedTrucks??=[];s.boards??={};s.auctionBids??=[];
-let roadOverlay=L.layerGroup().addTo(map),movingVehicles=L.layerGroup().addTo(map),osmBusy=false;
-const marketKey=()=>s.currentCity||'Białystok, Polska';
-const osmZoneKey=(i)=>marketKey()+'::'+i;
-function binKey(i){return osmZoneKey(i)}
-function roadList(i){return s.osmRoads[osmZoneKey(i)]||[]}
-async function loadOsmStreets(i){if(osmBusy)return;osmBusy=true;const status=document.getElementById('osm-status');if(status)status.textContent='Pobieranie ulic z OpenStreetMap…';try{
-const bounds=layers[i]?.getBounds();if(!bounds)throw Error('Nie znaleziono strefy');const sw=bounds.getSouthWest(),ne=bounds.getNorthEast();
-const q=`[out:json][timeout:20];way["highway"]["name"](${sw.lat.toFixed(5)},${sw.lng.toFixed(5)},${ne.lat.toFixed(5)},${ne.lng.toFixed(5)});out geom 250;`;
-const response=await fetch('https://overpass.kumi.systems/api/interpreter',{method:'POST',body:new URLSearchParams({data:q})});if(!response.ok)throw Error('Serwer OSM jest zajęty');const data=await response.json();
-const roads=(data.elements||[]).filter(x=>x.geometry?.length>1).map(x=>({id:x.id,name:x.tags.name,points:x.geometry.map(g=>[g.lat,g.lon])}));
-const unique=new Map();roads.forEach(r=>{if(!unique.has(r.name)||unique.get(r.name).points.length<r.points.length)unique.set(r.name,r)});
-s.osmRoads[osmZoneKey(i)]=[...unique.values()].slice(0,120);if(!unique.size)throw Error('Brak ulic z nazwami w tym obszarze');
-streetsByZone[i]=[...unique.keys()].slice(0,120);note('Pobrano '+streetsByZone[i].length+' ulic OSM w strefie '+sectors[i].name);save();render();showRoads(i);
-}catch(err){if(status)status.textContent='Nie udało się pobrać: '+err.message+'; spróbuj później.';note('Błąd pobierania ulic: '+err.message)}finally{osmBusy=false}}
-function showRoads(i){roadOverlay.clearLayers();roadList(i).forEach(r=>L.polyline(r.points,{color:'#38bdf8',weight:3,opacity:.7}).bindTooltip(r.name).addTo(roadOverlay));}
-function getBins(i){const k=binKey(i);if(!s.bins[k])s.bins[k]=(streetsByZone[i]||[]).slice(0,35).map(street=>({street,fill:Math.floor(15+Math.random()*65),capacity:1100,kind:'Zmieszane',last:'—'}));return s.bins[k]}
-function animateFleet(){movingVehicles.clearLayers();let min=s.gameMinutes;for(const [idx,r] of s.routes.entries()){if(!owned(r.zone))continue;let hh=Number((r.hour||'07:00').split(':')[0]),mm=Number((r.hour||'07:00').split(':')[1]),start=hh*60+mm,local=min%1440;let elapsed=local-start;if(elapsed<0||elapsed>150)continue;let road=roadList(r.zone).find(x=>x.name===r.street),points=road?.points;if(!points?.length)continue;let fraction=Math.min(.999,elapsed/150)*(points.length-1),a=Math.floor(fraction),b=Math.min(points.length-1,a+1),mix=fraction-a;let pos=[points[a][0]*(1-mix)+points[b][0]*mix,points[a][1]*(1-mix)+points[b][1]*mix];L.circleMarker(pos,{radius:8,color:'#fff',weight:2,fillColor:'#0ea5e9',fillOpacity:1}).bindTooltip('🚛 #'+r.vehicle+' · '+r.street).addTo(movingVehicles)}}
-const prevRenderV8=render;render=function(){prevRenderV8();if(!['uliceosm','pojemniki','pojazdyplus','zarzady','dyspozytor'].includes(tab))return;let h='',i=selected;
-if(tab==='uliceosm'){let roads=roadList(i);h=`<h2>🛣 Ulice OpenStreetMap</h2><p class="help">Prawdziwe nazwy i geometrie dróg są pobierane na żądanie z Overpass API. Dane mogą być niekompletne; sektory nadal są fikcyjne.</p><div class="card"><label>Strefa</label><select id="osmzone">${sectors.map((z,j)=>`<option value="${j}" ${j===i?'selected':''}>${esc(z.name)}</option>`).join('')}</select>${button('Pobierz ulice OSM','fetchroads')} ${button('Pokaż drogi','showroads')}<p id="osm-status">Zapisanych ulic: ${roads.length}</p></div>`+roads.slice(0,70).map(r=>`<div class="card" style="padding:8px"><b>${esc(r.name)}</b><small> · ${r.points.length} punktów trasy</small> ${button('Pokaż','road:'+r.id)}</div>`).join('');}
-if(tab==='pojemniki'){let bins=getBins(i);h=`<h2>🗑 Pojemniki i zapełnienie</h2><label>Strefa</label><select id="binzone">${sectors.map((z,j)=>`<option value="${j}" ${j===i?'selected':''}>${esc(z.name)}</option>`).join('')}</select><p class="help">Zapełnienie rośnie każdego dnia; po odbiorze z przypisanej ulicy spada.</p>`+bins.map((b,j)=>`<div class="card"><b>${esc(b.street)}</b><p>${b.kind} · ${b.fill}% · ostatni odbiór: ${esc(b.last)}</p><div style="height:9px;border-radius:9px;background:#173044;overflow:hidden"><div style="width:${b.fill}%;height:100%;background:linear-gradient(90deg,#16a34a,#f59e0b,#ef4444)"></div></div>${button('Opróżnij (koszt 120 zł)','emptybin:'+j)}</div>`).join('')}
-if(tab==='pojazdyplus'){h=`<h2>🚚 Rynek pojazdów</h2><p>Posiadane: ${s.vehicles} · Pracownicy: ${s.workers}</p>`+[{n:'Używana śmieciarka 16 m³',p:95000},{n:'Używany hakowiec 20 m³',p:145000},{n:'Nowa śmieciarka elektryczna',p:520000},{n:'Pojazd do gabarytów',p:190000}].map((v,j)=>`<div class="card"><h3>${v.n}</h3><p>${money(v.p)} · ${j<2?'rynek wtórny':'nowy pojazd'}</p>${button('Kup pojazd','buytruck:'+j)}</div>`).join('')+`<div class="card"><h3>Leasing</h3><p>Uproszczony leasing: wpłata 20%, pozostała kwota jako zobowiązanie.</p>${button('Leasing śmieciarki (48 000 zł)','leasetruck')}</div>`}
-if(tab==='zarzady'){h='<h2>👔 Zarządy i przetargi</h2><p class="help">Spółki córki otrzymują własne budżety i dyrektorów. AI może przygotowywać decyzje.</p>'+s.subs.map((v,j)=>{let b=s.boards[j]||{director:'Nieobsadzony',budget:0,autonomy:false};return `<div class="card"><h3>${esc(v.name)}</h3><p>Dyrektor: ${esc(b.director)} · budżet: ${money(b.budget)}</p><p>Autonomia AI: ${b.autonomy?'włączona':'wyłączona'}</p>${button('Zatrudnij dyrektora (12 000 zł)','boardhire:'+j)} ${button('Przekaż 100 tys. zł','boardfund:'+j)} ${button('Przełącz autonomię','boardauto:'+j)}</div>`}).join('')+'<div class="card"><h3>Przetargi międzynarodowe</h3><p>Każde odwiedzone miasto ma osobne strefy i lokalne kontrakty. Otwórz miasto i zakładkę Przetargi, aby złożyć ofertę.</p></div>'}
-if(tab==='dyspozytor'){h=`<h2>📡 Dyspozytornia LIVE</h2><p class="help">Niebieskie znaczniki pokazują przybliżoną pozycję pojazdów na pobranych drogach OSM podczas 150 minut od rozpoczęcia trasy. To symulacja, nie GPS.</p><p>Aktywnych linii: ${s.routes.length}</p>`+s.routes.map((r,j)=>`<div class="card"><b>🚛 #${r.vehicle} — ${esc(r.street)}</b><p>${esc(r.waste)} · ${esc(r.hour)} · ${esc((r.days||[]).join(', '))}</p><p>Odbiory wykonane: ${r.completed||0}</p>${button('Pokaż trasę','showroute:'+j)}</div>`).join('')}
-document.getElementById('panel').innerHTML=h;};
-const prevActionV8=action;action=function(a){if(a==='fetchroads'){loadOsmStreets(selected);return}if(a==='showroads'){showRoads(selected);return}if(a.startsWith('road:')){let r=roadList(selected).find(x=>String(x.id)===a.slice(5));if(r){roadOverlay.clearLayers();let line=L.polyline(r.points,{color:'#22d3ee',weight:6}).addTo(roadOverlay);map.fitBounds(line.getBounds())}return}if(a.startsWith('showroute:')){let r=s.routes[Number(a.slice(10))];if(r){selected=r.zone;let road=roadList(r.zone).find(x=>x.name===r.street);if(road){roadOverlay.clearLayers();let line=L.polyline(road.points,{color:'#38bdf8',weight:6}).addTo(roadOverlay);map.fitBounds(line.getBounds())}else alert('Najpierw pobierz ulice OSM dla tej strefy.')}return}if(a.startsWith('emptybin:')){let b=getBins(selected)[Number(a.slice(9))];if(b&&spend(120)){b.fill=0;b.last=clockLabel();note('Opróżniono pojemnik: '+b.street)}render();return}if(a.startsWith('buytruck:')){let j=Number(a.slice(9)),prices=[95000,145000,520000,190000];if(spend(prices[j])){s.vehicles++;s.usedTrucks.push({kind:j,price:prices[j],at:clockLabel()});note('Kupiono pojazd z rynku: '+money(prices[j]))}render();return}if(a==='leasetruck'){if(spend(48000)){s.vehicles++;s.loans+=192000;note('Wzięto śmieciarkę w leasing')}render();return}if(a.startsWith('board')){let [cmd,jraw]=a.split(':'),j=Number(jraw);if(!s.subs[j])return;let b=s.boards[j]??={director:'Nieobsadzony',budget:0,autonomy:false};if(cmd==='boardhire'&&spend(12000))b.director='Dyrektor AI #'+(j+1);if(cmd==='boardfund'&&spend(100000))b.budget+=100000;if(cmd==='boardauto')b.autonomy=!b.autonomy;s.boards[j]=b;render();return}prevActionV8(a)};
-const prevDailyV8=daily;daily=function(){prevDailyV8();for(const bins of Object.values(s.bins))for(const b of bins)b.fill=Math.min(100,b.fill+1+Math.floor(Math.random()*3));};
-const prevCollectionsV8=processCollections;processCollections=function(day){prevCollectionsV8(day);let date=new Date(Date.UTC(2026,0,1+day)),weekday=DAYS[(date.getUTCDay()+6)%7];for(const r of s.routes){if(!owned(r.zone)||!r.days.includes(weekday)||Math.floor(day/7)%r.frequency!==0)continue;for(const b of getBins(r.zone))if(b.street===r.street){b.fill=0;b.last=clockLabel()}}};
-const prevWeeklyV8=weekly;weekly=function(){prevWeeklyV8();for(const [id,b] of Object.entries(s.boards)){if(!b.autonomy||b.director==='Nieobsadzony'||b.budget<10000)continue;b.budget-=5000;let gain=Math.floor(2500+Math.random()*9000);b.budget+=gain;note('Zarząd '+(s.subs[id]?.name||id)+' raportuje wynik: '+money(gain-5000))}};
-setInterval(()=>{if(!s.paused)animateFleet()},1500);
-document.addEventListener('change',e=>{if(e.target.id==='osmzone'||e.target.id==='binzone'){selected=Number(e.target.value);render()}});
-const subV8=document.querySelector('header small');if(subV8)subV8.textContent='Ekonomiczna strategia odpadowa · wersja 0.8 · ulice OSM i logistyka';
+  <section class="layout">
+    <div>
+      <div class="eyebrow">OPERACJE</div>
+      <h2>Rozwijaj firmę</h2>
 
-render();requestAnimationFrame(loop);
+      <div class="card upgrade">
+        <div style="font-size:30px">♙</div>
+        <div class="upgrade-info">
+          <h3>Zatrudnij brokera</h3>
+          <div class="level" id="brokerLevel">POZIOM 1</div>
+          <p>Więcej brokerów oznacza większy dzienny przychód.</p>
+          <div class="cost" id="brokerCost">KOSZT: $4,000</div>
+        </div>
+        <button id="hireBtn" onclick="hire()">ZATRUDNIJ</button>
+      </div>
 
-/* v0.9 — city-wide street index and expanded zone coverage */
-let cityRoadBusy=false;
-function insideZone(point,poly){let y=point[0],x=point[1],inside=false;for(let i=0,j=poly.length-1;i<poly.length;j=i++){let yi=poly[i][0],xi=poly[i][1],yj=poly[j][0],xj=poly[j][1];if(((yi>y)!==(yj>y))&&(x<(xj-xi)*(y-yi)/(yj-yi)+xi))inside=!inside}return inside}
-function getZoneForRoad(points){let center=points[Math.floor(points.length/2)];for(let i=0;i<sectors.length;i++)if(insideZone(center,zonePolygon(i)))return i;let best=0,dist=Infinity;sectors.forEach((s,i)=>{let d=(center[0]-s.xy[0])**2+(center[1]-s.xy[1])**2;if(d<dist){dist=d;best=i}});return best}
-async function loadCityRoads(force=true){if(cityRoadBusy)return;cityRoadBusy=true;let status=document.getElementById('all-roads-status');if(status)status.textContent='Pobieranie ulic dla całego miasta…';try{
-let [[south,west],[north,east]]=zoneBounds;
-let q=`[out:json][timeout:55];way["highway"]["name"](${south},${west},${north},${east});out geom;`;
-let endpoints=['https://overpass.kumi.systems/api/interpreter','https://overpass-api.de/api/interpreter'];let data=null,lastError;
-for(const endpoint of endpoints){try{let response=await fetch(endpoint,{method:'POST',body:new URLSearchParams({data:q})});if(!response.ok)throw Error('HTTP '+response.status);data=await response.json();break}catch(err){lastError=err}}
-if(!data)throw lastError||Error('Brak połączenia');
-let grouped=Array.from({length:sectors.length},()=>new Map());let geometries=Array.from({length:sectors.length},()=>new Map());
-for(const way of data.elements||[]){let name=way.tags?.name,points=way.geometry?.map(p=>[p.lat,p.lon]);if(!name||!points||points.length<2)continue;let zi=getZoneForRoad(points),key=name.trim();if(!grouped[zi].has(key))grouped[zi].set(key,key);if(!geometries[zi].has(key))geometries[zi].set(key,{id:way.id,name:key,points});}
-let total=0;for(let i=0;i<sectors.length;i++){let names=[...grouped[i].keys()].sort((a,b)=>a.localeCompare(b,'pl')).slice(0,400);if(names.length){streetsByZone[i]=names;s.osmRoads[osmZoneKey(i)]=names.map(n=>geometries[i].get(n));total+=names.length}}
-if(!total)throw Error('Nie znaleziono nazwanych ulic');
-if(s.markets&&s.currentCity)s.markets[s.currentCity]=marketSnapshot();save();if(tab==='trasy'||tab==='uliceosm')render();status=document.getElementById('all-roads-status');if(status)status.textContent='Załadowano '+total+' ulic w '+sectors.length+' strefach.';note('Pobrano '+total+' ulic OSM dla '+s.currentCity);
-}catch(e){status=document.getElementById('all-roads-status');if(status)status.textContent='Błąd pobierania: '+e.message+' — zachowano poprzednie listy.';}finally{cityRoadBusy=false}}
-const oldStreetOptions=updateStreetOptions;updateStreetOptions=function(){let z=Number(document.getElementById('routezone')?.value??0),el=document.getElementById('street');if(!el)return;let current=el.value,query=(document.getElementById('street-filter')?.value||'').toLocaleLowerCase('pl');let names=(streetsByZone[z]||[]).filter(n=>n.toLocaleLowerCase('pl').includes(query));el.innerHTML=names.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join('');if(names.includes(current))el.value=current};
-document.addEventListener('input',e=>{if(e.target.id==='street-filter')updateStreetOptions()});
-const oldRebuildZones=rebuildZones;rebuildZones=function(){oldRebuildZones();};
-const subtitleV9=document.querySelector('header small');if(subtitleV9)subtitleV9.textContent='Ekonomiczna strategia odpadowa · wersja 0.9 · większe strefy i ulice OSM';
+      <div class="card upgrade">
+        <div style="font-size:30px">▦</div>
+        <div class="upgrade-info">
+          <h3>Ulepsz parkiet</h3>
+          <div class="level" id="floorLevel">POZIOM 1</div>
+          <p>Nowe narzędzia zwiększają efektywność całego zespołu.</p>
+          <div class="cost" id="floorCost">KOSZT: $7,500</div>
+        </div>
+        <button id="floorBtn" onclick="upgradeFloor()">ULEPSZ</button>
+      </div>
 
-// v1.0 — independent city markets, city AI, mass scheduling and global market overview
-s.cityEconomies??={};
-function cityEconomy(name, market){
-  if(s.cityEconomies[name])return s.cityEconomies[name];
-  const h=hashCity(name), companies=[];
-  const prefixes=['Eco','Green','Urban','Recyk','Clean','Bio','Circular','Terra','Nova','Metro'];
-  const suffixes=['Waste','Loop','Logistics','Recycling','Group','Services','Collect'];
-  for(let j=0;j<Math.min(9,Math.max(4,Math.ceil(market.sectors.length/3)));j++){
-    const n=prefixes[(h+j*3)%prefixes.length]+' '+suffixes[(h+j*5)%suffixes.length]+' '+String(j+1);
-    companies.push({id:name+'-'+j,name:n,cash:500000+((h+j*92717)%3600000),vehicles:2+((h+j)%12),workers:6+((h+j*3)%35),subs:(h+j)%3,contracts:[],reputation:50+((h+j)%45),history:[],active:true});
+      <div class="card upgrade">
+        <div style="font-size:30px">⌂</div>
+        <div class="upgrade-info">
+          <h3>Większe biuro</h3>
+          <div class="level" id="officeLevel">POZIOM 1</div>
+          <p>Prestiżowa siedziba podnosi reputację i przychody.</p>
+          <div class="cost" id="officeCost">KOSZT: $12,000</div>
+        </div>
+        <button id="officeBtn" onclick="upgradeOffice()">ROZBUDUJ</button>
+      </div>
+
+      <div class="card market">
+        <div class="eyebrow">PULS RYNKU</div>
+        <h2>Dzisiejszy nastrój</h2>
+        <div class="market-value" id="mood">+2.4%</div>
+        <p id="marketText">Ostrożny optymizm na parkiecie.</p>
+      </div>
+    </div>
+
+    <aside>
+      <div class="eyebrow">CENTRUM DOWODZENIA</div>
+      <h2>Aktywność</h2>
+      <div class="card" id="log"></div>
+
+      <div class="card" style="margin-top:18px">
+        <div class="eyebrow">NASTĘPNY CEL</div>
+        <h2 id="goalTitle">Pierwsze $100,000</h2>
+        <p id="goalText">Zgromadź $100,000 kapitału, aby udowodnić, że Twoja firma liczy się na rynku.</p>
+        <div class="progress"><div id="goalBar" style="width:25%"></div></div>
+        <p id="goalProgress">25% celu</p>
+      </div>
+    </aside>
+  </section>
+
+  <footer>
+    STRATTON EMPIRE · WERSJA 1.0<br><br>
+    Fikcyjna gra ekonomiczna. Nie jest poradą finansową.
+  </footer>
+</main>
+
+<div id="toast"></div>
+
+<script>
+const SAVE_KEY = "stratton-empire-save-v1";
+
+const initialState = {
+  day: 1,
+  cash: 25000,
+  reputation: 12,
+  brokers: 3,
+  brokerHires: 0,
+  floorLevel: 1,
+  officeLevel: 1,
+  mood: 2.4,
+  history: []
+};
+
+let game = loadGame();
+let toastTimer;
+
+function loadGame() {
+  try {
+    const saved = localStorage.getItem(SAVE_KEY);
+    if (saved) return {...initialState, ...JSON.parse(saved)};
+  } catch (e) {}
+  return {
+    ...initialState,
+    history: [
+      {text:"Stratton Empire otwiera swoje biuro.", day:1},
+      {text:"Kapitał początkowy: $25,000.", day:1},
+      {text:"Na parkiecie czeka 3 brokerów.", day:1}
+    ]
+  };
+}
+
+function money(value) {
+  return "$" + Math.floor(value).toLocaleString("en-US");
+}
+
+function clamp(value, min, max) {
+  return Math.max(min, Math.min(max, value));
+}
+
+function brokerPrice() {
+  return Math.floor(4000 * Math.pow(1.32, game.brokerHires));
+}
+
+function floorPrice() {
+  return Math.floor(7500 * Math.pow(1.7, game.floorLevel - 1));
+}
+
+function officePrice() {
+  return Math.floor(12000 * Math.pow(1.85, game.officeLevel - 1));
+}
+
+function dailyIncome() {
+  return Math.floor(
+    (500 + game.brokers * 250) *
+    (1 + (game.floorLevel - 1) * 0.12) *
+    (1 + (game.officeLevel - 1) * 0.05)
+  );
+}
+
+function addLog(text) {
+  game.history.unshift({text, day:game.day});
+  game.history = game.history.slice(0, 8);
+}
+
+function saveGame() {
+  try {
+    localStorage.setItem(SAVE_KEY, JSON.stringify(game));
+  } catch(e) {}
+}
+
+function notify(message) {
+  const toast = document.getElementById("toast");
+  toast.textContent = message;
+  toast.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove("show"), 2300);
+}
+
+function spend(amount) {
+  if (game.cash < amount) {
+    notify("Za mało pieniędzy! Zamknij dzień, aby zarobić.");
+    return false;
   }
-  const economy={companies,year:2026,events:[],lastTick:Math.floor(s.gameMinutes/10080)};
-  market.sectors.forEach((z,i)=>{if(!market.contracts.includes(i)){const c=companies[(h+i*7)%companies.length];z.owner=c.name;c.contracts.push(i)}});
-  s.cityEconomies[name]=economy;return economy;
+  game.cash -= amount;
+  return true;
 }
-function activeEconomy(){return cityEconomy(s.currentCity,{sectors,contracts:s.contracts})}
-const switchV10=switchMarket;
-switchMarket=function(name,lat,lon,bbox){switchV10(name,lat,lon,bbox);const m=s.markets[name]||marketSnapshot();cityEconomy(name,m);const e=activeEconomy();sectors.forEach((z,i)=>{if(!owned(i)&&!e.companies.some(c=>c.name===z.owner)){const c=e.companies[i%e.companies.length];z.owner=c.name;if(!c.contracts.includes(i))c.contracts.push(i)}});rebuildZones();render();save()};
-cityEconomy(s.currentCity,{sectors,contracts:s.contracts});
-function simulateCityEconomies(){
-  for(const [city,e] of Object.entries(s.cityEconomies)){
-    const m=city===s.currentCity?{sectors,contracts:s.contracts}:s.markets[city];if(!m)continue;
-    const living=e.companies.filter(c=>c.active);
-    for(const c of living){
-      const income=c.contracts.reduce((v,i)=>v+(m.sectors[i]?.tons||0)*(m.sectors[i]?.fee||300)/4,0);
-      const costs=c.vehicles*2400+c.workers*1300+c.subs*1200;
-      c.cash+=Math.round(income-costs);
-      if(c.cash>380000&&Math.random()<.22){c.vehicles++;c.workers+=2;c.cash-=220000;c.history.unshift('Kupiono pojazd i zatrudniono 2 osoby')}
-      if(c.cash>800000&&Math.random()<.09){c.subs++;c.cash-=160000;c.history.unshift('Utworzono spółkę córkę')}
-      if(c.cash< -300000){c.active=false;e.events.unshift(c.name+' ogłosiła upadłość');for(const i of c.contracts){const rival=living.find(x=>x!==c&&x.active);if(rival){m.sectors[i].owner=rival.name;rival.contracts.push(i)}}c.contracts=[]}
-      c.history=c.history.slice(0,5);
-    }
-    if(e.companies.filter(c=>c.active).length<18&&Math.random()<.16){
-      const id=e.companies.length+1,n='Nowa Firma '+id+' · '+city.split(',')[0];
-      e.companies.push({id:city+'-'+id,name:n,cash:700000,vehicles:2,workers:5,subs:0,contracts:[],reputation:65,history:['Założono przedsiębiorstwo'],active:true});
-      e.events.unshift('Na rynku pojawiła się '+n);
-    }
-    if(Math.random()<.12){const free=m.sectors.map((z,i)=>i).filter(i=>!m.contracts.includes(i));const zone=free[Math.floor(Math.random()*free.length)];if(zone!==undefined){const buyer=e.companies.filter(c=>c.active&&c.cash>120000)[Math.floor(Math.random()*living.length)];if(buyer&&m.sectors[zone].owner!==buyer.name){for(const c of e.companies)c.contracts=c.contracts.filter(i=>i!==zone);m.sectors[zone].owner=buyer.name;buyer.contracts.push(zone);buyer.cash-=90000;e.events.unshift(buyer.name+' wygrała przetarg: '+m.sectors[zone].name)}}}
-    e.events=e.events.slice(0,15);e.lastTick=Math.floor(s.gameMinutes/10080);
+
+function hire() {
+  const cost = brokerPrice();
+  if (!spend(cost)) return;
+
+  game.brokers++;
+  game.brokerHires++;
+  game.reputation = clamp(game.reputation + 2, 0, 100);
+  addLog("Zatrudniono nowego brokera za " + money(cost) + ".");
+  render();
+  saveGame();
+  notify("Nowy broker dołączył do zespołu!");
+}
+
+function upgradeFloor() {
+  const cost = floorPrice();
+  if (!spend(cost)) return;
+
+  game.floorLevel++;
+  addLog("Ulepszono parkiet do poziomu " + game.floorLevel + ".");
+  render();
+  saveGame();
+  notify("Parkiet ulepszony!");
+}
+
+function upgradeOffice() {
+  const cost = officePrice();
+  if (!spend(cost)) return;
+
+  game.officeLevel++;
+  game.reputation = clamp(game.reputation + 5, 0, 100);
+  addLog("Rozbudowano biuro. Reputacja wzrosła.");
+  render();
+  saveGame();
+  notify("Nowe biuro gotowe!");
+}
+
+function nextDay() {
+  game.day++;
+
+  game.mood = Math.round((Math.random() * 10 - 5) * 10) / 10;
+
+  const baseIncome = dailyIncome();
+  const multiplier = game.mood >= 0
+    ? 1 + game.mood * 0.025
+    : Math.max(0.55, 1 + game.mood * 0.06);
+
+  const income = Math.floor(baseIncome * multiplier);
+  const costs = Math.floor(
+    350 + game.brokers * 45 +
+    (game.officeLevel - 1) * 180 +
+    (game.floorLevel - 1) * 100
+  );
+
+  const net = income - costs;
+  game.cash += net;
+
+  if (game.mood > 2.5) game.reputation = clamp(game.reputation + 1, 0, 100);
+  if (game.mood < -3) game.reputation = clamp(game.reputation - 1, 0, 100);
+
+  addLog(
+    "Dzień zamknięty. Wynik: " +
+    (net >= 0 ? "+" : "-") + money(Math.abs(net)) +
+    " (przychód " + money(income) +
+    ", koszty " + money(costs) + ")."
+  );
+
+  addLog("Nastrój rynku: " + (game.mood > 0 ? "+" : "") + game.mood.toFixed(1) + "%.");
+
+  render();
+  saveGame();
+  notify("Nowy dzień! Bilans: " + (net >= 0 ? "+" : "-") + money(Math.abs(net)));
+}
+
+function render() {
+  document.getElementById("day").textContent = "DZIEŃ " + game.day;
+  document.getElementById("cash").textContent = money(game.cash);
+  document.getElementById("income").textContent = money(dailyIncome());
+  document.getElementById("rep").textContent = game.reputation;
+  document.getElementById("repBar").style.width = game.reputation + "%";
+  document.getElementById("brokers").textContent = game.brokers;
+
+  document.getElementById("brokerLevel").textContent = "POZIOM " + (game.brokerHires + 1);
+  document.getElementById("floorLevel").textContent = "POZIOM " + game.floorLevel;
+  document.getElementById("officeLevel").textContent = "POZIOM " + game.officeLevel;
+
+  document.getElementById("brokerCost").textContent = "KOSZT: " + money(brokerPrice());
+  document.getElementById("floorCost").textContent = "KOSZT: " + money(floorPrice());
+  document.getElementById("officeCost").textContent = "KOSZT: " + money(officePrice());
+
+  document.getElementById("hireBtn").disabled = game.cash < brokerPrice();
+  document.getElementById("floorBtn").disabled = game.cash < floorPrice();
+  document.getElementById("officeBtn").disabled = game.cash < officePrice();
+
+  const mood = game.mood;
+  const moodEl = document.getElementById("mood");
+  moodEl.textContent = (mood > 0 ? "+" : "") + mood.toFixed(1) + "%";
+  moodEl.style.color = mood >= 0 ? "var(--green)" : "var(--red)";
+
+  document.getElementById("marketText").textContent =
+    mood > 3 ? "Euforia na parkiecie! Klienci chętnie handlują."
+    : mood >= 0 ? "Ostrożny optymizm. To dobry czas na rozwój."
+    : mood > -3 ? "Rynek jest nerwowy. Pilnuj kosztów."
+    : "Fala wyprzedaży! Zadbaj o rezerwy gotówkowe.";
+
+  const log = document.getElementById("log");
+  log.replaceChildren();
+
+  if (game.history.length === 0) {
+    const p = document.createElement("p");
+    p.textContent = "Brak wydarzeń. Zamknij dzień, aby rozpocząć.";
+    log.appendChild(p);
+  }
+
+  game.history.slice(0, 7).forEach(item => {
+    const entry = document.createElement("div");
+    entry.className = "activity";
+
+    const text = document.createElement("div");
+    text.textContent = item.text;
+
+    const time = document.createElement("small");
+    time.textContent = "DZIEŃ " + item.day;
+
+    entry.append(text, time);
+    log.appendChild(entry);
+  });
+
+  const target = 100000;
+  const progress = clamp(Math.floor(game.cash / target * 100), 0, 100);
+  document.getElementById("goalBar").style.width = progress + "%";
+  document.getElementById("goalProgress").textContent = progress + "% celu";
+
+  if (game.cash >= target) {
+    document.getElementById("goalTitle").textContent = "Regionalny gracz";
+    document.getElementById("goalText").textContent =
+      "Cel osiągnięty! Masz ponad $100,000 kapitału. Rozwijaj imperium dalej.";
+  } else {
+    document.getElementById("goalTitle").textContent = "Pierwsze $100,000";
+    document.getElementById("goalText").textContent =
+      "Do celu brakuje " + money(target - game.cash) + ".";
   }
 }
-const weeklyV10=weekly;weekly=function(){weeklyV10();simulateCityEconomies()};
-tabs.push(['rynki','🌐 Rynki miast'],['zbiorczy','🗓 Planowanie zbiorcze']);
-const renderV10=render;
-render=function(){renderV10();if(tab!=='rynki'&&tab!=='zbiorczy')return;let h='';
-if(tab==='rynki'){
-  h='<h2>🌐 Rynki wszystkich odwiedzonych miast</h2><p class="help">Każde odwiedzone miasto ma osobną konkurencję AI, kontrakty i gospodarkę. Rynki są fikcyjne, generowane proceduralnie. Nie są to rzeczywiste firmy.</p>';
-  for(const [city,e] of Object.entries(s.cityEconomies)){
-    const m=city===s.currentCity?{sectors,contracts:s.contracts}:s.markets[city];
-    h+=`<div class="card"><h3>${esc(city)}</h3><p>Strefy: ${m?.sectors.length||0} · Twoje kontrakty: ${m?.contracts.length||0} · Aktywne firmy: ${e.companies.filter(c=>c.active).length}</p>`;
-    h+=e.companies.filter(c=>c.active).slice(0,12).map(c=>`<p>🏢 <b>${esc(c.name)}</b> · ${c.vehicles} poj. · ${c.workers} prac. · ${c.subs} spółek · ${c.contracts.length} stref · ${money(c.cash)}</p>`).join('');
-    h+=e.events.slice(0,3).map(x=>`<p class="help">📰 ${esc(x)}</p>`).join('')+'</div>';
-  }
-}
-if(tab==='zbiorczy'){
- h='<h2>🗓 Harmonogram zbiorczy</h2><p class="help">Zaznacz wiele ulic w jednej strefie. Utworzone linie trafią do harmonogramów i będą wykonywane przez zegar symulacji.</p>';
- h+='<div class="card"><label>Strefa</label><select id="bulkzone">'+sectors.map((z,i)=>`<option value="${i}" ${i===selected?'selected':''}>${esc(z.name)} ${owned(i)?'✓':'(bez kontraktu)'}</option>`).join('')+'</select>';
- h+='<label>Rodzaj odpadów</label><select id="bulkwaste">'+Object.keys(s.tariffs).map(x=>`<option>${esc(x)}</option>`).join('')+'</select>';
- h+='<label>Dzień tygodnia</label><select id="bulkday">'+DAYS.map(x=>`<option>${esc(x)}</option>`).join('')+'</select>';
- h+='<label>Godzina</label><input type="time" id="bulkhour" value="07:00"><label>Co ile tygodni</label><select id="bulkfrequency"><option value="1">Co tydzień</option><option value="2">Co 2 tygodnie</option><option value="4">Co 4 tygodnie</option></select>';
- h+='<label>Filtr ulic</label><input id="bulkfilter" placeholder="Szukaj ulicy…"><div class="row"><button data-action="bulkselect">Zaznacz widoczne</button><button data-action="bulkunselect">Odznacz</button></div><div id="bulkstreets" style="max-height:300px;overflow:auto"></div><p id="bulkstatus" class="help"></p>'+button('Utwórz harmonogramy dla zaznaczonych ulic','bulkcreate')+'</div>';
- h+='<div class="card"><h3>Linie w tym mieście</h3><p>'+s.routes.length+' aktywnych wpisów · '+s.vehicles+' pojazdów</p></div>';
-}
- document.getElementById('panel').innerHTML=h;if(tab==='zbiorczy')refreshBulkStreets();
-};
-function refreshBulkStreets(){const el=document.getElementById('bulkstreets');if(!el)return;const z=Number(document.getElementById('bulkzone')?.value??selected),q=(document.getElementById('bulkfilter')?.value||'').toLocaleLowerCase('pl');const names=[...new Set(streetsByZone[z]||[])].filter(x=>x.toLocaleLowerCase('pl').includes(q));el.innerHTML=names.slice(0,600).map(x=>`<label style="display:flex;gap:8px;align-items:center;padding:5px"><input class="bulkcheck" type="checkbox" value="${esc(x)}" style="width:auto;margin:0">${esc(x)}</label>`).join('')||'<p>Brak ulic. Pobierz ulice miasta w zakładce Harmonogramy.</p>';const st=document.getElementById('bulkstatus');if(st)st.textContent='Wyświetlono '+Math.min(600,names.length)+' z '+names.length+' ulic';}
-document.addEventListener('input',e=>{if(e.target.id==='bulkfilter')refreshBulkStreets()});
-document.addEventListener('change',e=>{if(e.target.id==='bulkzone')refreshBulkStreets()});
-const actionV10=action;action=function(a){
- if(a==='bulkselect'||a==='bulkunselect'){document.querySelectorAll('.bulkcheck').forEach(x=>x.checked=a==='bulkselect');return}
- if(a==='bulkcreate'){
-  const z=Number(document.getElementById('bulkzone')?.value),streets=[...document.querySelectorAll('.bulkcheck:checked')].map(x=>x.value);
-  if(!owned(z)){alert('Najpierw wygraj kontrakt na tę strefę.');return}
-  if(!streets.length){alert('Zaznacz ulice.');return}
-  const waste=document.getElementById('bulkwaste').value,day=document.getElementById('bulkday').value,hour=document.getElementById('bulkhour').value,frequency=Number(document.getElementById('bulkfrequency').value);
-  let added=0;for(const street of streets){if(s.routes.some(r=>r.zone===z&&r.street===street&&r.waste===waste))continue;s.routes.push({street,waste,day,days:[day],hour,frequency,zone:z,price:s.tariffs[waste]||390,vehicle:1+(s.routes.length%Math.max(1,s.vehicles)),completed:0});added++}
-  note('Dodano '+added+' harmonogramów w '+sectors[z].name);save();render();alert('Utworzono '+added+' harmonogramów. Uwaga: dostępność pojazdów i załóg trzeba sprawdzić w dyspozytorni.');return;
- }
- actionV10(a);
-};
-const subtitleV10=document.querySelector('header small');if(subtitleV10)subtitleV10.textContent='Ekonomiczna strategia odpadowa · v1.0 · niezależne rynki miast';
 
-
-// v1.1 — interconnected operational simulation: AI depots, staff, routes, bins, holdings
-s.operations??={};s.playerDepots??={};s.holdingBudget??={};s.buildingDemand??={};s.companyDeals??=[];
-const opKey=(city,id)=>city+'::'+id;
-function operations(city,c){let key=opKey(city,c.id),o=s.operations[key];if(!o){o={depots:1,garages:1,drivers:Math.max(1,Math.min(c.workers||4,c.vehicles||2)),routes:[],bins:[],maintenance:100,efficiency:70};s.operations[key]=o}return o}
-function initOperations(city){const e=s.cityEconomies[city];if(!e)return;const m=city===s.currentCity?{sectors,streets:streetsByZone}:s.markets[city];if(!m)return;for(const c of e.companies){const o=operations(city,c);if(!o.routes.length&&c.contracts.length){for(const z of c.contracts.slice(0,4)){const streets=m.streets?.[z]||[];for(const street of streets.slice(0,3))o.routes.push({zone:z,street,waste:'Zmieszane',day:DAYS[(z+o.routes.length)%7],vehicle:1+o.routes.length%Math.max(1,c.vehicles),completed:0})}}}}
-function cityDemand(city){let m=city===s.currentCity?{sectors}:s.markets[city];return m?.sectors.reduce((sum,z)=>sum+(z.tons||0),0)||0}
-function operationalWeek(){for(const [city,e] of Object.entries(s.cityEconomies)){initOperations(city);const m=city===s.currentCity?{sectors,streets:streetsByZone}:s.markets[city];if(!m)continue;for(const c of e.companies.filter(x=>x.active)){let o=operations(city,c);const controlled=c.contracts.filter(z=>m.sectors[z]?.owner===c.name);o.routes=o.routes.filter(r=>controlled.includes(r.zone));for(const z of controlled){if(!o.routes.some(r=>r.zone===z)){const street=(m.streets?.[z]||[])[0];if(street)o.routes.push({zone:z,street,waste:'Zmieszane',day:DAYS[z%7],vehicle:1,completed:0})}}const needed=Math.min(c.vehicles*2,Math.max(1,controlled.length*2));if(o.drivers<needed&&c.cash>25000){let hired=Math.min(needed-o.drivers,3);o.drivers+=hired;c.workers+=hired;c.cash-=hired*4500;c.history.unshift('Zatrudniono '+hired+' kierowców')}if(o.routes.length>c.vehicles*4&&c.cash>260000){c.cash-=220000;c.vehicles++;c.history.unshift('Rozbudowano flotę do obsługi tras')}o.routes.forEach(r=>{if(Math.random()<Math.min(.96,.55+o.maintenance/300)){r.completed++;c.cash+=Math.round((m.sectors[r.zone]?.fee||300)*2)}});o.maintenance=Math.max(15,o.maintenance-2);if(o.maintenance<40&&c.cash>35000){c.cash-=35000;o.maintenance=95;c.history.unshift('Serwis floty')}if(c.cash>1400000&&Math.random()<.08){c.cash-=350000;o.depots++;c.history.unshift('Wybudowano bazę transportową')}if(c.cash>850000&&Math.random()<.05){c.cash-=180000;c.subs++;c.history.unshift('Utworzono spółkę zależną')}c.history=c.history.slice(0,12)}}}
-const oldWeeklyOperations=weekly;weekly=function(){oldWeeklyOperations();operationalWeek()};
-const switchOperations=switchMarket;switchMarket=function(name,lat,lon,bbox){switchOperations(name,lat,lon,bbox);initOperations(name)};
-for(const city of Object.keys(s.cityEconomies))initOperations(city);
-// Create an evolving, city-specific set of simulated waste-generating premises.
-function premises(city,z){const key=city+'::'+z;if(!s.buildingDemand[key]){const streets=city===s.currentCity?streetsByZone[z]:(s.markets[city]?.streets?.[z]||[]);s.buildingDemand[key]=(streets||[]).slice(0,80).map((street,i)=>({street,kind:i%6===0?'Sklep':i%5===0?'Biuro':'Mieszkania',capacity:500+(i%5)*240,fill:15+(i*17)%65,missed:0}))}return s.buildingDemand[key]}
-const oldDailyOperations=daily;daily=function(){oldDailyOperations();for(const z of s.contracts){const bins=premises(s.currentCity,z);for(const b of bins){b.fill=Math.min(100,b.fill+2+Math.random()*5);if(b.fill>=100&&Math.random()<.14){b.missed++;s.complaints++;s.reputation=Math.max(0,s.reputation-.05)}}}};
-const oldCollectionsOperations=processCollections;processCollections=function(day){oldCollectionsOperations(day);const date=new Date(Date.UTC(2026,0,1+day)),weekday=DAYS[(date.getUTCDay()+6)%7];for(const r of s.routes){if(!owned(r.zone)||!r.days.includes(weekday)||Math.floor(day/7)%r.frequency!==0)continue;for(const b of premises(s.currentCity,r.zone).filter(x=>x.street===r.street)){b.fill=0;b.missed=0}}};
-// UI pages use the existing tabs, dispatch and save loop.
-tabs.push(['operacje','🏗 Operacje AI'],['holdingplus','🏛 Holding PRO'],['budynkiplus','🏘 Budynki i pojemniki'],['analityka','📊 Analityka operacyjna']);
-const oldRenderOperations=render;
-render=function(){oldRenderOperations();if(!['operacje','holdingplus','budynkiplus','analityka'].includes(tab))return;let h='';
-if(tab==='operacje'){
- h='<h2>🏗 Operacje konkurentów</h2><p class="help">Każda firma AI utrzymuje bazy, kierowców, pojazdy i własne linie. Operacje są symulowane w tygodniowych krokach także poza aktualnym miastem.</p>';
- for(const [city,e] of Object.entries(s.cityEconomies)){initOperations(city);h+=`<div class="card"><h3>🌍 ${esc(city)}</h3>`;for(const c of e.companies.filter(x=>x.active).slice(0,18)){let o=operations(city,c);h+=`<details><summary><b>${esc(c.name)}</b> · ${c.vehicles} 🚛 · ${o.routes.length} linii</summary><p>Bazy: ${o.depots} · Kierowcy: ${o.drivers} · Pracownicy: ${c.workers} · Kondycja floty: ${Math.round(o.maintenance)}%</p><p>Kontrakty: ${c.contracts.length} · Gotówka: ${money(c.cash)}</p><div style="max-height:180px;overflow:auto">${o.routes.slice(0,35).map(r=>`<p class="help">${esc(r.street)} · ${esc(r.day)} · pojazd #${r.vehicle} · odbiory: ${r.completed}</p>`).join('')||'<p class="help">Brak tras — firma szuka kontraktów.</p>'}</div></details>`}h+='</div>'}
-}
-if(tab==='holdingplus'){
- h='<h2>🏛 Centrala holdingu PRO</h2><p class="help">Budżety oddziałów i przejęcia przedsiębiorstw z odwiedzonych miast. Pełne przejęcie przenosi aktywa i kontrakty w uproszczonym modelu gry.</p>';
- h+=`<div class="card"><h3>Twój holding</h3><p>Gotówka: <b>${money(s.cash)}</b> · Spółki córki: <b>${s.subs.length}</b> · Twoje pojazdy: <b>${s.vehicles}</b> · Pracownicy: <b>${s.workers}</b></p>`;
- for(const [city,e] of Object.entries(s.cityEconomies)){h+=`<h3>${esc(city)}</h3>`;for(const c of e.companies.filter(x=>x.active).slice(0,20)){const key=opKey(city,c.id),stake=s.holdingBudget[key]?.stake||0,valuation=Math.max(150000,Math.round(c.cash*.6+c.vehicles*180000+c.contracts.length*220000));h+=`<div style="border-top:1px solid #ffffff22;padding:9px 0"><b>${esc(c.name)}</b> · Udziały: ${stake}% · Wycena: ${money(valuation)}<p class="help">${c.vehicles} pojazdów · ${c.workers} pracowników · ${c.contracts.length} kontraktów</p><div class="row">${button('Oferta +10%','stakeplus:'+encodeURIComponent(key),stake>=100)}${stake>50?button('Zarządzaj','manageplus:'+encodeURIComponent(key)):''}${stake>=100?button('Wchłoń firmę','absorbplus:'+encodeURIComponent(key)):''}</div></div>`}}h+='</div>';
-}
-if(tab==='budynkiplus'){
- h='<h2>🏘 Budynki i pojemniki</h2><p class="help">Symulowane punkty wytwarzania odpadów na ulicach. Odbiory z harmonogramu opróżniają pojemniki; przepełnienia powodują skargi.</p>';
- h+='<label>Strefa</label><select id="premzone">'+sectors.map((z,i)=>`<option value="${i}" ${selected===i?'selected':''}>${esc(z.name)}</option>`).join('')+'</select><div id="premcontent"></div>';
-}
-if(tab==='analityka'){
- const all=Object.values(s.cityEconomies),firms=all.flatMap(e=>e.companies.filter(c=>c.active));const allRoutes=Object.values(s.operations).reduce((a,o)=>a+o.routes.length,0);const totalVehicles=firms.reduce((a,c)=>a+c.vehicles,0);const totalStaff=firms.reduce((a,c)=>a+c.workers,0);
- h='<h2>📊 Analityka operacyjna</h2><div class="card"><h3>Globalny rynek</h3>'+[['Odwiedzone miasta',all.length],['Aktywne firmy AI',firms.length],['Pojazdy AI',totalVehicles],['Pracownicy AI',totalStaff],['Linie AI',allRoutes],['Twoje harmonogramy',s.routes.length],['Skargi mieszkańców',s.complaints]].map(x=>`<p>${x[0]}: <b>${x[1]}</b></p>`).join('')+'</div><div class="card"><h3>Wydarzenia</h3>'+s.logs.slice(0,20).map(x=>`<p class="help">${esc(x)}</p>`).join('')+'</div>';
-}
- document.getElementById('panel').innerHTML=h;if(tab==='budynkiplus')renderPremises();
-};
-function renderPremises(){const el=document.getElementById('premcontent');if(!el)return;let z=Number(document.getElementById('premzone').value),list=premises(s.currentCity,z);el.innerHTML=`<div class="card"><p>${list.length} punktów · ${list.filter(x=>x.fill>=90).length} prawie pełnych</p><div style="max-height:470px;overflow:auto">`+list.map(x=>`<p><b>${esc(x.street)}</b> · ${esc(x.kind)} · ${Math.round(x.fill)}% zapełnienia ${x.fill>=90?'⚠️':''}</p>`).join('')+'</div></div>'}
-document.addEventListener('change',e=>{if(e.target.id==='premzone')renderPremises()});
-const oldActionOperations=action;
-action=function(a){
- if(a.startsWith('stakeplus:')||a.startsWith('manageplus:')||a.startsWith('absorbplus:')){
-  const [cmd,encoded]=a.split(':'),key=decodeURIComponent(encoded);let split=key.lastIndexOf('::'),city=key.slice(0,split),id=key.slice(split+2),c=s.cityEconomies[city]?.companies.find(v=>v.id===id&&v.active);if(!c){alert('Firma jest już nieaktywna');return}const stake=s.holdingBudget[key]?.stake||0;
-  if(cmd==='stakeplus'){let value=Math.max(150000,Math.round((c.cash*.6+c.vehicles*180000+c.contracts.length*220000)*.1)),sellerPrice=Math.round(value*(.9+Math.random()*.35));if(stake>=100)return;if(!confirm('Złóż udziałowcom ofertę na 10% za '+money(sellerPrice)+'? Mogą ją odrzucić.'))return;if(s.cash<sellerPrice){alert('Brak środków');return}if(Math.random()<.25){note('Udziałowcy '+c.name+' odrzucili ofertę');alert('Oferta odrzucona');return}s.cash-=sellerPrice;s.holdingBudget[key]={stake:Math.min(100,stake+10)};note('Kupiono 10% udziałów '+c.name);save();render();return}
-  if(cmd==='manageplus'){if(stake<=50)return;const o=operations(city,c);let choice=prompt('Zarządzanie '+c.name+' (udziały '+stake+'%). Wpisz: flota / pracownicy / baza / harmonogram', 'flota');if(!choice)return;if(choice==='flota'&&c.cash>=220000){c.cash-=220000;c.vehicles++}else if(choice==='pracownicy'&&c.cash>=12000){c.cash-=12000;c.workers+=2;o.drivers+=2}else if(choice==='baza'&&c.cash>=350000){c.cash-=350000;o.depots++}else if(choice==='harmonogram'){initOperations(city)}else{alert('Brak środków lub nieznane polecenie');return}note('Zarządzanie spółką '+c.name+': '+choice);save();render();return}
-  if(cmd==='absorbplus'){if(stake<100||!confirm('Wchłonąć '+c.name+'? Przejmiesz pojazdy, pracowników, gotówkę i kontrakty.'))return;const o=operations(city,c);s.vehicles+=c.vehicles;s.workers+=c.workers;s.cash+=Math.max(0,c.cash);s.subs.push({name:c.name,type:'Przejęta spółka'});s.playerDepots[city]=(s.playerDepots[city]||0)+o.depots;let m=city===s.currentCity?{sectors,contracts:s.contracts,routes:s.routes}:s.markets[city];if(m){for(const z of c.contracts){if(!m.contracts.includes(z))m.contracts.push(z);if(m.sectors[z])m.sectors[z].owner='Gracz'}for(const r of o.routes){m.routes??=[];m.routes.push({...r,days:[r.day],hour:'07:00',frequency:1,price:390})}}c.active=false;c.contracts=[];note('Wchłonięto '+c.name+' wraz z flotą i kontraktami');if(city===s.currentCity)updateMap();save();render();return}
- }
- oldActionOperations(a)
-};
-const subtitleV11=document.querySelector('header small');if(subtitleV11)subtitleV11.textContent='Ekonomiczna strategia odpadowa · v1.1 · operacje AI i holding PRO';
-
-
-// === Waste Empire 1.2: full-screen modules and connected economy ===
-const weOldRender=render,weOldAction=action,weOldDaily=daily;
-s.industry??={plants:[],stock:{mixed:0,plastic:0,paper:0,glass:0,metal:0,bio:0,bulky:0},products:{pellet:0,cardboard:0,cullet:0,alloy:0,compost:0},history:[],sold:0,processed:0};
-s.hr??={employees:[],salary:6500};s.financeLedger??=[];s.privateJobs??=[];s.tenderBoard??=[];s.weEventCount??=0;
-const weKinds={mixed:'Zmieszane',plastic:'Plastik',paper:'Papier',glass:'Szkło',metal:'Metal',bio:'Bio',bulky:'Gabaryty'};
-const weRecipes={sort:{title:'Sortownia',cost:480000,capacity:14,workers:4,desc:'Sortuje odpady zmieszane na surowce'},plastic:{title:'Recykling PET',cost:720000,capacity:9,workers:5,desc:'Plastik → granulat rPET'},paper:{title:'Papiernia',cost:660000,capacity:9,workers:5,desc:'Papier → karton'},glass:{title:'Huta szkła',cost:820000,capacity:8,workers:6,desc:'Szkło → stłuczka'},metal:{title:'Zakład metali',cost:950000,capacity:7,workers:6,desc:'Metal → stop metali'},bio:{title:'Kompostownia',cost:350000,capacity:12,workers:3,desc:'Bio → kompost'}};
-const wePrice={pellet:1100,cardboard:450,cullet:260,alloy:1750,compost:170};
-const weFmt=n=>Number(n||0).toLocaleString('pl-PL',{maximumFractionDigits:1});
-const weCard=(name,val,extra='')=>`<div class="we-stat"><small>${name}</small><strong>${val}</strong><small>${extra}</small></div>`;
-const wePage=(name,desc,body)=>`<h2>${name}</h2><p class="help">${desc}</p>${body}`;
-function weAddLedger(label,amount){s.financeLedger.unshift({date:clockLabel(),label,amount});s.financeLedger=s.financeLedger.slice(0,120)}
-function weDaily(){
- const ind=s.industry;let produced=0;
- for(const i of s.contracts){const z=sectors[i];if(!z)continue;let tons=(z.tons||0)/30;const routes=s.routes.filter(r=>r.zone===i);const efficiency=Math.min(1,(s.vehicles*5)/(Math.max(1,s.contracts.reduce((a,id)=>a+(sectors[id]?.tons||0),0)/30)))*Math.min(1,.35+routes.length*.22);let collected=tons*efficiency;ind.stock.mixed+=collected*.32;ind.stock.plastic+=collected*.2;ind.stock.paper+=collected*.14;ind.stock.glass+=collected*.12;ind.stock.metal+=collected*.06;ind.stock.bio+=collected*.12;ind.stock.bulky+=collected*.04;produced+=collected;}
- for(const p of ind.plants){const recipe=weRecipes[p.type];if(!recipe)continue;const cap=recipe.capacity*(p.level||1);let qty=0;if(p.type==='sort'){qty=Math.min(ind.stock.mixed,cap);ind.stock.mixed-=qty;ind.stock.plastic+=qty*.22;ind.stock.paper+=qty*.2;ind.stock.glass+=qty*.12;ind.stock.metal+=qty*.08;ind.stock.bio+=qty*.16;ind.stock.bulky+=qty*.06;ind.stock.mixed+=qty*.16;}else{qty=Math.min(ind.stock[p.type]||0,cap);ind.stock[p.type]-=qty;const output={plastic:'pellet',paper:'cardboard',glass:'cullet',metal:'alloy',bio:'compost'}[p.type];ind.products[output]+=qty*.82;}ind.processed+=qty;s.cash-=Math.round(180+qty*25);}
- if(produced>0&&Math.random()<.04)note('Zakłady przyjęły '+weFmt(produced)+' t odpadów');
- if(s.privateJobs.length){for(const j of s.privateJobs){if(j.active){s.cash+=j.fee;s.cash-=j.cost;}}}
- if(Math.random()<.06){s.weEventCount++;const ev=['Wzrost popytu na surowce wtórne','Zwiększona liczba odpadów po wydarzeniu miejskim','Nowe wymagania środowiskowe','Zmiana kosztów paliwa','Kampania segregacji odpadów'];note('Rynek: '+ev[Math.floor(Math.random()*ev.length)]);}
- ind.history.push({date:clockLabel(),collected:produced,processed:ind.processed,cash:s.cash});if(ind.history.length>90)ind.history.shift();
-}
-daily=function(){weOldDaily();weDaily()};
-// New modules in main navigation.
-tabs.push(['centrum12','📊 Centrum operacyjne'],['produkcja12','🏭 Produkcja i odpady'],['kadry12','👷 Rynek pracy'],['prywatne12','🏬 Kontrakty prywatne'],['ksiega12','📒 Księga finansowa'],['scenariusze12','🎯 Scenariusze']);
-function weModule(){let h='',ind=s.industry;
- if(tab==='centrum12'){
-  const ownedTons=s.contracts.reduce((a,i)=>a+(sectors[i]?.tons||0),0);
-  h=wePage('📊 Centrum operacyjne','Globalny podgląd twojego przedsiębiorstwa. Zegar działa automatycznie; zdarzenia ekonomiczne są rozliczane według dni gry.',`<div class="we-banner">🟢 <b id="we-live-label">Symulacja aktywna</b> · <span id="we-live-clock"></span></div><div class="we-grid">${weCard('Gotówka',money(s.cash))}${weCard('Flota',s.vehicles+' pojazdów')}${weCard('Pracownicy',s.workers+' osób')}${weCard('Odpady / miesiąc',weFmt(ownedTons)+' t')}${weCard('Przetworzone odpady',weFmt(ind.processed)+' t')}${weCard('Spółki córki',s.subs.length)}</div><div class="card"><h3>Najważniejsze wydarzenia</h3>${s.logs.slice(0,14).map(l=>`<p>• ${esc(l)}</p>`).join('')}</div>`);
- }
- if(tab==='produkcja12'){
-  h=wePage('🏭 Przemysł i przepływ odpadów','Odpady z kontraktów trafiają do magazynów codziennie w czasie gry. Zakłady automatycznie przetwarzają je na produkty.',`<div class="we-grid">${weCard('Łącznie przetworzone',weFmt(ind.processed)+' t')}${weCard('Sprzedaż produktów',money(ind.sold))}${weCard('Zakłady',ind.plants.length)}</div><h3>Magazyn surowców</h3><div class="we-grid">${Object.entries(weKinds).map(([k,n])=>weCard(n,weFmt(ind.stock[k])+' t')).join('')}</div><h3>Produkty gotowe</h3><div class="we-grid">${Object.entries(wePrice).map(([k,v])=>`<div class="we-stat"><small>${esc(k)}</small><strong>${weFmt(ind.products[k])} t</strong><p>Cena: ${money(v)}/t</p>${button('Sprzedaj całość','we:sell:'+k,ind.products[k]<.01)}</div>`).join('')}</div><h3>Budowa zakładów</h3><div class="we-grid">${Object.entries(weRecipes).map(([k,r])=>`<div class="we-stat"><h3>${r.title}</h3><p>${r.desc}</p><p>Koszt: <b>${money(r.cost)}</b> · ${r.capacity} t/dzień</p>${button('Zbuduj','we:build:'+k)}</div>`).join('')}</div><h3>Twoje zakłady</h3><div class="card">${ind.plants.length?ind.plants.map((p,i)=>`<p>${weRecipes[p.type].title} · poziom ${p.level} · ${esc(p.city||'Oddział główny')} ${button('Ulepsz','we:upgrade:'+i)}</p>`).join(''):'Nie masz jeszcze zakładów.'}</div>`);
- }
- if(tab==='kadry12'){
-  h=wePage('👷 Rynek pracy','Zatrudniaj załogi, operatorów i menedżerów. Wynagrodzenia pracowników są rozliczane w dotychczasowym systemie miesięcznym.',`<div class="we-grid">${weCard('Zatrudnieni',s.workers)}${weCard('Średnia pensja',money(s.hr.salary))}${weCard('Załogi pojazdów',Math.min(s.vehicles,Math.floor(s.workers/2))+' / '+s.vehicles)}</div><div class="card"><h3>Rekrutacja</h3><p>Nowy pracownik: koszt rekrutacji 3 000 zł. Pracownicy są dostępni na rynku we wszystkich odwiedzonych miastach.</p>${button('Zatrudnij pracownika','we:hire')}${button('Zatrudnij 10 pracowników','we:hire10')}</div><div class="card"><h3>Szkolenia</h3><p>Szkolenia poprawiają reputację i efektywność organizacji.</p>${button('Przeprowadź szkolenie · 25 000 zł','we:train')}</div>`);
- }
- if(tab==='prywatne12'){
-  h=wePage('🏬 Kontrakty prywatne','Firmy, sklepy i instytucje zamawiają odbiór odpadów. Umowy są rozliczane każdego dnia gry.',`<div class="we-grid">${weCard('Aktywne kontrakty',s.privateJobs.filter(x=>x.active).length)}${weCard('Przychód / dzień',money(s.privateJobs.filter(x=>x.active).reduce((a,x)=>a+x.fee,0)))}</div><div class="card"><h3>Dostępne zamówienia</h3>${[['Sieć sklepów',1800,850],['Centrum handlowe',4500,2400],['Zakład produkcyjny',7800,4200],['Osiedle mieszkaniowe',2600,1300]].map(([n,f,c],i)=>`<p><b>${n}</b> · ${money(f)}/dzień · koszt ${money(c)}/dzień ${button('Podpisz umowę','we:job:'+i)}</p>`).join('')}</div><div class="card"><h3>Podpisane umowy</h3>${s.privateJobs.filter(x=>x.active).map((x,i)=>`<p>${esc(x.name)} · ${money(x.fee)}/dzień</p>`).join('')||'Brak aktywnych umów.'}</div>`);
- }
- if(tab==='ksiega12'){
-  h=wePage('📒 Księga finansowa','Historia transakcji z nowych systemów. Podstawowe koszty i wpływy starszych modułów są nadal liczone w dotychczasowej symulacji.',`<div class="we-grid">${weCard('Stan gotówki',money(s.cash))}${weCard('Zadłużenie',money(s.loans||0))}${weCard('Sprzedaż przetworzonych materiałów',money(ind.sold))}</div><div class="card we-scroll"><table class="we-table"><thead><tr><th>Data</th><th>Opis</th><th>Kwota</th></tr></thead><tbody>${s.financeLedger.map(x=>`<tr><td>${esc(x.date)}</td><td>${esc(x.label)}</td><td style="color:${x.amount>=0?'#8de4ac':'#ffaaa5'}">${money(x.amount)}</td></tr>`).join('')||'<tr><td colspan="3">Brak transakcji w nowej księdze</td></tr>'}</tbody></table></div>`);
- }
- if(tab==='scenariusze12'){
-  h=wePage('🎯 Scenariusze i cele','Długoterminowe cele gospodarcze. Osiągnięcia są aktualizowane wraz z rozwojem przedsiębiorstwa.',`<div class="we-grid">${[['Pierwsza sortownia',ind.plants.length>=1],['Flota 20 pojazdów',s.vehicles>=20],['100 pracowników',s.workers>=100],['5 spółek córek',s.subs.length>=5],['1 000 ton recyklingu',ind.processed>=1000],['10 kontraktów',s.contracts.length>=10],['10 mln zł kapitału',s.cash>=10000000],['Globalna ekspansja',Object.keys(s.cityEconomies||{}).length>=3]].map(([name,done])=>`<div class="we-stat"><span>${done?'✅':'⬜'} ${name}</span></div>`).join('')}</div><div class="card"><h3>Tryb obserwatora</h3><p>Ustaw ×60 lub ×360 w górnym pasku, by szybciej obserwować działanie konkurencji. Gra nadal działa automatycznie.</p></div>`);
- }
- return h;
-}
-render=function(){weOldRender();document.querySelector('main')?.classList.toggle('page-map',tab==='mapa');const page=weModule();if(page)document.getElementById('panel').innerHTML=page;weClock()};
-function weClock(){const el=document.getElementById('live-seconds');const seconds=Math.floor((s.gameMinutes%1)*60);if(el)el.textContent=':'+String(seconds).padStart(2,'0');const live=document.getElementById('we-live-clock');if(live)live.textContent=clockLabel()+':'+String(seconds).padStart(2,'0');const label=document.getElementById('we-live-label');if(label)label.textContent=s.paused?'⏸ Symulacja wstrzymana':'▶ Czas płynie automatycznie · ×'+s.speed;}
-const weDate=document.getElementById('date');weDate.insertAdjacentHTML('afterend','<span id="live-seconds">:00</span>');
-// A small clock update loop keeps seconds visible even at 1×; the original loop advances game time.
-setInterval(weClock,200);
-action=function(a){if(!a.startsWith('we:'))return weOldAction(a);const [_,cmd,arg]=a.split(':');if(cmd==='build'){const r=weRecipes[arg];if(!r||!spend(r.cost))return;s.industry.plants.push({type:arg,level:1,city:s.currentCity||'Białystok'});weAddLedger('Budowa: '+r.title,-r.cost);note('Uruchomiono zakład: '+r.title)}
- if(cmd==='upgrade'){const p=s.industry.plants[Number(arg)];if(!p)return;const cost=Math.round(weRecipes[p.type].cost*.6*p.level);if(!spend(cost))return;p.level++;weAddLedger('Rozbudowa zakładu',-cost)}
- if(cmd==='sell'){let qty=s.industry.products[arg]||0;if(qty<=0)return;let amount=Math.round(qty*wePrice[arg]);s.industry.products[arg]=0;s.cash+=amount;s.industry.sold+=amount;weAddLedger('Sprzedaż '+arg,amount);note('Sprzedano '+weFmt(qty)+' t produktu '+arg)}
- if(cmd==='hire'||cmd==='hire10'){let n=cmd==='hire10'?10:1;if(!spend(n*3000))return;s.workers+=n;weAddLedger('Rekrutacja '+n+' pracowników',-n*3000)}
- if(cmd==='train'){if(!spend(25000))return;s.reputation=Math.min(100,s.reputation+2);weAddLedger('Szkolenie pracowników',-25000)}
- if(cmd==='job'){const opts=[['Sieć sklepów',1800,850],['Centrum handlowe',4500,2400],['Zakład produkcyjny',7800,4200],['Osiedle mieszkaniowe',2600,1300]];let j=opts[Number(arg)];if(j){s.privateJobs.push({name:j[0],fee:j[1],cost:j[2],active:true});note('Nowa umowa prywatna: '+j[0])}}
- save();render();};
-// Keep title and clock controls truthful and visible.
-const weSubtitle=document.querySelector('header small');if(weSubtitle)weSubtitle.textContent='Globalny symulator gospodarki odpadami · v1.2';
-render();setTimeout(()=>{if(tab==='mapa')map.invalidateSize()},300);
-
-</script></body></html>
+render();
+</script>
+</body>
+</html>
