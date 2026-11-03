@@ -36,7 +36,7 @@ footer{color:#718699;font-size:9px;margin-top:10px;line-height:1.7}
     <button data-tab="staff"><span class="ico">♟</span><span class="navtext">Pracownicy</span></button>
     <button data-tab="finance"><span class="ico">↗</span><span class="navtext">Giełda i Nieruchomości</span></button>
     <button data-tab="events"><span class="ico">▤</span><span class="navtext">Historia</span></button>
-  </nav>
+  <button data-tab="press"><span class="ico">📰</span><span class="navtext">Imperium prasowe</span></button></nav>
   <div class="sidebar-bottom">CORPORATE TYCOON<div class="usercard"><div class="avatar">CEO</div><div class="usertext"><strong style="color:#e9edf2">Prezes grupy</strong><br><span>Poziom zarządu I</span></div></div></div>
 </aside>
 <main>
@@ -83,7 +83,26 @@ footer{color:#718699;font-size:9px;margin-top:10px;line-height:1.7}
     </aside>
   </div>
   <footer>STRATTON EMPIRE · ULTIMATE CORPORATE TYCOON · Wersja naprawiona i rozszerzona. Zapis lokalny.</footer>
-</main>
+
+<section class="glass panel view" id="view-press" hidden>
+ <div class="panel-head"><div><div class="eyebrow">DYWIZJA MEDIALNA HOLDINGU</div><h3>📰 Imperium prasowe</h3></div><div class="rowactions"><button id="pressSave" class="primary">Zapisz grę</button><button id="pressNext">⏩ Następny dzień</button></div></div>
+ <div class="kpis" style="grid-template-columns:repeat(4,minmax(0,1fr))">
+  <div class="glass kpi"><div class="kpi-label">Gotówka prasowa</div><div class="kpi-value" id="pressCash">$250,000</div></div>
+  <div class="glass kpi"><div class="kpi-label">Pracownicy</div><div class="kpi-value" id="pressStaff">0 / 100</div></div>
+  <div class="glass kpi"><div class="kpi-label">Czytelnicy</div><div class="kpi-value" id="pressReaders">0</div></div>
+  <div class="glass kpi"><div class="kpi-label">Reputacja</div><div class="kpi-value" id="pressRep">50/100</div></div>
+ </div>
+ <div class="tabs" id="pressTabs">
+  <button class="tab active" data-ptab="companies">Holding i spółki</button><button class="tab" data-ptab="staff">Redakcja i perki</button><button class="tab" data-ptab="articles">Artykuły</button><button class="tab" data-ptab="rivals">Konkurencja</button><button class="tab" data-ptab="finance">Księgowość</button><button class="tab" data-ptab="console">Konsola kodów</button>
+ </div>
+ <div id="press-companies" class="pressView"><div class="panel-head"><div><div class="eyebrow">STRUKTURA WŁASNOŚCI</div><h3>Spółki medialne</h3></div><button class="primary" id="pressNewCo">＋ Załóż spółkę</button></div><div id="pressCompanyList" class="company-tree"></div></div>
+ <div id="press-staff" class="pressView" hidden><div class="panel-head"><div><div class="eyebrow">ZESPÓŁ REDAKCYJNY</div><h3>Dziennikarze i talenty</h3></div><div><button id="pressAutoHire">Auto-rekrutacja: OFF</button><button class="primary" id="pressHire">＋ Zatrudnij</button></div></div><p class="subtext">Dziennikarze zdobywają doświadczenie, otrzymują perki i samodzielnie przygotowują materiały.</p><div id="pressStaffList" class="list"></div></div>
+ <div id="press-articles" class="pressView" hidden><div class="panel-head"><div><div class="eyebrow">CYKL WYDAWNICZY</div><h3>Publikacje</h3></div><button id="pressAutoPublish">Auto-publikacja: ON</button></div><div id="pressArticleList" class="list"></div></div>
+ <div id="press-rivals" class="pressView" hidden><div class="panel-head"><div><div class="eyebrow">RYNEK MEDIALNY</div><h3>Konkurencyjne tytuły</h3></div></div><div id="pressRivals" class="list"></div></div>
+ <div id="press-finance" class="pressView" hidden><div class="panel-head"><div><div class="eyebrow">RACHUNEK WYNIKÓW</div><h3>Księga finansowa</h3></div></div><div id="pressFinance" class="list"></div></div>
+ <div id="press-console" class="pressView" hidden><div class="panel-head"><div><div class="eyebrow">TRYB DEWELOPERA</div><h3>Konsola kodów</h3></div></div><div class="rowcard"><div class="rowbody"><input id="pressCommand" placeholder="~ kasa 1000000 · wpisz ~ pomoc"></div><button class="primary" id="pressRun">Wykonaj</button></div><div class="subtext" id="pressCommandHelp">Komendy zmieniają zapis gry. Używaj ich według uznania.</div></div>
+ <div class="glass panel" style="margin-top:14px"><div class="panel-head"><div><div class="eyebrow">CENTRUM ZARZĄDZANIA</div><h3>Automatyzacja redakcji</h3></div><span class="pill green" id="pressStatus">SYSTEM AKTYWNY</span></div><p class="subtext">Każdy dzień symulacji generuje artykuły, przychody z nakładu i reklam, pensje, koszty operacyjne oraz raport księgowy. Zapis jest przechowywany w tej przeglądarce.</p><div id="pressToast" class="pill gold" hidden></div></div>
+</section></main>
 </div>
 <div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal"><div class="eyebrow">OPERACJA KORPORACYJNA</div><h2 id="modalTitle">Nowa operacja</h2><div id="modalFields"></div><div class="modal-actions"><button id="cancelModal">Anuluj</button><button class="primary" id="confirmModal">Potwierdź</button></div></div></div>
 <div id="toast" role="status"></div>
@@ -587,4 +606,62 @@ $("resetBtn").addEventListener("click",()=>{if(!confirm("Rozpocząć nową grę?
 render();
 })();
 </script>
-</body></html>
+
+<script>
+(()=>{'use strict';
+const KEY='stratton_press_empire_save_v2', $=id=>document.getElementById(id), uid=()=>Math.random().toString(36).slice(2,10);
+const perks=[{id:'scoop',name:'Łowca tematów',desc:'+12 jakości',q:12,a:0},{id:'fast',name:'Szybkie pióro',desc:'+1 artykuł/dzień',q:0,a:1},{id:'invest',name:'Reporter śledczy',desc:'+20 jakości',q:20,a:0},{id:'network',name:'Sieć kontaktów',desc:'+8 jakości',q:8,a:0},{id:'star',name:'Gwiazda redakcji',desc:'+2 artykuły/dzień',q:0,a:2},{id:'negotiator',name:'Twardy negocjator',desc:'-15% pensji',q:0,a:0}];
+const topics=['Gospodarka','Polityka','Biznes','Kultura','Sport','Technologia','Śledztwo','Samorząd'];
+const headlines=['Nowe decyzje zmieniają układ sił na rynku','Kulisy inwestycji, o której mówi cała branża','Eksperci ostrzegają przed nadchodzącymi zmianami','Nieznane fakty wychodzą na jaw','Wielka zmiana. Kto na niej zyska?','Raport dnia: liczby, które warto znać','Przełom w branży. Sprawdzamy szczegóły'];
+const fresh=()=>({day:1,cash:250000,capacity:100,reputation:50,autoHire:false,autoPublish:true,companies:[{id:'main',name:'Stratton Media',parent:null,owner:'holding',shares:100,cash:250000,employees:[],articles:[],readers:12000,price:5,revenue:8500,costs:3200}],rivals:[{id:'r1',name:'Kurier Krajowy',readers:42000,quality:68},{id:'r2',name:'Echo Dnia',readers:28500,quality:62},{id:'r3',name:'Głos Biznesu',readers:19000,quality:75},{id:'r4',name:'Wieści Regionalne',readers:12500,quality:55}],ledger:[]});
+let g;try{g=JSON.parse(localStorage.getItem(KEY))||fresh()}catch(e){g=fresh()}
+const money=n=>'</html>
++Math.floor(n).toLocaleString('pl-PL'), totalStaff=()=>g.companies.reduce((n,c)=>n+c.employees.length,0), totalReaders=()=>g.companies.reduce((n,c)=>n+c.readers,0), company=id=>g.companies.find(c=>c.id===id), pick=a=>a[Math.floor(Math.random()*a.length)];
+function say(t){let e=$('pressToast');if(e){e.textContent=t;e.hidden=false;setTimeout(()=>e.hidden=true,2500)}}
+function log(t,n=0){g.ledger.unshift({day:g.day,text:t,amount:n});g.ledger=g.ledger.slice(0,150)}
+function save(silent=false){localStorage.setItem(KEY,JSON.stringify(g));if(!silent)say('Zapisano stan imperium prasowego')}
+function hire(c,auto=false){if(!c||totalStaff()>=g.capacity||c.cash<1800){if(!auto)say(totalStaff()>=g.capacity?'Osiągnięto limit kadr':'Spółka nie ma środków');return false}
+ const names=['Anna Kowalska','Jan Nowak','Marta Wiśniewska','Piotr Wójcik','Zofia Kamińska','Tomasz Lewandowski','Julia Zielińska','Michał Woźniak','Oliwia Dąbrowska'];
+ const roles=['Reporter','Reporter','Korespondent','Dziennikarz śledczy','Fotoreporter','Redaktor'];const p=pick(perks);
+ c.cash-=1800;c.employees.push({id:uid(),name:pick(names),job:pick(roles),skill:45+Math.floor(Math.random()*51),salary:180+Math.floor(Math.random()*180),perks:[p.id],xp:0});
+ log((auto?'Automatyczna rekrutacja: ':'Zatrudniono ')+c.employees[c.employees.length-1].name+' ('+p.name+')',-1800);return true}
+function write(c,e){const bonus=e.perks.map(id=>perks.find(p=>p.id===id)).filter(Boolean),q=Math.min(100,Math.round(e.skill*.65+24+bonus.reduce((n,p)=>n+p.q,0))),readers=Math.round(q*e.skill*1.7+Math.random()*400);
+ c.articles.unshift({id:uid(),day:g.day,title:pick(headlines),topic:pick(topics),author:e.name,quality:q,readers,status:g.autoPublish?'Opublikowany':'Do akceptacji'});c.articles=c.articles.slice(0,100);e.xp+=10;if(e.xp>=100&&e.skill<100){e.xp-=100;e.skill+=1;log(e.name+' awansuje umiejętności na '+e.skill+'.')} }
+function tick(){g.day++;g.companies.forEach(c=>{
+ c.employees.filter(e=>['Reporter','Korespondent','Dziennikarz śledczy','Fotoreporter'].includes(e.job)).forEach(e=>{let extra=e.perks.map(id=>perks.find(p=>p.id===id)?.a||0).reduce((a,b)=>a+b,0);if(Math.random()<.55)write(c,e);for(let i=0;i<extra;i++)if(Math.random()<.35)write(c,e)});
+ if(g.autoHire&&totalStaff()<g.capacity&&c.employees.length<Math.ceil(g.capacity/g.companies.length)&&c.cash>30000&&Math.random()<.25)hire(c,true);
+ const wages=c.employees.reduce((n,e)=>n+e.salary*(e.perks.includes('negotiator')?.85:1),0),published=c.articles.filter(a=>a.day===g.day&&a.status==='Opublikowany'),adIncome=Math.round(c.readers*.035),articleIncome=published.reduce((n,a)=>n+a.readers*.035,0),sales=c.revenue+adIncome+articleIncome;
+ c.cash+=sales-wages-c.costs;g.cash+=sales-wages-c.costs;
+ log(c.name+': przychód '+money(sales)+', wynagrodzenia '+money(wages)+', koszty '+money(c.costs)+'.',sales-wages-c.costs);
+ const newReaders=published.reduce((n,a)=>n+a.quality*5,0);c.readers=Math.max(0,Math.round(c.readers+newReaders+(c.reputation||0)*.05));
+ });
+ g.reputation=Math.max(0,Math.min(100,g.reputation+(Math.random()>.55?1:0)));if(g.day%5===0)save(true);draw()}
+function command(raw){const a=raw.trim().split(/\s+/),n=Number(a[2]);if(a[0]!=='~')return say('Komendy muszą zaczynać się od ~');if(a[1]==='pomoc'){say('kasa [kwota|max] · pracownicy max · zatrudnij max · perki max · redakcja auto · rekrutacja auto · naklad max');return}
+ if(a[1]==='kasa'){if(a[2]==='max')g.cash=999999999999;else if(Number.isFinite(n)&&n>0)g.cash+=n;else return say('Przykład: ~ kasa 1000000')}
+ else if(a[1]==='pracownicy'&&a[2]==='max')g.capacity=1000000;
+ else if(a[1]==='zatrudnij'&&a[2]==='max'){g.companies.forEach(c=>{let count=0;while(totalStaff()<g.capacity&&count<100&&c.cash>=1800){hire(c,true);count++}})}
+ else if(a[1]==='perki'&&a[2]==='max')g.companies.forEach(c=>c.employees.forEach(e=>e.perks=perks.map(p=>p.id)));
+ else if(a[1]==='redakcja'&&a[2]==='auto')g.autoPublish=!g.autoPublish;
+ else if(a[1]==='rekrutacja'&&a[2]==='auto')g.autoHire=!g.autoHire;
+ else if(a[1]==='naklad'&&a[2]==='max')g.companies.forEach(c=>{c.readers=9999999;c.revenue=1000000});
+ else return say('Nieznana komenda — wpisz ~ pomoc');
+ log('Użyto komendy: '+a.join(' '));save(true);draw();say('Kod wykonany')}
+function draw(){if(!$('pressCompanyList'))return;$('pressCash').textContent=money(g.cash+g.companies.reduce((n,c)=>n+c.cash,0));$('pressStaff').textContent=totalStaff().toLocaleString('pl-PL')+' / '+g.capacity.toLocaleString('pl-PL');$('pressReaders').textContent=totalReaders().toLocaleString('pl-PL');$('pressRep').textContent=g.reputation+'/100';
+ $('pressAutoHire').textContent='Auto-rekrutacja: '+(g.autoHire?'ON':'OFF');$('pressAutoPublish').textContent='Auto-publikacja: '+(g.autoPublish?'ON':'OFF');
+ $('pressCompanyList').replaceChildren();g.companies.forEach(c=>{let card=document.createElement('div');card.className='company-node'+(!c.parent?' root':'');let title=document.createElement('div');title.className='company-top';let icon=document.createElement('div');icon.className='company-icon';icon.textContent='📰';let info=document.createElement('div');info.className='company-info';let name=document.createElement('strong');name.textContent=c.name;let meta=document.createElement('small');meta.textContent=(c.parent?'Spółka córka':'Spółka matka')+' · '+c.shares+'% udziałów · '+c.employees.length+' pracowników';info.append(name,meta);let cash=document.createElement('div');cash.className='company-money';cash.textContent=money(c.cash);title.append(icon,info,cash);card.append(title);let stats=document.createElement('div');stats.className='company-meta';['Czytelnicy: '+c.readers.toLocaleString('pl-PL'),'Artykuły: '+c.articles.length,'Przychód bazowy: '+money(c.revenue)+'/d'].forEach(t=>{let s=document.createElement('span');s.className='pill';s.textContent=t;stats.append(s)});card.append(stats);
+ let actions=document.createElement('div');actions.className='company-actions';[['Zatrudnij','hire'],['Spółka córka','child'],['Dywidenda 10%','div']].forEach(([label,act])=>{let b=document.createElement('button');b.textContent=label;b.dataset.pressAction=act;b.dataset.id=c.id;actions.append(b)});card.append(actions);$('pressCompanyList').append(card)});
+ $('pressStaffList').replaceChildren();g.companies.forEach(c=>c.employees.forEach(e=>{let row=document.createElement('div');row.className='rowcard';let body=document.createElement('div');body.className='rowbody';let b=document.createElement('strong');b.textContent=e.name;let p=document.createElement('p');p.textContent=c.name+' · '+e.job+' · umiejętności '+e.skill+'/100 · doświadczenie '+e.xp+' XP';let small=document.createElement('small');small.textContent='Perki: '+e.perks.map(id=>perks.find(x=>x.id===id)?.name||id).join(', ');body.append(b,p,small);let act=document.createElement('div');act.className='rowactions';let perk=document.createElement('button');perk.textContent='Rozwój / perk';perk.onclick=()=>{let available=perks.filter(x=>!e.perks.includes(x.id));if(!available.length)return say('Pracownik ma już wszystkie perki');let selected=pick(available);e.perks.push(selected.id);log(e.name+' zdobywa perk: '+selected.name);save(true);draw()};act.append(perk);row.append(body,act);$('pressStaffList').append(row)}));
+ $('pressArticleList').replaceChildren();g.companies.forEach(c=>c.articles.slice(0,20).forEach(a=>{let row=document.createElement('div');row.className='rowcard';let body=document.createElement('div');body.className='rowbody';let b=document.createElement('strong');b.textContent=a.title;let p=document.createElement('p');p.textContent=c.name+' · '+a.topic+' · '+a.author+' · jakość '+a.quality+'/100 · '+a.status+' · dzień '+a.day;body.append(b,p);let action=document.createElement('div');action.className='rowactions';if(a.status!=='Opublikowany'){let btn=document.createElement('button');btn.textContent='Zatwierdź publikację';btn.onclick=()=>{a.status='Opublikowany';log('Opublikowano: '+a.title);save(true);draw()};action.append(btn)}row.append(body,action);$('pressArticleList').append(row)}));
+ $('pressRivals').replaceChildren();g.rivals.forEach(r=>{let row=document.createElement('div');row.className='rowcard';let body=document.createElement('div');body.className='rowbody';let b=document.createElement('strong');b.textContent=r.name;let p=document.createElement('p');p.textContent=r.readers.toLocaleString('pl-PL')+' czytelników · jakość '+r.quality+'/100';body.append(b,p);let btn=document.createElement('button');btn.textContent='Przejmij za '+money(r.readers*2);btn.onclick=()=>{let c=g.companies[0],cost=r.readers*2;if(c.cash<cost)return say('Spółka matka nie ma wystarczającej gotówki');c.cash-=cost;g.companies.push({id:uid(),name:r.name,parent:c.id,owner:c.id,shares:100,cash:0,employees:[],articles:[],readers:r.readers,price:5,revenue:Math.max(1200,Math.round(r.readers*.08)),costs:900});g.rivals=g.rivals.filter(x=>x.id!==r.id);log('Przejęto tytuł '+r.name+' za '+money(cost),-cost);save(true);draw()};row.append(body,btn);$('pressRivals').append(row)});
+ $('pressFinance').replaceChildren();g.ledger.slice(0,45).forEach(x=>{let row=document.createElement('div');row.className='event';let dot=document.createElement('span');dot.className='event-mark';let body=document.createElement('div');body.textContent='Dzień '+x.day+': '+x.text;if(x.amount){let small=document.createElement('small');small.textContent=(x.amount>0?'+':'')+money(x.amount);body.append(small)}row.append(dot,body);$('pressFinance').append(row)})}
+$('pressTabs').addEventListener('click',e=>{let b=e.target.closest('[data-ptab]');if(!b)return;document.querySelectorAll('#pressTabs [data-ptab]').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.pressView').forEach(x=>x.hidden=x.id!=='press-'+b.dataset.ptab)});
+$('pressHire').onclick=()=>{let c=company(prompt('ID spółki (main = matka):','main')||'main');if(c){hire(c);save(true);draw()}};
+$('pressNewCo').onclick=()=>{let name=prompt('Nazwa nowej gazety / spółki:');if(!name)return;let parent=company(prompt('ID spółki matki (main = Stratton Media):','main')||'main');if(!parent)return say('Nie znaleziono spółki matki');if(parent.cash<20000)return say('Brak 20 000 na założenie spółki');parent.cash-=20000;g.companies.push({id:uid(),name,parent:parent.id,owner:parent.id,shares:100,cash:0,employees:[],articles:[],readers:0,price:5,revenue:2200,costs:850});log('Założono spółkę córkę '+name,-20000);save(true);draw()};
+$('pressAutoHire').onclick=()=>{g.autoHire=!g.autoHire;save(true);draw()};$('pressAutoPublish').onclick=()=>{g.autoPublish=!g.autoPublish;save(true);draw()};
+$('pressSave').onclick=()=>save();$('pressNext').onclick=()=>tick();$('pressRun').onclick=()=>{command($('pressCommand').value);$('pressCommand').value=''};$('pressCommand').addEventListener('keydown',e=>{if(e.key==='Enter')$('pressRun').click()});
+$('pressCompanyList').addEventListener('click',e=>{let b=e.target.closest('[data-press-action]');if(!b)return;let c=company(b.dataset.id);if(b.dataset.pressAction==='hire')hire(c);else if(b.dataset.pressAction==='child')$('pressNewCo').click();else if(b.dataset.pressAction==='div'){let amount=Math.floor(c.cash*.1);c.cash-=amount;g.cash+=amount;log('Dywidenda '+money(amount)+' wypłacona ze spółki '+c.name,amount)}save(true);draw()});
+const nav=document.getElementById('nav');if(nav){let b=nav.querySelector('[data-tab="press"]');if(b){b.addEventListener('click',()=>draw())}}
+const originalSave=$('saveBtn');if(originalSave)originalSave.addEventListener('click',()=>save(true));
+draw();setInterval(()=>{if(!document.hidden)tick()},15000);
+})();
+</script></body></html>
