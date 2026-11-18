@@ -1,7 +1,6 @@
 import * as THREE from 'three';
 
 export type EngineFrame = (deltaSeconds: number, elapsedSeconds: number) => void;
-
 export interface EngineOptions {
   canvasHost: HTMLElement;
   scene?: THREE.Scene;
@@ -10,7 +9,6 @@ export interface EngineOptions {
   shadows?: boolean;
 }
 
-/** Owns the render loop, viewport sizing, frame timing and renderer lifecycle. */
 export class Engine {
   readonly scene: THREE.Scene;
   readonly renderer: THREE.WebGLRenderer;
@@ -28,13 +26,19 @@ export class Engine {
   constructor(options: EngineOptions) {
     this.scene = options.scene ?? new THREE.Scene();
     this.camera = options.camera ?? new THREE.PerspectiveCamera(70, 1, 0.1, 1000);
-    this.renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+    this.renderer = new THREE.WebGLRenderer({
+      antialias: true,
+      powerPreference: 'high-performance',
+      logarithmicDepthBuffer: false
+    });
     this.renderer.setPixelRatio(Math.min(devicePixelRatio || 1, options.maxPixelRatio ?? 2));
     this.renderer.shadowMap.enabled = options.shadows ?? true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1;
+    this.renderer.toneMappingExposure = 1.12;
+    this.renderer.useLegacyLights = false;
+    this.renderer.info.autoReset = true;
     options.canvasHost.appendChild(this.renderer.domElement);
     this.resizeObserver = new ResizeObserver(() => this.resize());
     this.resizeObserver.observe(options.canvasHost);
@@ -89,6 +93,11 @@ export class Engine {
       this.camera.updateProjectionMatrix();
     }
     this.renderer.setSize(width, height, false);
+  }
+
+  setPixelRatioCap(maxPixelRatio: number): void {
+    this.renderer.setPixelRatio(Math.min(devicePixelRatio || 1, Math.max(1, maxPixelRatio)));
+    this.resize();
   }
 
   dispose(): void {
