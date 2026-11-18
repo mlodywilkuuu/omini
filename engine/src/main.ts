@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import './style.css';
 import { Engine, Input, PhysicsWorld } from './index';
+import { WorldEditor } from './editor/WorldEditor';
 
 // OUTLANDS ENGINE — rendering and input foundation.
 const viewport = document.querySelector<HTMLDivElement>('#viewport');
@@ -17,6 +18,13 @@ camera.position.set(0, 3.2, 7);
 const engine = new Engine({ canvasHost: viewport, scene, camera, maxPixelRatio: 2, shadows: true });
 const renderer = engine.renderer;
 const input = new Input();
+const editor = new WorldEditor(viewport, scene, camera, renderer);
+const editorHint = document.createElement('button');
+editorHint.className = 'editor-launch';
+editorHint.textContent = 'F1 · OTWÓRZ EDYTOR';
+editorHint.addEventListener('click', () => editor.toggle());
+viewport.appendChild(editorHint);
+window.addEventListener('keydown', event => { if (event.code === 'F1') { event.preventDefault(); editor.toggle(); } });
 const physics = new PhysicsWorld();
 void physics.initialize().then(() => {
   physics.createGround({ x: 90, y: 0.5, z: 90 });
@@ -87,17 +95,18 @@ scene.add(player);
 
 // Controls: keyboard movement + pointer-lock mouse look.
 const keys = input;
-renderer.domElement.addEventListener('click', () => renderer.domElement.requestPointerLock());
+renderer.domElement.addEventListener('click', () => { if (!editor.isEnabled) renderer.domElement.requestPointerLock(); });
 let yaw = 0;
 let pitch = -0.12;
 document.addEventListener('mousemove', e => {
-  if (document.pointerLockElement !== renderer.domElement) return;
+  if (editor.isEnabled || document.pointerLockElement !== renderer.domElement) return;
   yaw -= e.movementX * 0.0022;
   pitch = THREE.MathUtils.clamp(pitch - e.movementY * 0.0018, -0.65, 0.45);
 });
 
 engine.onFrame((dt) => {
   physics.step(dt);
+  if (editor.isEnabled) { keys.endFrame(); return; }
   const forward = Number(keys.isDown('KeyW')) - Number(keys.isDown('KeyS'));
   const side = Number(keys.isDown('KeyD')) - Number(keys.isDown('KeyA'));
   const direction = new THREE.Vector3(side, 0, -forward);
@@ -116,5 +125,5 @@ engine.onFrame((dt) => {
 });
 engine.start();
 
-addEventListener('pagehide', () => { engine.dispose(); input.dispose(); physics.dispose(); }, { once: true });
+addEventListener('pagehide', () => { editor.dispose(); engine.dispose(); input.dispose(); physics.dispose(); }, { once: true });
 console.info('[OUTLANDS ENGINE] runtime ready');
