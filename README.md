@@ -1,11 +1,14 @@
-# OUTLANDS ENGINE
+# OUTLANDS
 
-Własny fundament 3D dla gry OUTLANDS — prototyp przeglądarkowy oparty na TypeScript i Three.js.
+Repozytorium podzielone na trzy niezależne części:
 
-## Wymagania
-- Node.js 20.19+ lub 22.12+
+- `engine/` — fundament silnika 3D: renderer, kamera, sterowanie i scena testowa.
+- `gry2/` — właściwa gra OUTLANDS i jej mechaniki.
+- `anticheat/` — osobny moduł AntiCheat, docelowo oparty na walidacji serwerowej.
 
-## Uruchomienie
+## Uruchomienie prototypu silnika
+Wymagany Node.js 20.19+ lub 22.12+.
+
 ```bash
 npm install
 npm run dev
@@ -17,19 +20,4 @@ npm run build
 npm run preview
 ```
 
-## Sterowanie prototypem
-- **WASD** — ruch postaci
-- **Mysz** — obracanie kamery (kliknij scenę, aby przejąć kursor)
-- **Esc** — zwolnienie kursora
-
-## Moduły — plan
-- [x] Core renderowania i pętla klatek
-- [x] Kamera i podstawowe sterowanie
-- [x] Światło, cienie i scena testowa
-- [ ] System scen i assetów
-- [ ] Fizyka i kolizje (Rapier)
-- [ ] Serwer autorytatywny
-- [ ] AntiCheat po stronie serwera
-- [ ] Multiplayer
-
-> To jest prototyp silnika, nie gotowa gra ani pełny system antycheat.
+Aktualnie uruchamiany jest prototyp silnika. Gra i AntiCheat mają osobne katalogi i będą rozwijane niezależnie.
