@@ -37,7 +37,6 @@ export class Engine {
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 1.12;
-    this.renderer.useLegacyLights = false;
     this.renderer.info.autoReset = true;
     options.canvasHost.appendChild(this.renderer.domElement);
     this.resizeObserver = new ResizeObserver(() => this.resize());
