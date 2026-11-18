@@ -106,6 +106,7 @@ document.addEventListener('mousemove', e => {
 
 engine.onFrame((dt) => {
   physics.step(dt);
+  editor.update();
   if (editor.isEnabled) { keys.endFrame(); return; }
   const forward = Number(keys.isDown('KeyW')) - Number(keys.isDown('KeyS'));
   const side = Number(keys.isDown('KeyD')) - Number(keys.isDown('KeyA'));
