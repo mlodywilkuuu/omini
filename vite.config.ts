@@ -12,7 +12,8 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: resolve(root, 'index.html'),
-        silnik: resolve(root, 'silnik/index.html')
+        silnik: resolve(root, 'silnik/index.html'),
+        game: resolve(root, 'gry2/index.html')
       }
     }
   }
