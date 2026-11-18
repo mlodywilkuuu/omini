@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { TransformControls } from 'three/addons/controls/TransformControls.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 type Editable = THREE.Object3D & { userData: { [key: string]: unknown } };
 
@@ -7,6 +8,7 @@ export class WorldEditor {
   private readonly raycaster = new THREE.Raycaster();
   private readonly pointer = new THREE.Vector2();
   private readonly gizmo: TransformControls;
+  private readonly orbit: OrbitControls;
   private readonly panel: HTMLElement;
   private readonly hierarchy: HTMLElement;
   private readonly details: HTMLElement;
@@ -27,9 +29,13 @@ export class WorldEditor {
     private readonly camera: THREE.Camera,
     private readonly renderer: THREE.WebGLRenderer
   ) {
+    this.orbit = new OrbitControls(camera, renderer.domElement);
+    this.orbit.enableDamping = true;
+    this.orbit.enabled = false;
     this.gizmo = new TransformControls(camera, renderer.domElement);
     this.gizmo.addEventListener('dragging-changed', event => {
       renderer.domElement.style.cursor = event.value ? 'grabbing' : 'crosshair';
+      this.orbit.enabled = this.enabled && !event.value;
     });
     this.gizmo.addEventListener('objectChange', () => this.refreshDetails());
     scene.add(this.gizmo.getHelper());
@@ -70,6 +76,7 @@ export class WorldEditor {
     this.enabled = value;
     this.panel.classList.toggle('is-open', value);
     this.gizmo.enabled = value;
+    this.orbit.enabled = value;
     if (!value) {
       this.gizmo.detach();
       this.selected = undefined;
@@ -80,6 +87,8 @@ export class WorldEditor {
   }
 
   toggle(): void { this.setEnabled(!this.enabled); }
+
+  update(): void { if (this.enabled) this.orbit.update(); }
 
   private pick(event: MouseEvent): void {
     if (!this.enabled || event.button !== 0) return;
@@ -204,6 +213,7 @@ export class WorldEditor {
     this.renderer.domElement.removeEventListener('click', this.onCanvasClick);
     window.removeEventListener('keydown', this.onKey);
     this.gizmo.dispose();
+    this.orbit.dispose();
     this.panel.remove();
   }
 }
