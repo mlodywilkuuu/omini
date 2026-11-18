@@ -9,6 +9,7 @@ Modular 3D runtime for the OUTLANDS project. The engine is independent from game
 - `core/SceneManager.ts` — asynchronous scene transitions and scene update lifecycle.
 - `physics/PhysicsWorld.ts` — Rapier 3D physics with a fixed 60 Hz simulation step, a ground collider and dynamic box bodies.
 - `assets/AssetManager.ts` — cached GLTF model and texture loading.
+- `editor/WorldEditor.ts` — in-scene selection, object hierarchy, transform inspector, translate/rotate/scale gizmos, orbit camera and JSON scene export.
 
 ## Runtime
 
@@ -24,13 +25,21 @@ npm run dev
 npm run build
 ```
 
+## Editor controls
+
+- Press `F1` or click the editor button to open/close the editor.
+- Add cube, sphere or point light from the toolbar.
+- Select objects in the viewport or hierarchy.
+- Use `Q` to translate, `W` to rotate, `E` to scale; drag the gizmo.
+- Edit position, rotation and scale numerically in the inspector.
+- Use the editor camera to orbit the scene and export editable objects as JSON.
+
 ## Engineering roadmap
 
-1. Scene graph, entity/component model and lifecycle.
-2. Physics-to-render transform synchronization and character controller.
-3. PBR material pipeline, environment maps and post-processing.
-4. Asset import pipeline, caching and resource lifetime.
-5. Editor viewport, hierarchy, inspector and gizmos.
-6. Profiling, memory budgets, automated tests and build tooling.
+1. Physics-to-render transform synchronization and a character controller.
+2. PBR material pipeline, environment maps and post-processing.
+3. Asset import pipeline, caching and resource lifetime.
+4. Scene serialization and loading, undo/redo and editor selection improvements.
+5. Profiling, memory budgets, automated tests and build tooling.
 
 The project uses established libraries for low-level rendering and physics rather than attempting to recreate GPU drivers or a physics solver from scratch. The long-term goal is a capable original engine, not a claim of outperforming Unreal Engine today.
