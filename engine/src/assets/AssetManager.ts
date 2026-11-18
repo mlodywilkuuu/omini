@@ -1,7 +1,8 @@
 import { LoadingManager } from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import type { GLTF } from 'three/addons/loaders/GLTFLoader.js';
-import { Texture, TextureLoader } from 'three';
+import { LoadingManager, TextureLoader } from 'three';
+import type { Texture } from 'three';
 
 export class AssetManager {
   readonly loading = new LoadingManager();
