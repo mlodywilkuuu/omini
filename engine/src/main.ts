@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import './style.css';
+import { Engine, Input, PhysicsWorld } from './index';
 
 // OUTLANDS ENGINE — rendering and input foundation.
 const viewport = document.querySelector<HTMLDivElement>('#viewport');
@@ -13,15 +14,14 @@ scene.fog = new THREE.Fog(0x9ab7b5, 28, 100);
 const camera = new THREE.PerspectiveCamera(70, innerWidth / innerHeight, 0.1, 180);
 camera.position.set(0, 3.2, 7);
 
-const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-renderer.setSize(innerWidth, innerHeight);
-renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-renderer.outputColorSpace = THREE.SRGBColorSpace;
-renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.15;
-viewport.appendChild(renderer.domElement);
+const engine = new Engine({ canvasHost: viewport, scene, camera, maxPixelRatio: 2, shadows: true });
+const renderer = engine.renderer;
+const input = new Input();
+const physics = new PhysicsWorld();
+void physics.initialize().then(() => {
+  physics.createGround({ x: 90, y: 0.5, z: 90 });
+  console.info('[OUTLANDS ENGINE] Rapier physics initialized (fixed 60 Hz)');
+}).catch(error => console.error('[OUTLANDS ENGINE] Physics initialization failed', error));
 
 // Lighting
 scene.add(new THREE.HemisphereLight(0xdceeff, 0x52634a, 2.0));
@@ -86,9 +86,7 @@ player.position.set(0, 0, 0);
 scene.add(player);
 
 // Controls: keyboard movement + pointer-lock mouse look.
-const keys = new Set<string>();
-addEventListener('keydown', e => { keys.add(e.code); if (['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code)) e.preventDefault(); });
-addEventListener('keyup', e => keys.delete(e.code));
+const keys = input;
 renderer.domElement.addEventListener('click', () => renderer.domElement.requestPointerLock());
 let yaw = 0;
 let pitch = -0.12;
@@ -98,14 +96,10 @@ document.addEventListener('mousemove', e => {
   pitch = THREE.MathUtils.clamp(pitch - e.movementY * 0.0018, -0.65, 0.45);
 });
 
-const clock = new THREE.Clock();
-let frames = 0;
-let fpsTime = 0;
-function animate() {
-  requestAnimationFrame(animate);
-  const dt = Math.min(clock.getDelta(), 0.05);
-  const forward = Number(keys.has('KeyW')) - Number(keys.has('KeyS'));
-  const side = Number(keys.has('KeyD')) - Number(keys.has('KeyA'));
+engine.onFrame((dt) => {
+  physics.step(dt);
+  const forward = Number(keys.isDown('KeyW')) - Number(keys.isDown('KeyS'));
+  const side = Number(keys.isDown('KeyD')) - Number(keys.isDown('KeyA'));
   const direction = new THREE.Vector3(side, 0, -forward);
   if (direction.lengthSq() > 0) {
     direction.normalize().applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
@@ -117,16 +111,10 @@ function animate() {
   const offset = new THREE.Vector3(Math.sin(yaw) * Math.cos(pitch), Math.sin(pitch), Math.cos(yaw) * Math.cos(pitch)).multiplyScalar(distance);
   camera.position.lerp(target.clone().add(offset), 1 - Math.pow(0.001, dt));
   camera.lookAt(target);
-  renderer.render(scene, camera);
-  frames++; fpsTime += dt;
-  if (fpsTime >= 0.5 && fpsLabel) { fpsLabel.textContent = 'FPS ' + Math.round(frames / fpsTime); frames = 0; fpsTime = 0; }
-}
-animate();
-
-addEventListener('resize', () => {
-  camera.aspect = innerWidth / innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(innerWidth, innerHeight);
+  if (fpsLabel) fpsLabel.textContent = 'FPS ' + engine.fps + ' · ' + engine.frameTimeMs.toFixed(1) + ' MS';
+  keys.endFrame();
 });
+engine.start();
 
-console.info('[OUTLANDS ENGINE] renderer ready');
+addEventListener('pagehide', () => { engine.dispose(); input.dispose(); physics.dispose(); }, { once: true });
+console.info('[OUTLANDS ENGINE] runtime ready');
