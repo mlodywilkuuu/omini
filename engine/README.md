@@ -1,19 +1,28 @@
 # OUTLANDS ENGINE
 
-Modular 3D runtime for the OUTLANDS project. The engine is independent from game rules and AntiCheat.
+Modular Three.js + Rapier runtime for the OUTLANDS project. The engine remains independent from game rules and AntiCheat.
 
-## Current modules
+## Runtime modules
 
-- `core/Engine.ts` — render lifecycle, resize handling, fixed frame timing metrics and renderer ownership.
+- `core/Engine.ts` — renderer lifecycle, responsive viewport, ACES filmic tone mapping, sRGB output, soft shadow maps, pixel-ratio controls and frame metrics.
 - `core/Input.ts` — centralized keyboard state and one-frame pressed/released events.
 - `core/SceneManager.ts` — asynchronous scene transitions and scene update lifecycle.
-- `physics/PhysicsWorld.ts` — Rapier 3D physics with a fixed 60 Hz simulation step, a ground collider and dynamic box bodies.
+- `physics/PhysicsWorld.ts` — Rapier 3D physics with fixed 60 Hz stepping, ground and dynamic bodies.
 - `assets/AssetManager.ts` — cached GLTF model and texture loading.
-- `editor/WorldEditor.ts` — in-scene selection, object hierarchy, transform inspector, translate/rotate/scale gizmos, orbit camera and JSON scene export.
+- `editor/WorldEditor.ts` — object hierarchy, picking, transform gizmos, inspector and scene JSON export.
+- `editor/TerrainEditor.ts` — 129 × 129 editable heightfield, Raise/Lower/Smooth/Flatten sculpt brushes, brush radius/strength and heightmap JSON export.
 
-## Runtime
+## Rendering
 
-The root Vite app currently boots the engine runtime in `src/main.ts`. The demo scene is still a sandbox; gameplay code belongs in `../gry2` and AntiCheat belongs in `../anticheat`.
+The demo uses physically based Three.js materials, ACES filmic tone mapping, sRGB output, hemisphere and ambient fill, a warm directional sun, 4096² soft shadow maps, shadow bias/normal bias and distance fog. The renderer caps device pixel ratio to avoid unbounded GPU cost on high-density displays.
+
+## Editor controls
+
+- `F1` — World Editor: add/select objects, transform them and export `outlands-scene.json`.
+- `F2` — Terrain Lab: hold left mouse button on terrain to sculpt.
+- Terrain brushes: Raise, Lower, Smooth and Flatten.
+- Adjust brush radius and strength; reset terrain or export `outlands-heightmap.json`.
+- World Editor: `Q` translate, `W` rotate, `E` scale, Delete removes the selected editable object.
 
 ## Development
 
@@ -25,21 +34,8 @@ npm run dev
 npm run build
 ```
 
-## Editor controls
+The root Vite app boots the engine sandbox in `engine/src/main.ts`. Gameplay belongs in `gry2/`; AntiCheat belongs in `anticheat/`.
 
-- Press `F1` or click the editor button to open/close the editor.
-- Add cube, sphere or point light from the toolbar.
-- Select objects in the viewport or hierarchy.
-- Use `Q` to translate, `W` to rotate, `E` to scale; drag the gizmo.
-- Edit position, rotation and scale numerically in the inspector.
-- Use the editor camera to orbit the scene and export editable objects as JSON.
+## Known next engineering steps
 
-## Engineering roadmap
-
-1. Physics-to-render transform synchronization and a character controller.
-2. PBR material pipeline, environment maps and post-processing.
-3. Asset import pipeline, caching and resource lifetime.
-4. Scene serialization and loading, undo/redo and editor selection improvements.
-5. Profiling, memory budgets, automated tests and build tooling.
-
-The project uses established libraries for low-level rendering and physics rather than attempting to recreate GPU drivers or a physics solver from scratch. The long-term goal is a capable original engine, not a claim of outperforming Unreal Engine today.
+Terrain-to-Rapier collider synchronization, physics-driven character controller, environment-map / image-based lighting, shadow cascades, post-processing (SSAO/bloom), asset import pipeline, scene loading, undo/redo, profiling and automated runtime tests. Current terrain sculpting updates the render mesh; it does not yet rebuild the Rapier collision shape.
