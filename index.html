@@ -3,370 +3,421 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>APEX HOLDING — Symulator Imperium Kapitałowego</title>
+  <title>APEX CAPITAL GROUP — Symulator Holdingu</title>
   <style>
     :root {
-      --bg: #07090e;
-      --surface: rgba(17, 22, 34, 0.78);
-      --border: rgba(255, 255, 255, 0.09);
-      --border-accent: rgba(99, 102, 241, 0.5);
-      --text: #f1f5f9;
-      --muted: #94a3b8;
+      --bg: #070911;
+      --panel: rgba(17, 22, 38, 0.72);
+      --panel-solid: #12182b;
+      --panel-2: rgba(24, 32, 54, 0.78);
+      --border: rgba(255, 255, 255, 0.11);
+      --text: #f3f6ff;
+      --muted: #9aa5c4;
       --accent: #6366f1;
-      --accent-glow: rgba(99, 102, 241, 0.25);
+      --accent-2: #8b5cf6;
       --green: #10b981;
-      --green-bg: rgba(16, 185, 129, 0.14);
+      --green-bg: rgba(16, 185, 129, 0.16);
       --red: #ef4444;
-      --red-bg: rgba(239, 68, 68, 0.14);
+      --red-bg: rgba(239, 68, 68, 0.16);
       --gold: #f59e0b;
-      --gold-bg: rgba(245, 158, 11, 0.14);
+      --gold-bg: rgba(245, 158, 11, 0.16);
+      --cyan: #22d3ee;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      background-color: var(--bg);
-      background-image:
-        radial-gradient(circle at 15% 15%, rgba(99, 102, 241, 0.14), transparent 35%),
-        radial-gradient(circle at 85% 80%, rgba(16, 185, 129, 0.10), transparent 40%);
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background: var(--bg);
       color: var(--text);
       min-height: 100vh;
-      padding-bottom: 90px;
+      padding: 16px;
+      position: relative;
+      overflow-x: hidden;
     }
 
-    /* Top Island */
-    .top-island {
+    body::before {
+      content: "";
+      position: fixed;
+      inset: -20%;
+      z-index: -1;
+      background:
+        radial-gradient(circle at 15% 15%, rgba(99, 102, 241, 0.24), transparent 42%),
+        radial-gradient(circle at 85% 20%, rgba(16, 185, 129, 0.16), transparent 40%),
+        radial-gradient(circle at 50% 85%, rgba(139, 92, 246, 0.2), transparent 45%);
+      filter: blur(24px);
+      animation: ambientDrift 18s ease-in-out infinite alternate;
+    }
+
+    @keyframes ambientDrift {
+      0% { transform: translate3d(0, 0, 0) scale(1); }
+      100% { transform: translate3d(-2%, 2%, 0) scale(1.05); }
+    }
+
+    .app-wrap {
+      max-width: 1420px;
+      margin: 0 auto;
+    }
+
+    /* FLOATING TOPBAR */
+    .topbar {
       position: sticky;
-      top: 14px;
-      z-index: 100;
-      max-width: 1380px;
-      margin: 0 auto 14px auto;
-      padding: 14px 24px;
-      background: rgba(13, 17, 28, 0.88);
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.55);
+      top: 10px;
+      z-index: 40;
       display: flex;
       flex-wrap: wrap;
-      align-items: center;
       justify-content: space-between;
-      gap: 16px;
+      align-items: center;
+      gap: 14px;
+      background: rgba(14, 19, 34, 0.78);
+      backdrop-filter: blur(18px) saturate(140%);
+      -webkit-backdrop-filter: blur(18px) saturate(140%);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 14px 20px;
+      margin-bottom: 14px;
+      box-shadow: 0 14px 36px rgba(0, 0, 0, 0.45);
     }
 
-    .brand {
+    .brand-title {
+      font-size: 19px;
+      font-weight: 800;
+      letter-spacing: 0.4px;
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 8px;
+      flex-wrap: wrap;
     }
 
-    .brand-badge {
-      width: 38px;
-      height: 38px;
-      border-radius: 12px;
-      background: linear-gradient(135deg, #6366f1, #10b981);
-      display: grid;
-      place-items: center;
-      font-weight: 800;
-      font-size: 18px;
-      color: #fff;
-      box-shadow: 0 0 20px var(--accent-glow);
+    .rank-pill {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 999px;
+      background: rgba(99, 102, 241, 0.22);
+      color: #c7d2fe;
+      border: 1px solid rgba(99, 102, 241, 0.42);
     }
 
-    .brand h1 { font-size: 16px; font-weight: 700; }
-    .brand span { font-size: 11px; color: var(--muted); display: block; }
-
-    .stats-bar {
+    .stats-row {
       display: flex;
       flex-wrap: wrap;
-      gap: 12px;
+      gap: 10px;
       align-items: center;
     }
 
     .stat-pill {
       position: relative;
-      background: rgba(255, 255, 255, 0.03);
+      background: rgba(255, 255, 255, 0.04);
       border: 1px solid var(--border);
-      padding: 8px 14px;
       border-radius: 12px;
-      min-width: 145px;
-      transition: transform 0.18s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+      padding: 8px 13px;
+      min-width: 126px;
+      transition: transform 0.16s ease, border-color 0.2s ease, box-shadow 0.2s ease;
     }
 
     .stat-pill.pulse-gain {
-      border-color: rgba(16, 185, 129, 0.75);
-      box-shadow: 0 0 20px rgba(16, 185, 129, 0.25);
-      transform: scale(1.03);
+      border-color: rgba(16, 185, 129, 0.85);
+      box-shadow: 0 0 18px rgba(16, 185, 129, 0.35);
+      transform: translateY(-2px);
     }
 
     .stat-pill.pulse-spend {
-      border-color: rgba(239, 68, 68, 0.75);
-      box-shadow: 0 0 20px rgba(239, 68, 68, 0.25);
-      transform: scale(0.98);
+      border-color: rgba(239, 68, 68, 0.85);
+      box-shadow: 0 0 18px rgba(239, 68, 68, 0.32);
+      transform: translateY(1px);
     }
 
-    .stat-label {
-      font-size: 11px;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.6px;
+    .cash-fx-layer {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: visible;
     }
 
-    .stat-value {
-      font-size: 16.5px;
-      font-weight: 700;
-      margin-top: 2px;
-      font-variant-numeric: tabular-nums;
+    .cash-float {
+      position: absolute;
+      right: 10px;
+      top: -6px;
+      font-size: 12px;
+      font-weight: 800;
+      padding: 2px 7px;
+      border-radius: 999px;
+      white-space: nowrap;
+      animation: cashFloatUp 1.15s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.75);
     }
 
-    .stat-value.cash { color: var(--green); }
-    .stat-value.networth { color: #a5b4fc; }
-    .stat-value.income { color: var(--gold); }
-    .stat-value.debt { color: var(--red); }
-    .stat-value.clock { color: #e2e8f0; font-size: 14.5px; }
+    .cash-float.gain {
+      color: #34d399;
+      background: rgba(16, 185, 129, 0.2);
+      border: 1px solid rgba(16, 185, 129, 0.45);
+    }
 
-    /* Macro Event Banner */
+    .cash-float.spend {
+      color: #f87171;
+      background: rgba(239, 68, 68, 0.2);
+      border: 1px solid rgba(239, 68, 68, 0.45);
+    }
+
+    @keyframes cashFloatUp {
+      0% { opacity: 0; transform: translateY(6px) scale(0.92); }
+      18% { opacity: 1; transform: translateY(-2px) scale(1.03); }
+      100% { opacity: 0; transform: translateY(-28px) scale(0.96); }
+    }
+
+    .stat-label { font-size: 10.5px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; }
+    .stat-val { font-size: 15px; font-weight: 700; margin-top: 2px; }
+    .stat-cash { color: var(--green); }
+    .stat-inc { color: var(--gold); }
+    .stat-debt { color: #fca5a5; }
+    .stat-clock { color: #c4b5fd; }
+
+    /* MACRO BANNER */
     .macro-banner {
-      max-width: 1380px;
-      margin: 0 auto 18px auto;
-      padding: 11px 20px;
-      border-radius: 15px;
-      border: 1px solid rgba(245, 158, 11, 0.35);
-      background: linear-gradient(90deg, rgba(245, 158, 11, 0.12), rgba(99, 102, 241, 0.10));
       display: flex;
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
       gap: 10px;
-      font-size: 13px;
-    }
-
-    .macro-banner.bull {
-      border-color: rgba(16, 185, 129, 0.45);
-      background: linear-gradient(90deg, rgba(16, 185, 129, 0.14), rgba(17, 22, 34, 0.7));
-    }
-
-    .macro-banner.bear {
-      border-color: rgba(239, 68, 68, 0.45);
-      background: linear-gradient(90deg, rgba(239, 68, 68, 0.14), rgba(17, 22, 34, 0.7));
-    }
-
-    /* Floating Cash Delta Animations */
-    .cash-fx-layer {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      overflow: visible;
-      z-index: 200;
-    }
-
-    .cash-float {
-      position: absolute;
-      right: 8px;
-      top: -6px;
-      font-size: 13px;
-      font-weight: 800;
-      font-variant-numeric: tabular-nums;
-      white-space: nowrap;
-      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.85);
-      animation: floatDelta 1.15s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
-
-    .cash-float.gain { color: #34d399; }
-    .cash-float.spend {
-      color: #f87171;
-      top: auto;
-      bottom: -8px;
-      animation: floatSpend 1.15s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
-
-    @keyframes floatDelta {
-      0% { opacity: 0; transform: translateY(6px) scale(0.92); }
-      18% { opacity: 1; transform: translateY(-4px) scale(1.04); }
-      100% { opacity: 0; transform: translateY(-34px) scale(0.96); }
-    }
-
-    @keyframes floatSpend {
-      0% { opacity: 0; transform: translateY(-6px) scale(0.92); }
-      18% { opacity: 1; transform: translateY(4px) scale(1.04); }
-      100% { opacity: 0; transform: translateY(32px) scale(0.96); }
-    }
-
-    button {
-      cursor: pointer;
+      background: rgba(18, 24, 43, 0.72);
+      backdrop-filter: blur(14px);
       border: 1px solid var(--border);
-      background: rgba(255, 255, 255, 0.06);
-      color: var(--text);
-      padding: 8px 13px;
-      border-radius: 10px;
+      border-radius: 14px;
+      padding: 10px 16px;
+      margin-bottom: 14px;
       font-size: 13px;
-      font-weight: 600;
-      transition: all 0.16s ease;
     }
 
-    button:hover:not(:disabled) {
-      background: rgba(255, 255, 255, 0.14);
-      border-color: rgba(255, 255, 255, 0.25);
-      transform: translateY(-1px);
-    }
+    .macro-banner.bull { border-color: rgba(16, 185, 129, 0.5); background: rgba(16, 185, 129, 0.1); }
+    .macro-banner.bear { border-color: rgba(239, 68, 68, 0.5); background: rgba(239, 68, 68, 0.1); }
 
-    button:disabled { opacity: 0.4; cursor: not-allowed; }
-
-    button.primary {
-      background: linear-gradient(135deg, #6366f1, #4f46e5);
-      border-color: rgba(99, 102, 241, 0.6);
-      color: #fff;
-    }
-
-    button.success {
-      background: var(--green-bg);
-      border-color: rgba(16, 185, 129, 0.45);
-      color: var(--green);
-    }
-
-    button.warn {
-      background: var(--gold-bg);
-      border-color: rgba(245, 158, 11, 0.45);
-      color: var(--gold);
-    }
-
-    button.danger {
-      background: var(--red-bg);
-      border-color: rgba(239, 68, 68, 0.4);
-      color: var(--red);
-    }
-
-    input[type="text"], input[type="number"], input[type="range"], select {
-      width: 100%;
-      background: rgba(8, 11, 18, 0.9);
-      border: 1px solid var(--border);
-      color: var(--text);
-      padding: 9px 12px;
-      border-radius: 10px;
-      font-size: 13px;
-      outline: none;
-    }
-
-    input:focus, select:focus { border-color: var(--accent); }
-
-    .form-group { margin-bottom: 13px; }
-
-    .form-label {
+    /* TENDER BANNER */
+    .tender-banner {
       display: flex;
       justify-content: space-between;
       align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.16), rgba(16, 185, 129, 0.12));
+      border: 1px solid rgba(129, 140, 248, 0.4);
+      border-radius: 14px;
+      padding: 12px 16px;
+      margin-bottom: 14px;
+    }
+
+    /* TOGGLE SWITCH */
+    .offer-toggle-box {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 6px 11px;
+    }
+
+    .offer-toggle-label {
       font-size: 11.5px;
       color: var(--muted);
       font-weight: 600;
-      margin-bottom: 6px;
-      text-transform: uppercase;
-      letter-spacing: 0.4px;
+      user-select: none;
     }
 
-    /* Region Preset Buttons */
-    .region-presets {
+    .offer-toggle-status {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.3px;
+      min-width: 68px;
+      text-align: center;
+    }
+
+    .toggle-switch {
+      position: relative;
+      width: 42px;
+      height: 22px;
+      border-radius: 999px;
+      background: rgba(239, 68, 68, 0.28);
+      border: 1px solid rgba(239, 68, 68, 0.55);
+      cursor: pointer;
+      padding: 0;
+      transition: background 0.2s ease, border-color 0.2s ease;
+      flex-shrink: 0;
+    }
+
+    .toggle-switch.active {
+      background: rgba(16, 185, 129, 0.38);
+      border-color: rgba(16, 185, 129, 0.8);
+    }
+
+    .toggle-switch::after {
+      content: "";
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #ffffff;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
+      transition: transform 0.2s ease;
+    }
+
+    .toggle-switch.active::after {
+      transform: translateX(20px);
+    }
+
+    /* NAV TABS */
+    .nav-tabs {
       display: flex;
       flex-wrap: wrap;
-      gap: 6px;
-      margin-bottom: 8px;
+      gap: 8px;
+      margin-bottom: 16px;
     }
 
-    .region-btn {
-      padding: 5px 9px;
-      font-size: 11.5px;
-      border-radius: 8px;
-      background: rgba(99, 102, 241, 0.12);
-      border: 1px solid rgba(99, 102, 241, 0.32);
-      color: #c7d2fe;
+    .tab-btn {
+      background: var(--panel);
+      backdrop-filter: blur(12px);
+      color: var(--muted);
+      border: 1px solid var(--border);
+      padding: 10px 16px;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 13.5px;
+      cursor: pointer;
+      transition: 0.15s ease;
     }
 
-    .region-btn:hover {
-      background: rgba(99, 102, 241, 0.25);
+    .tab-btn:hover { color: var(--text); border-color: rgba(255,255,255,0.24); }
+    .tab-btn.active {
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
       color: #fff;
+      border-color: transparent;
+      box-shadow: 0 6px 20px rgba(99, 102, 241, 0.35);
     }
 
-    /* Multi-Select Category List */
-    .cat-list {
-      max-height: 175px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      margin-top: 6px;
-      padding-right: 4px;
+    /* LAYOUT GRID */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1fr 370px;
+      gap: 16px;
+      align-items: start;
     }
 
-    .cat-option {
+    @media (max-width: 1060px) {
+      .main-grid { grid-template-columns: 1fr; }
+    }
+
+    .panel {
+      background: var(--panel);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 18px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+    }
+
+    .panel-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 8px 11px;
-      border-radius: 9px;
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid var(--border);
-      cursor: pointer;
-      font-size: 12.5px;
-      transition: all 0.15s;
-      user-select: none;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 14px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
     }
 
-    .cat-option:hover { background: rgba(255, 255, 255, 0.09); }
-    .cat-option.selected {
-      background: rgba(99, 102, 241, 0.24);
-      border-color: var(--accent);
-      color: #fff;
-    }
+    .panel-title { font-size: 16px; font-weight: 700; }
 
-    /* Country Multi-Select Chips */
-    .country-grid {
-      max-height: 165px;
-      overflow-y: auto;
+    .filter-row {
       display: flex;
       flex-wrap: wrap;
       gap: 6px;
-      margin-top: 6px;
-      padding: 6px;
-      background: rgba(0, 0, 0, 0.22);
-      border: 1px solid var(--border);
-      border-radius: 10px;
+      margin-bottom: 12px;
     }
 
-    .country-chip {
-      padding: 5px 9px;
-      border-radius: 8px;
-      font-size: 12px;
+    .filter-chip {
+      padding: 5px 11px;
+      border-radius: 999px;
+      font-size: 11.5px;
+      font-weight: 600;
       background: rgba(255, 255, 255, 0.04);
       border: 1px solid var(--border);
+      color: var(--muted);
       cursor: pointer;
-      user-select: none;
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
+      transition: 0.14s ease;
     }
 
-    .country-chip:hover { background: rgba(255, 255, 255, 0.09); }
-    .country-chip.active {
-      background: rgba(16, 185, 129, 0.2);
-      border-color: rgba(16, 185, 129, 0.6);
-      color: #6ee7b7;
-      font-weight: 600;
+    .filter-chip.active {
+      background: rgba(99, 102, 241, 0.24);
+      border-color: rgba(129, 140, 248, 0.65);
+      color: #fff;
     }
 
-    .selected-countries-strip {
+    /* CARDS */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+      gap: 12px;
+    }
+
+    .sub-card {
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px;
       display: flex;
-      flex-wrap: wrap;
-      gap: 5px;
-      margin-top: 6px;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 12px;
+      transition: border-color 0.16s ease, transform 0.16s ease;
     }
+
+    .sub-card:hover { transform: translateY(-2px); border-color: rgba(129, 140, 248, 0.45); }
+    .sub-card.acquired-tag { border-color: rgba(245, 158, 11, 0.45); }
+
+    .sub-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+
+    .sector-tag {
+      display: inline-block;
+      font-size: 10.5px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: rgba(99, 102, 241, 0.2);
+      color: #c7d2fe;
+      margin-bottom: 4px;
+      margin-right: 4px;
+    }
+
+    .parent-badge {
+      display: inline-block;
+      font-size: 10.5px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: rgba(16, 185, 129, 0.15);
+      color: #6ee7b7;
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      margin-bottom: 4px;
+    }
+
+    .sub-name { font-size: 15.5px; font-weight: 700; }
+    .sub-level { font-size: 11.5px; font-weight: 700; color: var(--gold); background: var(--gold-bg); padding: 3px 8px; border-radius: 8px; white-space: nowrap; }
+
+    .sub-metrics {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      background: rgba(0, 0, 0, 0.25);
+      padding: 9px 10px;
+      border-radius: 10px;
+      font-size: 12px;
+    }
+
+    .sub-metrics span { color: var(--muted); display: block; font-size: 10.5px; }
+    .sub-metrics strong { font-size: 13px; }
 
     .mini-country-badge {
       display: inline-flex;
@@ -374,183 +425,27 @@
       gap: 4px;
       font-size: 11px;
       padding: 2px 7px;
-      border-radius: 6px;
-      background: rgba(99, 102, 241, 0.16);
-      border: 1px solid rgba(99, 102, 241, 0.35);
-      color: #c7d2fe;
-    }
-
-    .parent-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      font-size: 11px;
-      font-weight: 700;
-      padding: 3px 8px;
-      border-radius: 6px;
-      background: rgba(16, 185, 129, 0.14);
-      border: 1px solid rgba(16, 185, 129, 0.35);
-      color: #6ee7b7;
-      margin-bottom: 6px;
-    }
-
-    /* Layout */
-    .container {
-      max-width: 1380px;
-      margin: 0 auto;
-      padding: 0 16px;
-    }
-
-    .nav-tabs {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 20px;
-      flex-wrap: wrap;
-    }
-
-    .tab-btn {
-      padding: 11px 18px;
-      border-radius: 14px;
-      font-size: 14px;
-      background: var(--surface);
-      backdrop-filter: blur(12px);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .tab-btn.active {
-      background: rgba(99, 102, 241, 0.22);
-      border-color: var(--accent);
-      color: #fff;
-    }
-
-    .badge-count {
-      background: rgba(255, 255, 255, 0.12);
-      padding: 2px 7px;
       border-radius: 999px;
-      font-size: 11px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      margin: 2px 3px 2px 0;
     }
 
-    .grid-2 {
-      display: grid;
-      grid-template-columns: 1.15fr 0.85fr;
-      gap: 20px;
-    }
-
-    @media (max-width: 980px) {
-      .grid-2 { grid-template-columns: 1fr; }
-    }
-
-    .cards-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(365px, 1fr));
-      gap: 16px;
-    }
-
-    .panel {
-      background: var(--surface);
-      backdrop-filter: blur(16px);
-      border: 1px solid var(--border);
-      border-radius: 18px;
-      padding: 20px;
-    }
-
-    .panel-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 16px;
-      padding-bottom: 12px;
-      border-bottom: 1px solid var(--border);
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-
-    .panel-title { font-size: 16px; font-weight: 700; }
-
-    .sub-card {
-      background: rgba(22, 28, 44, 0.72);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      gap: 12px;
-    }
-
-    .sub-card.acquired-tag {
-      border-color: rgba(245, 158, 11, 0.45);
-      background: linear-gradient(160deg, rgba(245, 158, 11, 0.08), rgba(22, 28, 44, 0.8));
-    }
-
-    .sub-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 10px;
-    }
-
-    .sector-tag {
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      padding: 3px 8px;
-      border-radius: 6px;
-      background: rgba(99, 102, 241, 0.16);
-      color: #a5b4fc;
-      display: inline-block;
-      margin-bottom: 4px;
-      margin-right: 4px;
-    }
-
-    .sub-name { font-size: 16px; font-weight: 700; }
-
-    .sub-level {
-      font-size: 12px;
-      font-weight: 700;
-      background: rgba(255, 255, 255, 0.08);
-      padding: 4px 10px;
-      border-radius: 8px;
-      white-space: nowrap;
-    }
-
-    .sub-metrics {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-      background: rgba(0, 0, 0, 0.25);
-      padding: 10px;
-      border-radius: 10px;
-      font-size: 12px;
-    }
-
-    .sub-metrics span { color: var(--muted); display: block; }
-    .sub-metrics strong { font-size: 14px; color: var(--text); }
-
-    .sparkline-box {
-      background: rgba(0, 0, 0, 0.22);
-      border: 1px solid rgba(255, 255, 255, 0.05);
-      border-radius: 9px;
-      padding: 6px 8px;
-      margin-top: 8px;
-    }
-
+    /* SHAREHOLDER CAP TABLE */
     .cap-table {
-      background: rgba(0, 0, 0, 0.25);
-      border: 1px solid rgba(255, 255, 255, 0.06);
+      background: rgba(0, 0, 0, 0.28);
+      border: 1px solid rgba(255, 255, 255, 0.08);
       border-radius: 10px;
-      padding: 10px;
-      font-size: 12px;
+      padding: 8px 10px;
+      font-size: 11.5px;
     }
 
     .cap-table-title {
-      font-size: 11px;
+      font-size: 10.5px;
       text-transform: uppercase;
       color: var(--muted);
-      font-weight: 700;
       margin-bottom: 6px;
+      font-weight: 700;
       display: flex;
       justify-content: space-between;
     }
@@ -559,98 +454,244 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 6px;
       padding: 5px 0;
-      border-bottom: 1px dashed rgba(255, 255, 255, 0.06);
-      gap: 8px;
+      border-top: 1px dashed rgba(255, 255, 255, 0.07);
     }
 
-    .cap-row:last-child { border-bottom: none; }
-
-    .cap-holder-name { font-weight: 600; }
-    .cap-holder-meta { font-size: 11px; color: var(--muted); }
+    .cap-row:first-of-type { border-top: none; padding-top: 0; }
+    .cap-holder-name { font-weight: 600; color: var(--text); }
+    .cap-holder-meta { font-size: 10.5px; color: var(--muted); }
 
     .delta-badge {
-      font-size: 10.5px;
-      font-weight: 700;
+      font-size: 10px;
+      font-weight: 800;
       padding: 1px 5px;
-      border-radius: 4px;
+      border-radius: 6px;
       margin-left: 4px;
     }
     .delta-badge.up { background: var(--green-bg); color: var(--green); }
     .delta-badge.down { background: var(--red-bg); color: var(--red); }
 
-    .share-bar-bg {
-      width: 100%;
-      height: 8px;
-      background: rgba(255, 255, 255, 0.07);
-      border-radius: 99px;
-      overflow: hidden;
-      margin: 6px 0;
-    }
-
-    .share-bar-fill {
-      height: 100%;
-      background: linear-gradient(90deg, #6366f1, #10b981);
-      border-radius: 99px;
-      transition: width 0.25s ease;
-    }
-
-    .share-bar-fill.majority {
-      background: linear-gradient(90deg, #f59e0b, #10b981);
+    /* SPARKLINE */
+    .sparkline-box {
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 8px;
+      padding: 5px 8px;
+      margin-top: 8px;
     }
 
     .trend-up { color: var(--green); font-weight: 700; }
     .trend-down { color: var(--red); font-weight: 700; }
 
-    .btn-row { display: flex; gap: 6px; flex-wrap: wrap; }
-    .btn-row button { flex: 1; padding: 7px 9px; font-size: 12px; }
+    /* FORM & CREATOR */
+    .form-group { margin-bottom: 12px; }
+    .form-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-bottom: 5px; }
 
-    .manual-op-box {
-      background: linear-gradient(135deg, rgba(99, 102, 241, 0.14), rgba(16, 185, 129, 0.08));
-      border: 1px solid var(--border-accent);
-      border-radius: 16px;
-      padding: 18px;
-      margin-bottom: 18px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 14px;
+    input[type="text"], input[type="number"], select {
+      width: 100%;
+      background: rgba(11, 15, 26, 0.85);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 9px 11px;
+      border-radius: 10px;
+      font-size: 13.5px;
+      outline: none;
     }
 
-    .tender-box {
-      background: linear-gradient(135deg, rgba(245, 158, 11, 0.12), rgba(99, 102, 241, 0.08));
-      border: 1px solid rgba(245, 158, 11, 0.38);
-      border-radius: 16px;
-      padding: 15px 18px;
-      margin-bottom: 18px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 12px;
-    }
+    input:focus, select:focus { border-color: var(--accent); }
 
-    .merger-box {
-      background: rgba(99, 102, 241, 0.08);
-      border: 1px solid rgba(99, 102, 241, 0.35);
-      border-radius: 14px;
-      padding: 14px;
-      margin-bottom: 16px;
-    }
-
-    .event-log {
-      max-height: 290px;
+    .cat-select-list {
+      max-height: 175px;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 6px;
+      padding-right: 4px;
+    }
+
+    .cat-option {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 10px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      font-size: 12.5px;
+      transition: 0.12s ease;
+    }
+
+    .cat-option:hover { border-color: rgba(255,255,255,0.25); }
+    .cat-option.selected {
+      background: rgba(99, 102, 241, 0.22);
+      border-color: var(--accent);
+    }
+
+    .region-presets {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-bottom: 8px;
+    }
+
+    .preset-btn {
+      font-size: 11px;
+      padding: 5px 8px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    .preset-btn:hover { border-color: var(--accent); background: rgba(99, 102, 241, 0.2); }
+
+    .country-select-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      max-height: 215px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .country-chip {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 9px;
+      border-radius: 9px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      font-size: 12px;
+      user-select: none;
+    }
+
+    .country-chip.active {
+      background: rgba(16, 185, 129, 0.16);
+      border-color: var(--green);
+      color: #fff;
+      font-weight: 600;
+    }
+
+    .preview-box {
+      background: rgba(0, 0, 0, 0.28);
+      border: 1px dashed rgba(255, 255, 255, 0.16);
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 12px;
+      font-size: 12.5px;
+    }
+
+    .preview-line { display: flex; justify-content: space-between; margin-bottom: 5px; }
+    .preview-line:last-child { margin-bottom: 0; }
+
+    /* BUTTONS */
+    button {
+      font-family: inherit;
+      font-weight: 600;
+      font-size: 12.5px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      padding: 8px 12px;
+      cursor: pointer;
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.06);
+      transition: 0.14s ease;
+    }
+
+    button:hover:not(:disabled) { filter: brightness(1.12); transform: translateY(-1px); }
+    button:disabled { opacity: 0.42; cursor: not-allowed; }
+
+    button.primary { background: linear-gradient(135deg, var(--accent), var(--accent-2)); border: none; color: #fff; }
+    button.success { background: var(--green-bg); border-color: rgba(16, 185, 129, 0.45); color: #6ee7b7; }
+    button.warn { background: var(--gold-bg); border-color: rgba(245, 158, 11, 0.45); color: #fcd34d; }
+    button.danger { background: var(--red-bg); border-color: rgba(239, 68, 68, 0.45); color: #fca5a5; }
+
+    .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .btn-row > button { flex: 1; min-width: 110px; }
+
+    /* SHARE BAR */
+    .share-bar-bg {
+      height: 7px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 999px;
+      overflow: hidden;
+      margin-top: 6px;
+    }
+    .share-bar-fill { height: 100%; background: var(--green); transition: width 0.25s ease; }
+    .share-bar-fill.majority { background: var(--gold); }
+
+    /* HQ JURISDICTION CARDS */
+    .hq-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .hq-card {
+      background: rgba(255, 255, 255, 0.035);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .hq-card.active-hq {
+      border-color: var(--green);
+      background: rgba(16, 185, 129, 0.1);
+    }
+
+    /* ORG TREE */
+    .org-tree {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .org-node {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 14px;
+    }
+
+    .org-node.hq-node {
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.22), rgba(139, 92, 246, 0.14));
+      border-color: rgba(129, 140, 248, 0.55);
+    }
+
+    .tree-children {
+      margin-left: 22px;
+      padding-left: 14px;
+      border-left: 2px dashed rgba(129, 140, 248, 0.35);
+      margin-top: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    /* LOGS */
+    .log-list {
+      max-height: 360px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      font-size: 12px;
     }
 
     .log-item {
-      font-size: 12.5px;
-      padding: 9px 12px;
-      border-radius: 10px;
+      padding: 8px 10px;
+      border-radius: 9px;
       background: rgba(255, 255, 255, 0.03);
       border-left: 3px solid var(--accent);
       line-height: 1.4;
@@ -659,29 +700,31 @@
     .log-item.good { border-left-color: var(--green); }
     .log-item.warn { border-left-color: var(--gold); }
     .log-item.bad { border-left-color: var(--red); }
-    .log-time { color: var(--muted); font-size: 11px; margin-right: 6px; }
+    .log-time { color: var(--muted); font-size: 10.5px; margin-right: 6px; }
 
-    /* Modal */
+    /* MODAL */
     .modal-backdrop {
       position: fixed;
       inset: 0;
-      background: rgba(3, 5, 10, 0.82);
+      background: rgba(3, 6, 14, 0.78);
       backdrop-filter: blur(8px);
-      z-index: 500;
-      display: grid;
-      place-items: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       padding: 16px;
-      overflow-y: auto;
+      z-index: 60;
     }
 
     .modal-box {
-      background: #121826;
-      border: 1px solid var(--border-accent);
-      border-radius: 20px;
-      max-width: 560px;
       width: 100%;
-      padding: 22px;
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.75);
+      max-width: 500px;
+      max-height: 90vh;
+      overflow-y: auto;
+      background: #13192e;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65);
     }
 
     .modal-header {
@@ -697,477 +740,364 @@
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 6px;
-      margin: 8px 0 12px 0;
+      margin-bottom: 8px;
     }
 
     .strategy-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 8px;
-      margin-top: 6px;
+      margin-bottom: 12px;
     }
 
     .strategy-card {
-      padding: 10px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border);
       border-radius: 10px;
-      border: 1px solid var(--border);
-      background: rgba(255, 255, 255, 0.03);
+      padding: 9px;
       cursor: pointer;
-      font-size: 12px;
-      text-align: center;
-      transition: all 0.15s;
+      text-align: left;
+      transition: 0.14s ease;
     }
 
-    .strategy-card:hover { background: rgba(255, 255, 255, 0.08); }
     .strategy-card.active {
-      border-color: var(--gold);
-      background: rgba(245, 158, 11, 0.16);
-      color: #fff;
-    }
-
-    .hq-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
-      gap: 10px;
-      margin-bottom: 20px;
-    }
-
-    .hq-card {
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 12px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      gap: 8px;
-    }
-
-    .hq-card.active-hq {
-      border-color: var(--green);
-      background: rgba(16, 185, 129, 0.08);
-    }
-
-    /* Multi-level Tree View */
-    .org-root {
-      text-align: center;
-      padding: 16px;
-      background: rgba(99, 102, 241, 0.16);
-      border: 1px solid var(--accent);
-      border-radius: 14px;
-      max-width: 480px;
-      margin: 0 auto 22px auto;
-    }
-
-    .tree-level-wrap {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .tree-children {
-      margin-left: 26px;
-      padding-left: 16px;
-      border-left: 2px dashed rgba(99, 102, 241, 0.45);
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      margin-top: 10px;
-    }
-
-    .org-node {
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 14px;
+      background: rgba(99, 102, 241, 0.22);
+      border-color: var(--accent);
     }
 
     .hidden { display: none !important; }
   </style>
 </head>
 <body>
-
-  <!-- TOP FLOATING BAR -->
-  <header class="top-island">
-    <div class="brand">
-      <div class="brand-badge">A</div>
+  <div class="app-wrap">
+    <!-- TOPBAR -->
+    <header class="topbar">
       <div>
-        <h1 id="holding-title">APEX CAPITAL GROUP S.A.</h1>
-        <span id="holding-rank">Ranga: Lokalny Fundusz Inwestycyjny</span>
+        <div class="brand-title">
+          <span id="holding-title">APEX CAPITAL GROUP S.A.</span>
+          <span class="rank-pill" id="holding-rank">Ranga: Lokalny Fundusz</span>
+        </div>
+        <div style="font-size: 12px; color: var(--muted); margin-top: 3px;">
+          Symulator holdingu, spółek-córek, fuzji, IPO i akcjonariatu w czasie rzeczywistym
+        </div>
       </div>
+
+      <div class="stats-row">
+        <div class="stat-pill" id="cash-pill">
+          <div class="cash-fx-layer" id="cash-fx-layer"></div>
+          <div class="stat-label">Gotówka</div>
+          <div class="stat-val stat-cash" id="stat-cash">$1,500</div>
+        </div>
+        <div class="stat-pill">
+          <div class="stat-label">Cashflow Netto</div>
+          <div class="stat-val stat-inc" id="stat-income">$0 / s</div>
+        </div>
+        <div class="stat-pill">
+          <div class="stat-label">Wartość Netto</div>
+          <div class="stat-val" id="stat-networth">$1,500</div>
+        </div>
+        <div class="stat-pill">
+          <div class="stat-label">Dług</div>
+          <div class="stat-val stat-debt" id="stat-debt">$0</div>
+        </div>
+        <div class="stat-pill">
+          <div class="stat-label">Czas Symulacji</div>
+          <div class="stat-val stat-clock" id="stat-clock">Dzień 1 • 08:00</div>
+        </div>
+
+        <div class="offer-toggle-box" title="Włącz lub wyłącz przychodzące oferty odkupu Twoich akcji">
+          <span class="offer-toggle-label">Oferty za Twoje akcje:</span>
+          <button type="button" class="toggle-switch active" id="top-offers-switch" role="switch" aria-checked="true" aria-label="Oferty za Twoje akcje"></button>
+          <span class="offer-toggle-status" id="top-offers-status" style="color: var(--green);">WŁĄCZONE</span>
+        </div>
+
+        <button id="btn-reset" class="danger">Reset</button>
+      </div>
+    </header>
+
+    <!-- MACRO EVENT BANNER -->
+    <div id="macro-banner" class="macro-banner">
+      <div>
+        <strong id="macro-title">📊 Stabilny Klimat Makroekonomiczny</strong>
+        <span id="macro-desc" style="color: var(--muted); margin-left: 8px;">Rynki działają standardowo.</span>
+      </div>
+      <div id="macro-timer" style="font-weight: 700; color: var(--gold);">Nowy impuls za ~22s</div>
     </div>
 
-    <div class="stats-bar">
-      <div class="stat-pill" id="cash-pill">
-        <div class="cash-fx-layer" id="cash-fx-layer"></div>
-        <div class="stat-label">Wolna Gotówka</div>
-        <div class="stat-value cash" id="stat-cash">$1,500</div>
-      </div>
-      <div class="stat-pill">
-        <div class="stat-label">Cashflow Netto / s</div>
-        <div class="stat-value income" id="stat-income">$0 / s</div>
-      </div>
-      <div class="stat-pill">
-        <div class="stat-label">Wycena Imperium</div>
-        <div class="stat-value networth" id="stat-networth">$1,500</div>
-      </div>
-      <div class="stat-pill">
-        <div class="stat-label">Dług Korporacyjny</div>
-        <div class="stat-value debt" id="stat-debt">$0</div>
-      </div>
-      <div class="stat-pill" style="min-width: 132px;">
-        <div class="stat-label">Czas Imperium</div>
-        <div class="stat-value clock" id="stat-clock">Dzień 1 • 08:00</div>
-      </div>
-    </div>
-
-    <div>
-      <button id="btn-reset" class="danger" title="Resetuj postęp">Reset</button>
-    </div>
-  </header>
-
-  <!-- MACRO EVENT BANNER -->
-  <div class="macro-banner" id="macro-banner">
-    <div>
-      <strong id="macro-title">📊 Stabilny Klimat Makroekonomiczny</strong>
-      <span id="macro-desc" style="color: var(--muted); margin-left: 8px;">Rynki funkcjonują w standardowym rytmie.</span>
-    </div>
-    <span id="macro-timer" style="font-weight: 700; color: var(--gold);">Kolejny impuls rynkowy wkrótce...</span>
-  </div>
-
-  <main class="container">
     <!-- NAVIGATION TABS -->
     <nav class="nav-tabs" id="main-nav">
-      <button class="tab-btn active" data-tab="subsidiaries">
-        🏢 Spółki-Córki &amp; Wnuczki <span class="badge-count" id="count-subs">0</span>
-      </button>
-      <button class="tab-btn" data-tab="market">
-        📈 Giełda &amp; Akcjonariat (M&amp;A) <span class="badge-count" id="count-market">0</span>
-      </button>
-      <button class="tab-btn" data-tab="board">
-        👔 Zarząd &amp; CEO <span class="badge-count" id="count-ceo">0</span>
-      </button>
-      <button class="tab-btn" data-tab="finance">
-        🏦 Kredyty &amp; Dźwignia
-      </button>
-      <button class="tab-btn" data-tab="structure">
-        🕸️ Drzewo &amp; Jurysdykcja
-      </button>
+      <button class="tab-btn active" data-tab="subsidiaries">🏢 Moje Spółki (<span id="count-subs">0</span>)</button>
+      <button class="tab-btn" data-tab="market">📈 Giełda &amp; Akcjonariat (<span id="count-market">4</span>)</button>
+      <button class="tab-btn" data-tab="board">👔 Zarząd &amp; CEO (<span id="count-ceo">0</span>)</button>
+      <button class="tab-btn" data-tab="finance">🏦 Finanse, Kredyt &amp; Granty</button>
+      <button class="tab-btn" data-tab="structure">🌐 Centrala &amp; Struktura Grupy</button>
     </nav>
 
-    <!-- TAB 1: SUBSIDIARIES & SUB-SUBSIDIARIES -->
-    <section id="tab-subsidiaries">
-      <div class="manual-op-box">
-        <div>
-          <h3 style="font-size: 15px; margin-bottom: 4px;">💼 Doradztwo Kapitałowe &amp; Arbitraż</h3>
-          <p style="font-size: 13px; color: var(--muted);">Generuj szybki kapitał startowy na pierwsze udziały, CEO i rejestrację wielobranżowych spółek-córek oraz spółek-wnuczek.</p>
-        </div>
-        <button id="btn-manual-deal" class="primary" style="padding: 12px 20px; font-size: 14px;">
-          + Zamknij Transakcję (<span id="manual-reward">$250</span>)
-        </button>
-      </div>
-
-      <!-- GOVERNMENT & B2B TENDER BANNER -->
-      <div class="tender-box" id="tender-box">
-        <div>
-          <div style="font-size: 11px; color: var(--gold); font-weight: 700; text-transform: uppercase;">🏛️ Aktywny Przetarg Rządowy / B2B (<span id="tender-timer">45s</span>)</div>
-          <div style="font-weight: 700; font-size: 14.5px; margin: 3px 0;" id="tender-title">Ładowanie przetargu...</div>
-          <div style="font-size: 12px; color: var(--muted);" id="tender-req">Wymagania: —</div>
-        </div>
-        <button class="warn" id="btn-claim-tender" disabled>Realizuj Kontrakt (+$0)</button>
-      </div>
-
-      <div class="grid-2">
-        <!-- OWNED SUBSIDIARIES + MERGER PANEL -->
-        <div class="panel">
-          <div class="panel-header">
-            <div class="panel-title">Twoje Spółki-Córki i Spółki-Wnuczki</div>
-            <span style="font-size: 12px; color: var(--muted);" id="sub-synergy-info">Synergia: +0%</span>
+    <!-- MAIN GRID -->
+    <div class="main-grid">
+      <!-- LEFT / PRIMARY WORKSPACE -->
+      <div>
+        <!-- TAB 1: SUBSIDIARIES -->
+        <section id="tab-subsidiaries" class="panel">
+          <div class="tender-banner" id="tender-banner">
+            <div>
+              <div style="font-size: 11px; font-weight: 800; color: #a5b4fc; text-transform: uppercase;">
+                🎯 Aktywny Przetarg B2B • Koniec za <span id="tender-timer" style="color: var(--gold);">55s</span>
+              </div>
+              <div id="tender-title" style="font-weight: 700; font-size: 14px; margin-top: 2px;">Kontrakt B2B</div>
+              <div id="tender-req" style="font-size: 12px; color: var(--muted);">Wymagania...</div>
+            </div>
+            <button class="success" id="btn-claim-tender" disabled>Realizuj Przetarg</button>
           </div>
 
-          <!-- MERGER PANEL -->
-          <div id="merger-panel" class="merger-box hidden">
-            <div style="font-weight: 700; font-size: 13.5px; margin-bottom: 6px; color: #c7d2fe;">
-              🔀 Fuzja Spółek w Giganta Sektorowego (+45% do przychodów połączonej firmy)
-            </div>
+          <div id="merger-panel" class="hidden" style="background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.35); border-radius: 12px; padding: 12px; margin-bottom: 14px;">
+            <div style="font-weight: 700; font-size: 13.5px; margin-bottom: 8px;">🔀 Fuzja Dwóch Spółek Zależnych w Konglomerat</div>
             <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 8px; align-items: center;">
               <select id="merge-sub-a"></select>
               <select id="merge-sub-b"></select>
-              <button class="primary" id="btn-execute-merge">Połącz</button>
+              <button class="primary" id="btn-execute-merge">Połącz (+45%)</button>
             </div>
           </div>
 
-          <div class="cards-grid" id="owned-subs-list"></div>
-        </div>
-
-        <!-- CUSTOM SUBSIDIARY CREATOR + LOG -->
-        <div style="display: flex; flex-direction: column; gap: 20px;">
-          <div class="panel">
-            <div class="panel-header">
-              <div class="panel-title">Zarejestruj Nową Spółkę (Córkę lub Wnuczkę)</div>
-            </div>
-
-            <div class="form-group">
-              <label class="form-label"><span>1. Podmiot Nadrzędny (Właściciel)</span></label>
-              <select id="new-sub-parent"></select>
-            </div>
-
-            <div class="form-group">
-              <label class="form-label"><span>2. Nazwa Spółki</span></label>
-              <input type="text" id="new-sub-name" placeholder="np. Apex AI & Defense Holding Sp. z o.o." />
-            </div>
-
-            <div class="form-group">
-              <label class="form-label">
-                <span>3. Kategorie / Branże (Wybierz 1 lub więcej!)</span>
-                <span id="cat-count-label" style="color: #a5b4fc;">Wybrano: 1 (z 30)</span>
-              </label>
-              <input type="text" id="cat-search-input" placeholder="Szukaj branży np. AI, Cyber, Auto, Koleje, MedTech..." />
-              <div class="selected-countries-strip" id="selected-cats-strip"></div>
-              <div class="cat-list" id="cat-select-list"></div>
-            </div>
-
-            <div class="form-group">
-              <label class="form-label">
-                <span>4. Kraje Działania &amp; Regiony</span>
-                <span id="country-count-label" style="color: var(--green);">Wybrano: 1</span>
-              </label>
-
-              <div class="region-presets" id="region-presets">
-                <button type="button" class="region-btn" data-region="world">🌍 Cały Świat</button>
-                <button type="button" class="region-btn" data-region="europe">🇪🇺 Europa</button>
-                <button type="button" class="region-btn" data-region="na">🇺🇸 Ameryka Płn.</button>
-                <button type="button" class="region-btn" data-region="asia">🇯🇵 Azja</button>
-                <button type="button" class="region-btn" data-region="me">🇦🇪 Bliski Wschód</button>
-                <button type="button" class="region-btn" data-region="pl">🇵🇱 Tylko Polska</button>
-              </div>
-
-              <input type="text" id="country-search-input" placeholder="Szukaj kraju np. Polska, Niemcy, USA, Japonia..." />
-              <div class="selected-countries-strip" id="selected-countries-strip"></div>
-              <div class="country-grid" id="country-select-grid"></div>
-            </div>
-
-            <div style="background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 12px; padding: 12px; margin-bottom: 12px; font-size: 12.5px;">
-              <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-                <span style="color: var(--muted);">Struktura hierarchii:</span>
-                <strong id="preview-parent-name" style="color: #6ee7b7;">Centrala Holdingu</strong>
-              </div>
-              <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-                <span style="color: var(--muted);">Branże i dywersyfikacja:</span>
-                <strong id="preview-cat-name">—</strong>
-              </div>
-              <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-                <span style="color: var(--muted);">Rynki (mnożnik przychodu):</span>
-                <strong id="preview-countries-mult">1 kraj (1.00x)</strong>
-              </div>
-              <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-                <span style="color: var(--muted);">Szacowany Cashflow:</span>
-                <strong style="color: var(--green);" id="preview-income">$0 / s</strong>
-              </div>
-              <div style="display: flex; justify-content: space-between;">
-                <span style="color: var(--muted);">Kapitał założycielski (Koszt):</span>
-                <strong style="color: var(--gold);" id="preview-cost">$0</strong>
-              </div>
-            </div>
-
-            <button class="primary" style="width: 100%; padding: 11px; font-size: 14px;" id="create-sub-btn">
-              Załóż Spółkę
-            </button>
-          </div>
-
-          <div class="panel">
-            <div class="panel-header">
-              <div class="panel-title">Dziennik Rynkowy &amp; Negocjacje M&amp;A</div>
-            </div>
-            <div class="event-log" id="event-log"></div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- TAB 2: STOCK MARKET & SHAREHOLDERS -->
-    <section id="tab-market" class="hidden">
-      <div class="panel" style="margin-bottom: 18px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
-          <div>
-            <h2 style="font-size: 17px;">Giełda, Nowe Debiuty (IPO) &amp; Przejęcia M&amp;A</h2>
-            <p style="font-size: 13px; color: var(--muted); margin-top: 3px;">
-              Nowe spółki pojawiają się automatycznie co <strong id="ipo-spawn-timer">35s</strong> lub możesz wyszukać nową spółkę ręcznie.
-            </p>
-          </div>
-          <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
-            <button class="primary" id="btn-spawn-market-comp">➕ Wyszukaj Nową Spółkę na Giełdzie</button>
-            <button id="btn-toggle-incoming-offers" class="success">📩 Oferty od funduszy: WŁ.</button>
-            <div style="font-size: 13px; background: rgba(255,255,255,0.04); padding: 8px 14px; border-radius: 10px;">
-              Dywidendy: <strong style="color: var(--green);" id="dividend-summary">$0 / s</strong>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="cards-grid" id="market-list"></div>
-    </section>
-
-    <!-- TAB 3: BOARD & CEOs -->
-    <section id="tab-board" class="hidden">
-      <div class="panel" style="margin-bottom: 18px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-          <div>
-            <h2 style="font-size: 17px;">Zarząd Holdingu &amp; Rynek Prezesów (CEO)</h2>
-            <p style="font-size: 13px; color: var(--muted); margin-top: 3px;">
-              Zatrudniaj liderów i przypisuj ich do spółek-córek, spółek-wnuczek lub centrali. Pensje CEO są potrącane co sekundę.
-            </p>
-          </div>
-          <div style="font-size: 13px; background: rgba(255,255,255,0.04); padding: 8px 14px; border-radius: 10px;">
-            Łączne pensje zarządu: <strong style="color: var(--red);" id="ceo-salaries-summary">$0 / s</strong>
-          </div>
-        </div>
-      </div>
-
-      <div class="cards-grid" id="ceo-market-list"></div>
-    </section>
-
-    <!-- TAB 4: CORPORATE FINANCE & LOANS -->
-    <section id="tab-finance" class="hidden">
-      <div class="grid-2">
-        <div class="panel">
           <div class="panel-header">
-            <div class="panel-title">Linia Kredytowa &amp; Obligacje Korporacyjne</div>
-            <span style="font-size: 12px; color: var(--green);" id="credit-rating-badge">Rating: AAA</span>
+            <div class="panel-title">Twoje Spółki Zależne</div>
+            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+              <span id="sub-synergy-info" style="font-size: 12px; color: var(--green); font-weight: 600;">Synergia grupy: +0%</span>
+              <button class="success" id="btn-manual-deal">💼 Kontrakt Doradczy (+<span id="manual-reward">$250</span>)</button>
+            </div>
           </div>
-          <p style="font-size: 13px; color: var(--muted); margin-bottom: 16px;">
-            Wykorzystaj dźwignię finansową na przejęcia lub ekspansję zagraniczną. Zadłużenie generuje odsetki, ale pozwala przejmować spółki szybciej niż rywale.
-          </p>
+          <div id="owned-subs-list" class="cards-grid"></div>
+        </section>
 
-          <div style="background: rgba(0,0,0,0.25); border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 16px;">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px;">
-              <span style="color: var(--muted);">Aktualne zadłużenie:</span>
-              <strong style="color: var(--red);" id="finance-debt-val">$0</strong>
-            </div>
-            <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px;">
-              <span style="color: var(--muted);">Maksymalny limit kredytowy:</span>
-              <strong id="finance-limit-val">$0</strong>
-            </div>
-            <div style="display: flex; justify-content: space-between; font-size: 13px;">
-              <span style="color: var(--muted);">Koszt obsługi długu (odsetki/s):</span>
-              <strong style="color: var(--gold);" id="finance-interest-val">$0 / s</strong>
+        <!-- TAB 2: STOCK MARKET & SHAREHOLDERS -->
+        <section id="tab-market" class="panel hidden">
+          <div class="panel-header">
+            <div class="panel-title">Giełda, Akcjonariat &amp; Przejmowanie Kontroli</div>
+            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+              <div style="font-size: 12px; color: var(--muted);">
+                Dywidenda: <strong id="dividend-summary" style="color: var(--green);">$0 / s</strong> •
+                Auto-IPO za: <strong id="ipo-spawn-timer" style="color: var(--gold);">40s</strong>
+              </div>
+              <div class="offer-toggle-box" title="Włącz lub wyłącz przychodzące oferty odkupu Twoich akcji">
+                <span class="offer-toggle-label">Oferty za Twoje akcje:</span>
+                <button type="button" class="toggle-switch active" id="market-offers-switch" role="switch" aria-checked="true" aria-label="Oferty za Twoje akcje"></button>
+                <span class="offer-toggle-status" id="market-offers-status" style="color: var(--green);">WŁĄCZONE</span>
+              </div>
             </div>
           </div>
 
-          <div class="btn-row" style="margin-bottom: 12px;">
-            <button class="warn" id="btn-loan-25">Pożycz 25% limitu</button>
-            <button class="warn" id="btn-loan-50">Pożycz 50% limitu</button>
+          <div class="filter-row" id="market-filter-row">
+            <button type="button" class="filter-chip active" data-mkt-filter="all">Wszystkie</button>
+            <button type="button" class="filter-chip" data-mkt-filter="owned">Posiadane pakiety</button>
+            <button type="button" class="filter-chip" data-mkt-filter="majority">Kontrola 51%+</button>
+            <button type="button" class="filter-chip" data-mkt-filter="mna">Z udziałowcami do przejęcia</button>
           </div>
-          <div class="btn-row">
+
+          <div id="market-list" class="cards-grid"></div>
+        </section>
+
+        <!-- TAB 3: BOARD & CEOs -->
+        <section id="tab-board" class="panel hidden">
+          <div class="panel-header">
+            <div class="panel-title">Kadra Zarządzająca (CEO)</div>
+            <span style="font-size: 12px; color: var(--muted);">Pensje CEO: <strong id="ceo-salaries-summary" style="color: var(--red);">$0 / s</strong></span>
+          </div>
+          <div id="ceo-market-list" class="cards-grid"></div>
+        </section>
+
+        <!-- TAB 4: FINANCE & LOANS & GRANTS -->
+        <section id="tab-finance" class="panel hidden">
+          <div class="panel-header">
+            <div class="panel-title">Finanse, Kredyty &amp; Programy Rozwojowe</div>
+            <span id="credit-rating-badge" class="rank-pill">Rating: AAA</span>
+          </div>
+
+          <div class="sub-metrics" style="margin-bottom: 14px;">
+            <div><span>Aktualne zadłużenie</span><strong id="finance-debt-val" style="color: var(--red);">$0</strong></div>
+            <div><span>Limit kredytowy (55% aktywów)</span><strong id="finance-limit-val">$0</strong></div>
+            <div><span>Odsetki od długu</span><strong id="finance-interest-val" style="color: var(--gold);">$0 / s</strong></div>
+            <div><span>Oprocentowanie bazowe</span><strong>0.35% / s</strong></div>
+          </div>
+
+          <div class="btn-row" style="margin-bottom: 10px;">
+            <button class="warn" id="btn-loan-25">Weź kredyt (25% limitu)</button>
+            <button class="warn" id="btn-loan-50">Weź kredyt (50% limitu)</button>
+          </div>
+          <div class="btn-row" style="margin-bottom: 18px;">
             <button class="success" id="repay-25-btn">Spłać 25% długu</button>
-            <button class="success" id="repay-all-btn">Spłać całość długu</button>
+            <button class="success" id="repay-all-btn">Spłać cały dług</button>
           </div>
-        </div>
 
-        <div class="panel">
+          <div class="panel-header" style="margin-top: 8px;">
+            <div class="panel-title">🏛️ Fundusz Innowacji i Granty Kapitałowe</div>
+            <span style="font-size: 12px; color: var(--cyan); font-weight: 700;">Zastrzyk gotówki</span>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px;">
+            <div class="sub-card">
+              <div>
+                <span class="sector-tag">GRANT START-UP</span>
+                <div class="sub-name">Dotacja na Ekspansję</div>
+                <p style="font-size: 12px; color: var(--muted); margin-top: 5px;">Szybki zastrzyk gotówki na rozwój spółek lub skup akcji (cooldown 60s).</p>
+              </div>
+              <button class="success" id="btn-claim-grant" data-grant-cd="0">Odbierz Grant ($2,500+)</button>
+            </div>
+
+            <div class="sub-card">
+              <div>
+                <span class="sector-tag">OBLIGACJE KORPORACYJNE</span>
+                <div class="sub-name">Emisja Bonów Skarbowych</div>
+                <p style="font-size: 12px; color: var(--muted); margin-top: 5px;">Pozyskaj 15% wartości netto jako gotówkę (zwiększa dług o 16.5% tej kwoty).</p>
+              </div>
+              <button class="primary" id="btn-issue-bonds">Wyemituj Obligacje</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB 5: HQ JURISDICTION & ORGANIZATIONAL TREE -->
+        <section id="tab-structure" class="panel hidden">
           <div class="panel-header">
-            <div class="panel-title">Zasady Dźwigni &amp; Ryzyka</div>
+            <div class="panel-title">Jurysdykcja Centrali Holdingu</div>
+            <span id="active-hq-badge" class="rank-pill">Aktywna: 🇵🇱 Polska (Warszawa)</span>
           </div>
-          <div style="display: flex; flex-direction: column; gap: 10px; font-size: 13px; color: var(--muted); line-height: 1.5;">
-            <div style="padding: 10px; background: rgba(255,255,255,0.03); border-radius: 10px;">
-              <strong style="color: var(--text);">Limit kredytowy:</strong> Rośnie wraz z wyceną Twojego imperium (do 55% wartości aktywów).
-            </div>
-            <div style="padding: 10px; background: rgba(255,255,255,0.03); border-radius: 10px;">
-              <strong style="color: var(--text);">Odsetki:</strong> Naliczane płynnie co sekundę na podstawie aktualnego salda długu.
-            </div>
-            <div style="padding: 10px; background: rgba(255,255,255,0.03); border-radius: 10px;">
-              <strong style="color: var(--text);">Wielobranżowość &amp; Fuzje:</strong> Twórz konglomeraty łączące kilka branż naraz i realizuj przetargi B2B.
-            </div>
+          <div id="hq-jurisdiction-grid" class="hq-grid"></div>
+
+          <div class="panel-header">
+            <div class="panel-title">Drzewo Struktury Kapitałowej Holdingu</div>
+            <span id="tree-total-value" style="font-size: 12px; color: var(--green); font-weight: 700;"></span>
           </div>
-        </div>
+          <div id="org-tree-container" class="org-tree">
+            <div class="org-node hq-node">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                  <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #c7d2fe; font-weight: 700;">Spółka Matka (Centrala)</div>
+                  <div id="tree-holding-name" style="font-size: 17px; font-weight: 800; margin-top: 2px;">APEX CAPITAL GROUP S.A.</div>
+                </div>
+                <button id="btn-rename-holding">Zmień nazwę</button>
+              </div>
+            </div>
+            <div id="org-tree-branches" class="tree-children"></div>
+          </div>
+        </section>
       </div>
-    </section>
 
-    <!-- TAB 5: HOLDING STRUCTURE, JURISDICTIONS & MULTI-LEVEL HIERARCHY -->
-    <section id="tab-structure" class="hidden">
-      <div class="panel" style="margin-bottom: 18px;">
-        <div class="panel-header">
-          <div class="panel-title">🏛️ Siedziba Główna &amp; Jurysdykcja Podatkowa Holdingu</div>
-          <span style="font-size: 12px; color: var(--green);" id="active-hq-badge">Aktywna: 🇵🇱 Polska</span>
-        </div>
-        <div class="hq-grid" id="hq-jurisdiction-grid"></div>
-      </div>
+      <!-- RIGHT SIDEBAR: SUBSIDIARY CREATOR + LIVE LOG -->
+      <aside style="display: flex; flex-direction: column; gap: 16px;">
+        <section class="panel">
+          <div class="panel-header">
+            <div class="panel-title">Załóż Nową Spółkę</div>
+            <span style="font-size: 11.5px; color: var(--muted);">30 branż • 195 krajów</span>
+          </div>
 
-      <div class="panel">
-        <div class="panel-header">
-          <div class="panel-title">Wielopoziomowe Drzewo Kapitałowe Holdingu</div>
-          <button id="btn-rename-holding">Zmień nazwę holdingu</button>
-        </div>
+          <div class="form-group">
+            <label class="form-label"><span>Nazwa spółki</span></label>
+            <input type="text" id="new-sub-name" placeholder="np. Apex Robotics Sp. z o.o." maxlength="42" />
+          </div>
 
-        <div class="org-root">
-          <div style="font-size: 11px; color: #a5b4fc; text-transform: uppercase; font-weight: 700;">Spółka Matka (100%)</div>
-          <h3 id="tree-holding-name" style="margin: 4px 0;">APEX CAPITAL GROUP S.A.</h3>
-          <div style="font-size: 13px; color: var(--green);" id="tree-total-value">Wartość aktywów netto: $0</div>
-        </div>
+          <div class="form-group">
+            <label class="form-label"><span>Podmiot nadrzędny w strukturze</span></label>
+            <select id="new-sub-parent"></select>
+          </div>
 
-        <div class="tree-level-wrap" id="org-tree-branches"></div>
-      </div>
-    </section>
-  </main>
+          <div class="form-group">
+            <div class="form-label">
+              <span>Wybierz branże (możesz zaznaczyć wiele)</span>
+              <span id="cat-count-label" style="color: #c7d2fe; font-weight: 700;">Wybrano: 1</span>
+            </div>
+            <input type="text" id="cat-search-input" placeholder="Szukaj branży..." style="margin-bottom: 7px;" />
+            <div id="selected-cats-strip" style="margin-bottom: 7px;"></div>
+            <div id="cat-select-list" class="cat-select-list"></div>
+          </div>
 
-  <!-- MODAL: ADVANCED COMPANY MANAGEMENT PANEL (51%+ MAJORITY CONTROL) -->
+          <div class="form-group">
+            <div class="form-label">
+              <span>Rynki działania (1 lub więcej krajów)</span>
+              <span id="country-count-label" style="color: var(--green); font-weight: 700;">Wybrano: 1</span>
+            </div>
+
+            <div class="region-presets" id="region-presets">
+              <button type="button" class="preset-btn" data-region="pl">🇵🇱 Polska</button>
+              <button type="button" class="preset-btn" data-region="europe">🇪🇺 Europa</button>
+              <button type="button" class="preset-btn" data-region="na">🌎 Ameryka Płn.</button>
+              <button type="button" class="preset-btn" data-region="asia">🌏 Azja</button>
+              <button type="button" class="preset-btn" data-region="me">🕌 Bliski Wschód</button>
+              <button type="button" class="preset-btn" data-region="world">🌐 Cały Świat (195)</button>
+            </div>
+
+            <input type="text" id="country-search-input" placeholder="Szukaj państwa po nazwie lub kodzie..." style="margin-bottom: 7px;" />
+            <div id="selected-countries-strip" style="margin-bottom: 7px;"></div>
+            <div id="country-select-grid" class="country-select-grid"></div>
+          </div>
+
+          <div class="preview-box">
+            <div class="preview-line"><span style="color: var(--muted);">Pozycja w grupie:</span><strong id="preview-parent-name">Spółka-Córka</strong></div>
+            <div class="preview-line"><span style="color: var(--muted);">Wybrane branże:</span><strong id="preview-cat-name">1 branża</strong></div>
+            <div class="preview-line"><span style="color: var(--muted);">Rynki i mnożnik:</span><strong id="preview-countries-mult">1 kraj (1.00x)</strong></div>
+            <div class="preview-line"><span style="color: var(--muted);">Szacowany cashflow:</span><strong id="preview-income" style="color: var(--green);">$0 / s</strong></div>
+            <div class="preview-line"><span style="color: var(--muted);">Koszt założenia:</span><strong id="preview-cost">$0</strong></div>
+          </div>
+
+          <button class="primary" id="create-sub-btn" style="width: 100%; padding: 11px;">Załóż Spółkę</button>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <div class="panel-title">Kronika Holdingu</div>
+            <span style="font-size: 11px; color: var(--muted);">Na żywo</span>
+          </div>
+          <div id="event-log" class="log-list"></div>
+        </section>
+      </aside>
+    </div>
+  </div>
+
+  <!-- MODAL: MAJORITY SHAREHOLDER MANAGEMENT (51%+) -->
   <div id="manage-comp-modal" class="modal-backdrop hidden">
     <div class="modal-box">
       <div class="modal-header">
         <div>
-          <div style="font-size: 11px; color: var(--gold); font-weight: 700; text-transform: uppercase;">🎛️ Panel Zarządzania Spółką Zależną</div>
-          <h3 id="mgmt-comp-name" style="font-size: 17px; margin-top: 2px;">Spółka</h3>
+          <div style="font-size: 11px; color: var(--gold); font-weight: 700; text-transform: uppercase;">🎛️ Panel Zarządzania Spółką (Pakiet 51%+)</div>
+          <h3 id="mgmt-comp-name" style="font-size: 16px; margin-top: 2px;">Spółka</h3>
         </div>
         <button id="btn-close-mgmt" style="padding: 5px 10px;">✕</button>
       </div>
 
-      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 12px; margin-bottom: 14px; font-size: 12px;">
-        <div>
-          <span style="color: var(--muted); display: block;">Twój Pakiet</span>
-          <strong id="mgmt-owned-pct" style="color: var(--gold); font-size: 14px;">51%</strong>
-        </div>
-        <div>
-          <span style="color: var(--muted); display: block;">Wycena 100%</span>
-          <strong id="mgmt-valuation" style="font-size: 14px;">$0</strong>
-        </div>
-        <div>
-          <span style="color: var(--muted); display: block;">Poziom R&amp;D</span>
-          <strong id="mgmt-rd-lvl" style="color: #a5b4fc; font-size: 14px;">LVL 1</strong>
-        </div>
+      <div class="sub-metrics" style="margin-bottom: 12px;">
+        <div><span>Twój udział</span><strong id="mgmt-owned-pct" style="color: var(--gold);">51%</strong></div>
+        <div><span>Aktualna wycena</span><strong id="mgmt-valuation">$0</strong></div>
+        <div><span>Poziom R&amp;D</span><strong id="mgmt-rd-lvl">LVL 1</strong></div>
+        <div><span>Status kontroli</span><strong style="color: var(--green);">Większościowy</strong></div>
       </div>
 
       <div class="form-group">
-        <label class="form-label"><span>1. Podmiot Nadrzędny w Grupie (Przypisanie Pakietu)</span></label>
+        <label class="form-label"><span>Przypisz spółkę giełdową pod podmiot:</span></label>
         <select id="mgmt-parent-select"></select>
-        <div style="font-size: 11.5px; color: var(--green); margin-top: 4px;">
-          Przypisanie do Spółki-Córki daje +18% premii synergii dla tej spółki-córki oraz +10% do dywidendy!
-        </div>
       </div>
 
       <div class="form-group">
-        <label class="form-label"><span>2. Strategia Operacyjna Zarządu</span></label>
+        <label class="form-label"><span>Strategia operacyjna zarządu</span></label>
         <div class="strategy-grid" id="mgmt-strategy-grid">
-          <div class="strategy-card" data-strat="balanced">
-            <strong>⚖️ Zrównoważona</strong>
-            <div style="font-size: 11px; color: var(--muted); margin-top: 3px;">Standardowy zysk i stabilny wzrost wyceny</div>
-          </div>
-          <div class="strategy-card" data-strat="growth">
-            <strong>🚀 Ekspansja</strong>
-            <div style="font-size: 11px; color: var(--muted); margin-top: 3px;">+35% tempa wzrostu wyceny, -15% dywidendy</div>
-          </div>
-          <div class="strategy-card" data-strat="cashcow">
-            <strong>💰 Dojna Krowa</strong>
-            <div style="font-size: 11px; color: var(--muted); margin-top: 3px;">+25% bieżącej dywidendy, wolniejszy wzrost</div>
-          </div>
+          <button type="button" class="strategy-card active" data-strat="balanced">
+            <div style="font-weight: 700; font-size: 12px;">⚖️ Zbalansowana</div>
+            <div style="font-size: 10.5px; color: var(--muted); margin-top: 2px;">Stabilna dywidenda i lekki wzrost kursu.</div>
+          </button>
+          <button type="button" class="strategy-card" data-strat="growth">
+            <div style="font-weight: 700; font-size: 12px;">🚀 Ekspansja</div>
+            <div style="font-size: 10.5px; color: var(--muted); margin-top: 2px;">Mocniejszy wzrost wyceny (-15% dywidendy).</div>
+          </button>
+          <button type="button" class="strategy-card" data-strat="cashcow">
+            <div style="font-weight: 700; font-size: 12px;">💸 Dojna Krowa</div>
+            <div style="font-size: 10.5px; color: var(--muted); margin-top: 2px;">+25% dywidendy kosztem dynamiki kursu.</div>
+          </button>
         </div>
       </div>
 
       <div class="form-group">
         <label class="form-label">
-          <span>3. Polityka Wypłaty Dywidendy (Payout Ratio)</span>
-          <span id="mgmt-payout-label" style="color: var(--gold); font-weight: 700;">70%</span>
+          <span>Polityka wypłaty dywidendy (% zysku)</span>
+          <strong id="mgmt-payout-label" style="color: var(--green);">75%</strong>
         </label>
-        <input type="range" id="mgmt-payout-slider" min="10" max="100" step="5" value="70" />
+        <input type="range" id="mgmt-payout-slider" min="10" max="100" step="5" value="75" style="width: 100%;" />
         <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); margin-top: 3px;">
           <span>10% (Reinwestycja w wycenę)</span>
           <span>100% (Maksymalna gotówka)</span>
@@ -1241,7 +1171,7 @@
           <button type="button" data-prem="115">115% (+Premia)</button>
           <button type="button" data-prem="130">130% (Pewniak)</button>
         </div>
-        <input type="number" id="modal-premium-input" min="70" max="200" value="110" />
+        <input type="number" id="modal-premium-input" min="70" max="250" value="110" />
       </div>
 
       <div style="background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 12px; padding: 12px; margin-bottom: 14px; font-size: 12.5px;">
@@ -1312,13 +1242,12 @@
         <button class="success" id="btn-accept-incoming">Sprzedaj Akcje</button>
       </div>
       <button id="btn-disable-incoming-forever" style="width: 100%; font-size: 11.5px; color: var(--muted);">
-        🔕 Odrzuć i wyłącz wyskakujące oferty od funduszy
+        🔕 Odrzuć i przełącz „Oferty za Twoje akcje” na WYŁ.
       </button>
     </div>
   </div>
 
   <script>
-    // --- EXPANDED 30 CATEGORIES (MULTI-SELECT SUPPORTED) ---
     const CATEGORIES = [
       { id: 'cat_software', name: 'Software House & AI', baseCost: 1100, baseIncome: 44 },
       { id: 'cat_cyber', name: 'Cyberbezpieczeństwo & Chmura', baseCost: 1650, baseIncome: 65 },
@@ -1352,7 +1281,6 @@
       { id: 'cat_quantum', name: 'Komputery Kwantowe & Fuzja Jądrowa', baseCost: 13500000, baseIncome: 435000 }
     ];
 
-    // --- ALL COUNTRIES OF THE WORLD (195 SOVEREIGN STATES) ---
     const ALL_COUNTRIES_RAW = [
       ['AF','🇦🇫','Afganistan',1.02,1.02],['AL','🇦🇱','Albania',1.06,1.06],['DZ','🇩🇿','Algieria',1.10,1.10],
       ['AD','🇦🇩','Andora',1.18,1.20],['AO','🇦🇴','Angola',1.08,1.08],['AG','🇦🇬','Antigua i Barbuda',1.10,1.12],
@@ -1457,7 +1385,7 @@
       { name: 'Aurelia Asset Management', type: 'Fundusz Emerytalny', greed: 1.19 }
     ];
 
-    const COMPANY_NAME_PREFIXES = ['Nova', 'Quantum', 'Vortex', 'Helios', 'Hyperion', 'Silverline', 'NexGen', 'Aegis', 'Stratos', 'Meridian', 'Krypton', 'Omni', 'Solis', 'Polaris', 'Vertex', 'zenith'];
+    const COMPANY_NAME_PREFIXES = ['Nova', 'Quantum', 'Vortex', 'Helios', 'Hyperion', 'Silverline', 'NexGen', 'Aegis', 'Stratos', 'Meridian', 'Krypton', 'Omni', 'Solis', 'Polaris', 'Vertex', 'Zenith'];
     const COMPANY_NAME_SUFFIXES = ['Corp', 'Holdings', 'Systems', 'Dynamics', 'Ventures', 'Group S.A.', 'Industries', 'Global', 'Networks', 'Technologies'];
 
     const CEO_ROSTER = [
@@ -1558,37 +1486,17 @@
       }
     ];
 
-    // Multi-select categories state
     let selectedCatIds = [CATEGORIES[0].id];
     let selectedCountries = ['PL'];
+    let activeMarketFilter = 'all';
     let activeOfferCompId = null;
     let activeExpandSubId = null;
     let activeMgmtCompId = null;
     let pendingIncomingOffer = null;
+    let grantCooldownSec = 0;
 
-    function getDefaultState() {
-      return {
-        holdingName: 'APEX CAPITAL GROUP S.A.',
-        hqJurisdictionId: 'hq_pl',
-        allowIncomingOffers: true,
-        cash: 1500,
-        debt: 0,
-        simMinutes: 8 * 60,
-        subsidiaries: [],
-        hiredCEOs: [],
-        activeEvent: null,
-        nextEventInSec: 22,
-        nextIpoSpawnInSec: 35,
-        activeTender: generateTenderObject(),
-        market: JSON.parse(JSON.stringify(INITIAL_MARKET_COMPANIES)).map(c => ({
-          ...c,
-          currentValuation: c.baseValuation,
-          lastChangePct: 0
-        })),
-        logs: [
-          { time: nowStr(), text: 'Zarejestrowano spółkę matkę APEX CAPITAL GROUP S.A. Kapitał zakładowy: $1,500.', type: 'good' }
-        ]
-      };
+    function nowStr() {
+      return new Date().toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
     }
 
     function generateTenderObject() {
@@ -1607,42 +1515,143 @@
       };
     }
 
-    let state = loadState();
+    function getDefaultState() {
+      return {
+        holdingName: 'APEX CAPITAL GROUP S.A.',
+        hqJurisdictionId: 'hq_pl',
+        allowIncomingOffers: true,
+        cash: 1500,
+        debt: 0,
+        simMinutes: 8 * 60,
+        subsidiaries: [],
+        hiredCEOs: [],
+        activeEvent: null,
+        nextEventInSec: 22,
+        nextIpoSpawnInSec: 40,
+        activeTender: generateTenderObject(),
+        market: JSON.parse(JSON.stringify(INITIAL_MARKET_COMPANIES)).map(c => ({
+          ...c,
+          currentValuation: c.baseValuation,
+          lastChangePct: 0
+        })),
+        logs: [
+          { time: nowStr(), text: 'Zarejestrowano spółkę matkę APEX CAPITAL GROUP S.A. Kapitał zakładowy: $1,500.', type: 'good' }
+        ]
+      };
+    }
+
+    function sanitizeCompany(c) {
+      const safeBase = Number.isFinite(Number(c.baseValuation)) && Number(c.baseValuation) > 0
+        ? Number(c.baseValuation)
+        : 16000;
+      const safeCurr = Number.isFinite(Number(c.currentValuation)) && Number(c.currentValuation) > 0
+        ? Number(c.currentValuation)
+        : safeBase;
+      const safeProfit = Number.isFinite(Number(c.baseProfit)) && Number(c.baseProfit) > 0
+        ? Number(c.baseProfit)
+        : Math.max(400, Math.floor(safeBase * 0.033));
+      const safeOwned = Number.isFinite(Number(c.ownedPct))
+        ? Math.max(0, Math.min(100, Number(c.ownedPct)))
+        : 0;
+      const safeHolders = Array.isArray(c.shareholders)
+        ? c.shareholders.filter(h => h && Number(h.pct) > 0).map(h => ({
+            ...h,
+            pct: Number(h.pct),
+            greed: Number.isFinite(Number(h.greed)) ? Number(h.greed) : 1.12,
+            lastDelta: Number(h.lastDelta) || 0
+          }))
+        : [];
+      const safeHist = Array.isArray(c.history) && c.history.length >= 2
+        ? c.history.map(x => Number.isFinite(Number(x)) && Number(x) > 0 ? Number(x) : Math.round(safeCurr))
+        : [Math.round(safeCurr * 0.98), Math.round(safeCurr)];
+
+      return {
+        ...c,
+        baseValuation: safeBase,
+        currentValuation: safeCurr,
+        lastChangePct: Number.isFinite(Number(c.lastChangePct)) ? Number(c.lastChangePct) : 0,
+        baseProfit: safeProfit,
+        ownedPct: safeOwned,
+        parentId: c.parentId || 'HQ',
+        strategy: c.strategy || 'balanced',
+        payoutRatio: Number.isFinite(Number(c.payoutRatio)) ? Number(c.payoutRatio) : 75,
+        rdLevel: Number.isFinite(Number(c.rdLevel)) && Number(c.rdLevel) >= 1 ? Number(c.rdLevel) : 1,
+        poisonPill: Boolean(c.poisonPill),
+        absorbed: Boolean(c.absorbed),
+        specialDivCooldown: Number(c.specialDivCooldown) || 0,
+        shareholders: safeHolders,
+        history: safeHist
+      };
+    }
 
     function loadState() {
+      const def = getDefaultState();
       try {
-        const raw = localStorage.getItem('apex_holding_save_v9');
-        if (!raw) return getDefaultState();
+        const raw = localStorage.getItem('apex_holding_save_v10');
+        if (!raw) return def;
         const parsed = JSON.parse(raw);
-        return { ...getDefaultState(), ...parsed };
+        const merged = { ...def, ...parsed };
+        merged.cash = Number.isFinite(Number(merged.cash)) ? Number(merged.cash) : 1500;
+        merged.debt = Number.isFinite(Number(merged.debt)) ? Math.max(0, Number(merged.debt)) : 0;
+        merged.simMinutes = Number.isFinite(Number(merged.simMinutes)) ? Number(merged.simMinutes) : 480;
+        merged.nextIpoSpawnInSec = Number.isFinite(Number(merged.nextIpoSpawnInSec)) ? Number(merged.nextIpoSpawnInSec) : 40;
+        merged.market = Array.isArray(merged.market) && merged.market.length > 0
+          ? merged.market.map(sanitizeCompany)
+          : def.market;
+        merged.subsidiaries = Array.isArray(merged.subsidiaries) ? merged.subsidiaries : [];
+        merged.hiredCEOs = Array.isArray(merged.hiredCEOs) ? merged.hiredCEOs : [];
+        merged.logs = Array.isArray(merged.logs) ? merged.logs : def.logs;
+        return merged;
       } catch (e) {
-        return getDefaultState();
+        return def;
       }
     }
 
+    let state = loadState();
+
     function saveState() {
       try {
-        localStorage.setItem('apex_holding_save_v9', JSON.stringify(state));
+        localStorage.setItem('apex_holding_save_v10', JSON.stringify(state));
       } catch (e) {}
-    }
-
-    function nowStr() {
-      return new Date().toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
     }
 
     function addLog(text, type = '') {
       state.logs.unshift({ time: nowStr(), text, type });
-      if (state.logs.length > 45) state.logs.pop();
+      if (state.logs.length > 50) state.logs.pop();
       renderLogs();
     }
 
-    // --- DYNAMIC MARKET COMPANY GENERATOR (AUTO IPO + MANUAL SEARCH) ---
-    function spawnNewMarketCompany(isManual = false) {
+    function getCompanyVal(comp) {
+      const v = Number(comp.currentValuation);
+      if (Number.isFinite(v) && v > 0) return v;
+      const b = Number(comp.baseValuation);
+      if (Number.isFinite(b) && b > 0) return b;
+      return 16000;
+    }
+
+    function fmtMoney(val) {
+      const num = Number(val);
+      if (!Number.isFinite(num)) return '$0';
+      if (num >= 1e12) return '$' + (num / 1e12).toFixed(2) + ' T';
+      if (num >= 1e9) return '$' + (num / 1e9).toFixed(2) + ' B';
+      if (num >= 1e6) return '$' + (num / 1e6).toFixed(2) + ' M';
+      if (num >= 1e3) return '$' + (num / 1e3).toFixed(2) + ' K';
+      return '$' + Math.floor(num).toLocaleString('en-US');
+    }
+
+    function fmtSimClock(totalMinutes) {
+      const minsInDay = 24 * 60;
+      const day = Math.floor(totalMinutes / minsInDay) + 1;
+      const dayMins = Math.floor(totalMinutes % minsInDay);
+      const hh = String(Math.floor(dayMins / 60)).padStart(2, '0');
+      const mm = String(dayMins % 60).padStart(2, '0');
+      return `Dzień ${day} • ${hh}:${mm}`;
+    }
+
+    // --- AUTO IPO SPAWNER ---
+    function spawnNewMarketCompany() {
       const activeCount = state.market.filter(c => !c.absorbed).length;
-      if (activeCount >= 18) {
-        if (isManual) addLog('Na giełdzie jest już 18 aktywnych spółek — przejmij i skonsoliduj część z nich, aby zwolnić miejsce!', 'warn');
-        return;
-      }
+      if (activeCount >= 18) return;
 
       const cat = CATEGORIES[Math.floor(Math.random() * CATEGORIES.length)];
       const pref = COMPANY_NAME_PREFIXES[Math.floor(Math.random() * COMPANY_NAME_PREFIXES.length)];
@@ -1650,15 +1659,15 @@
       const sectorWord = cat.name.split('&')[0].trim().split(' ')[0];
       const name = `${pref} ${sectorWord} ${suff}`;
 
-      const scaleBase = Math.max(cat.baseValuation * 12, getAssetsValue() * (0.25 + Math.random() * 0.65));
-      const baseVal = Math.floor(scaleBase);
+      const scaleBase = Math.max(cat.baseCost * 12, getAssetsValue() * (0.25 + Math.random() * 0.65));
+      const baseVal = Math.max(12000, Math.floor(scaleBase));
       const baseProfit = Math.max(400, Math.floor(baseVal * 0.033));
 
       const shuffled = [...RIVAL_INVESTORS_POOL].sort(() => Math.random() - 0.5);
       const s1Pct = 30 + Math.floor(Math.random() * 20);
       const s2Pct = 20 + Math.floor(Math.random() * 18);
 
-      const newComp = {
+      const newComp = sanitizeCompany({
         id: 'mkt_gen_' + Date.now() + '_' + Math.floor(Math.random() * 999),
         name,
         sector: cat.name,
@@ -1679,10 +1688,10 @@
           { id: 'sh_g1_' + Date.now(), name: shuffled[0].name, pct: s1Pct, greed: shuffled[0].greed, type: shuffled[0].type, lastDelta: 0 },
           { id: 'sh_g2_' + Date.now(), name: shuffled[1].name, pct: s2Pct, greed: shuffled[1].greed, type: shuffled[1].type, lastDelta: 0 }
         ]
-      };
+      });
 
       state.market.unshift(newComp);
-      addLog(`NOWA SPÓŁKA NA GIEŁDZIE: ${newComp.name} [${newComp.sector}] zadebiutowała z wyceną ${fmtMoney(baseVal)}!`, 'good');
+      addLog(`AUTO-IPO: Nowa spółka ${newComp.name} [${newComp.sector}] weszła na giełdę z wyceną ${fmtMoney(baseVal)}!`, 'good');
       renderMarket();
       updateTopBar();
       saveState();
@@ -1694,24 +1703,26 @@
         pendingIncomingOffer = null;
         document.getElementById('incoming-offer-modal').classList.add('hidden');
       }
-      updateIncomingToggleBtn();
-      addLog(`Wyskakujące oferty odkupu od funduszy zostały: ${state.allowIncomingOffers ? 'WŁĄCZONE' : 'WYŁĄCZONE'}.`, 'warn');
+      updateIncomingToggleSwitches();
+      addLog(`Przychodzące oferty odkupu za Twoje akcje zostały: ${state.allowIncomingOffers ? 'WŁĄCZONE' : 'WYŁĄCZONE'}.`, 'warn');
       saveState();
     }
 
-    function updateIncomingToggleBtn() {
-      const btn = document.getElementById('btn-toggle-incoming-offers');
-      if (!btn) return;
-      if (state.allowIncomingOffers) {
-        btn.className = 'success';
-        btn.textContent = '📩 Oferty od funduszy: WŁ.';
-      } else {
-        btn.className = 'danger';
-        btn.textContent = '🔕 Oferty od funduszy: WYŁ.';
-      }
+    function updateIncomingToggleSwitches() {
+      const isOn = Boolean(state.allowIncomingOffers);
+      ['top', 'market'].forEach(prefix => {
+        const sw = document.getElementById(`${prefix}-offers-switch`);
+        const st = document.getElementById(`${prefix}-offers-status`);
+        if (sw && st) {
+          sw.classList.toggle('active', isOn);
+          sw.setAttribute('aria-checked', String(isOn));
+          st.textContent = isOn ? 'WŁĄCZONE' : 'WYŁĄCZONE';
+          st.style.color = isOn ? 'var(--green)' : 'var(--red)';
+        }
+      });
     }
 
-    // --- TENDER CLAIM LOGIC ---
+    // --- TENDER CLAIM ---
     function findEligibleSubForTender(tender) {
       if (!tender) return null;
       return state.subsidiaries.find(sub => {
@@ -1729,14 +1740,14 @@
       if (!eligibleSub) return;
 
       addCash(t.reward, true);
-      addLog(`WYGRANY PRZETARG! Spółka ${eligibleSub.name} zrealizowała „${t.title}” i zarobiła ${fmtMoney(t.reward)}!`, 'good');
+      addLog(`WYGRANY PRZETARG! ${eligibleSub.name} zrealizowało „${t.title}” (+${fmtMoney(t.reward)}).`, 'good');
       state.activeTender = generateTenderObject();
       renderSubsidiaries();
       updateTopBar();
       saveState();
     }
 
-    // --- JURISDICTION & HIERARCHY HELPERS ---
+    // --- JURISDICTION & HIERARCHY ---
     function getActiveHQ() {
       return HQ_JURISDICTIONS.find(h => h.id === state.hqJurisdictionId) || HQ_JURISDICTIONS[0];
     }
@@ -1747,7 +1758,7 @@
       if (target.relocCost > 0 && !spendCash(target.relocCost)) return;
 
       state.hqJurisdictionId = target.id;
-      addLog(`RELOKACJA CENTRALI: Siedziba główna holdingu przeniesiona do ${target.flag} ${target.name}!`, 'warn');
+      addLog(`RELOKACJA CENTRALI: Siedziba główna przeniesiona do ${target.flag} ${target.name}!`, 'warn');
       renderAll();
       saveState();
     }
@@ -1792,11 +1803,11 @@
       return state.market.filter(c => !c.absorbed && c.ownedPct > 0 && c.parentId === subId).length;
     }
 
-    // --- CASH ANIMATIONS ---
+    // --- CASH & ANIMATIONS ---
     function spawnCashAnimation(amount, kind) {
       const layer = document.getElementById('cash-fx-layer');
       const pill = document.getElementById('cash-pill');
-      if (!layer || !pill || amount <= 0) return;
+      if (!layer || !pill || !Number.isFinite(amount) || amount <= 0) return;
 
       const el = document.createElement('div');
       el.className = `cash-float ${kind}`;
@@ -1812,41 +1823,19 @@
     }
 
     function addCash(amount, animate = true) {
-      if (amount <= 0) return;
+      if (!Number.isFinite(amount) || amount <= 0) return;
       state.cash += amount;
-      if (animate && amount >= 1) {
-        spawnCashAnimation(amount, 'gain');
-      }
+      if (animate && amount >= 1) spawnCashAnimation(amount, 'gain');
     }
 
     function spendCash(amount) {
-      if (state.cash < amount) return false;
+      if (!Number.isFinite(amount) || state.cash < amount) return false;
       state.cash -= amount;
-      if (amount > 0) {
-        spawnCashAnimation(amount, 'spend');
-      }
+      if (amount > 0) spawnCashAnimation(amount, 'spend');
       return true;
     }
 
-    // --- FORMATTING ---
-    function fmtMoney(val) {
-      if (val >= 1e12) return '$' + (val / 1e12).toFixed(2) + ' T';
-      if (val >= 1e9) return '$' + (val / 1e9).toFixed(2) + ' B';
-      if (val >= 1e6) return '$' + (val / 1e6).toFixed(2) + ' M';
-      if (val >= 1e3) return '$' + (val / 1e3).toFixed(2) + ' K';
-      return '$' + Math.floor(val).toLocaleString('en-US');
-    }
-
-    function fmtSimClock(totalMinutes) {
-      const minsInDay = 24 * 60;
-      const day = Math.floor(totalMinutes / minsInDay) + 1;
-      const dayMins = Math.floor(totalMinutes % minsInDay);
-      const hh = String(Math.floor(dayMins / 60)).padStart(2, '0');
-      const mm = String(dayMins % 60).padStart(2, '0');
-      return `Dzień ${day} • ${hh}:${mm}`;
-    }
-
-    // --- ECONOMY, HQ, CEO & MACRO CALCULATIONS ---
+    // --- ECONOMY CALCULATIONS ---
     function getActiveMacroObj() {
       if (!state.activeEvent) return null;
       return MACRO_EVENTS.find(e => e.id === state.activeEvent.id) || null;
@@ -1901,9 +1890,7 @@
       state.hiredCEOs.forEach(hc => {
         const ceo = CEO_ROSTER.find(c => c.id === hc.ceoId);
         if (!ceo || ceo.bonusType !== 'sub_income') return;
-        if (hc.assignedTo === 'HQ' || hc.assignedTo === subId) {
-          bonus += ceo.bonusVal;
-        }
+        if (hc.assignedTo === 'HQ' || hc.assignedTo === subId) bonus += ceo.bonusVal;
       });
       const childSubs = getDirectChildSubsCount(subId);
       const assignedMkt = getAssignedMarketCompsCount(subId);
@@ -1931,7 +1918,6 @@
       return fullVal * ipoScale;
     }
 
-    // --- IPO & MERGER ACTIONS ON SUBSIDIARIES ---
     function launchSubsidiaryIPO(subId) {
       const sub = state.subsidiaries.find(s => s.id === subId);
       if (!sub || sub.level < 2 || (sub.ipoPublicPct || 0) >= 45) return;
@@ -1942,7 +1928,7 @@
 
       sub.ipoPublicPct = (sub.ipoPublicPct || 0) + sellPct;
       addCash(proceeds, true);
-      addLog(`DEBIUT GIEŁDOWY (IPO)! Sprzedano ${sellPct}% akcji ${sub.name} z premią +22% za ${fmtMoney(proceeds)}! Zachowujesz ${100 - sub.ipoPublicPct}% kontroli.`, 'good');
+      addLog(`IPO! Sprzedano ${sellPct}% akcji ${sub.name} (+22% premii) za ${fmtMoney(proceeds)}.`, 'good');
       renderAll();
       saveState();
     }
@@ -1956,25 +1942,19 @@
       const subB = state.subsidiaries.find(s => s.id === idB);
       if (!subA || !subB) return;
 
-      const mergedCountries = Array.from(new Set([...(subA.countries || ['PL']), ...(subB.countries || ['PL'])]));
-      const mergedCats = Array.from(new Set([...(subA.catIds || []), ...(subB.catIds || [])]));
       subA.name = `${subA.name.split(' ')[0]} & ${subB.name.split(' ')[0]} Conglomerate`;
-      subA.countries = mergedCountries;
-      subA.catIds = mergedCats;
+      subA.countries = Array.from(new Set([...(subA.countries || ['PL']), ...(subB.countries || ['PL'])]));
+      subA.catIds = Array.from(new Set([...(subA.catIds || []), ...(subB.catIds || [])]));
       subA.level = Math.max(subA.level, subB.level) + 1;
       subA.baseIncome += Math.floor(subB.baseIncome * 0.85);
       subA.baseCost += Math.floor(subB.baseCost * 0.75);
       subA.mergedCount = (subA.mergedCount || 0) + 1;
 
-      state.subsidiaries.forEach(s => {
-        if (s.parentId === subB.id) s.parentId = subA.id;
-      });
-      state.market.forEach(c => {
-        if (c.parentId === subB.id) c.parentId = subA.id;
-      });
-
+      state.subsidiaries.forEach(s => { if (s.parentId === subB.id) s.parentId = subA.id; });
+      state.market.forEach(c => { if (c.parentId === subB.id) c.parentId = subA.id; });
       state.subsidiaries = state.subsidiaries.filter(s => s.id !== subB.id);
-      addLog(`FUZJA SPÓŁEK! Połączono w konglomerat: ${subA.name} (${mergedCountries.length} rynki, +45% premii fuzji)!`, 'warn');
+
+      addLog(`FUZJA! Połączono spółki w konglomerat: ${subA.name} (+45% premii fuzji).`, 'warn');
       renderParentSelector();
       renderAll();
       saveState();
@@ -2052,7 +2032,7 @@
 
     function getAssetsValue() {
       const subsVal = state.subsidiaries.reduce((acc, s) => acc + getSubsidiaryValuation(s), 0);
-      const sharesVal = state.market.reduce((acc, c) => acc + (c.absorbed ? 0 : c.currentValuation * (c.ownedPct / 100)), 0);
+      const sharesVal = state.market.reduce((acc, c) => acc + (c.absorbed ? 0 : getCompanyVal(c) * (c.ownedPct / 100)), 0);
       return state.cash + subsVal + sharesVal;
     }
 
@@ -2068,6 +2048,10 @@
       return Math.max(250, Math.floor(Math.max(0, getNetCashflowPerSec()) * 1.5 + 250));
     }
 
+    function getGrantReward() {
+      return Math.max(2500, Math.floor(getAssetsValue() * 0.08 + 2500));
+    }
+
     function getHoldingRank(nw) {
       if (nw >= 1e9) return 'Globalny Megakonglomerat';
       if (nw >= 1e8) return 'Międzynarodowy Gigant Kapitałowy';
@@ -2077,7 +2061,7 @@
       return 'Lokalny Fundusz Inwestycyjny';
     }
 
-    // --- DYNAMIC SHAREHOLDERS & SHARE ROTATION ENGINE ---
+    // --- SHAREHOLDER ROTATION & INCOMING OFFERS ---
     function simulateShareholderRotation() {
       const activeCompanies = state.market.filter(c => !c.absorbed);
       if (activeCompanies.length === 0) return;
@@ -2093,7 +2077,7 @@
         const amount = Math.min(freeFloat, Math.floor(Math.random() * 6) + 2);
         buyer.pct += amount;
         buyer.lastDelta = amount;
-        addLog(`AKCJONARIAT: ${buyer.name} dokupił +${amount}% akcji ${comp.name} z wolnego rynku (Free Float: ${getFreeFloatPct(comp)}%).`, 'warn');
+        addLog(`AKCJONARIAT: ${buyer.name} dokupił +${amount}% akcji ${comp.name} (Free Float: ${getFreeFloatPct(comp)}%).`, 'warn');
       } else if (actionRoll < 0.70 && comp.shareholders.length > 0) {
         const sellerIdx = Math.floor(Math.random() * comp.shareholders.length);
         const seller = comp.shareholders[sellerIdx];
@@ -2103,9 +2087,9 @@
 
         if (seller.pct <= 0) {
           comp.shareholders.splice(sellerIdx, 1);
-          addLog(`WYJŚCIE INWESTORA: ${seller.name} sprzedał cały pakiet i opuścił akcjonariat ${comp.name} (+${sellAmount}% we Free Float).`, 'good');
+          addLog(`WYJŚCIE INWESTORA: ${seller.name} sprzedał całość w ${comp.name} (+${sellAmount}% Free Float).`, 'good');
         } else {
-          addLog(`REALIZACJA ZYSKÓW: ${seller.name} sprzedał -${sellAmount}% akcji ${comp.name} na giełdę (ma teraz ${seller.pct}%).`, '');
+          addLog(`REALIZACJA ZYSKÓW: ${seller.name} sprzedał -${sellAmount}% w ${comp.name} (ma ${seller.pct}%).`, '');
         }
       } else if (actionRoll < 0.88 && freeFloat >= 4 && comp.shareholders.length < 4 && !comp.poisonPill) {
         const availablePool = RIVAL_INVESTORS_POOL.filter(
@@ -2122,7 +2106,7 @@
             type: newcomer.type,
             lastDelta: stake
           });
-          addLog(`NOWY AKCJONARIUSZ: ${newcomer.name} ujawnił pakiet ${stake}% w spółce ${comp.name}!`, 'warn');
+          addLog(`NOWY AKCJONARIUSZ: ${newcomer.name} ujawnił pakiet ${stake}% w ${comp.name}!`, 'warn');
         }
       } else if (
         state.allowIncomingOffers &&
@@ -2134,9 +2118,8 @@
           const targetComp = playerHoldings[Math.floor(Math.random() * playerHoldings.length)];
           const suitor = RIVAL_INVESTORS_POOL[Math.floor(Math.random() * RIVAL_INVESTORS_POOL.length)];
           const offerPct = Math.min(targetComp.ownedPct, Math.max(1, Math.floor(targetComp.ownedPct * 0.5)));
-          const mktVal = targetComp.currentValuation * (offerPct / 100);
-          const premiumMult = 1.18 + Math.random() * 0.14;
-          const offerPrice = Math.floor(mktVal * premiumMult);
+          const mktVal = getCompanyVal(targetComp) * (offerPct / 100);
+          const offerPrice = Math.floor(mktVal * (1.18 + Math.random() * 0.14));
 
           pendingIncomingOffer = {
             compId: targetComp.id,
@@ -2171,8 +2154,8 @@
     function resolveIncomingOffer(accept, disableForever = false) {
       if (disableForever) {
         state.allowIncomingOffers = false;
-        updateIncomingToggleBtn();
-        addLog('Wyłączono wyskakujące propozycje odkupu akcji od funduszy konkurencji.', 'warn');
+        updateIncomingToggleSwitches();
+        addLog('Przełączono „Oferty za Twoje akcje” na WYŁĄCZONE.', 'warn');
       }
       if (!pendingIncomingOffer) return;
       const offer = pendingIncomingOffer;
@@ -2200,15 +2183,15 @@
           });
         }
         addCash(offer.offerPrice, true);
-        addLog(`SPRZEDAŻ PAKIETU: Sprzedano ${offer.pct}% akcji ${comp.name} funduszowi ${offer.suitorName} za ${fmtMoney(offer.offerPrice)}!`, 'good');
+        addLog(`SPRZEDAŻ PAKIETU: Sprzedano ${offer.pct}% ${comp.name} funduszowi ${offer.suitorName} za ${fmtMoney(offer.offerPrice)}.`, 'good');
         renderAll();
         saveState();
       } else if (!disableForever) {
-        addLog(`Odrzucono ofertę funduszu ${offer.suitorName} na odkup ${offer.pct}% akcji ${comp.name}.`, '');
+        addLog(`Odrzucono ofertę ${offer.suitorName} na odkup ${offer.pct}% ${comp.name}.`, '');
       }
     }
 
-    // --- CREATOR UI LOGIC (MULTI-SELECT CATEGORIES & REGIONS) ---
+    // --- CREATOR UI ---
     function applyRegionPreset(regionKey) {
       const codes = REGION_CODES[regionKey];
       if (!codes || codes.length === 0) return;
@@ -2234,85 +2217,63 @@
         `<option value="HQ">🏛️ ${state.holdingName} (Centrala — Spółka-Córka)</option>`,
         ...state.subsidiaries.map(s => {
           const depth = getSubDepth(s.id);
-          const nextRole = getHierarchyRoleLabel(depth + 1);
-          return `<option value="${s.id}">🏢 ${s.name} (Utworzy: ${nextRole})</option>`;
+          return `<option value="${s.id}">🏢 ${s.name} (Utworzy: ${getHierarchyRoleLabel(depth + 1)})</option>`;
         })
       ];
       sel.innerHTML = opts.join('');
-      if ([...sel.options].some(o => o.value === prevVal)) {
-        sel.value = prevVal;
-      }
+      if ([...sel.options].some(o => o.value === prevVal)) sel.value = prevVal;
       updateCreatorPreview();
     }
 
     function renderCategoryList() {
-      const searchEl = document.getElementById('cat-search-input');
-      const query = (searchEl ? searchEl.value : '').trim().toLowerCase();
+      const query = (document.getElementById('cat-search-input')?.value || '').trim().toLowerCase();
       const filtered = CATEGORIES.filter(c => c.name.toLowerCase().includes(query));
       const container = document.getElementById('cat-select-list');
-      const countLbl = document.getElementById('cat-count-label');
 
-      if (countLbl) countLbl.textContent = `Wybrano: ${selectedCatIds.length} (z ${CATEGORIES.length} branż)`;
-
-      const strip = document.getElementById('selected-cats-strip');
-      if (strip) {
-        strip.innerHTML = selectedCatIds.map(id => {
-          const c = CATEGORIES.find(x => x.id === id);
-          return `<span class="mini-country-badge">✓ ${c ? c.name : id}</span>`;
-        }).join('');
-      }
-
-      if (filtered.length === 0) {
-        container.innerHTML = `<div style="font-size: 12px; color: var(--muted); padding: 8px;">Brak kategorii pasującej do „${query}”.</div>`;
-        return;
-      }
-
-      container.innerHTML = filtered.map(cat => {
-        const isSel = selectedCatIds.includes(cat.id);
-        return `
-          <div class="cat-option ${isSel ? 'selected' : ''}" data-cat-id="${cat.id}">
-            <span><strong>${isSel ? '☑' : '☐'} ${cat.name}</strong></span>
-            <span style="color: var(--muted); font-size: 11.5px;">Baza: ${fmtMoney(cat.baseCost)} • +${fmtMoney(cat.baseIncome)}/s</span>
-          </div>
-        `;
+      document.getElementById('cat-count-label').textContent = `Wybrano: ${selectedCatIds.length} (z ${CATEGORIES.length})`;
+      document.getElementById('selected-cats-strip').innerHTML = selectedCatIds.map(id => {
+        const c = CATEGORIES.find(x => x.id === id);
+        return `<span class="mini-country-badge">✓ ${c ? c.name : id}</span>`;
       }).join('');
+
+      container.innerHTML = filtered.length === 0
+        ? `<div style="font-size: 12px; color: var(--muted); padding: 8px;">Brak kategorii pasującej do „${query}”.</div>`
+        : filtered.map(cat => {
+            const isSel = selectedCatIds.includes(cat.id);
+            return `
+              <div class="cat-option ${isSel ? 'selected' : ''}" data-cat-id="${cat.id}">
+                <span><strong>${isSel ? '☑' : '☐'} ${cat.name}</strong></span>
+                <span style="color: var(--muted); font-size: 11.5px;">Baza: ${fmtMoney(cat.baseCost)} • +${fmtMoney(cat.baseIncome)}/s</span>
+              </div>
+            `;
+          }).join('');
 
       updateCreatorPreview();
     }
 
     function renderCountrySelector() {
-      const searchEl = document.getElementById('country-search-input');
-      const query = (searchEl ? searchEl.value : '').trim().toLowerCase();
-      const filtered = COUNTRIES.filter(c =>
-        c.name.toLowerCase().includes(query) || c.code.toLowerCase().includes(query)
-      );
+      const query = (document.getElementById('country-search-input')?.value || '').trim().toLowerCase();
+      const filtered = COUNTRIES.filter(c => c.name.toLowerCase().includes(query) || c.code.toLowerCase().includes(query));
+      const grid = document.getElementById('country-select-grid');
 
-      const countLbl = document.getElementById('country-count-label');
-      if (countLbl) countLbl.textContent = `Wybrano: ${selectedCountries.length} (z ${COUNTRIES.length} państw)`;
-
-      const strip = document.getElementById('selected-countries-strip');
-      if (strip) {
-        const previewList = selectedCountries.slice(0, 8);
-        strip.innerHTML = previewList.map(code => {
+      document.getElementById('country-count-label').textContent = `Wybrano: ${selectedCountries.length} (z ${COUNTRIES.length})`;
+      const previewList = selectedCountries.slice(0, 8);
+      document.getElementById('selected-countries-strip').innerHTML =
+        previewList.map(code => {
           const c = COUNTRIES.find(x => x.code === code);
           return `<span class="mini-country-badge">${c ? c.flag + ' ' + c.name : code}</span>`;
         }).join('') + (selectedCountries.length > 8 ? `<span class="mini-country-badge">+${selectedCountries.length - 8} więcej</span>` : '');
-      }
 
-      const grid = document.getElementById('country-select-grid');
-      if (filtered.length === 0) {
-        grid.innerHTML = `<div style="font-size: 12px; color: var(--muted); padding: 6px;">Brak państwa pasującego do „${query}”.</div>`;
-      } else {
-        grid.innerHTML = filtered.map(c => {
-          const active = selectedCountries.includes(c.code);
-          return `
-            <div class="country-chip ${active ? 'active' : ''}" data-country-code="${c.code}">
-              <span>${c.flag}</span>
-              <span>${c.name}</span>
-            </div>
-          `;
-        }).join('');
-      }
+      grid.innerHTML = filtered.length === 0
+        ? `<div style="font-size: 12px; color: var(--muted); padding: 6px;">Brak państwa.</div>`
+        : filtered.map(c => {
+            const active = selectedCountries.includes(c.code);
+            return `
+              <div class="country-chip ${active ? 'active' : ''}" data-country-code="${c.code}">
+                <span>${c.flag}</span><span>${c.name}</span>
+              </div>
+            `;
+          }).join('');
 
       updateCreatorPreview();
     }
@@ -2328,9 +2289,7 @@
     }
 
     function getCreatorNumbers() {
-      const chosenCats = selectedCatIds
-        .map(id => CATEGORIES.find(c => c.id === id))
-        .filter(Boolean);
+      const chosenCats = selectedCatIds.map(id => CATEGORIES.find(c => c.id === id)).filter(Boolean);
       const cats = chosenCats.length > 0 ? chosenCats : [CATEGORIES[0]];
 
       const combinedBaseCost = cats.reduce((acc, c) => acc + c.baseCost, 0);
@@ -2349,13 +2308,12 @@
 
     function updateCreatorPreview() {
       const { cats, incMult, cost, income, multiSectorBonus } = getCreatorNumbers();
-      const parentSel = document.getElementById('new-sub-parent');
-      const parentId = parentSel ? parentSel.value : 'HQ';
+      const parentId = document.getElementById('new-sub-parent')?.value || 'HQ';
       const nextDepth = parentId === 'HQ' ? 1 : getSubDepth(parentId) + 1;
 
       document.getElementById('preview-parent-name').textContent = `${getHierarchyRoleLabel(nextDepth)} → ${getParentName(parentId)}`;
       document.getElementById('preview-cat-name').textContent = `${cats.length} ${cats.length === 1 ? 'branża' : 'branż'} (${multiSectorBonus.toFixed(2)}x)`;
-      document.getElementById('preview-countries-mult').textContent = `${selectedCountries.length} ${selectedCountries.length === 1 ? 'kraj' : 'kraje/ów'} (${incMult.toFixed(2)}x)`;
+      document.getElementById('preview-countries-mult').textContent = `${selectedCountries.length} (${incMult.toFixed(2)}x)`;
       document.getElementById('preview-income').textContent = fmtMoney(income) + ' / s';
       document.getElementById('preview-cost').textContent = fmtMoney(cost);
 
@@ -2374,12 +2332,12 @@
         ? rawName
         : `${state.holdingName.split(' ')[0]} ${cats[0].name.split('&')[0].trim()}${cats.length > 1 ? ' Multi-Group' : ''} Sp. z o.o.`;
 
-      const newSub = {
+      state.subsidiaries.push({
         id: 'sub_' + Date.now() + '_' + Math.floor(Math.random() * 999),
         name: finalName,
         sector: sectorLabel,
         catIds: cats.map(c => c.id),
-        parentId: parentId,
+        parentId,
         countries: [...selectedCountries],
         level: 1,
         baseCost: combinedBaseCost,
@@ -2387,13 +2345,10 @@
         ipoPublicPct: 0,
         mergedCount: 0,
         isAbsorbed: false
-      };
-
-      state.subsidiaries.push(newSub);
-      const roleLabel = getHierarchyRoleLabel(getSubDepth(newSub.id));
+      });
 
       document.getElementById('new-sub-name').value = '';
-      addLog(`Zarejestrowano (${roleLabel}): ${finalName} pod podmiotem ${getParentName(parentId)} [${cats.length} branż, ${selectedCountries.length} rynki].`, 'good');
+      addLog(`Zarejestrowano ${finalName} (${getParentName(parentId)}).`, 'good');
       renderParentSelector();
       renderAll();
       saveState();
@@ -2403,7 +2358,7 @@
       const sub = state.subsidiaries.find(s => s.id === subId);
       if (!sub || newParentId === subId || isDescendantSub(newParentId, subId)) return;
       sub.parentId = newParentId;
-      addLog(`Restrukturyzacja: Przeniesiono ${sub.name} pod zarząd: ${getParentName(newParentId)}.`, 'warn');
+      addLog(`Przeniesiono ${sub.name} pod: ${getParentName(newParentId)}.`, 'warn');
       renderParentSelector();
       renderAll();
       saveState();
@@ -2413,22 +2368,16 @@
       const comp = state.market.find(c => c.id === compId);
       if (!comp || comp.absorbed || comp.ownedPct <= 0) return;
       comp.parentId = newParentId;
-      addLog(`Alokacja Aktywów: Pakiet ${comp.ownedPct}% spółki ${comp.name} przypisano do: ${getParentName(newParentId)}.`, 'good');
+      addLog(`Pakiet ${comp.ownedPct}% ${comp.name} przypisano do: ${getParentName(newParentId)}.`, 'good');
       renderAll();
       saveState();
     }
 
-    // --- ADVANCED MANAGEMENT MODAL (51%+ MAJORITY CONTROL) ---
+    // --- MANAGE MODAL ---
     function openManageCompModal(compId) {
       const comp = state.market.find(c => c.id === compId);
       if (!comp || comp.absorbed || comp.ownedPct < 51) return;
-
       activeMgmtCompId = compId;
-      if (!comp.strategy) comp.strategy = 'balanced';
-      if (comp.payoutRatio == null) comp.payoutRatio = 75;
-      if (!comp.rdLevel) comp.rdLevel = 1;
-      if (!comp.parentId) comp.parentId = 'HQ';
-
       refreshManageCompModal();
       document.getElementById('manage-comp-modal').classList.remove('hidden');
     }
@@ -2436,18 +2385,16 @@
     function refreshManageCompModal() {
       const comp = state.market.find(c => c.id === activeMgmtCompId);
       if (!comp) return;
+      const val = getCompanyVal(comp);
 
       document.getElementById('mgmt-comp-name').textContent = comp.name;
       document.getElementById('mgmt-owned-pct').textContent = comp.ownedPct + '%';
-      document.getElementById('mgmt-valuation').textContent = fmtMoney(comp.currentValuation);
+      document.getElementById('mgmt-valuation').textContent = fmtMoney(val);
       document.getElementById('mgmt-rd-lvl').textContent = 'LVL ' + (comp.rdLevel || 1);
 
-      const parentSel = document.getElementById('mgmt-parent-select');
-      parentSel.innerHTML = [
-        `<option value="HQ" ${comp.parentId === 'HQ' ? 'selected' : ''}>🏛️ ${state.holdingName} (Bezpośrednio w Centrali)</option>`,
-        ...state.subsidiaries.map(s =>
-          `<option value="${s.id}" ${comp.parentId === s.id ? 'selected' : ''}>🏢 ${s.name} (${getHierarchyRoleLabel(getSubDepth(s.id))})</option>`
-        )
+      document.getElementById('mgmt-parent-select').innerHTML = [
+        `<option value="HQ" ${comp.parentId === 'HQ' ? 'selected' : ''}>🏛️ ${state.holdingName} (Centrala)</option>`,
+        ...state.subsidiaries.map(s => `<option value="${s.id}" ${comp.parentId === s.id ? 'selected' : ''}>🏢 ${s.name}</option>`)
       ].join('');
 
       document.querySelectorAll('#mgmt-strategy-grid .strategy-card').forEach(card => {
@@ -2455,8 +2402,8 @@
       });
 
       const slider = document.getElementById('mgmt-payout-slider');
-      slider.value = comp.payoutRatio;
-      document.getElementById('mgmt-payout-label').textContent = comp.payoutRatio + '%';
+      slider.value = comp.payoutRatio ?? 75;
+      document.getElementById('mgmt-payout-label').textContent = (comp.payoutRatio ?? 75) + '%';
 
       const rdCost = Math.floor(comp.baseValuation * 0.14 * Math.pow(1.45, (comp.rdLevel || 1) - 1) * getUpgradeDiscountMultiplier());
       const rdBtn = document.getElementById('btn-mgmt-rd');
@@ -2469,7 +2416,7 @@
         shieldBtn.textContent = '✓ Tarcza Aktywna';
         shieldBtn.disabled = true;
       } else {
-        const shieldCost = Math.floor(comp.currentValuation * 0.04);
+        const shieldCost = Math.floor(val * 0.04);
         shieldBtn.className = 'warn';
         shieldBtn.textContent = `Aktywuj (${fmtMoney(shieldCost)})`;
         shieldBtn.disabled = state.cash < shieldCost;
@@ -2478,7 +2425,7 @@
       const squeezeBox = document.getElementById('mgmt-squeeze-box');
       if (comp.ownedPct >= 90 && comp.ownedPct < 100) {
         const remPct = 100 - comp.ownedPct;
-        const squeezeCost = Math.floor(comp.currentValuation * (remPct / 100) * 1.25);
+        const squeezeCost = Math.floor(val * (remPct / 100) * 1.25);
         squeezeBox.classList.remove('hidden');
         const sqBtn = document.getElementById('btn-mgmt-squeeze');
         sqBtn.textContent = `Wykup ${remPct}% (${fmtMoney(squeezeCost)})`;
@@ -2498,10 +2445,9 @@
       if (!comp || comp.ownedPct < 51) return;
       const rdCost = Math.floor(comp.baseValuation * 0.14 * Math.pow(1.45, (comp.rdLevel || 1) - 1) * getUpgradeDiscountMultiplier());
       if (!spendCash(rdCost)) return;
-
       comp.rdLevel = (comp.rdLevel || 1) + 1;
-      comp.currentValuation *= 1.08;
-      addLog(`R&D W SPÓŁCE ZALEŻNEJ: Zainwestowano ${fmtMoney(rdCost)} w ${comp.name} (R&D LVL ${comp.rdLevel}, +15% rentowności).`, 'good');
+      comp.currentValuation = getCompanyVal(comp) * 1.08;
+      addLog(`R&D w ${comp.name}: poziom ${comp.rdLevel} (+15% zysku).`, 'good');
       refreshManageCompModal();
       renderAll();
       saveState();
@@ -2510,11 +2456,10 @@
     function activatePoisonPill() {
       const comp = state.market.find(c => c.id === activeMgmtCompId);
       if (!comp || comp.ownedPct < 51 || comp.poisonPill) return;
-      const shieldCost = Math.floor(comp.currentValuation * 0.04);
+      const shieldCost = Math.floor(getCompanyVal(comp) * 0.04);
       if (!spendCash(shieldCost)) return;
-
       comp.poisonPill = true;
-      addLog(`TARCZA ANTYPRZEJĘCIOWA: Aktywowano Poison Pill w ${comp.name} — fundusze konkurencji nie mogą już skupować jej akcji!`, 'warn');
+      addLog(`Aktywowano Tarczę Antyprzejęciową w ${comp.name}!`, 'warn');
       refreshManageCompModal();
       renderMarket();
       saveState();
@@ -2524,18 +2469,17 @@
       const comp = state.market.find(c => c.id === activeMgmtCompId);
       if (!comp || comp.ownedPct < 90 || comp.ownedPct >= 100) return;
       const remPct = 100 - comp.ownedPct;
-      const squeezeCost = Math.floor(comp.currentValuation * (remPct / 100) * 1.25);
+      const squeezeCost = Math.floor(getCompanyVal(comp) * (remPct / 100) * 1.25);
       if (!spendCash(squeezeCost)) return;
-
       comp.ownedPct = 100;
       comp.shareholders = [];
-      addLog(`SQUEEZE-OUT ZAKOŃCZONY! Wykupiono przymusowo pozostałe ${remPct}% w ${comp.name} za ${fmtMoney(squeezeCost)}. Masz 100%!`, 'warn');
+      addLog(`SQUEEZE-OUT w ${comp.name}: przejęto 100% za ${fmtMoney(squeezeCost)}!`, 'warn');
       closeManageCompModal();
       renderAll();
       saveState();
     }
 
-    // --- SUBSIDIARY EXPANSION MODAL ---
+    // --- EXPAND MODAL ---
     function openExpandModal(subId) {
       const sub = state.subsidiaries.find(s => s.id === subId);
       if (!sub) return;
@@ -2551,11 +2495,9 @@
       if (!sub) return;
       const query = (document.getElementById('exp-country-search').value || '').trim().toLowerCase();
       const ownedCodes = sub.countries || ['PL'];
-      const list = document.getElementById('exp-countries-list');
-
       const filtered = COUNTRIES.filter(c => c.name.toLowerCase().includes(query) || c.code.toLowerCase().includes(query));
 
-      list.innerHTML = filtered.map(c => {
+      document.getElementById('exp-countries-list').innerHTML = filtered.map(c => {
         const already = ownedCodes.includes(c.code);
         const expandCost = Math.floor(sub.baseCost * c.costFactor * Math.pow(1.18, ownedCodes.length) * getUpgradeDiscountMultiplier());
         const bonusPct = Math.round(Math.max(0.08, (c.mult - 0.85) * 0.65) * 100);
@@ -2563,7 +2505,7 @@
           <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 10px;">
             <div>
               <div style="font-weight: 700; font-size: 13.5px;">${c.flag} ${c.name}</div>
-              <div style="font-size: 11.5px; color: var(--muted);">Bonus mnożnika rynku: +${bonusPct}%</div>
+              <div style="font-size: 11.5px; color: var(--muted);">Bonus rynku: +${bonusPct}%</div>
             </div>
             ${already
               ? `<span style="font-size: 12px; color: var(--green); font-weight: 700;">✓ Aktywny</span>`
@@ -2583,22 +2525,19 @@
       const sub = state.subsidiaries.find(s => s.id === activeExpandSubId);
       if (!sub) return;
       if (!sub.countries) sub.countries = ['PL'];
-      if (sub.countries.includes(countryCode)) return;
-      if (!spendCash(cost)) return;
-
+      if (sub.countries.includes(countryCode) || !spendCash(cost)) return;
       sub.countries.push(countryCode);
       const cObj = COUNTRIES.find(c => c.code === countryCode);
-      addLog(`Ekspansja zagraniczna! ${sub.name} otworzyło oddział w kraju: ${cObj.flag} ${cObj.name}.`, 'good');
+      addLog(`Ekspansja: ${sub.name} wchodzi na rynek ${cObj.flag} ${cObj.name}.`, 'good');
       renderExpandCountriesList();
       renderAll();
       saveState();
     }
 
-    // --- SHAREHOLDERS & BUYOUT OFFER MODAL ---
+    // --- OFFER MODAL ---
     function openOfferModal(compId, preselectHolderId = null) {
       const comp = state.market.find(c => c.id === compId);
       if (!comp || comp.absorbed || comp.shareholders.length === 0) return;
-
       activeOfferCompId = compId;
       document.getElementById('modal-comp-name').textContent = comp.name;
 
@@ -2637,16 +2576,17 @@
       document.getElementById('modal-max-pct').textContent = holder.pct;
       const pctInput = document.getElementById('modal-pct-input');
       pctInput.max = holder.pct;
-      let reqPct = Math.max(1, Math.min(holder.pct, parseInt(pctInput.value, 10) || 1));
-
+      const reqPct = Math.max(1, Math.min(holder.pct, parseInt(pctInput.value, 10) || 1));
       const premiumPct = Math.max(70, Math.min(250, parseInt(document.getElementById('modal-premium-input').value, 10) || 100));
-      const marketVal = comp.currentValuation * (reqPct / 100);
+
+      const compVal = getCompanyVal(comp);
+      const marketVal = compVal * (reqPct / 100);
       const offerTotal = marketVal * (premiumPct / 100);
       const chance = getOfferAcceptanceChance(holder, reqPct, premiumPct);
       const ceoBonus = getDealChanceBonus();
 
       document.getElementById('modal-holder-info').innerHTML = `
-        Typ: <strong>${holder.type}</strong> • Pakiet: <strong>${holder.pct}%</strong> • Próg cenowy: ~<strong>${Math.round(holder.greed * 100)}%</strong>${ceoBonus > 0 ? ` • Bonus CEO: <strong style="color:var(--green);">+${ceoBonus}%</strong>` : ''}
+        Typ: <strong>${holder.type}</strong> • Pakiet: <strong>${holder.pct}%</strong> • Próg: ~<strong>${Math.round(holder.greed * 100)}%</strong>${ceoBonus > 0 ? ` • Bonus CEO: <strong style="color:var(--green);">+${ceoBonus}%</strong>` : ''}
       `;
       document.getElementById('modal-market-val').textContent = fmtMoney(marketVal);
       document.getElementById('modal-offer-total').textContent = fmtMoney(offerTotal);
@@ -2661,42 +2601,36 @@
     function submitBuyoutOffer() {
       const comp = state.market.find(c => c.id === activeOfferCompId);
       if (!comp) return;
-
       const holderId = document.getElementById('modal-holder-select').value;
       const holder = comp.shareholders.find(h => h.id === holderId);
       if (!holder) return;
 
       const reqPct = Math.max(1, Math.min(holder.pct, parseInt(document.getElementById('modal-pct-input').value, 10) || 1));
       const premiumPct = Math.max(70, Math.min(250, parseInt(document.getElementById('modal-premium-input').value, 10) || 100));
-      const marketVal = comp.currentValuation * (reqPct / 100);
+      const compVal = getCompanyVal(comp);
+      const marketVal = compVal * (reqPct / 100);
       const offerTotal = marketVal * (premiumPct / 100);
 
       if (state.cash < offerTotal) return;
 
       const chance = getOfferAcceptanceChance(holder, reqPct, premiumPct);
-      const roll = Math.random() * 100;
-
-      if (roll <= chance) {
+      if (Math.random() * 100 <= chance) {
         spendCash(offerTotal);
         const hadMajority = comp.ownedPct >= 51;
         holder.pct -= reqPct;
         holder.lastDelta = -reqPct;
         comp.ownedPct += reqPct;
+        if (holder.pct <= 0) comp.shareholders = comp.shareholders.filter(h => h.id !== holder.id);
 
-        if (holder.pct <= 0) {
-          comp.shareholders = comp.shareholders.filter(h => h.id !== holder.id);
-        }
-
-        addLog(`SUKCES NEGOCJACJI! ${holder.name} przyjął ${fmtMoney(offerTotal)} i oddał ${reqPct}% udziałów w ${comp.name}!`, 'good');
+        addLog(`ODKUP UDZIAŁÓW: ${holder.name} oddał ${reqPct}% ${comp.name} za ${fmtMoney(offerTotal)}!`, 'good');
         if (!hadMajority && comp.ownedPct >= 51) {
-          addLog(`PRZEJĘCIE KONTROLI! Masz ${comp.ownedPct}% w ${comp.name} — odblokowano Panel Zarządzania Spółką!`, 'warn');
+          addLog(`KONTROLA 51%+ w ${comp.name} — odblokowano Panel Zarządzania!`, 'warn');
         }
         closeOfferModal();
       } else {
         const fee = Math.max(50, Math.floor(offerTotal * 0.01));
         spendCash(Math.min(state.cash, fee));
-        const counterPct = Math.ceil(holder.greed * 100 + 4);
-        addLog(`ODRZUCONO OFERTĘ! ${holder.name} odrzucił odkup ${reqPct}% w ${comp.name} (oczekuje ok. ${counterPct}% wyceny). Koszt doradztwa: ${fmtMoney(fee)}.`, 'bad');
+        addLog(`Oferta odrzucona przez ${holder.name} (koszt doradztwa: ${fmtMoney(fee)}).`, 'bad');
         updateOfferModalCalc();
       }
 
@@ -2704,14 +2638,12 @@
       saveState();
     }
 
-    // --- CEO ACTIONS ---
+    // --- CEO, LOAN, GRANT & BONDS ---
     function hireCEO(ceoId) {
       const ceo = CEO_ROSTER.find(c => c.id === ceoId);
-      if (!ceo || state.hiredCEOs.some(h => h.ceoId === ceoId)) return;
-      if (!spendCash(ceo.hireCost)) return;
-
+      if (!ceo || state.hiredCEOs.some(h => h.ceoId === ceoId) || !spendCash(ceo.hireCost)) return;
       state.hiredCEOs.push({ ceoId, assignedTo: 'HQ' });
-      addLog(`Zatrudniono menedżera: ${ceo.name} (${ceo.role}) do Centrali Holdingu.`, 'good');
+      addLog(`Zatrudniono CEO: ${ceo.name} (${ceo.role}).`, 'good');
       renderAll();
       saveState();
     }
@@ -2720,55 +2652,61 @@
       const entry = state.hiredCEOs.find(h => h.ceoId === ceoId);
       if (!entry) return;
       entry.assignedTo = targetVal;
-      const ceo = CEO_ROSTER.find(c => c.id === ceoId);
-      const sub = state.subsidiaries.find(s => s.id === targetVal);
-      const label = targetVal === 'HQ' ? 'Centrala Holdingu' : (sub ? sub.name : 'Centrala');
-      addLog(`Przydzielono ${ceo.name} do: ${label}.`);
       renderAll();
       saveState();
     }
 
     function fireCEO(ceoId) {
-      const idx = state.hiredCEOs.findIndex(h => h.ceoId === ceoId);
-      if (idx === -1) return;
-      const ceo = CEO_ROSTER.find(c => c.id === ceoId);
-      state.hiredCEOs.splice(idx, 1);
-      addLog(`Zakończono współpracę z: ${ceo ? ceo.name : 'CEO'}.`);
+      state.hiredCEOs = state.hiredCEOs.filter(h => h.ceoId !== ceoId);
       renderAll();
       saveState();
     }
 
-    // --- LOAN ACTIONS ---
     function takeLoan(fraction) {
-      const limit = getCreditLimit();
-      const available = Math.max(0, limit - state.debt);
+      const available = Math.max(0, getCreditLimit() - state.debt);
       const amount = Math.floor(available * fraction);
       if (amount <= 0) return;
-
       state.debt += amount;
       addCash(amount, true);
-      addLog(`Zaciągnięto kredyt korporacyjny w wysokości ${fmtMoney(amount)}. Łączny dług: ${fmtMoney(state.debt)}.`, 'warn');
+      addLog(`Kredyt ${fmtMoney(amount)}. Dług: ${fmtMoney(state.debt)}.`, 'warn');
       renderAll();
       saveState();
     }
 
     function repayLoan(fraction) {
       if (state.debt <= 0) return;
-      const target = Math.min(state.debt, Math.floor(state.debt * fraction));
-      const pay = Math.min(state.cash, target);
+      const pay = Math.min(state.cash, Math.min(state.debt, Math.floor(state.debt * fraction)));
       if (pay <= 0) return;
-
       spendCash(pay);
       state.debt = Math.max(0, state.debt - pay);
-      addLog(`Spłacono ${fmtMoney(pay)} zadłużenia korporacyjnego. Pozostało: ${fmtMoney(state.debt)}.`, 'good');
+      addLog(`Spłacono dług: ${fmtMoney(pay)}.`, 'good');
       renderAll();
       saveState();
     }
 
-    // --- OTHER PLAYER ACTIONS ---
-    function manualDeal() {
-      const reward = getManualReward();
+    function claimGrant() {
+      if (grantCooldownSec > 0) return;
+      const reward = getGrantReward();
+      grantCooldownSec = 60;
       addCash(reward, true);
+      addLog(`GRANT INNOWACYJNY: Otrzymano ${fmtMoney(reward)} na rozwój grupy!`, 'good');
+      renderFinance();
+      updateTopBar();
+      saveState();
+    }
+
+    function issueCorporateBonds() {
+      const issueVal = Math.max(2000, Math.floor(getTotalNetWorth() * 0.15));
+      const addedDebt = Math.floor(issueVal * 1.165);
+      state.debt += addedDebt;
+      addCash(issueVal, true);
+      addLog(`OBLIGACJE: Pozyskano ${fmtMoney(issueVal)} gotówki (dług wzrósł o ${fmtMoney(addedDebt)}).`, 'warn');
+      renderAll();
+      saveState();
+    }
+
+    function manualDeal() {
+      addCash(getManualReward(), true);
       updateTopBar();
       renderSubsidiaries();
     }
@@ -2778,9 +2716,8 @@
       if (!sub) return;
       const cost = getSubsidiaryUpgradeCost(sub);
       if (!spendCash(cost)) return;
-
       sub.level += 1;
-      addLog(`Dokapitalizowano ${sub.name} do Poziomu ${sub.level}.`);
+      addLog(`Rozwinięto ${sub.name} do LVL ${sub.level}.`);
       renderAll();
       saveState();
     }
@@ -2788,23 +2725,17 @@
     function buyFreeFloat(compId, pct) {
       const comp = state.market.find(c => c.id === compId);
       if (!comp || comp.absorbed) return;
-
-      const freeFloat = getFreeFloatPct(comp);
-      const actualPct = Math.min(pct, freeFloat);
+      const actualPct = Math.min(pct, getFreeFloatPct(comp));
       if (actualPct <= 0) return;
-
-      const cost = comp.currentValuation * (actualPct / 100);
+      const cost = getCompanyVal(comp) * (actualPct / 100);
       if (!spendCash(cost)) return;
-
       const hadMajority = comp.ownedPct >= 51;
       comp.ownedPct += actualPct;
-
       if (!hadMajority && comp.ownedPct >= 51) {
-        addLog(`PRZEJĘCIE KONTROLI! Skupiono ${actualPct}% z giełdy — masz ${comp.ownedPct}% akcji ${comp.name}! Odblokowano Panel Zarządzania!`, 'warn');
+        addLog(`KONTROLA 51%+ w ${comp.name}!`, 'warn');
       } else {
-        addLog(`Kupiono ${actualPct}% akcji z wolnego rynku (Free Float) w ${comp.name} za ${fmtMoney(cost)}.`);
+        addLog(`Kupiono ${actualPct}% ${comp.name} za ${fmtMoney(cost)}.`);
       }
-
       renderAll();
       saveState();
     }
@@ -2812,14 +2743,12 @@
     function sellShares(compId, pct) {
       const comp = state.market.find(c => c.id === compId);
       if (!comp || comp.absorbed || comp.ownedPct <= 0) return;
-
       const actualPct = Math.min(pct, comp.ownedPct);
-      const payout = comp.currentValuation * (actualPct / 100) * 0.96;
+      const payout = getCompanyVal(comp) * (actualPct / 100) * 0.96;
       comp.ownedPct -= actualPct;
       if (comp.ownedPct <= 0) comp.parentId = 'HQ';
       addCash(payout, true);
-
-      addLog(`Sprzedano ${actualPct}% akcji ${comp.name} na giełdę za ${fmtMoney(payout)} (po prowizji 4%).`);
+      addLog(`Sprzedano ${actualPct}% ${comp.name} za ${fmtMoney(payout)}.`);
       renderAll();
       saveState();
     }
@@ -2827,11 +2756,10 @@
     function triggerSpecialDividend(compId) {
       const comp = state.market.find(c => c.id === compId);
       if (!comp || comp.absorbed || comp.ownedPct < 51 || comp.specialDivCooldown > 0) return;
-
       const payout = Math.floor(comp.baseProfit * 18 * (comp.ownedPct / 100));
       comp.specialDivCooldown = 45;
       addCash(payout, true);
-      addLog(`DYWIDENDA NADZWYCZAJNA! Walne Zgromadzenie ${comp.name} wypłaciło holdingowi ${fmtMoney(payout)}!`, 'good');
+      addLog(`DYWIDENDA NADZWYCZAJNA z ${comp.name}: +${fmtMoney(payout)}!`, 'good');
       renderMarket();
       saveState();
     }
@@ -2839,7 +2767,6 @@
     function absorbCompany(compId) {
       const comp = state.market.find(c => c.id === compId);
       if (!comp || comp.absorbed || comp.ownedPct < 100) return;
-
       comp.absorbed = true;
       state.subsidiaries.push({
         id: 'abs_' + comp.id,
@@ -2849,14 +2776,13 @@
         parentId: comp.parentId || 'HQ',
         countries: ['PL', 'DE'],
         level: 1,
-        baseCost: Math.floor(comp.baseValuation * 0.8),
+        baseCost: Math.floor(getCompanyVal(comp) * 0.8),
         baseIncome: Math.floor(comp.baseProfit * 1.45 * Math.pow(1.15, (comp.rdLevel || 1) - 1)),
         ipoPublicPct: 0,
         mergedCount: 0,
         isAbsorbed: true
       });
-
-      addLog(`PEŁNA KONSOLIDACJA (100%)! ${comp.name} zostało wchłonięte pod: ${getParentName(comp.parentId || 'HQ')}!`, 'warn');
+      addLog(`WCHŁONIĘTO ${comp.name} (100%) do struktury grupy!`, 'warn');
       renderParentSelector();
       renderAll();
       saveState();
@@ -2873,11 +2799,12 @@
     }
 
     function resetGame() {
-      if (!confirm('Czy na pewno chcesz zresetować całe imperium i zacząć od nowa?')) return;
-      localStorage.removeItem('apex_holding_save_v9');
+      if (!confirm('Zresetować całe imperium i zapisać stan początkowy?')) return;
+      localStorage.removeItem('apex_holding_save_v10');
       state = getDefaultState();
       selectedCatIds = [CATEGORIES[0].id];
       selectedCountries = ['PL'];
+      grantCooldownSec = 0;
       renderParentSelector();
       renderCategoryList();
       renderCountrySelector();
@@ -2894,11 +2821,9 @@
       renderAll();
     }
 
-    // --- SVG SPARKLINE ---
     function renderSparklineSvg(history, isUp) {
       if (!history || history.length < 2) return '';
-      const w = 160;
-      const h = 34;
+      const w = 160, h = 34;
       const min = Math.min(...history);
       const max = Math.max(...history);
       const span = Math.max(1, max - min);
@@ -2907,13 +2832,12 @@
         const y = h - 4 - ((v - min) / span) * (h - 8);
         return `${x.toFixed(1)},${y.toFixed(1)}`;
       }).join(' ');
-      const stroke = isUp ? '#10b981' : '#ef4444';
       return `<svg width="100%" height="${h}" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
-        <polyline fill="none" stroke="${stroke}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" points="${pts}" />
+        <polyline fill="none" stroke="${isUp ? '#10b981' : '#ef4444'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" points="${pts}" />
       </svg>`;
     }
 
-    // --- RENDERING ---
+    // --- RENDER FUNCTIONS ---
     function updateMacroBanner() {
       const banner = document.getElementById('macro-banner');
       const titleEl = document.getElementById('macro-title');
@@ -2929,7 +2853,7 @@
         timerEl.textContent = `Pozostało: ${Math.ceil(state.activeEvent.remainingSec)}s`;
       } else {
         titleEl.textContent = '📊 Stabilny Klimat Makroekonomiczny';
-        descEl.textContent = 'Rynki działają standardowo. Wkrótce mogą pojawić się hossy lub korekty sektorowe.';
+        descEl.textContent = 'Rynki działają standardowo.';
         timerEl.textContent = `Nowy impuls za ~${Math.ceil(state.nextEventInSec)}s`;
       }
     }
@@ -2952,6 +2876,8 @@
       document.getElementById('count-subs').textContent = state.subsidiaries.length;
       document.getElementById('count-market').textContent = state.market.filter(c => !c.absorbed).length;
       document.getElementById('count-ceo').textContent = state.hiredCEOs.length;
+
+      updateIncomingToggleSwitches();
     }
 
     function renderTenderBanner() {
@@ -2959,8 +2885,7 @@
       if (!t) return;
       document.getElementById('tender-timer').textContent = Math.ceil(t.remainingSec) + 's';
       document.getElementById('tender-title').textContent = t.title;
-      document.getElementById('tender-req').textContent = `Wymagana spółka zależna: branża [${t.catName}] + rynek [${t.countryLabel}]`;
-
+      document.getElementById('tender-req').textContent = `Wymagania: branża [${t.catName}] + rynek [${t.countryLabel}]`;
       const eligible = findEligibleSubForTender(t);
       const btn = document.getElementById('btn-claim-tender');
       btn.disabled = !eligible;
@@ -2972,28 +2897,20 @@
     function renderMergerPanel() {
       const box = document.getElementById('merger-panel');
       if (!box) return;
-
       if (state.subsidiaries.length < 2) {
         box.classList.add('hidden');
         return;
       }
-
       box.classList.remove('hidden');
       const selA = document.getElementById('merge-sub-a');
       const selB = document.getElementById('merge-sub-b');
-      const prevA = selA.value;
-      const prevB = selB.value;
-
+      const prevA = selA.value, prevB = selB.value;
       const opts = state.subsidiaries.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
       selA.innerHTML = opts;
       selB.innerHTML = opts;
-
       if ([...selA.options].some(o => o.value === prevA)) selA.value = prevA;
-      if ([...selB.options].some(o => o.value === prevB) && prevB !== selA.value) {
-        selB.value = prevB;
-      } else if (state.subsidiaries.length >= 2) {
-        selB.selectedIndex = 1;
-      }
+      if ([...selB.options].some(o => o.value === prevB) && prevB !== selA.value) selB.value = prevB;
+      else if (state.subsidiaries.length >= 2) selB.selectedIndex = 1;
     }
 
     function renderSubsidiaries() {
@@ -3001,31 +2918,27 @@
       renderMergerPanel();
 
       const ownedContainer = document.getElementById('owned-subs-list');
-      const synergyPct = Math.round((getSynergyMultiplier() - 1) * 100);
-      document.getElementById('sub-synergy-info').textContent = `Synergia grupy: +${synergyPct}%`;
+      document.getElementById('sub-synergy-info').textContent = `Synergia grupy: +${Math.round((getSynergyMultiplier() - 1) * 100)}%`;
 
       if (state.subsidiaries.length === 0) {
         ownedContainer.innerHTML = `<div style="color: var(--muted); font-size: 13px; grid-column: 1/-1; padding: 20px 0;">
-          Nie posiadasz jeszcze żadnych spółek-córek. Wpisz nazwę, wybierz podmiot nadrzędny, jedną lub więcej branż oraz kraje po prawej stronie!
+          Nie posiadasz jeszcze żadnych spółek zależnych. Utwórz pierwszą po prawej stronie!
         </div>`;
       } else {
         ownedContainer.innerHTML = state.subsidiaries.map(sub => {
           const inc = getSubsidiaryIncome(sub);
           const upgCost = getSubsidiaryUpgradeCost(sub);
           const val = getSubsidiaryValuation(sub);
-          const canAfford = state.cash >= upgCost;
           const depth = getSubDepth(sub.id);
           const roleLabel = getHierarchyRoleLabel(depth);
           const childSubsCount = getDirectChildSubsCount(sub.id);
           const assignedMktCount = getAssignedMarketCompsCount(sub.id);
-
           const ipoPct = sub.ipoPublicPct || 0;
           const fullVal = (sub.baseIncome * sub.level * Math.pow(1.12, sub.level - 1) * getCountriesMultiplier(sub.countries || ['PL'])) * 28;
           const ipoProceeds = Math.floor(fullVal * 0.25 * 1.22);
           const canIPO = sub.level >= 2 && ipoPct < 45;
 
           const sectorTags = (sub.sector || '').split(' + ').map(sec => `<span class="sector-tag">${sec}</span>`).join('');
-
           const cCodes = sub.countries || ['PL'];
           const cBadges = cCodes.slice(0, 6).map(code => {
             const c = COUNTRIES.find(x => x.code === code);
@@ -3050,43 +2963,31 @@
                   </div>
                   <div class="sub-level">LVL ${sub.level}</div>
                 </div>
-
                 <div style="margin-top: 8px;">${cBadges}</div>
-
-                ${sub.mergedCount ? `<div style="font-size: 11.5px; color: #c7d2fe; margin-top: 5px;">🔀 Konglomerat po fuzji (+${sub.mergedCount * 45}% premii)</div>` : ''}
-                ${ipoPct > 0 ? `<div style="font-size: 11.5px; color: var(--gold); margin-top: 4px;">📈 Spółka notowana (Free Float: ${ipoPct}%, Twój udział: ${100 - ipoPct}%)</div>` : ''}
-
+                ${sub.mergedCount ? `<div style="font-size: 11.5px; color: #c7d2fe; margin-top: 5px;">🔀 Konglomerat (+${sub.mergedCount * 45}%)</div>` : ''}
+                ${ipoPct > 0 ? `<div style="font-size: 11.5px; color: var(--gold); margin-top: 4px;">📈 IPO: Free Float ${ipoPct}%, Twój udział ${100 - ipoPct}%</div>` : ''}
                 ${(childSubsCount > 0 || assignedMktCount > 0) ? `
                   <div style="font-size: 11.5px; color: var(--gold); margin-top: 6px;">
-                    🔗 Podległe spółki: <strong>${childSubsCount}</strong> zależnych, <strong>${assignedMktCount}</strong> giełdowych (+${childSubsCount * 14 + assignedMktCount * 18}% bonusu)
+                    🔗 Podległe: <strong>${childSubsCount}</strong> zależnych, <strong>${assignedMktCount}</strong> giełdowych
                   </div>
                 ` : ''}
-
                 <div class="form-group" style="margin-top: 8px; margin-bottom: 4px;">
                   <label class="form-label" style="font-size: 10.5px;"><span>Podmiot Nadrzędny</span></label>
-                  <select data-reassign-sub="${sub.id}" style="padding: 6px 9px; font-size: 12px;">
-                    ${parentOptions}
-                  </select>
+                  <select data-reassign-sub="${sub.id}" style="padding: 6px 9px; font-size: 12px;">${parentOptions}</select>
                 </div>
-
                 <div class="sub-metrics" style="margin-top: 8px;">
                   <div><span>Cashflow (${getCountriesMultiplier(cCodes).toFixed(2)}x)</span><strong style="color: var(--green);">${fmtMoney(inc)}/s</strong></div>
                   <div><span>Wycena pakietu</span><strong>${fmtMoney(val)}</strong></div>
                 </div>
               </div>
-
               <div style="display: flex; flex-direction: column; gap: 6px;">
                 <div class="btn-row">
-                  <button class="primary" data-upgrade-sub="${sub.id}" ${canAfford ? '' : 'disabled'}>
-                    Rozwiń (${fmtMoney(upgCost)})
-                  </button>
-                  <button class="success" data-expand-sub="${sub.id}">
-                    🌍 Nowy Kraj
-                  </button>
+                  <button class="primary" data-upgrade-sub="${sub.id}" ${state.cash >= upgCost ? '' : 'disabled'}>Rozwiń (${fmtMoney(upgCost)})</button>
+                  <button class="success" data-expand-sub="${sub.id}">🌍 Nowy Kraj</button>
                 </div>
                 ${sub.level >= 2 ? `
                   <button class="warn" data-ipo-sub="${sub.id}" ${canIPO ? '' : 'disabled'}>
-                    ${ipoPct >= 45 ? 'Limit IPO osiągnięty (45%)' : `📈 IPO: Sprzedaj 25% (+${fmtMoney(ipoProceeds)})`}
+                    ${ipoPct >= 45 ? 'Limit IPO (45%)' : `📈 IPO: Sprzedaj 25% (+${fmtMoney(ipoProceeds)})`}
                   </button>
                 ` : ''}
               </div>
@@ -3094,41 +2995,43 @@
           `;
         }).join('');
       }
-
       updateCreatorPreview();
     }
 
     function renderMarket() {
-      updateIncomingToggleBtn();
+      updateIncomingToggleSwitches();
       document.getElementById('ipo-spawn-timer').textContent = Math.ceil(state.nextIpoSpawnInSec) + 's';
 
-      const container = document.getElementById('market-list');
       const totalDiv = state.market.reduce((acc, c) => acc + getMarketDividendIncome(c), 0);
       document.getElementById('dividend-summary').textContent = fmtMoney(totalDiv) + ' / s';
 
-      container.innerHTML = state.market.map(comp => {
+      const filteredComps = state.market.filter(comp => {
+        if (activeMarketFilter === 'owned') return !comp.absorbed && comp.ownedPct > 0;
+        if (activeMarketFilter === 'majority') return !comp.absorbed && comp.ownedPct >= 51;
+        if (activeMarketFilter === 'mna') return !comp.absorbed && comp.shareholders.length > 0;
+        return true;
+      });
+
+      document.getElementById('market-list').innerHTML = filteredComps.map(comp => {
         if (comp.absorbed) {
           return `
             <div class="sub-card acquired-tag">
               <div>
                 <span class="sector-tag" style="background: var(--gold-bg); color: var(--gold);">WCHŁONIĘTA (100%)</span>
                 <div class="sub-name">${comp.name}</div>
-                <p style="font-size: 12.5px; color: var(--muted); margin-top: 8px;">
-                  Spółka została w pełni skonsolidowana i działa teraz w strukturze Twojego holdingu.
-                </p>
+                <p style="font-size: 12.5px; color: var(--muted); margin-top: 8px;">Skonsolidowana w strukturze grupy.</p>
               </div>
             </div>
           `;
         }
 
+        const val = getCompanyVal(comp);
         const freeFloat = getFreeFloatPct(comp);
-        const cost1 = comp.currentValuation * 0.01;
-        const cost10 = comp.currentValuation * 0.10;
+        const cost1 = val * 0.01;
+        const cost10 = val * 0.10;
         const divInc = getMarketDividendIncome(comp);
         const isMajority = comp.ownedPct >= 51;
         const trendUp = comp.lastChangePct >= 0;
-        const trendClass = trendUp ? 'trend-up' : 'trend-down';
-        const trendSign = trendUp ? '+' : '';
 
         const holdersHtml = comp.shareholders.map(h => {
           const deltaHtml = h.lastDelta
@@ -3142,9 +3045,7 @@
               </div>
               <div style="display: flex; align-items: center; gap: 6px;">
                 <strong>${h.pct}%${deltaHtml}</strong>
-                <button class="warn" style="padding: 4px 8px; font-size: 11px;" data-open-offer="${comp.id}" data-holder-id="${h.id}">
-                  Złóż ofertę
-                </button>
+                <button class="warn" style="padding: 4px 8px; font-size: 11px;" data-open-offer="${comp.id}" data-holder-id="${h.id}">Złóż ofertę</button>
               </div>
             </div>
           `;
@@ -3154,16 +3055,12 @@
         if (comp.ownedPct > 0 && state.subsidiaries.length > 0) {
           const subOpts = [
             `<option value="HQ" ${(comp.parentId || 'HQ') === 'HQ' ? 'selected' : ''}>🏛️ Centrala Holdingu</option>`,
-            ...state.subsidiaries.map(s =>
-              `<option value="${s.id}" ${comp.parentId === s.id ? 'selected' : ''}>🏢 ${s.name} (+18% synergii)</option>`
-            )
+            ...state.subsidiaries.map(s => `<option value="${s.id}" ${comp.parentId === s.id ? 'selected' : ''}>🏢 ${s.name} (+18%)</option>`)
           ].join('');
           assignParentHtml = `
             <div class="form-group" style="margin-top: 8px; margin-bottom: 2px;">
-              <label class="form-label" style="font-size: 10.5px;"><span>Przypisanie Pakietu Akcji do Spółki</span></label>
-              <select data-reassign-mkt="${comp.id}" style="padding: 6px 9px; font-size: 12px;">
-                ${subOpts}
-              </select>
+              <label class="form-label" style="font-size: 10.5px;"><span>Przypisanie Pakietu</span></label>
+              <select data-reassign-mkt="${comp.id}" style="padding: 6px 9px; font-size: 12px;">${subOpts}</select>
             </div>
           `;
         }
@@ -3180,67 +3077,48 @@
                 </div>
                 <div style="text-align: right;">
                   <div style="font-size: 11px; color: var(--muted);">Wycena 100%</div>
-                  <div style="font-weight: 700; font-size: 14px;">${fmtMoney(comp.currentValuation)}</div>
-                  <div class="${trendClass}" style="font-size: 11px;">${trendSign}${comp.lastChangePct.toFixed(1)}%</div>
+                  <div style="font-weight: 700; font-size: 14px;">${fmtMoney(val)}</div>
+                  <div class="${trendUp ? 'trend-up' : 'trend-down'}" style="font-size: 11px;">${trendUp ? '+' : ''}${comp.lastChangePct.toFixed(1)}%</div>
                 </div>
               </div>
-
-              <div class="sparkline-box">
-                ${renderSparklineSvg(comp.history, trendUp)}
-              </div>
-
+              <div class="sparkline-box">${renderSparklineSvg(comp.history, trendUp)}</div>
               <div style="margin-top: 10px;">
                 <div style="display: flex; justify-content: space-between; font-size: 12px;">
-                  <span>Twój pakiet udziałów:</span>
-                  <strong style="color: ${isMajority ? 'var(--gold)' : '#fff'};">
-                    ${comp.ownedPct}% ${isMajority ? '👑 (Kontrola 51%+)' : ''}
-                  </strong>
+                  <span>Twój pakiet:</span>
+                  <strong style="color: ${isMajority ? 'var(--gold)' : '#fff'};">${comp.ownedPct}% ${isMajority ? '👑' : ''}</strong>
                 </div>
                 <div class="share-bar-bg">
                   <div class="share-bar-fill ${isMajority ? 'majority' : ''}" style="width: ${comp.ownedPct}%;"></div>
                 </div>
               </div>
-
               ${assignParentHtml}
-
               <div class="cap-table" style="margin-top: 8px;">
-                <div class="cap-table-title">
-                  <span>Aktywny Akcjonariat</span>
-                  <span>Free Float: ${freeFloat}%</span>
-                </div>
+                <div class="cap-table-title"><span>Akcjonariat</span><span>Free Float: ${freeFloat}%</span></div>
                 ${comp.ownedPct > 0 ? `
                   <div class="cap-row">
                     <div class="cap-holder-name" style="color: var(--green);">🏛️ ${getParentName(comp.parentId || 'HQ')}</div>
                     <strong style="color: var(--green);">${comp.ownedPct}%</strong>
                   </div>
                 ` : ''}
-                ${holdersHtml || `<div style="color: var(--muted); font-size: 11.5px; padding-top: 4px;">Brak innych dużych akcjonariuszy.</div>`}
+                ${holdersHtml || `<div style="color: var(--muted); font-size: 11.5px; padding-top: 4px;">Brak innych dużych udziałowców.</div>`}
               </div>
-
               <div class="sub-metrics" style="margin-top: 10px;">
-                <div><span>Twoja dywidenda</span><strong style="color: var(--green);">${fmtMoney(divInc)}/s</strong></div>
+                <div><span>Dywidenda</span><strong style="color: var(--green);">${fmtMoney(divInc)}/s</strong></div>
                 <div><span>1% na giełdzie</span><strong>${fmtMoney(cost1)}</strong></div>
               </div>
             </div>
-
             ${comp.ownedPct >= 100 ? `
               <div style="display: flex; flex-direction: column; gap: 6px;">
-                <button class="primary" style="background: linear-gradient(135deg, #f59e0b, #d97706); border: none;" data-absorb-comp="${comp.id}">
-                  ⚡ Konsoliduj jako Spółkę-Córkę (100%)
-                </button>
-                <button class="warn" data-manage-comp="${comp.id}">🎛️ Panel Zarządzania Spółką</button>
+                <button class="primary" style="background: linear-gradient(135deg, #f59e0b, #d97706); border: none;" data-absorb-comp="${comp.id}">⚡ Konsoliduj (100%)</button>
+                <button class="warn" data-manage-comp="${comp.id}">🎛️ Panel Zarządzania</button>
               </div>
             ` : `
               <div style="display: flex; flex-direction: column; gap: 6px;">
-                ${isMajority ? `
-                  <button class="primary" data-manage-comp="${comp.id}">
-                    🎛️ Panel Zarządzania Firmą (Strategia, R&amp;D, Tarcza)
-                  </button>
-                ` : ''}
+                ${isMajority ? `<button class="primary" data-manage-comp="${comp.id}">🎛️ Panel Zarządzania Firmą</button>` : ''}
                 <div class="btn-row">
                   <button class="success" data-buy-float="${comp.id}" data-pct="1" ${state.cash >= cost1 && freeFloat >= 1 ? '' : 'disabled'}>Giełda +1%</button>
                   <button class="success" data-buy-float="${comp.id}" data-pct="10" ${state.cash >= cost10 && freeFloat >= 10 ? '' : 'disabled'}>Giełda +10%</button>
-                  <button class="warn" data-open-offer="${comp.id}" ${comp.shareholders.length > 0 ? '' : 'disabled'}>🤝 Odkup od Udziałowca</button>
+                  <button class="warn" data-open-offer="${comp.id}" ${comp.shareholders.length > 0 ? '' : 'disabled'}>🤝 Odkup</button>
                 </div>
                 <div class="btn-row">
                   ${isMajority ? `
@@ -3259,27 +3137,18 @@
 
     function renderBoard() {
       document.getElementById('ceo-salaries-summary').textContent = fmtMoney(getTotalCeoSalariesPerSec()) + ' / s';
-      const container = document.getElementById('ceo-market-list');
-
-      container.innerHTML = CEO_ROSTER.map(ceo => {
+      document.getElementById('ceo-market-list').innerHTML = CEO_ROSTER.map(ceo => {
         const hiredEntry = state.hiredCEOs.find(h => h.ceoId === ceo.id);
         const isHired = Boolean(hiredEntry);
-
-        let assignSelectHtml = '';
-        if (isHired) {
-          const subOptions = state.subsidiaries.map(s =>
-            `<option value="${s.id}" ${hiredEntry.assignedTo === s.id ? 'selected' : ''}>${getHierarchyRoleLabel(getSubDepth(s.id))}: ${s.name}</option>`
-          ).join('');
-          assignSelectHtml = `
-            <div class="form-group" style="margin-top: 8px; margin-bottom: 4px;">
-              <label class="form-label"><span>Przydział stanowiska</span></label>
-              <select data-assign-ceo="${ceo.id}">
-                <option value="HQ" ${hiredEntry.assignedTo === 'HQ' ? 'selected' : ''}>🏛️ Centrala Holdingu</option>
-                ${subOptions}
-              </select>
-            </div>
-          `;
-        }
+        const assignSelectHtml = isHired ? `
+          <div class="form-group" style="margin-top: 8px; margin-bottom: 4px;">
+            <label class="form-label"><span>Przydział</span></label>
+            <select data-assign-ceo="${ceo.id}">
+              <option value="HQ" ${hiredEntry.assignedTo === 'HQ' ? 'selected' : ''}>🏛️ Centrala Holdingu</option>
+              ${state.subsidiaries.map(s => `<option value="${s.id}" ${hiredEntry.assignedTo === s.id ? 'selected' : ''}>${getHierarchyRoleLabel(getSubDepth(s.id))}: ${s.name}</option>`).join('')}
+            </select>
+          </div>
+        ` : '';
 
         return `
           <div class="sub-card ${isHired ? 'acquired-tag' : ''}">
@@ -3293,12 +3162,11 @@
               </div>
               <p style="font-size: 12.5px; color: var(--muted); margin-top: 8px; line-height: 1.45;">${ceo.desc}</p>
               <div class="sub-metrics" style="margin-top: 10px;">
-                <div><span>Koszt zatrudnienia</span><strong>${fmtMoney(ceo.hireCost)}</strong></div>
+                <div><span>Koszt</span><strong>${fmtMoney(ceo.hireCost)}</strong></div>
                 <div><span>Pensja</span><strong style="color: var(--red);">${fmtMoney(ceo.salaryPerSec)}/s</strong></div>
               </div>
               ${assignSelectHtml}
             </div>
-
             ${isHired
               ? `<button class="danger" data-fire-ceo="${ceo.id}">Zwolnij Menadżera</button>`
               : `<button class="primary" data-hire-ceo="${ceo.id}" ${state.cash >= ceo.hireCost ? '' : 'disabled'}>Zatrudnij (${fmtMoney(ceo.hireCost)})</button>`
@@ -3323,14 +3191,20 @@
 
       document.getElementById('repay-25-btn').disabled = state.debt <= 0 || state.cash <= 0;
       document.getElementById('repay-all-btn').disabled = state.debt <= 0 || state.cash <= 0;
+
+      const grantBtn = document.getElementById('btn-claim-grant');
+      if (grantBtn) {
+        grantBtn.disabled = grantCooldownSec > 0;
+        grantBtn.textContent = grantCooldownSec > 0
+          ? `Następny grant za ${Math.ceil(grantCooldownSec)}s`
+          : `Odbierz Grant (${fmtMoney(getGrantReward())})`;
+      }
     }
 
     function renderHQJurisdictions() {
       const activeHQ = getActiveHQ();
       document.getElementById('active-hq-badge').textContent = `Aktywna: ${activeHQ.flag} ${activeHQ.name}`;
-
-      const grid = document.getElementById('hq-jurisdiction-grid');
-      grid.innerHTML = HQ_JURISDICTIONS.map(hq => {
+      document.getElementById('hq-jurisdiction-grid').innerHTML = HQ_JURISDICTIONS.map(hq => {
         const isCurrent = hq.id === activeHQ.id;
         return `
           <div class="hq-card ${isCurrent ? 'active-hq' : ''}">
@@ -3350,12 +3224,10 @@
     function buildTreeHtml(parentId) {
       const childSubs = state.subsidiaries.filter(s => (s.parentId || 'HQ') === parentId);
       const childComps = state.market.filter(c => !c.absorbed && c.ownedPct > 0 && (c.parentId || 'HQ') === parentId);
-
       if (childSubs.length === 0 && childComps.length === 0) return '';
 
       const subsHtml = childSubs.map(s => {
         const depth = getSubDepth(s.id);
-        const roleLabel = getHierarchyRoleLabel(depth);
         const cCodes = s.countries || ['PL'];
         const flags = cCodes.slice(0, 5).map(code => COUNTRIES.find(c => c.code === code)?.flag || code).join(' ') + (cCodes.length > 5 ? ` (+${cCodes.length - 5})` : '');
         const nested = buildTreeHtml(s.id);
@@ -3364,7 +3236,7 @@
           <div class="org-node" style="border-color: rgba(16, 185, 129, 0.45);">
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
               <div>
-                <div style="font-size: 11px; color: var(--green); font-weight: 700;">${100 - (s.ipoPublicPct || 0)}% ${roleLabel.toUpperCase()} • LVL ${s.level}</div>
+                <div style="font-size: 11px; color: var(--green); font-weight: 700;">${100 - (s.ipoPublicPct || 0)}% ${getHierarchyRoleLabel(depth).toUpperCase()} • LVL ${s.level}</div>
                 <div style="font-weight: 700; font-size: 15px; margin: 2px 0;">🏢 ${s.name}</div>
                 <div style="font-size: 11.5px; color: #a5b4fc;">${s.sector} • ${flags}</div>
               </div>
@@ -3382,13 +3254,13 @@
         <div class="org-node" style="border-color: rgba(245, 158, 11, 0.45); background: rgba(245, 158, 11, 0.05);">
           <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
             <div>
-              <div style="font-size: 11px; color: var(--gold); font-weight: 700;">PAKIET GIEŁDOWY: ${c.ownedPct}% ${c.ownedPct >= 51 ? '👑 (KONTROLA)' : ''}</div>
+              <div style="font-size: 11px; color: var(--gold); font-weight: 700;">PAKIET GIEŁDOWY: ${c.ownedPct}% ${c.ownedPct >= 51 ? '👑' : ''}</div>
               <div style="font-weight: 700; font-size: 14.5px; margin: 2px 0;">📈 ${c.name}</div>
               <div style="font-size: 11.5px; color: var(--muted);">${c.sector}</div>
             </div>
             <div style="text-align: right;">
               <div style="font-size: 12px; color: var(--green); font-weight: 700;">Dywidenda: +${fmtMoney(getMarketDividendIncome(c))}/s</div>
-              <div style="font-size: 11px; color: var(--muted);">Wartość pakietu: ${fmtMoney(c.currentValuation * (c.ownedPct / 100))}</div>
+              <div style="font-size: 11px; color: var(--muted);">Pakiet: ${fmtMoney(getCompanyVal(c) * (c.ownedPct / 100))}</div>
             </div>
           </div>
         </div>
@@ -3401,17 +3273,12 @@
       renderHQJurisdictions();
       document.getElementById('tree-holding-name').textContent = state.holdingName;
       document.getElementById('tree-total-value').textContent = 'Wartość aktywów netto: ' + fmtMoney(getTotalNetWorth());
-
-      const branches = document.getElementById('org-tree-branches');
       const treeHtml = buildTreeHtml('HQ');
-      branches.innerHTML = treeHtml.length > 0
-        ? treeHtml
-        : `<div style="color: var(--muted); font-size: 13px; text-align: center;">Brak podmiotów zależnych w strukturze. Załóż pierwszą spółkę-córkę lub wykup akcje na giełdzie!</div>`;
+      document.getElementById('org-tree-branches').innerHTML = treeHtml || `<div style="color: var(--muted); font-size: 13px; text-align: center;">Brak spółek zależnych w strukturze.</div>`;
     }
 
     function renderLogs() {
-      const logBox = document.getElementById('event-log');
-      logBox.innerHTML = state.logs.map(l => `
+      document.getElementById('event-log').innerHTML = state.logs.map(l => `
         <div class="log-item ${l.type}">
           <span class="log-time">[${l.time}]</span>${l.text}
         </div>
@@ -3429,7 +3296,6 @@
       renderLogs();
     }
 
-    // --- EVENT LISTENERS & DELEGATION ---
     document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('btn-reset').addEventListener('click', resetGame);
       document.getElementById('btn-manual-deal').addEventListener('click', manualDeal);
@@ -3437,9 +3303,21 @@
       document.getElementById('btn-rename-holding').addEventListener('click', renameHolding);
       document.getElementById('btn-execute-merge').addEventListener('click', executeSubsidiaryMerger);
       document.getElementById('btn-claim-tender').addEventListener('click', claimActiveTender);
+      document.getElementById('btn-claim-grant').addEventListener('click', claimGrant);
+      document.getElementById('btn-issue-bonds').addEventListener('click', issueCorporateBonds);
 
-      document.getElementById('btn-spawn-market-comp').addEventListener('click', () => spawnNewMarketCompany(true));
-      document.getElementById('btn-toggle-incoming-offers').addEventListener('click', toggleIncomingOffersSetting);
+      document.getElementById('top-offers-switch').addEventListener('click', toggleIncomingOffersSetting);
+      document.getElementById('market-offers-switch').addEventListener('click', toggleIncomingOffersSetting);
+
+      document.getElementById('market-filter-row').addEventListener('click', (e) => {
+        const chip = e.target.closest('[data-mkt-filter]');
+        if (!chip) return;
+        activeMarketFilter = chip.dataset.mktFilter;
+        document.querySelectorAll('#market-filter-row .filter-chip').forEach(c => {
+          c.classList.toggle('active', c.dataset.mktFilter === activeMarketFilter);
+        });
+        renderMarket();
+      });
 
       document.getElementById('region-presets').addEventListener('click', (e) => {
         const btn = e.target.closest('[data-region]');
@@ -3453,9 +3331,7 @@
 
       document.getElementById('main-nav').addEventListener('click', (e) => {
         const btn = e.target.closest('.tab-btn');
-        if (btn && btn.dataset.tab) {
-          switchTab(btn.dataset.tab);
-        }
+        if (btn && btn.dataset.tab) switchTab(btn.dataset.tab);
       });
 
       document.getElementById('btn-loan-25').addEventListener('click', () => takeLoan(0.25));
@@ -3463,7 +3339,6 @@
       document.getElementById('repay-25-btn').addEventListener('click', () => repayLoan(0.25));
       document.getElementById('repay-all-btn').addEventListener('click', () => repayLoan(1.0));
 
-      // Manage Company Modal Listeners
       document.getElementById('btn-close-mgmt').addEventListener('click', closeManageCompModal);
       document.getElementById('btn-mgmt-done').addEventListener('click', closeManageCompModal);
       document.getElementById('btn-mgmt-rd').addEventListener('click', investManagedCompRD);
@@ -3501,7 +3376,6 @@
         }
       });
 
-      // Offer Modal Listeners
       document.getElementById('btn-close-offer').addEventListener('click', closeOfferModal);
       document.getElementById('btn-cancel-offer').addEventListener('click', closeOfferModal);
       document.getElementById('modal-holder-select').addEventListener('change', updateOfferModalCalc);
@@ -3526,114 +3400,60 @@
 
       document.body.addEventListener('click', (e) => {
         const catOpt = e.target.closest('[data-cat-id]');
-        if (catOpt) {
-          toggleCategory(catOpt.dataset.catId);
-          return;
-        }
+        if (catOpt) { toggleCategory(catOpt.dataset.catId); return; }
 
         const countryChip = e.target.closest('[data-country-code]');
-        if (countryChip) {
-          toggleCountry(countryChip.dataset.countryCode);
-          return;
-        }
+        if (countryChip) { toggleCountry(countryChip.dataset.countryCode); return; }
 
         const upgBtn = e.target.closest('[data-upgrade-sub]');
-        if (upgBtn && !upgBtn.disabled) {
-          upgradeSubsidiary(upgBtn.dataset.upgradeSub);
-          return;
-        }
+        if (upgBtn && !upgBtn.disabled) { upgradeSubsidiary(upgBtn.dataset.upgradeSub); return; }
 
         const expBtn = e.target.closest('[data-expand-sub]');
-        if (expBtn && !expBtn.disabled) {
-          openExpandModal(expBtn.dataset.expandSub);
-          return;
-        }
+        if (expBtn && !expBtn.disabled) { openExpandModal(expBtn.dataset.expandSub); return; }
 
         const ipoBtn = e.target.closest('[data-ipo-sub]');
-        if (ipoBtn && !ipoBtn.disabled) {
-          launchSubsidiaryIPO(ipoBtn.dataset.ipoSub);
-          return;
-        }
+        if (ipoBtn && !ipoBtn.disabled) { launchSubsidiaryIPO(ipoBtn.dataset.ipoSub); return; }
 
         const relocBtn = e.target.closest('[data-reloc-hq]');
-        if (relocBtn && !relocBtn.disabled) {
-          relocateHQ(relocBtn.dataset.relocHq);
-          return;
-        }
+        if (relocBtn && !relocBtn.disabled) { relocateHQ(relocBtn.dataset.relocHq); return; }
 
         const expCountryBtn = e.target.closest('[data-exp-country]');
-        if (expCountryBtn && !expCountryBtn.disabled) {
-          expandSubCountry(expCountryBtn.dataset.expCountry, Number(expCountryBtn.dataset.expCost));
-          return;
-        }
+        if (expCountryBtn && !expCountryBtn.disabled) { expandSubCountry(expCountryBtn.dataset.expCountry, Number(expCountryBtn.dataset.expCost)); return; }
 
         const mgmtBtn = e.target.closest('[data-manage-comp]');
-        if (mgmtBtn && !mgmtBtn.disabled) {
-          openManageCompModal(mgmtBtn.dataset.manageComp);
-          return;
-        }
+        if (mgmtBtn && !mgmtBtn.disabled) { openManageCompModal(mgmtBtn.dataset.manageComp); return; }
 
         const offerBtn = e.target.closest('[data-open-offer]');
-        if (offerBtn && !offerBtn.disabled) {
-          openOfferModal(offerBtn.dataset.openOffer, offerBtn.dataset.holderId || null);
-          return;
-        }
+        if (offerBtn && !offerBtn.disabled) { openOfferModal(offerBtn.dataset.openOffer, offerBtn.dataset.holderId || null); return; }
 
         const buyFloatBtn = e.target.closest('[data-buy-float]');
-        if (buyFloatBtn && !buyFloatBtn.disabled) {
-          buyFreeFloat(buyFloatBtn.dataset.buyFloat, Number(buyFloatBtn.dataset.pct));
-          return;
-        }
+        if (buyFloatBtn && !buyFloatBtn.disabled) { buyFreeFloat(buyFloatBtn.dataset.buyFloat, Number(buyFloatBtn.dataset.pct)); return; }
 
         const specDivBtn = e.target.closest('[data-special-div]');
-        if (specDivBtn && !specDivBtn.disabled) {
-          triggerSpecialDividend(specDivBtn.dataset.specialDiv);
-          return;
-        }
+        if (specDivBtn && !specDivBtn.disabled) { triggerSpecialDividend(specDivBtn.dataset.specialDiv); return; }
 
         const sellBtn = e.target.closest('[data-sell-shares]');
-        if (sellBtn && !sellBtn.disabled) {
-          sellShares(sellBtn.dataset.sellShares, 5);
-          return;
-        }
+        if (sellBtn && !sellBtn.disabled) { sellShares(sellBtn.dataset.sellShares, 5); return; }
 
         const absorbBtn = e.target.closest('[data-absorb-comp]');
-        if (absorbBtn && !absorbBtn.disabled) {
-          absorbCompany(absorbBtn.dataset.absorbComp);
-          return;
-        }
+        if (absorbBtn && !absorbBtn.disabled) { absorbCompany(absorbBtn.dataset.absorbComp); return; }
 
         const hireBtn = e.target.closest('[data-hire-ceo]');
-        if (hireBtn && !hireBtn.disabled) {
-          hireCEO(hireBtn.dataset.hireCeo);
-          return;
-        }
+        if (hireBtn && !hireBtn.disabled) { hireCEO(hireBtn.dataset.hireCeo); return; }
 
         const fireBtn = e.target.closest('[data-fire-ceo]');
-        if (fireBtn && !fireBtn.disabled) {
-          fireCEO(fireBtn.dataset.fireCeo);
-          return;
-        }
+        if (fireBtn && !fireBtn.disabled) { fireCEO(fireBtn.dataset.fireCeo); return; }
       });
 
       document.body.addEventListener('change', (e) => {
         const assignSel = e.target.closest('[data-assign-ceo]');
-        if (assignSel) {
-          assignCEO(assignSel.dataset.assignCeo, assignSel.value);
-          return;
-        }
+        if (assignSel) { assignCEO(assignSel.dataset.assignCeo, assignSel.value); return; }
 
         const reassignSubSel = e.target.closest('[data-reassign-sub]');
-        if (reassignSubSel) {
-          reassignSubsidiaryParent(reassignSubSel.dataset.reassignSub, reassignSubSel.value);
-          return;
-        }
+        if (reassignSubSel) { reassignSubsidiaryParent(reassignSubSel.dataset.reassignSub, reassignSubSel.value); return; }
 
         const reassignMktSel = e.target.closest('[data-reassign-mkt]');
-        if (reassignMktSel) {
-          reassignMarketCompParent(reassignMktSel.dataset.reassignMkt, reassignMktSel.value);
-          return;
-        }
+        if (reassignMktSel) { reassignMarketCompParent(reassignMktSel.dataset.reassignMkt, reassignMktSel.value); return; }
       });
 
       renderParentSelector();
@@ -3643,7 +3463,6 @@
       requestAnimationFrame(gameLoop);
     });
 
-    // --- CONTINUOUS REAL-TIME LOOP ---
     let lastFrameTime = performance.now();
     let marketTimer = 0;
     let shareholderRotationTimer = 0;
@@ -3656,20 +3475,17 @@
       lastFrameTime = now;
 
       state.simMinutes += dt * 10;
+      if (grantCooldownSec > 0) grantCooldownSec = Math.max(0, grantCooldownSec - dt);
 
-      // Active B2B Tender countdown
       if (state.activeTender) {
         state.activeTender.remainingSec -= dt;
-        if (state.activeTender.remainingSec <= 0) {
-          state.activeTender = generateTenderObject();
-        }
+        if (state.activeTender.remainingSec <= 0) state.activeTender = generateTenderObject();
       }
 
-      // Automatic IPO Spawner for new market companies
       state.nextIpoSpawnInSec -= dt;
       if (state.nextIpoSpawnInSec <= 0) {
         state.nextIpoSpawnInSec = 40;
-        spawnNewMarketCompany(false);
+        spawnNewMarketCompany();
       }
 
       if (state.activeEvent) {
@@ -3690,9 +3506,7 @@
       }
 
       state.market.forEach(c => {
-        if (c.specialDivCooldown > 0) {
-          c.specialDivCooldown = Math.max(0, c.specialDivCooldown - dt);
-        }
+        if (c.specialDivCooldown > 0) c.specialDivCooldown = Math.max(0, c.specialDivCooldown - dt);
       });
 
       const netFlow = getNetCashflowPerSec();
@@ -3718,35 +3532,30 @@
             const matchesSector = activeEv.sectorBoost.some(k => comp.sector.toLowerCase().includes(k.toLowerCase()));
             drift = matchesSector ? activeEv.valDrift : activeEv.valDrift * 0.25;
           }
-
           if (comp.ownedPct >= 51) {
             const reinvestBonus = ((100 - (comp.payoutRatio ?? 75)) / 100) * 0.025;
             const stratBonus = comp.strategy === 'growth' ? 0.022 : (comp.strategy === 'cashcow' ? -0.006 : 0.005);
             drift += reinvestBonus + stratBonus;
           }
-
           const changePct = (Math.random() * 10.5) - 5.0 + (drift * 100);
           comp.lastChangePct = changePct;
+          const currVal = getCompanyVal(comp);
           comp.currentValuation = Math.max(
             comp.baseValuation * 0.45,
-            Math.min(comp.baseValuation * 4.5, comp.currentValuation * (1 + changePct / 100))
+            Math.min(comp.baseValuation * 4.5, currVal * (1 + changePct / 100))
           );
-          if (!comp.history) comp.history = [];
+          if (!Array.isArray(comp.history)) comp.history = [];
           comp.history.push(Math.round(comp.currentValuation));
           if (comp.history.length > 18) comp.history.shift();
         });
-        if (!document.getElementById('tab-market').classList.contains('hidden')) {
-          renderMarket();
-        }
+        if (!document.getElementById('tab-market').classList.contains('hidden')) renderMarket();
       }
 
       shareholderRotationTimer += dt;
       if (shareholderRotationTimer >= 12) {
         shareholderRotationTimer = 0;
         simulateShareholderRotation();
-        if (!document.getElementById('tab-market').classList.contains('hidden')) {
-          renderMarket();
-        }
+        if (!document.getElementById('tab-market').classList.contains('hidden')) renderMarket();
       }
 
       updateMacroBanner();
