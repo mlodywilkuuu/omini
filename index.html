@@ -272,6 +272,28 @@
       letter-spacing: 0.4px;
     }
 
+    /* Region Preset Buttons */
+    .region-presets {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+
+    .region-btn {
+      padding: 5px 9px;
+      font-size: 11.5px;
+      border-radius: 8px;
+      background: rgba(99, 102, 241, 0.12);
+      border: 1px solid rgba(99, 102, 241, 0.32);
+      color: #c7d2fe;
+    }
+
+    .region-btn:hover {
+      background: rgba(99, 102, 241, 0.25);
+      color: #fff;
+    }
+
     /* Category Filter Pills */
     .cat-list {
       max-height: 155px;
@@ -440,6 +462,8 @@
       margin-bottom: 16px;
       padding-bottom: 12px;
       border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+      gap: 8px;
     }
 
     .panel-title { font-size: 16px; font-weight: 700; }
@@ -592,6 +616,14 @@
       gap: 14px;
     }
 
+    .merger-box {
+      background: rgba(99, 102, 241, 0.08);
+      border: 1px solid rgba(99, 102, 241, 0.35);
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 16px;
+    }
+
     .event-log {
       max-height: 290px;
       overflow-y: auto;
@@ -678,6 +710,29 @@
       color: #fff;
     }
 
+    .hq-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .hq-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .hq-card.active-hq {
+      border-color: var(--green);
+      background: rgba(16, 185, 129, 0.08);
+    }
+
     /* Multi-level Tree View */
     .org-root {
       text-align: center;
@@ -685,7 +740,7 @@
       background: rgba(99, 102, 241, 0.16);
       border: 1px solid var(--accent);
       border-radius: 14px;
-      max-width: 440px;
+      max-width: 480px;
       margin: 0 auto 22px auto;
     }
 
@@ -781,7 +836,7 @@
         🏦 Kredyty &amp; Dźwignia
       </button>
       <button class="tab-btn" data-tab="structure">
-        🕸️ Drzewo Holdingu
+        🕸️ Drzewo &amp; Jurysdykcja
       </button>
     </nav>
 
@@ -798,12 +853,25 @@
       </div>
 
       <div class="grid-2">
-        <!-- OWNED SUBSIDIARIES -->
+        <!-- OWNED SUBSIDIARIES + MERGER PANEL -->
         <div class="panel">
           <div class="panel-header">
-            <div class="panel-title">Twoje Spółki-Córki i Spółki-Wnuczki (100%)</div>
+            <div class="panel-title">Twoje Spółki-Córki i Spółki-Wnuczki</div>
             <span style="font-size: 12px; color: var(--muted);" id="sub-synergy-info">Synergia: +0%</span>
           </div>
+
+          <!-- MERGER PANEL (SHOWN WHEN >= 2 SAME-SECTOR SUBS EXIST) -->
+          <div id="merger-panel" class="merger-box hidden">
+            <div style="font-weight: 700; font-size: 13.5px; margin-bottom: 6px; color: #c7d2fe;">
+              🔀 Fuzja Spółek w Giganta Sektorowego (+45% do przychodów połączonej firmy)
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 8px; align-items: center;">
+              <select id="merge-sub-a"></select>
+              <select id="merge-sub-b"></select>
+              <button class="primary" id="btn-execute-merge">Połącz</button>
+            </div>
+          </div>
+
           <div class="cards-grid" id="owned-subs-list"></div>
         </div>
 
@@ -835,9 +903,19 @@
 
             <div class="form-group">
               <label class="form-label">
-                <span>4. Kraje Działania (Wszystkie kraje świata)</span>
+                <span>4. Kraje Działania &amp; Regiony</span>
                 <span id="country-count-label" style="color: var(--green);">Wybrano: 1</span>
               </label>
+
+              <div class="region-presets" id="region-presets">
+                <button type="button" class="region-btn" data-region="world">🌍 Cały Świat</button>
+                <button type="button" class="region-btn" data-region="europe">🇪🇺 Europa</button>
+                <button type="button" class="region-btn" data-region="na">🇺🇸 Ameryka Płn.</button>
+                <button type="button" class="region-btn" data-region="asia">🇯🇵 Azja</button>
+                <button type="button" class="region-btn" data-region="me">🇦🇪 Bliski Wschód</button>
+                <button type="button" class="region-btn" data-region="pl">🇵🇱 Tylko Polska</button>
+              </div>
+
               <input type="text" id="country-search-input" placeholder="Szukaj kraju np. Polska, Niemcy, USA, Japonia..." />
               <div class="selected-countries-strip" id="selected-countries-strip"></div>
               <div class="country-grid" id="country-select-grid"></div>
@@ -968,15 +1046,23 @@
               <strong style="color: var(--text);">Odsetki:</strong> Naliczane płynnie co sekundę na podstawie aktualnego salda długu.
             </div>
             <div style="padding: 10px; background: rgba(255,255,255,0.03); border-radius: 10px;">
-              <strong style="color: var(--text);">Strategia M&amp;A:</strong> Pożycz kapitał, przejmij pakiet kontrolny 51%+, podepnij firmę pod swoją spółkę-córkę i skonfiguruj jej strategię w Panelu Zarządzania.
+              <strong style="color: var(--text);">Strategia M&amp;A &amp; IPO:</strong> Pożycz kapitał, przejmij pakiet kontrolny 51%+, łącz spółki w fuzjach lub wprowadzaj spółki-córki na IPO po gotówkę.
             </div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- TAB 5: HOLDING STRUCTURE (MULTI-LEVEL HIERARCHY) -->
+    <!-- TAB 5: HOLDING STRUCTURE, JURISDICTIONS & MULTI-LEVEL HIERARCHY -->
     <section id="tab-structure" class="hidden">
+      <div class="panel" style="margin-bottom: 18px;">
+        <div class="panel-header">
+          <div class="panel-title">🏛️ Siedziba Główna &amp; Jurysdykcja Podatkowa Holdingu</div>
+          <span style="font-size: 12px; color: var(--green);" id="active-hq-badge">Aktywna: 🇵🇱 Polska</span>
+        </div>
+        <div class="hq-grid" id="hq-jurisdiction-grid"></div>
+      </div>
+
       <div class="panel">
         <div class="panel-header">
           <div class="panel-title">Wielopoziomowe Drzewo Kapitałowe Holdingu</div>
@@ -1021,9 +1107,7 @@
       </div>
 
       <div class="form-group">
-        <label class="form-label">
-          <span>1. Podmiot Nadrzędny w Grupie (Przypisanie Pakietu)</span>
-        </label>
+        <label class="form-label"><span>1. Podmiot Nadrzędny w Grupie (Przypisanie Pakietu)</span></label>
         <select id="mgmt-parent-select"></select>
         <div style="font-size: 11.5px; color: var(--green); margin-top: 4px;">
           Przypisanie do Spółki-Córki daje +18% premii synergii dla tej spółki-córki oraz +10% do dywidendy!
@@ -1287,7 +1371,63 @@
       code, flag, name, mult, costFactor
     }));
 
-    // --- POOL OF DYNAMIC RIVAL FUNDS & INVESTORS ---
+    const REGION_CODES = {
+      world: COUNTRIES.map(c => c.code),
+      europe: ['AL','AD','AT','BY','BE','BA','BG','HR','CY','CZ','DK','EE','FI','FR','GR','ES','NL','IE','IS','LT','LU','LV','MK','MT','MD','MC','ME','DE','NO','PL','PT','RO','RU','SM','RS','SK','SI','CH','SE','UA','VA','GB','IT','HU'],
+      na: ['US','CA','MX'],
+      asia: ['BD','BT','BN','CN','PH','IN','ID','JP','KH','KZ','KG','KR','KP','LA','MV','MY','MN','MM','NP','PK','SG','LK','TJ','TH','TL','TM','TW','UZ','VN'],
+      me: ['BH','IQ','IR','IL','JO','QA','KW','LB','OM','SA','SY','TR','AE','YE'],
+      pl: ['PL']
+    };
+
+    const HQ_JURISDICTIONS = [
+      {
+        id: 'hq_pl',
+        flag: '🇵🇱',
+        name: 'Polska (Warszawa)',
+        relocCost: 0,
+        incomeMult: 1.00,
+        costMult: 1.00,
+        desc: 'Bazowa jurysdykcja startowa. Stabilny rynek i brak kosztów relokacji.'
+      },
+      {
+        id: 'hq_lu',
+        flag: '🇱🇺',
+        name: 'Luksemburg',
+        relocCost: 65000,
+        incomeMult: 1.14,
+        costMult: 0.92,
+        desc: '+14% przychodów holdingowych i -8% kosztów rozwoju spółek.'
+      },
+      {
+        id: 'hq_ch',
+        flag: '🇨🇭',
+        name: 'Szwajcaria (Zurych)',
+        relocCost: 240000,
+        incomeMult: 1.24,
+        costMult: 0.90,
+        desc: '+24% przychodów i -10% kosztów rozwoju pod parasolem szwajcarskim.'
+      },
+      {
+        id: 'hq_sg',
+        flag: '🇸🇬',
+        name: 'Singapur',
+        relocCost: 850000,
+        incomeMult: 1.35,
+        costMult: 0.85,
+        desc: '+35% przychodów i -15% kosztów — centrum kapitałowe Azji.'
+      },
+      {
+        id: 'hq_ae',
+        flag: '🇦🇪',
+        name: 'ZEA (Dubaj DIFC)',
+        relocCost: 2800000,
+        incomeMult: 1.50,
+        costMult: 0.80,
+        desc: '+50% przychodów i -20% kosztów — globalna strefa wolnego kapitału.'
+      }
+    ];
+
     const RIVAL_INVESTORS_POOL = [
       { name: 'Valkyrie Capital AI', type: 'Fundusz AI', greed: 1.14 },
       { name: 'BlackRock Ridge Fund', type: 'Globalny Fundusz', greed: 1.18 },
@@ -1524,6 +1664,7 @@
     function getDefaultState() {
       return {
         holdingName: 'APEX CAPITAL GROUP S.A.',
+        hqJurisdictionId: 'hq_pl',
         cash: 1500,
         debt: 0,
         simMinutes: 8 * 60,
@@ -1546,7 +1687,7 @@
 
     function loadState() {
       try {
-        const raw = localStorage.getItem('apex_holding_save_v7');
+        const raw = localStorage.getItem('apex_holding_save_v8');
         if (!raw) return getDefaultState();
         const parsed = JSON.parse(raw);
         return { ...getDefaultState(), ...parsed };
@@ -1557,7 +1698,7 @@
 
     function saveState() {
       try {
-        localStorage.setItem('apex_holding_save_v7', JSON.stringify(state));
+        localStorage.setItem('apex_holding_save_v8', JSON.stringify(state));
       } catch (e) {}
     }
 
@@ -1571,7 +1712,22 @@
       renderLogs();
     }
 
-    // --- HIERARCHY & TREE HELPERS ---
+    // --- JURISDICTION & HIERARCHY HELPERS ---
+    function getActiveHQ() {
+      return HQ_JURISDICTIONS.find(h => h.id === state.hqJurisdictionId) || HQ_JURISDICTIONS[0];
+    }
+
+    function relocateHQ(hqId) {
+      const target = HQ_JURISDICTIONS.find(h => h.id === hqId);
+      if (!target || target.id === state.hqJurisdictionId) return;
+      if (target.relocCost > 0 && !spendCash(target.relocCost)) return;
+
+      state.hqJurisdictionId = target.id;
+      addLog(`RELOKACJA CENTRALI: Siedziba główna holdingu przeniesiona do ${target.flag} ${target.name}!`, 'warn');
+      renderAll();
+      saveState();
+    }
+
     function getSubDepth(subId, visited = new Set()) {
       if (!subId || subId === 'HQ' || visited.has(subId)) return 0;
       visited.add(subId);
@@ -1666,7 +1822,7 @@
       return `Dzień ${day} • ${hh}:${mm}`;
     }
 
-    // --- ECONOMY, CEO & MACRO CALCULATIONS ---
+    // --- ECONOMY, HQ, CEO & MACRO CALCULATIONS ---
     function getActiveMacroObj() {
       if (!state.activeEvent) return null;
       return MACRO_EVENTS.find(e => e.id === state.activeEvent.id) || null;
@@ -1686,7 +1842,7 @@
         const c = COUNTRIES.find(x => x.code === code);
         if (!c) return;
         if (idx === 0) sumBonus += c.mult;
-        else sumBonus += Math.max(0.12, c.mult - 0.85);
+        else sumBonus += Math.max(0.08, (c.mult - 0.85) * 0.65);
       });
       return Number(sumBonus.toFixed(2));
     }
@@ -1697,7 +1853,7 @@
       countryCodes.forEach((code, idx) => {
         const c = COUNTRIES.find(x => x.code === code);
         if (!c) return;
-        total += idx === 0 ? c.costFactor : c.costFactor * 0.75;
+        total += idx === 0 ? c.costFactor : c.costFactor * 0.45;
       });
       return total;
     }
@@ -1712,7 +1868,8 @@
         const ceo = CEO_ROSTER.find(c => c.id === hc.ceoId);
         if (ceo && ceo.bonusType === 'upgrade_discount') discount += ceo.bonusVal;
       });
-      return Math.max(0.5, 1 - discount);
+      const hqMult = getActiveHQ().costMult;
+      return Math.max(0.45, (1 - discount) * hqMult);
     }
 
     function getSubSpecificBonus(subId) {
@@ -1724,7 +1881,6 @@
           bonus += ceo.bonusVal;
         }
       });
-      // Bonus for sub-subsidiaries and assigned market companies under this sub
       const childSubs = getDirectChildSubsCount(subId);
       const assignedMkt = getAssignedMarketCompsCount(subId);
       bonus += (childSubs * 0.14) + (assignedMkt * 0.18);
@@ -1735,7 +1891,9 @@
       const cMult = getCountriesMultiplier(sub.countries || ['PL']);
       const macroMult = getMacroSectorMultiplier(sub.sector);
       const ceoSubMult = getSubSpecificBonus(sub.id);
-      return sub.baseIncome * sub.level * Math.pow(1.12, sub.level - 1) * cMult * getSynergyMultiplier() * macroMult * ceoSubMult;
+      const mergerMult = sub.mergedCount ? (1 + sub.mergedCount * 0.45) : 1.0;
+      const ipoScale = sub.ipoPublicPct ? (1 - sub.ipoPublicPct / 100) : 1.0;
+      return sub.baseIncome * sub.level * Math.pow(1.12, sub.level - 1) * cMult * getSynergyMultiplier() * macroMult * ceoSubMult * mergerMult * ipoScale;
     }
 
     function getSubsidiaryUpgradeCost(sub) {
@@ -1744,7 +1902,57 @@
     }
 
     function getSubsidiaryValuation(sub) {
-      return getSubsidiaryIncome(sub) * 28;
+      const fullVal = getSubsidiaryIncome(sub) * 28;
+      const ipoScale = sub.ipoPublicPct ? (1 - sub.ipoPublicPct / 100) : 1.0;
+      return fullVal * ipoScale;
+    }
+
+    // --- IPO & MERGER ACTIONS ON SUBSIDIARIES ---
+    function launchSubsidiaryIPO(subId) {
+      const sub = state.subsidiaries.find(s => s.id === subId);
+      if (!sub || sub.level < 2 || (sub.ipoPublicPct || 0) >= 45) return;
+
+      const sellPct = 25;
+      const fullVal = (sub.baseIncome * sub.level * Math.pow(1.12, sub.level - 1) * getCountriesMultiplier(sub.countries || ['PL'])) * 28;
+      const proceeds = Math.floor(fullVal * (sellPct / 100) * 1.22);
+
+      sub.ipoPublicPct = (sub.ipoPublicPct || 0) + sellPct;
+      addCash(proceeds, true);
+      addLog(`DEBIUT GIEŁDOWY (IPO)! Sprzedano ${sellPct}% akcji ${sub.name} z premią +22% za ${fmtMoney(proceeds)}! Zachowujesz ${100 - sub.ipoPublicPct}% kontroli.`, 'good');
+      renderAll();
+      saveState();
+    }
+
+    function executeSubsidiaryMerger() {
+      const idA = document.getElementById('merge-sub-a').value;
+      const idB = document.getElementById('merge-sub-b').value;
+      if (!idA || !idB || idA === idB) return;
+
+      const subA = state.subsidiaries.find(s => s.id === idA);
+      const subB = state.subsidiaries.find(s => s.id === idB);
+      if (!subA || !subB || subA.sector !== subB.sector) return;
+
+      const mergedCountries = Array.from(new Set([...(subA.countries || ['PL']), ...(subB.countries || ['PL'])]));
+      subA.name = `${subA.name.split(' ')[0]} & ${subB.name.split(' ')[0]} Group`;
+      subA.countries = mergedCountries;
+      subA.level = Math.max(subA.level, subB.level) + 1;
+      subA.baseIncome += Math.floor(subB.baseIncome * 0.85);
+      subA.baseCost += Math.floor(subB.baseCost * 0.75);
+      subA.mergedCount = (subA.mergedCount || 0) + 1;
+
+      // Re-parent children of subB to subA
+      state.subsidiaries.forEach(s => {
+        if (s.parentId === subB.id) s.parentId = subA.id;
+      });
+      state.market.forEach(c => {
+        if (c.parentId === subB.id) c.parentId = subA.id;
+      });
+
+      state.subsidiaries = state.subsidiaries.filter(s => s.id !== subB.id);
+      addLog(`FUZJA SPÓŁEK! Połączono w giganta: ${subA.name} (${mergedCountries.length} rynki, +45% premii fuzji)!`, 'warn');
+      renderParentSelector();
+      renderAll();
+      saveState();
     }
 
     function getFreeFloatPct(comp) {
@@ -1762,7 +1970,7 @@
     }
 
     function getAllIncomeBoostMultiplier() {
-      let boost = 1.0;
+      let boost = getActiveHQ().incomeMult;
       state.hiredCEOs.forEach(hc => {
         const ceo = CEO_ROSTER.find(c => c.id === hc.ceoId);
         if (ceo && ceo.bonusType === 'all_income') boost += ceo.bonusVal;
@@ -1966,7 +2174,14 @@
       }
     }
 
-    // --- CREATOR UI LOGIC (PARENT SELECT, CATEGORIES & ALL 195 COUNTRIES) ---
+    // --- CREATOR UI LOGIC (REGIONS, PARENT SELECT, CATEGORIES & ALL 195 COUNTRIES) ---
+    function applyRegionPreset(regionKey) {
+      const codes = REGION_CODES[regionKey];
+      if (!codes || codes.length === 0) return;
+      selectedCountries = [...codes];
+      renderCountrySelector();
+    }
+
     function renderParentSelector() {
       const sel = document.getElementById('new-sub-parent');
       if (!sel) return;
@@ -2029,10 +2244,11 @@
 
       const strip = document.getElementById('selected-countries-strip');
       if (strip) {
-        strip.innerHTML = selectedCountries.map(code => {
+        const previewList = selectedCountries.slice(0, 8);
+        strip.innerHTML = previewList.map(code => {
           const c = COUNTRIES.find(x => x.code === code);
           return `<span class="mini-country-badge">${c ? c.flag + ' ' + c.name : code}</span>`;
-        }).join('');
+        }).join('') + (selectedCountries.length > 8 ? `<span class="mini-country-badge">+${selectedCountries.length - 8} więcej</span>` : '');
       }
 
       const grid = document.getElementById('country-select-grid');
@@ -2109,6 +2325,8 @@
         level: 1,
         baseCost: cat.baseCost,
         baseIncome: cat.baseIncome,
+        ipoPublicPct: 0,
+        mergedCount: 0,
         isAbsorbed: false
       };
 
@@ -2116,8 +2334,7 @@
       const roleLabel = getHierarchyRoleLabel(getSubDepth(newSub.id));
 
       document.getElementById('new-sub-name').value = '';
-      const flagsStr = selectedCountries.slice(0, 6).map(code => COUNTRIES.find(c => c.code === code)?.flag || code).join(' ') + (selectedCountries.length > 6 ? ` +${selectedCountries.length - 6}` : '');
-      addLog(`Zarejestrowano (${roleLabel}): ${finalName} pod podmiotem ${getParentName(parentId)} [${cat.name}] (${flagsStr}).`, 'good');
+      addLog(`Zarejestrowano (${roleLabel}): ${finalName} pod podmiotem ${getParentName(parentId)} [${cat.name}] (${selectedCountries.length} rynki).`, 'good');
       renderParentSelector();
       renderAll();
       saveState();
@@ -2256,8 +2473,8 @@
 
       list.innerHTML = filtered.map(c => {
         const already = ownedCodes.includes(c.code);
-        const expandCost = Math.floor(sub.baseCost * c.costFactor * Math.pow(1.22, ownedCodes.length) * getUpgradeDiscountMultiplier());
-        const bonusPct = Math.round(Math.max(0.12, c.mult - 0.85) * 100);
+        const expandCost = Math.floor(sub.baseCost * c.costFactor * Math.pow(1.18, ownedCodes.length) * getUpgradeDiscountMultiplier());
+        const bonusPct = Math.round(Math.max(0.08, (c.mult - 0.85) * 0.65) * 100);
         return `
           <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 10px;">
             <div>
@@ -2549,6 +2766,8 @@
         level: 1,
         baseCost: Math.floor(comp.baseValuation * 0.8),
         baseIncome: Math.floor(comp.baseProfit * 1.45 * Math.pow(1.15, (comp.rdLevel || 1) - 1)),
+        ipoPublicPct: 0,
+        mergedCount: 0,
         isAbsorbed: true
       });
 
@@ -2570,7 +2789,7 @@
 
     function resetGame() {
       if (!confirm('Czy na pewno chcesz zresetować całe imperium i zacząć od nowa?')) return;
-      localStorage.removeItem('apex_holding_save_v7');
+      localStorage.removeItem('apex_holding_save_v8');
       state = getDefaultState();
       selectedCatId = CATEGORIES[0].id;
       selectedCountries = ['PL'];
@@ -2650,7 +2869,37 @@
       document.getElementById('count-ceo').textContent = state.hiredCEOs.length;
     }
 
+    function renderMergerPanel() {
+      const box = document.getElementById('merger-panel');
+      if (!box) return;
+
+      const bySector = {};
+      state.subsidiaries.forEach(s => {
+        if (!bySector[s.sector]) bySector[s.sector] = [];
+        bySector[s.sector].push(s);
+      });
+
+      const mergeable = Object.values(bySector).filter(arr => arr.length >= 2).flat();
+      if (mergeable.length < 2) {
+        box.classList.add('hidden');
+        return;
+      }
+
+      box.classList.remove('hidden');
+      const selA = document.getElementById('merge-sub-a');
+      const selB = document.getElementById('merge-sub-b');
+
+      const opts = mergeable.map(s => `<option value="${s.id}">${s.name} [${s.sector.split('&')[0].trim()}]</option>`).join('');
+      selA.innerHTML = opts;
+      selB.innerHTML = opts;
+      if (mergeable.length >= 2) {
+        selB.selectedIndex = 1;
+      }
+    }
+
     function renderSubsidiaries() {
+      renderMergerPanel();
+
       const ownedContainer = document.getElementById('owned-subs-list');
       const synergyPct = Math.round((getSynergyMultiplier() - 1) * 100);
       document.getElementById('sub-synergy-info').textContent = `Synergia grupy: +${synergyPct}%`;
@@ -2670,16 +2919,16 @@
           const childSubsCount = getDirectChildSubsCount(sub.id);
           const assignedMktCount = getAssignedMarketCompsCount(sub.id);
 
+          const ipoPct = sub.ipoPublicPct || 0;
+          const fullVal = (sub.baseIncome * sub.level * Math.pow(1.12, sub.level - 1) * getCountriesMultiplier(sub.countries || ['PL'])) * 28;
+          const ipoProceeds = Math.floor(fullVal * 0.25 * 1.22);
+          const canIPO = sub.level >= 2 && ipoPct < 45;
+
           const cCodes = sub.countries || ['PL'];
           const cBadges = cCodes.slice(0, 6).map(code => {
             const c = COUNTRIES.find(x => x.code === code);
             return `<span class="mini-country-badge">${c ? c.flag + ' ' + c.name : code}</span>`;
           }).join('') + (cCodes.length > 6 ? `<span class="mini-country-badge">+${cCodes.length - 6} więcej</span>` : '');
-
-          const assignedCeos = state.hiredCEOs
-            .filter(h => h.assignedTo === sub.id)
-            .map(h => CEO_ROSTER.find(c => c.id === h.ceoId)?.name)
-            .filter(Boolean);
 
           const parentOptions = [
             `<option value="HQ" ${(sub.parentId || 'HQ') === 'HQ' ? 'selected' : ''}>🏛️ Centrala Holdingu</option>`,
@@ -2689,7 +2938,7 @@
           ].join('');
 
           return `
-            <div class="sub-card ${sub.isAbsorbed ? 'acquired-tag' : ''}">
+            <div class="sub-card ${sub.isAbsorbed || sub.mergedCount ? 'acquired-tag' : ''}">
               <div>
                 <div class="sub-top">
                   <div>
@@ -2702,13 +2951,14 @@
 
                 <div style="margin-top: 8px;">${cBadges}</div>
 
+                ${sub.mergedCount ? `<div style="font-size: 11.5px; color: #c7d2fe; margin-top: 5px;">🔀 Gigant po fuzji (+${sub.mergedCount * 45}% premii)</div>` : ''}
+                ${ipoPct > 0 ? `<div style="font-size: 11.5px; color: var(--gold); margin-top: 4px;">📈 Spółka notowana (Free Float: ${ipoPct}%, Twój udział: ${100 - ipoPct}%)</div>` : ''}
+
                 ${(childSubsCount > 0 || assignedMktCount > 0) ? `
                   <div style="font-size: 11.5px; color: var(--gold); margin-top: 6px;">
                     🔗 Podległe spółki: <strong>${childSubsCount}</strong> zależnych, <strong>${assignedMktCount}</strong> giełdowych (+${childSubsCount * 14 + assignedMktCount * 18}% bonusu)
                   </div>
                 ` : ''}
-
-                ${assignedCeos.length > 0 ? `<div style="font-size: 11.5px; color: #a5b4fc; margin-top: 4px;">👔 CEO: ${assignedCeos.join(', ')}</div>` : ''}
 
                 <div class="form-group" style="margin-top: 8px; margin-bottom: 4px;">
                   <label class="form-label" style="font-size: 10.5px;"><span>Podmiot Nadrzędny</span></label>
@@ -2719,17 +2969,24 @@
 
                 <div class="sub-metrics" style="margin-top: 8px;">
                   <div><span>Cashflow (${getCountriesMultiplier(cCodes).toFixed(2)}x)</span><strong style="color: var(--green);">${fmtMoney(inc)}/s</strong></div>
-                  <div><span>Wycena spółki</span><strong>${fmtMoney(val)}</strong></div>
+                  <div><span>Wycena pakietu</span><strong>${fmtMoney(val)}</strong></div>
                 </div>
               </div>
 
-              <div class="btn-row">
-                <button class="primary" data-upgrade-sub="${sub.id}" ${canAfford ? '' : 'disabled'}>
-                  Rozwiń (${fmtMoney(upgCost)})
-                </button>
-                <button class="success" data-expand-sub="${sub.id}">
-                  🌍 Nowy Kraj
-                </button>
+              <div style="display: flex; flex-direction: column; gap: 6px;">
+                <div class="btn-row">
+                  <button class="primary" data-upgrade-sub="${sub.id}" ${canAfford ? '' : 'disabled'}>
+                    Rozwiń (${fmtMoney(upgCost)})
+                  </button>
+                  <button class="success" data-expand-sub="${sub.id}">
+                    🌍 Nowy Kraj
+                  </button>
+                </div>
+                ${sub.level >= 2 ? `
+                  <button class="warn" data-ipo-sub="${sub.id}" ${canIPO ? '' : 'disabled'}>
+                    ${ipoPct >= 45 ? 'Limit IPO osiągnięty (45%)' : `📈 IPO: Sprzedaj 25% (+${fmtMoney(ipoProceeds)})`}
+                  </button>
+                ` : ''}
               </div>
             </div>
           `;
@@ -2962,7 +3219,28 @@
       document.getElementById('repay-all-btn').disabled = state.debt <= 0 || state.cash <= 0;
     }
 
-    // Recursive tree builder for Holding Structure
+    function renderHQJurisdictions() {
+      const activeHQ = getActiveHQ();
+      document.getElementById('active-hq-badge').textContent = `Aktywna: ${activeHQ.flag} ${activeHQ.name}`;
+
+      const grid = document.getElementById('hq-jurisdiction-grid');
+      grid.innerHTML = HQ_JURISDICTIONS.map(hq => {
+        const isCurrent = hq.id === activeHQ.id;
+        return `
+          <div class="hq-card ${isCurrent ? 'active-hq' : ''}">
+            <div>
+              <div style="font-weight: 700; font-size: 14px;">${hq.flag} ${hq.name}</div>
+              <div style="font-size: 11.5px; color: var(--muted); margin-top: 5px; line-height: 1.4;">${hq.desc}</div>
+            </div>
+            ${isCurrent
+              ? `<span style="font-size: 12px; color: var(--green); font-weight: 700;">✓ Aktualna Siedziba</span>`
+              : `<button class="primary" data-reloc-hq="${hq.id}" ${state.cash >= hq.relocCost ? '' : 'disabled'}>Przenieś (${hq.relocCost === 0 ? 'Darmowe' : fmtMoney(hq.relocCost)})</button>`
+            }
+          </div>
+        `;
+      }).join('');
+    }
+
     function buildTreeHtml(parentId) {
       const childSubs = state.subsidiaries.filter(s => (s.parentId || 'HQ') === parentId);
       const childComps = state.market.filter(c => !c.absorbed && c.ownedPct > 0 && (c.parentId || 'HQ') === parentId);
@@ -2980,7 +3258,7 @@
           <div class="org-node" style="border-color: rgba(16, 185, 129, 0.45);">
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
               <div>
-                <div style="font-size: 11px; color: var(--green); font-weight: 700;">100% ${roleLabel.toUpperCase()} • LVL ${s.level}</div>
+                <div style="font-size: 11px; color: var(--green); font-weight: 700;">${100 - (s.ipoPublicPct || 0)}% ${roleLabel.toUpperCase()} • LVL ${s.level}</div>
                 <div style="font-weight: 700; font-size: 15px; margin: 2px 0;">🏢 ${s.name}</div>
                 <div style="font-size: 11.5px; color: #a5b4fc;">${s.sector} • ${flags}</div>
               </div>
@@ -3014,6 +3292,7 @@
     }
 
     function renderStructure() {
+      renderHQJurisdictions();
       document.getElementById('tree-holding-name').textContent = state.holdingName;
       document.getElementById('tree-total-value').textContent = 'Wartość aktywów netto: ' + fmtMoney(getTotalNetWorth());
 
@@ -3050,6 +3329,12 @@
       document.getElementById('btn-manual-deal').addEventListener('click', manualDeal);
       document.getElementById('create-sub-btn').addEventListener('click', createCustomSubsidiary);
       document.getElementById('btn-rename-holding').addEventListener('click', renameHolding);
+      document.getElementById('btn-execute-merge').addEventListener('click', executeSubsidiaryMerger);
+
+      document.getElementById('region-presets').addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-region]');
+        if (btn) applyRegionPreset(btn.dataset.region);
+      });
 
       document.getElementById('new-sub-parent').addEventListener('change', updateCreatorPreview);
       document.getElementById('cat-search-input').addEventListener('input', renderCategoryList);
@@ -3150,6 +3435,18 @@
         const expBtn = e.target.closest('[data-expand-sub]');
         if (expBtn && !expBtn.disabled) {
           openExpandModal(expBtn.dataset.expandSub);
+          return;
+        }
+
+        const ipoBtn = e.target.closest('[data-ipo-sub]');
+        if (ipoBtn && !ipoBtn.disabled) {
+          launchSubsidiaryIPO(ipoBtn.dataset.ipoSub);
+          return;
+        }
+
+        const relocBtn = e.target.closest('[data-reloc-hq]');
+        if (relocBtn && !relocBtn.disabled) {
+          relocateHQ(relocBtn.dataset.relocHq);
           return;
         }
 
@@ -3284,7 +3581,6 @@
         }
       }
 
-      // Valuation fluctuations every ~3.5s (respecting majority management strategy & payout reinvestment)
       marketTimer += dt;
       if (marketTimer >= 3.5) {
         marketTimer = 0;
@@ -3318,7 +3614,6 @@
         }
       }
 
-      // Shareholder count & stake rotation every ~12s
       shareholderRotationTimer += dt;
       if (shareholderRotationTimer >= 12) {
         shareholderRotationTimer = 0;
