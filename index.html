@@ -7,8 +7,8 @@
   <style>
     :root {
       --bg: #07090e;
-      --surface: rgba(17, 22, 34, 0.72);
-      --surface-hover: rgba(25, 33, 50, 0.85);
+      --surface: rgba(17, 22, 34, 0.74);
+      --surface-solid: #111622;
       --border: rgba(255, 255, 255, 0.08);
       --border-accent: rgba(99, 102, 241, 0.45);
       --text: #f1f5f9;
@@ -32,7 +32,7 @@
 
     body {
       background-color: var(--bg);
-      background-image: 
+      background-image:
         radial-gradient(circle at 15% 15%, rgba(99, 102, 241, 0.14), transparent 35%),
         radial-gradient(circle at 85% 80%, rgba(16, 185, 129, 0.10), transparent 40%);
       color: var(--text);
@@ -45,10 +45,10 @@
       position: sticky;
       top: 14px;
       z-index: 100;
-      max-width: 1320px;
+      max-width: 1360px;
       margin: 0 auto 24px auto;
       padding: 14px 24px;
-      background: rgba(13, 17, 28, 0.82);
+      background: rgba(13, 17, 28, 0.85);
       backdrop-filter: blur(18px);
       -webkit-backdrop-filter: blur(18px);
       border: 1px solid var(--border);
@@ -95,16 +95,30 @@
     .stats-bar {
       display: flex;
       flex-wrap: wrap;
-      gap: 20px;
+      gap: 14px;
       align-items: center;
     }
 
     .stat-pill {
+      position: relative;
       background: rgba(255, 255, 255, 0.03);
       border: 1px solid var(--border);
       padding: 8px 14px;
       border-radius: 12px;
-      min-width: 145px;
+      min-width: 150px;
+      transition: transform 0.18s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .stat-pill.pulse-gain {
+      border-color: rgba(16, 185, 129, 0.75);
+      box-shadow: 0 0 20px rgba(16, 185, 129, 0.25);
+      transform: scale(1.03);
+    }
+
+    .stat-pill.pulse-spend {
+      border-color: rgba(239, 68, 68, 0.75);
+      box-shadow: 0 0 20px rgba(239, 68, 68, 0.25);
+      transform: scale(0.98);
     }
 
     .stat-label {
@@ -124,6 +138,51 @@
     .stat-value.cash { color: var(--green); }
     .stat-value.networth { color: #a5b4fc; }
     .stat-value.income { color: var(--gold); }
+    .stat-value.clock { color: #e2e8f0; font-size: 15px; }
+
+    /* Floating Cash Delta Animations */
+    .cash-fx-layer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      overflow: visible;
+      z-index: 200;
+    }
+
+    .cash-float {
+      position: absolute;
+      right: 8px;
+      top: -6px;
+      font-size: 13px;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.85);
+      animation: floatDelta 1.15s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .cash-float.gain { color: #34d399; }
+    .cash-float.spend {
+      color: #f87171;
+      top: auto;
+      bottom: -8px;
+      animation: floatSpend 1.15s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes floatDelta {
+      0% { opacity: 0; transform: translateY(6px) scale(0.92); }
+      18% { opacity: 1; transform: translateY(-4px) scale(1.04); }
+      100% { opacity: 0; transform: translateY(-34px) scale(0.96); }
+    }
+
+    @keyframes floatSpend {
+      0% { opacity: 0; transform: translateY(-6px) scale(0.92); }
+      18% { opacity: 1; transform: translateY(4px) scale(1.04); }
+      100% { opacity: 0; transform: translateY(32px) scale(0.96); }
+    }
 
     .controls {
       display: flex;
@@ -154,13 +213,6 @@
       cursor: not-allowed;
     }
 
-    button.active-speed {
-      background: var(--accent);
-      border-color: var(--accent);
-      color: #fff;
-      box-shadow: 0 0 14px var(--accent-glow);
-    }
-
     button.primary {
       background: linear-gradient(135deg, #6366f1, #4f46e5);
       border-color: rgba(99, 102, 241, 0.6);
@@ -177,15 +229,124 @@
       color: var(--green);
     }
 
+    button.warn {
+      background: var(--gold-bg);
+      border-color: rgba(245, 158, 11, 0.45);
+      color: var(--gold);
+    }
+
     button.danger {
       background: var(--red-bg);
       border-color: rgba(239, 68, 68, 0.35);
       color: var(--red);
     }
 
+    /* Inputs & Form Controls */
+    input[type="text"], input[type="number"], select {
+      width: 100%;
+      background: rgba(8, 11, 18, 0.85);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 9px 12px;
+      border-radius: 10px;
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--accent);
+    }
+
+    .form-group {
+      margin-bottom: 12px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 11.5px;
+      color: var(--muted);
+      font-weight: 600;
+      margin-bottom: 5px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+
+    /* Category Filter Pills */
+    .cat-list {
+      max-height: 155px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 6px;
+      padding-right: 4px;
+    }
+
+    .cat-option {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 11px;
+      border-radius: 9px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      font-size: 12.5px;
+      transition: all 0.15s;
+    }
+
+    .cat-option:hover {
+      background: rgba(255, 255, 255, 0.07);
+    }
+
+    .cat-option.selected {
+      background: rgba(99, 102, 241, 0.2);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    /* Country Multi-Select Chips */
+    .country-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .country-chip {
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 12px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.15s;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .country-chip.active {
+      background: rgba(16, 185, 129, 0.18);
+      border-color: rgba(16, 185, 129, 0.55);
+      color: #6ee7b7;
+      font-weight: 600;
+    }
+
+    .mini-country-badge {
+      display: inline-block;
+      font-size: 11px;
+      padding: 2px 7px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      margin: 2px 3px 2px 0;
+    }
+
     /* Main Container */
     .container {
-      max-width: 1320px;
+      max-width: 1360px;
       margin: 0 auto;
       padding: 0 16px;
     }
@@ -229,13 +390,13 @@
       gap: 20px;
     }
 
-    @media (max-width: 960px) {
+    @media (max-width: 980px) {
       .grid-2 { grid-template-columns: 1fr; }
     }
 
     .cards-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
       gap: 16px;
     }
 
@@ -261,16 +422,16 @@
       font-weight: 700;
     }
 
-    /* Subsidiary Cards */
+    /* Subsidiary & Market Cards */
     .sub-card {
-      background: rgba(22, 28, 44, 0.65);
+      background: rgba(22, 28, 44, 0.68);
       border: 1px solid var(--border);
       border-radius: 16px;
       padding: 16px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      gap: 14px;
+      gap: 12px;
       transition: border-color 0.2s;
     }
 
@@ -280,7 +441,7 @@
 
     .sub-card.acquired-tag {
       border-color: rgba(245, 158, 11, 0.45);
-      background: linear-gradient(160deg, rgba(245, 158, 11, 0.08), rgba(22, 28, 44, 0.75));
+      background: linear-gradient(160deg, rgba(245, 158, 11, 0.08), rgba(22, 28, 44, 0.78));
     }
 
     .sub-top {
@@ -320,7 +481,7 @@
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 8px;
-      background: rgba(0, 0, 0, 0.22);
+      background: rgba(0, 0, 0, 0.24);
       padding: 10px;
       border-radius: 10px;
       font-size: 12px;
@@ -336,7 +497,50 @@
       color: var(--text);
     }
 
-    /* Market & Shares */
+    /* Cap Table / Shareholders List */
+    .cap-table {
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 10px;
+      padding: 10px;
+      font-size: 12px;
+    }
+
+    .cap-table-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 700;
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .cap-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 5px 0;
+      border-bottom: 1px dashed rgba(255, 255, 255, 0.06);
+      gap: 8px;
+    }
+
+    .cap-row:last-child {
+      border-bottom: none;
+    }
+
+    .cap-holder-name {
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .cap-holder-meta {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
     .share-bar-bg {
       width: 100%;
       height: 8px;
@@ -368,7 +572,7 @@
 
     .btn-row button {
       flex: 1;
-      padding: 7px 8px;
+      padding: 7px 9px;
       font-size: 12px;
     }
 
@@ -388,7 +592,7 @@
 
     /* News Ticker / Log */
     .event-log {
-      max-height: 360px;
+      max-height: 310px;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
@@ -406,7 +610,46 @@
 
     .log-item.good { border-left-color: var(--green); }
     .log-item.warn { border-left-color: var(--gold); }
+    .log-item.bad { border-left-color: var(--red); }
     .log-time { color: var(--muted); font-size: 11px; margin-right: 6px; }
+
+    /* Modal for Buyout Offer & Expansion */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(3, 5, 10, 0.78);
+      backdrop-filter: blur(8px);
+      z-index: 500;
+      display: grid;
+      place-items: center;
+      padding: 16px;
+    }
+
+    .modal-box {
+      background: #121826;
+      border: 1px solid var(--border-accent);
+      border-radius: 20px;
+      max-width: 480px;
+      width: 100%;
+      padding: 22px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.75);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .offer-preset-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      margin: 8px 0 12px 0;
+    }
 
     /* Structure Tree */
     .org-root {
@@ -415,13 +658,13 @@
       background: rgba(99, 102, 241, 0.15);
       border: 1px solid var(--accent);
       border-radius: 14px;
-      max-width: 360px;
+      max-width: 380px;
       margin: 0 auto 24px auto;
     }
 
     .org-branches {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
       gap: 14px;
     }
 
@@ -448,7 +691,8 @@
     </div>
 
     <div class="stats-bar">
-      <div class="stat-pill">
+      <div class="stat-pill" id="cash-pill">
+        <div class="cash-fx-layer" id="cash-fx-layer"></div>
         <div class="stat-label">Wolna Gotówka</div>
         <div class="stat-value cash" id="stat-cash">$0</div>
       </div>
@@ -460,12 +704,13 @@
         <div class="stat-label">Wycena Imperium</div>
         <div class="stat-value networth" id="stat-networth">$0</div>
       </div>
+      <div class="stat-pill" style="min-width: 135px;">
+        <div class="stat-label">Czas Imperium</div>
+        <div class="stat-value clock" id="stat-clock">Dzień 1 • 08:00</div>
+      </div>
     </div>
 
     <div class="controls">
-      <button onclick="setSpeed(1)" id="spd-1" class="active-speed">1x</button>
-      <button onclick="setSpeed(2)" id="spd-2">2x</button>
-      <button onclick="setSpeed(5)" id="spd-5">5x</button>
       <button onclick="resetGame()" class="danger" title="Resetuj postęp">Reset</button>
     </div>
   </header>
@@ -477,7 +722,7 @@
         🏢 Spółki-Córki <span class="badge-count" id="count-subs">0</span>
       </button>
       <button class="tab-btn" onclick="switchTab('market', this)">
-        📈 Giełda &amp; Wykup Udziałów <span class="badge-count" id="count-market">0</span>
+        📈 Giełda &amp; Akcjonariat (M&amp;A) <span class="badge-count" id="count-market">0</span>
       </button>
       <button class="tab-btn" onclick="switchTab('structure', this)">
         🕸️ Struktura Holdingu
@@ -489,7 +734,7 @@
       <div class="manual-op-box">
         <div>
           <h3 style="font-size: 15px; margin-bottom: 4px;">💼 Doradztwo Kapitałowe &amp; Arbitraż</h3>
-          <p style="font-size: 13px; color: var(--muted);">Generuj szybki kapitał startowy na pierwsze udziały i rejestrację spółek-córek.</p>
+          <p style="font-size: 13px; color: var(--muted);">Generuj szybki kapitał startowy na pierwsze udziały i rejestrację własnych spółek-córek.</p>
         </div>
         <button class="primary" style="padding: 12px 20px; font-size: 14px;" onclick="manualDeal()">
           + Zamknij Transakcję (<span id="manual-reward">$250</span>)
@@ -506,18 +751,56 @@
           <div class="cards-grid" id="owned-subs-list"></div>
         </div>
 
-        <!-- INCORPORATE NEW SUBSIDIARY + LOG -->
+        <!-- CUSTOM SUBSIDIARY CREATOR + LOG -->
         <div style="display: flex; flex-direction: column; gap: 20px;">
           <div class="panel">
             <div class="panel-header">
-              <div class="panel-title">Załóż Nową Spółkę-Córkę</div>
+              <div class="panel-title">Zarejestruj Nową Spółkę-Córkę</div>
             </div>
-            <div style="display: flex; flex-direction: column; gap: 10px;" id="new-subs-shop"></div>
+
+            <div class="form-group">
+              <label class="form-label">1. Nazwa Spółki-Córki</label>
+              <input type="text" id="new-sub-name" placeholder="np. Apex AI Solutions Sp. z o.o." oninput="updateCreatorPreview()" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">2. Kategoria / Branża (wpisz kawałek nazwy, aby filtrować)</label>
+              <input type="text" id="cat-search-input" placeholder="Szukaj branży np. Tech, Finanse, Nieruchomości, Energia..." oninput="renderCategoryList()" />
+              <div class="cat-list" id="cat-select-list"></div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">3. Kraje Działania (możesz wybrać więcej niż 1)</label>
+              <div class="country-grid" id="country-select-grid"></div>
+            </div>
+
+            <div style="background: rgba(0,0,0,0.28); border: 1px solid var(--border); border-radius: 12px; padding: 12px; margin-bottom: 12px; font-size: 12.5px;">
+              <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                <span style="color: var(--muted);">Wybrana branża:</span>
+                <strong id="preview-cat-name">—</strong>
+              </div>
+              <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                <span style="color: var(--muted);">Rynki (mnożnik przychodu):</span>
+                <strong id="preview-countries-mult">1 kraj (1.00x)</strong>
+              </div>
+              <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                <span style="color: var(--muted);">Szacowany Cashflow:</span>
+                <strong style="color: var(--green);" id="preview-income">$0 / s</strong>
+              </div>
+              <div style="display: flex; justify-content: space-between;">
+                <span style="color: var(--muted);">Kapitał założycielski (Koszt):</span>
+                <strong style="color: var(--gold);" id="preview-cost">$0</strong>
+              </div>
+            </div>
+
+            <button class="primary" style="width: 100%; padding: 11px; font-size: 14px;" id="create-sub-btn" onclick="createCustomSubsidiary()">
+              Załóż Spółkę-Córkę
+            </button>
           </div>
 
           <div class="panel">
             <div class="panel-header">
-              <div class="panel-title">Dziennik Rynkowy &amp; Transakcje</div>
+              <div class="panel-title">Dziennik Rynkowy &amp; Negocjacje M&amp;A</div>
             </div>
             <div class="event-log" id="event-log"></div>
           </div>
@@ -525,14 +808,14 @@
       </div>
     </section>
 
-    <!-- TAB 2: STOCK MARKET & M&A -->
+    <!-- TAB 2: STOCK MARKET & SHAREHOLDERS -->
     <section id="tab-market" class="hidden">
       <div class="panel" style="margin-bottom: 18px;">
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
           <div>
-            <h2 style="font-size: 17px;">Rynek Fuzji i Przejęć (M&amp;A)</h2>
+            <h2 style="font-size: 17px;">Giełda, Struktura Akcjonariatu i Odkup Udziałów (M&amp;A)</h2>
             <p style="font-size: 13px; color: var(--muted); margin-top: 3px;">
-              Skupuj akcje konkurencji. Przekroczenie <strong>51%</strong> daje Pakiet Kontrolny (+25% dywidendy). Osiągnięcie <strong>100%</strong> pozwala wchłonąć firmę jako Twoją Spółkę-Córkę!
+              Kupuj wolny akcjonariat (Free Float) lub <strong>składaj propozycje odkupu konkretnym udziałowcom</strong>. Przy <strong>51%+</strong> przejmujesz kontrolę i możesz wypłacać dywidendy nadzwyczajne, a przy <strong>100%</strong> wchłaniasz firmę do holdingu!
             </p>
           </div>
           <div style="font-size: 13px; background: rgba(255,255,255,0.04); padding: 8px 14px; border-radius: 10px;">
@@ -563,34 +846,211 @@
     </section>
   </main>
 
+  <!-- MODAL: BUYOUT PROPOSAL TO SHAREHOLDER -->
+  <div id="offer-modal" class="modal-backdrop hidden">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div>
+          <div style="font-size: 11px; color: #a5b4fc; font-weight: 700; text-transform: uppercase;">Propozycja Odkupu Udziałów</div>
+          <h3 id="modal-comp-name" style="font-size: 16px; margin-top: 2px;">Spółka</h3>
+        </div>
+        <button onclick="closeOfferModal()" style="padding: 5px 10px;">✕</button>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Wybierz Udziałowca (Akcjonariusza)</label>
+        <select id="modal-holder-select" onchange="updateOfferModalCalc()"></select>
+      </div>
+
+      <div id="modal-holder-info" style="font-size: 12px; color: var(--muted); background: rgba(255,255,255,0.03); padding: 9px 12px; border-radius: 10px; margin-bottom: 12px;"></div>
+
+      <div class="form-group">
+        <label class="form-label">Ile % udziałów chcesz odkupić? (Dostępne: <span id="modal-max-pct">0</span>%)</label>
+        <input type="number" id="modal-pct-input" min="1" max="100" value="10" oninput="updateOfferModalCalc()" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Twoja cena oferty (% wartości rynkowej pakietu)</label>
+        <div class="offer-preset-row">
+          <button type="button" onclick="setOfferPremium(92)">92% (Twarda)</button>
+          <button type="button" onclick="setOfferPremium(100)">100% (Rynkowa)</button>
+          <button type="button" onclick="setOfferPremium(115)">115% (+Premia)</button>
+          <button type="button" onclick="setOfferPremium(130)">130% (Pewniak)</button>
+        </div>
+        <input type="number" id="modal-premium-input" min="70" max="200" value="105" oninput="updateOfferModalCalc()" />
+      </div>
+
+      <div style="background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 12px; padding: 12px; margin-bottom: 14px; font-size: 12.5px;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+          <span style="color: var(--muted);">Wartość rynkowa pakietu:</span>
+          <strong id="modal-market-val">$0</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+          <span style="color: var(--muted);">Szansa akceptacji przez udziałowca:</span>
+          <strong id="modal-chance" style="color: var(--gold);">50%</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between;">
+          <span style="color: var(--muted);">Kwota Twojej oferty:</span>
+          <strong id="modal-offer-total" style="color: var(--green); font-size: 14px;">$0</strong>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button onclick="closeOfferModal()">Anuluj</button>
+        <button class="primary" id="modal-submit-btn" onclick="submitBuyoutOffer()">Złóż Propozycję Odkupu</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: EXPAND SUBSIDIARY TO NEW COUNTRIES -->
+  <div id="expand-modal" class="modal-backdrop hidden">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div>
+          <div style="font-size: 11px; color: var(--green); font-weight: 700; text-transform: uppercase;">Ekspansja Zagraniczna</div>
+          <h3 id="exp-sub-name" style="font-size: 16px; margin-top: 2px;">Spółka</h3>
+        </div>
+        <button onclick="closeExpandModal()" style="padding: 5px 10px;">✕</button>
+      </div>
+      <p style="font-size: 12.5px; color: var(--muted); margin-bottom: 12px;">
+        Otwórz oddziały w kolejnych krajach, aby zwiększyć mnożnik przychodów tej spółki-córki:
+      </p>
+      <div id="exp-countries-list" style="display: flex; flex-direction: column; gap: 8px; max-height: 280px; overflow-y: auto;"></div>
+    </div>
+  </div>
+
   <script>
-    // --- GAME CONFIGURATION ---
-    const SUBSIDIARY_BLUEPRINTS = [
-      { id: 'sub_soft', name: 'Apex Softworks Sp. z o.o.', sector: 'Technologia & AI', baseCost: 1200, baseIncome: 45, desc: 'Tworzenie oprogramowania B2B i automatyzacji.' },
-      { id: 'sub_est', name: 'Metro Estate Development', sector: 'Nieruchomości', baseCost: 8500, baseIncome: 290, desc: 'Wynajem powierzchni biurowych i logistycznych.' },
-      { id: 'sub_fin', name: 'Vanguard FinTech Polska', sector: 'Finanse', baseCost: 42000, baseIncome: 1350, desc: 'Bramki płatnicze, pożyczki korporacyjne i faktoring.' },
-      { id: 'sub_log', name: 'EuroCargo Rail & Trans', sector: 'Logistyka', baseCost: 185000, baseIncome: 5800, desc: 'Flota transportowa i terminale przeładunkowe.' },
-      { id: 'sub_en', name: 'Helios Grid Energy S.A.', sector: 'Energetyka', baseCost: 900000, baseIncome: 27500, desc: 'Farmy fotowoltaiczne i magazyny energii.' },
-      { id: 'sub_aero', name: 'Orbital Dynamics Aerospace', sector: 'Przemysł Ciężki', baseCost: 4500000, baseIncome: 140000, desc: 'Systemy satelitarne i zaawansowana inżynieria.' }
+    // --- CATEGORIES & COUNTRIES DATA ---
+    const CATEGORIES = [
+      { id: 'cat_software', name: 'Software House & AI', baseCost: 1100, baseIncome: 44 },
+      { id: 'cat_ecommerce', name: 'E-Commerce & Marketplace', baseCost: 2400, baseIncome: 92 },
+      { id: 'cat_gaming', name: 'Gamedev & Rozrywka Cyfrowa', baseCost: 4800, baseIncome: 175 },
+      { id: 'cat_realestate', name: 'Nieruchomości Komercyjne', baseCost: 9500, baseIncome: 330 },
+      { id: 'cat_logistics', name: 'Logistyka, Spedycja & Magazyny', baseCost: 22000, baseIncome: 740 },
+      { id: 'cat_fintech', name: 'FinTech & Usługi Płatnicze', baseCost: 48000, baseIncome: 1580 },
+      { id: 'cat_media', name: 'Media, Telewizja & Agencje PR', baseCost: 85000, baseIncome: 2750 },
+      { id: 'cat_pharma', name: 'Biotechnologia & Farmacja', baseCost: 190000, baseIncome: 6100 },
+      { id: 'cat_banking', name: 'Bankowość Inwestycyjna & Fundusze', baseCost: 450000, baseIncome: 14200 },
+      { id: 'cat_energy', name: 'Energetyka Odnawialna & Sieci', baseCost: 980000, baseIncome: 31000 },
+      { id: 'cat_heavy', name: 'Przemysł Ciężki & Automatyka', baseCost: 2400000, baseIncome: 76000 },
+      { id: 'cat_aero', name: 'Lotnictwo & Technologie Kosmiczne', baseCost: 5500000, baseIncome: 175000 }
+    ];
+
+    const COUNTRIES = [
+      { code: 'PL', flag: '🇵🇱', name: 'Polska', mult: 1.00, costFactor: 1.0 },
+      { code: 'DE', flag: '🇩🇪', name: 'Niemcy', mult: 1.28, costFactor: 1.35 },
+      { code: 'UK', flag: '🇬🇧', name: 'Wielka Brytania', mult: 1.32, costFactor: 1.40 },
+      { code: 'US', flag: '🇺🇸', name: 'USA', mult: 1.45, costFactor: 1.55 },
+      { code: 'CH', flag: '🇨🇭', name: 'Szwajcaria', mult: 1.38, costFactor: 1.50 },
+      { code: 'JP', flag: '🇯🇵', name: 'Japonia', mult: 1.35, costFactor: 1.42 },
+      { code: 'AE', flag: '🇦🇪', name: 'ZEA (Dubaj)', mult: 1.40, costFactor: 1.48 },
+      { code: 'SE', flag: '🇸🇪', name: 'Szwecja', mult: 1.22, costFactor: 1.25 },
+      { code: 'FR', flag: '🇫🇷', name: 'Francja', mult: 1.25, costFactor: 1.30 },
+      { code: 'SG', flag: '🇸🇬', name: 'Singapur', mult: 1.36, costFactor: 1.44 }
     ];
 
     const INITIAL_MARKET_COMPANIES = [
-      { id: 'mkt_1', name: 'PixelWave Media', sector: 'Media & Gaming', baseValuation: 15000, baseProfit: 480, ownedPct: 0, absorbed: false },
-      { id: 'mkt_2', name: 'Nordic Cold Logistics', sector: 'Logistyka', baseValuation: 65000, baseProfit: 2100, ownedPct: 0, absorbed: false },
-      { id: 'mkt_3', name: 'BioCore Labs', sector: 'Biotechnologia', baseValuation: 240000, baseProfit: 8200, ownedPct: 0, absorbed: false },
-      { id: 'mkt_4', name: 'Baltic Commercial Bank', sector: 'Bankowość', baseValuation: 950000, baseProfit: 31000, ownedPct: 0, absorbed: false },
-      { id: 'mkt_5', name: 'Titan Steel & Mining', sector: 'Surowce', baseValuation: 3800000, baseProfit: 125000, ownedPct: 0, absorbed: false },
-      { id: 'mkt_6', name: 'Aether Cloud Systems', sector: 'Big Tech', baseValuation: 14000000, baseProfit: 490000, ownedPct: 0, absorbed: false }
+      {
+        id: 'mkt_1',
+        name: 'PixelWave Media S.A.',
+        sector: 'Media & Gaming',
+        baseValuation: 16000,
+        baseProfit: 520,
+        ownedPct: 0,
+        absorbed: false,
+        specialDivCooldown: 0,
+        shareholders: [
+          { id: 'sh_1a', name: 'Marek Kowalski (Założyciel)', pct: 45, greed: 1.12, type: 'Założyciel' },
+          { id: 'sh_1b', name: 'Vistula Seed VC', pct: 35, greed: 1.02, type: 'Fundusz VC' }
+          // Pozostałe 20% to Free Float (wolny obrót giełdowy)
+        ]
+      },
+      {
+        id: 'mkt_2',
+        name: 'Nordic Cold Logistics',
+        sector: 'Logistyka',
+        baseValuation: 68000,
+        baseProfit: 2250,
+        ownedPct: 0,
+        absorbed: false,
+        specialDivCooldown: 0,
+        shareholders: [
+          { id: 'sh_2a', name: 'Scandia Transport Group', pct: 50, greed: 1.16, type: 'Inwestor Branżowy' },
+          { id: 'sh_2b', name: 'Baltic Equity Partners', pct: 30, greed: 1.05, type: 'Fundusz PE' }
+        ]
+      },
+      {
+        id: 'mkt_3',
+        name: 'BioCore Labs',
+        sector: 'Biotechnologia',
+        baseValuation: 250000,
+        baseProfit: 8600,
+        ownedPct: 0,
+        absorbed: false,
+        specialDivCooldown: 0,
+        shareholders: [
+          { id: 'sh_3a', name: 'Dr Helena Nowak & R&D', pct: 40, greed: 1.20, type: 'Założyciel' },
+          { id: 'sh_3b', name: 'Helvetia BioFund', pct: 45, greed: 1.08, type: 'Fundusz VC' }
+        ]
+      },
+      {
+        id: 'mkt_4',
+        name: 'Baltic Commercial Bank',
+        sector: 'Bankowość',
+        baseValuation: 980000,
+        baseProfit: 32500,
+        ownedPct: 0,
+        absorbed: false,
+        specialDivCooldown: 0,
+        shareholders: [
+          { id: 'sh_4a', name: 'Skarb Państwa / PFR', pct: 35, greed: 1.24, type: 'Instytucja' },
+          { id: 'sh_4b', name: 'Valkyrie Capital AI', pct: 45, greed: 1.10, type: 'Fundusz AI' }
+        ]
+      },
+      {
+        id: 'mkt_5',
+        name: 'Titan Steel & Mining',
+        sector: 'Surowce',
+        baseValuation: 3900000,
+        baseProfit: 130000,
+        ownedPct: 0,
+        absorbed: false,
+        specialDivCooldown: 0,
+        shareholders: [
+          { id: 'sh_5a', name: 'Rodzina Czartoryskich', pct: 52, greed: 1.25, type: 'Akcjonariusz Większościowy' },
+          { id: 'sh_5b', name: 'RheinMetall Invest', pct: 33, greed: 1.12, type: 'Inwestor Branżowy' }
+        ]
+      },
+      {
+        id: 'mkt_6',
+        name: 'Aether Cloud Systems',
+        sector: 'Big Tech',
+        baseValuation: 14500000,
+        baseProfit: 510000,
+        ownedPct: 0,
+        absorbed: false,
+        specialDivCooldown: 0,
+        shareholders: [
+          { id: 'sh_6a', name: 'Silicon Apex Ventures', pct: 48, greed: 1.15, type: 'Fundusz VC' },
+          { id: 'sh_6b', name: 'BlackRock Ridge Fund', pct: 37, greed: 1.18, type: 'Fundusz AI' }
+        ]
+      }
     ];
+
+    // Creator UI temporary selection
+    let selectedCatId = CATEGORIES[0].id;
+    let selectedCountries = ['PL'];
+    let activeOfferCompId = null;
+    let activeExpandSubId = null;
 
     // --- DEFAULT STATE ---
     function getDefaultState() {
       return {
         holdingName: 'APEX CAPITAL GROUP S.A.',
         cash: 1500,
-        speed: 1,
-        subsidiaries: [], // { id, name, sector, level, baseCost, baseIncome, isAbsorbed }
-        market: INITIAL_MARKET_COMPANIES.map(c => ({
+        simMinutes: 8 * 60,
+        subsidiaries: [],
+        market: JSON.parse(JSON.stringify(INITIAL_MARKET_COMPANIES)).map(c => ({
           ...c,
           currentValuation: c.baseValuation,
           lastChangePct: 0
@@ -605,7 +1065,7 @@
 
     function loadState() {
       try {
-        const raw = localStorage.getItem('apex_holding_save_v1');
+        const raw = localStorage.getItem('apex_holding_save_v3');
         if (!raw) return getDefaultState();
         const parsed = JSON.parse(raw);
         return { ...getDefaultState(), ...parsed };
@@ -615,7 +1075,7 @@
     }
 
     function saveState() {
-      localStorage.setItem('apex_holding_save_v1', JSON.stringify(state));
+      localStorage.setItem('apex_holding_save_v3', JSON.stringify(state));
     }
 
     function nowStr() {
@@ -624,8 +1084,44 @@
 
     function addLog(text, type = '') {
       state.logs.unshift({ time: nowStr(), text, type });
-      if (state.logs.length > 35) state.logs.pop();
+      if (state.logs.length > 40) state.logs.pop();
       renderLogs();
+    }
+
+    // --- CASH ANIMATIONS ---
+    function spawnCashAnimation(amount, kind) {
+      const layer = document.getElementById('cash-fx-layer');
+      const pill = document.getElementById('cash-pill');
+      if (!layer || !pill || amount <= 0) return;
+
+      const el = document.createElement('div');
+      el.className = `cash-float ${kind}`;
+      el.textContent = (kind === 'gain' ? '+' : '-') + fmtMoney(amount);
+      layer.appendChild(el);
+
+      pill.classList.remove('pulse-gain', 'pulse-spend');
+      void pill.offsetWidth;
+      pill.classList.add(kind === 'gain' ? 'pulse-gain' : 'pulse-spend');
+
+      setTimeout(() => el.remove(), 1150);
+      setTimeout(() => pill.classList.remove('pulse-gain', 'pulse-spend'), 280);
+    }
+
+    function addCash(amount, animate = true) {
+      if (amount <= 0) return;
+      state.cash += amount;
+      if (animate && amount >= 1) {
+        spawnCashAnimation(amount, 'gain');
+      }
+    }
+
+    function spendCash(amount) {
+      if (state.cash < amount) return false;
+      state.cash -= amount;
+      if (amount > 0) {
+        spawnCashAnimation(amount, 'spend');
+      }
+      return true;
     }
 
     // --- FORMATTING ---
@@ -637,22 +1133,60 @@
       return '$' + Math.floor(val).toLocaleString('en-US');
     }
 
-    // --- ECONOMY CALCULATIONS ---
+    function fmtSimClock(totalMinutes) {
+      const minsInDay = 24 * 60;
+      const day = Math.floor(totalMinutes / minsInDay) + 1;
+      const dayMins = Math.floor(totalMinutes % minsInDay);
+      const hh = String(Math.floor(dayMins / 60)).padStart(2, '0');
+      const mm = String(dayMins % 60).padStart(2, '0');
+      return `Dzień ${day} • ${hh}:${mm}`;
+    }
+
+    // --- ECONOMY & MULTIPLIER CALCULATIONS ---
+    function getCountriesMultiplier(countryCodes) {
+      if (!countryCodes || countryCodes.length === 0) return 1.0;
+      let sumBonus = 0;
+      countryCodes.forEach((code, idx) => {
+        const c = COUNTRIES.find(x => x.code === code);
+        if (!c) return;
+        if (idx === 0) sumBonus += c.mult;
+        else sumBonus += (c.mult - 0.55); // Additional countries stack strong revenue
+      });
+      return Number(sumBonus.toFixed(2));
+    }
+
+    function getCountriesCostMultiplier(countryCodes) {
+      if (!countryCodes || countryCodes.length === 0) return 1.0;
+      let total = 0;
+      countryCodes.forEach((code, idx) => {
+        const c = COUNTRIES.find(x => x.code === code);
+        if (!c) return;
+        total += idx === 0 ? c.costFactor : c.costFactor * 0.85;
+      });
+      return total;
+    }
+
     function getSynergyMultiplier() {
-      // +4% income for every subsidiary owned
       return 1 + (state.subsidiaries.length * 0.04);
     }
 
     function getSubsidiaryIncome(sub) {
-      return sub.baseIncome * sub.level * Math.pow(1.12, sub.level - 1) * getSynergyMultiplier();
+      const cMult = getCountriesMultiplier(sub.countries || ['PL']);
+      return sub.baseIncome * sub.level * Math.pow(1.12, sub.level - 1) * cMult * getSynergyMultiplier();
     }
 
     function getSubsidiaryUpgradeCost(sub) {
-      return Math.floor(sub.baseCost * 0.65 * Math.pow(1.42, sub.level));
+      const cCost = getCountriesCostMultiplier(sub.countries || ['PL']);
+      return Math.floor(sub.baseCost * 0.65 * Math.pow(1.42, sub.level) * Math.sqrt(cCost));
     }
 
     function getSubsidiaryValuation(sub) {
       return getSubsidiaryIncome(sub) * 28;
+    }
+
+    function getFreeFloatPct(comp) {
+      const holdersSum = comp.shareholders.reduce((acc, h) => acc + h.pct, 0);
+      return Math.max(0, 100 - comp.ownedPct - holdersSum);
     }
 
     function getMarketDividendIncome(comp) {
@@ -687,67 +1221,315 @@
       return 'Lokalny Fundusz Inwestycyjny';
     }
 
-    // --- PLAYER ACTIONS ---
-    function manualDeal() {
-      const reward = getManualReward();
-      state.cash += reward;
-      updateTopBar();
+    // --- CREATOR UI LOGIC ---
+    function renderCategoryList() {
+      const query = (document.getElementById('cat-search-input').value || '').trim().toLowerCase();
+      const filtered = CATEGORIES.filter(c => c.name.toLowerCase().includes(query));
+      const container = document.getElementById('cat-select-list');
+
+      if (filtered.length === 0) {
+        container.innerHTML = `<div style="font-size: 12px; color: var(--muted); padding: 8px;">Brak kategorii pasującej do „${query}”.</div>`;
+        return;
+      }
+
+      // Auto-select first matching category if current isn't in filtered list
+      if (!filtered.some(c => c.id === selectedCatId)) {
+        selectedCatId = filtered[0].id;
+      }
+
+      container.innerHTML = filtered.map(cat => {
+        const isSel = cat.id === selectedCatId;
+        return `
+          <div class="cat-option ${isSel ? 'selected' : ''}" onclick="selectCategory('${cat.id}')">
+            <span><strong>${cat.name}</strong></span>
+            <span style="color: var(--muted); font-size: 11.5px;">Baza: ${fmtMoney(cat.baseCost)} • +${fmtMoney(cat.baseIncome)}/s</span>
+          </div>
+        `;
+      }).join('');
+
+      updateCreatorPreview();
     }
 
-    function foundSubsidiary(bpId) {
-      const bp = SUBSIDIARY_BLUEPRINTS.find(b => b.id === bpId);
-      if (!bp) return;
-      if (state.subsidiaries.some(s => s.id === bpId)) return;
-      if (state.cash < bp.baseCost) return;
+    function selectCategory(catId) {
+      selectedCatId = catId;
+      renderCategoryList();
+    }
 
-      state.cash -= bp.baseCost;
+    function renderCountrySelector() {
+      const grid = document.getElementById('country-select-grid');
+      grid.innerHTML = COUNTRIES.map(c => {
+        const active = selectedCountries.includes(c.code);
+        return `
+          <div class="country-chip ${active ? 'active' : ''}" onclick="toggleCountry('${c.code}')">
+            <span>${c.flag}</span>
+            <span>${c.name}</span>
+          </div>
+        `;
+      }).join('');
+      updateCreatorPreview();
+    }
+
+    function toggleCountry(code) {
+      if (selectedCountries.includes(code)) {
+        if (selectedCountries.length === 1) return; // Must have at least 1 country
+        selectedCountries = selectedCountries.filter(c => c !== code);
+      } else {
+        selectedCountries.push(code);
+      }
+      renderCountrySelector();
+    }
+
+    function getCreatorNumbers() {
+      const cat = CATEGORIES.find(c => c.id === selectedCatId) || CATEGORIES[0];
+      const incMult = getCountriesMultiplier(selectedCountries);
+      const costMult = getCountriesCostMultiplier(selectedCountries);
+      const cost = Math.floor(cat.baseCost * costMult);
+      const income = cat.baseIncome * incMult * getSynergyMultiplier();
+      return { cat, incMult, costMult, cost, income };
+    }
+
+    function updateCreatorPreview() {
+      const { cat, incMult, cost, income } = getCreatorNumbers();
+      document.getElementById('preview-cat-name').textContent = cat.name;
+      document.getElementById('preview-countries-mult').textContent = `${selectedCountries.length} ${selectedCountries.length === 1 ? 'kraj' : 'kraje/ów'} (${incMult.toFixed(2)}x)`;
+      document.getElementById('preview-income').textContent = fmtMoney(income) + ' / s';
+      document.getElementById('preview-cost').textContent = fmtMoney(cost);
+
+      const btn = document.getElementById('create-sub-btn');
+      btn.disabled = state.cash < cost;
+      btn.textContent = `Załóż Spółkę-Córkę (${fmtMoney(cost)})`;
+    }
+
+    function createCustomSubsidiary() {
+      const rawName = (document.getElementById('new-sub-name').value || '').trim();
+      const { cat, cost } = getCreatorNumbers();
+      if (!spendCash(cost)) return;
+
+      const finalName = rawName.length > 0
+        ? rawName
+        : `${state.holdingName.split(' ')[0]} ${cat.name.split('&')[0].trim()} Sp. z o.o.`;
+
       state.subsidiaries.push({
-        id: bp.id,
-        name: bp.name,
-        sector: bp.sector,
+        id: 'sub_' + Date.now() + '_' + Math.floor(Math.random() * 999),
+        name: finalName,
+        sector: cat.name,
+        countries: [...selectedCountries],
         level: 1,
-        baseCost: bp.baseCost,
-        baseIncome: bp.baseIncome,
+        baseCost: cat.baseCost,
+        baseIncome: cat.baseIncome,
         isAbsorbed: false
       });
 
-      addLog(`Założono nową spółkę-córkę: ${bp.name} (100% udziałów).`, 'good');
+      document.getElementById('new-sub-name').value = '';
+      const flagsStr = selectedCountries.map(code => COUNTRIES.find(c => c.code === code)?.flag || code).join(' ');
+      addLog(`Zarejestrowano spółkę-córkę: ${finalName} [${cat.name}] na rynkach: ${flagsStr}.`, 'good');
       renderAll();
       saveState();
+    }
+
+    // --- SUBSIDIARY EXPANSION MODAL ---
+    function openExpandModal(subId) {
+      const sub = state.subsidiaries.find(s => s.id === subId);
+      if (!sub) return;
+      activeExpandSubId = subId;
+      document.getElementById('exp-sub-name').textContent = sub.name;
+
+      const ownedCodes = sub.countries || ['PL'];
+      const list = document.getElementById('exp-countries-list');
+
+      list.innerHTML = COUNTRIES.map(c => {
+        const already = ownedCodes.includes(c.code);
+        const expandCost = Math.floor(sub.baseCost * c.costFactor * Math.pow(1.25, ownedCodes.length));
+        return `
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 10px;">
+            <div>
+              <div style="font-weight: 700; font-size: 13.5px;">${c.flag} ${c.name}</div>
+              <div style="font-size: 11.5px; color: var(--muted);">Bonus mnożnika rynku: +${((c.mult - 0.55) * 100).toFixed(0)}%</div>
+            </div>
+            ${already
+              ? `<span style="font-size: 12px; color: var(--green); font-weight: 700;">✓ Aktywny</span>`
+              : `<button class="success" ${state.cash >= expandCost ? '' : 'disabled'} onclick="expandSubCountry('${c.code}', ${expandCost})">Otwórz (${fmtMoney(expandCost)})</button>`
+            }
+          </div>
+        `;
+      }).join('');
+
+      document.getElementById('expand-modal').classList.remove('hidden');
+    }
+
+    function closeExpandModal() {
+      activeExpandSubId = null;
+      document.getElementById('expand-modal').classList.add('hidden');
+    }
+
+    function expandSubCountry(countryCode, cost) {
+      const sub = state.subsidiaries.find(s => s.id === activeExpandSubId);
+      if (!sub) return;
+      if (!sub.countries) sub.countries = ['PL'];
+      if (sub.countries.includes(countryCode)) return;
+      if (!spendCash(cost)) return;
+
+      sub.countries.push(countryCode);
+      const cObj = COUNTRIES.find(c => c.code === countryCode);
+      addLog(`Ekspansja zagraniczna! ${sub.name} otworzyło oddział w kraju: ${cObj.flag} ${cObj.name}.`, 'good');
+      openExpandModal(sub.id);
+      renderAll();
+      saveState();
+    }
+
+    // --- SHAREHOLDERS & BUYOUT OFFER MODAL ---
+    function openOfferModal(compId, preselectHolderId = null) {
+      const comp = state.market.find(c => c.id === compId);
+      if (!comp || comp.absorbed || comp.shareholders.length === 0) return;
+
+      activeOfferCompId = compId;
+      document.getElementById('modal-comp-name').textContent = comp.name;
+
+      const sel = document.getElementById('modal-holder-select');
+      sel.innerHTML = comp.shareholders.map(h => `
+        <option value="${h.id}" ${h.id === preselectHolderId ? 'selected' : ''}>
+          ${h.name} (${h.pct}% udziałów • ${h.type})
+        </option>
+      `).join('');
+
+      document.getElementById('modal-premium-input').value = 110;
+      updateOfferModalCalc();
+      document.getElementById('offer-modal').classList.remove('hidden');
+    }
+
+    function closeOfferModal() {
+      activeOfferCompId = null;
+      document.getElementById('offer-modal').classList.add('hidden');
+    }
+
+    function setOfferPremium(pct) {
+      document.getElementById('modal-premium-input').value = pct;
+      updateOfferModalCalc();
+    }
+
+    function updateOfferModalCalc() {
+      const comp = state.market.find(c => c.id === activeOfferCompId);
+      if (!comp) return;
+
+      const holderId = document.getElementById('modal-holder-select').value;
+      const holder = comp.shareholders.find(h => h.id === holderId) || comp.shareholders[0];
+      if (!holder) return;
+
+      document.getElementById('modal-max-pct').textContent = holder.pct;
+      const pctInput = document.getElementById('modal-pct-input');
+      pctInput.max = holder.pct;
+      let reqPct = Math.max(1, Math.min(holder.pct, parseInt(pctInput.value, 10) || 1));
+
+      const premiumPct = Math.max(70, Math.min(250, parseInt(document.getElementById('modal-premium-input').value, 10) || 100));
+      const marketVal = comp.currentValuation * (reqPct / 100);
+      const offerTotal = marketVal * (premiumPct / 100);
+
+      // Acceptance probability based on shareholder's greed threshold & block size
+      const requiredMult = holder.greed + (reqPct >= 25 ? 0.05 : 0);
+      const offerMult = premiumPct / 100;
+      let chance = Math.round(50 + (offerMult - requiredMult) * 320);
+      chance = Math.max(5, Math.min(99, chance));
+
+      document.getElementById('modal-holder-info').innerHTML = `
+        Typ akcjonariusza: <strong>${holder.type}</strong> • Posiada: <strong>${holder.pct}%</strong> • Oczekiwana wycena: ok. <strong>${Math.round(requiredMult * 100)}%</strong> wartości rynkowej.
+      `;
+      document.getElementById('modal-market-val').textContent = fmtMoney(marketVal);
+      document.getElementById('modal-offer-total').textContent = fmtMoney(offerTotal);
+
+      const chanceEl = document.getElementById('modal-chance');
+      chanceEl.textContent = chance + '%';
+      chanceEl.style.color = chance >= 70 ? 'var(--green)' : (chance >= 40 ? 'var(--gold)' : 'var(--red)');
+
+      const submitBtn = document.getElementById('modal-submit-btn');
+      submitBtn.disabled = state.cash < offerTotal;
+    }
+
+    function submitBuyoutOffer() {
+      const comp = state.market.find(c => c.id === activeOfferCompId);
+      if (!comp) return;
+
+      const holderId = document.getElementById('modal-holder-select').value;
+      const holder = comp.shareholders.find(h => h.id === holderId);
+      if (!holder) return;
+
+      const reqPct = Math.max(1, Math.min(holder.pct, parseInt(document.getElementById('modal-pct-input').value, 10) || 1));
+      const premiumPct = Math.max(70, Math.min(250, parseInt(document.getElementById('modal-premium-input').value, 10) || 100));
+      const marketVal = comp.currentValuation * (reqPct / 100);
+      const offerTotal = marketVal * (premiumPct / 100);
+
+      if (state.cash < offerTotal) return;
+
+      const requiredMult = holder.greed + (reqPct >= 25 ? 0.05 : 0);
+      const offerMult = premiumPct / 100;
+      let chance = Math.max(5, Math.min(99, Math.round(50 + (offerMult - requiredMult) * 320)));
+
+      const roll = Math.random() * 100;
+      if (roll <= chance) {
+        // Accepted!
+        spendCash(offerTotal);
+        const hadMajority = comp.ownedPct >= 51;
+        holder.pct -= reqPct;
+        comp.ownedPct += reqPct;
+
+        if (holder.pct <= 0) {
+          comp.shareholders = comp.shareholders.filter(h => h.id !== holder.id);
+        }
+
+        addLog(`SUKCES NEGOCJACJI! ${holder.name} przyjął ofertę ${fmtMoney(offerTotal)} i odsprzedał ${reqPct}% udziałów w ${comp.name}!`, 'good');
+        if (!hadMajority && comp.ownedPct >= 51) {
+          addLog(`PRZEJĘCIE KONTROLI! Masz już ${comp.ownedPct}% w ${comp.name} (+25% dywidendy i prawo do dywidendy nadzwyczajnej)!`, 'warn');
+        }
+        closeOfferModal();
+      } else {
+        // Rejected! Small negotiation fee (1% of offer)
+        const fee = Math.max(50, Math.floor(offerTotal * 0.01));
+        spendCash(Math.min(state.cash, fee));
+        const counterPct = Math.ceil(requiredMult * 100 + 3);
+        addLog(`ODRZUCONO OFERTĘ! ${holder.name} odrzucił propozycję odkupu ${reqPct}% w ${comp.name} (sugeruje min. ${counterPct}% wyceny). Koszt doradztwa: ${fmtMoney(fee)}.`, 'bad');
+        updateOfferModalCalc();
+      }
+
+      renderAll();
+      saveState();
+    }
+
+    // --- OTHER PLAYER ACTIONS ---
+    function manualDeal() {
+      const reward = getManualReward();
+      addCash(reward, true);
+      updateTopBar();
     }
 
     function upgradeSubsidiary(subId) {
       const sub = state.subsidiaries.find(s => s.id === subId);
       if (!sub) return;
       const cost = getSubsidiaryUpgradeCost(sub);
-      if (state.cash < cost) return;
+      if (!spendCash(cost)) return;
 
-      state.cash -= cost;
       sub.level += 1;
       addLog(`Dokapitalizowano ${sub.name} do Poziomu ${sub.level}.`);
       renderAll();
       saveState();
     }
 
-    function buyShares(compId, pct) {
+    function buyFreeFloat(compId, pct) {
       const comp = state.market.find(c => c.id === compId);
       if (!comp || comp.absorbed) return;
 
-      const available = 100 - comp.ownedPct;
-      const actualPct = Math.min(pct, available);
+      const freeFloat = getFreeFloatPct(comp);
+      const actualPct = Math.min(pct, freeFloat);
       if (actualPct <= 0) return;
 
       const cost = comp.currentValuation * (actualPct / 100);
-      if (state.cash < cost) return;
+      if (!spendCash(cost)) return;
 
       const hadMajority = comp.ownedPct >= 51;
-      state.cash -= cost;
       comp.ownedPct += actualPct;
 
       if (!hadMajority && comp.ownedPct >= 51) {
-        addLog(`PRZEJĘCIE KONTROLI! Posiadasz ${comp.ownedPct}% akcji ${comp.name}. Aktywowano bonus +25% dywidendy!`, 'warn');
+        addLog(`PRZEJĘCIE KONTROLI! Skupiono ${actualPct}% z giełdy — masz ${comp.ownedPct}% akcji ${comp.name}!`, 'warn');
       } else {
-        addLog(`Wykupiono ${actualPct}% udziałów w ${comp.name} za ${fmtMoney(cost)} (Łącznie: ${comp.ownedPct}%).`);
+        addLog(`Kupiono ${actualPct}% akcji z wolnego rynku (Free Float) w ${comp.name} za ${fmtMoney(cost)}.`);
       }
 
       renderAll();
@@ -759,317 +1541,4 @@
       if (!comp || comp.absorbed || comp.ownedPct <= 0) return;
 
       const actualPct = Math.min(pct, comp.ownedPct);
-      const payout = comp.currentValuation * (actualPct / 100) * 0.96; // 4% prowizja maklerska
-      comp.ownedPct -= actualPct;
-      state.cash += payout;
-
-      addLog(`Sprzedano ${actualPct}% akcji ${comp.name} za ${fmtMoney(payout)} (po prowizji 4%).`);
-      renderAll();
-      saveState();
-    }
-
-    function absorbCompany(compId) {
-      const comp = state.market.find(c => c.id === compId);
-      if (!comp || comp.absorbed || comp.ownedPct < 100) return;
-
-      comp.absorbed = true;
-      state.subsidiaries.push({
-        id: 'abs_' + comp.id,
-        name: comp.name + ' (Spółka Zależna)',
-        sector: comp.sector,
-        level: 1,
-        baseCost: Math.floor(comp.baseValuation * 0.8),
-        baseIncome: Math.floor(comp.baseProfit * 1.45),
-        isAbsorbed: true
-      });
-
-      addLog(`PEŁNA KONSOLIDACJA! ${comp.name} zostało wchłonięte do struktury holdingu jako spółka-córka!`, 'warn');
-      renderAll();
-      saveState();
-    }
-
-    function setSpeed(spd) {
-      state.speed = spd;
-      [1, 2, 5].forEach(s => {
-        document.getElementById('spd-' + s).classList.toggle('active-speed', s === spd);
-      });
-    }
-
-    function renameHolding() {
-      const name = prompt('Podaj nową nazwę Twojego Holdingu:', state.holdingName);
-      if (name && name.trim().length > 1) {
-        state.holdingName = name.trim().toUpperCase();
-        renderAll();
-        saveState();
-      }
-    }
-
-    function resetGame() {
-      if (!confirm('Czy na pewno chcesz zresetować całe imperium i zacząć od nowa?')) return;
-      localStorage.removeItem('apex_holding_save_v1');
-      state = getDefaultState();
-      renderAll();
-    }
-
-    function switchTab(tabName, btnEl) {
-      ['subsidiaries', 'market', 'structure'].forEach(t => {
-        document.getElementById('tab-' + t).classList.toggle('hidden', t !== tabName);
-      });
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      if (btnEl) btnEl.classList.add('active');
-      renderAll();
-    }
-
-    // --- RENDERING ---
-    function updateTopBar() {
-      const income = getTotalIncomePerSec();
-      const nw = getTotalNetWorth();
-
-      document.getElementById('holding-title').textContent = state.holdingName;
-      document.getElementById('holding-rank').textContent = 'Ranga: ' + getHoldingRank(nw);
-      document.getElementById('stat-cash').textContent = fmtMoney(state.cash);
-      document.getElementById('stat-income').textContent = fmtMoney(income) + ' / s';
-      document.getElementById('stat-networth').textContent = fmtMoney(nw);
-      document.getElementById('manual-reward').textContent = fmtMoney(getManualReward());
-
-      document.getElementById('count-subs').textContent = state.subsidiaries.length;
-      const activeMarket = state.market.filter(c => !c.absorbed).length;
-      document.getElementById('count-market').textContent = activeMarket;
-    }
-
-    function renderSubsidiaries() {
-      const ownedContainer = document.getElementById('owned-subs-list');
-      const shopContainer = document.getElementById('new-subs-shop');
-      const synergyPct = Math.round((getSynergyMultiplier() - 1) * 100);
-      document.getElementById('sub-synergy-info').textContent = `Synergia grupy: +${synergyPct}%`;
-
-      if (state.subsidiaries.length === 0) {
-        ownedContainer.innerHTML = `<div style="color: var(--muted); font-size: 13px; grid-column: 1/-1; padding: 20px 0;">
-          Nie posiadasz jeszcze żadnych spółek-córek. Zbierz kapitał i załóż pierwszy podmiot po prawej stronie!
-        </div>`;
-      } else {
-        ownedContainer.innerHTML = state.subsidiaries.map(sub => {
-          const inc = getSubsidiaryIncome(sub);
-          const upgCost = getSubsidiaryUpgradeCost(sub);
-          const val = getSubsidiaryValuation(sub);
-          const canAfford = state.cash >= upgCost;
-
-          return `
-            <div class="sub-card ${sub.isAbsorbed ? 'acquired-tag' : ''}">
-              <div>
-                <div class="sub-top">
-                  <div>
-                    <span class="sector-tag">${sub.sector}</span>
-                    <div class="sub-name">${sub.name}</div>
-                  </div>
-                  <div class="sub-level">LVL ${sub.level}</div>
-                </div>
-                <div class="sub-metrics" style="margin-top: 12px;">
-                  <div><span>Cashflow</span><strong style="color: var(--green);">${fmtMoney(inc)}/s</strong></div>
-                  <div><span>Wycena spółki</span><strong>${fmtMoney(val)}</strong></div>
-                </div>
-              </div>
-              <button class="primary" ${canAfford ? '' : 'disabled'} onclick="upgradeSubsidiary('${sub.id}')">
-                Dokapitalizuj (${fmtMoney(upgCost)})
-              </button>
-            </div>
-          `;
-        }).join('');
-      }
-
-      // Shop for incorporating new subsidiaries
-      const availableBps = SUBSIDIARY_BLUEPRINTS.filter(bp => !state.subsidiaries.some(s => s.id === bp.id));
-      if (availableBps.length === 0) {
-        shopContainer.innerHTML = `<div style="color: var(--green); font-size: 13px;">Wszystkie własne sektory zostały uruchomione! Przejmuj konkurencję na Giełdzie.</div>`;
-      } else {
-        shopContainer.innerHTML = availableBps.map(bp => {
-          const canAfford = state.cash >= bp.baseCost;
-          return `
-            <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 12px; padding: 12px; display: flex; justify-content: space-between; align-items: center; gap: 10px;">
-              <div>
-                <div style="font-size: 11px; color: #a5b4fc; font-weight: 700;">${bp.sector}</div>
-                <div style="font-weight: 700; font-size: 14px;">${bp.name}</div>
-                <div style="font-size: 12px; color: var(--muted);">${bp.desc} (+${fmtMoney(bp.baseIncome)}/s)</div>
-              </div>
-              <button class="success" style="white-space: nowrap;" ${canAfford ? '' : 'disabled'} onclick="foundSubsidiary('${bp.id}')">
-                Załóż (${fmtMoney(bp.baseCost)})
-              </button>
-            </div>
-          `;
-        }).join('');
-      }
-    }
-
-    function renderMarket() {
-      const container = document.getElementById('market-list');
-      const totalDiv = state.market.reduce((acc, c) => acc + getMarketDividendIncome(c), 0);
-      document.getElementById('dividend-summary').textContent = fmtMoney(totalDiv) + ' / s';
-
-      container.innerHTML = state.market.map(comp => {
-        if (comp.absorbed) {
-          return `
-            <div class="sub-card acquired-tag">
-              <div>
-                <span class="sector-tag" style="background: var(--gold-bg); color: var(--gold);">WCHŁONIĘTA (100%)</span>
-                <div class="sub-name">${comp.name}</div>
-                <p style="font-size: 12.5px; color: var(--muted); margin-top: 8px;">
-                  Spółka została w pełni skonsolidowana i działa teraz w zakładce <strong>Spółki-Córki</strong>.
-                </p>
-              </div>
-            </div>
-          `;
-        }
-
-        const cost1 = comp.currentValuation * 0.01;
-        const cost10 = comp.currentValuation * 0.10;
-        const cost25 = comp.currentValuation * 0.25;
-        const divInc = getMarketDividendIncome(comp);
-        const isMajority = comp.ownedPct >= 51;
-        const trendClass = comp.lastChangePct >= 0 ? 'trend-up' : 'trend-down';
-        const trendSign = comp.lastChangePct >= 0 ? '+' : '';
-
-        return `
-          <div class="sub-card ${isMajority ? 'acquired-tag' : ''}">
-            <div>
-              <div class="sub-top">
-                <div>
-                  <span class="sector-tag">${comp.sector}</span>
-                  <div class="sub-name">${comp.name}</div>
-                </div>
-                <div style="text-align: right;">
-                  <div style="font-size: 11px; color: var(--muted);">Wycena 100%</div>
-                  <div style="font-weight: 700; font-size: 14px;">${fmtMoney(comp.currentValuation)}</div>
-                  <div class="${trendClass}" style="font-size: 11px;">${trendSign}${comp.lastChangePct.toFixed(1)}%</div>
-                </div>
-              </div>
-
-              <div style="margin-top: 12px;">
-                <div style="display: flex; justify-content: space-between; font-size: 12px;">
-                  <span>Twój pakiet udziałów:</span>
-                  <strong style="color: ${isMajority ? 'var(--gold)' : '#fff'};">
-                    ${comp.ownedPct}% ${isMajority ? '👑 (Kontrola)' : ''}
-                  </strong>
-                </div>
-                <div class="share-bar-bg">
-                  <div class="share-bar-fill ${isMajority ? 'majority' : ''}" style="width: ${comp.ownedPct}%;"></div>
-                </div>
-              </div>
-
-              <div class="sub-metrics" style="margin-top: 10px;">
-                <div><span>Twoja dywidenda</span><strong style="color: var(--green);">${fmtMoney(divInc)}/s</strong></div>
-                <div><span>Koszt 1% akcji</span><strong>${fmtMoney(cost1)}</strong></div>
-              </div>
-            </div>
-
-            ${comp.ownedPct >= 100 ? `
-              <button class="primary" style="background: linear-gradient(135deg, #f59e0b, #d97706); border: none;" onclick="absorbCompany('${comp.id}')">
-                ⚡ Konsoliduj jako Spółkę-Córkę (100%)
-              </button>
-            ` : `
-              <div class="btn-row">
-                <button class="success" ${state.cash >= cost1 ? '' : 'disabled'} onclick="buyShares('${comp.id}', 1)">+1%</button>
-                <button class="success" ${state.cash >= cost10 && comp.ownedPct <= 90 ? '' : 'disabled'} onclick="buyShares('${comp.id}', 10)">+10%</button>
-                <button class="success" ${state.cash >= cost25 && comp.ownedPct <= 75 ? '' : 'disabled'} onclick="buyShares('${comp.id}', 25)">+25%</button>
-                <button class="danger" ${comp.ownedPct > 0 ? '' : 'disabled'} onclick="sellShares('${comp.id}', 10)">-10%</button>
-              </div>
-            `}
-          </div>
-        `;
-      }).join('');
-    }
-
-    function renderStructure() {
-      document.getElementById('tree-holding-name').textContent = state.holdingName;
-      document.getElementById('tree-total-value').textContent = 'Wartość aktywów netto: ' + fmtMoney(getTotalNetWorth());
-
-      const branches = document.getElementById('org-tree-branches');
-      const items = [];
-
-      state.subsidiaries.forEach(s => {
-        items.push(`
-          <div class="org-node" style="border-color: rgba(16, 185, 129, 0.4);">
-            <div style="font-size: 11px; color: var(--green); font-weight: 700;">100% SPÓŁKA-CÓRKA • LVL ${s.level}</div>
-            <div style="font-weight: 700; margin: 4px 0;">${s.name}</div>
-            <div style="font-size: 12px; color: var(--muted);">Generuje: ${fmtMoney(getSubsidiaryIncome(s))}/s</div>
-          </div>
-        `);
-      });
-
-      state.market.filter(c => !c.absorbed && c.ownedPct > 0).forEach(c => {
-        items.push(`
-          <div class="org-node" style="border-color: rgba(99, 102, 241, 0.4);">
-            <div style="font-size: 11px; color: #a5b4fc; font-weight: 700;">PAKIET AKCJI: ${c.ownedPct}%</div>
-            <div style="font-weight: 700; margin: 4px 0;">${c.name}</div>
-            <div style="font-size: 12px; color: var(--muted);">Dywidenda: ${fmtMoney(getMarketDividendIncome(c))}/s</div>
-          </div>
-        `);
-      });
-
-      branches.innerHTML = items.length > 0
-        ? items.join('')
-        : `<div style="color: var(--muted); font-size: 13px; grid-column: 1/-1; text-align: center;">Brak podmiotów zależnych w strukturze.</div>`;
-    }
-
-    function renderLogs() {
-      const logBox = document.getElementById('event-log');
-      logBox.innerHTML = state.logs.map(l => `
-        <div class="log-item ${l.type}">
-          <span class="log-time">[${l.time}]</span>${l.text}
-        </div>
-      `).join('');
-    }
-
-    function renderAll() {
-      updateTopBar();
-      renderSubsidiaries();
-      renderMarket();
-      renderStructure();
-      renderLogs();
-    }
-
-    // --- GAME LOOP ---
-    let tickCounter = 0;
-
-    setInterval(() => {
-      const incomePerSec = getTotalIncomePerSec();
-      // 4 ticks per second for smooth numbers
-      const gain = (incomePerSec / 4) * state.speed;
-      state.cash += gain;
-      tickCounter++;
-
-      // Market price fluctuation every ~3 seconds
-      if (tickCounter % 12 === 0) {
-        state.market.forEach(comp => {
-          if (comp.absorbed) return;
-          const changePct = (Math.random() * 11) - 5.2; // -5.2% to +5.8%
-          comp.lastChangePct = changePct;
-          comp.currentValuation = Math.max(
-            comp.baseValuation * 0.45,
-            Math.min(comp.baseValuation * 3.2, comp.currentValuation * (1 + changePct / 100))
-          );
-        });
-
-        if (!document.getElementById('tab-market').classList.contains('hidden')) {
-          renderMarket();
-        }
-      }
-
-      // Refresh button states & top bar
-      updateTopBar();
-      if (tickCounter % 4 === 0) {
-        if (!document.getElementById('tab-subsidiaries').classList.contains('hidden')) renderSubsidiaries();
-        if (!document.getElementById('tab-market').classList.contains('hidden')) renderMarket();
-      }
-
-      // Auto-save every 15 seconds
-      if (tickCounter % 60 === 0) {
-        saveState();
-      }
-    }, 250);
-
-    // Initial render
-    setSpeed(state.speed || 1);
-    renderAll();
-  </script>
-</body>
-</html>
+      const payout = comp.currentValuation * (actualPct / 100) * 0.9
