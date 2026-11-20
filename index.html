@@ -7,8 +7,8 @@
   <style>
     :root {
       --bg: #070911;
-      --panel: rgba(17, 22, 38, 0.76);
-      --panel-2: rgba(24, 32, 54, 0.82);
+      --panel: rgba(17, 22, 38, 0.78);
+      --panel-2: rgba(24, 32, 54, 0.85);
       --border: rgba(255, 255, 255, 0.11);
       --text: #f3f6ff;
       --muted: #9aa5c4;
@@ -67,7 +67,7 @@
       justify-content: space-between;
       align-items: center;
       gap: 14px;
-      background: rgba(14, 19, 34, 0.82);
+      background: rgba(14, 19, 34, 0.84);
       backdrop-filter: blur(18px) saturate(140%);
       -webkit-backdrop-filter: blur(18px) saturate(140%);
       border: 1px solid var(--border);
@@ -199,7 +199,26 @@
       border: 1px solid rgba(129, 140, 248, 0.4);
       border-radius: 14px;
       padding: 12px 16px;
+      margin-bottom: 12px;
+    }
+
+    .mission-strip {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 10px;
       margin-bottom: 14px;
+    }
+
+    .mission-card {
+      background: rgba(255, 255, 255, 0.035);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 12px;
     }
 
     .offer-toggle-box {
@@ -480,13 +499,18 @@
 
     input[type="text"], input[type="number"], select {
       width: 100%;
-      background: rgba(11, 15, 26, 0.85);
+      background: rgba(11, 15, 26, 0.92);
       border: 1px solid var(--border);
       color: var(--text);
       padding: 9px 11px;
       border-radius: 10px;
       font-size: 13.5px;
       outline: none;
+    }
+
+    select option {
+      background: #101628;
+      color: #f3f6ff;
     }
 
     input:focus, select:focus { border-color: var(--accent); }
@@ -785,9 +809,9 @@
 
     <nav class="nav-tabs" id="main-nav">
       <button type="button" class="tab-btn active" data-tab="subsidiaries">🏢 Moje Spółki (<span id="count-subs">0</span>)</button>
-      <button type="button" class="tab-btn" data-tab="market">📈 Giełda &amp; Akcjonariat (<span id="count-market">4</span>)</button>
+      <button type="button" class="tab-btn" data-tab="market">📈 Giełda &amp; Akcjonariat (<span id="count-market">5</span>)</button>
       <button type="button" class="tab-btn" data-tab="board">👔 Zarząd &amp; CEO (<span id="count-ceo">0</span>)</button>
-      <button type="button" class="tab-btn" data-tab="finance">🏦 Finanse, Kredyt &amp; Granty</button>
+      <button type="button" class="tab-btn" data-tab="finance">🏦 Finanse, Pożyczki &amp; Granty</button>
       <button type="button" class="tab-btn" data-tab="structure">🌐 Centrala &amp; Struktura Grupy</button>
     </nav>
 
@@ -804,6 +828,8 @@
             </div>
             <button type="button" class="success" id="btn-claim-tender" disabled>Realizuj Przetarg</button>
           </div>
+
+          <div class="mission-strip" id="holding-missions-strip"></div>
 
           <div id="merger-panel" class="hidden" style="background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.35); border-radius: 12px; padding: 12px; margin-bottom: 14px;">
             <div style="font-weight: 700; font-size: 13.5px; margin-bottom: 8px;">🔀 Fuzja Dwóch Spółek Zależnych w Konglomerat</div>
@@ -910,31 +936,49 @@
 
       <section id="tab-board" class="panel hidden">
         <div class="panel-header">
-          <div class="panel-title">Kadra Zarządzająca (CEO)</div>
-          <span style="font-size: 12px; color: var(--muted);">Pensje CEO: <strong id="ceo-salaries-summary" style="color: var(--red);">$0 / s</strong></span>
+          <div class="panel-title">Kadra Zarządzająca (CEO &amp; Dyrektorzy)</div>
+          <span style="font-size: 12px; color: var(--muted);">Pensje kadry: <strong id="ceo-salaries-summary" style="color: var(--red);">$0 / s</strong></span>
         </div>
         <div id="ceo-market-list" class="cards-grid"></div>
       </section>
 
       <section id="tab-finance" class="panel hidden">
         <div class="panel-header">
-          <div class="panel-title">Finanse, Kredyty &amp; Programy Rozwojowe</div>
+          <div class="panel-title">Finanse, Linia Pożyczkowa &amp; Programy Rozwojowe</div>
           <span id="credit-rating-badge" class="rank-pill">Rating: AAA</span>
         </div>
 
         <div class="sub-metrics" style="margin-bottom: 14px;">
           <div><span>Aktualne zadłużenie</span><strong id="finance-debt-val" style="color: var(--red);">$0</strong></div>
-          <div><span>Limit kredytowy (55% aktywów)</span><strong id="finance-limit-val">$0</strong></div>
-          <div><span>Odsetki od długu</span><strong id="finance-interest-val" style="color: var(--gold);">$0 / s</strong></div>
-          <div><span>Oprocentowanie bazowe</span><strong>0.35% / s</strong></div>
+          <div><span>Dostępny limit pożyczkowy</span><strong id="finance-avail-val" style="color: var(--green);">$0</strong></div>
+          <div><span>Koszt odsetek na sekundę</span><strong id="finance-interest-val" style="color: var(--gold);">$0 / s</strong></div>
+          <div><span>Maksymalny limit (65% aktywów)</span><strong id="finance-limit-val">$0</strong></div>
         </div>
 
+        <div id="loan-status-note" style="font-size: 12px; color: var(--muted); background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; margin-bottom: 12px;">
+          Oprocentowanie wynosi <strong>0.22% / s</strong> od aktualnego długu. Brak prowizji za wcześniejszą spłatę.
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="custom-loan-input"><span>Własna kwota pożyczki ($)</span></label>
+          <div style="display: flex; gap: 8px;">
+            <input type="number" id="custom-loan-input" min="100" step="100" value="5000" />
+            <button type="button" class="warn" id="btn-loan-custom" style="white-space: nowrap;">Weź kwotę</button>
+          </div>
+        </div>
+
+        <div class="btn-row" style="margin-bottom: 8px;">
+          <button type="button" class="warn" id="btn-loan-fixed-5k">Pożycz $5,000</button>
+          <button type="button" class="warn" id="btn-loan-fixed-25k">Pożycz $25,000</button>
+          <button type="button" class="warn" id="btn-loan-fixed-100k">Pożycz $100,000</button>
+        </div>
         <div class="btn-row" style="margin-bottom: 10px;">
-          <button type="button" class="warn" id="btn-loan-25">Weź kredyt (25% limitu)</button>
-          <button type="button" class="warn" id="btn-loan-50">Weź kredyt (50% limitu)</button>
+          <button type="button" class="warn" id="btn-loan-25">Pożycz 25% limitu</button>
+          <button type="button" class="warn" id="btn-loan-50">Pożycz 50% limitu</button>
         </div>
         <div class="btn-row" style="margin-bottom: 18px;">
           <button type="button" class="success" id="repay-25-btn">Spłać 25% długu</button>
+          <button type="button" class="success" id="repay-50-btn">Spłać 50% długu</button>
           <button type="button" class="success" id="repay-all-btn">Spłać cały dług</button>
         </div>
 
@@ -957,7 +1001,7 @@
             <div>
               <span class="sector-tag">OBLIGACJE KORPORACYJNE</span>
               <div class="sub-name">Emisja Bonów Skarbowych</div>
-              <p style="font-size: 12px; color: var(--muted); margin-top: 5px;">Pozyskaj 15% wartości netto jako gotówkę (zwiększa dług o 16.5% tej kwoty).</p>
+              <p style="font-size: 12px; color: var(--muted); margin-top: 5px;">Pozyskaj 15% wartości netto jako gotówkę (zwiększa dług o 15% tej kwoty).</p>
             </div>
             <button type="button" class="primary" id="btn-issue-bonds">Wyemituj Obligacje</button>
           </div>
@@ -1306,6 +1350,7 @@
 
     const HQ_JURISDICTIONS = [
       { id: 'hq_pl', flag: '🇵🇱', name: 'Polska (Warszawa)', relocCost: 0, incomeMult: 1.00, costMult: 1.00, desc: 'Bazowa jurysdykcja startowa. Stabilny rynek i brak kosztów relokacji.' },
+      { id: 'hq_gb', flag: '🇬🇧', name: 'Wielka Brytania (Londyn)', relocCost: 38000, incomeMult: 1.10, costMult: 0.94, desc: '+10% przychodów holdingowych i -6% kosztów — centrum finansowe Europy.' },
       { id: 'hq_lu', flag: '🇱🇺', name: 'Luksemburg', relocCost: 65000, incomeMult: 1.14, costMult: 0.92, desc: '+14% przychodów holdingowych i -8% kosztów rozwoju spółek.' },
       { id: 'hq_ch', flag: '🇨🇭', name: 'Szwajcaria (Zurych)', relocCost: 240000, incomeMult: 1.24, costMult: 0.90, desc: '+24% przychodów i -10% kosztów rozwoju pod parasolem szwajcarskim.' },
       { id: 'hq_sg', flag: '🇸🇬', name: 'Singapur', relocCost: 850000, incomeMult: 1.35, costMult: 0.85, desc: '+35% przychodów i -15% kosztów — centrum kapitałowe Azji.' },
@@ -1333,7 +1378,8 @@
       { id: 'ceo_2', name: 'Elena Vance', role: 'Architekt Ekspansji Globalnej', hireCost: 12000, salaryPerSec: 45, bonusType: 'sub_income', bonusVal: 0.22, desc: '+22% cashflowu dla przypisanej spółki (lub całego holdingu w centrali).' },
       { id: 'ceo_3', name: 'Marek Dąbrowski', role: 'Specjalista ds. Marży i Kosztów', hireCost: 35000, salaryPerSec: 125, bonusType: 'upgrade_discount', bonusVal: 0.20, desc: '-20% kosztów rozwoju i ekspansji zagranicznej spółek-córek i wnuczek.' },
       { id: 'ceo_4', name: 'Kenji Takahashi', role: 'Strateg Kapitałowy & Dywidend', hireCost: 140000, salaryPerSec: 460, bonusType: 'dividend_boost', bonusVal: 0.25, desc: '+25% do dywidend z pakietów giełdowych.' },
-      { id: 'ceo_5', name: 'Victoria Sterling', role: 'Zarządzająca Konglomeratem', hireCost: 650000, salaryPerSec: 1950, bonusType: 'all_income', bonusVal: 0.18, desc: '+18% do całkowitego cashflowu imperium.' }
+      { id: 'ceo_5', name: 'Victoria Sterling', role: 'Zarządzająca Konglomeratem', hireCost: 650000, salaryPerSec: 1950, bonusType: 'all_income', bonusVal: 0.18, desc: '+18% do całkowitego cashflowu imperium.' },
+      { id: 'ceo_6', name: 'Jakub Kowalczyk', role: 'Dyrektor ds. Fuzji i Synergii', hireCost: 220000, salaryPerSec: 720, bonusType: 'sub_income', bonusVal: 0.30, desc: '+30% cashflowu dla przypisanej spółki (lub całego holdingu w centrali).' }
     ];
 
     const MACRO_EVENTS = [
@@ -1344,6 +1390,26 @@
     ];
 
     const INITIAL_MARKET_COMPANIES = [
+      {
+        id: 'mkt_0',
+        name: 'Vistula Cloud Systems',
+        sector: 'Software House & AI',
+        baseValuation: 8500,
+        baseProfit: 310,
+        ownedPct: 0,
+        parentId: 'HQ',
+        strategy: 'balanced',
+        payoutRatio: 75,
+        rdLevel: 1,
+        poisonPill: false,
+        absorbed: false,
+        specialDivCooldown: 0,
+        history: [8500, 8620, 8710, 8590, 8800, 8500],
+        shareholders: [
+          { id: 'sh_0a', name: 'Piotr Wiśniewski', pct: 40, greed: 1.08, type: 'Założyciel', lastDelta: 0 },
+          { id: 'sh_0b', name: 'Warsaw Frontier PE', pct: 30, greed: 1.03, type: 'Private Equity', lastDelta: 0 }
+        ]
+      },
       {
         id: 'mkt_1',
         name: 'PixelWave Media S.A.',
@@ -1461,6 +1527,7 @@
         simMinutes: 8 * 60,
         subsidiaries: [],
         hiredCEOs: [],
+        completedMissions: [],
         activeEvent: null,
         nextEventInSec: 22,
         nextIpoSpawnInSec: 40,
@@ -1520,7 +1587,7 @@
     function loadState() {
       const def = getDefaultState();
       try {
-        const raw = localStorage.getItem('apex_holding_save_v11');
+        const raw = localStorage.getItem('apex_holding_save_v12');
         if (!raw) return def;
         const parsed = JSON.parse(raw);
         const merged = { ...def, ...parsed };
@@ -1533,6 +1600,7 @@
           : def.market;
         merged.subsidiaries = Array.isArray(merged.subsidiaries) ? merged.subsidiaries : [];
         merged.hiredCEOs = Array.isArray(merged.hiredCEOs) ? merged.hiredCEOs : [];
+        merged.completedMissions = Array.isArray(merged.completedMissions) ? merged.completedMissions : [];
         return merged;
       } catch (e) {
         return def;
@@ -1543,8 +1611,13 @@
 
     function saveState() {
       try {
-        localStorage.setItem('apex_holding_save_v11', JSON.stringify(state));
+        localStorage.setItem('apex_holding_save_v12', JSON.stringify(state));
       } catch (e) {}
+    }
+
+    function isAnySelectOpen() {
+      const active = document.activeElement;
+      return Boolean(active && active.tagName === 'SELECT');
     }
 
     function getCompanyVal(comp) {
@@ -1616,7 +1689,7 @@
       });
 
       state.market.unshift(newComp);
-      renderMarket();
+      if (!isAnySelectOpen()) renderMarket();
       updateTopBar();
       saveState();
     }
@@ -1666,6 +1739,60 @@
       renderSubsidiaries();
       updateTopBar();
       saveState();
+    }
+
+    const HOLDING_MISSIONS = [
+      {
+        id: 'ms_first_sub',
+        title: 'Pierwsza Spółka',
+        desc: 'Posiadaj min. 1 spółkę zależną.',
+        reward: 1200,
+        check: () => state.subsidiaries.length >= 1
+      },
+      {
+        id: 'ms_multi_country',
+        title: 'Ekspansja Zagraniczna',
+        desc: 'Rozwiń spółkę na min. 2 rynki.',
+        reward: 3500,
+        check: () => state.subsidiaries.some(s => (s.countries || []).length >= 2)
+      },
+      {
+        id: 'ms_shareholder',
+        title: 'Inwestor Giełdowy',
+        desc: 'Posiadaj pakiet akcji w spółce giełdowej.',
+        reward: 5000,
+        check: () => state.market.some(c => !c.absorbed && c.ownedPct > 0)
+      }
+    ];
+
+    function claimMissionReward(missionId) {
+      const m = HOLDING_MISSIONS.find(x => x.id === missionId);
+      if (!m || !m.check() || state.completedMissions.includes(missionId)) return;
+      state.completedMissions.push(missionId);
+      addCash(m.reward, true);
+      renderSubsidiaries();
+      updateTopBar();
+      saveState();
+    }
+
+    function renderHoldingMissions() {
+      const strip = document.getElementById('holding-missions-strip');
+      if (!strip) return;
+      strip.innerHTML = HOLDING_MISSIONS.map(m => {
+        const claimed = state.completedMissions.includes(m.id);
+        const ready = !claimed && m.check();
+        return `
+          <div class="mission-card">
+            <div>
+              <div style="font-weight: 700; color: var(--text);">🏅 ${m.title}</div>
+              <div style="color: var(--muted); margin-top: 2px;">${m.desc}</div>
+            </div>
+            <button type="button" class="${claimed ? '' : (ready ? 'success' : 'primary')}" data-claim-mission="${m.id}" ${ready ? '' : 'disabled'}>
+              ${claimed ? '✓ Odebrano' : `Odbierz (+${fmtMoney(m.reward)})`}
+            </button>
+          </div>
+        `;
+      }).join('');
     }
 
     function getActiveHQ() {
@@ -1932,7 +2059,7 @@
 
     function getDebtInterestPerSec() {
       if (state.debt <= 0) return 0;
-      return state.debt * 0.0035;
+      return state.debt * 0.0022;
     }
 
     function getGrossIncomePerSec() {
@@ -1956,7 +2083,7 @@
     }
 
     function getCreditLimit() {
-      return Math.max(5000, Math.floor(getAssetsValue() * 0.55));
+      return Math.max(15000, Math.floor(getAssetsValue() * 0.65));
     }
 
     function getManualReward() {
@@ -2543,14 +2670,23 @@
       saveState();
     }
 
+    function takeLoanAmount(rawAmount) {
+      const amount = Math.floor(Number(rawAmount) || 0);
+      if (amount <= 0) return;
+      const available = Math.max(0, getCreditLimit() - state.debt);
+      const granted = Math.min(available, amount);
+      if (granted <= 0) return;
+      state.debt += granted;
+      addCash(granted, true);
+      renderAll();
+      saveState();
+    }
+
     function takeLoan(fraction) {
       const available = Math.max(0, getCreditLimit() - state.debt);
       const amount = Math.floor(available * fraction);
       if (amount <= 0) return;
-      state.debt += amount;
-      addCash(amount, true);
-      renderAll();
-      saveState();
+      takeLoanAmount(amount);
     }
 
     function repayLoan(fraction) {
@@ -2575,8 +2711,7 @@
 
     function issueCorporateBonds() {
       const issueVal = Math.max(2000, Math.floor(getTotalNetWorth() * 0.15));
-      const addedDebt = Math.floor(issueVal * 1.165);
-      state.debt += addedDebt;
+      state.debt += issueVal;
       addCash(issueVal, true);
       renderAll();
       saveState();
@@ -2667,7 +2802,7 @@
 
     function resetGame() {
       if (!confirm('Zresetować całe imperium i zapisać stan początkowy?')) return;
-      localStorage.removeItem('apex_holding_save_v11');
+      localStorage.removeItem('apex_holding_save_v12');
       state = getDefaultState();
       selectedCatIds = [CATEGORIES[0].id];
       selectedCountries = ['PL'];
@@ -2781,6 +2916,7 @@
 
     function renderSubsidiaries() {
       renderTenderBanner();
+      renderHoldingMissions();
       renderMergerPanel();
 
       const ownedContainer = document.getElementById('owned-subs-list');
@@ -3044,6 +3180,7 @@
 
     function renderFinance() {
       const limit = getCreditLimit();
+      const avail = Math.max(0, limit - state.debt);
       const debtRatio = limit > 0 ? state.debt / limit : 0;
       let rating = 'AAA';
       if (debtRatio > 0.75) rating = 'BB (Wysokie ryzyko)';
@@ -3052,11 +3189,27 @@
 
       document.getElementById('credit-rating-badge').textContent = 'Rating: ' + rating;
       document.getElementById('finance-debt-val').textContent = fmtMoney(state.debt);
+      document.getElementById('finance-avail-val').textContent = fmtMoney(avail);
       document.getElementById('finance-limit-val').textContent = fmtMoney(limit);
       document.getElementById('finance-interest-val').textContent = fmtMoney(getDebtInterestPerSec()) + ' / s';
 
+      document.getElementById('btn-loan-fixed-5k').disabled = avail < 1;
+      document.getElementById('btn-loan-fixed-25k').disabled = avail < 1;
+      document.getElementById('btn-loan-fixed-100k').disabled = avail < 1;
+      document.getElementById('btn-loan-25').disabled = avail < 1;
+      document.getElementById('btn-loan-50').disabled = avail < 1;
+      document.getElementById('btn-loan-custom').disabled = avail < 1;
+
       document.getElementById('repay-25-btn').disabled = state.debt <= 0 || state.cash <= 0;
+      document.getElementById('repay-50-btn').disabled = state.debt <= 0 || state.cash <= 0;
       document.getElementById('repay-all-btn').disabled = state.debt <= 0 || state.cash <= 0;
+
+      const noteEl = document.getElementById('loan-status-note');
+      if (state.debt > 0) {
+        noteEl.innerHTML = `Masz aktywny dług <strong>${fmtMoney(state.debt)}</strong>. Odsetki wynoszą <strong>${fmtMoney(getDebtInterestPerSec())}/s</strong> (0.22%/s). Dostępne jeszcze do pożyczenia: <strong style="color:var(--green);">${fmtMoney(avail)}</strong>.`;
+      } else {
+        noteEl.innerHTML = `Brak aktywnego długu. Oprocentowanie pożyczek wynosi <strong>0.22% / s</strong>. Możesz dobrać środki na szybkie przejęcia lub budowę spółek.`;
+      }
 
       const grantBtn = document.getElementById('btn-claim-grant');
       if (grantBtn) {
@@ -3192,9 +3345,17 @@
         });
       });
 
+      document.getElementById('btn-loan-custom').addEventListener('click', () => {
+        const val = Number(document.getElementById('custom-loan-input').value) || 0;
+        takeLoanAmount(val);
+      });
+      document.getElementById('btn-loan-fixed-5k').addEventListener('click', () => takeLoanAmount(5000));
+      document.getElementById('btn-loan-fixed-25k').addEventListener('click', () => takeLoanAmount(25000));
+      document.getElementById('btn-loan-fixed-100k').addEventListener('click', () => takeLoanAmount(100000));
       document.getElementById('btn-loan-25').addEventListener('click', () => takeLoan(0.25));
       document.getElementById('btn-loan-50').addEventListener('click', () => takeLoan(0.50));
       document.getElementById('repay-25-btn').addEventListener('click', () => repayLoan(0.25));
+      document.getElementById('repay-50-btn').addEventListener('click', () => repayLoan(0.50));
       document.getElementById('repay-all-btn').addEventListener('click', () => repayLoan(1.0));
 
       document.getElementById('btn-close-mgmt').addEventListener('click', closeManageCompModal);
@@ -3257,6 +3418,9 @@
       document.getElementById('btn-disable-incoming-forever').addEventListener('click', () => resolveIncomingOffer(false, true));
 
       document.body.addEventListener('click', (e) => {
+        const missionBtn = e.target.closest('[data-claim-mission]');
+        if (missionBtn && !missionBtn.disabled) { claimMissionReward(missionBtn.dataset.claimMission); return; }
+
         const catOpt = e.target.closest('[data-cat-id]');
         if (catOpt) { toggleCategory(catOpt.dataset.catId); return; }
 
@@ -3412,14 +3576,14 @@
           comp.history.push(Math.round(comp.currentValuation));
           if (comp.history.length > 18) comp.history.shift();
         });
-        if (!document.getElementById('tab-market').classList.contains('hidden')) renderMarket();
+        if (!document.getElementById('tab-market').classList.contains('hidden') && !isAnySelectOpen()) renderMarket();
       }
 
       shareholderRotationTimer += dt;
       if (shareholderRotationTimer >= 12) {
         shareholderRotationTimer = 0;
         simulateShareholderRotation();
-        if (!document.getElementById('tab-market').classList.contains('hidden')) renderMarket();
+        if (!document.getElementById('tab-market').classList.contains('hidden') && !isAnySelectOpen()) renderMarket();
       }
 
       updateMacroBanner();
@@ -3427,10 +3591,12 @@
       uiRefreshTimer += dt;
       if (uiRefreshTimer >= 0.45) {
         uiRefreshTimer = 0;
-        if (!document.getElementById('tab-subsidiaries').classList.contains('hidden')) renderSubsidiaries();
-        if (!document.getElementById('tab-market').classList.contains('hidden')) renderMarket();
-        if (!document.getElementById('tab-board').classList.contains('hidden')) renderBoard();
-        if (!document.getElementById('tab-finance').classList.contains('hidden')) renderFinance();
+        if (!isAnySelectOpen()) {
+          if (!document.getElementById('tab-subsidiaries').classList.contains('hidden')) renderSubsidiaries();
+          if (!document.getElementById('tab-market').classList.contains('hidden')) renderMarket();
+          if (!document.getElementById('tab-board').classList.contains('hidden')) renderBoard();
+          if (!document.getElementById('tab-finance').classList.contains('hidden')) renderFinance();
+        }
       }
 
       saveTimer += dt;
