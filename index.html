@@ -304,6 +304,17 @@
       align-items: start;
     }
 
+    .subs-workspace {
+      display: grid;
+      grid-template-columns: 1fr 385px;
+      gap: 16px;
+      align-items: start;
+    }
+
+    @media (max-width: 1240px) {
+      .subs-workspace { grid-template-columns: 1fr; }
+    }
+
     @media (max-width: 1060px) {
       .main-grid { grid-template-columns: 1fr; }
     }
@@ -358,7 +369,7 @@
     /* CARDS */
     .cards-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(295px, 1fr));
       gap: 12px;
     }
 
@@ -681,7 +692,7 @@
 
     /* LOGS */
     .log-list {
-      max-height: 360px;
+      max-height: 620px;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
@@ -837,36 +848,96 @@
     <div class="main-grid">
       <!-- LEFT / PRIMARY WORKSPACE -->
       <div>
-        <!-- TAB 1: SUBSIDIARIES -->
-        <section id="tab-subsidiaries" class="panel">
-          <div class="tender-banner" id="tender-banner">
-            <div>
-              <div style="font-size: 11px; font-weight: 800; color: #a5b4fc; text-transform: uppercase;">
-                🎯 Aktywny Przetarg B2B • Koniec za <span id="tender-timer" style="color: var(--gold);">55s</span>
+        <!-- TAB 1: SUBSIDIARIES + CREATOR (ONLY HERE) -->
+        <section id="tab-subsidiaries" class="subs-workspace">
+          <div class="panel">
+            <div class="tender-banner" id="tender-banner">
+              <div>
+                <div style="font-size: 11px; font-weight: 800; color: #a5b4fc; text-transform: uppercase;">
+                  🎯 Aktywny Przetarg B2B • Koniec za <span id="tender-timer" style="color: var(--gold);">55s</span>
+                </div>
+                <div id="tender-title" style="font-weight: 700; font-size: 14px; margin-top: 2px;">Kontrakt B2B</div>
+                <div id="tender-req" style="font-size: 12px; color: var(--muted);">Wymagania...</div>
               </div>
-              <div id="tender-title" style="font-weight: 700; font-size: 14px; margin-top: 2px;">Kontrakt B2B</div>
-              <div id="tender-req" style="font-size: 12px; color: var(--muted);">Wymagania...</div>
+              <button class="success" id="btn-claim-tender" disabled>Realizuj Przetarg</button>
             </div>
-            <button class="success" id="btn-claim-tender" disabled>Realizuj Przetarg</button>
+
+            <div id="merger-panel" class="hidden" style="background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.35); border-radius: 12px; padding: 12px; margin-bottom: 14px;">
+              <div style="font-weight: 700; font-size: 13.5px; margin-bottom: 8px;">🔀 Fuzja Dwóch Spółek Zależnych w Konglomerat</div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 8px; align-items: center;">
+                <select id="merge-sub-a"></select>
+                <select id="merge-sub-b"></select>
+                <button class="primary" id="btn-execute-merge">Połącz (+45%)</button>
+              </div>
+            </div>
+
+            <div class="panel-header">
+              <div class="panel-title">Twoje Spółki Zależne</div>
+              <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                <span id="sub-synergy-info" style="font-size: 12px; color: var(--green); font-weight: 600;">Synergia grupy: +0%</span>
+                <button class="success" id="btn-manual-deal">💼 Kontrakt Doradczy (+<span id="manual-reward">$250</span>)</button>
+              </div>
+            </div>
+            <div id="owned-subs-list" class="cards-grid"></div>
           </div>
 
-          <div id="merger-panel" class="hidden" style="background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.35); border-radius: 12px; padding: 12px; margin-bottom: 14px;">
-            <div style="font-weight: 700; font-size: 13.5px; margin-bottom: 8px;">🔀 Fuzja Dwóch Spółek Zależnych w Konglomerat</div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 8px; align-items: center;">
-              <select id="merge-sub-a"></select>
-              <select id="merge-sub-b"></select>
-              <button class="primary" id="btn-execute-merge">Połącz (+45%)</button>
+          <!-- SUBSIDIARY CREATOR — EXCLUSIVE TO "MOJE SPÓŁKI" -->
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title">Załóż Nową Spółkę</div>
+              <span style="font-size: 11.5px; color: var(--muted);">30 branż • 195 krajów</span>
             </div>
-          </div>
 
-          <div class="panel-header">
-            <div class="panel-title">Twoje Spółki Zależne</div>
-            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-              <span id="sub-synergy-info" style="font-size: 12px; color: var(--green); font-weight: 600;">Synergia grupy: +0%</span>
-              <button class="success" id="btn-manual-deal">💼 Kontrakt Doradczy (+<span id="manual-reward">$250</span>)</button>
+            <div class="form-group">
+              <label class="form-label"><span>Nazwa spółki</span></label>
+              <input type="text" id="new-sub-name" placeholder="np. Apex Robotics Sp. z o.o." maxlength="42" />
             </div>
+
+            <div class="form-group">
+              <label class="form-label"><span>Podmiot nadrzędny w strukturze</span></label>
+              <select id="new-sub-parent"></select>
+            </div>
+
+            <div class="form-group">
+              <div class="form-label">
+                <span>Wybierz branże (możesz zaznaczyć wiele)</span>
+                <span id="cat-count-label" style="color: #c7d2fe; font-weight: 700;">Wybrano: 1</span>
+              </div>
+              <input type="text" id="cat-search-input" placeholder="Szukaj branży..." style="margin-bottom: 7px;" />
+              <div id="selected-cats-strip" style="margin-bottom: 7px;"></div>
+              <div id="cat-select-list" class="cat-select-list"></div>
+            </div>
+
+            <div class="form-group">
+              <div class="form-label">
+                <span>Rynki działania (1 lub więcej krajów)</span>
+                <span id="country-count-label" style="color: var(--green); font-weight: 700;">Wybrano: 1</span>
+              </div>
+
+              <div class="region-presets" id="region-presets">
+                <button type="button" class="preset-btn" data-region="pl">🇵🇱 Polska</button>
+                <button type="button" class="preset-btn" data-region="europe">🇪🇺 Europa</button>
+                <button type="button" class="preset-btn" data-region="na">🌎 Ameryka Płn.</button>
+                <button type="button" class="preset-btn" data-region="asia">🌏 Azja</button>
+                <button type="button" class="preset-btn" data-region="me">🕌 Bliski Wschód</button>
+                <button type="button" class="preset-btn" data-region="world">🌐 Cały Świat (195)</button>
+              </div>
+
+              <input type="text" id="country-search-input" placeholder="Szukaj państwa po nazwie lub kodzie..." style="margin-bottom: 7px;" />
+              <div id="selected-countries-strip" style="margin-bottom: 7px;"></div>
+              <div id="country-select-grid" class="country-select-grid"></div>
+            </div>
+
+            <div class="preview-box">
+              <div class="preview-line"><span style="color: var(--muted);">Pozycja w grupie:</span><strong id="preview-parent-name">Spółka-Córka</strong></div>
+              <div class="preview-line"><span style="color: var(--muted);">Wybrane branże:</span><strong id="preview-cat-name">1 branża</strong></div>
+              <div class="preview-line"><span style="color: var(--muted);">Rynki i mnożnik:</span><strong id="preview-countries-mult">1 kraj (1.00x)</strong></div>
+              <div class="preview-line"><span style="color: var(--muted);">Szacowany cashflow:</span><strong id="preview-income" style="color: var(--green);">$0 / s</strong></div>
+              <div class="preview-line"><span style="color: var(--muted);">Koszt założenia:</span><strong id="preview-cost">$0</strong></div>
+            </div>
+
+            <button class="primary" id="create-sub-btn" style="width: 100%; padding: 11px;">Załóż Spółkę</button>
           </div>
-          <div id="owned-subs-list" class="cards-grid"></div>
         </section>
 
         <!-- TAB 2: STOCK MARKET & SHAREHOLDERS -->
@@ -981,65 +1052,8 @@
         </section>
       </div>
 
-      <!-- RIGHT SIDEBAR: SUBSIDIARY CREATOR + LIVE LOG -->
-      <aside style="display: flex; flex-direction: column; gap: 16px;">
-        <section class="panel">
-          <div class="panel-header">
-            <div class="panel-title">Załóż Nową Spółkę</div>
-            <span style="font-size: 11.5px; color: var(--muted);">30 branż • 195 krajów</span>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label"><span>Nazwa spółki</span></label>
-            <input type="text" id="new-sub-name" placeholder="np. Apex Robotics Sp. z o.o." maxlength="42" />
-          </div>
-
-          <div class="form-group">
-            <label class="form-label"><span>Podmiot nadrzędny w strukturze</span></label>
-            <select id="new-sub-parent"></select>
-          </div>
-
-          <div class="form-group">
-            <div class="form-label">
-              <span>Wybierz branże (możesz zaznaczyć wiele)</span>
-              <span id="cat-count-label" style="color: #c7d2fe; font-weight: 700;">Wybrano: 1</span>
-            </div>
-            <input type="text" id="cat-search-input" placeholder="Szukaj branży..." style="margin-bottom: 7px;" />
-            <div id="selected-cats-strip" style="margin-bottom: 7px;"></div>
-            <div id="cat-select-list" class="cat-select-list"></div>
-          </div>
-
-          <div class="form-group">
-            <div class="form-label">
-              <span>Rynki działania (1 lub więcej krajów)</span>
-              <span id="country-count-label" style="color: var(--green); font-weight: 700;">Wybrano: 1</span>
-            </div>
-
-            <div class="region-presets" id="region-presets">
-              <button type="button" class="preset-btn" data-region="pl">🇵🇱 Polska</button>
-              <button type="button" class="preset-btn" data-region="europe">🇪🇺 Europa</button>
-              <button type="button" class="preset-btn" data-region="na">🌎 Ameryka Płn.</button>
-              <button type="button" class="preset-btn" data-region="asia">🌏 Azja</button>
-              <button type="button" class="preset-btn" data-region="me">🕌 Bliski Wschód</button>
-              <button type="button" class="preset-btn" data-region="world">🌐 Cały Świat (195)</button>
-            </div>
-
-            <input type="text" id="country-search-input" placeholder="Szukaj państwa po nazwie lub kodzie..." style="margin-bottom: 7px;" />
-            <div id="selected-countries-strip" style="margin-bottom: 7px;"></div>
-            <div id="country-select-grid" class="country-select-grid"></div>
-          </div>
-
-          <div class="preview-box">
-            <div class="preview-line"><span style="color: var(--muted);">Pozycja w grupie:</span><strong id="preview-parent-name">Spółka-Córka</strong></div>
-            <div class="preview-line"><span style="color: var(--muted);">Wybrane branże:</span><strong id="preview-cat-name">1 branża</strong></div>
-            <div class="preview-line"><span style="color: var(--muted);">Rynki i mnożnik:</span><strong id="preview-countries-mult">1 kraj (1.00x)</strong></div>
-            <div class="preview-line"><span style="color: var(--muted);">Szacowany cashflow:</span><strong id="preview-income" style="color: var(--green);">$0 / s</strong></div>
-            <div class="preview-line"><span style="color: var(--muted);">Koszt założenia:</span><strong id="preview-cost">$0</strong></div>
-          </div>
-
-          <button class="primary" id="create-sub-btn" style="width: 100%; padding: 11px;">Załóż Spółkę</button>
-        </section>
-
+      <!-- RIGHT SIDEBAR: LIVE HOLDING CHRONICLE -->
+      <aside>
         <section class="panel">
           <div class="panel-header">
             <div class="panel-title">Kronika Holdingu</div>
@@ -1644,7 +1658,7 @@
       const day = Math.floor(totalMinutes / minsInDay) + 1;
       const dayMins = Math.floor(totalMinutes % minsInDay);
       const hh = String(Math.floor(dayMins / 60)).padStart(2, '0');
-      const mm = String(dayMins % 60).padStart(2, '0');
+      const mm = String(Math.floor(dayMins % 60)).padStart(2, '0');
       return `Dzień ${day} • ${hh}:${mm}`;
     }
 
@@ -2922,7 +2936,7 @@
 
       if (state.subsidiaries.length === 0) {
         ownedContainer.innerHTML = `<div style="color: var(--muted); font-size: 13px; grid-column: 1/-1; padding: 20px 0;">
-          Nie posiadasz jeszcze żadnych spółek zależnych. Utwórz pierwszą po prawej stronie!
+          Nie posiadasz jeszcze żadnych spółek zależnych. Utwórz pierwszą w panelu „Załóż Nową Spółkę”!
         </div>`;
       } else {
         ownedContainer.innerHTML = state.subsidiaries.map(sub => {
