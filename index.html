@@ -294,9 +294,9 @@
       color: #fff;
     }
 
-    /* Category Filter Pills */
+    /* Multi-Select Category List */
     .cat-list {
-      max-height: 155px;
+      max-height: 175px;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
@@ -316,6 +316,7 @@
       cursor: pointer;
       font-size: 12.5px;
       transition: all 0.15s;
+      user-select: none;
     }
 
     .cat-option:hover { background: rgba(255, 255, 255, 0.09); }
@@ -500,7 +501,8 @@
       background: rgba(99, 102, 241, 0.16);
       color: #a5b4fc;
       display: inline-block;
-      margin-bottom: 6px;
+      margin-bottom: 4px;
+      margin-right: 4px;
     }
 
     .sub-name { font-size: 16px; font-weight: 700; }
@@ -614,6 +616,19 @@
       align-items: center;
       flex-wrap: wrap;
       gap: 14px;
+    }
+
+    .tender-box {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.12), rgba(99, 102, 241, 0.08));
+      border: 1px solid rgba(245, 158, 11, 0.38);
+      border-radius: 16px;
+      padding: 15px 18px;
+      margin-bottom: 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
     }
 
     .merger-box {
@@ -845,11 +860,21 @@
       <div class="manual-op-box">
         <div>
           <h3 style="font-size: 15px; margin-bottom: 4px;">💼 Doradztwo Kapitałowe &amp; Arbitraż</h3>
-          <p style="font-size: 13px; color: var(--muted);">Generuj szybki kapitał startowy na pierwsze udziały, CEO i rejestrację spółek-córek oraz spółek-wnuczek.</p>
+          <p style="font-size: 13px; color: var(--muted);">Generuj szybki kapitał startowy na pierwsze udziały, CEO i rejestrację wielobranżowych spółek-córek oraz spółek-wnuczek.</p>
         </div>
         <button id="btn-manual-deal" class="primary" style="padding: 12px 20px; font-size: 14px;">
           + Zamknij Transakcję (<span id="manual-reward">$250</span>)
         </button>
+      </div>
+
+      <!-- GOVERNMENT & B2B TENDER BANNER -->
+      <div class="tender-box" id="tender-box">
+        <div>
+          <div style="font-size: 11px; color: var(--gold); font-weight: 700; text-transform: uppercase;">🏛️ Aktywny Przetarg Rządowy / B2B (<span id="tender-timer">45s</span>)</div>
+          <div style="font-weight: 700; font-size: 14.5px; margin: 3px 0;" id="tender-title">Ładowanie przetargu...</div>
+          <div style="font-size: 12px; color: var(--muted);" id="tender-req">Wymagania: —</div>
+        </div>
+        <button class="warn" id="btn-claim-tender" disabled>Realizuj Kontrakt (+$0)</button>
       </div>
 
       <div class="grid-2">
@@ -860,7 +885,7 @@
             <span style="font-size: 12px; color: var(--muted);" id="sub-synergy-info">Synergia: +0%</span>
           </div>
 
-          <!-- MERGER PANEL (SHOWN WHEN >= 2 SAME-SECTOR SUBS EXIST) -->
+          <!-- MERGER PANEL -->
           <div id="merger-panel" class="merger-box hidden">
             <div style="font-weight: 700; font-size: 13.5px; margin-bottom: 6px; color: #c7d2fe;">
               🔀 Fuzja Spółek w Giganta Sektorowego (+45% do przychodów połączonej firmy)
@@ -889,15 +914,16 @@
 
             <div class="form-group">
               <label class="form-label"><span>2. Nazwa Spółki</span></label>
-              <input type="text" id="new-sub-name" placeholder="np. Apex AI Solutions Sp. z o.o." />
+              <input type="text" id="new-sub-name" placeholder="np. Apex AI & Defense Holding Sp. z o.o." />
             </div>
 
             <div class="form-group">
               <label class="form-label">
-                <span>3. Kategoria / Branża</span>
-                <span id="cat-count-label" style="color: #a5b4fc;">17 branż</span>
+                <span>3. Kategorie / Branże (Wybierz 1 lub więcej!)</span>
+                <span id="cat-count-label" style="color: #a5b4fc;">Wybrano: 1 (z 30)</span>
               </label>
-              <input type="text" id="cat-search-input" placeholder="Szukaj branży np. Tech, Finanse, Auto, Energia..." />
+              <input type="text" id="cat-search-input" placeholder="Szukaj branży np. AI, Cyber, Auto, Koleje, MedTech..." />
+              <div class="selected-countries-strip" id="selected-cats-strip"></div>
               <div class="cat-list" id="cat-select-list"></div>
             </div>
 
@@ -927,7 +953,7 @@
                 <strong id="preview-parent-name" style="color: #6ee7b7;">Centrala Holdingu</strong>
               </div>
               <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-                <span style="color: var(--muted);">Wybrana branża:</span>
+                <span style="color: var(--muted);">Branże i dywersyfikacja:</span>
                 <strong id="preview-cat-name">—</strong>
               </div>
               <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
@@ -962,15 +988,19 @@
     <!-- TAB 2: STOCK MARKET & SHAREHOLDERS -->
     <section id="tab-market" class="hidden">
       <div class="panel" style="margin-bottom: 18px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
           <div>
-            <h2 style="font-size: 17px;">Giełda, Akcjonariat &amp; Zarządzanie Przejętymi Firmami</h2>
+            <h2 style="font-size: 17px;">Giełda, Nowe Debiuty (IPO) &amp; Przejęcia M&amp;A</h2>
             <p style="font-size: 13px; color: var(--muted); margin-top: 3px;">
-              Skupuj akcje z giełdy lub od udziałowców. Przy <strong>51%+</strong> odblokowujesz <strong>Panel Zarządzania Firmą</strong> i możesz przypisać ją pod <strong>Spółkę-Córkę</strong> (+18% synergii)!
+              Nowe spółki pojawiają się automatycznie co <strong id="ipo-spawn-timer">35s</strong> lub możesz wyszukać nową spółkę ręcznie.
             </p>
           </div>
-          <div style="font-size: 13px; background: rgba(255,255,255,0.04); padding: 8px 14px; border-radius: 10px;">
-            Dochód z dywidend: <strong style="color: var(--green);" id="dividend-summary">$0 / s</strong>
+          <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+            <button class="primary" id="btn-spawn-market-comp">➕ Wyszukaj Nową Spółkę na Giełdzie</button>
+            <button id="btn-toggle-incoming-offers" class="success">📩 Oferty od funduszy: WŁ.</button>
+            <div style="font-size: 13px; background: rgba(255,255,255,0.04); padding: 8px 14px; border-radius: 10px;">
+              Dywidendy: <strong style="color: var(--green);" id="dividend-summary">$0 / s</strong>
+            </div>
           </div>
         </div>
       </div>
@@ -1046,7 +1076,7 @@
               <strong style="color: var(--text);">Odsetki:</strong> Naliczane płynnie co sekundę na podstawie aktualnego salda długu.
             </div>
             <div style="padding: 10px; background: rgba(255,255,255,0.03); border-radius: 10px;">
-              <strong style="color: var(--text);">Strategia M&amp;A &amp; IPO:</strong> Pożycz kapitał, przejmij pakiet kontrolny 51%+, łącz spółki w fuzjach lub wprowadzaj spółki-córki na IPO po gotówkę.
+              <strong style="color: var(--text);">Wielobranżowość &amp; Fuzje:</strong> Twórz konglomeraty łączące kilka branż naraz i realizuj przetargi B2B.
             </div>
           </div>
         </div>
@@ -1144,13 +1174,23 @@
         </div>
       </div>
 
-      <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 12px; padding: 12px; margin-bottom: 14px;">
+      <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 12px; padding: 12px; margin-bottom: 10px;">
         <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px;">
           <div>
             <div style="font-weight: 700; font-size: 13px;">🔬 Dokapitalizuj R&amp;D i Wydajność</div>
             <div style="font-size: 11.5px; color: var(--muted);">Zwiększa bazowy zysk operacyjny spółki o +15%.</div>
           </div>
           <button class="primary" id="btn-mgmt-rd">Inwestuj ($0)</button>
+        </div>
+      </div>
+
+      <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 12px; padding: 12px; margin-bottom: 10px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+          <div>
+            <div style="font-weight: 700; font-size: 13px;">🛡️ Tarcza Antyprzejęciowa (Poison Pill)</div>
+            <div style="font-size: 11.5px; color: var(--muted);">Blokuje konkurencyjnym funduszom skup akcji tej spółki.</div>
+          </div>
+          <button class="warn" id="btn-mgmt-shield">Aktywuj</button>
         </div>
       </div>
 
@@ -1267,33 +1307,49 @@
           <strong id="inc-offer-price" style="color: var(--green); font-size: 14px;">$0</strong>
         </div>
       </div>
-      <div class="btn-row">
+      <div class="btn-row" style="margin-bottom: 8px;">
         <button class="danger" id="btn-reject-incoming">Odrzuć Ofertę</button>
         <button class="success" id="btn-accept-incoming">Sprzedaj Akcje</button>
       </div>
+      <button id="btn-disable-incoming-forever" style="width: 100%; font-size: 11.5px; color: var(--muted);">
+        🔕 Odrzuć i wyłącz wyskakujące oferty od funduszy
+      </button>
     </div>
   </div>
 
   <script>
-    // --- ALL CATEGORIES ---
+    // --- EXPANDED 30 CATEGORIES (MULTI-SELECT SUPPORTED) ---
     const CATEGORIES = [
       { id: 'cat_software', name: 'Software House & AI', baseCost: 1100, baseIncome: 44 },
+      { id: 'cat_cyber', name: 'Cyberbezpieczeństwo & Chmura', baseCost: 1650, baseIncome: 65 },
       { id: 'cat_ecommerce', name: 'E-Commerce & Marketplace', baseCost: 2200, baseIncome: 86 },
       { id: 'cat_food', name: 'Przemysł Spożywczy & Gastronomia', baseCost: 3500, baseIncome: 132 },
       { id: 'cat_gaming', name: 'Gamedev & Rozrywka Cyfrowa', baseCost: 5200, baseIncome: 190 },
+      { id: 'cat_edtech', name: 'EdTech & Szkolenia Korporacyjne', baseCost: 6400, baseIncome: 232 },
       { id: 'cat_fashion', name: 'Moda, Odzież & Dobra Luksusowe', baseCost: 7800, baseIncome: 280 },
+      { id: 'cat_hospitality', name: 'Sieci Hotelowe & Turystyka', baseCost: 9800, baseIncome: 348 },
       { id: 'cat_realestate', name: 'Nieruchomości Komercyjne & Deweloperka', baseCost: 12000, baseIncome: 420 },
+      { id: 'cat_agritech', name: 'AgriTech & Rolnictwo Precyzyjne', baseCost: 15500, baseIncome: 535 },
       { id: 'cat_construction', name: 'Budownictwo Infrastrukturalne', baseCost: 19500, baseIncome: 670 },
+      { id: 'cat_recycling', name: 'Recykling, Ochrona Środowiska & Woda', baseCost: 24500, baseIncome: 835 },
       { id: 'cat_logistics', name: 'Logistyka, Spedycja & Magazyny', baseCost: 31000, baseIncome: 1050 },
+      { id: 'cat_rail', name: 'Transport Kolejowy & Cargo', baseCost: 42000, baseIncome: 1410 },
       { id: 'cat_fintech', name: 'FinTech & Usługi Płatnicze', baseCost: 54000, baseIncome: 1800 },
-      { id: 'cat_media', name: 'Media, Telewizja & Agencje PR', baseCost: 92000, baseIncome: 3000 },
+      { id: 'cat_insurance', name: 'Ubezpieczenia & Reasekuracja', baseCost: 72000, baseIncome: 2380 },
+      { id: 'cat_media', name: 'Media, Streaming & Agencje PR', baseCost: 92000, baseIncome: 3000 },
+      { id: 'cat_robotics', name: 'Robotyka Przemysłowa & Automatyka', baseCost: 122000, baseIncome: 3960 },
       { id: 'cat_auto', name: 'Motoryzacja & Elektromobilność', baseCost: 155000, baseIncome: 5000 },
+      { id: 'cat_medtech', name: 'MedTech & Sprzęt Diagnostyczny', baseCost: 205000, baseIncome: 6600 },
       { id: 'cat_pharma', name: 'Biotechnologia & Farmacja', baseCost: 260000, baseIncome: 8400 },
+      { id: 'cat_semicon', name: 'Półprzewodniki & Mikroprocesory', baseCost: 345000, baseIncome: 11100 },
       { id: 'cat_telecom', name: 'Telekomunikacja & Sieci 5G/6G', baseCost: 440000, baseIncome: 14000 },
+      { id: 'cat_maritime', name: 'Stocznie, Porty & Żegluga Oceaniczna', baseCost: 590000, baseIncome: 18800 },
       { id: 'cat_banking', name: 'Bankowość Inwestycyjna & Fundusze', baseCost: 780000, baseIncome: 24800 },
+      { id: 'cat_defense', name: 'Przemysł Obronny & Systemy Radarowe', baseCost: 1080000, baseIncome: 34400 },
       { id: 'cat_energy', name: 'Energetyka Odnawialna & Atomowa', baseCost: 1450000, baseIncome: 46000 },
       { id: 'cat_heavy', name: 'Przemysł Ciężki, Stal & Wydobycie', baseCost: 2900000, baseIncome: 92000 },
-      { id: 'cat_aero', name: 'Lotnictwo & Technologie Kosmiczne', baseCost: 6200000, baseIncome: 198000 }
+      { id: 'cat_aero', name: 'Lotnictwo & Technologie Kosmiczne', baseCost: 6200000, baseIncome: 198000 },
+      { id: 'cat_quantum', name: 'Komputery Kwantowe & Fuzja Jądrowa', baseCost: 13500000, baseIncome: 435000 }
     ];
 
     // --- ALL COUNTRIES OF THE WORLD (195 SOVEREIGN STATES) ---
@@ -1381,51 +1437,11 @@
     };
 
     const HQ_JURISDICTIONS = [
-      {
-        id: 'hq_pl',
-        flag: '🇵🇱',
-        name: 'Polska (Warszawa)',
-        relocCost: 0,
-        incomeMult: 1.00,
-        costMult: 1.00,
-        desc: 'Bazowa jurysdykcja startowa. Stabilny rynek i brak kosztów relokacji.'
-      },
-      {
-        id: 'hq_lu',
-        flag: '🇱🇺',
-        name: 'Luksemburg',
-        relocCost: 65000,
-        incomeMult: 1.14,
-        costMult: 0.92,
-        desc: '+14% przychodów holdingowych i -8% kosztów rozwoju spółek.'
-      },
-      {
-        id: 'hq_ch',
-        flag: '🇨🇭',
-        name: 'Szwajcaria (Zurych)',
-        relocCost: 240000,
-        incomeMult: 1.24,
-        costMult: 0.90,
-        desc: '+24% przychodów i -10% kosztów rozwoju pod parasolem szwajcarskim.'
-      },
-      {
-        id: 'hq_sg',
-        flag: '🇸🇬',
-        name: 'Singapur',
-        relocCost: 850000,
-        incomeMult: 1.35,
-        costMult: 0.85,
-        desc: '+35% przychodów i -15% kosztów — centrum kapitałowe Azji.'
-      },
-      {
-        id: 'hq_ae',
-        flag: '🇦🇪',
-        name: 'ZEA (Dubaj DIFC)',
-        relocCost: 2800000,
-        incomeMult: 1.50,
-        costMult: 0.80,
-        desc: '+50% przychodów i -20% kosztów — globalna strefa wolnego kapitału.'
-      }
+      { id: 'hq_pl', flag: '🇵🇱', name: 'Polska (Warszawa)', relocCost: 0, incomeMult: 1.00, costMult: 1.00, desc: 'Bazowa jurysdykcja startowa. Stabilny rynek i brak kosztów relokacji.' },
+      { id: 'hq_lu', flag: '🇱🇺', name: 'Luksemburg', relocCost: 65000, incomeMult: 1.14, costMult: 0.92, desc: '+14% przychodów holdingowych i -8% kosztów rozwoju spółek.' },
+      { id: 'hq_ch', flag: '🇨🇭', name: 'Szwajcaria (Zurych)', relocCost: 240000, incomeMult: 1.24, costMult: 0.90, desc: '+24% przychodów i -10% kosztów rozwoju pod parasolem szwajcarskim.' },
+      { id: 'hq_sg', flag: '🇸🇬', name: 'Singapur', relocCost: 850000, incomeMult: 1.35, costMult: 0.85, desc: '+35% przychodów i -15% kosztów — centrum kapitałowe Azji.' },
+      { id: 'hq_ae', flag: '🇦🇪', name: 'ZEA (Dubaj DIFC)', relocCost: 2800000, incomeMult: 1.50, costMult: 0.80, desc: '+50% przychodów i -20% kosztów — globalna strefa wolnego kapitału.' }
     ];
 
     const RIVAL_INVESTORS_POOL = [
@@ -1441,100 +1457,22 @@
       { name: 'Aurelia Asset Management', type: 'Fundusz Emerytalny', greed: 1.19 }
     ];
 
+    const COMPANY_NAME_PREFIXES = ['Nova', 'Quantum', 'Vortex', 'Helios', 'Hyperion', 'Silverline', 'NexGen', 'Aegis', 'Stratos', 'Meridian', 'Krypton', 'Omni', 'Solis', 'Polaris', 'Vertex', 'zenith'];
+    const COMPANY_NAME_SUFFIXES = ['Corp', 'Holdings', 'Systems', 'Dynamics', 'Ventures', 'Group S.A.', 'Industries', 'Global', 'Networks', 'Technologies'];
+
     const CEO_ROSTER = [
-      {
-        id: 'ceo_1',
-        name: 'Tomasz Zieliński',
-        role: 'Rekin Negocjacji M&A',
-        hireCost: 4500,
-        salaryPerSec: 18,
-        bonusType: 'deal_chance',
-        bonusVal: 0.16,
-        desc: '+16% szansy na przyjęcie każdej oferty odkupu udziałów.'
-      },
-      {
-        id: 'ceo_2',
-        name: 'Elena Vance',
-        role: 'Architekt Ekspansji Globalnej',
-        hireCost: 12000,
-        salaryPerSec: 45,
-        bonusType: 'sub_income',
-        bonusVal: 0.22,
-        desc: '+22% cashflowu dla przypisanej spółki (lub całego holdingu w centrali).'
-      },
-      {
-        id: 'ceo_3',
-        name: 'Marek Dąbrowski',
-        role: 'Specjalista ds. Marży i Kosztów',
-        hireCost: 35000,
-        salaryPerSec: 125,
-        bonusType: 'upgrade_discount',
-        bonusVal: 0.20,
-        desc: '-20% kosztów rozwoju i ekspansji zagranicznej spółek-córek i wnuczek.'
-      },
-      {
-        id: 'ceo_4',
-        name: 'Kenji Takahashi',
-        role: 'Strateg Kapitałowy & Dywidend',
-        hireCost: 140000,
-        salaryPerSec: 460,
-        bonusType: 'dividend_boost',
-        bonusVal: 0.25,
-        desc: '+25% do dywidend z pakietów giełdowych.'
-      },
-      {
-        id: 'ceo_5',
-        name: 'Victoria Sterling',
-        role: 'Zarządzająca Konglomeratem',
-        hireCost: 650000,
-        salaryPerSec: 1950,
-        bonusType: 'all_income',
-        bonusVal: 0.18,
-        desc: '+18% do całkowitego cashflowu imperium.'
-      }
+      { id: 'ceo_1', name: 'Tomasz Zieliński', role: 'Rekin Negocjacji M&A', hireCost: 4500, salaryPerSec: 18, bonusType: 'deal_chance', bonusVal: 0.16, desc: '+16% szansy na przyjęcie każdej oferty odkupu udziałów.' },
+      { id: 'ceo_2', name: 'Elena Vance', role: 'Architekt Ekspansji Globalnej', hireCost: 12000, salaryPerSec: 45, bonusType: 'sub_income', bonusVal: 0.22, desc: '+22% cashflowu dla przypisanej spółki (lub całego holdingu w centrali).' },
+      { id: 'ceo_3', name: 'Marek Dąbrowski', role: 'Specjalista ds. Marży i Kosztów', hireCost: 35000, salaryPerSec: 125, bonusType: 'upgrade_discount', bonusVal: 0.20, desc: '-20% kosztów rozwoju i ekspansji zagranicznej spółek-córek i wnuczek.' },
+      { id: 'ceo_4', name: 'Kenji Takahashi', role: 'Strateg Kapitałowy & Dywidend', hireCost: 140000, salaryPerSec: 460, bonusType: 'dividend_boost', bonusVal: 0.25, desc: '+25% do dywidend z pakietów giełdowych.' },
+      { id: 'ceo_5', name: 'Victoria Sterling', role: 'Zarządzająca Konglomeratem', hireCost: 650000, salaryPerSec: 1950, bonusType: 'all_income', bonusVal: 0.18, desc: '+18% do całkowitego cashflowu imperium.' }
     ];
 
     const MACRO_EVENTS = [
-      {
-        id: 'ev_ai_boom',
-        kind: 'bull',
-        title: '🚀 Hossa na AI, Software i Big Tech!',
-        desc: 'Spółki technologiczne i cyfrowe notują +40% zysków, a ich wyceny rosną.',
-        duration: 45,
-        sectorBoost: ['Software', 'Gamedev', 'Big Tech', 'FinTech'],
-        incomeMult: 1.40,
-        valDrift: 0.045
-      },
-      {
-        id: 'ev_re_slump',
-        kind: 'bear',
-        title: '📉 Korekta na rynku Nieruchomości i Surowców',
-        desc: 'Wyceny spadają o ok. 4% na cykl — świetny moment na tani odkup udziałów!',
-        duration: 45,
-        sectorBoost: ['Nieruchomości', 'Surowce', 'Przemysł'],
-        incomeMult: 0.85,
-        valDrift: -0.045
-      },
-      {
-        id: 'ev_global_trade',
-        kind: 'bull',
-        title: '🌍 Eksplozja Handlu Międzynarodowego',
-        desc: 'Logistyka, Bankowość i Ekspansja zyskują +35% na przepływach kapitału.',
-        duration: 45,
-        sectorBoost: ['Logistyka', 'Bankowość', 'E-Commerce'],
-        incomeMult: 1.35,
-        valDrift: 0.035
-      },
-      {
-        id: 'ev_rate_hike',
-        kind: 'bear',
-        title: '🏦 Zaostrzenie Polityki Kredytowej',
-        desc: 'Wyższe koszty finansowania — zwracaj uwagę na saldo długu i cashflow.',
-        duration: 40,
-        sectorBoost: [],
-        incomeMult: 0.92,
-        valDrift: -0.02
-      }
+      { id: 'ev_ai_boom', kind: 'bull', title: '🚀 Hossa na AI, Software i Cyberbezpieczeństwo!', desc: 'Spółki technologiczne notują +40% zysków, a ich wyceny rosną.', duration: 45, sectorBoost: ['Software', 'Cyber', 'Gamedev', 'FinTech', 'Kwantowe'], incomeMult: 1.40, valDrift: 0.045 },
+      { id: 'ev_re_slump', kind: 'bear', title: '📉 Korekta na rynku Nieruchomości i Surowców', desc: 'Wyceny spadają o ok. 4% na cykl — świetny moment na tani odkup udziałów!', duration: 45, sectorBoost: ['Nieruchomości', 'Przemysł', 'Budownictwo'], incomeMult: 0.85, valDrift: -0.045 },
+      { id: 'ev_global_trade', kind: 'bull', title: '🌍 Eksplozja Handlu i Transportu Globalnego', desc: 'Logistyka, Koleje, Porty i Bankowość zyskują +35% na przepływach.', duration: 45, sectorBoost: ['Logistyka', 'Kolejowy', 'Żegluga', 'Bankowość', 'E-Commerce'], incomeMult: 1.35, valDrift: 0.035 },
+      { id: 'ev_rate_hike', kind: 'bear', title: '🏦 Zaostrzenie Polityki Kredytowej', desc: 'Wyższe koszty finansowania — zwracaj uwagę na saldo długu i cashflow.', duration: 40, sectorBoost: [], incomeMult: 0.92, valDrift: -0.02 }
     ];
 
     const INITIAL_MARKET_COMPANIES = [
@@ -1549,6 +1487,7 @@
         strategy: 'balanced',
         payoutRatio: 75,
         rdLevel: 1,
+        poisonPill: false,
         absorbed: false,
         specialDivCooldown: 0,
         history: [16000, 16400, 16150, 16800, 16500, 16000],
@@ -1568,6 +1507,7 @@
         strategy: 'balanced',
         payoutRatio: 75,
         rdLevel: 1,
+        poisonPill: false,
         absorbed: false,
         specialDivCooldown: 0,
         history: [68000, 67200, 69100, 70400, 68900, 68000],
@@ -1587,6 +1527,7 @@
         strategy: 'balanced',
         payoutRatio: 75,
         rdLevel: 1,
+        poisonPill: false,
         absorbed: false,
         specialDivCooldown: 0,
         history: [250000, 255000, 248000, 262000, 259000, 250000],
@@ -1606,6 +1547,7 @@
         strategy: 'balanced',
         payoutRatio: 75,
         rdLevel: 1,
+        poisonPill: false,
         absorbed: false,
         specialDivCooldown: 0,
         history: [980000, 995000, 975000, 1010000, 990000, 980000],
@@ -1613,48 +1555,11 @@
           { id: 'sh_4a', name: 'Skarb Państwa / PFR', pct: 35, greed: 1.24, type: 'Instytucja', lastDelta: 0 },
           { id: 'sh_4b', name: 'Valkyrie Capital AI', pct: 45, greed: 1.10, type: 'Fundusz AI', lastDelta: 0 }
         ]
-      },
-      {
-        id: 'mkt_5',
-        name: 'Titan Steel & Mining',
-        sector: 'Przemysł Ciężki, Stal & Wydobycie',
-        baseValuation: 3900000,
-        baseProfit: 130000,
-        ownedPct: 0,
-        parentId: 'HQ',
-        strategy: 'balanced',
-        payoutRatio: 75,
-        rdLevel: 1,
-        absorbed: false,
-        specialDivCooldown: 0,
-        history: [3900000, 3850000, 3960000, 4020000, 3940000, 3900000],
-        shareholders: [
-          { id: 'sh_5a', name: 'Rodzina Czartoryskich', pct: 52, greed: 1.25, type: 'Akcjonariusz Większościowy', lastDelta: 0 },
-          { id: 'sh_5b', name: 'RheinMetall Invest', pct: 33, greed: 1.12, type: 'Inwestor Branżowy', lastDelta: 0 }
-        ]
-      },
-      {
-        id: 'mkt_6',
-        name: 'Aether Cloud Systems',
-        sector: 'Software House & AI',
-        baseValuation: 14500000,
-        baseProfit: 510000,
-        ownedPct: 0,
-        parentId: 'HQ',
-        strategy: 'balanced',
-        payoutRatio: 75,
-        rdLevel: 1,
-        absorbed: false,
-        specialDivCooldown: 0,
-        history: [14500000, 14800000, 14650000, 15200000, 14900000, 14500000],
-        shareholders: [
-          { id: 'sh_6a', name: 'Silicon Apex Ventures', pct: 48, greed: 1.15, type: 'Fundusz VC', lastDelta: 0 },
-          { id: 'sh_6b', name: 'BlackRock Ridge Fund', pct: 37, greed: 1.18, type: 'Fundusz AI', lastDelta: 0 }
-        ]
       }
     ];
 
-    let selectedCatId = CATEGORIES[0].id;
+    // Multi-select categories state
+    let selectedCatIds = [CATEGORIES[0].id];
     let selectedCountries = ['PL'];
     let activeOfferCompId = null;
     let activeExpandSubId = null;
@@ -1665,6 +1570,7 @@
       return {
         holdingName: 'APEX CAPITAL GROUP S.A.',
         hqJurisdictionId: 'hq_pl',
+        allowIncomingOffers: true,
         cash: 1500,
         debt: 0,
         simMinutes: 8 * 60,
@@ -1672,6 +1578,8 @@
         hiredCEOs: [],
         activeEvent: null,
         nextEventInSec: 22,
+        nextIpoSpawnInSec: 35,
+        activeTender: generateTenderObject(),
         market: JSON.parse(JSON.stringify(INITIAL_MARKET_COMPANIES)).map(c => ({
           ...c,
           currentValuation: c.baseValuation,
@@ -1683,11 +1591,27 @@
       };
     }
 
+    function generateTenderObject() {
+      const cat = CATEGORIES[Math.floor(Math.random() * Math.min(18, CATEGORIES.length))];
+      const country = COUNTRIES[Math.floor(Math.random() * COUNTRIES.length)];
+      const reward = Math.floor(cat.baseCost * 1.45 + 1800);
+      return {
+        id: 'tnd_' + Date.now(),
+        title: `Kontrakt B2B: ${cat.name.split('&')[0].trim()} (${country.flag} ${country.name})`,
+        catId: cat.id,
+        catName: cat.name,
+        countryCode: country.code,
+        countryLabel: `${country.flag} ${country.name}`,
+        reward,
+        remainingSec: 55
+      };
+    }
+
     let state = loadState();
 
     function loadState() {
       try {
-        const raw = localStorage.getItem('apex_holding_save_v8');
+        const raw = localStorage.getItem('apex_holding_save_v9');
         if (!raw) return getDefaultState();
         const parsed = JSON.parse(raw);
         return { ...getDefaultState(), ...parsed };
@@ -1698,7 +1622,7 @@
 
     function saveState() {
       try {
-        localStorage.setItem('apex_holding_save_v8', JSON.stringify(state));
+        localStorage.setItem('apex_holding_save_v9', JSON.stringify(state));
       } catch (e) {}
     }
 
@@ -1710,6 +1634,106 @@
       state.logs.unshift({ time: nowStr(), text, type });
       if (state.logs.length > 45) state.logs.pop();
       renderLogs();
+    }
+
+    // --- DYNAMIC MARKET COMPANY GENERATOR (AUTO IPO + MANUAL SEARCH) ---
+    function spawnNewMarketCompany(isManual = false) {
+      const activeCount = state.market.filter(c => !c.absorbed).length;
+      if (activeCount >= 18) {
+        if (isManual) addLog('Na giełdzie jest już 18 aktywnych spółek — przejmij i skonsoliduj część z nich, aby zwolnić miejsce!', 'warn');
+        return;
+      }
+
+      const cat = CATEGORIES[Math.floor(Math.random() * CATEGORIES.length)];
+      const pref = COMPANY_NAME_PREFIXES[Math.floor(Math.random() * COMPANY_NAME_PREFIXES.length)];
+      const suff = COMPANY_NAME_SUFFIXES[Math.floor(Math.random() * COMPANY_NAME_SUFFIXES.length)];
+      const sectorWord = cat.name.split('&')[0].trim().split(' ')[0];
+      const name = `${pref} ${sectorWord} ${suff}`;
+
+      const scaleBase = Math.max(cat.baseValuation * 12, getAssetsValue() * (0.25 + Math.random() * 0.65));
+      const baseVal = Math.floor(scaleBase);
+      const baseProfit = Math.max(400, Math.floor(baseVal * 0.033));
+
+      const shuffled = [...RIVAL_INVESTORS_POOL].sort(() => Math.random() - 0.5);
+      const s1Pct = 30 + Math.floor(Math.random() * 20);
+      const s2Pct = 20 + Math.floor(Math.random() * 18);
+
+      const newComp = {
+        id: 'mkt_gen_' + Date.now() + '_' + Math.floor(Math.random() * 999),
+        name,
+        sector: cat.name,
+        baseValuation: baseVal,
+        currentValuation: baseVal,
+        lastChangePct: 0,
+        baseProfit,
+        ownedPct: 0,
+        parentId: 'HQ',
+        strategy: 'balanced',
+        payoutRatio: 75,
+        rdLevel: 1,
+        poisonPill: false,
+        absorbed: false,
+        specialDivCooldown: 0,
+        history: [baseVal, Math.round(baseVal * 1.01), Math.round(baseVal * 0.99), baseVal],
+        shareholders: [
+          { id: 'sh_g1_' + Date.now(), name: shuffled[0].name, pct: s1Pct, greed: shuffled[0].greed, type: shuffled[0].type, lastDelta: 0 },
+          { id: 'sh_g2_' + Date.now(), name: shuffled[1].name, pct: s2Pct, greed: shuffled[1].greed, type: shuffled[1].type, lastDelta: 0 }
+        ]
+      };
+
+      state.market.unshift(newComp);
+      addLog(`NOWA SPÓŁKA NA GIEŁDZIE: ${newComp.name} [${newComp.sector}] zadebiutowała z wyceną ${fmtMoney(baseVal)}!`, 'good');
+      renderMarket();
+      updateTopBar();
+      saveState();
+    }
+
+    function toggleIncomingOffersSetting() {
+      state.allowIncomingOffers = !state.allowIncomingOffers;
+      if (!state.allowIncomingOffers) {
+        pendingIncomingOffer = null;
+        document.getElementById('incoming-offer-modal').classList.add('hidden');
+      }
+      updateIncomingToggleBtn();
+      addLog(`Wyskakujące oferty odkupu od funduszy zostały: ${state.allowIncomingOffers ? 'WŁĄCZONE' : 'WYŁĄCZONE'}.`, 'warn');
+      saveState();
+    }
+
+    function updateIncomingToggleBtn() {
+      const btn = document.getElementById('btn-toggle-incoming-offers');
+      if (!btn) return;
+      if (state.allowIncomingOffers) {
+        btn.className = 'success';
+        btn.textContent = '📩 Oferty od funduszy: WŁ.';
+      } else {
+        btn.className = 'danger';
+        btn.textContent = '🔕 Oferty od funduszy: WYŁ.';
+      }
+    }
+
+    // --- TENDER CLAIM LOGIC ---
+    function findEligibleSubForTender(tender) {
+      if (!tender) return null;
+      return state.subsidiaries.find(sub => {
+        const cats = sub.catIds || [sub.catId];
+        const hasCat = cats.includes(tender.catId) || (sub.sector && sub.sector.includes(tender.catName.split('&')[0].trim()));
+        const hasCountry = (sub.countries || ['PL']).includes(tender.countryCode);
+        return hasCat && hasCountry;
+      }) || null;
+    }
+
+    function claimActiveTender() {
+      const t = state.activeTender;
+      if (!t) return;
+      const eligibleSub = findEligibleSubForTender(t);
+      if (!eligibleSub) return;
+
+      addCash(t.reward, true);
+      addLog(`WYGRANY PRZETARG! Spółka ${eligibleSub.name} zrealizowała „${t.title}” i zarobiła ${fmtMoney(t.reward)}!`, 'good');
+      state.activeTender = generateTenderObject();
+      renderSubsidiaries();
+      updateTopBar();
+      saveState();
     }
 
     // --- JURISDICTION & HIERARCHY HELPERS ---
@@ -1930,17 +1954,18 @@
 
       const subA = state.subsidiaries.find(s => s.id === idA);
       const subB = state.subsidiaries.find(s => s.id === idB);
-      if (!subA || !subB || subA.sector !== subB.sector) return;
+      if (!subA || !subB) return;
 
       const mergedCountries = Array.from(new Set([...(subA.countries || ['PL']), ...(subB.countries || ['PL'])]));
-      subA.name = `${subA.name.split(' ')[0]} & ${subB.name.split(' ')[0]} Group`;
+      const mergedCats = Array.from(new Set([...(subA.catIds || []), ...(subB.catIds || [])]));
+      subA.name = `${subA.name.split(' ')[0]} & ${subB.name.split(' ')[0]} Conglomerate`;
       subA.countries = mergedCountries;
+      subA.catIds = mergedCats;
       subA.level = Math.max(subA.level, subB.level) + 1;
       subA.baseIncome += Math.floor(subB.baseIncome * 0.85);
       subA.baseCost += Math.floor(subB.baseCost * 0.75);
       subA.mergedCount = (subA.mergedCount || 0) + 1;
 
-      // Re-parent children of subB to subA
       state.subsidiaries.forEach(s => {
         if (s.parentId === subB.id) s.parentId = subA.id;
       });
@@ -1949,7 +1974,7 @@
       });
 
       state.subsidiaries = state.subsidiaries.filter(s => s.id !== subB.id);
-      addLog(`FUZJA SPÓŁEK! Połączono w giganta: ${subA.name} (${mergedCountries.length} rynki, +45% premii fuzji)!`, 'warn');
+      addLog(`FUZJA SPÓŁEK! Połączono w konglomerat: ${subA.name} (${mergedCountries.length} rynki, +45% premii fuzji)!`, 'warn');
       renderParentSelector();
       renderAll();
       saveState();
@@ -2063,7 +2088,7 @@
       const freeFloat = getFreeFloatPct(comp);
       const actionRoll = Math.random();
 
-      if (actionRoll < 0.35 && comp.shareholders.length > 0 && freeFloat >= 2) {
+      if (actionRoll < 0.35 && comp.shareholders.length > 0 && freeFloat >= 2 && !comp.poisonPill) {
         const buyer = comp.shareholders[Math.floor(Math.random() * comp.shareholders.length)];
         const amount = Math.min(freeFloat, Math.floor(Math.random() * 6) + 2);
         buyer.pct += amount;
@@ -2082,7 +2107,7 @@
         } else {
           addLog(`REALIZACJA ZYSKÓW: ${seller.name} sprzedał -${sellAmount}% akcji ${comp.name} na giełdę (ma teraz ${seller.pct}%).`, '');
         }
-      } else if (actionRoll < 0.90 && freeFloat >= 4 && comp.shareholders.length < 4) {
+      } else if (actionRoll < 0.88 && freeFloat >= 4 && comp.shareholders.length < 4 && !comp.poisonPill) {
         const availablePool = RIVAL_INVESTORS_POOL.filter(
           inv => !comp.shareholders.some(h => h.name === inv.name)
         );
@@ -2099,7 +2124,11 @@
           });
           addLog(`NOWY AKCJONARIUSZ: ${newcomer.name} ujawnił pakiet ${stake}% w spółce ${comp.name}!`, 'warn');
         }
-      } else if (!pendingIncomingOffer && document.getElementById('offer-modal').classList.contains('hidden')) {
+      } else if (
+        state.allowIncomingOffers &&
+        !pendingIncomingOffer &&
+        document.getElementById('offer-modal').classList.contains('hidden')
+      ) {
         const playerHoldings = activeCompanies.filter(c => c.ownedPct >= 3 && !c.absorbed);
         if (playerHoldings.length > 0) {
           const targetComp = playerHoldings[Math.floor(Math.random() * playerHoldings.length)];
@@ -2124,7 +2153,7 @@
     }
 
     function showIncomingOfferModal() {
-      if (!pendingIncomingOffer) return;
+      if (!pendingIncomingOffer || !state.allowIncomingOffers) return;
       const comp = state.market.find(c => c.id === pendingIncomingOffer.compId);
       if (!comp || comp.absorbed || comp.ownedPct < pendingIncomingOffer.pct) {
         pendingIncomingOffer = null;
@@ -2139,7 +2168,12 @@
       document.getElementById('incoming-offer-modal').classList.remove('hidden');
     }
 
-    function resolveIncomingOffer(accept) {
+    function resolveIncomingOffer(accept, disableForever = false) {
+      if (disableForever) {
+        state.allowIncomingOffers = false;
+        updateIncomingToggleBtn();
+        addLog('Wyłączono wyskakujące propozycje odkupu akcji od funduszy konkurencji.', 'warn');
+      }
       if (!pendingIncomingOffer) return;
       const offer = pendingIncomingOffer;
       pendingIncomingOffer = null;
@@ -2169,17 +2203,27 @@
         addLog(`SPRZEDAŻ PAKIETU: Sprzedano ${offer.pct}% akcji ${comp.name} funduszowi ${offer.suitorName} za ${fmtMoney(offer.offerPrice)}!`, 'good');
         renderAll();
         saveState();
-      } else {
+      } else if (!disableForever) {
         addLog(`Odrzucono ofertę funduszu ${offer.suitorName} na odkup ${offer.pct}% akcji ${comp.name}.`, '');
       }
     }
 
-    // --- CREATOR UI LOGIC (REGIONS, PARENT SELECT, CATEGORIES & ALL 195 COUNTRIES) ---
+    // --- CREATOR UI LOGIC (MULTI-SELECT CATEGORIES & REGIONS) ---
     function applyRegionPreset(regionKey) {
       const codes = REGION_CODES[regionKey];
       if (!codes || codes.length === 0) return;
       selectedCountries = [...codes];
       renderCountrySelector();
+    }
+
+    function toggleCategory(catId) {
+      if (selectedCatIds.includes(catId)) {
+        if (selectedCatIds.length === 1) return;
+        selectedCatIds = selectedCatIds.filter(id => id !== catId);
+      } else {
+        selectedCatIds.push(catId);
+      }
+      renderCategoryList();
     }
 
     function renderParentSelector() {
@@ -2208,22 +2252,26 @@
       const container = document.getElementById('cat-select-list');
       const countLbl = document.getElementById('cat-count-label');
 
-      if (countLbl) countLbl.textContent = `${filtered.length} / ${CATEGORIES.length} branż`;
+      if (countLbl) countLbl.textContent = `Wybrano: ${selectedCatIds.length} (z ${CATEGORIES.length} branż)`;
+
+      const strip = document.getElementById('selected-cats-strip');
+      if (strip) {
+        strip.innerHTML = selectedCatIds.map(id => {
+          const c = CATEGORIES.find(x => x.id === id);
+          return `<span class="mini-country-badge">✓ ${c ? c.name : id}</span>`;
+        }).join('');
+      }
 
       if (filtered.length === 0) {
         container.innerHTML = `<div style="font-size: 12px; color: var(--muted); padding: 8px;">Brak kategorii pasującej do „${query}”.</div>`;
         return;
       }
 
-      if (!filtered.some(c => c.id === selectedCatId)) {
-        selectedCatId = filtered[0].id;
-      }
-
       container.innerHTML = filtered.map(cat => {
-        const isSel = cat.id === selectedCatId;
+        const isSel = selectedCatIds.includes(cat.id);
         return `
           <div class="cat-option ${isSel ? 'selected' : ''}" data-cat-id="${cat.id}">
-            <span><strong>${cat.name}</strong></span>
+            <span><strong>${isSel ? '☑' : '☐'} ${cat.name}</strong></span>
             <span style="color: var(--muted); font-size: 11.5px;">Baza: ${fmtMoney(cat.baseCost)} • +${fmtMoney(cat.baseIncome)}/s</span>
           </div>
         `;
@@ -2280,23 +2328,33 @@
     }
 
     function getCreatorNumbers() {
-      const cat = CATEGORIES.find(c => c.id === selectedCatId) || CATEGORIES[0];
+      const chosenCats = selectedCatIds
+        .map(id => CATEGORIES.find(c => c.id === id))
+        .filter(Boolean);
+      const cats = chosenCats.length > 0 ? chosenCats : [CATEGORIES[0]];
+
+      const combinedBaseCost = cats.reduce((acc, c) => acc + c.baseCost, 0);
+      const combinedBaseIncome = cats.reduce((acc, c) => acc + c.baseIncome, 0);
+      const multiSectorBonus = 1 + (cats.length - 1) * 0.08;
+      const sectorLabel = cats.map(c => c.name).join(' + ');
+
       const incMult = getCountriesMultiplier(selectedCountries);
       const costMult = getCountriesCostMultiplier(selectedCountries);
-      const macroMult = getMacroSectorMultiplier(cat.name);
-      const cost = Math.floor(cat.baseCost * costMult * getUpgradeDiscountMultiplier());
-      const income = cat.baseIncome * incMult * getSynergyMultiplier() * macroMult * getAllIncomeBoostMultiplier();
-      return { cat, incMult, costMult, cost, income };
+      const macroMult = getMacroSectorMultiplier(sectorLabel);
+
+      const cost = Math.floor(combinedBaseCost * costMult * getUpgradeDiscountMultiplier());
+      const income = combinedBaseIncome * multiSectorBonus * incMult * getSynergyMultiplier() * macroMult * getAllIncomeBoostMultiplier();
+      return { cats, sectorLabel, combinedBaseCost, combinedBaseIncome: Math.floor(combinedBaseIncome * multiSectorBonus), incMult, costMult, cost, income, multiSectorBonus };
     }
 
     function updateCreatorPreview() {
-      const { cat, incMult, cost, income } = getCreatorNumbers();
+      const { cats, incMult, cost, income, multiSectorBonus } = getCreatorNumbers();
       const parentSel = document.getElementById('new-sub-parent');
       const parentId = parentSel ? parentSel.value : 'HQ';
       const nextDepth = parentId === 'HQ' ? 1 : getSubDepth(parentId) + 1;
 
       document.getElementById('preview-parent-name').textContent = `${getHierarchyRoleLabel(nextDepth)} → ${getParentName(parentId)}`;
-      document.getElementById('preview-cat-name').textContent = cat.name;
+      document.getElementById('preview-cat-name').textContent = `${cats.length} ${cats.length === 1 ? 'branża' : 'branż'} (${multiSectorBonus.toFixed(2)}x)`;
       document.getElementById('preview-countries-mult').textContent = `${selectedCountries.length} ${selectedCountries.length === 1 ? 'kraj' : 'kraje/ów'} (${incMult.toFixed(2)}x)`;
       document.getElementById('preview-income').textContent = fmtMoney(income) + ' / s';
       document.getElementById('preview-cost').textContent = fmtMoney(cost);
@@ -2309,22 +2367,23 @@
     function createCustomSubsidiary() {
       const rawName = (document.getElementById('new-sub-name').value || '').trim();
       const parentId = document.getElementById('new-sub-parent').value || 'HQ';
-      const { cat, cost } = getCreatorNumbers();
+      const { cats, sectorLabel, combinedBaseCost, combinedBaseIncome, cost } = getCreatorNumbers();
       if (!spendCash(cost)) return;
 
       const finalName = rawName.length > 0
         ? rawName
-        : `${state.holdingName.split(' ')[0]} ${cat.name.split('&')[0].trim()} Sp. z o.o.`;
+        : `${state.holdingName.split(' ')[0]} ${cats[0].name.split('&')[0].trim()}${cats.length > 1 ? ' Multi-Group' : ''} Sp. z o.o.`;
 
       const newSub = {
         id: 'sub_' + Date.now() + '_' + Math.floor(Math.random() * 999),
         name: finalName,
-        sector: cat.name,
+        sector: sectorLabel,
+        catIds: cats.map(c => c.id),
         parentId: parentId,
         countries: [...selectedCountries],
         level: 1,
-        baseCost: cat.baseCost,
-        baseIncome: cat.baseIncome,
+        baseCost: combinedBaseCost,
+        baseIncome: combinedBaseIncome,
         ipoPublicPct: 0,
         mergedCount: 0,
         isAbsorbed: false
@@ -2334,7 +2393,7 @@
       const roleLabel = getHierarchyRoleLabel(getSubDepth(newSub.id));
 
       document.getElementById('new-sub-name').value = '';
-      addLog(`Zarejestrowano (${roleLabel}): ${finalName} pod podmiotem ${getParentName(parentId)} [${cat.name}] (${selectedCountries.length} rynki).`, 'good');
+      addLog(`Zarejestrowano (${roleLabel}): ${finalName} pod podmiotem ${getParentName(parentId)} [${cats.length} branż, ${selectedCountries.length} rynki].`, 'good');
       renderParentSelector();
       renderAll();
       saveState();
@@ -2404,6 +2463,18 @@
       rdBtn.textContent = `Inwestuj (${fmtMoney(rdCost)})`;
       rdBtn.disabled = state.cash < rdCost;
 
+      const shieldBtn = document.getElementById('btn-mgmt-shield');
+      if (comp.poisonPill) {
+        shieldBtn.className = 'success';
+        shieldBtn.textContent = '✓ Tarcza Aktywna';
+        shieldBtn.disabled = true;
+      } else {
+        const shieldCost = Math.floor(comp.currentValuation * 0.04);
+        shieldBtn.className = 'warn';
+        shieldBtn.textContent = `Aktywuj (${fmtMoney(shieldCost)})`;
+        shieldBtn.disabled = state.cash < shieldCost;
+      }
+
       const squeezeBox = document.getElementById('mgmt-squeeze-box');
       if (comp.ownedPct >= 90 && comp.ownedPct < 100) {
         const remPct = 100 - comp.ownedPct;
@@ -2433,6 +2504,19 @@
       addLog(`R&D W SPÓŁCE ZALEŻNEJ: Zainwestowano ${fmtMoney(rdCost)} w ${comp.name} (R&D LVL ${comp.rdLevel}, +15% rentowności).`, 'good');
       refreshManageCompModal();
       renderAll();
+      saveState();
+    }
+
+    function activatePoisonPill() {
+      const comp = state.market.find(c => c.id === activeMgmtCompId);
+      if (!comp || comp.ownedPct < 51 || comp.poisonPill) return;
+      const shieldCost = Math.floor(comp.currentValuation * 0.04);
+      if (!spendCash(shieldCost)) return;
+
+      comp.poisonPill = true;
+      addLog(`TARCZA ANTYPRZEJĘCIOWA: Aktywowano Poison Pill w ${comp.name} — fundusze konkurencji nie mogą już skupować jej akcji!`, 'warn');
+      refreshManageCompModal();
+      renderMarket();
       saveState();
     }
 
@@ -2761,6 +2845,7 @@
         id: 'abs_' + comp.id,
         name: comp.name + ' (Spółka Zależna)',
         sector: comp.sector,
+        catIds: [],
         parentId: comp.parentId || 'HQ',
         countries: ['PL', 'DE'],
         level: 1,
@@ -2789,9 +2874,9 @@
 
     function resetGame() {
       if (!confirm('Czy na pewno chcesz zresetować całe imperium i zacząć od nowa?')) return;
-      localStorage.removeItem('apex_holding_save_v8');
+      localStorage.removeItem('apex_holding_save_v9');
       state = getDefaultState();
-      selectedCatId = CATEGORIES[0].id;
+      selectedCatIds = [CATEGORIES[0].id];
       selectedCountries = ['PL'];
       renderParentSelector();
       renderCategoryList();
@@ -2869,18 +2954,26 @@
       document.getElementById('count-ceo').textContent = state.hiredCEOs.length;
     }
 
+    function renderTenderBanner() {
+      const t = state.activeTender;
+      if (!t) return;
+      document.getElementById('tender-timer').textContent = Math.ceil(t.remainingSec) + 's';
+      document.getElementById('tender-title').textContent = t.title;
+      document.getElementById('tender-req').textContent = `Wymagana spółka zależna: branża [${t.catName}] + rynek [${t.countryLabel}]`;
+
+      const eligible = findEligibleSubForTender(t);
+      const btn = document.getElementById('btn-claim-tender');
+      btn.disabled = !eligible;
+      btn.textContent = eligible
+        ? `✅ Realizuj przez ${eligible.name} (+${fmtMoney(t.reward)})`
+        : `Brak kwalifikującej się spółki (+${fmtMoney(t.reward)})`;
+    }
+
     function renderMergerPanel() {
       const box = document.getElementById('merger-panel');
       if (!box) return;
 
-      const bySector = {};
-      state.subsidiaries.forEach(s => {
-        if (!bySector[s.sector]) bySector[s.sector] = [];
-        bySector[s.sector].push(s);
-      });
-
-      const mergeable = Object.values(bySector).filter(arr => arr.length >= 2).flat();
-      if (mergeable.length < 2) {
+      if (state.subsidiaries.length < 2) {
         box.classList.add('hidden');
         return;
       }
@@ -2888,16 +2981,23 @@
       box.classList.remove('hidden');
       const selA = document.getElementById('merge-sub-a');
       const selB = document.getElementById('merge-sub-b');
+      const prevA = selA.value;
+      const prevB = selB.value;
 
-      const opts = mergeable.map(s => `<option value="${s.id}">${s.name} [${s.sector.split('&')[0].trim()}]</option>`).join('');
+      const opts = state.subsidiaries.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
       selA.innerHTML = opts;
       selB.innerHTML = opts;
-      if (mergeable.length >= 2) {
+
+      if ([...selA.options].some(o => o.value === prevA)) selA.value = prevA;
+      if ([...selB.options].some(o => o.value === prevB) && prevB !== selA.value) {
+        selB.value = prevB;
+      } else if (state.subsidiaries.length >= 2) {
         selB.selectedIndex = 1;
       }
     }
 
     function renderSubsidiaries() {
+      renderTenderBanner();
       renderMergerPanel();
 
       const ownedContainer = document.getElementById('owned-subs-list');
@@ -2906,7 +3006,7 @@
 
       if (state.subsidiaries.length === 0) {
         ownedContainer.innerHTML = `<div style="color: var(--muted); font-size: 13px; grid-column: 1/-1; padding: 20px 0;">
-          Nie posiadasz jeszcze żadnych spółek-córek. Wpisz nazwę, wybierz podmiot nadrzędny, branżę oraz kraje po prawej stronie!
+          Nie posiadasz jeszcze żadnych spółek-córek. Wpisz nazwę, wybierz podmiot nadrzędny, jedną lub więcej branż oraz kraje po prawej stronie!
         </div>`;
       } else {
         ownedContainer.innerHTML = state.subsidiaries.map(sub => {
@@ -2923,6 +3023,8 @@
           const fullVal = (sub.baseIncome * sub.level * Math.pow(1.12, sub.level - 1) * getCountriesMultiplier(sub.countries || ['PL'])) * 28;
           const ipoProceeds = Math.floor(fullVal * 0.25 * 1.22);
           const canIPO = sub.level >= 2 && ipoPct < 45;
+
+          const sectorTags = (sub.sector || '').split(' + ').map(sec => `<span class="sector-tag">${sec}</span>`).join('');
 
           const cCodes = sub.countries || ['PL'];
           const cBadges = cCodes.slice(0, 6).map(code => {
@@ -2943,15 +3045,15 @@
                 <div class="sub-top">
                   <div>
                     <div class="parent-badge">${roleLabel} • Pod: ${getParentName(sub.parentId || 'HQ')}</div><br/>
-                    <span class="sector-tag">${sub.sector}</span>
-                    <div class="sub-name">${sub.name}</div>
+                    <div>${sectorTags}</div>
+                    <div class="sub-name" style="margin-top: 4px;">${sub.name}</div>
                   </div>
                   <div class="sub-level">LVL ${sub.level}</div>
                 </div>
 
                 <div style="margin-top: 8px;">${cBadges}</div>
 
-                ${sub.mergedCount ? `<div style="font-size: 11.5px; color: #c7d2fe; margin-top: 5px;">🔀 Gigant po fuzji (+${sub.mergedCount * 45}% premii)</div>` : ''}
+                ${sub.mergedCount ? `<div style="font-size: 11.5px; color: #c7d2fe; margin-top: 5px;">🔀 Konglomerat po fuzji (+${sub.mergedCount * 45}% premii)</div>` : ''}
                 ${ipoPct > 0 ? `<div style="font-size: 11.5px; color: var(--gold); margin-top: 4px;">📈 Spółka notowana (Free Float: ${ipoPct}%, Twój udział: ${100 - ipoPct}%)</div>` : ''}
 
                 ${(childSubsCount > 0 || assignedMktCount > 0) ? `
@@ -2997,6 +3099,9 @@
     }
 
     function renderMarket() {
+      updateIncomingToggleBtn();
+      document.getElementById('ipo-spawn-timer').textContent = Math.ceil(state.nextIpoSpawnInSec) + 's';
+
       const container = document.getElementById('market-list');
       const totalDiv = state.market.reduce((acc, c) => acc + getMarketDividendIncome(c), 0);
       document.getElementById('dividend-summary').textContent = fmtMoney(totalDiv) + ' / s';
@@ -3070,6 +3175,7 @@
                 <div>
                   ${comp.ownedPct > 0 ? `<div class="parent-badge">Pod: ${getParentName(comp.parentId || 'HQ')}</div><br/>` : ''}
                   <span class="sector-tag">${comp.sector}</span>
+                  ${comp.poisonPill ? `<span class="sector-tag" style="background: var(--green-bg); color: var(--green);">🛡️ TARCZA</span>` : ''}
                   <div class="sub-name">${comp.name}</div>
                 </div>
                 <div style="text-align: right;">
@@ -3128,7 +3234,7 @@
               <div style="display: flex; flex-direction: column; gap: 6px;">
                 ${isMajority ? `
                   <button class="primary" data-manage-comp="${comp.id}">
-                    🎛️ Panel Zarządzania Firmą (Strategia, R&amp;D, Przypisanie)
+                    🎛️ Panel Zarządzania Firmą (Strategia, R&amp;D, Tarcza)
                   </button>
                 ` : ''}
                 <div class="btn-row">
@@ -3330,6 +3436,10 @@
       document.getElementById('create-sub-btn').addEventListener('click', createCustomSubsidiary);
       document.getElementById('btn-rename-holding').addEventListener('click', renameHolding);
       document.getElementById('btn-execute-merge').addEventListener('click', executeSubsidiaryMerger);
+      document.getElementById('btn-claim-tender').addEventListener('click', claimActiveTender);
+
+      document.getElementById('btn-spawn-market-comp').addEventListener('click', () => spawnNewMarketCompany(true));
+      document.getElementById('btn-toggle-incoming-offers').addEventListener('click', toggleIncomingOffersSetting);
 
       document.getElementById('region-presets').addEventListener('click', (e) => {
         const btn = e.target.closest('[data-region]');
@@ -3357,6 +3467,7 @@
       document.getElementById('btn-close-mgmt').addEventListener('click', closeManageCompModal);
       document.getElementById('btn-mgmt-done').addEventListener('click', closeManageCompModal);
       document.getElementById('btn-mgmt-rd').addEventListener('click', investManagedCompRD);
+      document.getElementById('btn-mgmt-shield').addEventListener('click', activatePoisonPill);
       document.getElementById('btn-mgmt-squeeze').addEventListener('click', executeSqueezeOut);
 
       document.getElementById('mgmt-parent-select').addEventListener('change', (e) => {
@@ -3409,14 +3520,14 @@
       document.getElementById('btn-close-expand').addEventListener('click', closeExpandModal);
       document.getElementById('exp-country-search').addEventListener('input', renderExpandCountriesList);
 
-      document.getElementById('btn-reject-incoming').addEventListener('click', () => resolveIncomingOffer(false));
-      document.getElementById('btn-accept-incoming').addEventListener('click', () => resolveIncomingOffer(true));
+      document.getElementById('btn-reject-incoming').addEventListener('click', () => resolveIncomingOffer(false, false));
+      document.getElementById('btn-accept-incoming').addEventListener('click', () => resolveIncomingOffer(true, false));
+      document.getElementById('btn-disable-incoming-forever').addEventListener('click', () => resolveIncomingOffer(false, true));
 
       document.body.addEventListener('click', (e) => {
         const catOpt = e.target.closest('[data-cat-id]');
         if (catOpt) {
-          selectedCatId = catOpt.dataset.catId;
-          renderCategoryList();
+          toggleCategory(catOpt.dataset.catId);
           return;
         }
 
@@ -3545,6 +3656,21 @@
       lastFrameTime = now;
 
       state.simMinutes += dt * 10;
+
+      // Active B2B Tender countdown
+      if (state.activeTender) {
+        state.activeTender.remainingSec -= dt;
+        if (state.activeTender.remainingSec <= 0) {
+          state.activeTender = generateTenderObject();
+        }
+      }
+
+      // Automatic IPO Spawner for new market companies
+      state.nextIpoSpawnInSec -= dt;
+      if (state.nextIpoSpawnInSec <= 0) {
+        state.nextIpoSpawnInSec = 40;
+        spawnNewMarketCompany(false);
+      }
 
       if (state.activeEvent) {
         state.activeEvent.remainingSec -= dt;
