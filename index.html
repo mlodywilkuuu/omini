@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>APEX HOLDING — Symulator Imperium Kapitałowego</title>
+  <style>
+    :root {
+      --bg: #07090e;
+      --surface: rgba(17, 22, 34, 0.72);
+      --surface-hover: rgba(25, 33, 50, 0.85);
+      --border: rgba(255, 255, 255, 0.08);
+      --border-accent: rgba(99, 102, 241, 0.45);
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+      --accent: #6366f1;
+      --accent-glow: rgba(99, 102, 241, 0.25);
+      --green: #10b981;
+      --green-bg: rgba(16, 185, 129, 0.14);
+      --red: #ef4444;
+      --red-bg: rgba(239, 68, 68, 0.14);
+      --gold: #f59e0b;
+      --gold-bg: rgba(245, 158, 11, 0.14);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      background-image: 
+        radial-gradient(circle at 15% 15%, rgba(99, 102, 241, 0.14), transparent 35%),
+        radial-gradient(circle at 85% 80%, rgba(16, 185, 129, 0.10), transparent 40%);
+      color: var(--text);
+      min-height: 100vh;
+      padding-bottom: 90px;
+    }
+
+    /* Floating Top Island Bar */
+    .top-island {
+      position: sticky;
+      top: 14px;
+      z-index: 100;
+      max-width: 1320px;
+      margin: 0 auto 24px auto;
+      padding: 14px 24px;
+      background: rgba(13, 17, 28, 0.82);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.55);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-badge {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #6366f1, #10b981);
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      font-size: 18px;
+      color: #fff;
+      box-shadow: 0 0 20px var(--accent-glow);
+    }
+
+    .brand h1 {
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 0.4px;
+    }
+
+    .brand span {
+      font-size: 11px;
+      color: var(--muted);
+      display: block;
+    }
+
+    .stats-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      align-items: center;
+    }
+
+    .stat-pill {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border);
+      padding: 8px 14px;
+      border-radius: 12px;
+      min-width: 145px;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+    }
+
+    .stat-value {
+      font-size: 17px;
+      font-weight: 700;
+      margin-top: 2px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .stat-value.cash { color: var(--green); }
+    .stat-value.networth { color: #a5b4fc; }
+    .stat-value.income { color: var(--gold); }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    button {
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text);
+      padding: 8px 13px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.18s ease;
+    }
+
+    button:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.2);
+      transform: translateY(-1px);
+    }
+
+    button:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    button.active-speed {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+      box-shadow: 0 0 14px var(--accent-glow);
+    }
+
+    button.primary {
+      background: linear-gradient(135deg, #6366f1, #4f46e5);
+      border-color: rgba(99, 102, 241, 0.6);
+      color: #fff;
+    }
+
+    button.primary:hover:not(:disabled) {
+      box-shadow: 0 4px 18px var(--accent-glow);
+    }
+
+    button.success {
+      background: var(--green-bg);
+      border-color: rgba(16, 185, 129, 0.4);
+      color: var(--green);
+    }
+
+    button.danger {
+      background: var(--red-bg);
+      border-color: rgba(239, 68, 68, 0.35);
+      color: var(--red);
+    }
+
+    /* Main Container */
+    .container {
+      max-width: 1320px;
+      margin: 0 auto;
+      padding: 0 16px;
+    }
+
+    /* Navigation Tabs */
+    .nav-tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 22px;
+      flex-wrap: wrap;
+    }
+
+    .tab-btn {
+      padding: 11px 18px;
+      border-radius: 14px;
+      font-size: 14px;
+      background: var(--surface);
+      backdrop-filter: blur(12px);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .tab-btn.active {
+      background: rgba(99, 102, 241, 0.18);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    .badge-count {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 2px 7px;
+      border-radius: 999px;
+      font-size: 11px;
+    }
+
+    /* Grid Layouts */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 960px) {
+      .grid-2 { grid-template-columns: 1fr; }
+    }
+
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 16px;
+    }
+
+    .panel {
+      background: var(--surface);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 20px;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .panel-title {
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    /* Subsidiary Cards */
+    .sub-card {
+      background: rgba(22, 28, 44, 0.65);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 14px;
+      transition: border-color 0.2s;
+    }
+
+    .sub-card:hover {
+      border-color: var(--border-accent);
+    }
+
+    .sub-card.acquired-tag {
+      border-color: rgba(245, 158, 11, 0.45);
+      background: linear-gradient(160deg, rgba(245, 158, 11, 0.08), rgba(22, 28, 44, 0.75));
+    }
+
+    .sub-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .sector-tag {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: rgba(99, 102, 241, 0.16);
+      color: #a5b4fc;
+      display: inline-block;
+      margin-bottom: 6px;
+    }
+
+    .sub-name {
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .sub-level {
+      font-size: 12px;
+      font-weight: 700;
+      background: rgba(255, 255, 255, 0.07);
+      padding: 4px 10px;
+      border-radius: 8px;
+      white-space: nowrap;
+    }
+
+    .sub-metrics {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      background: rgba(0, 0, 0, 0.22);
+      padding: 10px;
+      border-radius: 10px;
+      font-size: 12px;
+    }
+
+    .sub-metrics span {
+      color: var(--muted);
+      display: block;
+    }
+
+    .sub-metrics strong {
+      font-size: 14px;
+      color: var(--text);
+    }
+
+    /* Market & Shares */
+    .share-bar-bg {
+      width: 100%;
+      height: 8px;
+      background: rgba(255, 255, 255, 0.07);
+      border-radius: 99px;
+      overflow: hidden;
+      margin: 6px 0;
+    }
+
+    .share-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #6366f1, #10b981);
+      border-radius: 99px;
+      transition: width 0.25s ease;
+    }
+
+    .share-bar-fill.majority {
+      background: linear-gradient(90deg, #f59e0b, #10b981);
+    }
+
+    .trend-up { color: var(--green); font-weight: 700; }
+    .trend-down { color: var(--red); font-weight: 700; }
+
+    .btn-row {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .btn-row button {
+      flex: 1;
+      padding: 7px 8px;
+      font-size: 12px;
+    }
+
+    /* Quick Action Clicker / Operations */
+    .manual-op-box {
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.14), rgba(16, 185, 129, 0.08));
+      border: 1px solid var(--border-accent);
+      border-radius: 16px;
+      padding: 18px;
+      margin-bottom: 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+
+    /* News Ticker / Log */
+    .event-log {
+      max-height: 360px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .log-item {
+      font-size: 12.5px;
+      padding: 9px 12px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.03);
+      border-left: 3px solid var(--accent);
+      line-height: 1.4;
+    }
+
+    .log-item.good { border-left-color: var(--green); }
+    .log-item.warn { border-left-color: var(--gold); }
+    .log-time { color: var(--muted); font-size: 11px; margin-right: 6px; }
+
+    /* Structure Tree */
+    .org-root {
+      text-align: center;
+      padding: 16px;
+      background: rgba(99, 102, 241, 0.15);
+      border: 1px solid var(--accent);
+      border-radius: 14px;
+      max-width: 360px;
+      margin: 0 auto 24px auto;
+    }
+
+    .org-branches {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 14px;
+    }
+
+    .org-node {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+    }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+  <!-- TOP FLOATING BAR -->
+  <header class="top-island">
+    <div class="brand">
+      <div class="brand-badge">A</div>
+      <div>
+        <h1 id="holding-title">APEX CAPITAL GROUP S.A.</h1>
+        <span id="holding-rank">Ranga: Lokalny Fundusz Inwestycyjny</span>
+      </div>
+    </div>
+
+    <div class="stats-bar">
+      <div class="stat-pill">
+        <div class="stat-label">Wolna Gotówka</div>
+        <div class="stat-value cash" id="stat-cash">$0</div>
+      </div>
+      <div class="stat-pill">
+        <div class="stat-label">Przychód (Cashflow)</div>
+        <div class="stat-value income" id="stat-income">$0 / s</div>
+      </div>
+      <div class="stat-pill">
+        <div class="stat-label">Wycena Imperium</div>
+        <div class="stat-value networth" id="stat-networth">$0</div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button onclick="setSpeed(1)" id="spd-1" class="active-speed">1x</button>
+      <button onclick="setSpeed(2)" id="spd-2">2x</button>
+      <button onclick="setSpeed(5)" id="spd-5">5x</button>
+      <button onclick="resetGame()" class="danger" title="Resetuj postęp">Reset</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- NAVIGATION TABS -->
+    <nav class="nav-tabs">
+      <button class="tab-btn active" onclick="switchTab('subsidiaries', this)">
+        🏢 Spółki-Córki <span class="badge-count" id="count-subs">0</span>
+      </button>
+      <button class="tab-btn" onclick="switchTab('market', this)">
+        📈 Giełda &amp; Wykup Udziałów <span class="badge-count" id="count-market">0</span>
+      </button>
+      <button class="tab-btn" onclick="switchTab('structure', this)">
+        🕸️ Struktura Holdingu
+      </button>
+    </nav>
+
+    <!-- TAB 1: SUBSIDIARIES -->
+    <section id="tab-subsidiaries">
+      <div class="manual-op-box">
+        <div>
+          <h3 style="font-size: 15px; margin-bottom: 4px;">💼 Doradztwo Kapitałowe &amp; Arbitraż</h3>
+          <p style="font-size: 13px; color: var(--muted);">Generuj szybki kapitał startowy na pierwsze udziały i rejestrację spółek-córek.</p>
+        </div>
+        <button class="primary" style="padding: 12px 20px; font-size: 14px;" onclick="manualDeal()">
+          + Zamknij Transakcję (<span id="manual-reward">$250</span>)
+        </button>
+      </div>
+
+      <div class="grid-2">
+        <!-- OWNED SUBSIDIARIES -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">Twoje Spółki-Córki (100% Własności)</div>
+            <span style="font-size: 12px; color: var(--muted);" id="sub-synergy-info">Synergia: +0%</span>
+          </div>
+          <div class="cards-grid" id="owned-subs-list"></div>
+        </div>
+
+        <!-- INCORPORATE NEW SUBSIDIARY + LOG -->
+        <div style="display: flex; flex-direction: column; gap: 20px;">
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title">Załóż Nową Spółkę-Córkę</div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 10px;" id="new-subs-shop"></div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title">Dziennik Rynkowy &amp; Transakcje</div>
+            </div>
+            <div class="event-log" id="event-log"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: STOCK MARKET & M&A -->
+    <section id="tab-market" class="hidden">
+      <div class="panel" style="margin-bottom: 18px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+          <div>
+            <h2 style="font-size: 17px;">Rynek Fuzji i Przejęć (M&amp;A)</h2>
+            <p style="font-size: 13px; color: var(--muted); margin-top: 3px;">
+              Skupuj akcje konkurencji. Przekroczenie <strong>51%</strong> daje Pakiet Kontrolny (+25% dywidendy). Osiągnięcie <strong>100%</strong> pozwala wchłonąć firmę jako Twoją Spółkę-Córkę!
+            </p>
+          </div>
+          <div style="font-size: 13px; background: rgba(255,255,255,0.04); padding: 8px 14px; border-radius: 10px;">
+            Dochód z dywidend: <strong style="color: var(--green);" id="dividend-summary">$0 / s</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="cards-grid" id="market-list"></div>
+    </section>
+
+    <!-- TAB 3: HOLDING STRUCTURE -->
+    <section id="tab-structure" class="hidden">
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">Drzewo Kapitałowe Holdingu</div>
+          <button onclick="renameHolding()">Zmień nazwę holdingu</button>
+        </div>
+
+        <div class="org-root">
+          <div style="font-size: 11px; color: #a5b4fc; text-transform: uppercase; font-weight: 700;">Spółka Matka (100%)</div>
+          <h3 id="tree-holding-name" style="margin: 4px 0;">APEX CAPITAL GROUP S.A.</h3>
+          <div style="font-size: 13px; color: var(--green);" id="tree-total-value">Wartość aktywów: $0</div>
+        </div>
+
+        <div class="org-branches" id="org-tree-branches"></div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // --- GAME CONFIGURATION ---
+    const SUBSIDIARY_BLUEPRINTS = [
+      { id: 'sub_soft', name: 'Apex Softworks Sp. z o.o.', sector: 'Technologia & AI', baseCost: 1200, baseIncome: 45, desc: 'Tworzenie oprogramowania B2B i automatyzacji.' },
+      { id: 'sub_est', name: 'Metro Estate Development', sector: 'Nieruchomości', baseCost: 8500, baseIncome: 290, desc: 'Wynajem powierzchni biurowych i logistycznych.' },
+      { id: 'sub_fin', name: 'Vanguard FinTech Polska', sector: 'Finanse', baseCost: 42000, baseIncome: 1350, desc: 'Bramki płatnicze, pożyczki korporacyjne i faktoring.' },
+      { id: 'sub_log', name: 'EuroCargo Rail & Trans', sector: 'Logistyka', baseCost: 185000, baseIncome: 5800, desc: 'Flota transportowa i terminale przeładunkowe.' },
+      { id: 'sub_en', name: 'Helios Grid Energy S.A.', sector: 'Energetyka', baseCost: 900000, baseIncome: 27500, desc: 'Farmy fotowoltaiczne i magazyny energii.' },
+      { id: 'sub_aero', name: 'Orbital Dynamics Aerospace', sector: 'Przemysł Ciężki', baseCost: 4500000, baseIncome: 140000, desc: 'Systemy satelitarne i zaawansowana inżynieria.' }
+    ];
+
+    const INITIAL_MARKET_COMPANIES = [
+      { id: 'mkt_1', name: 'PixelWave Media', sector: 'Media & Gaming', baseValuation: 15000, baseProfit: 480, ownedPct: 0, absorbed: false },
+      { id: 'mkt_2', name: 'Nordic Cold Logistics', sector: 'Logistyka', baseValuation: 65000, baseProfit: 2100, ownedPct: 0, absorbed: false },
+      { id: 'mkt_3', name: 'BioCore Labs', sector: 'Biotechnologia', baseValuation: 240000, baseProfit: 8200, ownedPct: 0, absorbed: false },
+      { id: 'mkt_4', name: 'Baltic Commercial Bank', sector: 'Bankowość', baseValuation: 950000, baseProfit: 31000, ownedPct: 0, absorbed: false },
+      { id: 'mkt_5', name: 'Titan Steel & Mining', sector: 'Surowce', baseValuation: 3800000, baseProfit: 125000, ownedPct: 0, absorbed: false },
+      { id: 'mkt_6', name: 'Aether Cloud Systems', sector: 'Big Tech', baseValuation: 14000000, baseProfit: 490000, ownedPct: 0, absorbed: false }
+    ];
+
+    // --- DEFAULT STATE ---
+    function getDefaultState() {
+      return {
+        holdingName: 'APEX CAPITAL GROUP S.A.',
+        cash: 1500,
+        speed: 1,
+        subsidiaries: [], // { id, name, sector, level, baseCost, baseIncome, isAbsorbed }
+        market: INITIAL_MARKET_COMPANIES.map(c => ({
+          ...c,
+          currentValuation: c.baseValuation,
+          lastChangePct: 0
+        })),
+        logs: [
+          { time: nowStr(), text: 'Zarejestrowano spółkę matkę APEX CAPITAL GROUP S.A. Kapitał zakładowy: $1,500.', type: 'good' }
+        ]
+      };
+    }
+
+    let state = loadState();
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem('apex_holding_save_v1');
+        if (!raw) return getDefaultState();
+        const parsed = JSON.parse(raw);
+        return { ...getDefaultState(), ...parsed };
+      } catch (e) {
+        return getDefaultState();
+      }
+    }
+
+    function saveState() {
+      localStorage.setItem('apex_holding_save_v1', JSON.stringify(state));
+    }
+
+    function nowStr() {
+      return new Date().toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    }
+
+    function addLog(text, type = '') {
+      state.logs.unshift({ time: nowStr(), text, type });
+      if (state.logs.length > 35) state.logs.pop();
+      renderLogs();
+    }
+
+    // --- FORMATTING ---
+    function fmtMoney(val) {
+      if (val >= 1e12) return '$' + (val / 1e12).toFixed(2) + ' T';
+      if (val >= 1e9) return '$' + (val / 1e9).toFixed(2) + ' B';
+      if (val >= 1e6) return '$' + (val / 1e6).toFixed(2) + ' M';
+      if (val >= 1e3) return '$' + (val / 1e3).toFixed(2) + ' K';
+      return '$' + Math.floor(val).toLocaleString('en-US');
+    }
+
+    // --- ECONOMY CALCULATIONS ---
+    function getSynergyMultiplier() {
+      // +4% income for every subsidiary owned
+      return 1 + (state.subsidiaries.length * 0.04);
+    }
+
+    function getSubsidiaryIncome(sub) {
+      return sub.baseIncome * sub.level * Math.pow(1.12, sub.level - 1) * getSynergyMultiplier();
+    }
+
+    function getSubsidiaryUpgradeCost(sub) {
+      return Math.floor(sub.baseCost * 0.65 * Math.pow(1.42, sub.level));
+    }
+
+    function getSubsidiaryValuation(sub) {
+      return getSubsidiaryIncome(sub) * 28;
+    }
+
+    function getMarketDividendIncome(comp) {
+      if (comp.absorbed || comp.ownedPct <= 0) return 0;
+      const ratio = comp.ownedPct / 100;
+      const controlBonus = comp.ownedPct >= 51 ? 1.25 : 1.0;
+      return comp.baseProfit * ratio * controlBonus;
+    }
+
+    function getTotalIncomePerSec() {
+      const subsInc = state.subsidiaries.reduce((acc, s) => acc + getSubsidiaryIncome(s), 0);
+      const divInc = state.market.reduce((acc, c) => acc + getMarketDividendIncome(c), 0);
+      return subsInc + divInc;
+    }
+
+    function getTotalNetWorth() {
+      const subsVal = state.subsidiaries.reduce((acc, s) => acc + getSubsidiaryValuation(s), 0);
+      const sharesVal = state.market.reduce((acc, c) => acc + (c.absorbed ? 0 : c.currentValuation * (c.ownedPct / 100)), 0);
+      return state.cash + subsVal + sharesVal;
+    }
+
+    function getManualReward() {
+      return Math.max(250, Math.floor(getTotalIncomePerSec() * 1.5 + 250));
+    }
+
+    function getHoldingRank(nw) {
+      if (nw >= 1e9) return 'Globalny Megakonglomerat';
+      if (nw >= 1e8) return 'Międzynarodowy Gigant Kapitałowy';
+      if (nw >= 1e7) return 'Dominujący Holding Krajowy';
+      if (nw >= 1e6) return 'Grupa Kapitałowa Tier-1';
+      if (nw >= 1e5) return 'Rozwijający się Fundusz M&A';
+      return 'Lokalny Fundusz Inwestycyjny';
+    }
+
+    // --- PLAYER ACTIONS ---
+    function manualDeal() {
+      const reward = getManualReward();
+      state.cash += reward;
+      updateTopBar();
+    }
+
+    function foundSubsidiary(bpId) {
+      const bp = SUBSIDIARY_BLUEPRINTS.find(b => b.id === bpId);
+      if (!bp) return;
+      if (state.subsidiaries.some(s => s.id === bpId)) return;
+      if (state.cash < bp.baseCost) return;
+
+      state.cash -= bp.baseCost;
+      state.subsidiaries.push({
+        id: bp.id,
+        name: bp.name,
+        sector: bp.sector,
+        level: 1,
+        baseCost: bp.baseCost,
+        baseIncome: bp.baseIncome,
+        isAbsorbed: false
+      });
+
+      addLog(`Założono nową spółkę-córkę: ${bp.name} (100% udziałów).`, 'good');
+      renderAll();
+      saveState();
+    }
+
+    function upgradeSubsidiary(subId) {
+      const sub = state.subsidiaries.find(s => s.id === subId);
+      if (!sub) return;
+      const cost = getSubsidiaryUpgradeCost(sub);
+      if (state.cash < cost) return;
+
+      state.cash -= cost;
+      sub.level += 1;
+      addLog(`Dokapitalizowano ${sub.name} do Poziomu ${sub.level}.`);
+      renderAll();
+      saveState();
+    }
+
+    function buyShares(compId, pct) {
+      const comp = state.market.find(c => c.id === compId);
+      if (!comp || comp.absorbed) return;
+
+      const available = 100 - comp.ownedPct;
+      const actualPct = Math.min(pct, available);
+      if (actualPct <= 0) return;
+
+      const cost = comp.currentValuation * (actualPct / 100);
+      if (state.cash < cost) return;
+
+      const hadMajority = comp.ownedPct >= 51;
+      state.cash -= cost;
+      comp.ownedPct += actualPct;
+
+      if (!hadMajority && comp.ownedPct >= 51) {
+        addLog(`PRZEJĘCIE KONTROLI! Posiadasz ${comp.ownedPct}% akcji ${comp.name}. Aktywowano bonus +25% dywidendy!`, 'warn');
+      } else {
+        addLog(`Wykupiono ${actualPct}% udziałów w ${comp.name} za ${fmtMoney(cost)} (Łącznie: ${comp.ownedPct}%).`);
+      }
+
+      renderAll();
+      saveState();
+    }
+
+    function sellShares(compId, pct) {
+      const comp = state.market.find(c => c.id === compId);
+      if (!comp || comp.absorbed || comp.ownedPct <= 0) return;
+
+      const actualPct = Math.min(pct, comp.ownedPct);
+      const payout = comp.currentValuation * (actualPct / 100) * 0.96; // 4% prowizja maklerska
+      comp.ownedPct -= actualPct;
+      state.cash += payout;
+
+      addLog(`Sprzedano ${actualPct}% akcji ${comp.name} za ${fmtMoney(payout)} (po prowizji 4%).`);
+      renderAll();
+      saveState();
+    }
+
+    function absorbCompany(compId) {
+      const comp = state.market.find(c => c.id === compId);
+      if (!comp || comp.absorbed || comp.ownedPct < 100) return;
+
+      comp.absorbed = true;
+      state.subsidiaries.push({
+        id: 'abs_' + comp.id,
+        name: comp.name + ' (Spółka Zależna)',
+        sector: comp.sector,
+        level: 1,
+        baseCost: Math.floor(comp.baseValuation * 0.8),
+        baseIncome: Math.floor(comp.baseProfit * 1.45),
+        isAbsorbed: true
+      });
+
+      addLog(`PEŁNA KONSOLIDACJA! ${comp.name} zostało wchłonięte do struktury holdingu jako spółka-córka!`, 'warn');
+      renderAll();
+      saveState();
+    }
+
+    function setSpeed(spd) {
+      state.speed = spd;
+      [1, 2, 5].forEach(s => {
+        document.getElementById('spd-' + s).classList.toggle('active-speed', s === spd);
+      });
+    }
+
+    function renameHolding() {
+      const name = prompt('Podaj nową nazwę Twojego Holdingu:', state.holdingName);
+      if (name && name.trim().length > 1) {
+        state.holdingName = name.trim().toUpperCase();
+        renderAll();
+        saveState();
+      }
+    }
+
+    function resetGame() {
+      if (!confirm('Czy na pewno chcesz zresetować całe imperium i zacząć od nowa?')) return;
+      localStorage.removeItem('apex_holding_save_v1');
+      state = getDefaultState();
+      renderAll();
+    }
+
+    function switchTab(tabName, btnEl) {
+      ['subsidiaries', 'market', 'structure'].forEach(t => {
+        document.getElementById('tab-' + t).classList.toggle('hidden', t !== tabName);
+      });
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      if (btnEl) btnEl.classList.add('active');
+      renderAll();
+    }
+
+    // --- RENDERING ---
+    function updateTopBar() {
+      const income = getTotalIncomePerSec();
+      const nw = getTotalNetWorth();
+
+      document.getElementById('holding-title').textContent = state.holdingName;
+      document.getElementById('holding-rank').textContent = 'Ranga: ' + getHoldingRank(nw);
+      document.getElementById('stat-cash').textContent = fmtMoney(state.cash);
+      document.getElementById('stat-income').textContent = fmtMoney(income) + ' / s';
+      document.getElementById('stat-networth').textContent = fmtMoney(nw);
+      document.getElementById('manual-reward').textContent = fmtMoney(getManualReward());
+
+      document.getElementById('count-subs').textContent = state.subsidiaries.length;
+      const activeMarket = state.market.filter(c => !c.absorbed).length;
+      document.getElementById('count-market').textContent = activeMarket;
+    }
+
+    function renderSubsidiaries() {
+      const ownedContainer = document.getElementById('owned-subs-list');
+      const shopContainer = document.getElementById('new-subs-shop');
+      const synergyPct = Math.round((getSynergyMultiplier() - 1) * 100);
+      document.getElementById('sub-synergy-info').textContent = `Synergia grupy: +${synergyPct}%`;
+
+      if (state.subsidiaries.length === 0) {
+        ownedContainer.innerHTML = `<div style="color: var(--muted); font-size: 13px; grid-column: 1/-1; padding: 20px 0;">
+          Nie posiadasz jeszcze żadnych spółek-córek. Zbierz kapitał i załóż pierwszy podmiot po prawej stronie!
+        </div>`;
+      } else {
+        ownedContainer.innerHTML = state.subsidiaries.map(sub => {
+          const inc = getSubsidiaryIncome(sub);
+          const upgCost = getSubsidiaryUpgradeCost(sub);
+          const val = getSubsidiaryValuation(sub);
+          const canAfford = state.cash >= upgCost;
+
+          return `
+            <div class="sub-card ${sub.isAbsorbed ? 'acquired-tag' : ''}">
+              <div>
+                <div class="sub-top">
+                  <div>
+                    <span class="sector-tag">${sub.sector}</span>
+                    <div class="sub-name">${sub.name}</div>
+                  </div>
+                  <div class="sub-level">LVL ${sub.level}</div>
+                </div>
+                <div class="sub-metrics" style="margin-top: 12px;">
+                  <div><span>Cashflow</span><strong style="color: var(--green);">${fmtMoney(inc)}/s</strong></div>
+                  <div><span>Wycena spółki</span><strong>${fmtMoney(val)}</strong></div>
+                </div>
+              </div>
+              <button class="primary" ${canAfford ? '' : 'disabled'} onclick="upgradeSubsidiary('${sub.id}')">
+                Dokapitalizuj (${fmtMoney(upgCost)})
+              </button>
+            </div>
+          `;
+        }).join('');
+      }
+
+      // Shop for incorporating new subsidiaries
+      const availableBps = SUBSIDIARY_BLUEPRINTS.filter(bp => !state.subsidiaries.some(s => s.id === bp.id));
+      if (availableBps.length === 0) {
+        shopContainer.innerHTML = `<div style="color: var(--green); font-size: 13px;">Wszystkie własne sektory zostały uruchomione! Przejmuj konkurencję na Giełdzie.</div>`;
+      } else {
+        shopContainer.innerHTML = availableBps.map(bp => {
+          const canAfford = state.cash >= bp.baseCost;
+          return `
+            <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 12px; padding: 12px; display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+              <div>
+                <div style="font-size: 11px; color: #a5b4fc; font-weight: 700;">${bp.sector}</div>
+                <div style="font-weight: 700; font-size: 14px;">${bp.name}</div>
+                <div style="font-size: 12px; color: var(--muted);">${bp.desc} (+${fmtMoney(bp.baseIncome)}/s)</div>
+              </div>
+              <button class="success" style="white-space: nowrap;" ${canAfford ? '' : 'disabled'} onclick="foundSubsidiary('${bp.id}')">
+                Załóż (${fmtMoney(bp.baseCost)})
+              </button>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+
+    function renderMarket() {
+      const container = document.getElementById('market-list');
+      const totalDiv = state.market.reduce((acc, c) => acc + getMarketDividendIncome(c), 0);
+      document.getElementById('dividend-summary').textContent = fmtMoney(totalDiv) + ' / s';
+
+      container.innerHTML = state.market.map(comp => {
+        if (comp.absorbed) {
+          return `
+            <div class="sub-card acquired-tag">
+              <div>
+                <span class="sector-tag" style="background: var(--gold-bg); color: var(--gold);">WCHŁONIĘTA (100%)</span>
+                <div class="sub-name">${comp.name}</div>
+                <p style="font-size: 12.5px; color: var(--muted); margin-top: 8px;">
+                  Spółka została w pełni skonsolidowana i działa teraz w zakładce <strong>Spółki-Córki</strong>.
+                </p>
+              </div>
+            </div>
+          `;
+        }
+
+        const cost1 = comp.currentValuation * 0.01;
+        const cost10 = comp.currentValuation * 0.10;
+        const cost25 = comp.currentValuation * 0.25;
+        const divInc = getMarketDividendIncome(comp);
+        const isMajority = comp.ownedPct >= 51;
+        const trendClass = comp.lastChangePct >= 0 ? 'trend-up' : 'trend-down';
+        const trendSign = comp.lastChangePct >= 0 ? '+' : '';
+
+        return `
+          <div class="sub-card ${isMajority ? 'acquired-tag' : ''}">
+            <div>
+              <div class="sub-top">
+                <div>
+                  <span class="sector-tag">${comp.sector}</span>
+                  <div class="sub-name">${comp.name}</div>
+                </div>
+                <div style="text-align: right;">
+                  <div style="font-size: 11px; color: var(--muted);">Wycena 100%</div>
+                  <div style="font-weight: 700; font-size: 14px;">${fmtMoney(comp.currentValuation)}</div>
+                  <div class="${trendClass}" style="font-size: 11px;">${trendSign}${comp.lastChangePct.toFixed(1)}%</div>
+                </div>
+              </div>
+
+              <div style="margin-top: 12px;">
+                <div style="display: flex; justify-content: space-between; font-size: 12px;">
+                  <span>Twój pakiet udziałów:</span>
+                  <strong style="color: ${isMajority ? 'var(--gold)' : '#fff'};">
+                    ${comp.ownedPct}% ${isMajority ? '👑 (Kontrola)' : ''}
+                  </strong>
+                </div>
+                <div class="share-bar-bg">
+                  <div class="share-bar-fill ${isMajority ? 'majority' : ''}" style="width: ${comp.ownedPct}%;"></div>
+                </div>
+              </div>
+
+              <div class="sub-metrics" style="margin-top: 10px;">
+                <div><span>Twoja dywidenda</span><strong style="color: var(--green);">${fmtMoney(divInc)}/s</strong></div>
+                <div><span>Koszt 1% akcji</span><strong>${fmtMoney(cost1)}</strong></div>
+              </div>
+            </div>
+
+            ${comp.ownedPct >= 100 ? `
+              <button class="primary" style="background: linear-gradient(135deg, #f59e0b, #d97706); border: none;" onclick="absorbCompany('${comp.id}')">
+                ⚡ Konsoliduj jako Spółkę-Córkę (100%)
+              </button>
+            ` : `
+              <div class="btn-row">
+                <button class="success" ${state.cash >= cost1 ? '' : 'disabled'} onclick="buyShares('${comp.id}', 1)">+1%</button>
+                <button class="success" ${state.cash >= cost10 && comp.ownedPct <= 90 ? '' : 'disabled'} onclick="buyShares('${comp.id}', 10)">+10%</button>
+                <button class="success" ${state.cash >= cost25 && comp.ownedPct <= 75 ? '' : 'disabled'} onclick="buyShares('${comp.id}', 25)">+25%</button>
+                <button class="danger" ${comp.ownedPct > 0 ? '' : 'disabled'} onclick="sellShares('${comp.id}', 10)">-10%</button>
+              </div>
+            `}
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderStructure() {
+      document.getElementById('tree-holding-name').textContent = state.holdingName;
+      document.getElementById('tree-total-value').textContent = 'Wartość aktywów netto: ' + fmtMoney(getTotalNetWorth());
+
+      const branches = document.getElementById('org-tree-branches');
+      const items = [];
+
+      state.subsidiaries.forEach(s => {
+        items.push(`
+          <div class="org-node" style="border-color: rgba(16, 185, 129, 0.4);">
+            <div style="font-size: 11px; color: var(--green); font-weight: 700;">100% SPÓŁKA-CÓRKA • LVL ${s.level}</div>
+            <div style="font-weight: 700; margin: 4px 0;">${s.name}</div>
+            <div style="font-size: 12px; color: var(--muted);">Generuje: ${fmtMoney(getSubsidiaryIncome(s))}/s</div>
+          </div>
+        `);
+      });
+
+      state.market.filter(c => !c.absorbed && c.ownedPct > 0).forEach(c => {
+        items.push(`
+          <div class="org-node" style="border-color: rgba(99, 102, 241, 0.4);">
+            <div style="font-size: 11px; color: #a5b4fc; font-weight: 700;">PAKIET AKCJI: ${c.ownedPct}%</div>
+            <div style="font-weight: 700; margin: 4px 0;">${c.name}</div>
+            <div style="font-size: 12px; color: var(--muted);">Dywidenda: ${fmtMoney(getMarketDividendIncome(c))}/s</div>
+          </div>
+        `);
+      });
+
+      branches.innerHTML = items.length > 0
+        ? items.join('')
+        : `<div style="color: var(--muted); font-size: 13px; grid-column: 1/-1; text-align: center;">Brak podmiotów zależnych w strukturze.</div>`;
+    }
+
+    function renderLogs() {
+      const logBox = document.getElementById('event-log');
+      logBox.innerHTML = state.logs.map(l => `
+        <div class="log-item ${l.type}">
+          <span class="log-time">[${l.time}]</span>${l.text}
+        </div>
+      `).join('');
+    }
+
+    function renderAll() {
+      updateTopBar();
+      renderSubsidiaries();
+      renderMarket();
+      renderStructure();
+      renderLogs();
+    }
+
+    // --- GAME LOOP ---
+    let tickCounter = 0;
+
+    setInterval(() => {
+      const incomePerSec = getTotalIncomePerSec();
+      // 4 ticks per second for smooth numbers
+      const gain = (incomePerSec / 4) * state.speed;
+      state.cash += gain;
+      tickCounter++;
+
+      // Market price fluctuation every ~3 seconds
+      if (tickCounter % 12 === 0) {
+        state.market.forEach(comp => {
+          if (comp.absorbed) return;
+          const changePct = (Math.random() * 11) - 5.2; // -5.2% to +5.8%
+          comp.lastChangePct = changePct;
+          comp.currentValuation = Math.max(
+            comp.baseValuation * 0.45,
+            Math.min(comp.baseValuation * 3.2, comp.currentValuation * (1 + changePct / 100))
+          );
+        });
+
+        if (!document.getElementById('tab-market').classList.contains('hidden')) {
+          renderMarket();
+        }
+      }
+
+      // Refresh button states & top bar
+      updateTopBar();
+      if (tickCounter % 4 === 0) {
+        if (!document.getElementById('tab-subsidiaries').classList.contains('hidden')) renderSubsidiaries();
+        if (!document.getElementById('tab-market').classList.contains('hidden')) renderMarket();
+      }
+
+      // Auto-save every 15 seconds
+      if (tickCounter % 60 === 0) {
+        saveState();
+      }
+    }, 250);
+
+    // Initial render
+    setSpeed(state.speed || 1);
+    renderAll();
+  </script>
+</body>
+</html>
