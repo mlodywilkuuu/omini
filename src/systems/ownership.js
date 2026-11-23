@@ -43,6 +43,15 @@ export function buyShares(state,companyId,percentage){
  company.invested=(company.invested||0)+price;
  return {company,amount,price,premium:Math.round((blockPremium-1)*100)};
 }
+export function sellShares(state,companyId,percentage){
+ const company=state.market.find(item=>item.id===companyId);if(!company)throw new Error('Nie znaleziono spółki.');
+ const amount=Math.min(percentage,company.share||0);if(amount<=0)throw new Error('Nie masz tylu udziałów do sprzedaży.');
+ const gross=Math.round(company.value/100*amount),fee=Math.round(gross*.0125),proceeds=gross-fee;
+ company.share=+(company.share-amount).toFixed(2);company.freeFloat=Math.min(100-company.share,+((company.freeFloat??0)+amount).toFixed(2));
+ const holders=ensureShareholders(company);if(holders.length){const total=holders.reduce((a,x)=>a+x.share,0);if(total>0){holders.forEach(h=>h.share=+(h.share+amount*h.share/total).toFixed(2));const delta=+(100-company.share-holders.reduce((a,x)=>a+x.share,0)).toFixed(2);holders[0].share=+(holders[0].share+delta).toFixed(2);}}
+ state.cash+=proceeds;company.history??=[company.value];company.history.push(company.value);company.history=company.history.slice(-8);
+ return {company,amount,proceeds,fee};
+}
 export function takeControl(state,companyId){
  const company=state.market.find(item=>item.id===companyId);
  if(!company||company.share<50)throw new Error('Do przejęcia kontroli potrzebujesz minimum 50% udziałów.');
