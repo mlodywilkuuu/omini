@@ -7,7 +7,7 @@ export function openShop(state,{name,type,district,city,country}){
  if(!town)throw new Error('Wpisz miasto, w którym budujesz sklep.');
  if(!format)throw new Error('Wybierz prawidłowy format sklepu.');
  const location=(state.locations||[]).find(x=>x.city.toLowerCase()===town.toLowerCase()&&x.country.toLowerCase()===nation.toLowerCase());
- const potential=location?.potential||({Polska:90,Niemcy:94,Francja:92,Hiszpania:89,Wielka:'90',USA:100,Japonia:98}. [nation]||85);
+ const potential=location?.potential||({Polska:90,Niemcy:94,Francja:92,Hiszpania:89,'Wielka Brytania':95,USA:100,Japonia:98,Czechy:86,Włochy:91,Holandia:93}[nation]||85);
  const cost=format.cost+(location?0:Math.round(format.cost*.28));
  if(state.cash<cost)throw new Error('Za mało środków. Potrzebujesz '+cost.toLocaleString('pl-PL')+' zł.');
  if(!location)state.locations.push({city:town,country:nation,owned:true,potential});
