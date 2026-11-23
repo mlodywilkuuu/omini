@@ -7,8 +7,9 @@ import {money} from './ui/helpers.js';
 import {countries} from './data/countries.js';
 import {buyUpgrade} from './systems/expansion.js';
 const $=id=>document.getElementById(id);
-const fresh=createInitialState();let state=fresh;
-try{const validSave=raw=>{const v=JSON.parse(raw);return v&&v.day&&Array.isArray(v.shops)&&Array.isArray(v.market)?v:null;};const saved=validSave(localStorage.getItem('marketTycoonSave')||'null')||validSave(localStorage.getItem('marketTycoonSaveBackup')||'null');if(saved)state={...fresh,...saved};}catch{}
+const fresh=createInitialState();
+// Każde pełne odświeżenie rozpoczyna nową rozgrywkę. Poprzedni zapis pozostaje w localStorage jako kopia, ale nie jest automatycznie wczytywany.
+let state=fresh;
 state.claimedMissions=Array.isArray(state.claimedMissions)?state.claimedMissions:[];state.locations=Array.isArray(state.locations)?state.locations:[{city:'Białystok',country:'Polska',owned:true,potential:90}];state.upgrades=Array.isArray(state.upgrades)?state.upgrades:[];state.events=Array.isArray(state.events)?state.events:[];state.history=Array.isArray(state.history)&&state.history.length?state.history:[8400];state.companies=Array.isArray(state.companies)?state.companies:[];state.shops=Array.isArray(state.shops)?state.shops:[];state.market=Array.isArray(state.market)?state.market:[];state.cash=Number.isFinite(Number(state.cash))?Number(state.cash):fresh.cash;state.day=Number.isFinite(Number(state.day))?Number(state.day):1;
 state.companies.forEach(c=>{c.parentCompanyId??=null;c.operatingCountries??=['Polska'];});
 state.shops.forEach(s=>{s.city??=s.district??'Białystok';s.country??='Polska';s.companyId??=1;});
