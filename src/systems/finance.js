@@ -6,7 +6,7 @@ export const dividends=state=>state.market.reduce((sum,company)=>sum+company.val
 export const assetValue=state=>state.shops.length*170000+state.companies.reduce((sum,company)=>sum+company.value,0)+shareAssets(state);
 export const netWorth=state=>state.cash+assetValue(state);
 export function closeBusinessDay(state){
- const revenue=totalRevenue(state),costs=totalCosts(state),dividendIncome=dividends(state);
+ // Codzienna zmienność rynku: popyt, konkurencja i ceny dostawców wpływają na każdą placówkę.\n state.shops.forEach(shop=>{\n  const demand=(Math.random()-.46)*.085;\n  const supplier=(Math.random()-.48)*.05;\n  shop.revenue=Math.max(0,Math.round(shop.revenue*(1+demand)));\n  shop.cost=Math.max(0,Math.round(shop.cost*(1+supplier)));\n });\n const revenue=totalRevenue(state),costs=totalCosts(state),dividendIncome=dividends(state);
  const profit=revenue-costs+dividendIncome;
  state.cash+=profit;
  state.market.forEach(company=>{company.value=Math.max(50000,Math.round(company.value*(1+(Math.random()-.43)*.012)));});
