@@ -14,7 +14,7 @@ export function openCountryShops(state,{name,type,country,count}){
  if(!name?.trim())throw new Error('Wpisz nazwę sieci sklepów.');
  if(!nation)throw new Error('Wybierz kraj z podpowiedzi.');
  if(!format)throw new Error('Wybierz prawidłowy format sklepu.');
- if(!Number.isInteger(quantity)||quantity<1||quantity>1000)throw new Error('Liczba placówek musi wynosić od 1 do 1000.');
+ if(!Number.isInteger(quantity)||quantity<1||quantity>500000)throw new Error('Liczba placówek musi wynosić od 1 do 500 000.');
  const unitCost=estimateCountryShopCost(type,1),investment=unitCost*quantity;
  if(state.cash<investment)throw new Error('Za mało środków. Potrzebujesz '+investment.toLocaleString('pl-PL')+' zł.');
  const potential=({Polska:90,Niemcy:94,Francja:92,Hiszpania:89,'Wielka Brytania':95,USA:100,Japonia:98,Czechy:86,Włochy:91,Holandia:93}[nation]||85);
