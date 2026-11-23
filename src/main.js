@@ -20,6 +20,34 @@ function save(){try{const previous=localStorage.getItem('marketTycoonSave');if(p
 function notify(message){const t=$('toast');t.textContent=message;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2800);}
 function moneyFx(delta,label){if(!delta)return;const n=document.createElement('div');n.className='money-float '+(delta>0?'gain':'loss');n.textContent=(delta>0?'+':'−')+money(Math.abs(delta))+(label?' · '+label:'');$('moneyFx').append(n);setTimeout(()=>n.remove(),2300);}
 function log(icon,title,detail){state.events.unshift({icon,title,detail,day:state.day});state.events=state.events.slice(0,12);}
+
+// Konsola kodów — otwierana klawiszem ~ (Backquote).
+function toggleCheatConsole(force){
+ let panel=$('cheatConsole');
+ if(!panel){
+  panel=document.createElement('section');panel.id='cheatConsole';panel.className='cheat-console';panel.setAttribute('aria-label','Konsola kodów');
+  panel.innerHTML='<div class="cheat-console-head"><strong>⌘ KONSOLA KODÓW</strong><button type="button" id="cheatClose" aria-label="Zamknij">×</button></div><p>Wpisz kod, np. <code>[kasa]</code> lub <code>[kasa 500000]</code>.</p><form id="cheatForm"><input id="cheatInput" autocomplete="off" spellcheck="false" placeholder="[kasa]"><button class="button button-primary" type="submit">Wykonaj</button></form><small id="cheatHint">[kasa] dodaje 1 000 000 zł.</small>';
+  document.body.append(panel);
+  $('cheatClose').addEventListener('click',()=>toggleCheatConsole(false));
+  $('cheatForm').addEventListener('submit',e=>{
+   e.preventDefault();const input=$('cheatInput'),raw=input.value.trim();
+   const match=raw.match(/^\\[kasa(?:\\s+([0-9]+))?\\]$/i);
+   if(!match){$('cheatHint').textContent='Nieznany kod. Dostępny kod: [kasa] lub [kasa KWOTA].';return;}
+   const amount=match[1]===undefined?1000000:Number(match[1]);
+   if(!Number.isSafeInteger(amount)||amount<1||amount>1000000000){$('cheatHint').textContent='Kwota musi być liczbą od 1 do 1 000 000 000 zł.';return;}
+   state.cash+=amount;log('💰','Użyto kodu: kasa','Dodano '+money(amount)+' do kapitału.');moneyFx(amount,'kod kasa');save();safeRender();
+   $('cheatHint').textContent='Dodano '+money(amount)+'. Nowy stan konta: '+money(state.cash)+'.';input.value='';
+  });
+ }
+ const open=force===undefined?!panel.classList.contains('open'):force;
+ panel.classList.toggle('open',open);
+ if(open)setTimeout(()=>$('cheatInput')?.focus(),0);
+}
+document.addEventListener('keydown',e=>{
+ const typing=e.target instanceof HTMLElement&&(['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName)||e.target.isContentEditable);
+ if((e.code==='Backquote'||e.key==='~')&&!typing){e.preventDefault();toggleCheatConsole();}
+ if(e.key==='Escape'&&$('cheatConsole')?.classList.contains('open'))toggleCheatConsole(false);
+});
 function showPage(page){const target=$('page-'+page);if(!target)return;document.querySelectorAll('.page').forEach(s=>s.classList.toggle('hidden',s!==target));document.querySelectorAll('.nav-link').forEach(b=>b.classList.toggle('active',b.dataset.page===page));const labels={overview:'Pulpit',shops:'Sklepy',companies:'Grupa kapitałowa',market:'Giełda i udziały',finance:'Finanse',expansion:'Rozwój imperium'};$('breadcrumb').textContent=labels[page]||'Pulpit';}
 function openModal(title,description,fields,action){$('modalTitle').textContent=title;$('modalDescription').textContent=description;$('modalBody').innerHTML=fields;$('modal').showModal();modalAction=action;}
 function closeModal(){$('modal').close();modalAction=null;}
