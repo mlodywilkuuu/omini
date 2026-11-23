@@ -16,3 +16,26 @@ export function openShop(state,{name,type,district,city,country}){
  const revenue=Math.round(format.base*potential/90),shop={id:state.nextId++,name:name.trim(),type,city:town,country:nation,district:town+', '+nation,revenue,cost:Math.round(revenue*format.expense),emoji:format.emoji};
  state.cash-=cost;state.shops.push(shop);return {...shop,investment:cost};
 }
+export function estimateCountryShopCost(type,count){
+ const format=FORMATS[type],quantity=Math.floor(Number(count));
+ if(!format||!Number.isInteger(quantity)||quantity<1)return 0;
+ return Math.round(format.cost*1.28)*quantity;
+}
+export function openCountryShops(state,{name,type,country,count}){
+ const format=FORMATS[type],nation=(country||'').trim(),quantity=Number(count);
+ if(!name?.trim())throw new Error('Wpisz nazwę sieci sklepów.');
+ if(!nation)throw new Error('Wybierz kraj z podpowiedzi.');
+ if(!format)throw new Error('Wybierz prawidłowy format sklepu.');
+ if(!Number.isInteger(quantity)||quantity<1||quantity>1000)throw new Error('Liczba placówek musi wynosić od 1 do 1000.');
+ const unitCost=estimateCountryShopCost(type,1),investment=unitCost*quantity;
+ if(state.cash<investment)throw new Error('Za mało środków. Potrzebujesz '+investment.toLocaleString('pl-PL')+' zł.');
+ const potential=({Polska:90,Niemcy:94,Francja:92,Hiszpania:89,'Wielka Brytania':95,USA:100,Japonia:98,Czechy:86,Włochy:91,Holandia:93}[nation]||85);
+ const opened=[];
+ for(let i=1;i<=quantity;i++){
+  const revenue=Math.round(format.base*potential/90);
+  const shop={id:state.nextId++,name:name.trim()+' '+i,type,city:'Cały kraj',country:nation,district:'Cały kraj, '+nation,revenue,cost:Math.round(revenue*format.expense),emoji:format.emoji};
+  state.shops.push(shop);opened.push(shop);
+ }
+ state.cash-=investment;
+ return {shops:opened,investment,unitCost};
+}
