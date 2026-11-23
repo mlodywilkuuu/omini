@@ -31,7 +31,7 @@ function toggleCheatConsole(force){
   $('cheatClose').addEventListener('click',()=>toggleCheatConsole(false));
   $('cheatForm').addEventListener('submit',e=>{
    e.preventDefault();const input=$('cheatInput'),raw=input.value.trim();
-   const match=raw.match(/^\\[kasa(?:\\s+([0-9]+))?\\]$/i);
+   const match=raw.match(/^\[kasa(?:\s+([0-9]+))?\]$/i);
    if(!match){$('cheatHint').textContent='Nieznany kod. Dostępny kod: [kasa] lub [kasa KWOTA].';return;}
    const amount=match[1]===undefined?1000000:Number(match[1]);
    if(!Number.isSafeInteger(amount)||amount<1||amount>1000000000){$('cheatHint').textContent='Kwota musi być liczbą od 1 do 1 000 000 000 zł.';return;}
