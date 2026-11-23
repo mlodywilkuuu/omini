@@ -1,7 +1,7 @@
 import {createInitialState} from './data/initialState.js';
 import {closeBusinessDay} from './systems/finance.js';
 import {openShop,shopFormats} from './systems/shops.js';
-import {buyShares,takeControl} from './systems/ownership.js';
+import {buyShares,takeControl,ensureShareholders,rotateShareholders,generateMarketCompany} from './systems/ownership.js';
 import {renderAll} from './ui/render.js';
 import {money} from './ui/helpers.js';
 import {countries} from './data/countries.js';
@@ -12,7 +12,7 @@ try{const saved=JSON.parse(localStorage.getItem('marketTycoonSave'));if(saved&&s
 state.locations??=[{city:'Białystok',country:'Polska',owned:true,potential:90}];state.upgrades??=[];state.events??=[];state.history??=[8400];state.companies??=[];
 state.companies.forEach(c=>{c.parentCompanyId??=null;c.operatingCountries??=['Polska'];});
 state.shops.forEach(s=>{s.city??=s.district??'Białystok';s.country??='Polska';s.companyId??=1;});
-state.market.forEach(c=>{c.freeFloat??=100-c.share;c.boardSeats??=5;});
+state.market.forEach(c=>{c.freeFloat??=100-c.share;c.boardSeats??=5;ensureShareholders(c);});
 state.selectedCity??='Białystok';state.selectedCountry??='Polska';
 let modalAction=null,toastTimer;
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -33,6 +33,6 @@ function handleAction(b){const a=b.dataset.action,id=Number(b.dataset.id);try{if
 document.addEventListener('click',e=>{const target=e.target instanceof Element?e.target:e.target?.parentElement;if(!target)return;const action=target.closest('[data-action]');if(action){if(action.disabled||action.getAttribute('aria-disabled')==='true')return;e.preventDefault();handleAction(action);return;}const page=target.closest('[data-page]');if(page){e.preventDefault();showPage(page.dataset.page);}},true);
 document.addEventListener('change',e=>{if(e.target.matches('[data-shop-owner]')){const shop=state.shops.find(s=>s.id===Number(e.target.dataset.shopOwner));if(shop){shop.companyId=Number(e.target.value)||null;save();notify('Zmieniono właściciela sklepu.');}}});
 $('modalClose').addEventListener('click',closeModal);$('modalCancel').type='button';$('modalCancel').addEventListener('click',e=>{e.preventDefault();closeModal();});$('modalConfirm').type='button';$('modalConfirm').addEventListener('click',e=>{e.preventDefault();if(!modalAction)return;try{modalAction();}catch(error){notify(error.message||'Błąd formularza.');}});$('modal').addEventListener('click',e=>{if(e.target===$('modal'))closeModal();});
-function advanceDay(){state.day++;const r=closeBusinessDay(state);state.cashHistory??=[];state.cashHistory.push(state.cash);state.cashHistory=state.cashHistory.slice(-30);log('📊','Dzień '+state.day+' rozliczony',(r.profit>=0?'+':'−')+money(Math.abs(r.profit)));moneyFx(r.profit,'wynik dnia');save();renderAll(state);}
+function advanceDay(){state.day++;const r=closeBusinessDay(state);rotateShareholders(state);if(state.day%3===0){const listed=generateMarketCompany(state);if(listed)notify('Debiut giełdowy: '+listed.name);} state.cashHistory??=[];state.cashHistory.push(state.cash);state.cashHistory=state.cashHistory.slice(-30);log('📊','Dzień '+state.day+' rozliczony',(r.profit>=0?'+':'−')+money(Math.abs(r.profit)));moneyFx(r.profit,'wynik dnia');save();renderAll(state);}
 setInterval(advanceDay,30000);
 renderAll(state);showPage('overview');window.addEventListener('error',e=>{console.error('Market Tycoon:',e.message,e.filename,e.lineno);notify('Wystąpił błąd gry. Odśwież stronę; szczegóły są w konsoli.');});window.addEventListener('unhandledrejection',e=>{console.error('Market Tycoon:',e.reason);notify('Nie udało się wykonać operacji.');});
