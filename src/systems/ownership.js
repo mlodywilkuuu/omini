@@ -1,3 +1,34 @@
+const investorNames=['Fundusz Północny','Baltic Capital','Orzeł Asset Management','Nova Investments','Horyzont TFI','Atlas Partners','Vistula Pension Fund','Amber Equity','Global Value Fund','Cedar Capital','Northstar Holdings','Silverline Investments','Polaris Capital','Union Trust'];
+const companyNames=['Nova','Baltic','Orion','Vertex','Aurum','Pioneer','Urban','Verto','Horizon','Quantum','Nexum','Atlas','Lumen','Polar','Cobalt','Meridian','Prime','Everest','Solido','Viva'];
+const companyIndustries=['Handel detaliczny','Technologie','Energetyka','Logistyka','Nieruchomości','Finanse','Moda i odzież','Żywność i napoje','Telekomunikacja','Farmacja','Motoryzacja','Media i rozrywka','Budownictwo','Turystyka','Przemysł'];
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+export function ensureShareholders(company){
+ if(Array.isArray(company.shareholders)&&company.shareholders.length)return company.shareholders;
+ const remaining=Math.max(0,100-(company.share||0)),count=3+Math.floor(Math.random()*3),weights=Array.from({length:count},()=>Math.random()+.3),total=weights.reduce((a,b)=>a+b,0);
+ company.shareholders=weights.map((w,i)=>({name:pick(investorNames)+' '+(i+1),share:+(remaining*w/total).toFixed(2),type:i===0?'Fundusz':'Inwestor'}));
+ const delta=+(remaining-company.shareholders.reduce((a,x)=>a+x.share,0)).toFixed(2);company.shareholders[0].share=+(company.shareholders[0].share+delta).toFixed(2);
+ return company.shareholders;
+}
+export function generateMarketCompany(state){
+ if(state.market.length>=35)return null;
+ const id=state.nextId++,base=pick(companyNames),name=base+' '+pick(['Group','Industries','Holdings','Systems','Retail','S.A.']);
+ if(state.market.some(c=>c.name===name))return null;
+ const value=Math.round((180000+Math.random()*2820000)/10000)*10000,company={id,name,industry:pick(companyIndustries),value,share:0,dividend:+(.001+Math.random()*.006).toFixed(4),freeFloat:100,shares:Math.round(value/(2+Math.random()*8)),eps:+(1+Math.random()*6).toFixed(2),pe:+(7+Math.random()*15).toFixed(1),boardSeats:3+2*Math.floor(Math.random()*3),history:[Math.round(value*.94),Math.round(value*.97),value],listedDay:state.day,shareholders:[]};
+ state.market.push(company);ensureShareholders(company);
+ state.events??=[];state.events.unshift({icon:'🆕',title:'Nowa spółka na giełdzie',detail:name+' debiutuje z wyceną '+value.toLocaleString('pl-PL')+' zł.',day:state.day});state.events=state.events.slice(0,12);
+ return company;
+}
+export function rotateShareholders(state){
+ for(const company of state.market){
+  const holders=ensureShareholders(company);if(holders.length<2)continue;
+  const from=holders[Math.floor(Math.random()*holders.length)],others=holders.filter(x=>x!==from),to=pick(others);
+  const transfer=Math.min(from.share,+(0.15+Math.random()*.85).toFixed(2));
+  if(transfer<=0)continue;
+  from.share=+(from.share-transfer).toFixed(2);to.share=+(to.share+transfer).toFixed(2);
+  if(Math.random()<.08&&holders.length<6&&from.share>12){from.share=+(from.share-2).toFixed(2);holders.push({name:pick(investorNames),share:2,type:'Inwestor'});}
+  company.shareholders=holders.filter(x=>x.share>=.05);
+ }
+}
 export function buyShares(state,companyId,percentage){
  const company=state.market.find(item=>item.id===companyId);if(!company)throw new Error('Nie znaleziono spółki.');
  const amount=Math.min(percentage,100-company.share,company.freeFloat??(100-company.share));
@@ -5,6 +36,9 @@ export function buyShares(state,companyId,percentage){
  const blockPremium=amount>=25?1.08:amount>=10?1.04:1.015,price=Math.round(company.value/100*amount*blockPremium);
  if(state.cash<price)throw new Error('Za mało gotówki na ten pakiet.');
  state.cash-=price;company.share=+(company.share+amount).toFixed(2);company.freeFloat=+((company.freeFloat??100)-amount).toFixed(2);
+ const holders=ensureShareholders(company),total=holders.reduce((a,x)=>a+x.share,0),remaining=Math.max(0,total-amount);
+ holders.forEach(h=>h.share=total?+(h.share*remaining/total).toFixed(2):0);
+ const correction=+(remaining-holders.reduce((a,x)=>a+x.share,0)).toFixed(2);if(holders[0])holders[0].share=+(holders[0].share+correction).toFixed(2);
  company.history??=[company.value];company.history.push(company.value);company.history=company.history.slice(-8);
  company.invested=(company.invested||0)+price;
  return {company,amount,price,premium:Math.round((blockPremium-1)*100)};
