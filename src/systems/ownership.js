@@ -11,8 +11,7 @@ export function ensureShareholders(company){
 }
 export function generateMarketCompany(state){
  if(state.market.length>=35)return null;
- const id=state.nextId++,base=pick(companyNames),name=base+' '+pick(['Group','Industries','Holdings','Systems','Retail','S.A.']);
- if(state.market.some(c=>c.name===name))return null;
+ let name='',attempts=0;do{name=pick(companyNames)+' '+pick(['Group','Industries','Holdings','Systems','Retail','S.A.']);attempts++;}while(state.market.some(c=>c.name===name)&&attempts<20);if(state.market.some(c=>c.name===name))return null;const id=state.nextId++;
  const value=Math.round((180000+Math.random()*2820000)/10000)*10000,company={id,name,industry:pick(companyIndustries),value,share:0,dividend:+(.001+Math.random()*.006).toFixed(4),freeFloat:100,shares:Math.round(value/(2+Math.random()*8)),eps:+(1+Math.random()*6).toFixed(2),pe:+(7+Math.random()*15).toFixed(1),boardSeats:3+2*Math.floor(Math.random()*3),history:[Math.round(value*.94),Math.round(value*.97),value],listedDay:state.day,shareholders:[]};
  state.market.push(company);ensureShareholders(company);
  state.events??=[];state.events.unshift({icon:'🆕',title:'Nowa spółka na giełdzie',detail:name+' debiutuje z wyceną '+value.toLocaleString('pl-PL')+' zł.',day:state.day});state.events=state.events.slice(0,12);
@@ -27,6 +26,11 @@ export function rotateShareholders(state){
   from.share=+(from.share-transfer).toFixed(2);to.share=+(to.share+transfer).toFixed(2);
   if(Math.random()<.08&&holders.length<6&&from.share>12){from.share=+(from.share-2).toFixed(2);holders.push({name:pick(investorNames),share:2,type:'Inwestor'});}
   company.shareholders=holders.filter(x=>x.share>=.05);
+  if(state.day%5===0&&company.shareholders.length>=3&&Math.random()<.35){
+   const replaceAt=Math.floor(Math.random()*company.shareholders.length),old=company.shareholders[replaceAt],used=new Set(company.shareholders.map(x=>x.name));
+   let name=pick(investorNames),tries=0;while(used.has(name)&&tries++<20)name=pick(investorNames);
+   company.shareholders[replaceAt]={name,share:old.share,type:Math.random()<.45?'Fundusz':'Inwestor'};
+  }
  }
 }
 export function buyShares(state,companyId,percentage){
