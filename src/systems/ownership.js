@@ -82,3 +82,29 @@ export function ownershipStatus(company){
 }
 export const votingPower=company=>Math.min(100,company.share*1.08);
 export const boardSeats=company=>Math.floor((company.boardSeats||5)*company.share/100);
+
+export function proposeBuyout(state,companyId,holderName,percentage,offerPrice){
+ const company=state.market.find(x=>x.id===companyId);if(!company)throw new Error('Nie znaleziono spółki.');
+ const holder=ensureShareholders(company).find(x=>x.name===holderName);if(!holder)throw new Error('Ten akcjonariusz nie jest już w spółce.');
+ const amount=Math.min(Number(percentage)||0,holder.share);const price=Math.round(Number(offerPrice)||0);
+ if(amount<=0||price<=0)throw new Error('Podaj prawidłowy pakiet i cenę oferty.');
+ if(price>state.cash)throw new Error('Nie masz wystarczającej gotówki na tę ofertę.');
+ state.buyoutOffers??=[];if(state.buyoutOffers.some(x=>x.companyId===companyId&&x.holderName===holderName))throw new Error('Masz już aktywną ofertę dla tego akcjonariusza.');
+ state.buyoutOffers.push({id:state.nextId++,companyId,holderName,amount,price,day:state.day,expires:state.day+5});
+ return {company,holderName,amount,price};
+}
+export function processBuyoutOffers(state){
+ const offers=state.buyoutOffers||[],remaining=[];
+ for(const offer of offers){
+  const company=state.market.find(x=>x.id===offer.companyId),holder=company&&ensureShareholders(company).find(x=>x.name===offer.holderName);
+  if(!company||!holder||state.day>offer.expires){state.events.unshift({icon:'📭',title:'Oferta odkupu wygasła',detail:offer.holderName,day:state.day});continue;}
+  const fair=company.value*offer.amount/100,ratio=offer.price/Math.max(1,fair),chance=Math.max(.08,Math.min(.92,.12+(ratio-1)*1.7));
+  if(Math.random()<chance&&state.cash>=offer.price){
+   state.cash-=offer.price;holder.share=+(holder.share-offer.amount).toFixed(2);company.share=+(company.share+offer.amount).toFixed(2);company.freeFloat=+Math.max(0,(company.freeFloat??100)-offer.amount).toFixed(2);
+   company.shareholders=company.shareholders.filter(x=>x.share>.01);
+   state.events.unshift({icon:'🤝',title:'Oferta odkupu przyjęta',detail:company.name+' · '+offer.holderName+' sprzedał '+offer.amount+'% za '+offer.price.toLocaleString('pl-PL')+' zł.',day:state.day});
+  }else if(state.day>=offer.expires){state.events.unshift({icon:'❌',title:'Oferta odrzucona',detail:offer.holderName+' nie przyjął oferty za '+offer.price.toLocaleString('pl-PL')+' zł.',day:state.day);}
+  else remaining.push(offer);
+ }
+ state.buyoutOffers=remaining;state.events=state.events.slice(0,12);
+}
