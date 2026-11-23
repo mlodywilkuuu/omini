@@ -14,7 +14,7 @@ state.claimedMissions=Array.isArray(state.claimedMissions)?state.claimedMissions
 state.companies.forEach(c=>{c.parentCompanyId??=null;c.operatingCountries??=['Polska'];});
 state.shops.forEach(s=>{s.country??='Polska';s.city='Cały kraj';s.district='Cały kraj, '+s.country;s.companyId??=1;});
 state.market.forEach(c=>{c.freeFloat??=100-c.share;c.boardSeats??=5;ensureShareholders(c);});
-state.selectedCity??='Białystok';state.selectedCountry??='Polska';
+state.selectedCountry??='Polska';
 let modalAction=null,toastTimer;
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const continentCountries={
