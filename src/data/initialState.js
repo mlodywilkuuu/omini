@@ -1,7 +1,7 @@
 export function createInitialState(){return {
- day:1,cash:250000,nextId:10,selectedMarketCompanyId:null,selectedCountry:'Polska',selectedCity:'Białystok',
- shops:[{id:1,name:'Market Wilk — Centrum',type:'Market osiedlowy',district:'Białystok, Polska',city:'Białystok',country:'Polska',revenue:8400,cost:5700,emoji:'🏪'}],
- companies:[{id:1,name:'Wilk Retail sp. z o.o.',industry:'Handel spożywczy',share:100,value:170000,employees:12,stores:1}],
+ day:1,cash:200000,nextId:1,selectedMarketCompanyId:null,selectedCountry:'Polska',selectedCity:'Białystok',
+ shops:[],
+ companies:[{id:1,name:'Wilk Retail sp. z o.o.',industry:'Handel spożywczy',share:100,value:50000,employees:3,stores:0}],
  market:[
   {id:1,name:'Miejski Handel S.A.',industry:'Supermarkety',value:650000,share:0,dividend:.004,freeFloat:68,shares:1000000,eps:2.8,pe:11.6,boardSeats:5,history:[610000,625000,638000,650000]},
   {id:2,name:'QuickBox sp. z o.o.',industry:'Convenience',value:280000,share:0,dividend:.005,freeFloat:72,shares:500000,eps:1.9,pe:9.4,boardSeats:3,history:[260000,266000,273000,280000]},
@@ -11,6 +11,6 @@ export function createInitialState(){return {
  ],
  districts:[{name:'Polska',desc:'Rynek macierzysty — rozpocznij ekspansję w miastach.',potential:90,cost:0,owned:true,competition:'Zróżnicowana'}],
  locations:[{city:'Białystok',country:'Polska',owned:true,potential:90}],
- events:[{icon:'🏪',title:'Otwarto Market Wilk — Centrum',detail:'Twoja pierwsza placówka rozpoczęła działalność.',day:1}],
- history:[6200,7100,6800,7500,7900,8100,8400],cashHistory:[250000]
+ events:[{icon:'💼',title:'Rozpoczęcie działalności',detail:'Masz 200 000 zł kapitału i możesz otworzyć pierwsze sklepy.',day:1}],
+ history:[0],cashHistory:[200000]
 };}
