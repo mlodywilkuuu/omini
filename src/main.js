@@ -31,12 +31,13 @@ function toggleCheatConsole(force){
   $('cheatClose').addEventListener('click',()=>toggleCheatConsole(false));
   $('cheatForm').addEventListener('submit',e=>{
    e.preventDefault();const input=$('cheatInput'),raw=input.value.trim();
-   const match=raw.match(/^\[kasa(?:\s+([0-9]+))?\]$/i);
-   if(!match){$('cheatHint').textContent='Nieznany kod. Dostępny kod: [kasa] lub [kasa KWOTA].';return;}
+   const normalized=raw.replace(/^\[/,'').replace(/\]$/,'').trim();
+   const match=normalized.match(/^kasa(?:\s+([0-9]+))?$/i);
+   if(!match){$('cheatHint').textContent='Nieznany kod. Wpisz kasa 500000 lub [kasa 500000].';return;}
    const amount=match[1]===undefined?1000000:Number(match[1]);
    if(!Number.isSafeInteger(amount)||amount<1||amount>1000000000){$('cheatHint').textContent='Kwota musi być liczbą od 1 do 1 000 000 000 zł.';return;}
    state.cash+=amount;log('💰','Użyto kodu: kasa','Dodano '+money(amount)+' do kapitału.');moneyFx(amount,'kod kasa');save();safeRender();
-   $('cheatHint').textContent='Dodano '+money(amount)+'. Nowy stan konta: '+money(state.cash)+'.';input.value='';
+   $('cheatHint').textContent='Dodano '+money(amount)+'. Nowy stan konta: '+money(state.cash)+'.';input.value='';toggleCheatConsole(false);notify('Dodano '+money(amount)+' do kasy.');
   });
  }
  const open=force===undefined?!panel.classList.contains('open'):force;
