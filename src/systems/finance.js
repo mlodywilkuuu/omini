@@ -11,7 +11,7 @@ export function closeBusinessDay(state){
   const demand=(Math.random()-.46)*.085;
   const supplier=(Math.random()-.48)*.05;
   shop.revenue=Math.max(0,Math.round(shop.revenue*(1+demand)));
-  shop.cost=Math.max(0,Math.round(shop.cost*(1+supplier)));const manager=state.market.find(c=>c.id===shop.companyId&&c.share>=50);if(manager?.strategy==='expansion')shop.revenue=Math.round(shop.revenue*1.008);else if(manager?.strategy==='profit')shop.cost=Math.round(shop.cost*.992);else if(manager?.strategy==='balanced')shop.revenue=Math.round(shop.revenue*1.002);
+  shop.cost=Math.max(0,Math.round(shop.cost*(1+supplier)));const manager=state.market.find(c=>(c.id===shop.companyId||c.subsidiaryId===shop.companyId)&&c.share>=50);if(manager?.strategy==='expansion')shop.revenue=Math.round(shop.revenue*1.008);else if(manager?.strategy==='profit')shop.cost=Math.round(shop.cost*.992);else if(manager?.strategy==='balanced')shop.revenue=Math.round(shop.revenue*1.002);
  });
  const revenue=totalRevenue(state),costs=totalCosts(state),dividendIncome=dividends(state);
  const profit=revenue-costs+dividendIncome;
