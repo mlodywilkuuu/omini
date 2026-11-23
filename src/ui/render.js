@@ -3,7 +3,8 @@ import {money,percent,pageHeading,stats,card,table} from './helpers.js';
 import {countries} from '../data/countries.js';
 import {totalRevenue,totalCosts,assetValue,netWorth,shareAssets,dividends,operatingProfit} from '../systems/finance.js';
 import {ownershipStatus,votingPower,boardSeats} from '../systems/ownership.js';
-let lastRenderedCash=null;\nconst el=id=>document.getElementById(id),esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let lastRenderedCash=null;
+const el=id=>document.getElementById(id),esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const item=(icon,title,detail,right)=>'<div class="list-item"><div class="item-main"><div class="thumb">'+icon+'</div><div><strong>'+esc(title)+'</strong><small>'+esc(detail)+'</small></div></div>'+right+'</div>';
 function chart(values){const max=Math.max(...values,1);return '<div class="chart">'+values.map((v,i)=>'<div class="bar-wrap"><div class="bar '+(i===values.length-1?'latest':'')+'" style="height:'+Math.max(8,v/max*100)+'%"></div></div>').join('')+'</div><div class="chart-labels"><span>Historia</span><span>Ostatnie dni</span><span>Teraz</span></div>';}
 export function renderHeader(s){el('day').textContent=s.day;const cashNode=el('topCash');cashNode.textContent=money(s.cash);if(lastRenderedCash!==null&&s.cash!==lastRenderedCash){cashNode.classList.remove('cash-up','cash-down');void cashNode.offsetWidth;cashNode.classList.add(s.cash>lastRenderedCash?'cash-up':'cash-down');}lastRenderedCash=s.cash;el('levelText').textContent='Poziom '+(1+Math.floor((s.shops.length+s.companies.length-2)/3))+' · '+(s.shops.length>=5?'Międzynarodowy gracz':'Wschodzący holding');}
