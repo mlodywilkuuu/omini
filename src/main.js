@@ -2,7 +2,7 @@ import {createInitialState} from './data/initialState.js';
 import {closeBusinessDay} from './systems/finance.js';
 import {openCountryShops,estimateCountryShopCost,shopFormats,updateShop,closeShop} from './systems/shops.js';
 import {buyShares,sellShares,takeControl,ensureShareholders,rotateShareholders,generateMarketCompany} from './systems/ownership.js';
-import {renderAll} from './ui/render.js?v=17';
+import {renderAll} from './ui/render.js?v=18';
 import {money} from './ui/helpers.js';
 import {countries} from './data/countries.js';
 import {buyUpgrade} from './systems/expansion.js';
