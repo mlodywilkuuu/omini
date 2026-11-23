@@ -67,7 +67,7 @@ function closeModal(){$('modal').close();modalAction=null;}
 const countryOptions=(selected)=>countries.map(c=>'<option value="'+esc(c)+'" '+(selected===c?'selected':'')+'>'+esc(c)+'</option>').join('');
 function shopModal(){
  openModal('Zbuduj sieć sklepów','Wybierz kraj i określ, ile placówek chcesz otworzyć na jego terenie. Koszt zobaczysz przed zatwierdzeniem.',
- '<div class="field"><label>NAZWA SIECI</label><input id="fName" value="Market Wilk"></div><div class="field"><label>FORMAT SKLEPU</label><select id="fType">'+shopFormats().map(t=>'<option>'+esc(t)+'</option>').join('')+'</select></div><div class="field"><label>KRAJ</label><input id="fCountry" list="countrySuggestions" autocomplete="off" value="'+esc(state.selectedCountry||'Polska')+'" placeholder="Zacznij wpisywać nazwę kraju"><datalist id="countrySuggestions">'+countries.map(c=>'<option value="'+esc(c)+'"></option>').join('')+'</datalist><small>Wpisz kilka liter i wybierz kraj z podpowiedzi.</small></div><div class="field"><label>LICZBA PLACÓWEK W CAŁYM KRAJU</label><input id="fCount" type="number" min="1" max="1000" step="1" value="1"></div><div class="field"><label>WŁAŚCICIEL — SPÓŁKA</label><select id="fOwner">'+state.companies.filter(c=>c.share>=50||c.parentCompanyId===null).map(c=>'<option value="'+c.id+'">'+esc(c.name)+'</option>').join('')+'</select></div><div class="notice" id="shopCostPreview">Łączny koszt inwestycji: —</div>',
+ '<div class="field"><label>NAZWA SIECI</label><input id="fName" value="Market Wilk"></div><div class="field"><label>FORMAT SKLEPU</label><select id="fType">'+shopFormats().map(t=>'<option>'+esc(t)+'</option>').join('')+'</select></div><div class="field"><label>KRAJ</label><input id="fCountry" list="countrySuggestions" autocomplete="off" value="'+esc(state.selectedCountry||'Polska')+'" placeholder="Zacznij wpisywać nazwę kraju"><datalist id="countrySuggestions">'+countries.map(c=>'<option value="'+esc(c)+'"></option>').join('')+'</datalist><small>Wpisz kilka liter i wybierz kraj z podpowiedzi.</small></div><div class="field"><label>LICZBA PLACÓWEK W CAŁYM KRAJU</label><input id="fCount" type="number" min="1" max="500000" step="1" value="1"></div><div class="field"><label>WŁAŚCICIEL — SPÓŁKA</label><select id="fOwner">'+state.companies.filter(c=>c.share>=50||c.parentCompanyId===null).map(c=>'<option value="'+c.id+'">'+esc(c.name)+'</option>').join('')+'</select></div><div class="notice" id="shopCostPreview">Łączny koszt inwestycji: —</div>',
  ()=>{
   const country=$('fCountry').value.trim(),count=Number($('fCount').value),type=$('fType').value,name=$('fName').value.trim();
   if(!countries.includes(country))throw Error('Wybierz kraj z listy podpowiedzi.');
@@ -82,8 +82,8 @@ function shopModal(){
  const updatePreview=()=>{
   const country=$('fCountry'),count=$('fCount'),type=$('fType'),preview=$('shopCostPreview');
   if(!country||!count||!type||!preview)return;
-  const quantity=Number(count.value),valid=countries.includes(country.value.trim())&&Number.isInteger(quantity)&&quantity>=1&&quantity<=1000;
-  if(!valid){preview.textContent='Wybierz kraj z listy i podaj liczbę placówek (1–1000).';return;}
+  const quantity=Number(count.value),valid=countries.includes(country.value.trim())&&Number.isInteger(quantity)&&quantity>=1&&quantity<=Math.min(500000,500000-state.shops.length);
+  if(!valid){preview.textContent='Wybierz kraj z listy i podaj liczbę placówek. Maksymalnie 500 000 sklepów łącznie.';return;}
   const unit=estimateCountryShopCost(type.value,1),total=estimateCountryShopCost(type.value,quantity);
   preview.innerHTML='Koszt jednej placówki: <b>'+money(unit)+'</b><br>Łączny koszt '+quantity+' placówek: <strong>'+money(total)+'</strong>';
   if(state.cash<total)preview.innerHTML+=' <br><span style="color:#ff819d">Brakuje '+money(total-state.cash)+'.</span>';
