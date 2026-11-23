@@ -1,5 +1,5 @@
 export function createInitialState(){return {
- day:1,cash:200000,nextId:1,selectedMarketCompanyId:null,selectedCountry:'Polska',selectedCity:'Białystok',
+ day:1,cash:200000,nextId:100,selectedMarketCompanyId:null,selectedCountry:'Polska',
  shops:[],
  companies:[{id:1,name:'Wilk Retail sp. z o.o.',industry:'Handel spożywczy',share:100,value:50000,employees:3,stores:0}],
  market:[
@@ -9,8 +9,8 @@ export function createInitialState(){return {
   {id:4,name:'TechPoint S.A.',industry:'Elektronika',value:1250000,share:0,dividend:.003,freeFloat:62,shares:2500000,eps:4.1,pe:12.2,boardSeats:7,history:[1190000,1210000,1230000,1250000]},
   {id:5,name:'Drogeria Vita sp. z o.o.',industry:'Drogerie',value:430000,share:0,dividend:.004,freeFloat:75,shares:800000,eps:2.2,pe:10.8,boardSeats:5,history:[405000,414000,422000,430000]}
  ],
- districts:[{name:'Polska',desc:'Rynek macierzysty — rozpocznij ekspansję w miastach.',potential:90,cost:0,owned:true,competition:'Zróżnicowana'}],
- locations:[{city:'Białystok',country:'Polska',owned:true,potential:90}],
+ districts:[],
+ locations:[],
  events:[{icon:'💼',title:'Rozpoczęcie działalności',detail:'Masz 200 000 zł kapitału i możesz otworzyć pierwsze sklepy.',day:1}],
  history:[0],cashHistory:[200000]
 };}
