@@ -10,7 +10,12 @@ export function ensureShareholders(company){
  return company.shareholders;
 }
 export function generateMarketCompany(state){
- if(state.market.length>=35)return null;
+ if(state.market.length>=50){
+  const candidates=state.market.filter(x=>!(x.share>0)&&!x.controlled).sort((a,b)=>a.value-b.value);
+  if(!candidates.length)return null;
+  const retired=candidates[0];state.market=state.market.filter(x=>x.id!==retired.id);
+  state.events??=[];state.events.unshift({icon:'📤',title:'Wycofanie z giełdy',detail:retired.name+' zakończyła notowania.',day:state.day});state.events=state.events.slice(0,12);
+ }
  let name='',attempts=0;do{name=pick(companyNames)+' '+pick(['Group','Industries','Holdings','Systems','Retail','S.A.']);attempts++;}while(state.market.some(c=>c.name===name)&&attempts<20);if(state.market.some(c=>c.name===name))return null;const id=state.nextId++;
  const value=Math.round((180000+Math.random()*2820000)/10000)*10000,company={id,name,industry:pick(companyIndustries),value,share:0,dividend:+(.001+Math.random()*.006).toFixed(4),freeFloat:100,shares:Math.round(value/(2+Math.random()*8)),eps:+(1+Math.random()*6).toFixed(2),pe:+(7+Math.random()*15).toFixed(1),boardSeats:3+2*Math.floor(Math.random()*3),history:[Math.round(value*.94),Math.round(value*.97),value],listedDay:state.day,shareholders:[]};
  state.market.push(company);ensureShareholders(company);
