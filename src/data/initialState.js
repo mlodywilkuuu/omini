@@ -1,22 +1,16 @@
 export function createInitialState(){return {
- day:1,cash:250000,nextId:10,selectedMarketCompanyId:null,
- shops:[{id:1,name:'Market Wilk — Centrum',type:'Market osiedlowy',district:'Centrum',revenue:8400,cost:5700,emoji:'🏪'}],
- companies:[{id:1,name:'Wilk Retail sp. z o.o.',industry:'Handel spożywczy',share:100,value:170000}],
+ day:1,cash:250000,nextId:10,selectedMarketCompanyId:null,selectedCountry:'Polska',selectedCity:'Białystok',
+ shops:[{id:1,name:'Market Wilk — Centrum',type:'Market osiedlowy',district:'Białystok, Polska',city:'Białystok',country:'Polska',revenue:8400,cost:5700,emoji:'🏪'}],
+ companies:[{id:1,name:'Wilk Retail sp. z o.o.',industry:'Handel spożywczy',share:100,value:170000,employees:12,stores:1}],
  market:[
-  {id:1,name:'Miejski Handel S.A.',industry:'Supermarkety',value:650000,share:0,dividend:.004},
-  {id:2,name:'QuickBox sp. z o.o.',industry:'Sklepy convenience',value:280000,share:0,dividend:.005},
-  {id:3,name:'Dom&Styl S.A.',industry:'Wyposażenie domu',value:920000,share:0,dividend:.003},
-  {id:4,name:'TechPoint S.A.',industry:'Elektronika',value:1250000,share:0,dividend:.003},
-  {id:5,name:'Drogeria Vita sp. z o.o.',industry:'Drogerie',value:430000,share:0,dividend:.004}
+  {id:1,name:'Miejski Handel S.A.',industry:'Supermarkety',value:650000,share:0,dividend:.004,freeFloat:68,shares:1000000,eps:2.8,pe:11.6,boardSeats:5,history:[610000,625000,638000,650000]},
+  {id:2,name:'QuickBox sp. z o.o.',industry:'Convenience',value:280000,share:0,dividend:.005,freeFloat:72,shares:500000,eps:1.9,pe:9.4,boardSeats:3,history:[260000,266000,273000,280000]},
+  {id:3,name:'Dom&Styl S.A.',industry:'Wyposażenie domu',value:920000,share:0,dividend:.003,freeFloat:55,shares:2000000,eps:3.4,pe:13.5,boardSeats:7,history:[870000,885000,900000,920000]},
+  {id:4,name:'TechPoint S.A.',industry:'Elektronika',value:1250000,share:0,dividend:.003,freeFloat:62,shares:2500000,eps:4.1,pe:12.2,boardSeats:7,history:[1190000,1210000,1230000,1250000]},
+  {id:5,name:'Drogeria Vita sp. z o.o.',industry:'Drogerie',value:430000,share:0,dividend:.004,freeFloat:75,shares:800000,eps:2.2,pe:10.8,boardSeats:5,history:[405000,414000,422000,430000]}
  ],
- districts:[
-  {name:'Centrum',desc:'Duży ruch pieszy, wysokie czynsze.',potential:92,cost:0,owned:true,competition:'Wysoka'},
-  {name:'Stare Miasto',desc:'Klienci premium i ruch turystyczny.',potential:82,cost:45000,owned:false,competition:'Średnia'},
-  {name:'Nowe Osiedle',desc:'Rodziny i szybko rosnąca populacja.',potential:88,cost:38000,owned:false,competition:'Niska'},
-  {name:'Przemysłowa',desc:'Klienci hurtowi i pracownicy firm.',potential:69,cost:26000,owned:false,competition:'Niska'},
-  {name:'Galeria Północ',desc:'Wysoki ruch, bardzo drogie lokale.',potential:96,cost:80000,owned:false,competition:'Bardzo wysoka'},
-  {name:'Przedmieścia',desc:'Niższe koszty i lojalni klienci.',potential:73,cost:18000,owned:false,competition:'Średnia'}
- ],
+ districts:[{name:'Polska',desc:'Rynek macierzysty — rozpocznij ekspansję w miastach.',potential:90,cost:0,owned:true,competition:'Zróżnicowana'}],
+ locations:[{city:'Białystok',country:'Polska',owned:true,potential:90}],
  events:[{icon:'🏪',title:'Otwarto Market Wilk — Centrum',detail:'Twoja pierwsza placówka rozpoczęła działalność.',day:1}],
- history:[6200,7100,6800,7500,7900,8100,8400]
+ history:[6200,7100,6800,7500,7900,8100,8400],cashHistory:[250000]
 };}
