@@ -103,7 +103,7 @@ export function processBuyoutOffers(state){
    state.cash-=offer.price;const accepted=Math.min(offer.amount,holder.share);holder.share=+(holder.share-accepted).toFixed(2);company.share=+(company.share+accepted).toFixed(2);
    company.shareholders=company.shareholders.filter(x=>x.share>.01);
    state.events.unshift({icon:'🤝',title:'Oferta odkupu przyjęta',detail:company.name+' · '+offer.holderName+' sprzedał '+offer.amount+'% za '+offer.price.toLocaleString('pl-PL')+' zł.',day:state.day});
-  }else if(state.day>=offer.expires){state.events.unshift({icon:'❌',title:'Oferta odrzucona',detail:offer.holderName+' nie przyjął oferty za '+offer.price.toLocaleString('pl-PL')+' zł.',day:state.day);}
+  }else if(state.day>=offer.expires){state.events.unshift({icon:'❌',title:'Oferta odrzucona',detail:offer.holderName+' nie przyjął oferty za '+offer.price.toLocaleString('pl-PL')+' zł.',day:state.day});}
   else remaining.push(offer);
  }
  state.buyoutOffers=remaining;state.events=state.events.slice(0,12);
