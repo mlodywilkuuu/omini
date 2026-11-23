@@ -62,7 +62,7 @@ document.addEventListener('keydown',e=>{
  if(e.key==='Escape'&&$('cheatConsole')?.classList.contains('open'))toggleCheatConsole(false);
 });
 function showPage(page){const target=$('page-'+page);if(!target)return;document.querySelectorAll('.page').forEach(s=>s.classList.toggle('hidden',s!==target));document.querySelectorAll('.nav-link').forEach(b=>b.classList.toggle('active',b.dataset.page===page));const labels={overview:'Pulpit',shops:'Sklepy',companies:'Grupa kapitałowa',market:'Giełda i udziały',finance:'Finanse',expansion:'Rozwój imperium',people:'Kadry i personel',marketing:'Marketing',logistics:'Logistyka i zaopatrzenie',reports:'Raporty i analityka'};$('breadcrumb').textContent=labels[page]||'Pulpit';}
-function openModal(title,description,fields,action){$('modalTitle').textContent=title;$('modalDescription').textContent=description;$('modalBody').innerHTML=fields;$('modalConfirm').hidden=false;$('modalConfirm').style.display='';$('modalCancel').textContent='Anuluj';$('modal').showModal();modalAction=action;}
+function openModal(title,description,fields,action){$('modalTitle').textContent=title;$('modalDescription').textContent=description;$('modalBody').innerHTML=fields;$('modalConfirm').hidden=false;$('modalConfirm').style.display='';$('modalCancel').textContent='Anuluj';if(!$('modal').open)$('modal').showModal();modalAction=action;}
 function closeModal(){$('modal').close();modalAction=null;$('modalConfirm').hidden=false;$('modalConfirm').style.display='';$('modalCancel').textContent='Anuluj';}
 const countryOptions=(selected)=>countries.map(c=>'<option value="'+esc(c)+'" '+(selected===c?'selected':'')+'>'+esc(c)+'</option>').join('');
 function shopModal(){
