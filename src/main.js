@@ -6,7 +6,7 @@ import {renderAll,renderHeader} from './ui/render.js';
 import {money} from './ui/helpers.js';
 const $=id=>document.getElementById(id);
 const fresh=createInitialState();let state=fresh;
-try{const saved=JSON.parse(localStorage.getItem('marketTycoonSave'));if(saved&&saved.day&&Array.isArray(saved.shops)&&Array.isArray(saved.market))state={...fresh,...saved};}catch{}
+try{const saved=JSON.parse(localStorage.getItem('marketTycoonSave'));if(saved&&saved.day&&Array.isArray(saved.shops)&&Array.isArray(saved.market))state={...fresh,...saved};}catch{}\nstate.locations??=[{city:'Białystok',country:'Polska',owned:true,potential:90}];state.events??=[];state.history??=[8400];state.market.forEach(c=>{c.freeFloat??=100-c.share;c.boardSeats??=5;});state.shops.forEach(shop=>{shop.city??=shop.district??'Białystok';shop.country??='Polska';});state.selectedCity??='Białystok';state.selectedCountry??='Polska';
 let modalAction=null,toastTimer;
 function save(){try{localStorage.setItem('marketTycoonSave',JSON.stringify(state));}catch{}}
 function notify(message){const toast=$('toast');toast.textContent=message;toast.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>toast.classList.remove('show'),2600);}
