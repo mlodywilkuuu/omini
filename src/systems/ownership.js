@@ -93,9 +93,12 @@ export function takeControl(state,companyId){
  if(company.controlled&&company.subsidiaryId)return company;
  if(state.companies.some(item=>item.name===company.name))throw new Error('Ta spółka jest już w twojej grupie.');
  const subsidiary={id:state.nextId++,name:company.name,industry:company.industry,share:company.share,value:company.value,employees:Math.max(5,Math.round(company.value/35000)),stores:0,acquired:true,parentCompanyId:null,operatingCountries:['Polska'],companyType:'operating',ownBrands:[],autoDevelopment:true,sourceMarketId:company.id};
- state.companies.push(subsidiary);company.controlled=true;company.subsidiaryId=subsidiary.id;
- state.events??=[];state.events.unshift({icon:'👑',title:'Przejęto kontrolę nad spółką',detail:company.name+' dołącza do grupy kapitałowej i rozpoczyna własną ekspansję.',day:state.day});state.events=state.events.slice(0,12);
- return company;
+ state.companies.push(subsidiary);
+ const companyName=company.name;
+ state.market=state.market.filter(item=>item.id!==companyId);
+ if(state.selectedMarketCompanyId===companyId)state.selectedMarketCompanyId=null;
+ state.events??=[];state.events.unshift({icon:'👑',title:'Spółka przeniesiona do holdingu',detail:companyName+' została zdjęta z giełdy i dodana do struktury Wilk Investments.',day:state.day});state.events=state.events.slice(0,12);
+ return {...company,name:companyName,controlled:true,subsidiaryId:subsidiary.id};
 }
 export function ownershipStatus(company){
  const s=company.share;
