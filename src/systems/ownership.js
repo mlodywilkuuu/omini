@@ -93,7 +93,7 @@ export function takeControl(state,companyId){
  if(company.controlled&&company.subsidiaryId)return company;
  if(state.companies.some(item=>item.name===company.name))throw new Error('Ta spółka jest już w twojej grupie.');
  const subsidiary={id:state.nextId++,name:company.name,industry:company.industry,share:company.share,value:company.value,employees:Math.max(5,Math.round(company.value/35000)),stores:0,acquired:true,parentCompanyId:null,operatingCountries:['Polska']};
- state.companies.push(subsidiary);company.controlled=true;company.subsidiaryId=subsidiary.id;return company;
+ state.companies.push(subsidiary);company.controlled=true;company.subsidiaryId=subsidiary.id;state.market=state.market.filter(item=>item.id!==companyId);if(state.selectedMarketCompanyId===companyId)state.selectedMarketCompanyId=null;state.events??=[];state.events.unshift({icon:'👑',title:'Przejęto spółkę i wycofano ją z giełdy',detail:company.name+' dołącza do grupy kapitałowej.',day:state.day});state.events=state.events.slice(0,12);return {...company,delisted:true};
 }
 export function ownershipStatus(company){
  const s=company.share;
