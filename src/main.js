@@ -118,7 +118,7 @@ function warehouseModal(){
 }
 function buildLogisticsCenter(companyId){
  const company=state.companies.find(c=>c.id===companyId);if(!company||company.companyType!=='logistics')throw Error('Centrum można zbudować tylko w spółce logistycznej.');
- const cost=1200000;if(state.cash<cost)throw Error('Budowa centrum logistycznego wymaga '+money(cost)+'.');
+ const cost=1200000;if((company.logisticsCenters||0)>=3)throw Error('Ta spółka ma już maksymalnie 3 centra logistyczne.');if(state.cash<cost)throw Error('Budowa centrum logistycznego wymaga '+money(cost)+'.');
  company.logisticsCenters=(company.logisticsCenters||0)+1;company.value=(company.value||0)+cost;state.cash-=cost;
  log('🏭','Zbudowano centrum logistyczne',company.name+' · centrum nr '+company.logisticsCenters+' · obsługa spółki nadrzędnej');
  moneyFx(-cost,'centrum logistyczne');save();safeRender();notify('Centrum logistyczne działa. Spółka nadrzędna otrzyma premię do logistyki.');
