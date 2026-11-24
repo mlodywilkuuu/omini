@@ -35,11 +35,11 @@ export function upgradeWarehouse(state,id){
  return {warehouse,cost};
 }
 export function processLogisticsDay(state){
- const result={byShop:new Map(),purchased:0,delivered:0,stockouts:0};
+ const result={byShop:new Map(),purchased:0,delivered:0,stockouts:0,centralCost:0};
  for(const local of (state.warehouses||[]).filter(w=>w.type==='small'&&w.parentWarehouseId)){const parent=state.warehouses.find(w=>w.id===local.parentWarehouseId);if(parent){const target=Math.min(local.capacity,Math.max(0,Math.round(local.capacity*.65)-local.stock)),transfer=Math.min(target,Math.max(0,parent.stock));parent.stock-=transfer;local.stock+=transfer;local.lastTransfer=transfer;}}
  for(const warehouse of (state.warehouses||[])){
   const shops=state.shops.filter(shop=>shop.warehouseId===warehouse.id);
-  if(!shops.length)continue;
+  if(!shops.length){const hasChildren=(state.warehouses||[]).some(w=>w.parentWarehouseId===warehouse.id);if(hasChildren){const target=Math.min(warehouse.capacity,Math.round(warehouse.capacity*.65)),order=Math.max(0,Math.min(warehouse.capacity-warehouse.stock,target-warehouse.stock,Number(warehouse.deliveryCapacity)||((warehouse.vehicles||1)*450)));warehouse.stock+=order;warehouse.lastOrder=order;warehouse.lastDeliveryDay=state.day;result.purchased+=order;result.centralCost+=order*35+(Number(warehouse.dailyCost)||0);}continue;}
   const demandByShop=shops.map(shop=>({shop,demand:Math.max(1,Math.ceil((Number(shop.revenue)||0)/120))}));
   const totalDemand=demandByShop.reduce((n,x)=>n+x.demand,0),available=Math.max(0,Number(warehouse.stock)||0);
   let remaining=available;
@@ -56,5 +56,6 @@ export function processLogisticsDay(state){
    result.byShop.set(item.shop.id,{dailyCost:Math.round(fixedPerShop+procurementPerShop+80),stockFactor});
   });
  }
+ state.logisticsInfrastructureCost=result.centralCost;
  return result;
 }
