@@ -165,7 +165,7 @@ export function processBuyoutOffers(state){
    company.shareholders=company.shareholders.filter(x=>x.share>.001);company.freeFloat=roundShare(100-company.share);
    syncShareLedger(company);
    state.events.unshift({icon:'🤝',title:'Oferta odkupu przyjęta',detail:company.name+' · '+offer.holderName+' sprzedał '+offer.amount+'% za '+offer.price.toLocaleString('pl-PL')+' zł.',day:state.day});
-  }else if(state.day>=offer.expires){state.events.unshift({icon:'❌',title:'Oferta odrzucona',detail:offer.holderName+' nie przyjął oferty za '+offer.price.toLocaleString('pl-PL')+' zł.',day:state.day);}
+  }else if(state.day>=offer.expires){state.events.unshift({icon:'❌',title:'Oferta odrzucona',detail:offer.holderName+' nie przyjął oferty za '+offer.price.toLocaleString('pl-PL')+' zł.',day:state.day});}
   else remaining.push(offer);
  }
  state.buyoutOffers=remaining;state.events=state.events.slice(0,12);
