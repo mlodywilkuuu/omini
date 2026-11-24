@@ -1,8 +1,8 @@
 import {createInitialState} from './data/initialState.js';
-import {closeBusinessDay} from './systems/finance.js?v=12';
+import {closeBusinessDay} from './systems/finance.js?v=13';
 import {openCountryShops,estimateCountryShopCost,shopFormats,updateShop,closeShop} from './systems/shops.js?v=5';
 import {buyShares,sellShares,takeControl,ensureShareholders,rotateShareholders,generateMarketCompany,proposeBuyout,processBuyoutOffers} from './systems/ownership.js?v=6';
-import {renderAll} from './ui/render.js?v=43';
+import {renderAll} from './ui/render.js?v=44';
 import {money,percent} from './ui/helpers.js';
 import {countries} from './data/countries.js';
 import {buyUpgrade} from './systems/expansion.js';
@@ -12,7 +12,7 @@ import {startMarketingCampaign,getMarketingOffers} from './systems/marketing.js?
 import {activateSupplierContract} from './systems/procurement.js?v=1';
 import {acceptB2BContract} from './systems/b2b.js?v=1';
 import {factoryProducts,createFactory,processFactoriesDay,buyFactoryShares} from './systems/factories.js?v=5';
-import {developControlledCompanies} from './systems/group_economy.js?v=3';
+import {developControlledCompanies} from './systems/group_economy.js?v=4';
 const $=id=>document.getElementById(id);
 const fresh=createInitialState();
 stateStaffingInit(fresh);
