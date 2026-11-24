@@ -88,18 +88,23 @@ export function sellShares(state,companyId,percentage){
  return {company,amount,proceeds,fee};
 }
 export function takeControl(state,companyId){
- const company=state.market.find(item=>item.id===companyId);
- if(!company||company.share<50)throw new Error('Do przejęcia kontroli potrzebujesz minimum 50% udziałów.');
- if(company.controlled&&company.subsidiaryId)return company;
- if(state.companies.some(item=>item.name===company.name))throw new Error('Ta spółka jest już w twojej grupie.');
- const subsidiary={id:state.nextId++,name:company.name,industry:company.industry,share:company.share,value:company.value,employees:Math.max(5,Math.round(company.value/35000)),stores:0,acquired:true,parentCompanyId:null,operatingCountries:['Polska'],companyType:'operating',ownBrands:[],autoDevelopment:true,sourceMarketId:company.id};
- state.companies.push(subsidiary);
+ const company=state.market.find(item=>Number(item.id)===Number(companyId));
+ if(!company)throw new Error('Nie znaleziono spółki na giełdzie. Odśwież zakładkę i spróbuj ponownie.');
+ if(Number(company.share)<50)throw new Error('Do przejęcia kontroli potrzebujesz minimum 50% udziałów.');
+ let subsidiary=state.companies.find(item=>item.sourceMarketId===company.id||item.name===company.name);
+ if(!subsidiary){
+  subsidiary={id:state.nextId++,name:company.name,industry:company.industry,share:company.share,value:company.value,employees:Math.max(5,Math.round(company.value/35000)),stores:0,acquired:true,parentCompanyId:null,operatingCountries:['Polska'],companyType:'operating',ownBrands:[],autoDevelopment:true,sourceMarketId:company.id};
+  state.companies.push(subsidiary);
+ }
  const companyName=company.name;
- state.market=state.market.filter(item=>item.id!==companyId);
- if(state.selectedMarketCompanyId===companyId)state.selectedMarketCompanyId=null;
- state.events??=[];state.events.unshift({icon:'👑',title:'Spółka przeniesiona do holdingu',detail:companyName+' została zdjęta z giełdy i dodana do struktury Wilk Investments.',day:state.day});state.events=state.events.slice(0,12);
+ state.market=state.market.filter(item=>Number(item.id)!==Number(companyId));
+ if(Number(state.selectedMarketCompanyId)===Number(companyId))state.selectedMarketCompanyId=null;
+ state.events??=[];
+ state.events.unshift({icon:'👑',title:'Spółka przeniesiona do holdingu',detail:companyName+' została zdjęta z giełdy i dodana do struktury Wilk Investments.',day:state.day});
+ state.events=state.events.slice(0,12);
  return {...company,name:companyName,controlled:true,subsidiaryId:subsidiary.id};
 }
+
 export function ownershipStatus(company){
  const s=company.share;
  if(s>=75)return 'Pakiet dominujący — możesz przegłosować kluczowe uchwały';
