@@ -1,5 +1,5 @@
 import {getUpgrades} from '../systems/expansion.js';
-import {money,percent,pageHeading,stats,card,table} from './helpers.js';
+import {money,percent,pageHeading,stats,card,table} from './helpers.js?v=2';
 import {countries} from '../data/countries.js';
 import {totalRevenue,totalCosts,assetValue,netWorth,shareAssets,dividends,operatingProfit} from '../systems/finance.js';
 import {ownershipStatus,votingPower,boardSeats} from '../systems/ownership.js';
