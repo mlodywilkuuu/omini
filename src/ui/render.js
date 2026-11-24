@@ -1,5 +1,5 @@
 import {getUpgrades} from '../systems/expansion.js';
-import {getInitiatives} from '../systems/initiatives.js?v=4';
+import {getInitiatives} from '../systems/initiatives.js?v=5';
 import {getMarketingOffers,getActiveMarketingCampaigns} from '../systems/marketing.js?v=1';
 import {getSupplierContracts} from '../systems/procurement.js?v=1';
 import {getB2BOffers} from '../systems/b2b.js?v=1';
