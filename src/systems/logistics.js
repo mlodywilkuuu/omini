@@ -1,7 +1,7 @@
 const WAREHOUSE_TYPES={
- small:{name:'Magazyn lokalny',cost:180000,capacity:6000,dailyCost:320,employees:4,emoji:'🏬'},
- regional:{name:'Centrum regionalne',cost:620000,capacity:24000,dailyCost:1050,employees:14,emoji:'🏭'},
- national:{name:'Centrum krajowe',cost:1850000,capacity:90000,dailyCost:3200,employees:38,emoji:'🏢'}
+ small:{name:'Magazyn lokalny',cost:180000,capacity:6000,dailyCost:320,employees:4,vehicles:2,emoji:'🏬'},
+ regional:{name:'Centrum regionalne',cost:620000,capacity:24000,dailyCost:1050,employees:14,vehicles:8,emoji:'🏭'},
+ national:{name:'Centrum krajowe',cost:1850000,capacity:90000,dailyCost:3200,employees:38,vehicles:24,emoji:'🏢'}
 };
 export const warehouseTypes=()=>WAREHOUSE_TYPES;
 export const warehouseBuildCost=(type)=>WAREHOUSE_TYPES[type]?.cost||0;
@@ -11,7 +11,7 @@ export function createWarehouse(state,{name,country,type}){
  if(!nation)throw new Error('Wybierz kraj magazynu.');
  if(!label)throw new Error('Wpisz nazwę magazynu.');
  if(state.cash<spec.cost)throw new Error('Za mało gotówki. Potrzeba '+spec.cost.toLocaleString('pl-PL')+' zł.');
- const warehouse={id:state.nextId++,name:label,country:nation,type,capacity:spec.capacity,stock:Math.round(spec.capacity*.35),dailyCost:spec.dailyCost,employees:spec.employees,level:1,createdDay:state.day};
+ const warehouse={id:state.nextId++,name:label,country:nation,type,capacity:spec.capacity,stock:Math.round(spec.capacity*.35),dailyCost:spec.dailyCost,employees:spec.employees,vehicles:spec.vehicles,deliveryCapacity:spec.vehicles*450,level:1,createdDay:state.day};
  state.warehouses??=[];state.warehouses.push(warehouse);state.cash-=spec.cost;
  return {warehouse,cost:spec.cost};
 }
@@ -29,7 +29,7 @@ export function upgradeWarehouse(state,id){
  if(!warehouse)throw new Error('Nie znaleziono magazynu.');
  const cost=Math.round(warehouse.capacity*.095*35+warehouse.level*45000);
  if(state.cash<cost)throw new Error('Za mało gotówki na rozbudowę. Potrzeba '+cost.toLocaleString('pl-PL')+' zł.');
- state.cash-=cost;warehouse.level=(warehouse.level||1)+1;warehouse.capacity=Math.round(warehouse.capacity*1.55);warehouse.dailyCost=Math.round(warehouse.dailyCost*1.18);warehouse.employees=Math.ceil(warehouse.employees*1.2);
+ state.cash-=cost;warehouse.level=(warehouse.level||1)+1;warehouse.capacity=Math.round(warehouse.capacity*1.55);warehouse.dailyCost=Math.round(warehouse.dailyCost*1.18);warehouse.employees=Math.ceil(warehouse.employees*1.2);warehouse.vehicles=(warehouse.vehicles||1)+Math.max(1,Math.ceil((warehouse.vehicles||1)*.25));warehouse.deliveryCapacity=warehouse.vehicles*450;
  return {warehouse,cost};
 }
 export function processLogisticsDay(state){
@@ -43,7 +43,7 @@ export function processLogisticsDay(state){
   const coverage=demandByShop.map(item=>{const fulfilled=Math.min(item.demand,remaining);remaining-=fulfilled;return {...item,fulfilled,ratio:fulfilled/item.demand};});
   warehouse.stock=remaining;
   const target=Math.min(warehouse.capacity,Math.max(totalDemand*3,Math.round(warehouse.capacity*.2)));
-  const order=Math.max(0,Math.min(warehouse.capacity-warehouse.stock,target-warehouse.stock));
+  const order=Math.max(0,Math.min(warehouse.capacity-warehouse.stock,target-warehouse.stock,Number(warehouse.deliveryCapacity)||((warehouse.vehicles||1)*450)));
   const purchaseCost=order*35;warehouse.stock+=order;warehouse.lastOrder=order;warehouse.lastDeliveryDay=state.day;
   result.purchased+=order;result.delivered+=coverage.reduce((n,x)=>n+x.fulfilled,0);
   const fixedPerShop=warehouse.dailyCost/shops.length,procurementPerShop=purchaseCost/shops.length;
