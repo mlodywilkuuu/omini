@@ -118,7 +118,7 @@ function companyModal(parentId=null){
 }
 
 function factoryModal(){
- const products=factoryProducts();
+ const products=factoryProducts;
  const companies=state.companies.filter(c=>c.share>=50);
  if(!companies.length)throw Error('Najpierw utwórz spółkę, do której przypiszesz fabrykę.');
  openModal('Zbuduj fabrykę','Wybierz produkt własnej marki i spółkę, która będzie właścicielem zakładu. Fabryka produkuje i sprzedaje towar automatycznie każdego dnia, jeśli spółka ma sklepy.', '<div class="field"><label>NAZWA FABRYKI</label><input id="fFactoryName" value="Zakład produkcyjny"></div><div class="field"><label>PRODUKT WŁASNY</label><select id="fFactoryProduct">'+products.map(p=>'<option value="'+p.id+'">'+esc(p.name)+' · '+esc(p.category)+' · marża '+Math.round((p.price-p.cost)/p.price*100)+'%</option>').join('')+'</select></div><div class="field"><label>WŁAŚCICIEL — SPÓŁKA</label><select id="fFactoryCompany">'+companies.map(c=>'<option value="'+c.id+'">'+esc(c.name)+'</option>').join('')+'</select></div><div class="notice" id="factoryPreview"></div>',()=>{
