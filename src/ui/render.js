@@ -6,7 +6,7 @@ import {getB2BOffers} from '../systems/b2b.js?v=1';
 import {factoryProducts,getFactoryProduct} from '../systems/factories.js?v=4';
 import {money,percent,pageHeading,stats,card,table} from './helpers.js?v=2';
 import {countries} from '../data/countries.js';
-import {totalRevenue,totalCosts,assetValue,netWorth,shareAssets,dividends,operatingProfit} from '../systems/finance.js?v=8';
+import {totalRevenue,totalCosts,assetValue,netWorth,shareAssets,dividends,operatingProfit} from '../systems/finance.js?v=9';
 import {ownershipStatus,votingPower,boardSeats} from '../systems/ownership.js?v=6';
 let lastRenderedCash=null;
 const el=id=>document.getElementById(id),esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
