@@ -44,7 +44,7 @@ export function createFactory(state,{name,productId,companyId}){
  if(!product)throw Error('Wybierz produkt z katalogu.');
  if(!company)throw Error('Wybierz spółkę, nad którą masz kontrolę.');
  if(state.cash<product.factoryCost)throw Error('Budowa wymaga '+product.factoryCost.toLocaleString('pl-PL')+' zł. Brakuje '+(product.factoryCost-state.cash).toLocaleString('pl-PL')+' zł.');
- const factory={id:state.nextId++,name,productId,companyId,capacity:product.capacity,level:1,builtDay:state.day};
+ const factory={id:state.nextId++,name,productId,companyId,capacity:product.capacity,level:1,builtDay:state.day,playerShare:100,shareholders:[]};
  state.cash-=product.factoryCost;company.value=(Number(company.value)||0)+product.factoryCost;state.factories.push(factory);
  return {factory,cost:product.factoryCost};
 }
@@ -57,9 +57,25 @@ export function processFactoriesDay(state){
   const produced=Math.min(product.capacity*factory.level,Math.max(0,stores)*90);
   const sold=produced;
   factory.lastProduction=produced;factory.lastRevenue=sold*product.price;
-  revenue+=sold*product.price;cost+=sold*product.cost+product.dailyCost;units+=sold;
+  const playerShare=Math.max(0,Math.min(100,Number(factory.playerShare??100)))/100;\n  revenue+=sold*product.price*playerShare;cost+=(sold*product.cost+product.dailyCost)*playerShare;units+=sold*playerShare;
  });
  state.factoryRevenue=revenue;state.factoryCost=cost;
  return {revenue,cost,units};
 }
 export function getFactoryProduct(productId){return factoryProducts.find(p=>p.id===productId);}
+
+export function buyFactoryShares(state,factoryId,percentage){
+ const factory=(state.factories||[]).find(f=>f.id===Number(factoryId));
+ if(!factory)throw Error('Nie znaleziono fabryki.');
+ const amount=Number(percentage),owned=Math.max(0,Math.min(100,Number(factory.playerShare??100)));
+ if(!Number.isFinite(amount)||amount<=0||amount>100-owned)throw Error('Podaj dostępny pakiet udziałów fabryki.');
+ const product=getFactoryProduct(factory.productId),base=(product?.factoryCost||500000)*(Number(factory.level)||1);
+ const price=Math.round(base*amount/100*1.08);
+ if(state.cash<price)throw Error('Za mało gotówki na zakup udziałów fabryki. Potrzeba '+price.toLocaleString('pl-PL')+' zł.');
+ factory.playerShare=owned+amount;factory.shareholders??=[];
+ const company=state.companies.find(c=>c.id===factory.companyId);
+ factory.shareholders.push({name:'Wilk Investments',share:amount,type:'Inwestor'});
+ state.cash-=price;factory.sharePurchaseCost=(Number(factory.sharePurchaseCost)||0)+price;
+ state.events??=[];state.events.unshift({icon:'🏭',title:'Kupiono udziały w fabryce',detail:factory.name+' · '+amount+'% za '+price.toLocaleString('pl-PL')+' zł.',day:state.day});state.events=state.events.slice(0,12);
+ return {factory,amount,price,company};
+}
