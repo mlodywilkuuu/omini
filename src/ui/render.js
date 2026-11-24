@@ -2,7 +2,7 @@ import {getUpgrades} from '../systems/expansion.js';
 import {getInitiatives} from '../systems/initiatives.js?v=2';
 import {money,percent,pageHeading,stats,card,table} from './helpers.js?v=2';
 import {countries} from '../data/countries.js';
-import {totalRevenue,totalCosts,assetValue,netWorth,shareAssets,dividends,operatingProfit} from '../systems/finance.js';
+import {totalRevenue,totalCosts,assetValue,netWorth,shareAssets,dividends,operatingProfit} from '../systems/finance.js?v=3';
 import {ownershipStatus,votingPower,boardSeats} from '../systems/ownership.js?v=6';
 let lastRenderedCash=null;
 const el=id=>document.getElementById(id),esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
