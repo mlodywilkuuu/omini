@@ -1,4 +1,5 @@
 import {processLogisticsDay} from './logistics.js?v=1';
+import {processMarketingDay} from './marketing.js?v=1';
 export const totalRevenue=state=>state.shops.reduce((sum,shop)=>sum+shop.revenue,0);
 export const totalCosts=state=>state.shops.reduce((sum,shop)=>sum+shop.cost,0);
 export const shareAssets=state=>state.market.reduce((sum,company)=>sum+company.value*company.share/100,0);
@@ -18,16 +19,17 @@ const MARKET_EVENTS=[
 export function closeBusinessDay(state){
  // Codzienna zmienność rynku: popyt, konkurencja i ceny dostawców wpływają na każdą placówkę.
  const logistics=processLogisticsDay(state);
+ const marketing=processMarketingDay(state);
  const event=Math.random()<.32?MARKET_EVENTS[Math.floor(Math.random()*MARKET_EVENTS.length)]:null;
  state.shops.forEach(shop=>{
   const demand=(Math.random()-.46)*.085;
   const supplier=(Math.random()-.48)*.05;
   shop.employees=Number.isFinite(Number(shop.employees))?Math.max(0,Math.floor(Number(shop.employees))):3;
   const payrollCost=shop.employees*180;
-  const previousLogistics=Number(shop.logisticsCost)||0;shop.cost=Math.max(0,Math.round(Math.max(0,shop.cost-(Number(shop.payrollCost)||0)-previousLogistics)*(1+supplier)));
-  const logisticsImpact=logistics.byShop.get(shop.id);if(logisticsImpact)shop.revenue=Math.round(shop.revenue*logisticsImpact.stockFactor);shop.revenue=Math.max(0,Math.round(shop.revenue*(1+demand)));const manager=state.market.find(c=>(c.id===shop.companyId||c.subsidiaryId===shop.companyId)&&c.share>=50);if(manager?.strategy==='expansion')shop.revenue=Math.round(shop.revenue*1.008);else if(manager?.strategy==='profit')shop.cost=Math.round(shop.cost*.992);else if(manager?.strategy==='balanced')shop.revenue=Math.round(shop.revenue*1.002);
+  const previousLogistics=Number(shop.logisticsCost)||0;shop.cost=Math.max(0,Math.round(Math.max(0,shop.cost-(Number(shop.payrollCost)||0)-previousLogistics-(Number(shop.marketingCost)||0))*(1+supplier)));
+  const logisticsImpact=logistics.byShop.get(shop.id);if(logisticsImpact)shop.revenue=Math.round(shop.revenue*logisticsImpact.stockFactor);const marketingImpact=marketing.byShop.get(shop.id);shop.revenue=Math.max(0,Math.round(shop.revenue*(1+demand)*(1+(marketingImpact?.boost||0))));const manager=state.market.find(c=>(c.id===shop.companyId||c.subsidiaryId===shop.companyId)&&c.share>=50);if(manager?.strategy==='expansion')shop.revenue=Math.round(shop.revenue*1.008);else if(manager?.strategy==='profit')shop.cost=Math.round(shop.cost*.992);else if(manager?.strategy==='balanced')shop.revenue=Math.round(shop.revenue*1.002);
   if(event){shop.revenue=Math.round(shop.revenue*event.revenue);shop.cost=Math.round(shop.cost*event.cost);}
-  shop.payrollCost=payrollCost;shop.logisticsCost=logisticsImpact?.dailyCost||0;shop.cost+=payrollCost+shop.logisticsCost;
+  shop.payrollCost=payrollCost;shop.logisticsCost=logisticsImpact?.dailyCost||0;shop.marketingCost=marketingImpact?.dailyCost||0;shop.cost+=payrollCost+shop.logisticsCost+shop.marketingCost;
  });
  if(event){state.events??=[];state.events.unshift({icon:event.icon,title:event.title,detail:event.detail,day:state.day});state.events=state.events.slice(0,12);}
  const revenue=totalRevenue(state),costs=totalCosts(state),dividendIncome=dividends(state);
@@ -35,5 +37,5 @@ export function closeBusinessDay(state){
  state.cash+=profit;
  state.market.forEach(company=>{company.value=Math.max(50000,Math.round(company.value*(1+(Math.random()-.43)*.012)));});
  state.history.push(Math.max(1000,profit));state.history=state.history.slice(-7);
- return {profit,revenue,costs,dividendIncome,event,logistics};
+ return {profit,revenue,costs,dividendIncome,event,logistics,marketing};
 }
