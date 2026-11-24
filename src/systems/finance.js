@@ -1,5 +1,6 @@
 import {processLogisticsDay} from './logistics.js?v=1';
 import {processMarketingDay} from './marketing.js?v=1';
+import {processProcurementDay} from './procurement.js?v=1';
 export const totalRevenue=state=>state.shops.reduce((sum,shop)=>sum+shop.revenue,0);
 export const totalCosts=state=>state.shops.reduce((sum,shop)=>sum+shop.cost,0);
 export const shareAssets=state=>state.market.reduce((sum,company)=>sum+company.value*company.share/100,0);
@@ -20,6 +21,7 @@ export function closeBusinessDay(state){
  // Codzienna zmienność rynku: popyt, konkurencja i ceny dostawców wpływają na każdą placówkę.
  const logistics=processLogisticsDay(state);
  const marketing=processMarketingDay(state);
+ const procurement=processProcurementDay(state);
  const event=Math.random()<.32?MARKET_EVENTS[Math.floor(Math.random()*MARKET_EVENTS.length)]:null;
  state.shops.forEach(shop=>{
   const demand=(Math.random()-.46)*.085;
@@ -37,5 +39,5 @@ export function closeBusinessDay(state){
  state.cash+=profit;
  state.market.forEach(company=>{company.value=Math.max(50000,Math.round(company.value*(1+(Math.random()-.43)*.012)));});
  state.history.push(Math.max(1000,profit));state.history=state.history.slice(-7);
- return {profit,revenue,costs,dividendIncome,event,logistics,marketing};
+ return {profit,revenue,costs,dividendIncome,event,logistics,marketing,procurement};
 }
