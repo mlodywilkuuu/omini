@@ -2,7 +2,7 @@ import {createInitialState} from './data/initialState.js';
 import {closeBusinessDay} from './systems/finance.js?v=2';
 import {openCountryShops,estimateCountryShopCost,shopFormats,updateShop,closeShop} from './systems/shops.js';
 import {buyShares,sellShares,takeControl,ensureShareholders,rotateShareholders,generateMarketCompany,proposeBuyout,processBuyoutOffers} from './systems/ownership.js?v=5';
-import {renderAll} from './ui/render.js?v=25';
+import {renderAll} from './ui/render.js?v=26';
 import {money} from './ui/helpers.js';
 import {countries} from './data/countries.js';
 import {buyUpgrade} from './systems/expansion.js';
@@ -62,7 +62,7 @@ document.addEventListener('keydown',e=>{
  if((e.code==='Backquote'||e.key==='~')&&!typing){e.preventDefault();toggleCheatConsole();}
  if(e.key==='Escape'&&$('cheatConsole')?.classList.contains('open'))toggleCheatConsole(false);
 });
-function showPage(page){const target=$('page-'+page);if(!target)return;document.querySelectorAll('.page').forEach(s=>s.classList.toggle('hidden',s!==target));document.querySelectorAll('.nav-link').forEach(b=>b.classList.toggle('active',b.dataset.page===page));const labels={overview:'Pulpit',shops:'Sklepy',companies:'Grupa kapitałowa',market:'Giełda i udziały',finance:'Finanse',expansion:'Rozwój imperium',people:'Kadry i personel',marketing:'Marketing',logistics:'Logistyka i zaopatrzenie',reports:'Raporty i analityka'};$('breadcrumb').textContent=labels[page]||'Pulpit';}
+function showPage(page){const target=$('page-'+page);if(!target)return;document.querySelectorAll('.page').forEach(s=>s.classList.toggle('hidden',s!==target));document.querySelectorAll('.nav-link').forEach(b=>b.classList.toggle('active',b.dataset.page===page));const labels={overview:'Pulpit',shops:'Sklepy',companies:'Grupa kapitałowa',market:'Giełda i udziały',finance:'Finanse',expansion:'Rozwój imperium',people:'Kadry i personel',marketing:'Marketing',logistics:'Logistyka i zaopatrzenie',reports:'Raporty i analityka',customers:'Klienci',products:'Produkty i asortyment',competition:'Konkurencja',property:'Placówki i nieruchomości',procurement:'Zakupy i dostawcy',fleet:'Sieć i transport',innovation:'Innowacje',risk:'Ryzyko',sustainability:'Zrównoważony rozwój',strategy:'Strategia grupy'};$('breadcrumb').textContent=labels[page]||'Pulpit';}
 function openModal(title,description,fields,action){$('modalTitle').textContent=title;$('modalDescription').textContent=description;$('modalBody').innerHTML=fields;$('modalConfirm').hidden=false;$('modalConfirm').style.display='';$('modalCancel').textContent='Anuluj';if(!$('modal').open)$('modal').showModal();modalAction=action;}
 function closeModal(){$('modal').close();modalAction=null;$('modalConfirm').hidden=false;$('modalConfirm').style.display='';$('modalCancel').textContent='Anuluj';}
 const countryOptions=(selected)=>countries.map(c=>'<option value="'+esc(c)+'" '+(selected===c?'selected':'')+'>'+esc(c)+'</option>').join('');
