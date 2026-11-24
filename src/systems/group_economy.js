@@ -105,7 +105,7 @@ export function developPublicCompanies(state){
  state.market??=[];
  for(const company of state.market.filter(c=>!c.controlled)){
   company.marketStores??=Math.max(1,Math.min(30,Math.round((Number(company.value)||200000)/220000)));
-  company.marketBrands??=[{id:'market-brand-'+company.id,name:String(company.name).split(' ')[0]+' Select',category:company.industry||'Retail',quality:55+Math.round(Math.random()*25)}];
+  company.marketBrands??=[{id:state.nextId++,name:String(company.name).split(' ')[0]+' Select',category:company.industry||'Retail',quality:55+Math.round(Math.random()*25)}];
   company.corporateCash??=Math.max(80000,Math.round((Number(company.value)||200000)*.08));
   company.corporateCash+=Math.max(1000,company.marketStores*2200);
   if(state.day>1&&state.day%5===0&&company.marketStores<40&&company.corporateCash>=125000){
