@@ -5,13 +5,15 @@ const WAREHOUSE_TYPES={
 };
 export const warehouseTypes=()=>WAREHOUSE_TYPES;
 export const warehouseBuildCost=(type)=>WAREHOUSE_TYPES[type]?.cost||0;
-export function createWarehouse(state,{name,country,type}){
+export function createWarehouse(state,{name,country,type,parentWarehouseId=null}){
  const spec=WAREHOUSE_TYPES[type],nation=String(country||'').trim(),label=String(name||'').trim();
  if(!spec)throw new Error('Wybierz prawidłowy typ magazynu.');
  if(!nation)throw new Error('Wybierz kraj magazynu.');
  if(!label)throw new Error('Wpisz nazwę magazynu.');
  if(state.cash<spec.cost)throw new Error('Za mało gotówki. Potrzeba '+spec.cost.toLocaleString('pl-PL')+' zł.');
- const warehouse={id:state.nextId++,name:label,country:nation,type,capacity:spec.capacity,stock:Math.round(spec.capacity*.35),dailyCost:spec.dailyCost,employees:spec.employees,vehicles:spec.vehicles,deliveryCapacity:spec.vehicles*450,level:1,createdDay:state.day};
+ const parent=parentWarehouseId?state.warehouses.find(w=>w.id===Number(parentWarehouseId)):null;
+ if(parentWarehouseId&&(!parent||parent.type==='small'||parent.country!==nation||type!=='small'))throw new Error('Magazyn lokalny musi być przypisany do magazynu głównego z tego samego kraju.');
+ const warehouse={id:state.nextId++,name:label,country:nation,type,parentWarehouseId:parent?.id||null,capacity:spec.capacity,stock:Math.round(spec.capacity*.35),dailyCost:spec.dailyCost,employees:spec.employees,vehicles:spec.vehicles,deliveryCapacity:spec.vehicles*450,level:1,createdDay:state.day};
  state.warehouses??=[];state.warehouses.push(warehouse);state.cash-=spec.cost;
  return {warehouse,cost:spec.cost};
 }
@@ -34,6 +36,7 @@ export function upgradeWarehouse(state,id){
 }
 export function processLogisticsDay(state){
  const result={byShop:new Map(),purchased:0,delivered:0,stockouts:0};
+ for(const local of (state.warehouses||[]).filter(w=>w.type==='small'&&w.parentWarehouseId)){const parent=state.warehouses.find(w=>w.id===local.parentWarehouseId);if(parent){const target=Math.min(local.capacity,Math.max(0,Math.round(local.capacity*.65)-local.stock)),transfer=Math.min(target,Math.max(0,parent.stock));parent.stock-=transfer;local.stock+=transfer;local.lastTransfer=transfer;}}
  for(const warehouse of (state.warehouses||[])){
   const shops=state.shops.filter(shop=>shop.warehouseId===warehouse.id);
   if(!shops.length)continue;
