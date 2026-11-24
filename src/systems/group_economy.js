@@ -22,9 +22,9 @@ function attachCompany(state,listed){
  if(listed.subsidiaryId&&state.companies.some(c=>c.id===listed.subsidiaryId))return state.companies.find(c=>c.id===listed.subsidiaryId);
  const company={id:state.nextId++,name:listed.name,industry:listed.industry,share:listed.share,value:listed.value,employees:Math.max(5,Math.round((listed.value||200000)/35000)),stores:0,acquired:true,parentCompanyId:null,operatingCountries:['Polska'],companyType:'operating',ownBrands:Array.isArray(listed.marketBrands)?listed.marketBrands.map(b=>({...b})):[],autoDevelopment:true,sourceMarketId:listed.id};
  state.companies.push(company);listed.controlled=true;listed.subsidiaryId=company.id;
- const count=Math.max(1,Math.min(15,Number(listed.marketStores)||1)),type=formatFor(company.industry),cost=estimateCountryShopCost(type,count);
+ const count=Math.max(1,Math.min(15,Number(listed.marketStores)||Math.round((Number(listed.value)||200000)/220000))),type=formatFor(company.industry),cost=estimateCountryShopCost(type,count);
+ state.cash+=cost;
  const acquired=openCountryShops(state,{name:company.name,type,country:'Polska',count});
- state.cash+=acquired.investment;
  acquired.shops.forEach(shop=>{shop.companyId=company.id;shop.brandId=company.ownBrands[0]?.id||null;});
  company.stores=acquired.shops.length;
  addEvent(state,'🏢','Spółka dołączyła do holdingu',company.name+' · przejęto '+count+' istniejących sklepów i aktywa · automatyczny rozwój uruchomiony');
