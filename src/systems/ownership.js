@@ -87,36 +87,6 @@ export function sellShares(state,companyId,percentage){
  company.history??=[company.value];company.history.push(company.value);company.history=company.history.slice(-8);
  return {company,amount,proceeds,fee};
 }
-export function generateMarketCompany(state){
- if(state.market.length>=80){
-  const candidates=state.market.filter(x=>!(x.share>0)&&!x.controlled).sort((a,b)=>a.value-b.value);
-  if(!candidates.length)return null;
-  const retired=candidates[0];state.market=state.market.filter(x=>x.id!==retired.id);
-  state.events??=[];state.events.unshift({icon:'📤',title:'Wycofanie z giełdy',detail:retired.name+' zakończyła notowania.',day:state.day});state.events=state.events.slice(0,12);
- }
- let name='',attempts=0;do{name=pick(companyNames)+' '+pick(['Group','Industries','Holdings','Systems','Retail','S.A.']);attempts++;}while(state.market.some(c=>c.name===name)&&attempts<20);if(state.market.some(c=>c.name===name))return null;const id=state.nextId++;
- const value=Math.round((180000+Math.random()*2820000)/10000)*10000,company={id,name,industry:pick(companyIndustries),value,share:0,dividend:+(.001+Math.random()*.006).toFixed(4),freeFloat:100,shares:Math.round(value/(2+Math.random()*8)),eps:+(1+Math.random()*6).toFixed(2),pe:+(7+Math.random()*15).toFixed(1),boardSeats:3+2*Math.floor(Math.random()*3),history:[Math.round(value*.94),Math.round(value*.97),value],listedDay:state.day,shareholders:[]};
- state.market.push(company);ensureShareholders(company);
- state.events??=[];state.events.unshift({icon:'🆕',title:'Nowa spółka na giełdzie',detail:name+' debiutuje z wyceną '+value.toLocaleString('pl-PL')+' zł.',day:state.day});state.events=state.events.slice(0,12);
- return company;
-}
-export function rotateShareholders(state){
- for(const company of state.market){
-  const holders=ensureShareholders(company);if(holders.length<2)continue;
-  const from=holders[Math.floor(Math.random()*holders.length)],others=holders.filter(x=>x!==from),to=pick(others);
-  const transfer=Math.min(from.share,+(0.35+Math.random()*1.65).toFixed(2));
-  if(transfer<=0)continue;
-  from.share=+(from.share-transfer).toFixed(2);to.share=+(to.share+transfer).toFixed(2);
-  if(Math.random()<.16&&holders.length<8&&from.share>5){const piece=+(Math.min(from.share-1,1+Math.random()*2)).toFixed(2);from.share=+(from.share-piece).toFixed(2);let name=pick(investorNames),tries=0;while(holders.some(h=>h.name===name)&&tries++<20)name=pick(investorNames);holders.push({name,share:piece,type:Math.random()<.4?'Fundusz':'Inwestor'});}
-  company.shareholders=holders.filter(x=>x.share>=.05);
-  const target=Math.max(0,100-(company.share||0)),totalNow=company.shareholders.reduce((a,x)=>a+x.share,0);if(totalNow>0){company.shareholders.forEach(h=>h.share=+(h.share*target/totalNow).toFixed(2));const drift=+(target-company.shareholders.reduce((a,x)=>a+x.share,0)).toFixed(2);if(company.shareholders[0])company.shareholders[0].share=+(company.shareholders[0].share+drift).toFixed(2);}
-  if(state.day%3===0&&company.shareholders.length>=3&&Math.random()<.5){
-   const replaceAt=Math.floor(Math.random()*company.shareholders.length),old=company.shareholders[replaceAt],used=new Set(company.shareholders.map(x=>x.name));
-   let name=pick(investorNames),tries=0;while(used.has(name)&&tries++<20)name=pick(investorNames);
-   company.shareholders[replaceAt]={name,share:old.share,type:Math.random()<.45?'Fundusz':'Inwestor'};
-  }
- }
-}
 export function takeControl(state,companyId){
  const company=state.market.find(item=>item.id===companyId);
  if(!company||company.share<50)throw new Error('Do przejęcia kontroli potrzebujesz minimum 50% udziałów.');
