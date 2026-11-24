@@ -7,7 +7,7 @@ import {money,percent} from './ui/helpers.js';
 import {countries} from './data/countries.js';
 import {buyUpgrade} from './systems/expansion.js';
 import {buyInitiative,applyInitiativesDaily,getInitiatives} from './systems/initiatives.js?v=5';
-import {createWarehouse,assignShopWarehouse,upgradeWarehouse,warehouseTypes,warehouseBuildCost} from './systems/logistics.js?v=2';
+import {createWarehouse,assignShopWarehouse,upgradeWarehouse,warehouseTypes,warehouseBuildCost} from './systems/logistics.js?v=3';
 import {startMarketingCampaign,getMarketingOffers} from './systems/marketing.js?v=1';
 import {activateSupplierContract} from './systems/procurement.js?v=1';
 import {acceptB2BContract} from './systems/b2b.js?v=1';
