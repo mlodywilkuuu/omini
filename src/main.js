@@ -11,7 +11,7 @@ import {createWarehouse,assignShopWarehouse,upgradeWarehouse,warehouseTypes,ware
 import {startMarketingCampaign,getMarketingOffers} from './systems/marketing.js?v=1';
 import {activateSupplierContract} from './systems/procurement.js?v=1';
 import {acceptB2BContract} from './systems/b2b.js?v=1';
-import {factoryProducts,createFactory,processFactoriesDay} from './systems/factories.js?v=3';
+import {factoryProducts,createFactory,processFactoriesDay,buyFactoryShares} from './systems/factories.js?v=4';
 import {developControlledCompanies} from './systems/group_economy.js?v=1';
 const $=id=>document.getElementById(id);
 const fresh=createInitialState();
