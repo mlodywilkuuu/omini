@@ -33,7 +33,7 @@ export function closeBusinessDay(state){
   const payrollCost=shop.employees*180;
   const previousLogistics=Number(shop.logisticsCost)||0;shop.cost=Math.max(0,Math.round(Math.max(0,shop.cost-(Number(shop.payrollCost)||0)-previousLogistics-(Number(shop.marketingCost)||0))*(1+supplier)));
   const logisticsImpact=logistics.byShop.get(shop.id);if(logisticsImpact)shop.revenue=Math.round(shop.revenue*logisticsImpact.stockFactor);const marketingImpact=marketing.byShop.get(shop.id);shop.revenue=Math.max(0,Math.round(shop.revenue*(1+demand)*(1+(marketingImpact?.boost||0))));const manager=state.market.find(c=>(c.id===shop.companyId||c.subsidiaryId===shop.companyId)&&c.share>=50);if(manager?.strategy==='expansion')shop.revenue=Math.round(shop.revenue*1.008);else if(manager?.strategy==='profit')shop.cost=Math.round(shop.cost*.992);else if(manager?.strategy==='balanced')shop.revenue=Math.round(shop.revenue*1.002);
-  const groupCenters=logisticsSubsidiaries.filter(c=>c.parentCompanyId===shop.companyId).reduce((n,c)=>n+Math.min(3,Number(c.logisticsCenters)||0),0);
+  const groupCenters=Math.min(3,logisticsSubsidiaries.filter(c=>c.parentCompanyId===shop.companyId).reduce((n,c)=>n+(Number(c.logisticsCenters)||0),0));
   if(groupCenters){shop.revenue=Math.round(shop.revenue*(1+groupCenters*.04));shop.cost=Math.round(shop.cost*(1-groupCenters*.03));}
   if(event){shop.revenue=Math.round(shop.revenue*event.revenue);shop.cost=Math.round(shop.cost*event.cost);}
   shop.payrollCost=payrollCost;shop.logisticsCost=logisticsImpact?.dailyCost||0;shop.marketingCost=marketingImpact?.dailyCost||0;shop.cost+=payrollCost+shop.logisticsCost+shop.marketingCost;
