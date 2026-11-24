@@ -1,9 +1,9 @@
 import {getUpgrades} from '../systems/expansion.js';
-import {getInitiatives} from '../systems/initiatives.js?v=1';
+import {getInitiatives} from '../systems/initiatives.js?v=2';
 import {money,percent,pageHeading,stats,card,table} from './helpers.js?v=2';
 import {countries} from '../data/countries.js';
 import {totalRevenue,totalCosts,assetValue,netWorth,shareAssets,dividends,operatingProfit} from '../systems/finance.js';
-import {ownershipStatus,votingPower,boardSeats} from '../systems/ownership.js?v=5';
+import {ownershipStatus,votingPower,boardSeats} from '../systems/ownership.js?v=6';
 let lastRenderedCash=null;
 const el=id=>document.getElementById(id),esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const item=(icon,title,detail,right)=>'<div class="list-item"><div class="item-main"><div class="thumb">'+icon+'</div><div><strong>'+esc(title)+'</strong><small>'+esc(detail)+'</small></div></div>'+right+'</div>';
