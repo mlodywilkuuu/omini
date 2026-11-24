@@ -4,7 +4,7 @@ import {processProcurementDay} from './procurement.js?v=1';
 import {processB2BContracts} from './b2b.js?v=1';
 import {processFactoriesDay} from './factories.js?v=5';
 import {scaleInfrastructureWorkforce} from './logistics.js?v=3';
-import {processGroupEconomyDay} from './group_economy.js?v=3';
+import {processGroupEconomyDay} from './group_economy.js?v=4';
 export const totalRevenue=state=>state.shops.reduce((sum,shop)=>sum+shop.revenue,0)+(Number(state.contractRevenue)||0)+(Number(state.factoryRevenue)||0);
 export const totalCosts=state=>state.shops.reduce((sum,shop)=>sum+shop.cost,0)+(Number(state.contractCost)||0)+(Number(state.factoryCost)||0)+(Number(state.infrastructurePayroll)||0)+(Number(state.logisticsInfrastructureCost)||0);
 export const shareAssets=state=>state.market.reduce((sum,company)=>sum+company.value*company.share/100,0);
