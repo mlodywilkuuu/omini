@@ -34,6 +34,19 @@ export function upgradeWarehouse(state,id){
  state.cash-=cost;warehouse.level=(warehouse.level||1)+1;warehouse.capacity=Math.round(warehouse.capacity*1.55);warehouse.dailyCost=Math.round(warehouse.dailyCost*1.18);warehouse.employees=Math.ceil(warehouse.employees*1.2);warehouse.vehicles=(warehouse.vehicles||1)+Math.max(1,Math.ceil((warehouse.vehicles||1)*.25));warehouse.deliveryCapacity=warehouse.vehicles*450;
  return {warehouse,cost};
 }
+// Dzienny fundusz płac zaplecza logistycznego.
+// Zatrudnienie jest zapisane przy każdym magazynie; stawka odpowiada
+// bazowemu kosztowi pracownika używanemu w pozostałych modułach gry.
+export function scaleInfrastructureWorkforce(state){
+ const warehouses=Array.isArray(state.warehouses)?state.warehouses:[];
+ const payroll=warehouses.reduce((total,warehouse)=>{
+  const employees=Math.max(0,Number(warehouse.employees)||0);
+  return total+employees*180;
+ },0);
+ state.infrastructurePayroll=Math.round(payroll);
+ return state.infrastructurePayroll;
+}
+
 export function processLogisticsDay(state){
  const result={byShop:new Map(),purchased:0,delivered:0,stockouts:0,centralCost:0};
  for(const local of (state.warehouses||[]).filter(w=>w.type==='small'&&w.parentWarehouseId)){const parent=state.warehouses.find(w=>w.id===local.parentWarehouseId);if(parent){const target=Math.min(local.capacity,Math.max(0,Math.round(local.capacity*.65)-local.stock)),transfer=Math.min(target,Math.max(0,parent.stock));parent.stock-=transfer;local.stock+=transfer;local.lastTransfer=transfer;}}
