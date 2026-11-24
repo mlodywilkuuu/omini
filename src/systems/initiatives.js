@@ -69,7 +69,7 @@ const ITEMS=[{"id":"loyalty","name":"Program lojalnościowy","cost":45000,"descr
   {"id":"safety-system","name":"System BHP i bezpieczeństwa","cost":76000,"description":"Ogranicz wypadki i przestoje operacyjne.","revenueRate":0,"costRate":0.008},
   {"id":"business-continuity","name":"Plan ciągłości działania","cost":132000,"description":"Zwiększ odporność firmy na awarie i kryzysy.","revenueRate":0,"costRate":0.007},
   {"id":"reputation-monitor","name":"Monitoring reputacji","cost":84000,"description":"Szybciej reaguj na opinie i problemy klientów.","revenueRate":0.008,"costRate":0.002},
-  {"id":"innovation-fund","name":"Fundusz innowacji","cost":250000,"description":"Finansuj pilotaże i wdrożenia nowych rozwiązań.","revenueRate":0.016,"costRate":0.006}];
+
 export const getInitiatives=()=>ITEMS.map(x=>({...x}));
 export function buyInitiative(state,id){const item=ITEMS.find(x=>x.id===id);if(!item)throw new Error('Nie znaleziono inwestycji.');state.initiatives??=[];if(state.initiatives.includes(id))throw new Error('Ta inwestycja jest już aktywna.');if(state.cash<item.cost)throw new Error('Za mało gotówki.');state.cash-=item.cost;state.initiatives.push(id);return item;}
 export function applyInitiativesDaily(state){const active=new Set(state.initiatives||[]);let rr=0,cr=0;for(const x of ITEMS)if(active.has(x.id)){rr+=x.revenueRate;cr+=x.costRate;}const revenue=(state.shops||[]).reduce((n,x)=>n+(Number(x.revenue)||0),0),costs=(state.shops||[]).reduce((n,x)=>n+(Number(x.cost)||0),0),revenueBonus=Math.round(revenue*rr),savings=Math.round(costs*cr),total=revenueBonus+savings;state.cash+=total;return {revenueBonus,savings,total};}
