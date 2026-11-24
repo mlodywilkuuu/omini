@@ -1,19 +1,21 @@
 import {createInitialState} from './data/initialState.js';
-import {closeBusinessDay} from './systems/finance.js?v=3';
-import {openCountryShops,estimateCountryShopCost,shopFormats,updateShop,closeShop} from './systems/shops.js';
+import {closeBusinessDay} from './systems/finance.js?v=4';
+import {openCountryShops,estimateCountryShopCost,shopFormats,updateShop,closeShop} from './systems/shops.js?v=2';
 import {buyShares,sellShares,takeControl,ensureShareholders,rotateShareholders,generateMarketCompany,proposeBuyout,processBuyoutOffers} from './systems/ownership.js?v=6';
-import {renderAll} from './ui/render.js?v=28';
+import {renderAll} from './ui/render.js?v=29';
 import {money,percent} from './ui/helpers.js';
 import {countries} from './data/countries.js';
 import {buyUpgrade} from './systems/expansion.js';
 import {buyInitiative,applyInitiativesDaily} from './systems/initiatives.js?v=1';
 const $=id=>document.getElementById(id);
 const fresh=createInitialState();
+stateStaffingInit(fresh);
+function stateStaffingInit(game){game.shops.forEach(shop=>{if(!Number.isFinite(Number(shop.employees))){shop.employees=({ 'Market osiedlowy':3,'Supermarket':5,'Sklep convenience':2,'Drogeria':3,'Sklep elektroniczny':3}[shop.type]||3);}shop.payrollCost=Number.isFinite(Number(shop.payrollCost))?Number(shop.payrollCost):shop.employees*180;});}
 // Każde pełne odświeżenie rozpoczyna nową rozgrywkę. Poprzedni zapis pozostaje w localStorage jako kopia, ale nie jest automatycznie wczytywany.
 let state=fresh;
 state.claimedMissions=Array.isArray(state.claimedMissions)?state.claimedMissions:[];state.locations=[];state.upgrades=Array.isArray(state.upgrades)?state.upgrades:[];state.events=Array.isArray(state.events)?state.events:[];state.history=Array.isArray(state.history)&&state.history.length?state.history:[8400];state.companies=Array.isArray(state.companies)?state.companies:[];state.shops=Array.isArray(state.shops)?state.shops:[];state.market=Array.isArray(state.market)?state.market:[];state.cash=Number.isFinite(Number(state.cash))?Number(state.cash):fresh.cash;state.day=Number.isFinite(Number(state.day))?Number(state.day):1;
 state.companies.forEach(c=>{c.parentCompanyId??=null;c.operatingCountries??=['Polska'];});
-state.shops.forEach(s=>{s.country??='Polska';s.city='Cały kraj';s.district='Cały kraj, '+s.country;s.companyId??=1;});
+state.shops.forEach(s=>{s.country??='Polska';s.city='Cały kraj';s.district='Cały kraj, '+s.country;s.companyId??=1;if(!Number.isFinite(Number(s.employees)))s.employees=({'Market osiedlowy':3,'Supermarket':5,'Sklep convenience':2,'Drogeria':3,'Sklep elektroniczny':3}[s.type]||3);s.payrollCost=Number.isFinite(Number(s.payrollCost))?Number(s.payrollCost):s.employees*180;});
 state.market.forEach(c=>{c.freeFloat??=100-c.share;c.boardSeats??=5;ensureShareholders(c);});
 state.selectedCountry??='Polska';
 let modalAction=null,toastTimer;
