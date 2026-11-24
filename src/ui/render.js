@@ -66,7 +66,7 @@ function renderNewManagementPages(s){
 }
 
 export function renderAll(s){
- renderNewManagementPages(s);
+ try{renderNewManagementPages(s);}catch(error){console.error('Market Tycoon — nowe centra zarządzania:',error);for(const id of ['customers','products','competition','property','procurement','fleet','innovation','risk','sustainability','strategy']){const node=el('page-'+id);if(node)node.innerHTML='<div class="card"><h2>Panel chwilowo niedostępny</h2><p>Silnik zachował dane. Szczegóły: '+esc(error?.message||error)+'</p></div>';}}
  const jobs=[['page-overview',renderOverview],['page-shops',renderShops],['page-companies',renderCompanies],['page-market',renderMarket],['page-finance',renderFinance],['page-expansion',renderExpansion],['page-people',renderPeople],['page-marketing',renderMarketing],['page-logistics',renderLogistics],['page-reports',renderReports]];
  try{renderHeader(s);}catch(error){console.error('Market Tycoon — nagłówek:',error);}
  for(const [id,render] of jobs){const panel=el(id);if(!panel)continue;try{render(s);}catch(error){console.error('Market Tycoon — '+id+':',error);panel.innerHTML='<div class="card"><h2>Nie udało się wczytać tej zakładki</h2><p>Inne części gry nadal mogą działać. Szczegóły błędu:</p><code>'+esc(error?.message||error)+'</code></div>';}}
