@@ -1,6 +1,6 @@
 export function createInitialState(){return {
  day:1,cash:200000,nextId:100,selectedMarketCompanyId:null,selectedCountry:'Polska',initiatives:[],
- shops:[],warehouses:[],
+ shops:[],warehouses:[],marketingCampaigns:[],
  companies:[{id:1,name:'Wilk Retail sp. z o.o.',industry:'Handel spożywczy',share:100,value:50000,employees:3,stores:0}],
  market:[
   {id:1,name:'Miejski Handel S.A.',industry:'Supermarkety',value:650000,share:0,dividend:.004,freeFloat:68,shares:1000000,eps:2.8,pe:11.6,boardSeats:5,history:[610000,625000,638000,650000]},
