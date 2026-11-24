@@ -20,9 +20,12 @@ export function closeBusinessDay(state){
  state.shops.forEach(shop=>{
   const demand=(Math.random()-.46)*.085;
   const supplier=(Math.random()-.48)*.05;
-  shop.revenue=Math.max(0,Math.round(shop.revenue*(1+demand)));
-  shop.cost=Math.max(0,Math.round(shop.cost*(1+supplier)));const manager=state.market.find(c=>(c.id===shop.companyId||c.subsidiaryId===shop.companyId)&&c.share>=50);if(manager?.strategy==='expansion')shop.revenue=Math.round(shop.revenue*1.008);else if(manager?.strategy==='profit')shop.cost=Math.round(shop.cost*.992);else if(manager?.strategy==='balanced')shop.revenue=Math.round(shop.revenue*1.002);
+  shop.employees=Number.isFinite(Number(shop.employees))?Math.max(0,Math.floor(Number(shop.employees))):3;
+  const payrollCost=shop.employees*180;
+  shop.cost=Math.max(0,Math.round(Math.max(0,shop.cost-(Number(shop.payrollCost)||0))*(1+supplier)));
+  shop.revenue=Math.max(0,Math.round(shop.revenue*(1+demand)));const manager=state.market.find(c=>(c.id===shop.companyId||c.subsidiaryId===shop.companyId)&&c.share>=50);if(manager?.strategy==='expansion')shop.revenue=Math.round(shop.revenue*1.008);else if(manager?.strategy==='profit')shop.cost=Math.round(shop.cost*.992);else if(manager?.strategy==='balanced')shop.revenue=Math.round(shop.revenue*1.002);
   if(event){shop.revenue=Math.round(shop.revenue*event.revenue);shop.cost=Math.round(shop.cost*event.cost);}
+  shop.payrollCost=payrollCost;shop.cost+=payrollCost;
  });
  if(event){state.events??=[];state.events.unshift({icon:event.icon,title:event.title,detail:event.detail,day:state.day});state.events=state.events.slice(0,12);}
  const revenue=totalRevenue(state),costs=totalCosts(state),dividendIncome=dividends(state);
