@@ -20,9 +20,14 @@ const productFor = industry => {
 const addEvent=(state,icon,title,detail)=>{state.events??=[];state.events.unshift({icon,title,detail,day:state.day});state.events=state.events.slice(0,12);};
 function attachCompany(state,listed){
  if(listed.subsidiaryId&&state.companies.some(c=>c.id===listed.subsidiaryId))return state.companies.find(c=>c.id===listed.subsidiaryId);
- const company={id:state.nextId++,name:listed.name,industry:listed.industry,share:listed.share,value:listed.value,employees:Math.max(5,Math.round((listed.value||200000)/35000)),stores:0,acquired:true,parentCompanyId:null,operatingCountries:['Polska'],companyType:'operating',ownBrands:[],autoDevelopment:true,sourceMarketId:listed.id};
+ const company={id:state.nextId++,name:listed.name,industry:listed.industry,share:listed.share,value:listed.value,employees:Math.max(5,Math.round((listed.value||200000)/35000)),stores:0,acquired:true,parentCompanyId:null,operatingCountries:['Polska'],companyType:'operating',ownBrands:Array.isArray(listed.marketBrands)?listed.marketBrands.map(b=>({...b})):[],autoDevelopment:true,sourceMarketId:listed.id};
  state.companies.push(company);listed.controlled=true;listed.subsidiaryId=company.id;
- addEvent(state,'🏢','Spółka dołączyła do holdingu',company.name+' · automatyczny rozwój uruchomiony');
+ const count=Math.max(1,Math.min(15,Number(listed.marketStores)||1)),type=formatFor(company.industry),cost=estimateCountryShopCost(type,count);
+ const acquired=openCountryShops(state,{name:company.name,type,country:'Polska',count});
+ state.cash+=acquired.investment;
+ acquired.shops.forEach(shop=>{shop.companyId=company.id;shop.brandId=company.ownBrands[0]?.id||null;});
+ company.stores=acquired.shops.length;
+ addEvent(state,'🏢','Spółka dołączyła do holdingu',company.name+' · przejęto '+count+' istniejących sklepów i aktywa · automatyczny rozwój uruchomiony');
  return company;
 }
 function openAutoStore(state,company){
@@ -96,4 +101,29 @@ export function developControlledCompanies(state,{immediate=false}={}){
  }
  return state.companies;
 }
-export function processGroupEconomyDay(state){developControlledCompanies(state);return {companies:(state.companies||[]).filter(c=>c.acquired||c.autoDevelopment).length,stores:(state.shops||[]).length};}
+export function developPublicCompanies(state){
+ state.market??=[];
+ for(const company of state.market.filter(c=>!c.controlled)){
+  company.marketStores??=Math.max(1,Math.min(30,Math.round((Number(company.value)||200000)/220000)));
+  company.marketBrands??=[{id:'market-brand-'+company.id,name:String(company.name).split(' ')[0]+' Select',category:company.industry||'Retail',quality:55+Math.round(Math.random()*25)}];
+  company.corporateCash??=Math.max(80000,Math.round((Number(company.value)||200000)*.08));
+  company.corporateCash+=Math.max(1000,company.marketStores*2200);
+  if(state.day>1&&state.day%5===0&&company.marketStores<40&&company.corporateCash>=125000){
+   company.marketStores++;company.corporateCash-=125000;company.value=(Number(company.value)||0)+155000;
+   addEvent(state,'🏬','Ekspansja spółki giełdowej',company.name+' otworzyła nową placówkę. Łącznie: '+company.marketStores);
+  }
+  company.marketFactories??=0;company.marketWarehouses??=0;company.marketLogisticsCenters??=0;
+  if(state.day>1&&state.day%20===0&&company.marketFactories<Math.max(1,Math.floor((Number(company.value)||0)/1800000))&&company.corporateCash>=420000){
+   company.marketFactories++;company.corporateCash-=420000;company.value+=520000;
+   addEvent(state,'🏭','Inwestycja przemysłowa spółki giełdowej',company.name+' rozbudowała własne moce produkcyjne');
+  }
+  if(state.day>1&&state.day%25===0&&company.marketWarehouses<Math.max(1,Math.floor(company.marketStores/8))&&company.corporateCash>=260000){
+   company.marketWarehouses++;company.corporateCash-=260000;company.value+=300000;
+  }
+  if(state.day>1&&state.day%30===0&&company.marketStores>=8&&company.marketLogisticsCenters<3&&company.corporateCash>=750000){
+   company.marketLogisticsCenters++;company.corporateCash-=750000;company.value+=850000;
+   addEvent(state,'🚚','Rozwój logistyki spółki giełdowej',company.name+' uruchomiła własne centrum logistyczne');
+  }
+ }
+}
+export function processGroupEconomyDay(state){developPublicCompanies(state);developControlledCompanies(state);return {companies:(state.companies||[]).filter(c=>c.acquired||c.autoDevelopment).length,stores:(state.shops||[]).length};}
