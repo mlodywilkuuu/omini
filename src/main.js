@@ -21,6 +21,7 @@ let state=fresh;
 state.factories=Array.isArray(state.factories)?state.factories:[];state.claimedMissions=Array.isArray(state.claimedMissions)?state.claimedMissions:[];state.warehouses=Array.isArray(state.warehouses)?state.warehouses:[];state.locations=[];state.upgrades=Array.isArray(state.upgrades)?state.upgrades:[];state.events=Array.isArray(state.events)?state.events:[];state.history=Array.isArray(state.history)&&state.history.length?state.history:[8400];state.companies=Array.isArray(state.companies)?state.companies:[];state.shops=Array.isArray(state.shops)?state.shops:[];state.market=Array.isArray(state.market)?state.market:[];state.cash=Number.isFinite(Number(state.cash))?Number(state.cash):fresh.cash;state.day=Number.isFinite(Number(state.day))?Number(state.day):1;
 state.companies.forEach(c=>{c.parentCompanyId??=null;c.operatingCountries??=['Polska'];});
 state.shops.forEach(s=>{s.country??='Polska';s.city='Cały kraj';s.district='Cały kraj, '+s.country;s.companyId??=1;if(!Number.isFinite(Number(s.employees)))s.employees=({'Market osiedlowy':3,'Supermarket':5,'Sklep convenience':2,'Drogeria':3,'Sklep elektroniczny':3}[s.type]||3);s.payrollCost=Number.isFinite(Number(s.payrollCost))?Number(s.payrollCost):s.employees*180;});
+state.warehouses.forEach(w=>{w.assignedShopCount=state.shops.filter(s=>s.warehouseId===w.id).length;});
 state.market.forEach(c=>{c.freeFloat??=100-c.share;c.boardSeats??=5;ensureShareholders(c);});
 state.selectedCountry??='Polska';
 let modalAction=null,toastTimer;
@@ -73,6 +74,13 @@ function showPage(page){const target=$('page-'+page);if(!target)return;document.
 function openModal(title,description,fields,action){$('modalTitle').textContent=title;$('modalDescription').textContent=description;$('modalBody').innerHTML=fields;$('modalConfirm').hidden=false;$('modalConfirm').style.display='';$('modalCancel').textContent='Anuluj';if(!$('modal').open)$('modal').showModal();modalAction=action;}
 function closeModal(){$('modal').close();modalAction=null;$('modalConfirm').hidden=false;$('modalConfirm').style.display='';$('modalCancel').textContent='Anuluj';}
 const countryOptions=(selected)=>countries.map(c=>'<option value="'+esc(c)+'" '+(selected===c?'selected':'')+'>'+esc(c)+'</option>').join('');
+function autoAssignWarehouse(shop){
+ const candidates=state.warehouses.filter(w=>w.country===(shop.country||'Polska'));
+ const locals=candidates.filter(w=>w.type==='small').sort((a,b)=>((a.assignedShopCount||0)-(b.assignedShopCount||0)));
+ const mains=candidates.filter(w=>w.type!=='small').sort((a,b)=>(a.assignedShopCount||0)-(b.assignedShopCount||0));
+ const target=locals[0]||mains[0];
+ if(target){shop.warehouseId=target.id;target.assignedShopCount=(target.assignedShopCount||0)+1;}
+}
 function shopModal(){
  openModal('Zbuduj sieć sklepów','Wybierz kraj i określ, ile placówek chcesz otworzyć na jego terenie. Koszt zobaczysz przed zatwierdzeniem.',
  '<div class="field"><label>NAZWA SIECI</label><input id="fName" value="Market Wilk"></div><div class="field"><label>FORMAT SKLEPU</label><select id="fType">'+shopFormats().map(t=>'<option>'+esc(t)+'</option>').join('')+'</select></div><div class="field"><label>KRAJ</label><input id="fCountry" list="countrySuggestions" autocomplete="off" value="'+esc(state.selectedCountry||'Polska')+'" placeholder="Zacznij wpisywać nazwę kraju"><datalist id="countrySuggestions">'+countries.map(c=>'<option value="'+esc(c)+'"></option>').join('')+'</datalist><small>Wpisz kilka liter i wybierz kraj z podpowiedzi.</small></div><div class="field"><label>LICZBA PLACÓWEK W CAŁYM KRAJU</label><input id="fCount" type="number" min="1" max="500000" step="1" value="1"></div><div class="field"><label>WŁAŚCICIEL — SPÓŁKA</label><select id="fOwner">'+state.companies.filter(c=>c.share>=50||c.parentCompanyId===null).map(c=>'<option value="'+c.id+'">'+esc(c.name)+'</option>').join('')+'</select></div><div class="notice" id="shopCostPreview">Łączny koszt inwestycji: —</div>',
@@ -81,7 +89,7 @@ function shopModal(){
   if(!countries.includes(country))throw Error('Wybierz kraj z listy podpowiedzi.');
   const result=openCountryShops(state,{name,type,country,count});
   const owner=Number($('fOwner').value)||state.companies[0]?.id||null;
-  result.shops.forEach(shop=>shop.companyId=owner);
+  result.shops.forEach(shop=>{shop.companyId=owner;autoAssignWarehouse(shop);});
   state.selectedCountry=country;
   log('🏬','Otwarto sieć sklepów',count+' placówek · '+country+' · '+money(result.investment));
   moneyFx(-result.investment,'inwestycja w sieć');
@@ -122,13 +130,25 @@ function factoryModal(){
  const update=()=>{const p=products.find(x=>x.id===$('fFactoryProduct').value);$('factoryPreview').innerHTML='Koszt budowy: <b>'+money(p.factoryCost)+'</b> · wydajność: <b>'+p.capacity+' szt./dzień</b><br>Cena sprzedaży: '+money(p.price)+' / szt. · koszt produkcji: '+money(p.cost)+' / szt. · koszt stały: '+money(p.dailyCost)+'/dzień';};
  $('modalBody').onchange=update;update();
 }
+function marketingCampaignModal(campaignId){
+ const offer=getMarketingOffers(state.day).find(x=>x.id===campaignId);
+ if(!offer)throw Error('Ta oferta wygasła. Odśwież zakładkę marketingu.');
+ const countriesWithShops=[...new Set(state.shops.map(s=>s.country||'Polska'))];
+ openModal('Uruchom kampanię',offer.name+' · '+offer.channel+'. Budżet jest rozliczany każdego dnia, a efekt zwiększa sprzedaż objętych kampanią sklepów.',
+ '<div class="notice">'+esc(offer.description)+'<br>Efekt bazowy: +'+(offer.boost*100).toFixed(1)+'% sprzedaży.</div><div class="field"><label>RYNEK</label><select id="fCampaignCountry"><option value="all">Wszystkie kraje</option>'+countriesWithShops.map(c=>'<option value="'+esc(c)+'">'+esc(c)+'</option>').join('')+'</select></div><div class="field"><label>BUDŻET DZIENNY (ZŁ)</label><input id="fCampaignBudget" type="number" min="'+offer.base+'" max="1000000" step="50" value="'+offer.base+'"></div><div class="field"><label>CZAS TRWANIA</label><select id="fCampaignDuration">'+[3,5,7,10,14].map(d=>'<option value="'+d+'" '+(d===7?'selected':'')+'>'+d+' dni</option>').join('')+'</select></div><div class="notice" id="campaignPreview">Minimalny budżet: '+money(offer.base)+' dziennie. Maksymalnie 8 kampanii jednocześnie.</div>',
+ ()=>{const dailyBudget=Number($('fCampaignBudget').value),duration=Number($('fCampaignDuration').value),country=$('fCampaignCountry').value;const campaign=startMarketingCampaign(state,{campaignId,dailyBudget,duration,country});log('📣','Uruchomiono kampanię',campaign.name+' · '+(country==='all'?'wszystkie kraje':country)+' · '+money(dailyBudget)+'/dzień · '+duration+' dni');closeModal();save();safeRender();notify('Kampania wystartowała. Budżet będzie rozliczany przy każdym dniu gry.');});
+ const update=()=>{const budget=Number($('fCampaignBudget').value),days=Number($('fCampaignDuration').value),country=$('fCampaignCountry').value,count=state.shops.filter(s=>country==='all'||s.country===country).length;const node=$('campaignPreview');node.innerHTML='Placówki objęte kampanią: <b>'+count+'</b><br>Łączny budżet: <b>'+money(budget*days)+'</b> · dziennie na sklep: <b>'+money(count?budget/count:0)+'</b><br>Szacowany wzrost sprzedaży: <b>+'+(offer.boost*Math.min(2.5,Math.sqrt(Math.max(0,budget)/offer.base))*100).toFixed(1)+'%</b>';};
+ $('modalBody').oninput=update;$('modalBody').onchange=update;update();
+}
 function warehouseModal(){
  const types=warehouseTypes();
- openModal('Zbuduj centrum logistyczne','Magazyn przechowuje zapasy, automatycznie zamawia towary i obsługuje sklepy w tym samym kraju. Koszty utrzymania i dostaw obciążają wynik dzienny.', '<div class="field"><label>NAZWA</label><input id="fWarehouseName" value="Centrum dystrybucji"></div><div class="field"><label>KRAJ</label><select id="fWarehouseCountry">'+countries.map(c=>'<option '+(c===(state.selectedCountry||'Polska')?'selected':'')+'>'+esc(c)+'</option>').join('')+'</select></div><div class="field"><label>RODZAJ OBIEKTU</label><select id="fWarehouseType"><option value="small">Magazyn lokalny — 6 000 jednostek · 180 000 zł</option><option value="regional">Centrum regionalne — 24 000 jednostek · 620 000 zł</option><option value="national">Centrum krajowe — 90 000 jednostek · 1 850 000 zł</option></select></div><div class="notice" id="warehousePreview">Magazyn lokalny: 6 000 jednostek pojemności, 320 zł kosztu stałego dziennie.</div>',()=>{
-  const type=$('fWarehouseType').value,result=createWarehouse(state,{name:$('fWarehouseName').value,country:$('fWarehouseCountry').value,type});
-  log('🏭','Zbudowano magazyn',result.warehouse.name+' · '+result.warehouse.country+' · '+money(result.cost));moneyFx(-result.cost,'budowa magazynu');closeModal();save();safeRender();notify('Magazyn został uruchomiony.');
+ openModal('Zbuduj centrum logistyczne','Magazyn przechowuje zapasy, automatycznie zamawia towary i obsługuje sklepy w tym samym kraju. Koszty utrzymania i dostaw obciążają wynik dzienny.', '<div class="field"><label>NAZWA</label><input id="fWarehouseName" value="Centrum dystrybucji"></div><div class="field"><label>KRAJ</label><select id="fWarehouseCountry">'+countries.map(c=>'<option '+(c===(state.selectedCountry||'Polska')?'selected':'')+'>'+esc(c)+'</option>').join('')+'</select></div><div class="field"><label>RODZAJ OBIEKTU</label><select id="fWarehouseType"><option value="national">Magazyn główny — 90 000 jednostek · 1 850 000 zł</option><option value="regional">Magazyn regionalny — 24 000 jednostek · 620 000 zł</option><option value="small">Magazyn lokalny — 6 000 jednostek · 180 000 zł</option></select></div><div class="field"><label>MAGAZYN GŁÓWNY DLA LOKALNEGO</label><select id="fWarehouseParent"><option value="">Bez nadrzędnego — główny / samodzielny</option>'+state.warehouses.filter(w=>w.country===($('fWarehouseCountry')?.value||state.selectedCountry)&&w.type!=='small').map(w=>'<option value="'+w.id+'">'+esc(w.name)+'</option>').join('')+'</select></div><div class="field"><label>ILE SKLEPÓW PRZYPISAĆ DO NOWEGO MAGAZYNU</label><input id="fWarehouseShopCount" type="number" min="0" max="500000" value="0"></div><div class="notice" id="warehousePreview">Magazyn lokalny: 6 000 jednostek pojemności, 320 zł kosztu stałego dziennie.</div>',()=>{
+  const type=$('fWarehouseType').value,parentWarehouseId=Number($('fWarehouseParent').value)||null,result=createWarehouse(state,{name:$('fWarehouseName').value,country:$('fWarehouseCountry').value,type,parentWarehouseId});
+  const requested=Math.max(0,Math.floor(Number($('fWarehouseShopCount').value)||0));if(type==='small'&&parentWarehouseId&&!state.warehouses.some(w=>w.id===parentWarehouseId&&w.type!=='small'&&w.country===$('fWarehouseCountry').value))throw Error('Wybierz prawidłowy magazyn główny z tego samego kraju.');
+  const eligible=state.shops.filter(shop=>shop.country===$('fWarehouseCountry').value&&(!parentWarehouseId||shop.warehouseId===parentWarehouseId)&&shop.warehouseId!==result.warehouse.id).slice(0,requested);eligible.forEach(shop=>shop.warehouseId=result.warehouse.id);result.warehouse.parentWarehouseId=parentWarehouseId;result.warehouse.assignedShopCount=eligible.length;
+  log('🏭','Zbudowano magazyn',result.warehouse.name+' · '+result.warehouse.country+' · '+eligible.length+' sklepów · '+money(result.cost));moneyFx(-result.cost,'budowa magazynu');closeModal();save();safeRender();notify('Magazyn został uruchomiony.');
  });
- const update=()=>{const t=types[$('fWarehouseType').value];$('warehousePreview').textContent=t.name+': '+t.capacity.toLocaleString('pl-PL')+' jednostek · '+money(t.dailyCost)+' kosztu stałego dziennie · '+t.employees+' pracowników.';};
+ const update=()=>{const t=types[$('fWarehouseType').value];$('warehousePreview').textContent=t.name+': '+t.capacity.toLocaleString('pl-PL')+' jednostek · '+money(t.dailyCost)+' kosztu stałego dziennie · '+t.employees+' pracowników. Magazyn lokalny może być podpięty do głównego.';};
  $('modalBody').onchange=update;update();
 }
 function buildLogisticsCenter(companyId){
