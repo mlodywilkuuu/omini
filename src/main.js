@@ -3,7 +3,7 @@ import {closeBusinessDay} from './systems/finance.js?v=3';
 import {openCountryShops,estimateCountryShopCost,shopFormats,updateShop,closeShop} from './systems/shops.js';
 import {buyShares,sellShares,takeControl,ensureShareholders,rotateShareholders,generateMarketCompany,proposeBuyout,processBuyoutOffers} from './systems/ownership.js?v=6';
 import {renderAll} from './ui/render.js?v=28';
-import {money} from './ui/helpers.js';
+import {money,percent} from './ui/helpers.js';
 import {countries} from './data/countries.js';
 import {buyUpgrade} from './systems/expansion.js';
 import {buyInitiative,applyInitiativesDaily} from './systems/initiatives.js?v=1';
