@@ -57,7 +57,8 @@ export function processFactoriesDay(state){
   const produced=Math.min(product.capacity*factory.level,Math.max(0,stores)*90);
   const sold=produced;
   factory.lastProduction=produced;factory.lastRevenue=sold*product.price;
-  const playerShare=Math.max(0,Math.min(100,Number(factory.playerShare??100)))/100;\n  revenue+=sold*product.price*playerShare;cost+=(sold*product.cost+product.dailyCost)*playerShare;units+=sold*playerShare;
+  const playerShare=Math.max(0,Math.min(100,Number(factory.playerShare??100)))/100;
+  revenue+=sold*product.price*playerShare;cost+=(sold*product.cost+product.dailyCost)*playerShare;units+=sold*playerShare;
  });
  state.factoryRevenue=revenue;state.factoryCost=cost;
  return {revenue,cost,units};
