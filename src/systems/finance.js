@@ -2,7 +2,7 @@ import {processLogisticsDay} from './logistics.js?v=3';
 import {processMarketingDay} from './marketing.js?v=1';
 import {processProcurementDay} from './procurement.js?v=1';
 import {processB2BContracts} from './b2b.js?v=1';
-import {processFactoriesDay} from './factories.js?v=1';
+import {processFactoriesDay} from './factories.js?v=4';
 import {scaleInfrastructureWorkforce} from './logistics.js?v=3';
 import {processGroupEconomyDay} from './group_economy.js?v=2';
 export const totalRevenue=state=>state.shops.reduce((sum,shop)=>sum+shop.revenue,0)+(Number(state.contractRevenue)||0)+(Number(state.factoryRevenue)||0);
