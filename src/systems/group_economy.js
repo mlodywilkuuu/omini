@@ -1,6 +1,6 @@
 import {openCountryShops,estimateCountryShopCost,shopFormats} from './shops.js?v=5';
 import {createFactory,factoryProducts} from './factories.js?v=5';
-import {createWarehouse} from './logistics.js?v=3';
+import {createWarehouse} from './logistics.js?v=4';
 
 const formatFor = industry => {
  const s=String(industry||'').toLowerCase();
