@@ -1,5 +1,5 @@
 import {openCountryShops,estimateCountryShopCost,shopFormats} from './shops.js?v=5';
-import {createFactory,factoryProducts} from './factories.js?v=3';
+import {createFactory,factoryProducts} from './factories.js?v=4';
 import {createWarehouse} from './logistics.js?v=3';
 
 const formatFor = industry => {
