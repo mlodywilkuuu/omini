@@ -44,8 +44,10 @@ function createOwnBrand(state,company){
  return true;
 }
 function autoBuildFactory(state,company){
- if((state.factories||[]).some(f=>f.companyId===company.id))return false;
- const product=productFor(company.industry);
+ const companyFactories=(state.factories||[]).filter(f=>f.companyId===company.id),limit=1+Math.floor((Number(company.stores)||0)/5);
+ if(companyFactories.length>=limit)return false;
+ const used=new Set(companyFactories.map(f=>f.productId)),preferred=productFor(company.industry);
+ const product=factoryProducts.find(p=>!used.has(p.id)&&p.category===preferred.category)||factoryProducts.find(p=>!used.has(p.id));
  if(!product||state.cash<product.factoryCost)return false;
  const r=createFactory(state,{name:company.name+' — fabryka '+product.category,productId:product.id,companyId:company.id});
  const factory=r.factory;factory.playerShare=0;factory.shareholders=[{name:company.name,share:100,type:'Spółka'}];factory.autoBuilt=true;
@@ -54,8 +56,9 @@ function autoBuildFactory(state,company){
 }
 function autoBuildWarehouse(state,company){
  const country=(company.operatingCountries||[])[0]||'Polska';
- if((state.warehouses||[]).some(w=>w.ownerCompanyId===company.id))return false;
- const type=(company.stores||0)>=8?'regional':'small',specCost=type==='small'?180000:620000;
+ const owned=(state.warehouses||[]).filter(w=>w.ownerCompanyId===company.id),limit=(Number(company.stores)||0)>=25?3:(Number(company.stores)||0)>=10?2:1;
+ if(owned.length>=limit)return false;
+ const type=owned.length===0?'small':(company.stores||0)>=8?'regional':'small',specCost=type==='small'?180000:620000;
  if(state.cash<specCost)return false;
  const r=createWarehouse(state,{name:company.name+' — '+(type==='small'?'magazyn lokalny':'centrum regionalne'),country,type});
  r.warehouse.ownerCompanyId=company.id;
@@ -64,12 +67,14 @@ function autoBuildWarehouse(state,company){
  return true;
 }
 function autoBuildLogisticsChild(state,company){
- if((state.companies||[]).some(c=>c.parentCompanyId===company.id&&c.companyType==='logistics'))return false;
+ let child=(state.companies||[]).find(c=>c.parentCompanyId===company.id&&c.companyType==='logistics');
+ const target=Math.min(3,Math.max(1,Math.floor((Number(company.stores)||0)/5)));
+ if(child&&Number(child.logisticsCenters||0)>=target)return false;
  const cost=1200000;if(state.cash<cost)return false;
  state.cash-=cost;
- const child={id:state.nextId++,name:company.name+' Logistics',industry:'Logistyka',companyType:'logistics',share:100,value:cost,employees:8,stores:0,logisticsCenters:1,parentCompanyId:company.id,operatingCountries:[...(company.operatingCountries||['Polska'])],acquired:true,autoDevelopment:true};
- state.companies.push(child);company.value=(Number(company.value)||0)+cost;
- addEvent(state,'🚚','Własne centrum logistyczne',child.name+' rozpoczęło obsługę sieci');
+ if(!child){child={id:state.nextId++,name:company.name+' Logistics',industry:'Logistyka',companyType:'logistics',share:100,value:cost,employees:8,stores:0,logisticsCenters:0,parentCompanyId:company.id,operatingCountries:[...(company.operatingCountries||['Polska'])],acquired:true,autoDevelopment:true};state.companies.push(child);}
+ child.logisticsCenters=(Number(child.logisticsCenters)||0)+1;child.value=(Number(child.value)||0)+cost;company.value=(Number(company.value)||0)+cost;
+ addEvent(state,'🚚','Rozbudowano własne centrum logistyczne',child.name+' · centra: '+child.logisticsCenters);
  return true;
 }
 export function developControlledCompanies(state,{immediate=false}={}){
