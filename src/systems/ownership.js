@@ -150,3 +150,29 @@ export function processBuyoutOffers(state){
  }
  state.buyoutOffers=remaining;state.events=state.events.slice(0,12);
 }
+
+export function cancelBuyoutOffer(state,offerId){
+ state.buyoutOffers??=[];
+ const index=state.buyoutOffers.findIndex(x=>Number(x.id)===Number(offerId));
+ if(index<0)throw new Error('Nie znaleziono aktywnej oferty.');
+ const [offer]=state.buyoutOffers.splice(index,1);
+ return offer;
+}
+export function validateShareLedgers(state){
+ const report=[];
+ for(const company of state.market||[]){
+  company.share=roundShare(Math.max(0,Math.min(100,Number(company.share)||0)));
+  const holders=ensureShareholders(company);
+  const total=roundShare(company.share+holders.reduce((sum,h)=>sum+h.share,0));
+  if(total!==100) {
+   const drift=roundShare(100-total);
+   if(holders.length)holders[0].share=roundShare(Math.max(0,holders[0].share+drift));
+   else if(company.share<100)company.share=100;
+  }
+  company.share=Math.min(100,Math.max(0,roundShare(company.share)));
+  company.shareholders=(company.shareholders||[]).filter(h=>h.share>.001);
+  company.freeFloat=roundShare(100-company.share);
+  report.push({id:company.id,total:roundShare(company.share+company.shareholders.reduce((sum,h)=>sum+h.share,0))});
+ }
+ return report;
+}
