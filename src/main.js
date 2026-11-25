@@ -1,9 +1,9 @@
 import {createInitialState} from './data/initialState.js';
-import {simulateGameDay,createGameClock} from './engine/index.js?v=1';
+import {simulateGameDay,createGameClock} from './engine/index.js?v=2';
 import {openCountryShops,estimateCountryShopCost,shopFormats,updateShop,closeShop} from './systems/shops.js?v=5';
 import {buyShares,sellShares,takeControl,ensureShareholders,proposeBuyout,cancelBuyoutOffer,issueShares} from './systems/ownership.js?v=10';
 import {renderAll} from './ui/render.js?v=53';
-import {buyEmpireSystem,ensureEmpireSystems} from './systems/empire_systems.js?v=1';
+import {buyEmpireSystem,ensureEmpireSystems} from './systems/empire_systems.js?v=2';
 import {money,percent} from './ui/helpers.js';
 import {countries} from './data/countries.js';
 import {buyUpgrade} from './systems/expansion.js';
@@ -69,6 +69,7 @@ function toggleCheatConsole(force){
  panel.classList.toggle('open',open);
  if(open)setTimeout(()=>$('cheatInput')?.focus(),0);
 }
+$('cheatToggle')?.addEventListener('click',()=>toggleCheatConsole());
 document.addEventListener('keydown',e=>{
  const typing=e.target instanceof HTMLElement&&(['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName)||e.target.isContentEditable);
  if((e.code==='Backquote'||e.key==='~')&&!typing){e.preventDefault();toggleCheatConsole();}
