@@ -1,12 +1,14 @@
 import {closeBusinessDay} from '../systems/finance.js?v=15';
 import {applyInitiativesDaily} from '../systems/initiatives.js?v=5';
 import {advanceMarketDay} from './market.js?v=1';
+import {assertGameInvariants} from './invariants.js?v=1';
 
 export function simulateGameDay(state){
  state.day=Math.max(1,Math.floor(Number(state.day)||1))+1;
  const finances=closeBusinessDay(state);
  const initiatives=applyInitiativesDaily(state);
  const market=advanceMarketDay(state);
+ assertGameInvariants(state);
  state.cashHistory??=[];
  state.cashHistory.push(Number(state.cash)||0);
  state.cashHistory=state.cashHistory.slice(-60);
