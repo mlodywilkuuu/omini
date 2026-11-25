@@ -109,7 +109,7 @@ export function takeControl(state,companyId){
  if(Number(company.share)<50)throw new Error('Do przejęcia kontroli potrzebujesz minimum 50% udziałów.');
  let subsidiary=state.companies.find(item=>item.sourceMarketId===company.id||item.name===company.name);
  if(!subsidiary){
-  subsidiary={id:state.nextId++,name:company.name,industry:company.industry,share:company.share,value:company.value,employees:Math.max(5,Math.round(company.value/35000)),stores:0,acquired:true,parentCompanyId:null,operatingCountries:['Polska'],companyType:'operating',ownBrands:[],autoDevelopment:true,sourceMarketId:company.id};
+  subsidiary={id:state.nextId++,name:company.name,industry:company.industry,share:company.share,value:company.value,employees:Math.max(5,Math.round(company.value/35000)),techStaff:Math.max(5,Math.round(company.value/150000)),techFocus:company.techFocus||'ai',techResearchLevel:1,techProducts:[],acquired:true,parentCompanyId:null,operatingCountries:['Polska'],companyType:'technology',ownBrands:[],autoDevelopment:true,sourceMarketId:company.id};
   state.companies.push(subsidiary);
  }
  const companyName=company.name;
