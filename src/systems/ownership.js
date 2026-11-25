@@ -1,6 +1,6 @@
 const investorNames=['Fundusz Północny','Baltic Capital','Orzeł Asset Management','Nova Investments','Horyzont TFI','Atlas Partners','Vistula Pension Fund','Amber Equity','Global Value Fund','Cedar Capital','Northstar Holdings','Silverline Investments','Polaris Capital','Union Trust'];
 const companyNames=['Nova','Baltic','Orion','Vertex','Aurum','Pioneer','Urban','Verto','Horizon','Quantum','Nexum','Atlas','Lumen','Polar','Cobalt','Meridian','Prime','Everest','Solido','Viva'];
-const companyIndustries=['Handel detaliczny','Technologie','Energetyka','Logistyka','Nieruchomości','Finanse','Moda i odzież','Żywność i napoje','Telekomunikacja','Farmacja','Motoryzacja','Media i rozrywka','Budownictwo','Turystyka','Przemysł'];
+const companyIndustries=['Sztuczna inteligencja','Chmura i centra danych','Półprzewodniki','Systemy operacyjne','Robotyka','Cyberbezpieczeństwo','Telekomunikacja','Biotechnologia obliczeniowa','Rzeczywistość rozszerzona'];
 const pick=a=>a[Math.floor(Math.random()*a.length)];
 const roundShare=n=>Math.round((Number(n)||0)*100)/100;
 function syncShareLedger(company){
@@ -34,8 +34,8 @@ export function generateMarketCompany(state){
   const retired=candidates[0];state.market=state.market.filter(x=>x.id!==retired.id);
   state.events??=[];state.events.unshift({icon:'📤',title:'Wycofanie z giełdy',detail:retired.name+' zakończyła notowania.',day:state.day});state.events=state.events.slice(0,12);
  }
- let name='',attempts=0;do{name=pick(companyNames)+' '+pick(['Group','Industries','Holdings','Systems','Retail','S.A.']);attempts++;}while(state.market.some(c=>c.name===name)&&attempts<20);if(state.market.some(c=>c.name===name))return null;const id=state.nextId++;
- const value=Math.round((180000+Math.random()*2820000)/10000)*10000,company={id,name,industry:pick(companyIndustries),value,share:0,dividend:+(.001+Math.random()*.006).toFixed(4),freeFloat:100,shares:Math.round(value/(2+Math.random()*8)),eps:+(1+Math.random()*6).toFixed(2),pe:+(7+Math.random()*15).toFixed(1),boardSeats:3+2*Math.floor(Math.random()*3),history:[Math.round(value*.94),Math.round(value*.97),value],listedDay:state.day,shareholders:[]};
+ let name='',attempts=0;do{name=pick(companyNames)+' '+pick(['AI','Cloud','Systems','Technologies','Robotics','Labs','Semiconductors','S.A.']);attempts++;}while(state.market.some(c=>c.name===name)&&attempts<20);if(state.market.some(c=>c.name===name))return null;const id=state.nextId++;
+ const value=Math.round((180000+Math.random()*2820000)/10000)*10000,company={id,name,industry:pick(companyIndustries),sector:'technology',techFocus:pick(['ai','cloud','chips','os','robotics','security','telecom','biotech','xr']),value,share:0,dividend:+(.001+Math.random()*.006).toFixed(4),freeFloat:100,shares:Math.round(value/(2+Math.random()*8)),eps:+(1+Math.random()*6).toFixed(2),pe:+(7+Math.random()*15).toFixed(1),boardSeats:3+2*Math.floor(Math.random()*3),history:[Math.round(value*.94),Math.round(value*.97),value],listedDay:state.day,shareholders:[]};
  state.market.push(company);ensureShareholders(company);
  state.events??=[];state.events.unshift({icon:'🆕',title:'Nowa spółka na giełdzie',detail:name+' debiutuje z wyceną '+value.toLocaleString('pl-PL')+' zł.',day:state.day});state.events=state.events.slice(0,12);
  return company;
@@ -95,6 +95,14 @@ export function sellShares(state,companyId,percentage){
  syncShareLedger(company);
  return {company,amount,proceeds,fee};
 }
+export function issueShares(state,companyId,percentage){
+ const company=state.market.find(x=>Number(x.id)===Number(companyId));if(!company)throw new Error('Nie znaleziono emitenta.');if(Number(company.share)<50)throw new Error('Emisja akcji wymaga co najmniej 50% głosów.');
+ const pct=roundShare(Number(percentage));if(!Number.isFinite(pct)||pct<1||pct>25)throw new Error('Emisja musi wynosić od 1% do 25%.');
+ const holders=ensureShareholders(company),factor=(100-pct)/100,proceeds=Math.round(company.value*pct/100*.92);company.share=roundShare(company.share*factor);holders.forEach(h=>h.share=roundShare(h.share*factor));
+ let remaining=pct;const count=2+Math.floor(Math.random()*3);for(let i=0;i<count;i++){const amount=i===count-1?roundShare(remaining):roundShare(pct/count);if(amount>0)holders.push({name:pick(investorNames)+' '+(Math.floor(Math.random()*90)+10),type:i===0?'Fundusz emisyjny':'Nowy inwestor',share:amount});remaining=roundShare(remaining-amount);}
+ company.shareholders=holders;company.value+=proceeds;company.issuedCapital=(Number(company.issuedCapital)||0)+proceeds;company.shares=Math.round((Number(company.shares)||1000000)/factor);syncShareLedger(company);state.events??=[];state.events.unshift({icon:'🏦',title:'Nowa emisja akcji',detail:company.name+' pozyskała '+proceeds.toLocaleString('pl-PL')+' zł. Twój pakiet po emisji: '+company.share+'%.',day:state.day});state.events=state.events.slice(0,20);return {company,percentage:pct,proceeds,dilutedShare:company.share};
+}
+
 export function takeControl(state,companyId){
  const company=state.market.find(item=>Number(item.id)===Number(companyId));
  if(!company)throw new Error('Nie znaleziono spółki na giełdzie. Odśwież zakładkę i spróbuj ponownie.');
