@@ -78,13 +78,21 @@ export function sellShares(state,companyId,percentage){
  const company=state.market.find(x=>x.id===companyId);if(!company)throw new Error('Nie znaleziono spółki.');
  const requested=Number(percentage),amount=roundShare(Math.min(requested,company.share||0));
  if(!Number.isFinite(requested)||requested<=0||amount<=0)throw new Error('Nie masz tylu udziałów do sprzedaży.');
+ const holders=ensureShareholders(company);
+ const total=holders.reduce((sum,h)=>sum+h.share,0);
  const volatility=company.history?.length>1?Math.min(.035,Math.abs(company.history.at(-1)-company.history.at(-2))/Math.max(1,company.history.at(-2))*.5):.01;
  const gross=Math.round(company.value*amount/100*(1-.008-amount*.0007-volatility)),fee=Math.round(gross*.01),proceeds=gross-fee;
- company.share=roundShare(company.share-amount);
- const holders=ensureShareholders(company);
- if(holders.length){const total=holders.reduce((a,h)=>a+h.share,0);holders.forEach((h,i)=>{h.share=roundShare(h.share+amount*(total?h.share/total:1/holders.length));});const drift=roundShare(100-company.share-holders.reduce((a,h)=>a+h.share,0));holders[0].share=roundShare(holders[0].share+drift);}
- company.freeFloat=roundShare(100-company.share);state.cash+=proceeds;
+ company.share=roundShare(Math.max(0,company.share-amount));
+ if(holders.length&&total>0){
+  holders.forEach(h=>h.share=roundShare(h.share+amount*h.share/total));
+  const drift=roundShare(100-company.share-holders.reduce((sum,h)=>sum+h.share,0));
+  holders[0].share=roundShare(holders[0].share+drift);
+ }
+ company.shareholders=holders.filter(h=>h.share>.001);
+ company.freeFloat=roundShare(100-company.share);
+ state.cash+=proceeds;
  company.history??=[company.value];company.history.push(company.value);company.history=company.history.slice(-8);
+ syncShareLedger(company);
  return {company,amount,proceeds,fee};
 }
 export function takeControl(state,companyId){
