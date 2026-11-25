@@ -3,7 +3,7 @@ import {simulateGameDay,createGameClock} from './engine/index.js?v=1';
 import {closeBusinessDay} from './systems/finance.js?v=14';
 import {openCountryShops,estimateCountryShopCost,shopFormats,updateShop,closeShop} from './systems/shops.js?v=5';
 import {buyShares,sellShares,takeControl,ensureShareholders,rotateShareholders,generateMarketCompany,proposeBuyout,processBuyoutOffers,cancelBuyoutOffer} from './systems/ownership.js?v=9';
-import {renderAll} from './ui/render.js?v=48';
+import {renderAll} from './ui/render.js?v=49';
 import {money,percent} from './ui/helpers.js';
 import {countries} from './data/countries.js';
 import {buyUpgrade} from './systems/expansion.js';
