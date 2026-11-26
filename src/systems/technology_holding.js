@@ -71,6 +71,13 @@ export const TECHNOLOGY_CATALOG=[{"id":"edge_ai","name":"Edge AI","focus":"ai","
 ];
 export function ensureTechnologyTree(state){state.technologyTree??={};for(const t of TECHNOLOGY_CATALOG)if(!state.technologyTree[t.id])state.technologyTree[t.id]={discovered:Number(state.day||1)>=t.day,researched:false,level:0,discoveredDay:Number(state.day||1)>=t.day?1:null};return state.technologyTree;}
 export function discoverTechnology(state){const tree=ensureTechnologyTree(state),candidates=TECHNOLOGY_CATALOG.filter(t=>!tree[t.id].discovered&&Number(state.day)>=t.day);let next;if(candidates.length)next=candidates.sort((a,b)=>a.tier-b.tier||a.day-b.day)[0];else{const focus=TECHNOLOGY_FOCI[Math.floor(Math.random()*TECHNOLOGY_FOCI.length)],tier=Math.min(5,Math.floor(Number(state.day||1)/12)+1),prefix=['Adaptive','Neural','Quantum','Distributed','Synthetic','Autonomous','Photonic','Cognitive','Hyper-scale','Predictive'],suffix=['Fabric','Engine','Protocol','Architecture','Matrix','Runtime','Network','Platform','Core','Stack'],name=prefix[Math.floor(Math.random()*prefix.length)]+' '+focus.name+' '+suffix[Math.floor(Math.random()*suffix.length)],id='frontier_'+state.day;next={id,name,focus:focus.id,category:focus.name,tier,cost:Math.round((90000+Number(state.day||1)*18000)*tier),day:Number(state.day||1),effect:'Nowa generacja '+focus.name.toLowerCase()+'. Otwiera kolejne możliwości produktów i wzmacnia potencjał badawczy holdingu.'};TECHNOLOGY_CATALOG.push(next);tree[id]={discovered:false,researched:false,level:0,discoveredDay:null};}tree[next.id].discovered=true;tree[next.id].discoveredDay=state.day;state.events??=[];state.events.unshift({icon:'🧬',title:'Odkryto nową technologię',detail:next.name+' jest dostępna w laboratorium R&D.',day:state.day});state.events=state.events.slice(0,20);return next;}
+function processAutomaticTechnologyResearch(state){
+ if(state.autoResearch===false)return null;
+ const tree=ensureTechnologyTree(state);
+ const next=TECHNOLOGY_CATALOG.filter(t=>tree[t.id]?.discovered&&!tree[t.id]?.researched&&Number(state.cash)>=Number(t.cost)).sort((a,b)=>a.tier-b.tier||a.cost-b.cost||a.day-b.day)[0];
+ if(!next)return null;
+ return researchTechnology(state,next.id);
+}
 export function researchTechnology(state,id){const tree=ensureTechnologyTree(state),item=TECHNOLOGY_CATALOG.find(t=>t.id===id),entry=tree[id];if(!item||!entry?.discovered)throw new Error('Technologia nie została jeszcze odkryta.');if(entry.researched)throw new Error('Ta technologia jest już opracowana.');if(state.cash<item.cost)throw new Error('Badania wymagają '+item.cost.toLocaleString('pl-PL')+' zł.');state.cash-=item.cost;entry.researched=true;entry.level=1;entry.researchedDay=state.day;for(const c of state.companies||[]){c.techResearchLevel=(Number(c.techResearchLevel)||1)+.15;c.value=(Number(c.value)||50000)+Math.round(item.cost*.08);}state.events??=[];state.events.unshift({icon:'🔬',title:'Zakończono badania',detail:item.name+' — wzrost wydajności produktów.',day:state.day});state.events=state.events.slice(0,20);return {technology:item,cost:item.cost};}
 
 const focusById=id=>TECHNOLOGY_FOCI.find(x=>x.id===id)||TECHNOLOGY_FOCI[0];
@@ -212,6 +219,7 @@ function autoDevelopCompany(state,company,dayStats){
 export function processTechnologyCompaniesDay(state){
  ensureTechnologyCompanies(state);
  if(Number(state.day||1)%3===0)discoverTechnology(state);
+ const automaticResearch=processAutomaticTechnologyResearch(state);
  let revenue=0,cost=0,units=0;
  const automation={hires:0,products:0,upgrades:0,investment:0};
  for(const c of state.companies){
@@ -237,5 +245,5 @@ export function processTechnologyCompaniesDay(state){
  state.techRevenue=revenue;state.techCost=cost;
  state.techAutomationStats=automation;
  state.events=Array.isArray(state.events)?state.events.slice(0,20):[];
- return {revenue,cost,units,automation};
+ return {revenue,cost,units,automation,automaticResearch};
 }
