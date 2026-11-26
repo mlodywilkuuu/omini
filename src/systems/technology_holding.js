@@ -88,6 +88,7 @@ function spendCompanyDevelopment(state,company,amount){
  const fromGroup=n-fromReserve;
  if(fromGroup>0&&state.cash<fromGroup)return false;
  company.managementBudgetRemaining=reserve-fromReserve;
+ company.managementBudgetSpent=(Number(company.managementBudgetSpent)||0)+fromReserve;
  if(fromGroup>0)state.cash-=fromGroup;
  return true;
 }
@@ -119,7 +120,6 @@ function autoDevelopCompany(state,company,dayStats){
  const focus=focusById(company.techFocus),products=company.techProducts;
  company.autoDevelopment=true;
  company.autoHire??=true;company.autoProductDevelopment??=true;company.lastAutoHireDay??=0;company.lastAutoProductDay??=0;company.lastAutoUpgradeDay??=0;
- const reserve=Math.max(0,Number(company.managementBudgetRemaining)||0);
  const desiredStaff=Math.min(120,Math.max(6,Math.ceil(4+products.length*3+(Number(company.techResearchLevel)||1)*2)));
  if(company.autoHire&&company.techStaff<desiredStaff&&Number(state.day)-Number(company.lastAutoHireDay)>=5){
   const count=Math.min(3,desiredStaff-company.techStaff),cost=count*3500;
@@ -149,8 +149,7 @@ function autoDevelopCompany(state,company,dayStats){
   }
   if(upgraded){company.lastAutoUpgradeDay=state.day;dayStats.upgrades+=upgraded;company.value=(Number(company.value)||50000)+upgraded*18000;state.events??=[];state.events.unshift({icon:'⬆️',title:'Automatyczne ulepszenie produktów',detail:company.name+' rozwija '+upgraded+' produktów.',day:state.day});}
  }
- if(reserve>0)company.managementBudgetSpent=(Number(company.managementBudgetSpent)||0);
-}
+ }
 export function processTechnologyCompaniesDay(state){
  ensureTechnologyCompanies(state);
  if(Number(state.day||1)%3===0)discoverTechnology(state);
