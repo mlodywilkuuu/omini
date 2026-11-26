@@ -1,4 +1,4 @@
-import {processTechnologyCompaniesDay} from './technology_holding.js?v=2';
+import {processTechnologyCompaniesDay} from './technology_holding.js?v=3';
 export const totalRevenue=state=>Number(state.techRevenue)||0;
 export const totalCosts=state=>Number(state.techCost)||0;
 export const shareAssets=state=>(state.market||[]).reduce((sum,company)=>sum+company.value*company.share/100,0);
