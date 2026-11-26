@@ -2,7 +2,7 @@ import {createInitialState} from './data/initialState.js';
 import {simulateGameDay,createGameClock} from './engine/index.js?v=2';
 import {openCountryShops,estimateCountryShopCost,shopFormats,updateShop,closeShop} from './systems/shops.js?v=5';
 import {buyShares,sellShares,takeControl,ensureShareholders,proposeBuyout,cancelBuyoutOffer,issueShares} from './systems/ownership.js?v=10';
-import {renderAll} from './ui/render.js?v=54';
+import {renderAll} from './ui/render.js?v=55';
 import {buyEmpireSystem,ensureEmpireSystems} from './systems/empire_systems.js?v=2';
 import {money,percent} from './ui/helpers.js';
 import {countries} from './data/countries.js';
@@ -14,7 +14,7 @@ import {activateSupplierContract} from './systems/procurement.js?v=1';
 import {acceptB2BContract} from './systems/b2b.js?v=1';
 import {factoryProducts,createFactory,processFactoriesDay,buyFactoryShares} from './systems/factories.js?v=5';
 import {developControlledCompanies} from './systems/group_economy.js?v=4';
-import {ensureTechnologyCompanies,TECHNOLOGY_FOCI,setCompanyTechFocus,hireTechnologyStaff,createTechnologyProduct,researchTechnology,ensureTechnologyTree} from './systems/technology_holding.js?v=2';
+import {ensureTechnologyCompanies,TECHNOLOGY_FOCI,setCompanyTechFocus,hireTechnologyStaff,createTechnologyProduct,researchTechnology,ensureTechnologyTree} from './systems/technology_holding.js?v=3';
 const $=id=>document.getElementById(id);
 const fresh=createInitialState();
 stateStaffingInit(fresh);
@@ -115,7 +115,8 @@ function shopModal(){
 }
 function companyModal(parentId=null){
  const parent=state.companies.find(c=>c.id===parentId),parents=state.companies.filter(c=>Number(c.share)>=50);
- const typeFocus={ai:'ai',browser:'browser',os:'os',database:'database',cloud:'cloud',search:'search',security:'security',chips:'chips',robotics:'robotics',software:'devtools',devtools:'devtools',mobile:'mobile',productivity:'productivity',gaming:'gaming',devices:'devices',telecom:'telecom',biotech:'biotech',xr:'xr'};\n const focusOptions=TECHNOLOGY_FOCI.map(x=>'<option value="'+x.id+'" '+(x.id==='ai'?'selected':'')+'>'+esc(x.name)+'</option>').join('');
+ const typeFocus={ai:'ai',browser:'browser',os:'os',database:'database',cloud:'cloud',search:'search',security:'security',chips:'chips',robotics:'robotics',software:'devtools',devtools:'devtools',mobile:'mobile',productivity:'productivity',gaming:'gaming',devices:'devices',telecom:'telecom',biotech:'biotech',xr:'xr'};
+ const focusOptions=TECHNOLOGY_FOCI.map(x=>'<option value="'+x.id+'" '+(x.id==='ai'?'selected':'')+'>'+esc(x.name)+'</option>').join('');
  const types=[['ai','Studio sztucznej inteligencji','Modele AI, asystenci i agenci'],['browser','Producent przeglądarek','Przeglądarki internetowe i silniki renderujące'],['os','Producent systemów operacyjnych','Systemy desktopowe, mobilne i serwerowe'],['database','Firma bazodanowa','Bazy relacyjne, wektorowe i analityczne'],['cloud','Dostawca chmury','Chmura, hosting i centra danych'],['search','Wyszukiwarka internetowa','Wyszukiwanie, indeksowanie i reklama'],['security','Cyberbezpieczeństwo','Ochrona danych, sieci i systemów'],['chips','Producent półprzewodników','Procesory i akceleratory'],['robotics','Robotyka i automatyka','Roboty przemysłowe i systemy autonomiczne'],['software','Software house / SaaS','Oprogramowanie i usługi abonamentowe'],['devtools','Narzędzia developerskie','IDE, API i narzędzia programistyczne'],['mobile','Systemy mobilne','Mobilne systemy operacyjne i ekosystem aplikacji'],['productivity','Oprogramowanie biurowe','Pakiety biurowe i współpraca'],['gaming','Silniki gier','Silniki 3D i platformy gamingowe'],['devices','Urządzenia i elektronika','Sprzęt, IoT i urządzenia smart'],['telecom','Telekomunikacja','Sieci i infrastruktura telekomunikacyjna'],['biotech','Biotechnologia obliczeniowa','Bioinformatyka i medtech'],['xr','Technologie XR','Rzeczywistość rozszerzona i wirtualna'],['holding','Spółka holdingowa','Zarządza portfelem spółek'],['logistics','Spółka infrastrukturalna','Zaplecze, infrastruktura i logistyka'],['operating','Spółka operacyjna','Pozostała działalność grupy']];
  const typeOptions=types.map(([v,n,d])=>'<option value="'+v+'">'+n+' — '+d+'</option>').join('');
  openModal(parent?'Utwórz spółkę córkę':'Utwórz nową spółkę',parent?'Nowy podmiot zostanie dodany bezpośrednio pod '+esc(parent.name)+'. Ustal profil, zespół i kapitał startowy.':'Zbuduj firmę jako osobny biznes w strukturze Wilk Investments. Każda spółka ma własny profil, zespół, budżet i produkty.',
@@ -135,7 +136,7 @@ function companyModal(parentId=null){
  log('🏢','Utworzono spółkę',name+' · '+types.find(x=>x[0]===companyType)[1]+' · '+(parentCompanyId?state.companies.find(c=>c.id===parentCompanyId).name:'Wilk Investments')+' · kapitał '+money(setupCost+budget));
  moneyFx(-total,'utworzenie spółki i kapitał startowy');closeModal();save();safeRender();notify('Spółka '+name+' została utworzona.');});
  const update=()=>{const type=$('fCompanyType').value,n=Math.max(0,Math.floor(Number($('fTechStaff').value)||0)),b=Math.max(0,Math.floor(Number($('fBudget').value)||0)),setup=type==='holding'?250000:type==='ai'||type==='chips'?200000:['technology','software','cloud','security','robotics'].includes(type)?150000:100000,total=setup+n*3500+b;$('companyCreateSummary').innerHTML='<div><small>KOSZT REJESTRACJI</small><b>'+money(setup)+'</b></div><div><small>REKRUTACJA</small><b>'+money(n*3500)+'</b></div><div><small>BUDŻET SPÓŁKI</small><b>'+money(b)+'</b></div><div><small>ŁĄCZNY KAPITAŁ</small><b>'+money(total)+'</b></div><p>'+ (state.cash>=total?'Po utworzeniu pozostanie '+money(state.cash-total)+'.':'Brakuje '+money(total-state.cash)+'.')+'</p>';};
- $('modalBody').oninput=update;$('modalBody').onchange=update;update();
+ $('modalBody').oninput=update;$('modalBody').onchange=update;$('fCompanyType').addEventListener('change',()=>{const focusId=typeFocus[$('fCompanyType').value];if(focusId){$('fTechFocus').value=focusId;const selectedFocus=TECHNOLOGY_FOCI.find(x=>x.id===focusId);if(selectedFocus)$('fIndustry').value=selectedFocus.name;}update();});update();
 }
 function factoryModal(){
  const products=factoryProducts;
