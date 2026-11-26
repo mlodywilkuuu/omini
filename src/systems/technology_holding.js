@@ -8,7 +8,14 @@ export const TECHNOLOGY_FOCI = [
  {id:'devices',name:'Urządzenia i elektronika',product:'Urządzenie smart',basePrice:240,margin:.46,description:'Sprzęt konsumencki i urządzenia IoT.'},
  {id:'telecom',name:'Telekomunikacja i sieci',product:'Platforma sieciowa',basePrice:280,margin:.55,description:'Sieci nowej generacji i infrastruktura.'},
  {id:'biotech',name:'Biotechnologia obliczeniowa',product:'Platforma bioinformatyczna',basePrice:520,margin:.64,description:'AI dla biologii i medtech.'},
- {id:'xr',name:'Rzeczywistość rozszerzona',product:'Platforma XR',basePrice:340,margin:.52,description:'Systemy przestrzenne i interfejsy immersyjne.'}
+ {id:'xr',name:'Rzeczywistość rozszerzona',product:'Platforma XR',basePrice:340,margin:.52,description:'Systemy przestrzenne i interfejsy immersyjne.'},
+ {id:'browser',name:'Przeglądarki internetowe',product:'Przeglądarka internetowa',basePrice:190,margin:.76,description:'Przeglądarki, silniki renderujące, synchronizacja i prywatność.'},
+ {id:'database',name:'Bazy danych',product:'System bazodanowy',basePrice:420,margin:.72,description:'Relacyjne i wektorowe bazy danych, hurtownie i silniki analityczne.'},
+ {id:'search',name:'Wyszukiwarki i reklama',product:'Silnik wyszukiwania',basePrice:280,margin:.78,description:'Wyszukiwanie, indeksowanie, reklama i odkrywanie treści.'},
+ {id:'devtools',name:'Narzędzia dla programistów',product:'Platforma developerska',basePrice:350,margin:.74,description:'IDE, API, CI/CD, repozytoria i narzędzia zespołowe.'},
+ {id:'mobile',name:'Systemy mobilne',product:'Mobilny system operacyjny',basePrice:390,margin:.64,description:'Systemy mobilne, sklepy aplikacji i usługi urządzeń.'},
+ {id:'productivity',name:'Oprogramowanie biurowe',product:'Pakiet produktywności',basePrice:240,margin:.79,description:'Pakiety biurowe, komunikacja i współpraca.'},
+ {id:'gaming',name:'Silniki gier i rozrywka',product:'Silnik gier',basePrice:460,margin:.67,description:'Silniki 3D, platformy gier i technologie rozrywkowe.'}
 ];
 export const TECHNOLOGY_CATALOG=[{"id":"edge_ai","name":"Edge AI","focus":"ai","category":"Sztuczna inteligencja","tier":1,"cost":85000,"day":3,"effect":"Modele AI uruchamiane bezpośrednio na urządzeniach."},{"id":"quantum","name":"Obliczenia kwantowe","focus":"chips","category":"Półprzewodniki","tier":2,"cost":260000,"day":8,"effect":"Układy do obliczeń specjalistycznych."},{"id":"neuro","name":"Interfejsy neuronowe","focus":"ai","category":"Sztuczna inteligencja","tier":2,"cost":220000,"day":7,"effect":"Interfejsy człowiek–komputer."},{"id":"autonomous","name":"Autonomiczne systemy","focus":"robotics","category":"Robotyka","tier":1,"cost":110000,"day":4,"effect":"Maszyny podejmujące decyzje bez operatora."},{"id":"green_compute","name":"Energooszczędne obliczenia","focus":"cloud","category":"Chmura i centra danych","tier":1,"cost":95000,"day":4,"effect":"Oszczędniejsze centra danych."},{"id":"post_quantum","name":"Kryptografia postkwantowa","focus":"security","category":"Cyberbezpieczeństwo","tier":2,"cost":180000,"day":6,"effect":"Ochrona danych przed atakami kwantowymi."},{"id":"spatial_os","name":"Systemy przestrzenne","focus":"os","category":"Systemy operacyjne","tier":2,"cost":210000,"day":8,"effect":"Interfejsy przestrzenne i systemy XR."},{"id":"iot_mesh","name":"Sieci IoT Mesh","focus":"devices","category":"Urządzenia i elektronika","tier":1,"cost":90000,"day":3,"effect":"Rozproszone sieci inteligentnych urządzeń."},{"id":"photonic","name":"Fotoniczne procesory","focus":"chips","category":"Półprzewodniki","tier":3,"cost":520000,"day":15,"effect":"Przetwarzanie danych światłem."},{"id":"fusion","name":"Robotyka kooperacyjna","focus":"robotics","category":"Robotyka","tier":2,"cost":240000,"day":9,"effect":"Współpraca robotów i ludzi."},{"id":"digital_twin","name":"Cyfrowe bliźniaki","focus":"cloud","category":"Chmura i centra danych","tier":2,"cost":175000,"day":7,"effect":"Symulacje fabryk i infrastruktury."},{"id":"bio_compute","name":"Bioinformatyka AI","focus":"ai","category":"Sztuczna inteligencja","tier":3,"cost":430000,"day":14,"effect":"Modele AI dla biologii i medycyny."},{"id":"zero_trust","name":"Architektura Zero Trust","focus":"security","category":"Cyberbezpieczeństwo","tier":1,"cost":105000,"day":5,"effect":"Kontrola dostępu i tożsamości."},{"id":"wearables","name":"Interfejsy ubieralne","focus":"devices","category":"Urządzenia i elektronika","tier":2,"cost":195000,"day":8,"effect":"Nowe urządzenia osobiste i sensory."},{"id":"autonomous_agents","name":"Agenci autonomiczni","focus":"ai","category":"Sztuczna inteligencja","tier":3,"cost":480000,"day":13,"effect":"Agenci AI do złożonych zadań."},{"id":"silicon_3d","name":"Układy 3D","focus":"chips","category":"Półprzewodniki","tier":2,"cost":280000,"day":10,"effect":"Układy wielowarstwowe."},{"id":"orbital_cloud","name":"Infrastruktura orbitalna","focus":"cloud","category":"Chmura i centra danych","tier":3,"cost":750000,"day":20,"effect":"Obliczenia z użyciem infrastruktury satelitarnej."}];
 export function ensureTechnologyTree(state){state.technologyTree??={};for(const t of TECHNOLOGY_CATALOG)if(!state.technologyTree[t.id])state.technologyTree[t.id]={discovered:Number(state.day||1)>=t.day,researched:false,level:0,discoveredDay:Number(state.day||1)>=t.day?1:null};return state.technologyTree;}
@@ -74,26 +81,102 @@ export function createTechnologyProduct(state,companyId,{name,price}={}){
  c.value=(Number(c.value)||50000)+developmentCost;
  return {company:c,product,cost:developmentCost};
 }
+function spendCompanyDevelopment(state,company,amount){
+ const n=Math.max(0,Math.round(amount));
+ const reserve=Math.max(0,Number(company.managementBudgetRemaining)||0);
+ const fromReserve=Math.min(reserve,n);
+ const fromGroup=n-fromReserve;
+ if(fromGroup>0&&state.cash<fromGroup)return false;
+ company.managementBudgetRemaining=reserve-fromReserve;
+ if(fromGroup>0)state.cash-=fromGroup;
+ return true;
+}
+function autoProductName(company,focus,index){
+ const names={
+ os:['AstraOS','AstraOS Pro','AstraOS Cloud','AstraOS Enterprise','AstraOS Mobile'],
+ ai:['NeuralCore','NeuralCore Studio','Neural Agent','Neural Vision','Neural API'],
+ cloud:['CloudNova','CloudNova Compute','CloudNova Storage','CloudNova Edge','CloudNova Enterprise'],
+ chips:['SilicaCore','SilicaCore AI','SilicaCore Edge','SilicaCore Pro','SilicaCore Quantum'],
+ robotics:['RoboPilot','RoboPilot Industrial','RoboPilot Vision','RoboPilot Fleet','RoboPilot Pro'],
+ security:['ShieldOne','ShieldOne Endpoint','ShieldOne Identity','ShieldOne Cloud','ShieldOne Enterprise'],
+ devices:['Wilk Device','Wilk Smart Hub','Wilk Sensor','Wilk Home','Wilk Edge'],
+ telecom:['NetSphere','NetSphere 5G','NetSphere Fiber','NetSphere Edge','NetSphere Core'],
+ biotech:['BioCompute','BioCompute Lab','BioCompute Insight','BioCompute AI','BioCompute Pro'],
+ xr:['SpatialOne','SpatialOne Studio','SpatialOne Vision','SpatialOne Workspace','SpatialOne Pro'],
+ browser:['Nova Browser','Nova Browser Pro','Nova Sync','Nova Privacy','Nova Enterprise'],
+ database:['VectorDB','VectorDB Cloud','VectorDB Analytics','VectorDB Enterprise','VectorDB Edge'],
+ search:['Findra Search','Findra Ads','Findra Maps','Findra AI Search','Findra Enterprise'],
+ devtools:['Forge IDE','Forge API','Forge CI','Forge Studio','Forge Cloud'],
+ mobile:['Astra Mobile','Astra Mobile Pro','Astra App Store','Astra Sync','Astra Enterprise'],
+ productivity:['Wilk Office','Wilk Docs','Wilk Sheets','Wilk Meet','Wilk Workspace'],
+ gaming:['Forge Engine','Forge Engine Pro','Forge Render','Forge Multiplayer','Forge Studio']
+ };
+ const base=(names[focus.id]||[focus.product,focus.product+' Pro',focus.product+' Cloud',focus.product+' Enterprise'])[Math.min(index,4)];
+ return company.name.split(/\s+/)[0]+' '+base;
+}
+function autoDevelopCompany(state,company,dayStats){
+ if(!controlled(company)||company.companyType==='holding'||company.companyType==='logistics'||company.companyType==='operating')return;
+ const focus=focusById(company.techFocus),products=company.techProducts;
+ company.autoDevelopment=true;
+ company.autoHire??=true;company.autoProductDevelopment??=true;company.lastAutoHireDay??=0;company.lastAutoProductDay??=0;company.lastAutoUpgradeDay??=0;
+ const reserve=Math.max(0,Number(company.managementBudgetRemaining)||0);
+ const desiredStaff=Math.min(120,Math.max(6,Math.ceil(4+products.length*3+(Number(company.techResearchLevel)||1)*2)));
+ if(company.autoHire&&company.techStaff<desiredStaff&&Number(state.day)-Number(company.lastAutoHireDay)>=5){
+  const count=Math.min(3,desiredStaff-company.techStaff),cost=count*3500;
+  if(spendCompanyDevelopment(state,company,cost)){
+   company.techStaff+=count;company.employees=(Number(company.employees)||0)+count;company.value=(Number(company.value)||50000)+count*1800;company.lastAutoHireDay=state.day;
+   dayStats.hires+=count;dayStats.investment+=cost;
+   state.events??=[];state.events.unshift({icon:'👥',title:'Automatyczna rekrutacja',detail:company.name+' zatrudnia '+count+' specjalistów. Zespół: '+company.techStaff+'.',day:state.day});
+  }
+ }
+ if(company.autoProductDevelopment&&company.techStaff>=4&&products.length<8&&Number(state.day)-Number(company.lastAutoProductDay)>=8){
+  const duplicateIndex=products.length,productName=autoProductName(company,focus,duplicateIndex),price=Math.round(focus.basePrice*(1+Math.min(1,(Number(company.techResearchLevel)||1)*.08)));
+  const developmentCost=Math.max(30000,Math.round(price*125));
+  if(spendCompanyDevelopment(state,company,developmentCost)){
+   const product={id:state.nextId++,name:productName,focus:focus.id,category:focus.name,price,unitCost:Math.max(1,Math.round(price*(1-focus.margin))),level:1,createdDay:state.day,unitsSold:0,revenue:0,autoCreated:true};
+   products.push(product);company.value=(Number(company.value)||50000)+developmentCost;company.lastAutoProductDay=state.day;
+   dayStats.products++;dayStats.investment+=developmentCost;
+   state.events??=[];state.events.unshift({icon:'🚀',title:'Nowy produkt opracowany przez spółkę',detail:company.name+' wprowadza '+product.name+'.',day:state.day});
+  }
+ }
+ if(Number(state.day)>1&&Number(state.day)%5===0&&Number(company.lastAutoUpgradeDay)!==Number(state.day)){
+  let upgraded=0;
+  for(const product of products){
+   if(Number(product.level||1)>=10)continue;
+   const upgradeCost=Math.max(12000,Math.round(Number(product.price||focus.basePrice)*32));
+   if(!spendCompanyDevelopment(state,company,upgradeCost))break;
+   product.level=(Number(product.level)||1)+1;product.price=Math.round(product.price*1.025);product.unitCost=Math.max(1,Math.round(product.unitCost*1.01));upgraded++;dayStats.investment+=upgradeCost;
+  }
+  if(upgraded){company.lastAutoUpgradeDay=state.day;dayStats.upgrades+=upgraded;company.value=(Number(company.value)||50000)+upgraded*18000;state.events??=[];state.events.unshift({icon:'⬆️',title:'Automatyczne ulepszenie produktów',detail:company.name+' rozwija '+upgraded+' produktów.',day:state.day});}
+ }
+ if(reserve>0)company.managementBudgetSpent=(Number(company.managementBudgetSpent)||0);
+}
 export function processTechnologyCompaniesDay(state){
  ensureTechnologyCompanies(state);
  if(Number(state.day||1)%3===0)discoverTechnology(state);
  let revenue=0,cost=0,units=0;
+ const automation={hires:0,products:0,upgrades:0,investment:0};
  for(const c of state.companies){
+  autoDevelopCompany(state,c,automation);
   const staff=c.techStaff||0,products=c.techProducts||[];
   if(!staff&&!products.length)continue;
   const payroll=staff*260;
   cost+=payroll;
   for(const p of products){
    const focusMatch=p.focus===c.techFocus?1.25:1;
-   const capacity=Math.max(0,Math.floor(staff*3*focusMatch*(1+(c.techResearchLevel-1)*.12)));
+   const capacity=Math.max(0,Math.floor(staff*3*focusMatch*(1+(c.techResearchLevel-1)*.12)*(1+((Number(p.level)||1)-1)*.035)));
    const sold=Math.max(0,Math.floor(capacity*(.72+Math.random()*.22)));
    const sales=sold*p.price,production=sold*p.unitCost;
-   p.unitsSold=sold;p.revenue=sales;
+   p.unitsSold=sold;p.revenue=sales;p.lastUpdatedDay=state.day;
    revenue+=sales;cost+=production;units+=sold;
-   p.level=Math.min(10,Number(p.level)||1);
+   if((Number(p.level)||1)>1)p.lastUpgradeLabel='Poziom '+p.level;
    c.value=(Number(c.value)||50000)+Math.round(Math.max(0,sales-production)*.025);
   }
+  c.lastDailyRevenue=products.reduce((n,p)=>n+(Number(p.revenue)||0),0);
+  c.lastDailyCosts=payroll+products.reduce((n,p)=>n+(Number(p.unitsSold)||0)*(Number(p.unitCost)||0),0);
  }
  state.techRevenue=revenue;state.techCost=cost;
- return {revenue,cost,units};
+ state.techAutomationStats=automation;
+ state.events=Array.isArray(state.events)?state.events.slice(0,20):[];
+ return {revenue,cost,units,automation};
 }
