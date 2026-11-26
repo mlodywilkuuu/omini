@@ -14,7 +14,7 @@ import {activateSupplierContract} from './systems/procurement.js?v=1';
 import {acceptB2BContract} from './systems/b2b.js?v=1';
 import {factoryProducts,createFactory,processFactoriesDay,buyFactoryShares} from './systems/factories.js?v=5';
 import {developControlledCompanies} from './systems/group_economy.js?v=4';
-import {ensureTechnologyCompanies,TECHNOLOGY_FOCI,setCompanyTechFocus,hireTechnologyStaff,createTechnologyProduct,researchTechnology,ensureTechnologyTree} from './systems/technology_holding.js?v=5';
+import {ensureTechnologyCompanies,TECHNOLOGY_FOCI,setCompanyTechFocus,hireTechnologyStaff,createTechnologyProduct,researchTechnology,ensureTechnologyTree} from './systems/technology_holding.js?v=6';
 const $=id=>document.getElementById(id);
 const fresh=createInitialState();
 stateStaffingInit(fresh);
