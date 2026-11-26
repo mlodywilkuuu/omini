@@ -32,6 +32,7 @@ export function ensureTechnologyCompanies(state){
   c.techStaff=Math.max(0,Math.floor(Number(c.techStaff)||0));
   c.techProducts=Array.isArray(c.techProducts)?c.techProducts:[];
   c.autoHire=c.autoHire!==false;c.autoProductDevelopment=c.autoProductDevelopment!==false;c.autoDevelopment=c.autoDevelopment!==false;
+  if(c.parentCompanyId!=null){c.autoHire=c.autoHire!==false;c.autoProductDevelopment=c.autoProductDevelopment!==false;c.autoDevelopment=c.autoDevelopment!==false;}
   c.techProducts.forEach(p=>{p.staffAssigned=Number.isFinite(Number(p.staffAssigned))?Math.max(0,Math.floor(Number(p.staffAssigned))):Math.floor(c.techStaff/Math.max(1,c.techProducts.length));p.developmentBudget=Math.max(0,Number(p.developmentBudget)||0);p.autoUpdate=p.autoUpdate!==false;});
   c.techResearchLevel=Math.max(1,Number(c.techResearchLevel)||1);
  }
@@ -122,17 +123,19 @@ function autoDevelopCompany(state,company,dayStats){
  if(!controlled(company)||company.companyType==='holding'||company.companyType==='logistics'||company.companyType==='operating')return;
  const focus=focusById(company.techFocus),products=company.techProducts;
  company.autoDevelopment=company.autoDevelopment!==false;
- company.autoHire=company.autoHire!==false;company.autoProductDevelopment=company.autoProductDevelopment!==false;company.lastAutoHireDay??=0;company.lastAutoProductDay??=0;company.lastAutoUpgradeDay??=0;
- const desiredStaff=Math.min(120,Math.max(6,Math.ceil(4+products.length*3+(Number(company.techResearchLevel)||1)*2)));
- if(company.autoHire&&company.techStaff<desiredStaff&&Number(state.day)-Number(company.lastAutoHireDay)>=5){
-  const count=Math.min(3,desiredStaff-company.techStaff),cost=count*3500;
+ company.autoHire=company.autoHire!==false;company.autoProductDevelopment=company.autoProductDevelopment!==false;company.lastAutoHireDay??=(Number(company.createdDay)||1)-3;company.lastAutoProductDay??=(Number(company.createdDay)||1)-5;company.lastAutoUpgradeDay??=0;
+ const isSubsidiary=company.parentCompanyId!=null;
+ const desiredStaff=Math.min(120,Math.max(isSubsidiary?4:6,Math.ceil(4+products.length*3+(Number(company.techResearchLevel)||1)*2)));
+ const hireInterval=isSubsidiary?3:5;
+ if(company.autoHire&&company.techStaff<desiredStaff&&Number(state.day)-Number(company.lastAutoHireDay)>=hireInterval){
+  const count=Math.min(isSubsidiary?3:3,desiredStaff-company.techStaff),cost=count*3500;
   if(spendCompanyDevelopment(state,company,cost)){
    company.techStaff+=count;company.employees=(Number(company.employees)||0)+count;company.value=(Number(company.value)||50000)+count*1800;company.lastAutoHireDay=state.day;
    dayStats.hires+=count;dayStats.investment+=cost;
    state.events??=[];state.events.unshift({icon:'👥',title:'Automatyczna rekrutacja',detail:company.name+' zatrudnia '+count+' specjalistów. Zespół: '+company.techStaff+'.',day:state.day});
   }
  }
- if(company.autoProductDevelopment&&company.techStaff>=4&&products.length<8&&Number(state.day)-Number(company.lastAutoProductDay)>=8){
+ if(company.autoProductDevelopment&&company.techStaff>=(isSubsidiary?2:4)&&products.length<(isSubsidiary?12:8)&&Number(state.day)-Number(company.lastAutoProductDay)>=(isSubsidiary?5:8)){
   const duplicateIndex=products.length,productName=autoProductName(company,focus,duplicateIndex),price=Math.round(focus.basePrice*(1+Math.min(1,(Number(company.techResearchLevel)||1)*.08)));
   const developmentCost=Math.max(30000,Math.round(price*125));
   if(spendCompanyDevelopment(state,company,developmentCost)){
