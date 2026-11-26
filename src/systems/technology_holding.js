@@ -31,6 +31,8 @@ export function ensureTechnologyCompanies(state){
   c.techFocus??='os';
   c.techStaff=Math.max(0,Math.floor(Number(c.techStaff)||0));
   c.techProducts=Array.isArray(c.techProducts)?c.techProducts:[];
+  c.autoHire=c.autoHire!==false;c.autoProductDevelopment=c.autoProductDevelopment!==false;c.autoDevelopment=c.autoDevelopment!==false;
+  c.techProducts.forEach(p=>{p.staffAssigned=Number.isFinite(Number(p.staffAssigned))?Math.max(0,Math.floor(Number(p.staffAssigned))):Math.floor(c.techStaff/Math.max(1,c.techProducts.length));p.developmentBudget=Math.max(0,Number(p.developmentBudget)||0);p.autoUpdate=p.autoUpdate!==false;});
   c.techResearchLevel=Math.max(1,Number(c.techResearchLevel)||1);
  }
  return state.companies;
@@ -77,6 +79,7 @@ export function createTechnologyProduct(state,companyId,{name,price}={}){
  if(state.cash<developmentCost)throw new Error('Opracowanie produktu kosztuje '+developmentCost.toLocaleString('pl-PL')+' zł.');
  state.cash-=developmentCost;
  const product={id:state.nextId++,name:productName,focus:focus.id,category:focus.name,price:sellPrice,unitCost:Math.max(1,Math.round(sellPrice*(1-focus.margin))),level:1,createdDay:state.day,unitsSold:0,revenue:0};
+ product.staffAssigned=Math.min(2,Math.max(0,c.techStaff-c.techProducts.reduce((n,p)=>n+(Number(p.staffAssigned)||0),0)));product.developmentBudget=0;product.autoUpdate=true;
  c.techProducts.push(product);
  c.value=(Number(c.value)||50000)+developmentCost;
  return {company:c,product,cost:developmentCost};
@@ -118,8 +121,8 @@ function autoProductName(company,focus,index){
 function autoDevelopCompany(state,company,dayStats){
  if(!controlled(company)||company.companyType==='holding'||company.companyType==='logistics'||company.companyType==='operating')return;
  const focus=focusById(company.techFocus),products=company.techProducts;
- company.autoDevelopment=true;
- company.autoHire??=true;company.autoProductDevelopment??=true;company.lastAutoHireDay??=0;company.lastAutoProductDay??=0;company.lastAutoUpgradeDay??=0;
+ company.autoDevelopment=company.autoDevelopment!==false;
+ company.autoHire=company.autoHire!==false;company.autoProductDevelopment=company.autoProductDevelopment!==false;company.lastAutoHireDay??=0;company.lastAutoProductDay??=0;company.lastAutoUpgradeDay??=0;
  const desiredStaff=Math.min(120,Math.max(6,Math.ceil(4+products.length*3+(Number(company.techResearchLevel)||1)*2)));
  if(company.autoHire&&company.techStaff<desiredStaff&&Number(state.day)-Number(company.lastAutoHireDay)>=5){
   const count=Math.min(3,desiredStaff-company.techStaff),cost=count*3500;
@@ -133,18 +136,20 @@ function autoDevelopCompany(state,company,dayStats){
   const duplicateIndex=products.length,productName=autoProductName(company,focus,duplicateIndex),price=Math.round(focus.basePrice*(1+Math.min(1,(Number(company.techResearchLevel)||1)*.08)));
   const developmentCost=Math.max(30000,Math.round(price*125));
   if(spendCompanyDevelopment(state,company,developmentCost)){
-   const product={id:state.nextId++,name:productName,focus:focus.id,category:focus.name,price,unitCost:Math.max(1,Math.round(price*(1-focus.margin))),level:1,createdDay:state.day,unitsSold:0,revenue:0,autoCreated:true};
+   const product={id:state.nextId++,name:productName,focus:focus.id,category:focus.name,price,unitCost:Math.max(1,Math.round(price*(1-focus.margin))),level:1,createdDay:state.day,unitsSold:0,revenue:0,autoCreated:true,staffAssigned:Math.min(2,Math.max(0,company.techStaff-products.reduce((n,p)=>n+(Number(p.staffAssigned)||0),0))),developmentBudget:0,autoUpdate:true};
    products.push(product);company.value=(Number(company.value)||50000)+developmentCost;company.lastAutoProductDay=state.day;
    dayStats.products++;dayStats.investment+=developmentCost;
    state.events??=[];state.events.unshift({icon:'🚀',title:'Nowy produkt opracowany przez spółkę',detail:company.name+' wprowadza '+product.name+'.',day:state.day});
   }
  }
- if(Number(state.day)>1&&Number(state.day)%5===0&&Number(company.lastAutoUpgradeDay)!==Number(state.day)){
+ if(company.autoDevelopment&&Number(state.day)>1&&Number(state.day)%5===0&&Number(company.lastAutoUpgradeDay)!==Number(state.day)){
   let upgraded=0;
   for(const product of products){
-   if(Number(product.level||1)>=10)continue;
+   if(product.autoUpdate===false||Number(product.level||1)>=10)continue;
    const upgradeCost=Math.max(12000,Math.round(Number(product.price||focus.basePrice)*32));
-   if(!spendCompanyDevelopment(state,company,upgradeCost))break;
+   const productReserve=Math.max(0,Number(product.developmentBudget)||0),fromProduct=Math.min(productReserve,upgradeCost),remaining=upgradeCost-fromProduct;
+   if(remaining>0&&!spendCompanyDevelopment(state,company,remaining))continue;
+   product.developmentBudget=productReserve-fromProduct;
    product.level=(Number(product.level)||1)+1;product.price=Math.round(product.price*1.025);product.unitCost=Math.max(1,Math.round(product.unitCost*1.01));upgraded++;dayStats.investment+=upgradeCost;
   }
   if(upgraded){company.lastAutoUpgradeDay=state.day;dayStats.upgrades+=upgraded;company.value=(Number(company.value)||50000)+upgraded*18000;state.events??=[];state.events.unshift({icon:'⬆️',title:'Automatyczne ulepszenie produktów',detail:company.name+' rozwija '+upgraded+' produktów.',day:state.day});}
@@ -163,7 +168,8 @@ export function processTechnologyCompaniesDay(state){
   cost+=payroll;
   for(const p of products){
    const focusMatch=p.focus===c.techFocus?1.25:1;
-   const capacity=Math.max(0,Math.floor(staff*3*focusMatch*(1+(c.techResearchLevel-1)*.12)*(1+((Number(p.level)||1)-1)*.035)));
+   const assigned=Math.max(0,Math.floor(Number(p.staffAssigned)||0));const effectiveStaff=Number.isFinite(Number(p.staffAssigned))?assigned:staff;
+   const capacity=Math.max(0,Math.floor(effectiveStaff*3*focusMatch*(1+(c.techResearchLevel-1)*.12)*(1+((Number(p.level)||1)-1)*.035)));
    const sold=Math.max(0,Math.floor(capacity*(.72+Math.random()*.22)));
    const sales=sold*p.price,production=sold*p.unitCost;
    p.unitsSold=sold;p.revenue=sales;p.lastUpdatedDay=state.day;
