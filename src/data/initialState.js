@@ -1,5 +1,5 @@
 export function createInitialState(){return {
- day:1,cash:400000,nextId:100,selectedMarketCompanyId:null,selectedCountry:'Polska',initiatives:[],
+ day:1,cash:400000,nextId:100,autoResearch:true,selectedMarketCompanyId:null,selectedCountry:'Polska',initiatives:[],
  shops:[],warehouses:[],marketingCampaigns:[],supplierContracts:[],b2bContracts:[],contractRevenue:0,contractCost:0,
  companies:[],
  market:[
