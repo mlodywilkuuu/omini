@@ -1,8 +1,8 @@
-import {closeBusinessDay} from '../systems/finance.js?v=15';
+import {closeBusinessDay} from '../systems/finance.js?v=16';
 import {applyInitiativesDaily} from '../systems/initiatives.js?v=5';
 import {advanceMarketDay} from './market.js?v=1';
 import {assertGameInvariants} from './invariants.js?v=1';
-import {processEmpireSystemsDay} from '../systems/empire_systems.js?v=2';
+import {processEmpireSystemsDay} from '../systems/empire_systems.js?v=3';
 
 export function simulateGameDay(state){
  state.day=Math.max(1,Math.floor(Number(state.day)||1))+1;
