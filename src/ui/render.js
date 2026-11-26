@@ -8,7 +8,7 @@ import {money,percent,pageHeading,stats,card,table} from './helpers.js?v=2';
 import {countries} from '../data/countries.js';
 import {totalRevenue,totalCosts,assetValue,netWorth,shareAssets,dividends,operatingProfit} from '../systems/finance.js?v=14';
 import {ownershipStatus,votingPower,boardSeats} from '../systems/ownership.js?v=8';
-import {TECHNOLOGY_CATALOG,TECHNOLOGY_FOCI,ensureTechnologyTree} from '../systems/technology_holding.js?v=2';
+import {TECHNOLOGY_CATALOG,TECHNOLOGY_FOCI,ensureTechnologyTree} from '../systems/technology_holding.js?v=3';
 import {EMPIRE_SYSTEMS,ensureEmpireSystems} from '../systems/empire_systems.js?v=1';
 let lastRenderedCash=null;
 const el=id=>document.getElementById(id),esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
