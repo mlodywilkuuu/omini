@@ -1,8 +1,8 @@
 import {createInitialState} from './data/initialState.js';
-import {simulateGameDay,createGameClock} from './engine/index.js?v=5';
+import {simulateGameDay,createGameClock} from './engine/index.js?v=6';
 import {openCountryShops,estimateCountryShopCost,shopFormats,updateShop,closeShop} from './systems/shops.js?v=5';
 import {buyShares,sellShares,takeControl,ensureShareholders,proposeBuyout,cancelBuyoutOffer,issueShares} from './systems/ownership.js?v=11';
-import {renderAll} from './ui/render.js?v=62';
+import {renderAll} from './ui/render.js?v=63';
 import {buyEmpireSystem,ensureEmpireSystems} from './systems/empire_systems.js?v=4';
 import {money,percent} from './ui/helpers.js';
 import {countries} from './data/countries.js';
@@ -13,9 +13,9 @@ import {startMarketingCampaign,getMarketingOffers} from './systems/marketing.js?
 import {activateSupplierContract} from './systems/procurement.js?v=1';
 import {acceptB2BContract} from './systems/b2b.js?v=1';
 import {factoryProducts,createFactory,processFactoriesDay,buyFactoryShares} from './systems/factories.js?v=6';
-import {developControlledCompanies} from './systems/group_economy.js?v=4';
-import {ensureDiversifiedEmpire,buyDiversifiedAsset,listCompanyOnExchange,acquireRival,hireExecutive,takeEmpireLoan,repayEmpireLoan,acceptEmpireContract,startEmpireProject} from './systems/diversified_empire.js?v=3';
-import {ensureTechnologyCompanies,TECHNOLOGY_FOCI,setCompanyTechFocus,hireTechnologyStaff,createTechnologyProduct,researchTechnology,ensureTechnologyTree} from './systems/technology_holding.js?v=8';
+import {developControlledCompanies} from './systems/group_economy.js?v=5';
+import {ensureDiversifiedEmpire,buyDiversifiedAsset,listCompanyOnExchange,acquireRival,hireExecutive,takeEmpireLoan,repayEmpireLoan,acceptEmpireContract,startEmpireProject} from './systems/diversified_empire.js?v=4';
+import {ensureTechnologyCompanies,TECHNOLOGY_FOCI,setCompanyTechFocus,hireTechnologyStaff,createTechnologyProduct,researchTechnology,ensureTechnologyTree} from './systems/technology_holding.js?v=9';
 import {ensureStrategicEvents,resolveStrategicEvent} from './systems/strategic_events.js?v=2';
 import {EXCHANGES,tickStockMarket} from './systems/stock_market.js?v=2';
 const $=id=>document.getElementById(id);
