@@ -44,7 +44,7 @@ export function createFactory(state,{name,productId,companyId}){
  if(!product)throw Error('Wybierz produkt z katalogu.');
  if(!company)throw Error('Wybierz spółkę, nad którą masz kontrolę.');
  if(state.cash<product.factoryCost)throw Error('Budowa wymaga '+product.factoryCost.toLocaleString('pl-PL')+' zł. Brakuje '+(product.factoryCost-state.cash).toLocaleString('pl-PL')+' zł.');
- const factory={id:state.nextId++,name,productId,companyId,capacity:product.capacity,level:1,builtDay:state.day,playerShare:100,shareholders:[]};
+ const factory={id:state.nextId++,name,productId,companyId,capacity:product.capacity,level:1,builtDay:state.day,playerShare:100,shareholders:[],productionEnabled:true};
  state.cash-=product.factoryCost;company.value=(Number(company.value)||0)+product.factoryCost;state.factories.push(factory);
  return {factory,cost:product.factoryCost};
 }
@@ -53,6 +53,7 @@ export function processFactoriesDay(state){
  (state.factories||[]).forEach(factory=>{
   const product=factoryProducts.find(p=>p.id===factory.productId),company=state.companies.find(c=>c.id===factory.companyId);
   if(!product||!company)return;
+  if(factory.productionEnabled===false){factory.lastProduction=0;factory.lastRevenue=0;return;}
   const stores=state.shops.filter(shop=>shop.companyId===company.id).length;
   const produced=Math.min(product.capacity*factory.level,Math.max(0,stores)*90);
   const sold=produced;
