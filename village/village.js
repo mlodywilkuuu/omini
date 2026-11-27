@@ -30,7 +30,7 @@ if(world){
   if(visitorNode)visitorNode.textContent='👣 '+visits+' wizyt';
   const updateClock=()=>{if(clockNode)clockNode.textContent=new Intl.DateTimeFormat('pl-PL',{timeZone:'Europe/Warsaw',hour:'2-digit',minute:'2-digit'}).format(new Date())+' · CZAS WIOSKI'};
   updateClock();setInterval(updateClock,30000);
-  snowToggle?.addEventListener('click',()=>{const enabled=world.classList.toggle('no-snow')===false;snowToggle.setAttribute('aria-pressed',String(enabled));snowToggle.textContent=enabled?'❄ Śnieg: ON':'❄ Śnieg: OFF'});
+  snowToggle?.addEventListener('click',()=>{const enabled=world.classList.toggle('no-snow')===false;document.body.classList.toggle('no-snow',!enabled);snowToggle.setAttribute('aria-pressed',String(enabled));snowToggle.textContent=enabled?'❄ Śnieg: ON':'❄ Śnieg: OFF'});
   themeToggle?.addEventListener('click',()=>{const day=world.classList.toggle('day-mode');themeToggle.setAttribute('aria-pressed',String(day));themeToggle.textContent=day?'☀ Dzień':'🌙 Noc'});
 }
 document.querySelector('#santa-hello')?.addEventListener('click',()=>{
