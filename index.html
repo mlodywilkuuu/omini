@@ -44,7 +44,7 @@ footer{flex:0 0 auto;text-align:center;color:#7890a9;font-size:clamp(9px,.8vw,11
 <div class="app">
 <header><div class="kicker">ONE WORLD · ONE MIDNIGHT AT A TIME</div><h1>NEW YEAR WORLD COUNTDOWN</h1><p class="subtitle">WSPÓLNE ODLICZANIE DO NOWEGO ROKU · 2027</p></header>
 <main class="stage" id="stage"><section class="card main" id="mainCard"></section><section class="card small" id="small1"></section><section class="card small" id="small2"></section><section class="card small" id="small3"></section></main>
-<footer>LIVE WORLD COUNTDOWN · CZASY LOKALNE · AUTOMATYCZNA ZMIANA STREF</footer>
+<footer id="testMode">← / → ZMIANA STREFY · HOME POWRÓT DO CZASU NA ŻYWO</footer>
 </div>
 <script>
 (()=>{
@@ -70,18 +70,33 @@ footer{flex:0 0 auto;text-align:center;color:#7890a9;font-size:clamp(9px,.8vw,11
  for(const z of zones){try{const target=getTarget(z);if(target>Date.now()-1000){if(!groups.has(target))groups.set(target,[]);groups.get(target).push(z)}}catch(e){}}
  let events=[...groups.entries()].sort((a,b)=>a[0]-b[0]).map(([target,zs])=>({target,zones:zs.sort((a,b)=>{const aa=pretty(a)[0],bb=pretty(b)[0];return aa.localeCompare(bb)}),zone:zs.find(z=>names[z])||zs[0]}));
  if(!events.length) events=fallback.map(z=>({target:getTarget(z),zones:[z],zone:z})).sort((a,b)=>a.target-b.target);
- let lastIndex=-1, celebrated=new Set();
+ let lastIndex=-1, celebrated=new Set(), manualIndex=null;
  const $=id=>document.getElementById(id);
  function timeParts(ms){let s=Math.max(0,Math.floor(ms/1000));return [Math.floor(s/86400),Math.floor(s%86400/3600),Math.floor(s%3600/60),s%60]}
  function timerHTML(ms,big){const v=timeParts(ms);return '<div class="timer">'+v.map((n,i)=>'<div class="unit"><div class="num">'+String(n).padStart(2,"0")+'</div><div class="unit-label">'+["DNI","GODZ","MIN","SEK"][i]+'</div></div>'+(i<3?'<div class="sep">:</div>':'')).join("")+'</div>'}
  function renderCard(el,event,ms,big,index){const [city,flag]=pretty(event.zone);const count=event.zones.length;el.innerHTML='<div class="flag">'+flag+' '+(big?"NAJBLIŻSZA PÓŁNOC":"NADCHODZI")+'</div><div class="place">'+city+'</div><div class="zone">'+getOffset(event.zone,new Date(event.target))+' · '+(count>1?count+" STREFY":"LOKALNA STREFA")+'</div>'+timerHTML(ms,big)+'<div class="status">'+(ms<=0?"SZCZĘŚLIWEGO NOWEGO ROKU!":fmt(event.zone,{weekday:"short",day:"2-digit",month:"short"},new Date(event.target)))+'</div>'}
  function fireworks(){const stage=$("stage");for(let j=0;j<5;j++){const x=20+Math.random()*60,y=20+Math.random()*60;for(let i=0;i<22;i++){let p=document.createElement("i");p.className="burst";p.style.left=x+"%";p.style.top=y+"%";let a=Math.PI*2*i/22,r=45+Math.random()*80;p.style.setProperty("--dx",Math.cos(a)*r+"px");p.style.setProperty("--dy",Math.sin(a)*r+"px");stage.appendChild(p);setTimeout(()=>p.remove(),1900)}}}
- function tick(){const now=Date.now();let idx=events.findIndex(e=>e.target>now);if(idx<0)idx=events.length-1;
+ function tick(){const now=Date.now();let idx=events.findIndex(e=>e.target>now);if(idx<0)idx=events.length-1;if(manualIndex!==null)idx=manualIndex;
    if(lastIndex!==-1&&idx>lastIndex){for(let i=lastIndex;i<idx;i++){if(!celebrated.has(i)){celebrated.add(i);fireworks()}}}
    lastIndex=idx;
    const slots=[ $("mainCard"),$("small1"),$("small2"),$("small3") ];
    for(let k=0;k<4;k++){const event=events[idx+k];if(!event){slots[k].innerHTML='<div class="flag">WSZYSTKIE STREFY</div><div class="place">Nowy Rok 2027</div><div class="status">ŚWIĘTUJEMY!</div>';continue}renderCard(slots[k],event,event.target-now,k===0,idx+k)}
  }
+ document.addEventListener("keydown",e=>{
+   if(["ArrowLeft","ArrowRight"].includes(e.key)){
+     e.preventDefault();
+     const live=events.findIndex(event=>event.target>Date.now());
+     const base=manualIndex===null?Math.max(0,live):manualIndex;
+     manualIndex=Math.max(0,Math.min(events.length-1,base+(e.key==="ArrowRight"?1:-1)));
+     $("testMode").textContent="TRYB TESTOWY · "+(manualIndex+1)+" / "+events.length+" · HOME = CZAS NA ŻYWO";
+     tick();
+   } else if(e.key==="Home"){
+     manualIndex=null;
+     $("testMode").textContent="← / → ZMIANA STREFY · HOME POWRÓT DO CZASU NA ŻYWO";
+     lastIndex=-1;
+     tick();
+   }
+ });
  tick();setInterval(tick,250);
 })();
 </script>
