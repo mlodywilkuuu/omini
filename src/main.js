@@ -2,7 +2,7 @@ import {createInitialState} from './data/initialState.js';
 import {simulateGameDay,createGameClock} from './engine/index.js?v=2';
 import {openCountryShops,estimateCountryShopCost,shopFormats,updateShop,closeShop} from './systems/shops.js?v=5';
 import {buyShares,sellShares,takeControl,ensureShareholders,proposeBuyout,cancelBuyoutOffer,issueShares} from './systems/ownership.js?v=11';
-import {renderAll} from './ui/render.js?v=59';
+import {renderAll} from './ui/render.js?v=60';
 import {buyEmpireSystem,ensureEmpireSystems} from './systems/empire_systems.js?v=3';
 import {money,percent} from './ui/helpers.js';
 import {countries} from './data/countries.js';
