@@ -82,7 +82,7 @@ function stockLineChart(input){
 }
 function renderExchanges(s){
  ensureStockMarket(s);
- const venueCards=EXCHANGES.map(x=>{const listed=s.market.filter(c=>c.exchange===x.id);return '<button type="button" class="exchange-venue-card" data-action="select-exchange" data-exchange="'+x.id+'"><span class="exchange-venue-code">'+x.short+'</span><b>'+esc(x.name)+'</b><small>'+esc(x.city)+' · '+x.currency+'</small><strong>'+listed.length+' emitentów</strong></button>';}).join('');
+ const venueCards=EXCHANGES.map(x=>{const listed=s.market.filter(c=>c.exchange===x.id);return '<button type="button" class="exchange-venue-card" data-action="select-exchange" data-exchange="'+x.id+'"><span class="exchange-venue-code">'+x.short+'</span><b>'+esc(x.name)+'</b><small>'+esc(x.city)+' · '+esc(x.region)+'</small><strong>'+listed.length+' emitentów</strong></button>';}).join('');
  const holding=s.holdingHistory||[];
  const subsidiaries=s.companies||[];
  const subCards=subsidiaries.map(c=>'<article class="stock-entity-card"><div class="stock-entity-head"><div><b>'+esc(c.name)+'</b><small>'+esc(c.industry||'Spółka zależna')+' · '+(c.listed?'NOTOWANA':'SPÓŁKA PRYWATNA')+'</small></div><strong>'+money(c.value||0)+'</strong></div>'+stockLineChart(c.valueHistory||[c.value||0])+'</article>').join('');
