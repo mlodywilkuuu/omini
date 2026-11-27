@@ -15,7 +15,7 @@ function animate(el,target,from){
     else{el.textContent=format(target);running.delete(el);el.classList.remove('money-up','money-down');}
   };
   running.set(el,requestAnimationFrame(step));
-  const holder=el.closest('.stat');
+  const holder=el.closest('.stat,.top-cash');
   if(holder){
     holder.querySelectorAll('.money-delta').forEach(x=>x.remove());
     const pop=document.createElement('span');pop.className='money-delta '+(delta>0?'positive':'negative');
@@ -32,6 +32,6 @@ function scan(){
     previous.set(key,value);
   });
 }
-const root=document.getElementById('content');
-if(root){new MutationObserver(()=>requestAnimationFrame(scan)).observe(root,{childList:true,subtree:true});scan();}
+const root=document.body;
+if(root){new MutationObserver(()=>requestAnimationFrame(scan)).observe(root,{childList:true,subtree:true,attributes:true,attributeFilter:['data-value']});scan();}
 })();
