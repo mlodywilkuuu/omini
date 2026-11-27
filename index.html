@@ -28,15 +28,7 @@
       background: transparent;
       box-shadow: none;
     }
-    .countdown::before, .countdown::after {
-      content: "✦";
-      position: absolute;
-      color: #e8c77d;
-      opacity: .8;
-      font-size: 15px;
-    }
-    .countdown::before { top: 7px; left: 8px; font-size: 9px; }
-    .countdown::after { top: 7px; right: 8px; font-size: 9px; }
+    .countdown::before, .countdown::after { content: none; }
     .topline {
       margin: 0 0 9px;
       color: #e8c77d;
@@ -70,9 +62,9 @@
       background: linear-gradient(90deg, transparent, rgba(215,182,110,.65));
     }
     .divider::after { transform: rotate(180deg); }
-    .units { display: flex; align-items: flex-start; justify-content: center; gap: 8px; }
+    .units { display: flex; align-items: flex-start; justify-content: center; gap: 7px; }
     .unit { min-width: 0; text-align: center; }
-    .separator { color: #d6c49c; font: 18px/1 ui-sans-serif, system-ui, sans-serif; padding-top: 1px; }
+    .separator { color: #8b7447; font: 18px/1 ui-sans-serif, system-ui, sans-serif; padding-top: 1px; }
     .unit[hidden], .separator[hidden] { display: none; }
     .number {
       display: block;
@@ -163,10 +155,13 @@
 <body>
   <main class="countdown" aria-live="polite">
     <div class="units">
-      <div class="unit"><span class="number" id="days">000</span></div>
-      <div class="unit"><span class="number" id="hours">00</span></div>
-      <div class="unit"><span class="number" id="minutes">00</span></div>
-      <div class="unit"><span class="number" id="seconds">00</span></div>
+      <div class="unit" id="days-unit"><span class="number" id="days">0</span><span class="unit-label">dni</span></div>
+      <span class="separator" id="days-separator">|</span>
+      <div class="unit" id="hours-unit"><span class="number" id="hours">00</span><span class="unit-label">godz.</span></div>
+      <span class="separator" id="hours-separator">|</span>
+      <div class="unit"><span class="number" id="minutes">00</span><span class="unit-label">min</span></div>
+      <span class="separator">|</span>
+      <div class="unit"><span class="number" id="seconds">00</span><span class="unit-label">sek</span></div>
     </div>
   </main>
 
@@ -184,7 +179,11 @@
         minutes: document.getElementById("minutes"),
         seconds: document.getElementById("seconds")
       };
-      const launch = document.getElementById("launch");\n      const daysUnit = document.getElementById("days-unit");\n      const daysSeparator = document.getElementById("days-separator");
+      const launch = document.getElementById("launch");
+      const daysUnit = document.getElementById("days-unit");
+      const daysSeparator = document.getElementById("days-separator");
+      const hoursUnit = document.getElementById("hours-unit");
+      const hoursSeparator = document.getElementById("hours-separator");
       let redirected = false;
 
       function tick() {
@@ -206,6 +205,10 @@
         const minutes = Math.floor((remaining % 3600000) / 60000);
         const seconds = Math.floor((remaining % 60000) / 1000);
         fields.days.textContent = String(days);
+        daysUnit.hidden = days === 0;
+        daysSeparator.hidden = days === 0;
+        hoursUnit.hidden = days === 0;
+        hoursSeparator.hidden = days === 0;
         fields.hours.textContent = String(hours).padStart(2, "0");
         fields.minutes.textContent = String(minutes).padStart(2, "0");
         fields.seconds.textContent = String(seconds).padStart(2, "0");
