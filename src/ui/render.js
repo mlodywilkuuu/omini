@@ -5,7 +5,7 @@ import {getSupplierContracts} from '../systems/procurement.js?v=1';
 import {getB2BOffers} from '../systems/b2b.js?v=1';
 import {factoryProducts,getFactoryProduct} from '../systems/factories.js?v=6';
 import {money,percent,pageHeading,stats,card,table} from './helpers.js?v=2';
-import {DIVERSIFIED_ASSETS,EMPIRE_PROJECTS,ensureDiversifiedEmpire} from '../systems/diversified_empire.js?v=2';
+import {DIVERSIFIED_ASSETS,EMPIRE_PROJECTS,ensureDiversifiedEmpire} from '../systems/diversified_empire.js?v=3';
 import {countries} from '../data/countries.js';
 import {totalRevenue,totalCosts,assetValue,netWorth,shareAssets,dividends,operatingProfit} from '../systems/finance.js?v=14';
 import {ownershipStatus,votingPower,boardSeats} from '../systems/ownership.js?v=8';
