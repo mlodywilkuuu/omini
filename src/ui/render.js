@@ -5,7 +5,7 @@ import {getSupplierContracts} from '../systems/procurement.js?v=1';
 import {getB2BOffers} from '../systems/b2b.js?v=1';
 import {factoryProducts,getFactoryProduct} from '../systems/factories.js?v=6';
 import {money,percent,pageHeading,stats,card,table} from './helpers.js?v=2';
-import {DIVERSIFIED_ASSETS,EMPIRE_PROJECTS,ensureDiversifiedEmpire} from '../systems/diversified_empire.js?v=1';
+import {DIVERSIFIED_ASSETS,EMPIRE_PROJECTS,ensureDiversifiedEmpire} from '../systems/diversified_empire.js?v=2';
 import {countries} from '../data/countries.js';
 import {totalRevenue,totalCosts,assetValue,netWorth,shareAssets,dividends,operatingProfit} from '../systems/finance.js?v=14';
 import {ownershipStatus,votingPower,boardSeats} from '../systems/ownership.js?v=8';
@@ -88,7 +88,7 @@ function renderExchanges(s){
  const subCards=subsidiaries.map(c=>'<article class="stock-entity-card"><div class="stock-entity-head"><div><b>'+esc(c.name)+'</b><small>'+esc(c.industry||'Spółka zależna')+' · '+(c.listed?'NOTOWANA':'SPÓŁKA PRYWATNA')+'</small></div><strong>'+money(c.value||0)+'</strong></div>'+stockLineChart(c.valueHistory||[c.value||0])+'</article>').join('');
  const total=holdingMarketValue(s);
  const panel=el('page-exchanges');if(!panel)return;
- panel.innerHTML=pageHeading('GLOBAL EXCHANGE NETWORK','Giełdy i wykresy','Śledź wycenę Wilk Investments, spółek zależnych i notowanych emitentów. Kursy aktualizują się po każdym dniu symulacji.')+stats([['Wycena holdingu',money(total)],['Giełdy',EXCHANGES.length],['Spółki zależne',subsidiaries.length],['Notowani emitenci',s.market.length]])+card('Wilk Investments','WARTOŚĆ GRUPY KAPITAŁOWEJ','<div class="stock-entity-head"><div><b>Wilk Investments</b><small>Wycena całego holdingu · gotówka, spółki i posiadane pakiety</small></div><strong>'+money(total)+'</strong></div>'+stockLineChart(holding.length?holding:[{value:total}]))+card('Giełdy światowe',EXCHANGES.length+' AKTYWNYCH PARKIETÓW','<div class="exchange-venue-grid">'+venueCards+'</div>')+card('Notowania spółek córek','PORTFEL WŁASNY · '+subsidiaries.length+' SPÓŁEK','<div class="stock-entity-grid">'+(subCards||'<div class="empty">Załóż lub przejmij spółkę, aby pojawiła się tutaj jej historia wyceny.</div>')+'</div>');
+ panel.innerHTML=pageHeading('GLOBAL EXCHANGE NETWORK','Giełdy i wykresy','Śledź wycenę Wilk Investments, spółek zależnych i notowanych emitentów. Kursy aktualizują się po każdym dniu symulacji. Wyceny prezentowane są w PLN.')+stats([['Wycena holdingu',money(total)],['Giełdy',EXCHANGES.length],['Spółki zależne',subsidiaries.length],['Notowani emitenci',s.market.length]])+card('Wilk Investments','WARTOŚĆ GRUPY KAPITAŁOWEJ','<div class="stock-entity-head"><div><b>Wilk Investments</b><small>Wycena całego holdingu · gotówka, spółki i posiadane pakiety</small></div><strong>'+money(total)+'</strong></div>'+stockLineChart(holding.length?holding:[{value:total}]))+card('Giełdy światowe',EXCHANGES.length+' AKTYWNYCH PARKIETÓW','<div class="exchange-venue-grid">'+venueCards+'</div>')+card('Notowania spółek córek','PORTFEL WŁASNY · '+subsidiaries.length+' SPÓŁEK','<div class="stock-entity-grid">'+(subCards||'<div class="empty">Załóż lub przejmij spółkę, aby pojawiła się tutaj jej historia wyceny.</div>')+'</div>');
 }
 function renderMarket(s){
  ensureStockMarket(s);
