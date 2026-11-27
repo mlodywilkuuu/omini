@@ -3,7 +3,7 @@ import {applyInitiativesDaily} from '../systems/initiatives.js?v=5';
 import {advanceMarketDay} from './market.js?v=1';
 import {assertGameInvariants} from './invariants.js?v=1';
 import {processEmpireSystemsDay} from '../systems/empire_systems.js?v=4';
-import {processDiversifiedEmpireDay} from '../systems/diversified_empire.js?v=3';
+import {processDiversifiedEmpireDay} from '../systems/diversified_empire.js?v=4';
 import {processStrategicEventsDay} from '../systems/strategic_events.js?v=2';
 import {advanceStockMarketDay} from '../systems/stock_market.js?v=2';
 
