@@ -5,6 +5,7 @@ import {assertGameInvariants} from './invariants.js?v=1';
 import {processEmpireSystemsDay} from '../systems/empire_systems.js?v=4';
 import {processDiversifiedEmpireDay} from '../systems/diversified_empire.js?v=1';
 import {processStrategicEventsDay} from '../systems/strategic_events.js?v=2';
+import {advanceStockMarketDay} from '../systems/stock_market.js?v=1';
 
 export function simulateGameDay(state){
  state.day=Math.max(1,Math.floor(Number(state.day)||1))+1;
@@ -14,6 +15,7 @@ export function simulateGameDay(state){
  const strategicEvents=processStrategicEventsDay(state);
  const initiatives=applyInitiativesDaily(state);
  const market=advanceMarketDay(state);
+ const stockMarket=advanceStockMarketDay(state);
  assertGameInvariants(state);
  state.cashHistory??=[];
  state.cashHistory.push(Number(state.cash)||0);
@@ -22,5 +24,5 @@ export function simulateGameDay(state){
  state.engineStats.daysProcessed++;
  state.engineStats.lastProcessedDay=state.day;
  state.engineStats.totalMarketCompanies=market.companies;
- return {finances,empireSystems,diversifiedEmpire,strategicEvents,initiatives,market};
+ return {finances,empireSystems,diversifiedEmpire,strategicEvents,initiatives,market,stockMarket};
 }
