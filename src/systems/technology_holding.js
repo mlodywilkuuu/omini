@@ -91,7 +91,7 @@ export function ensureTechnologyCompanies(state){
   c.techProducts=Array.isArray(c.techProducts)?c.techProducts:[];
   c.autoHire=c.autoHire!==false;c.autoProductDevelopment=c.autoProductDevelopment!==false;c.autoDevelopment=c.autoDevelopment!==false;
   if(c.parentCompanyId!=null){c.autoHire=c.autoHire!==false;c.autoProductDevelopment=c.autoProductDevelopment!==false;c.autoDevelopment=c.autoDevelopment!==false;}
-  c.techProducts.forEach(p=>{p.staffAssigned=Number.isFinite(Number(p.staffAssigned))?Math.max(0,Math.floor(Number(p.staffAssigned))):Math.floor(c.techStaff/Math.max(1,c.techProducts.length));p.developmentBudget=Math.max(0,Number(p.developmentBudget)||0);p.autoUpdate=p.autoUpdate!==false;});
+  c.techProducts.forEach(p=>{p.staffAssigned=Number.isFinite(Number(p.staffAssigned))?Math.max(0,Math.floor(Number(p.staffAssigned))):Math.floor(c.techStaff/Math.max(1,c.techProducts.length));p.developmentBudget=Math.max(0,Number(p.developmentBudget)||0);p.autoUpdate=p.autoUpdate!==false;p.productionEnabled=p.productionEnabled!==false;});
   c.techResearchLevel=Math.max(1,Number(c.techResearchLevel)||1);
  }
  return state.companies;
@@ -138,7 +138,7 @@ export function createTechnologyProduct(state,companyId,{name,price}={}){
  if(state.cash<developmentCost)throw new Error('Opracowanie produktu kosztuje '+developmentCost.toLocaleString('pl-PL')+' zł.');
  state.cash-=developmentCost;
  const product={id:state.nextId++,name:productName,focus:focus.id,category:focus.name,price:sellPrice,unitCost:Math.max(1,Math.round(sellPrice*(1-focus.margin))),level:1,createdDay:state.day,unitsSold:0,revenue:0};
- product.staffAssigned=Math.min(2,Math.max(0,c.techStaff-c.techProducts.reduce((n,p)=>n+(Number(p.staffAssigned)||0),0)));product.developmentBudget=0;product.autoUpdate=true;
+ product.staffAssigned=Math.min(2,Math.max(0,c.techStaff-c.techProducts.reduce((n,p)=>n+(Number(p.staffAssigned)||0),0)));product.developmentBudget=0;product.autoUpdate=true;product.productionEnabled=true;
  c.techProducts.push(product);
  c.value=(Number(c.value)||50000)+developmentCost;
  return {company:c,product,cost:developmentCost};
@@ -197,7 +197,7 @@ function autoDevelopCompany(state,company,dayStats){
   const duplicateIndex=products.length,productName=autoProductName(company,focus,duplicateIndex),price=Math.round(focus.basePrice*(1+Math.min(1,(Number(company.techResearchLevel)||1)*.08)));
   const developmentCost=Math.max(30000,Math.round(price*125));
   if(spendCompanyDevelopment(state,company,developmentCost)){
-   const product={id:state.nextId++,name:productName,focus:focus.id,category:focus.name,price,unitCost:Math.max(1,Math.round(price*(1-focus.margin))),level:1,createdDay:state.day,unitsSold:0,revenue:0,autoCreated:true,staffAssigned:Math.min(2,Math.max(0,company.techStaff-products.reduce((n,p)=>n+(Number(p.staffAssigned)||0),0))),developmentBudget:0,autoUpdate:true};
+   const product={id:state.nextId++,name:productName,focus:focus.id,category:focus.name,price,unitCost:Math.max(1,Math.round(price*(1-focus.margin))),level:1,createdDay:state.day,unitsSold:0,revenue:0,autoCreated:true,staffAssigned:Math.min(2,Math.max(0,company.techStaff-products.reduce((n,p)=>n+(Number(p.staffAssigned)||0),0))),developmentBudget:0,autoUpdate:true,productionEnabled:true};
    products.push(product);company.value=(Number(company.value)||50000)+developmentCost;company.lastAutoProductDay=state.day;
    dayStats.products++;dayStats.investment+=developmentCost;
    state.events??=[];state.events.unshift({icon:'🚀',title:'Nowy produkt opracowany przez spółkę',detail:company.name+' wprowadza '+product.name+'.',day:state.day});
@@ -229,6 +229,7 @@ export function processTechnologyCompaniesDay(state){
   const payroll=staff*260;
   cost+=payroll;
   for(const p of products){
+   if(p.productionEnabled===false){p.unitsSold=0;p.revenue=0;continue;}
    const focusMatch=p.focus===c.techFocus?1.25:1;
    const assigned=Math.max(0,Math.floor(Number(p.staffAssigned)||0));const effectiveStaff=Number.isFinite(Number(p.staffAssigned))?assigned:staff;
    const capacity=Math.max(0,Math.floor(effectiveStaff*3*focusMatch*(1+(c.techResearchLevel-1)*.12)*(1+((Number(p.level)||1)-1)*.035)));
