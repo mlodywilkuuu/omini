@@ -39,3 +39,22 @@ document.querySelector('#santa-hello')?.addEventListener('click',()=>{
   document.querySelector('#modal-copy').textContent='Miło Cię widzieć! Elfy pracują w warsztacie, renifery odpoczywają w stajni, a ja sprawdzam listę prezentów. Kliknij miejsca na mapie i pomóż nam przygotować święta!';
   modal.classList.add('open');modal.setAttribute('aria-hidden','false');
 });
+
+
+// Odliczanie do Wigilii — aktualizowane co sekundę.
+const countdownNode=document.querySelector('#christmas-countdown');
+function updateChristmasCountdown(){
+  if(!countdownNode)return;
+  const now=new Date();
+  let target=new Date(now.getFullYear(),11,24,0,0,0);
+  if(now>=target)target=new Date(now.getFullYear()+1,11,24,0,0,0);
+  let remaining=Math.max(0,target-now);
+  const days=Math.floor(remaining/86400000);remaining%=86400000;
+  const hours=Math.floor(remaining/3600000);remaining%=3600000;
+  const minutes=Math.floor(remaining/60000);remaining%=60000;
+  const seconds=Math.floor(remaining/1000);
+  const values=[days,hours,minutes,seconds];
+  countdownNode.querySelectorAll('span b').forEach((node,index)=>node.textContent=String(values[index]).padStart(index===0?1:2,'0'));
+}
+updateChristmasCountdown();
+setInterval(updateChristmasCountdown,1000);
