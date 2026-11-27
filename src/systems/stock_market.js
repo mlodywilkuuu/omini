@@ -77,3 +77,40 @@ export function advanceStockMarketDay(state){
  state.holdingHistory=state.holdingHistory.slice(-90);
  return {holdingValue:holdingMarketValue(state),listed:state.market.length,subsidiaries:state.companies.length};
 }
+
+const liveClamp=(value,min,max)=>Math.max(min,Math.min(max,value));
+export function tickStockMarket(state){
+ ensureStockMarket(state);
+ const tick=(entity,volatility,drift=0)=>{
+  const previous=Math.max(10000,Number(entity.value)||10000);
+  const momentum=Number(entity.momentum)||0;
+  const change=liveClamp(drift+momentum*.12+(Math.random()-.5)*volatility,-volatility*.9,volatility*.9);
+  entity.value=Math.max(10000,Math.round(previous*(1+change)/100)*100);
+  entity.changePercent=(entity.value/previous-1)*100;
+  entity.momentum=liveClamp(momentum*.72+change,-.012,.012);
+  entity.intradayHistory??=[previous];
+  entity.intradayHistory.push(entity.value);
+  entity.intradayHistory=entity.intradayHistory.slice(-120);
+ };
+ const listedIds=new Set();
+ for(const stock of state.market||[]){
+  tick(stock,.00115,((Number(stock.eps)||2)/(Number(stock.pe)||15)-.12)*.00008);
+  if(stock.sourceCompanyId){
+   listedIds.add(Number(stock.sourceCompanyId));
+   const child=state.companies.find(c=>Number(c.id)===Number(stock.sourceCompanyId));
+   if(child){child.value=stock.value;child.changePercent=stock.changePercent;child.intradayHistory=stock.intradayHistory.slice();}
+  }
+ }
+ for(const company of state.companies||[]){
+  if(listedIds.has(Number(company.id)))continue;
+  const staff=Math.max(0,Number(company.techStaff??company.employees)||0);
+  const products=(company.techProducts||[]).length;
+  const growth=Math.min(.00018,products*.000012+Math.min(staff,100)*.000001);
+  tick(company,.0007,growth);
+ }
+ state.holdingIntradayHistory??=[holdingMarketValue(state)];
+ state.holdingIntradayHistory.push(holdingMarketValue(state));
+ state.holdingIntradayHistory=state.holdingIntradayHistory.slice(-120);
+ state.marketLastTick=Date.now();
+ return {quotes:(state.market||[]).length,subsidiaries:(state.companies||[]).length};
+}
