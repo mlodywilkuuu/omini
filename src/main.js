@@ -1,5 +1,5 @@
 import {createInitialState} from './data/initialState.js';
-import {simulateGameDay,createGameClock} from './engine/index.js?v=2';
+import {simulateGameDay,createGameClock} from './engine/index.js?v=3';
 import {openCountryShops,estimateCountryShopCost,shopFormats,updateShop,closeShop} from './systems/shops.js?v=5';
 import {buyShares,sellShares,takeControl,ensureShareholders,proposeBuyout,cancelBuyoutOffer,issueShares} from './systems/ownership.js?v=11';
 import {renderAll} from './ui/render.js?v=60';
