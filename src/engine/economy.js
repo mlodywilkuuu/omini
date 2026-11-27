@@ -1,4 +1,4 @@
-import {closeBusinessDay} from '../systems/finance.js?v=16';
+import {closeBusinessDay} from '../systems/finance.js?v=17';
 import {applyInitiativesDaily} from '../systems/initiatives.js?v=5';
 import {advanceMarketDay} from './market.js?v=1';
 import {assertGameInvariants} from './invariants.js?v=1';
