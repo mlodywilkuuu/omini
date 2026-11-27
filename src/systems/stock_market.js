@@ -18,7 +18,7 @@ const clamp=(n,min,max)=>Math.max(min,Math.min(max,n));
 export function ensureStockMarket(state){
  state.market??=[];
  state.companies??=[];
- state.holdingHistory??=[{day:Math.max(1,Number(state.day)||1),value:Math.max(0,Number(state.cash)||0)}];
+ state.holdingHistory??=[{day:Math.max(1,Number(state.day)||1),value:holdingMarketValue(state)}];
  state.selectedExchange??="ALL";
  for(const company of state.market){
   company.exchange??=pickExchange(company);
@@ -34,8 +34,8 @@ export function ensureStockMarket(state){
 }
 export function holdingMarketValue(state){
  const cash=Math.max(0,Number(state.cash)||0);
- const companies=(state.companies||[]).reduce((sum,c)=>sum+Math.max(0,Number(c.value)||0),0);
- const shares=(state.market||[]).reduce((sum,c)=>sum+Math.max(0,Number(c.value)||0)*clamp(Number(c.share)||0,0,100)/100,0);
+ const companies=(state.companies||[]).reduce((sum,c)=>sum+Math.max(0,Number(c.value)||0)*clamp(c.share===undefined?100:Number(c.share)||0,0,100)/100,0);
+ const shares=(state.market||[]).filter(c=>!c.sourceCompanyId).reduce((sum,c)=>sum+Math.max(0,Number(c.value)||0)*clamp(Number(c.share)||0,0,100)/100,0);
  const shops=(state.shops||[]).reduce((sum,s)=>sum+Math.max(0,Number(s.value)||Number(s.purchaseCost)||0),0);
  const factories=(state.factories||[]).reduce((sum,f)=>sum+Math.max(0,Number(f.value)||Number(f.buildCost)||0),0);
  return Math.round(cash+companies+shares+shops+factories);
