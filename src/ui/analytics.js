@@ -48,7 +48,7 @@ export function buildFinanceAnalytics(s){
    metric('Wynagrodzenia zarządu',money(executiveCosts),'Dzienny koszt zatrudnionych dyrektorów'),
    metric('Raty kredytów',money(loanInstallments),'Suma dziennych rat aktywnych kredytów'),
    metric('Łączne obciążenia dzienne',money(totalCosts),'Suma kosztów i rat uwzględnionych w analizie'),
-   metric('Koszty jako część wpływów',pct(totalRevenue?totalCosts/totalRevenue*100:0),'Relacja kosztów do wszystkich wykazanych wpływów')
+   metric('Automatyczne inwestycje rozwojowe',money(s.techInvestment),'Dzienne wydatki na rekrutację, nowe produkty i automatyczne ulepszenia')
   ]),
   panel('Rentowność i płynność','10 wskaźników · kondycja finansowa',[
    metric('Wynik dzienny przed dywidendami',money(dailyResult-dividendIncome),'Wpływy operacyjne minus wykazane koszty'),

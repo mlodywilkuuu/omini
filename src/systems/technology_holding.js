@@ -226,6 +226,11 @@ export function processTechnologyCompaniesDay(state){
   autoDevelopCompany(state,c,automation);
   const staff=c.techStaff||0,products=c.techProducts||[];
   if(!staff&&!products.length)continue;
+  const activeProducts=products.filter(p=>p.productionEnabled!==false);
+  if(activeProducts.length){
+   const baseAssignment=Math.floor(staff/activeProducts.length),extraAssignments=staff%activeProducts.length;
+   activeProducts.forEach((p,index)=>{p.staffAssigned=baseAssignment+(index<extraAssignments?1:0);});
+  }
   const payroll=staff*260;
   cost+=payroll;
   for(const p of products){
@@ -243,7 +248,7 @@ export function processTechnologyCompaniesDay(state){
   c.lastDailyRevenue=products.reduce((n,p)=>n+(Number(p.revenue)||0),0);
   c.lastDailyCosts=payroll+products.reduce((n,p)=>n+(Number(p.unitsSold)||0)*(Number(p.unitCost)||0),0);
  }
- state.techRevenue=revenue;state.techCost=cost;
+ state.techRevenue=revenue;state.techCost=cost;state.techInvestment=automation.investment;
  state.techAutomationStats=automation;
  state.events=Array.isArray(state.events)?state.events.slice(0,20):[];
  return {revenue,cost,units,automation,automaticResearch};
