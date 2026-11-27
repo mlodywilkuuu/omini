@@ -83,9 +83,10 @@ function worldMap(s){
   +'<div class="world-section"><div class="section-title"><div><span class="eyebrow">GLOBAL MARKETS</span><h2>Wszystkie państwa</h2></div><span class="muted">'+countries.length+' rynków do wyboru</span></div><div class="country-grid">'+countriesHtml+'</div></div>';
 }
 function renderFinance(s){
- const revenue=totalRevenue(s),cost=totalCosts(s),profit=operatingProfit(s),dividendIncome=dividends(s);
- const groups=buildFinanceAnalytics(s);
- const summary=stats([['Wpływy dzienne',money(revenue+dividendIncome+Number(s.factoryRevenue||0)+Number(s.diversifiedRevenue||0))],['Wydatki dzienne',money(cost+Number(s.factoryCost||0)+Number(s.diversifiedCosts||0))],['Wynik operacyjny',money(profit+dividendIncome)],['Majątek netto',money(netWorth(s))]]);
+ const groups=buildFinanceAnalytics(s),shops=s.shops||[],market=s.market||[];
+ const totalIncome=Number(s.techRevenue||0)+shops.reduce((n,x)=>n+(Number(x.revenue)||0),0)+Number(s.factoryRevenue||0)+Number(s.diversifiedRevenue||0)+dividends(s)+(s.b2bContracts||[]).reduce((n,x)=>n+(Number(x.dailyRevenue)||0),0)+(s.activeStrategicDeals||[]).reduce((n,x)=>n+(Number(x.dailyBonus)||0),0);
+ const totalOut=Number(s.techCost||0)+shops.reduce((n,x)=>n+(Number(x.cost)||0),0)+Number(s.factoryCost||0)+Number(s.diversifiedCosts||0)+(s.b2bContracts||[]).reduce((n,x)=>n+(Number(x.dailyCost)||0),0)+(s.marketingCampaigns||[]).reduce((n,x)=>n+(Number(x.dailyBudget)||0),0)+(s.executives||[]).reduce((n,x)=>n+(Number(x.salary)||0),0)+(s.loans||[]).reduce((n,x)=>n+(Number(x.installment)||0),0);
+ const summary=stats([['Wpływy dzienne',money(totalIncome)],['Wydatki dzienne',money(totalOut)],['Wynik operacyjny',money(totalIncome-totalOut)],['Majątek netto',money(netWorth(s))]]);
  if(el('page-finance'))el('page-finance').innerHTML=pageHeading('FINANCIAL CONTROL CENTER','Finanse imperium','Pełny pulpit finansowy: źródła przychodów, koszty, rentowność, płynność, kapitał i giełda. Wartości są wyliczane na bieżąco z aktualnego stanu rozgrywki.')+summary+'<div class="analytics-intro"><div><b>40 wskaźników finansowych</b><span>4 obszary · 10 mierników w każdym · aktualizacja przy każdym odświeżeniu gry</span></div><span class="tag">LIVE FINANCE</span></div>'+renderAnalyticsGroups(groups);
 }
 
